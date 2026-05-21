@@ -240,6 +240,7 @@
       <span class="logo-text">Fire<span>Path</span> <span class="pro-badge">Pro</span></span>
     </div>
     <p class="tagline">Know your number. Light your path on Fire.</p>
+    <div id="userStatus" style="margin-top:8px;font-size:12px;color:var(--soft-grey)"></div>
   </div>
 
   <!-- SCREEN 1 — Persona -->
@@ -525,13 +526,99 @@
   let isContextListening = false;
   let recognition = null;
   let contextRecognition = null;
+  const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
+
   let transcriptText = '';
   let calcData = {};
   let checkinHistory = [];
   let streak = 0;
   let storedCalc = {};
 
-  // ── Read aloud ─────────────────────────
+  // ── Auth helpers ───────────────────────
+  const fpToken  = localStorage.getItem('fp_access_token');
+  const fpUserId = localStorage.getItem('fp_user_id');
+  const fpGuest  = localStorage.getItem('fp_guest');
+
+  // Load saved persona if logged in
+  const savedPersona = localStorage.getItem('fp_persona');
+
+  // ── Database helpers ───────────────────
+  async function dbInsert(table, data) {
+    if (!fpToken || !fpUserId) return;
+    try {
+      await fetch(`${WORKER_URL}/db/${table}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${fpToken}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ ...data, user_id: fpUserId })
+      });
+    } catch (e) { console.log('DB save failed silently', e); }
+  }
+
+  async function savePersonaToDB(personaValue) {
+    if (!fpToken || !fpUserId) return;
+    try {
+      // Upsert user record with persona
+      await fetch(`${WORKER_URL}/db/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${fpToken}`,
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          id: fpUserId,
+          email: localStorage.getItem('fp_email') || '',
+          persona: personaValue
+        })
+      });
+      localStorage.setItem('fp_persona', personaValue);
+    } catch (e) { console.log('Persona save failed silently', e); }
+  }
+
+  async function loadCheckinHistory() {
+    if (!fpToken || !fpUserId) return;
+    try {
+      const res = await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`, {
+        headers: { 'Authorization': `Bearer ${fpToken}` }
+      });
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        checkinHistory = data.map(d => ({
+          month: new Date(d.created_at).toLocaleString('default', { month: 'short', year: 'numeric' }),
+          savings: d.savings_total,
+          sRate: d.savings_rate,
+          diff: null
+        }));
+        streak = data.length;
+        document.getElementById('accStreak').textContent = streak + ' 🔥';
+        renderHistory();
+      }
+    } catch (e) { console.log('History load failed silently', e); }
+  }
+
+  // ── User status on load ────────────────
+  const userStatusEl = document.getElementById('userStatus');
+  if (fpToken && localStorage.getItem('fp_email')) {
+    const email = localStorage.getItem('fp_email');
+    userStatusEl.innerHTML = `Signed in as ${email} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;
+  } else if (fpGuest) {
+    userStatusEl.innerHTML = `Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;
+  } else {
+    userStatusEl.innerHTML = `<a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save your progress →</a>`;
+  }
+
+  function signOut() {
+    localStorage.removeItem('fp_access_token');
+    localStorage.removeItem('fp_user_id');
+    localStorage.removeItem('fp_email');
+    localStorage.removeItem('fp_persona');
+    localStorage.removeItem('fp_guest');
+    window.location.href = 'auth.html';
+  }
   function readResultsAloud() {
     if (!('speechSynthesis' in window)) { alert('Text-to-speech is not supported in this browser.'); return; }
     window.speechSynthesis.cancel();
@@ -551,6 +638,17 @@
     document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     persona = el.dataset.persona;
+    document.getElementById('continueBtn').disabled = false;
+    savePersonaToDB(persona);
+  }
+
+  // Auto-skip persona screen for returning logged-in users
+  if (savedPersona) {
+    persona = savedPersona;
+    // Pre-select the right card
+    document.querySelectorAll('.persona-card').forEach(c => {
+      if (c.dataset.persona === savedPersona) c.classList.add('selected');
+    });
     document.getElementById('continueBtn').disabled = false;
   }
 
@@ -1030,6 +1128,25 @@
 
       document.getElementById('aiLoading').classList.remove('visible');
       document.getElementById('analyseBtn').style.display = 'block';
+
+      // Save calculation to database
+      const ageGroup = !age ? 'unknown' : age < 40 ? 'young' : age < 55 ? 'mid' : 'senior';
+      await dbInsert('calculations', {
+        income_monthly: Math.round(mIncome),
+        savings_rate: sRate,
+        current_savings: savings,
+        super_balance: superBal || 0,
+        freedom_number: Math.round(fireNum),
+        freedom_years: freedomYears ? Math.round(freedomYears * 10) / 10 : null,
+        property_mentioned: propEquity > 0,
+        renting_mentioned: isRenting,
+        caring_mentioned: /care|caring|carer|elderly|father|mother|parent/i.test(context),
+        age_group: ageGroup
+      });
+
+      // Load check-in history from DB
+      await loadCheckinHistory();
+
       showScreen(3);
 
     } catch (err) {
@@ -1110,6 +1227,14 @@
     else                          { dot.querySelector('.dot').className = 'dot amber'; text.textContent = 'Steady 🟡'; }
 
     if (diff && diff > 0) showMilestone(diff, pct);
+
+    // Save checkin to database
+    await dbInsert('checkins', {
+      savings_total: newSavings,
+      savings_rate: Math.round(newRate),
+      freedom_years: newY07 ? Math.round(newY07 * 10) / 10 : null,
+      streak: streak
+    });
 
     const month = new Date().toLocaleString('default', { month: 'short', year: 'numeric' });
     checkinHistory.unshift({ month, diff, savings: newSavings, sRate: newRate });
