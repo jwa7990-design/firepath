@@ -322,7 +322,7 @@
 
         <div class="input-group">
           <label class="input-label" id="savingsLabel" for="savings">Current savings &amp; investments</label>
-          <div class="input-hint" id="savingsHint">e.g. bank savings, Pearler, shares, ETFs</div>
+          <div class="input-hint" id="savingsHint">e.g. bank savings, shares, ETFs — or your mortgage offset/ahead amount if you have one</div>
           <div class="input-wrapper">
             <span class="input-prefix">$</span>
             <input type="number" id="savings" placeholder="0" min="0"/>
@@ -411,6 +411,9 @@
             <span class="stat-name" id="stat3label">Saved / month</span>
           </div>
         </div>
+        <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
+          🔊 Read my results aloud
+        </button>
       </div>
 
       <!-- Super result -->
@@ -428,6 +431,9 @@
       <!-- Compare -->
       <div class="compare-card">
         <p class="compare-title">💡 What if your savings worked harder?</p>
+        <div style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--warm-brown);line-height:1.6;font-weight:300;">
+          💬 <strong>Why does this matter?</strong> A bank typically pays ~5% interest but inflation runs at ~4.25% — leaving a <strong>real return of just 0.75%</strong>. Meanwhile, diversified investments have historically returned ~7% after inflation. That gap compounds dramatically over time.
+        </div>
         <div class="compare-row">
           <span class="compare-label">
             Saving in a bank (0.75% after inflation)
@@ -524,6 +530,21 @@
   let checkinHistory = [];
   let streak = 0;
   let storedCalc = {};
+
+  // ── Read aloud ─────────────────────────
+  function readResultsAloud() {
+    if (!('speechSynthesis' in window)) { alert('Text-to-speech is not supported in this browser.'); return; }
+    window.speechSynthesis.cancel();
+    const years    = document.getElementById('yearsOut').textContent;
+    const sub      = document.getElementById('resultSub').textContent;
+    const insight  = document.getElementById('aiInsightText').textContent.replace(/[🧠🏠💰✂️🏡📈🏦]/g, '');
+    const text     = `Your FirePath result. You could be free in ${years}. ${sub}. ${insight}`;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-AU';
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
+  }
 
   // ── Persona ────────────────────────────
   function selectPersona(el) {
@@ -635,6 +656,8 @@
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SR();
     recognition.continuous = true; recognition.interimResults = true; recognition.lang = 'en-AU';
+    recognition.maxAlternatives = 1;
+    let silenceTimer = null;
     recognition.onstart = () => {
       isListening = true;
       document.getElementById('micBtn').classList.add('listening');
@@ -647,6 +670,9 @@
       for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
       transcriptText = t;
       document.getElementById('transcriptBox').textContent = t || '...';
+      // Reset silence timer on each result — keeps listening during natural pauses
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => { if (isListening) recognition.stop(); }, 4000);
     };
     recognition.onend = () => {
       isListening = false;
