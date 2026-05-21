@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FirePath Pro — AI-powered financial independence</title>
+  <meta name="description" content="FirePath Pro understands your life, not just your numbers. AI insights, voice input, scenario modelling and monthly accountability. $6/month."/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --fire-orange: #F4622A;
+      --fire-amber:  #F9A825;
+      --warm-cream:  #FDF6EE;
+      --warm-brown:  #3D2B1F;
+      --soft-grey:   #9E8E85;
+      --border:      #EDE3DA;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: rgba(253,246,238,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 100;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--warm-brown); text-decoration: none; }
+    .nav-logo span { color: var(--fire-orange); }
+    .nav-links { display: flex; align-items: center; gap: 16px; }
+    .nav-link { font-size: 14px; color: var(--soft-grey); text-decoration: none; font-weight: 500; }
+    .nav-link:hover { color: var(--warm-brown); }
+    .nav-cta { background: var(--fire-orange); color: white; padding: 9px 20px; border-radius: 20px; font-size: 14px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+    .nav-cta:hover { background: #e05520; }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 120px 24px 80px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before { content: ''; position: absolute; top: -100px; right: -100px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(244,98,42,0.12) 0%, transparent 70%); pointer-events: none; }
+    .pro-badge { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; font-size: 12px; font-weight: 700; padding: 6px 16px; border-radius: 20px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 24px; animation: fadeUp 0.5s ease both; }
+    .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(36px, 7vw, 68px); font-weight: 700; line-height: 1.1; margin-bottom: 24px; max-width: 800px; animation: fadeUp 0.5s ease 0.1s both; }
+    .hero-title span { color: var(--fire-orange); }
+    .hero-sub { font-size: clamp(16px, 2.5vw, 20px); color: var(--soft-grey); font-weight: 300; line-height: 1.7; max-width: 560px; margin-bottom: 16px; animation: fadeUp 0.5s ease 0.2s both; }
+    .coffee-line { font-size: 18px; color: var(--warm-brown); font-weight: 500; margin-bottom: 40px; animation: fadeUp 0.5s ease 0.25s both; }
+    .coffee-line span { color: var(--fire-orange); }
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; animation: fadeUp 0.5s ease 0.3s both; }
+    .btn-primary { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; padding: 18px 36px; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 500; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 20px rgba(244,98,42,0.3); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(244,98,42,0.4); }
+    .btn-secondary { background: white; color: var(--warm-brown); padding: 18px 36px; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 500; text-decoration: none; transition: all 0.2s; border: 1.5px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
+
+    /* ── AI Demo ── */
+    .demo-section { padding: 80px 24px; max-width: 860px; margin: 0 auto; }
+    .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fire-orange); margin-bottom: 16px; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 5vw, 44px); font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
+    .section-sub { font-size: 17px; color: var(--soft-grey); font-weight: 300; line-height: 1.7; max-width: 600px; margin-bottom: 48px; }
+
+    .demo-card { background: white; border: 1px solid var(--border); border-radius: 24px; overflow: hidden; box-shadow: 0 8px 40px rgba(61,43,31,0.08); }
+    .demo-input { background: var(--warm-cream); padding: 28px 32px; border-bottom: 1px solid var(--border); }
+    .demo-input-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 12px; }
+    .demo-speech-bubble { background: white; border: 1.5px solid var(--border); border-radius: 16px; padding: 16px 20px; font-size: 15px; color: var(--warm-brown); line-height: 1.6; font-style: italic; position: relative; }
+    .demo-speech-bubble::before { content: '🎤'; position: absolute; top: -12px; left: 20px; background: white; padding: 0 4px; font-size: 16px; }
+
+    .demo-output { padding: 28px 32px; }
+    .demo-output-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+    .demo-result-card { background: linear-gradient(135deg, #3D2B1F, #5C3D2E); border-radius: 16px; padding: 24px; color: white; margin-bottom: 16px; }
+    .demo-result-headline { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+    .demo-result-headline span { color: var(--fire-amber); }
+    .demo-result-sub { font-size: 13px; opacity: 0.6; font-weight: 300; }
+    .demo-insight { background: white; border: 2px solid var(--fire-orange); border-radius: 14px; padding: 20px; margin-bottom: 12px; }
+    .demo-insight-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
+    .demo-insight-text { font-size: 14px; color: var(--warm-brown); line-height: 1.7; font-weight: 300; }
+    .demo-insight-text strong { font-weight: 500; }
+    .demo-scenario { background: var(--warm-cream); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 8px; }
+    .demo-scenario-title { font-size: 11px; font-weight: 700; color: var(--fire-orange); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .demo-scenario-text { font-size: 13px; color: var(--warm-brown); line-height: 1.6; font-weight: 300; }
+    .demo-scenario-text strong { font-weight: 600; }
+
+    /* ── Features ── */
+    .features-section { background: white; padding: 80px 24px; }
+    .features-inner { max-width: 900px; margin: 0 auto; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 48px; }
+    .feature-card { border: 1.5px solid var(--border); border-radius: 20px; padding: 28px; transition: all 0.2s; background: var(--warm-cream); }
+    .feature-card:hover { border-color: var(--fire-orange); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(244,98,42,0.1); }
+    .feature-icon { font-size: 32px; margin-bottom: 14px; display: block; }
+    .feature-title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+    .feature-desc { font-size: 13px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; }
+
+    /* ── Comparison ── */
+    .comparison-section { padding: 80px 24px; max-width: 860px; margin: 0 auto; }
+    .compare-table { background: white; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-top: 48px; }
+    .compare-header { display: grid; grid-template-columns: 2fr 1fr 1fr; background: var(--warm-cream); border-bottom: 1px solid var(--border); }
+    .compare-header-cell { padding: 16px 20px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--soft-grey); }
+    .compare-header-cell.pro { color: var(--fire-orange); background: rgba(244,98,42,0.06); }
+    .compare-row { display: grid; grid-template-columns: 2fr 1fr 1fr; border-bottom: 1px solid var(--border); }
+    .compare-row:last-child { border-bottom: none; }
+    .compare-cell { padding: 14px 20px; font-size: 14px; display: flex; align-items: center; }
+    .compare-cell.feature { color: var(--warm-brown); font-weight: 400; }
+    .compare-cell.pro { background: rgba(244,98,42,0.04); justify-content: center; font-size: 18px; }
+    .compare-cell.free { justify-content: center; font-size: 18px; }
+
+    /* ── Testimonial ── */
+    .testimonial-section { background: linear-gradient(135deg, #3D2B1F, #5C3D2E); color: white; padding: 80px 24px; text-align: center; }
+    .testimonial-inner { max-width: 700px; margin: 0 auto; }
+    .testimonial-quote { font-family: 'Playfair Display', serif; font-size: clamp(24px, 4vw, 38px); font-weight: 700; line-height: 1.4; margin-bottom: 24px; }
+    .testimonial-quote span { color: var(--fire-amber); }
+    .testimonial-attribution { font-size: 14px; opacity: 0.6; font-weight: 300; margin-bottom: 48px; }
+    .testimonial-sub { font-size: 17px; opacity: 0.8; font-weight: 300; line-height: 1.7; }
+
+    /* ── Pricing ── */
+    .pricing-section { padding: 80px 24px; max-width: 860px; margin: 0 auto; text-align: center; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 48px; }
+    .pricing-card { background: white; border: 1.5px solid var(--border); border-radius: 24px; padding: 36px 32px; text-align: left; position: relative; }
+    .pricing-card.pro { border-color: var(--fire-orange); box-shadow: 0 8px 40px rgba(244,98,42,0.15); }
+    .pricing-popular { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; font-size: 11px; font-weight: 700; padding: 4px 16px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+    .pricing-plan { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--soft-grey); margin-bottom: 12px; }
+    .pricing-plan.pro-label { color: var(--fire-orange); }
+    .pricing-price { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 700; color: var(--warm-brown); line-height: 1; margin-bottom: 4px; }
+    .pricing-price span { font-size: 18px; font-weight: 400; color: var(--soft-grey); }
+    .pricing-coffee { font-size: 13px; color: var(--soft-grey); font-weight: 300; margin-bottom: 28px; font-style: italic; }
+    .pricing-features { list-style: none; margin-bottom: 28px; }
+    .pricing-features li { font-size: 14px; color: var(--warm-brown); padding: 8px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-weight: 300; }
+    .pricing-features li:last-child { border-bottom: none; }
+    .pricing-features li .check { color: var(--fire-orange); font-weight: 700; font-size: 16px; }
+    .pricing-features li .cross { color: var(--soft-grey); font-size: 16px; }
+    .pricing-btn { display: block; text-align: center; padding: 16px; border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+    .pricing-btn.free { background: var(--warm-cream); color: var(--warm-brown); border: 1.5px solid var(--border); }
+    .pricing-btn.free:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
+    .pricing-btn.pro { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; box-shadow: 0 4px 16px rgba(244,98,42,0.3); }
+    .pricing-btn.pro:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(244,98,42,0.4); }
+
+    /* ── FAQ ── */
+    .faq-section { padding: 80px 24px; max-width: 700px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid var(--border); padding: 20px 0; cursor: pointer; }
+    .faq-question { font-size: 16px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
+    .faq-arrow { font-size: 18px; color: var(--soft-grey); transition: transform 0.2s; }
+    .faq-answer { font-size: 14px; color: var(--soft-grey); font-weight: 300; line-height: 1.7; margin-top: 12px; display: none; }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); }
+    .faq-item.open .faq-answer { display: block; }
+
+    /* ── Final CTA ── */
+    .final-cta { padding: 80px 24px; text-align: center; }
+    .final-cta-inner { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); border-radius: 28px; padding: 60px 40px; max-width: 700px; margin: 0 auto; color: white; }
+    .final-cta-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 5vw, 44px); font-weight: 700; margin-bottom: 16px; }
+    .final-cta-sub { font-size: 17px; opacity: 0.85; font-weight: 300; margin-bottom: 36px; line-height: 1.6; }
+    .final-cta-btn { display: inline-block; background: white; color: var(--fire-orange); padding: 18px 40px; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+    .final-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.15); }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 32px 24px; text-align: center; }
+    .footer-logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .footer-logo span { color: var(--fire-orange); }
+    .footer-text { font-size: 12px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .demo-card { margin: 0 -8px; border-radius: 16px; }
+      .demo-input, .demo-output { padding: 20px; }
+      .compare-header-cell, .compare-cell { padding: 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <a href="index.html" class="nav-logo">🔥 Fire<span>Path</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="firepath.html" class="nav-link">Free calculator</a>
+      <a href="firepath_pro.html" class="nav-cta">Try Pro free →</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="pro-badge">🔥 FirePath Pro</div>
+    <h1 class="hero-title">FirePath Pro understands your <span>life</span>, not just your numbers</h1>
+    <p class="hero-sub">Tell it about your investment property, your kids, your caring responsibilities, your goals. The AI gets it — and shows you exactly what it means for your freedom date.</p>
+    <p class="coffee-line">☕ Less than a cup of coffee a month — <span>$6/month</span></p>
+    <div class="hero-actions">
+      <a href="firepath_pro.html" class="btn-primary">Start Pro free →</a>
+      <a href="firepath.html" class="btn-secondary">Try free version first</a>
+    </div>
+  </section>
+
+  <!-- AI Demo -->
+  <div class="demo-section" id="demo">
+    <div class="section-label">See it in action</div>
+    <h2 class="section-title">Real situation. Real insight.</h2>
+    <p class="section-sub">This is what FirePath Pro actually does — not a generic calculator result, but a personalised analysis of your specific life.</p>
+
+    <div class="demo-card">
+      <div class="demo-input">
+        <div class="demo-input-label">What the user shared</div>
+        <div class="demo-speech-bubble">
+          "I earn $1,500 a week, save about 25%, and have $80,000 saved. I'm 35. I have an investment property worth $575,000 but I owe $345,000 on it and I lose money on the rent each week."
+        </div>
+      </div>
+      <div class="demo-output">
+        <div class="demo-output-label">🧠 AI Insight — just for you</div>
+        <div class="demo-result-card">
+          <div class="demo-result-headline">You could be free in <span>21 years</span></div>
+          <div class="demo-result-sub">Saving $375/week toward your freedom number of $975K</div>
+        </div>
+        <div class="demo-insight">
+          <div class="demo-insight-label">🧠 AI Insight — just for you</div>
+          <div class="demo-insight-text">
+            At 35 with $80,000 in savings plus $230,000 in property equity, you're sitting on <strong>$310,000 in total wealth</strong> while saving $1,083 monthly toward your $975K freedom number. Your single biggest lever is that locked-up property equity — if those funds were working in the market alongside your regular contributions, you could potentially shave years off your 2047 timeline, especially since the property isn't generating positive cashflow right now. <em>This is educational, not financial advice.</em>
+          </div>
+        </div>
+        <div class="demo-scenario">
+          <div class="demo-scenario-title">🏠 Property equity scenario</div>
+          <div class="demo-scenario-text">If your $230K equity were added to your $80K savings — giving you <strong>$310K invested at 7%</strong> — your freedom date could move from 2047 to <strong>2038. That's 9 years sooner.</strong></div>
+        </div>
+        <div class="demo-scenario">
+          <div class="demo-scenario-title">💰 Save 10% more of your income ($433/month extra)</div>
+          <div class="demo-scenario-text">Your freedom date could move to <strong>2045 — 2 years sooner.</strong> That's the compounding effect of a slightly higher savings rate.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="features-section">
+    <div class="features-inner">
+      <div class="section-label">What's inside Pro</div>
+      <h2 class="section-title">Everything the free version isn't</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">🎤</span>
+          <div class="feature-title">Just talk to it</div>
+          <div class="feature-desc">Tap the mic and speak naturally. Tell FirePath about your mortgage, your kids, your investment property, your worries. It listens and understands.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🧠</span>
+          <div class="feature-title">AI that reads your life</div>
+          <div class="feature-desc">Not a generic result. A personalised insight written specifically for your situation — age, assets, goals, constraints and all.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🏠</span>
+          <div class="feature-title">Automatic scenario engine</div>
+          <div class="feature-desc">FirePath detects your property equity, super, and savings rate — then automatically shows you what each lever does to your freedom date.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🏦</span>
+          <div class="feature-title">Super projections with contributions</div>
+          <div class="feature-desc">See your super at 60 — including your employer's 11.5% contributions compounding over time. Most people are sitting on more than they think.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">📈</span>
+          <div class="feature-title">Monthly accountability</div>
+          <div class="feature-desc">Check in monthly, update your numbers, watch your freedom date move closer. Streaks, milestones, and a progress bar that actually means something.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">👴</span>
+          <div class="feature-title">Age-aware advice</div>
+          <div class="feature-desc">Under 40? Time is your superpower. Over 55? Let's make your existing wealth work harder. FirePath adjusts everything to your life stage.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Free vs Pro comparison -->
+  <div class="comparison-section">
+    <div class="section-label">Free vs Pro</div>
+    <h2 class="section-title">What you get</h2>
+    <div class="compare-table">
+      <div class="compare-header">
+        <div class="compare-header-cell">Feature</div>
+        <div class="compare-header-cell">Free</div>
+        <div class="compare-header-cell pro">Pro $6/mo</div>
+      </div>
+      <div class="compare-row"><div class="compare-cell feature">Freedom date calculator</div><div class="compare-cell free">✅</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">Pay cycle awareness (weekly/fortnightly)</div><div class="compare-cell free">✅</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">Bank vs investing comparison</div><div class="compare-cell free">✅</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">The Thought Centre</div><div class="compare-cell free">✅</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">Voice input</div><div class="compare-cell free">❌</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">AI personalised insight</div><div class="compare-cell free">❌</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">Automatic scenario modelling</div><div class="compare-cell free">❌</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">Property equity scenarios</div><div class="compare-cell free">❌</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">Super projections with contributions</div><div class="compare-cell free">❌</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">Age-aware scenarios</div><div class="compare-cell free">❌</div><div class="compare-cell pro">✅</div></div>
+      <div class="compare-row"><div class="compare-cell feature">Monthly accountability & streaks</div><div class="compare-cell free">❌</div><div class="compare-cell pro">✅</div></div>
+    </div>
+  </div>
+
+  <!-- Testimonial -->
+  <div class="testimonial-section">
+    <div class="testimonial-inner">
+      <div class="testimonial-quote">"I may be dead by then!! <span>But maybe I should put $200 into Pearler instead of $100..."</span></div>
+      <div class="testimonial-attribution">— Real first-time user, age 60+, after seeing her freedom date</div>
+      <p class="testimonial-sub">That moment — when someone sees their number for the first time and immediately starts thinking about how to change it — that's why we built FirePath.</p>
+    </div>
+  </div>
+
+  <!-- Pricing -->
+  <div class="pricing-section" id="pricing">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title">Simple. Honest. Worth it.</h2>
+    <p class="section-sub" style="margin:0 auto 0;text-align:center">No hidden fees. No upsells. Just a tool that works.</p>
+    <div class="pricing-grid">
+
+      <div class="pricing-card">
+        <div class="pricing-plan">Free</div>
+        <div class="pricing-price">$0<span>/month</span></div>
+        <p class="pricing-coffee">Always free. No credit card needed.</p>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> Freedom date calculator</li>
+          <li><span class="check">✓</span> Pay cycle awareness</li>
+          <li><span class="check">✓</span> Bank vs investing comparison</li>
+          <li><span class="check">✓</span> The Thought Centre</li>
+          <li><span class="cross">—</span> AI insights</li>
+          <li><span class="cross">—</span> Scenario modelling</li>
+          <li><span class="cross">—</span> Accountability tracking</li>
+        </ul>
+        <a href="firepath.html" class="pricing-btn free">Start free →</a>
+      </div>
+
+      <div class="pricing-card pro">
+        <div class="pricing-popular">Most popular</div>
+        <div class="pricing-plan pro-label">Pro</div>
+        <div class="pricing-price">$6<span>/month</span></div>
+        <p class="pricing-coffee">☕ Less than a cup of coffee. More valuable than any financial advice.</p>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> Everything in Free</li>
+          <li><span class="check">✓</span> Voice input</li>
+          <li><span class="check">✓</span> AI personalised insight</li>
+          <li><span class="check">✓</span> Automatic scenario modelling</li>
+          <li><span class="check">✓</span> Super projections with contributions</li>
+          <li><span class="check">✓</span> Age-aware scenarios</li>
+          <li><span class="check">✓</span> Monthly accountability & streaks</li>
+        </ul>
+        <a href="firepath_pro.html" class="pricing-btn pro">Start Pro free →</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-section">
+    <div class="section-label">Questions</div>
+    <h2 class="section-title" style="margin-bottom:40px">Honest answers</h2>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-question">Is FirePath financial advice? <span class="faq-arrow">↓</span></div>
+      <div class="faq-answer">No — FirePath is an educational tool. We show you what different numbers and scenarios mean based on historical data and your inputs. We never tell you what to do with your money. Always consider your personal circumstances and speak to a licensed financial advisor for personalised advice.</div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-question">How does the 7% growth rate work? <span class="faq-arrow">↓</span></div>
+      <div class="faq-answer">7% is the long-run historical real return (after inflation) for diversified stock market investments — derived from over a century of global market data. It's the standard rate used across the FIRE community and is the basis of the 4% safe withdrawal rule. It's not guaranteed, but it's the most evidence-based assumption available for long-term planning.</div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-question">What is a freedom number? <span class="faq-arrow">↓</span></div>
+      <div class="faq-answer">Your freedom number is 25x your annual spending — the amount you need invested so that withdrawing 4% per year covers your lifestyle indefinitely. Based on the Trinity Study, this approach has historically sustained portfolios over 30+ year periods. Once you hit your freedom number, work becomes optional.</div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-question">Is my data private? <span class="faq-arrow">↓</span></div>
+      <div class="faq-answer">Yes. Your numbers are used only to calculate your results and generate your AI insight. We don't store your financial data or share it with third parties. The AI processes your input to generate a response and nothing is retained.</div>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-question">Can I cancel anytime? <span class="faq-arrow">↓</span></div>
+      <div class="faq-answer">Yes — cancel anytime, no questions asked. We're confident FirePath Pro will be worth far more than $6/month to you, but we never want you to feel locked in.</div>
+    </div>
+
+  </div>
+
+  <!-- Final CTA -->
+  <div class="final-cta">
+    <div class="final-cta-inner">
+      <div class="final-cta-title">Know your number. Light your path on Fire.</div>
+      <p class="final-cta-sub">Less than a cup of coffee a month. Your freedom date, your scenarios, your AI companion — all in one place.</p>
+      <a href="firepath_pro.html" class="final-cta-btn">Start FirePath Pro →</a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-logo">🔥 Fire<span>Path</span></div>
+    <p class="footer-text">
+      FirePath is an educational tool. We don't provide financial advice.<br/>
+      Projections are illustrative only. Always consider your personal circumstances.<br/>
+      <a href="index.html" style="color:var(--soft-grey)">Home</a> · <a href="firepath.html" style="color:var(--soft-grey)">Free</a> · <a href="firepath_pro.html" style="color:var(--soft-grey)">Pro</a>
+    </p>
+  </footer>
+
+  <script>
+    function toggleFaq(item) {
+      item.classList.toggle('open');
+    }
+  </script>
+
+</body>
+</html>
