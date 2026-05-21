@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FirePath — Sign in</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --fire-orange: #F4622A;
+      --fire-amber:  #F9A825;
+      --warm-cream:  #FDF6EE;
+      --warm-brown:  #3D2B1F;
+      --soft-grey:   #9E8E85;
+      --border:      #EDE3DA;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--warm-cream);
+      color: var(--warm-brown);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; right: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(244,98,42,0.10) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+    .container { width: 100%; max-width: 420px; position: relative; z-index: 1; }
+
+    .logo { text-align: center; margin-bottom: 32px; }
+    .logo-text { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--warm-brown); }
+    .logo-text span { color: var(--fire-orange); }
+    .logo-tagline { font-size: 12px; color: var(--soft-grey); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 6px; }
+
+    .card { background: white; border-radius: 24px; padding: 36px 32px; border: 1px solid var(--border); box-shadow: 0 4px 40px rgba(61,43,31,0.07); }
+    .card-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .card-sub { font-size: 14px; color: var(--soft-grey); font-weight: 300; margin-bottom: 28px; line-height: 1.5; }
+
+    .tabs { display: flex; gap: 0; margin-bottom: 28px; border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .tab { flex: 1; padding: 11px; background: white; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--soft-grey); cursor: pointer; transition: all 0.2s; }
+    .tab:first-child { border-right: 1.5px solid var(--border); }
+    .tab.active { background: var(--fire-orange); color: white; }
+
+    .input-group { margin-bottom: 16px; }
+    .input-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+    input[type="email"], input[type="password"] {
+      width: 100%; padding: 13px 14px;
+      border: 1.5px solid var(--border); border-radius: 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 15px;
+      color: var(--warm-brown); background: white;
+      outline: none; transition: border-color 0.2s;
+    }
+    input[type="email"]:focus, input[type="password"]:focus { border-color: var(--fire-orange); }
+
+    .cta-btn {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
+      border: none; border-radius: 14px;
+      font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500;
+      color: white; cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(244,98,42,0.3);
+      margin-top: 8px;
+    }
+    .cta-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(244,98,42,0.4); }
+    .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-text { font-size: 12px; color: var(--soft-grey); }
+
+    .guest-btn {
+      width: 100%; padding: 14px;
+      background: white; border: 1.5px solid var(--border);
+      border-radius: 14px; font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 500; color: var(--warm-brown);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .guest-btn:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
+
+    .error-msg { color: #E53935; font-size: 13px; margin-top: 12px; display: none; text-align: center; }
+    .success-msg { color: #2E7D32; font-size: 13px; margin-top: 12px; display: none; text-align: center; background: #E8F5E9; padding: 10px; border-radius: 8px; }
+
+    .back-link { text-align: center; margin-top: 20px; font-size: 13px; color: var(--soft-grey); }
+    .back-link a { color: var(--fire-orange); text-decoration: none; font-weight: 500; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    .container { animation: fadeUp 0.5s ease both; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="logo">
+    <div class="logo-text">🔥 Fire<span>Path</span></div>
+    <div class="logo-tagline">Know your number. Light your path on Fire.</div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" id="loginTab" onclick="showTab('login')">Sign in</button>
+      <button class="tab" id="signupTab" onclick="showTab('signup')">Create account</button>
+    </div>
+
+    <!-- Login -->
+    <div id="loginForm">
+      <h1 class="card-title">Welcome back</h1>
+      <p class="card-sub">Sign in to see your freedom date and track your progress.</p>
+      <div class="input-group">
+        <label class="input-label" for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••"/>
+      </div>
+      <button class="cta-btn" id="loginBtn" onclick="login()">Sign in →</button>
+      <p class="error-msg" id="loginError"></p>
+    </div>
+
+    <!-- Signup -->
+    <div id="signupForm" style="display:none">
+      <h1 class="card-title">Create your account</h1>
+      <p class="card-sub">Free to start. Your data stays private and secure.</p>
+      <div class="input-group">
+        <label class="input-label" for="signupEmail">Email</label>
+        <input type="email" id="signupEmail" placeholder="you@example.com"/>
+      </div>
+      <div class="input-group">
+        <label class="input-label" for="signupPassword">Password</label>
+        <input type="password" id="signupPassword" placeholder="At least 8 characters"/>
+      </div>
+      <button class="cta-btn" id="signupBtn" onclick="signup()">Create account →</button>
+      <p class="error-msg" id="signupError"></p>
+      <p class="success-msg" id="signupSuccess">Check your email to confirm your account!</p>
+    </div>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-text">or</div>
+      <div class="divider-line"></div>
+    </div>
+
+    <button class="guest-btn" onclick="continueAsGuest()">Continue without account →</button>
+
+  </div>
+
+  <div class="back-link">
+    <a href="index.html">← Back to FirePath</a>
+  </div>
+
+</div>
+<script>
+  const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
+  const SUPABASE_URL = 'https://eeicdaxfrahzgjywrlgs.supabase.co';
+
+  function showTab(tab) {
+    document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+    document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
+    document.getElementById('loginForm').style.display  = tab === 'login'  ? 'block' : 'none';
+    document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+  }
+
+  async function login() {
+    const email    = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn      = document.getElementById('loginBtn');
+    const err      = document.getElementById('loginError');
+
+    if (!email || !password) { showError(err, 'Please enter your email and password.'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+    err.style.display = 'none';
+
+    try {
+      const res = await fetch(`${WORKER_URL}/auth/token?grant_type=password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        showError(err, data.error_description || 'Invalid email or password.');
+        btn.disabled = false; btn.textContent = 'Sign in →';
+        return;
+      }
+
+      // Save session
+      localStorage.setItem('fp_access_token', data.access_token);
+      localStorage.setItem('fp_user_id', data.user.id);
+      localStorage.setItem('fp_email', data.user.email);
+
+      // Load user persona and redirect
+      const persona = await getUserPersona(data.user.id, data.access_token);
+      if (persona) localStorage.setItem('fp_persona', persona);
+
+      window.location.href = 'firepath_pro.html';
+
+    } catch (e) {
+      showError(err, 'Something went wrong. Please try again.');
+      btn.disabled = false; btn.textContent = 'Sign in →';
+    }
+  }
+
+  async function signup() {
+    const email    = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const btn      = document.getElementById('signupBtn');
+    const err      = document.getElementById('signupError');
+    const success  = document.getElementById('signupSuccess');
+
+    if (!email || !password) { showError(err, 'Please enter your email and password.'); return; }
+    if (password.length < 8) { showError(err, 'Password must be at least 8 characters.'); return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+    err.style.display = 'none';
+
+    try {
+      const res = await fetch(`${WORKER_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        showError(err, data.msg || data.error || 'Could not create account.');
+        btn.disabled = false; btn.textContent = 'Create account →';
+        return;
+      }
+
+      // Show success
+      success.style.display = 'block';
+      btn.textContent = 'Check your email ✓';
+
+    } catch (e) {
+      showError(err, 'Something went wrong. Please try again.');
+      btn.disabled = false; btn.textContent = 'Create account →';
+    }
+  }
+
+  async function getUserPersona(userId, token) {
+    try {
+      const res = await fetch(`${WORKER_URL}/db/users?id=eq.${userId}&select=persona`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      return data[0]?.persona || null;
+    } catch { return null; }
+  }
+
+  function continueAsGuest() {
+    localStorage.removeItem('fp_access_token');
+    localStorage.removeItem('fp_user_id');
+    localStorage.setItem('fp_guest', 'true');
+    window.location.href = 'firepath_pro.html';
+  }
+
+  function showError(el, msg) {
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // Check if already logged in
+  const token = localStorage.getItem('fp_access_token');
+  if (token) window.location.href = 'firepath_pro.html';
+</script>
+</body>
+</html>
