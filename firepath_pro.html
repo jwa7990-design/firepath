@@ -937,17 +937,41 @@
       const goalWord = persona === 'fire' ? 'FI' : 'freedom';
       document.getElementById('resultSub').textContent = 'Saving ' + fmtM(cycleSaving) + ' per ' + cycleWord + ' toward your ' + goalWord + ' number of ' + fmtM(fireNum) + '.';
 
-      // Super result
+      // Super result — with employer contributions
       if (superBal > 0 && age) {
         const superCard = document.getElementById('superResultCard');
         const superText = document.getElementById('superResultText');
         superCard.classList.add('visible');
+
+        // Estimate gross salary from take-home (rough 28% tax rate)
+        const estimatedGross      = mIncome * 12 / 0.72;
+        const annualSuperContrib  = estimatedGross * 0.115; // 11.5% SGC
+        const monthlySuperContrib = annualSuperContrib / 12;
+
         if (age >= 60) {
           superText.innerHTML = `Your ${fmtM(superBal)} super is accessible now. Combined with your ${fmtM(savings)} in investments, your total wealth is <strong>${fmtM(savings + superBal)}</strong>. This is already included in your freedom calculation above.`;
         } else {
           const yearsToSuper = 60 - age;
-          const superAtAccess = superBal * Math.pow(1.07, yearsToSuper);
-          superText.innerHTML = `Your ${fmtM(superBal)} super is locked until age 60 — that's ${yearsToSuper} year${yearsToSuper !== 1 ? 's' : ''} away. At 7% growth, it could be worth approximately <strong>${fmtM(superAtAccess)}</strong> by then. It's not in your freedom date calculation yet, but it's a powerful safety net.`;
+
+          // Growth without contributions
+          const superGrowthOnly = superBal * Math.pow(1.07, yearsToSuper);
+
+          // Growth with ongoing employer contributions (compound monthly)
+          let superWithContribs = superBal;
+          const monthlyRate = 0.07 / 12;
+          for (let m = 0; m < yearsToSuper * 12; m++) {
+            superWithContribs = superWithContribs * (1 + monthlyRate) + monthlySuperContrib;
+          }
+
+          const extraFromContribs = superWithContribs - superGrowthOnly;
+
+          superText.innerHTML = `
+            Your ${fmtM(superBal)} super is locked until age 60 — ${yearsToSuper} year${yearsToSuper !== 1 ? 's' : ''} away.<br/><br/>
+            <strong>Without ongoing contributions:</strong> ~${fmtM(superGrowthOnly)} at 60<br/>
+            <strong>With employer contributions (~${fmtM(annualSuperContrib)}/yr at 11.5%):</strong> ~<strong>${fmtM(superWithContribs)}</strong> at 60<br/><br/>
+            That's an extra <strong>${fmtM(extraFromContribs)}</strong> from your employer's contributions alone — a powerful safety net working in the background.<br/><br/>
+            <span style="font-size:11px;font-style:italic;opacity:0.7">Based on estimated gross salary. Actual super will vary. Educational only — not financial advice.</span>
+          `;
         }
       }
 
