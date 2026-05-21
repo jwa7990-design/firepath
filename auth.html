@@ -90,8 +90,10 @@
     .error-msg { color: #E53935; font-size: 13px; margin-top: 12px; display: none; text-align: center; }
     .success-msg { color: #2E7D32; font-size: 13px; margin-top: 12px; display: none; text-align: center; background: #E8F5E9; padding: 10px; border-radius: 8px; }
 
-    .back-link { text-align: center; margin-top: 20px; font-size: 13px; color: var(--soft-grey); }
-    .back-link a { color: var(--fire-orange); text-decoration: none; font-weight: 500; }
+    .input-wrapper-pass { position: relative; }
+    .input-wrapper-pass input { padding-right: 44px; }
+    .eye-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px; color: var(--soft-grey); padding: 0; line-height: 1; }
+    .eye-btn:hover { color: var(--warm-brown); }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
     .container { animation: fadeUp 0.5s ease both; }
@@ -121,7 +123,10 @@
       </div>
       <div class="input-group">
         <label class="input-label" for="loginPassword">Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••"/>
+        <div class="input-wrapper-pass">
+          <input type="password" id="loginPassword" placeholder="••••••••"/>
+          <button class="eye-btn" onclick="toggleEye('loginPassword', this)" tabindex="-1">👁</button>
+        </div>
       </div>
       <button class="cta-btn" id="loginBtn" onclick="login()">Sign in →</button>
       <p class="error-msg" id="loginError"></p>
@@ -137,31 +142,37 @@
       </div>
       <div class="input-group">
         <label class="input-label" for="signupPassword">Password</label>
-        <input type="password" id="signupPassword" placeholder="At least 8 characters"/>
+        <div class="input-wrapper-pass">
+          <input type="password" id="signupPassword" placeholder="At least 8 characters"/>
+          <button class="eye-btn" onclick="toggleEye('signupPassword', this)" tabindex="-1">👁</button>
+        </div>
       </div>
       <button class="cta-btn" id="signupBtn" onclick="signup()">Create account →</button>
       <p class="error-msg" id="signupError"></p>
       <p class="success-msg" id="signupSuccess">Check your email to confirm your account!</p>
     </div>
 
-    <div class="divider">
-      <div class="divider-line"></div>
-      <div class="divider-text">or</div>
-      <div class="divider-line"></div>
-    </div>
-
-    <button class="guest-btn" onclick="continueAsGuest()">Continue without account →</button>
-
   </div>
 
-  <div class="back-link">
-    <a href="index.html">← Back to FirePath</a>
+  <div class="back-link" style="text-align:center;margin-top:20px;font-size:13px;color:var(--soft-grey)">
+    <a href="index.html" style="color:var(--fire-orange);text-decoration:none;">← Back to FirePath</a>
   </div>
 
 </div>
 <script>
   const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
   const SUPABASE_URL = 'https://eeicdaxfrahzgjywrlgs.supabase.co';
+
+  function toggleEye(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁';
+    }
+  }
 
   function showTab(tab) {
     document.getElementById('loginTab').classList.toggle('active', tab === 'login');
