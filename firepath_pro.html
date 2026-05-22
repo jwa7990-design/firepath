@@ -1020,12 +1020,15 @@
       const freedomYears = yearsToGoal(fireNum, savings, mSav, 0.07);
       const freedomYear  = freedomYears !== null ? currentYear + Math.round(freedomYears) : null;
 
-      // ── Scenarios ──
+    // ── Scenarios ──
       document.getElementById('loadingText').textContent = 'Running your scenarios...';
       const scenarios = [];
 
       // Age group
       const ageGroup = !age ? 'unknown' : age < 40 ? 'young' : age < 55 ? 'mid' : 'senior';
+      const cycleLabel = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
+      const cycleDivisor = selectedCycle === 'weekly' ? 52/12 : selectedCycle === 'fortnightly' ? 26/12 : 1;
+      const fmtCycle = (monthlyAmt) => fmtM(monthlyAmt / cycleDivisor) + '/' + cycleLabel;
 
       // Property equity
       function parseDollar(str) {
@@ -1068,7 +1071,6 @@
 
       // Age-aware scenarios
       if (ageGroup === 'young' || ageGroup === 'unknown') {
-        // Save 10% more
         const extraSaving = mIncome * 0.10;
         const boostYears  = yearsToGoal(fireNum, savings, mSav + extraSaving, 0.07);
         const boostYear   = boostYears !== null ? currentYear + Math.round(boostYears) : null;
@@ -1076,11 +1078,10 @@
         if (boostDiff && boostDiff > 0.5) {
           scenarios.push({
             emoji: '💰',
-            title: `Save 10% more of your income (${fmtM(extraSaving)}/month extra)`,
-            description: `If you redirected an extra <strong>${fmtM(extraSaving)}/month</strong> — 10% of your income — toward savings, your freedom date could move to <strong>${boostYear}</strong> — <strong>${fmt(boostDiff)} sooner</strong>. Time is your biggest superpower right now.`
+            title: `Save 10% more of your income (${fmtCycle(extraSaving)} extra)`,
+            description: `If you redirected an extra <strong>${fmtCycle(extraSaving)}</strong> — 10% of your income — toward savings, your freedom date could move to <strong>${boostYear}</strong> — <strong>${fmt(boostDiff)} sooner</strong>. Time is your biggest superpower right now.`
           });
         }
-        // Cut spending 15%
         const reducedSpend  = mSpend * 0.85;
         const reducedSaving = mIncome - reducedSpend;
         const reduceYears   = yearsToGoal((reducedSpend * 12) * 25, savings, reducedSaving, 0.07);
@@ -1089,12 +1090,11 @@
         if (reduceDiff && reduceDiff > 0.5) {
           scenarios.push({
             emoji: '✂️',
-            title: `Cut your spending by 15% (${fmtM(mSpend * 0.15)}/month less)`,
-            description: `Reducing monthly spending by 15% — <strong>${fmtM(mSpend * 0.15)}/month less</strong> from your current ${fmtM(mSpend)} — would lower your freedom number to ${fmtM((reducedSpend*12)*25)}, bringing your freedom date to <strong>${reduceYear}</strong> — <strong>${fmt(reduceDiff)} sooner</strong>.`
+            title: `Cut your spending by 15% (${fmtCycle(mSpend * 0.15)} less)`,
+            description: `Reducing spending by 15% — <strong>${fmtCycle(mSpend * 0.15)} less</strong> from your current ${fmtCycle(mSpend)} — would lower your freedom number to ${fmtM((reducedSpend*12)*25)}, bringing your freedom date to <strong>${reduceYear}</strong> — <strong>${fmt(reduceDiff)} sooner</strong>.`
           });
         }
       } else if (ageGroup === 'mid') {
-        // Mid age — focus on rate of savings and property
         const extraSaving = mIncome * 0.05;
         const boostYears  = yearsToGoal(fireNum, savings, mSav + extraSaving, 0.07);
         const boostYear   = boostYears !== null ? currentYear + Math.round(boostYears) : null;
@@ -1102,11 +1102,10 @@
         if (boostDiff && boostDiff > 0.3) {
           scenarios.push({
             emoji: '💰',
-            title: `Save 5% more of your income (${fmtM(extraSaving)}/month extra)`,
-            description: `Even a modest extra <strong>${fmtM(extraSaving)}/month</strong> — 5% of your income — could move your freedom date to <strong>${boostYear}</strong> — <strong>${fmt(boostDiff)} sooner</strong>. At this stage, consistency compounds powerfully.`
+            title: `Save 5% more of your income (${fmtCycle(extraSaving)} extra)`,
+            description: `Even a modest extra <strong>${fmtCycle(extraSaving)}</strong> — 5% of your income — could move your freedom date to <strong>${boostYear}</strong> — <strong>${fmt(boostDiff)} sooner</strong>. At this stage, consistency compounds powerfully.`
           });
         }
-        // Super scenario for mid age
         if (superBal > 0 && age && age >= 50) {
           const superFreedom = yearsToGoal(fireNum, savings + superBal, mSav, 0.07);
           const superYear    = superFreedom !== null ? currentYear + Math.round(superFreedom) : null;
@@ -1120,7 +1119,6 @@
           }
         }
       } else if (ageGroup === 'senior') {
-        // Senior — focus on assets working harder, not aggressive saving
         if (superBal > 0) {
           const withSuper = yearsToGoal(fireNum, savings + superBal, mSav, 0.07);
           const superYear = withSuper !== null ? currentYear + Math.round(withSuper) : null;
@@ -1133,7 +1131,6 @@
             });
           }
         }
-        // Make money work harder
         const betterRate  = yearsToGoal(fireNum, savings, mSav, 0.05);
         const betterYear  = betterRate !== null ? currentYear + Math.round(betterRate) : null;
         const bankRate    = yearsToGoal(fireNum, savings, mSav, 0.0075);
@@ -1163,6 +1160,7 @@
           });
         }
       }
+
 
       const scenarioHTML = scenarios.length > 0
         ? scenarios.map(s => `<div class="scenario-block"><div class="scenario-title">${s.emoji} ${s.title}</div><div class="scenario-body">${s.description}</div></div>`).join('')
