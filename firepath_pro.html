@@ -707,20 +707,27 @@ if ((!_t || _t === 'undefined' || _t === 'null') && !_g) {
 
 
   // ── Database helpers ───────────────────
-  async function dbInsert(table, data) {
-    if (!fpToken || !fpUserId) return;
-    try {
-      await fetch(`${WORKER_URL}/db/${table}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${fpToken}`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ ...data, user_id: fpUserId })
-      });
-    } catch (e) { console.log('DB save failed silently', e); }
+async function dbInsert(table, data) {
+  if (!fpToken || !fpUserId) {
+    alert('dbInsert skipped - no token or userId');
+    return;
   }
+  try {
+    const res = await fetch(`${WORKER_URL}/db/${table}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${fpToken}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ ...data, user_id: fpUserId })
+    });
+    const text = await res.text();
+    alert('Insert result: ' + res.status + ' ' + text);
+  } catch (e) {
+    alert('Insert error: ' + e.message);
+  }
+}
 
   async function savePersonaToDB(personaValue) {
     if (!fpToken || !fpUserId) return;
