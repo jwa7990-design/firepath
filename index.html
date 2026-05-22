@@ -44,6 +44,29 @@
     .nav-cta { background: var(--fire-orange); color: white; padding: 9px 20px; border-radius: 20px; font-size: 14px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
     .nav-cta:hover { background: #e05520; transform: translateY(-1px); }
 
+    /* ── Hamburger ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+      z-index: 101;
+    }
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--warm-brown);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
     /* ── Hero ── */
     .hero {
       min-height: 100vh;
@@ -195,8 +218,22 @@
     @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 
+    /* ── Mobile ── */
     @media (max-width: 600px) {
-      .nav-links { display: none; }
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        position: fixed;
+        top: 57px; left: 0; right: 0;
+        background: rgba(253,246,238,0.98);
+        border-bottom: 1px solid var(--border);
+        padding: 20px 24px;
+        gap: 20px;
+        z-index: 99;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links .nav-cta { text-align: center; }
+      .hamburger { display: flex; }
       .fire-section, .everyone-section { margin: 0 12px 40px; padding: 40px 24px; }
       section { padding: 60px 16px; }
     }
@@ -207,13 +244,17 @@
   <!-- Nav -->
   <nav>
     <a href="/" class="nav-logo">🔥 Fire<span>Path</span></a>
-    <div class="nav-links">
-      <a href="#why" class="nav-link">Why FirePath</a>
-      <a href="#features" class="nav-link">Features</a>
-      <a href="auth.html" class="nav-link">Sign in</a>
-      <a href="firepath.html" class="nav-cta">Try Free →</a>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="#why" class="nav-link" onclick="closeMenu()">Why FirePath</a>
+      <a href="#features" class="nav-link" onclick="closeMenu()">Features</a>
+      <a href="auth.html" class="nav-link" onclick="closeMenu()">Sign in</a>
+      <a href="firepath.html" class="nav-cta" onclick="closeMenu()">Try Free →</a>
     </div>
-
   </nav>
 
   <!-- Hero -->
@@ -375,6 +416,28 @@
       Projections are illustrative only. Always consider your personal circumstances.
     </p>
   </footer>
+
+  <script>
+    function toggleMenu() {
+      const nav = document.getElementById('navLinks');
+      const btn = document.getElementById('hamburger');
+      nav.classList.toggle('open');
+      btn.classList.toggle('open');
+    }
+    function closeMenu() {
+      document.getElementById('navLinks').classList.remove('open');
+      document.getElementById('hamburger').classList.remove('open');
+    }
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+      const nav = document.getElementById('navLinks');
+      const btn = document.getElementById('hamburger');
+      if (!nav.contains(e.target) && !btn.contains(e.target)) {
+        nav.classList.remove('open');
+        btn.classList.remove('open');
+      }
+    });
+  </script>
 
 </body>
 </html>
