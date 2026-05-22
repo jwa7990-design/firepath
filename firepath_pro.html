@@ -38,7 +38,7 @@
     .card-sub { font-size: 14px; color: var(--soft-grey); font-weight: 300; margin-bottom: 28px; line-height: 1.5; }
 
     .persona-list { display: flex; flex-direction: column; gap: 12px; }
-    .persona-card { display: flex; align-items: center; gap: 16px; padding: 18px 20px; border: 2px solid var(--border); border-radius: 16px; cursor: pointer; transition: all 0.2s ease; background: white; }
+    .persona-card { display:flex; align-items:center; gap:16px; padding:18px 20px; border:2px solid var(--border); border-radius:16px; cursor:pointer; transition:all 0.2s ease; background:white; -webkit-tap-highlight-color: transparent; }
     .persona-card:hover { border-color: var(--fire-orange); box-shadow: 0 4px 16px rgba(244,98,42,0.12); }
     .persona-card.selected { border-color: var(--fire-orange); background: #FFF7F3; }
     .persona-icon { font-size: 28px; line-height: 1; }
@@ -822,6 +822,31 @@
 
   // ── Persona ────────────────────────────
   function selectPersona(el) {
+  if (!el) return;
+    document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    persona = el.dataset.persona;
+    document.getElementById('continueBtn').disabled = false;
+    savePersonaToDB(persona);
+  }
+
+  // ── Persona ────────────────────────────
+function selectPersona(el) {
+  if (!el) return;
+  document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  persona = el.dataset.persona;
+  document.getElementById('continueBtn').disabled = false;
+  savePersonaToDB(persona);
+}
+// Safari touch fix
+document.querySelectorAll('.persona-card').forEach(card => {
+  card.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    selectPersona(this);
+  });
+});
+
     document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     persona = el.dataset.persona;
