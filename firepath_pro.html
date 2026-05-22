@@ -610,8 +610,8 @@
             <span class="stat-name" style="opacity:0.7">Portfolio today</span>
           </div>
           <div class="stat-box" style="background:var(--warm-cream)">
-            <span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accStreak">0 🔥</span>
-            <span class="stat-name" style="opacity:0.7">Month streak</span>
+            <span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accYearsToGo">—</span>
+            <span class="stat-name" style="opacity:0.7">Years to go</span></div>
           </div>
         </div>
         <div class="checkin-section">
@@ -764,7 +764,7 @@
           diff: null
         }));
         streak = data.length;
-        document.getElementById('accStreak').textContent = streak + ' 🔥';
+        document.getElementById('accYearsToGo').textContent = freedomYears ? Math.round(freedomYears)+'yrs' : '—';
         renderHistory();
       }
     } catch (e) { console.log('History load failed silently', e); }
@@ -1296,7 +1296,8 @@
       document.getElementById('accFreedomDate').textContent = freedomYear ? freedomYear : '50+ yrs';
       document.getElementById('accPortfolio').textContent   = fmtM(savings);
       document.getElementById('accStreak').textContent      = streak + ' 🔥';
-      document.getElementById('ci-income').value   = Math.round(cycleSaving + (mSpend * 12 / (selectedCycle === 'weekly' ? 52 : selectedCycle === 'fortnightly' ? 26 : 12)));
+      document.getElementById('ci-income').value = manualIncome || Math.round(mIncome);
+
       document.getElementById('ci-rate').value     = sRate;
       document.getElementById('ci-savings').value  = savings;
 
@@ -1379,8 +1380,10 @@
     const newIncome  = parseFloat(document.getElementById('ci-income').value)  || calcData.mIncome;
     const newRate    = parseFloat(document.getElementById('ci-rate').value)    || calcData.sRate;
     const newSavings = parseFloat(document.getElementById('ci-savings').value) || calcData.savings;
-    const newMSav    = toMonthly(newIncome) * (newRate / 100);
+    const cappedRate = Math.min(newRate, 90); // cap at 90% max
+    const newMSav    = toMonthly(newIncome) * (cappedRate / 100);
     const newFireNum = ((toMonthly(newIncome) - newMSav) * 12) * 25;
+
     const newY07     = yearsToGoal(newFireNum, newSavings, newMSav, 0.07);
     const oldY07     = yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07);
     const diff       = oldY07 !== null && newY07 !== null ? oldY07 - newY07 : null;
