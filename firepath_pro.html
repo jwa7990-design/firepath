@@ -653,8 +653,11 @@
   let storedCalc = {};
 
   // ── Auth helpers ───────────────────────
-  const fpToken  = localStorage.getItem('fp_access_token');
-  const fpUserId = localStorage.getItem('fp_user_id');
+  const rawToken  = localStorage.getItem('fp_access_token');
+  const rawUserId = localStorage.getItem('fp_user_id');
+  const fpToken   = (rawToken  && rawToken  !== 'undefined' && rawToken  !== 'null') ? rawToken  : null;
+  const fpUserId  = (rawUserId && rawUserId !== 'undefined' && rawUserId !== 'null') ? rawUserId : null;
+
   const fpGuest  = localStorage.getItem('fp_guest');
 
   // Load saved persona if logged in
