@@ -1560,6 +1560,28 @@
     document.getElementById('tab-results').classList.toggle('active', tab === 'results');
     document.getElementById('tab-accountability').classList.toggle('active', tab === 'accountability');
   }
+
+  // ── Auto sign-out after 30 min inactivity ──
+let inactivityTimer;
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    if (localStorage.getItem('fp_access_token')) {
+      localStorage.removeItem('fp_access_token');
+      localStorage.removeItem('fp_user_id');
+      localStorage.removeItem('fp_email');
+      localStorage.removeItem('fp_persona');
+      localStorage.removeItem('fp_guest');
+      alert('You\'ve been signed out due to inactivity.');
+      window.location.href = 'auth.html';
+    }
+  }, 30 * 60 * 1000);
+}
+['mousemove','keydown','click','scroll','touchstart'].forEach(e => 
+  document.addEventListener(e, resetInactivityTimer)
+);
+resetInactivityTimer();
+
 </script>
 </body>
 </html>
