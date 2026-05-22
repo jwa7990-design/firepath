@@ -659,6 +659,33 @@
 
   // Load saved persona if logged in
   const savedPersona = localStorage.getItem('fp_persona');
+  async function loadSavedInputs() {
+  if (!fpToken || !fpUserId) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/db/calculations?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`, {
+      headers: { 'Authorization': `Bearer ${fpToken}` }
+    });
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return;
+    const last = data[0];
+
+    // Pre-fill inputs
+    if (last.income_monthly) {
+      document.getElementById('income').value = Math.round(last.income_monthly);
+    }
+    if (last.savings_rate) {
+      document.getElementById('savingsRateSlider').value = last.savings_rate;
+    }
+    if (last.current_savings) {
+      document.getElementById('savings').value = last.current_savings;
+    }
+    if (last.super_balance) {
+      document.getElementById('superBalance').value = last.super_balance;
+    }
+    updateSliderLabel();
+    updateSuperNote();
+  } catch (e) { console.log('Load inputs failed silently', e); }
+}
 
   // ── Database helpers ───────────────────
   async function dbInsert(table, data) {
@@ -719,7 +746,8 @@
   }
 
   // ── User status on load ────────────────
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
+    await loadSavedInputs();
     const userStatusEl = document.getElementById('userStatus');
     if (!userStatusEl) return;
     if (fpToken && localStorage.getItem('fp_email')) {
