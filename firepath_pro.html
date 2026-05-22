@@ -1020,7 +1020,7 @@
       const freedomYears = yearsToGoal(fireNum, savings, mSav, 0.07);
       const freedomYear  = freedomYears !== null ? currentYear + Math.round(freedomYears) : null;
 
-    // ── Scenarios ──
+            // ── Scenarios ──
       document.getElementById('loadingText').textContent = 'Running your scenarios...';
       const scenarios = [];
 
@@ -1252,7 +1252,9 @@
       document.getElementById('bankYears').textContent   = fmt(y0075);
       document.getElementById('investYears').textContent = fmt(y07);
       const diff = (y0075 !== null && y07 !== null) ? y0075 - y07 : null;
-      document.getElementById('timeSaved').textContent   = (y0075 === null && y07 !== null) ? fmt(y07) + ' sooner than bank' : diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'similar timeline';
+      const bankBaseline = y0075 === null ? 100 : y0075;
+      const actualDiff = y07 !== null ? bankBaseline - y07 : null;
+      document.getElementById('timeSaved').textContent = actualDiff && actualDiff > 0.1 ? fmt(actualDiff) + ' sooner' : 'similar timeline';
 
       storedCalc = { fireNum, savings, mSav, y0075 };
       document.getElementById('rateSelector').value = '0.07';
