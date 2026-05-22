@@ -321,12 +321,14 @@
         </div>
 
         <div class="input-group">
-          <label class="input-label" id="incomeLabel" for="income">Take-home income</label>
-          <div class="input-wrapper">
-            <span class="input-prefix">$</span>
-            <input type="number" id="income" placeholder="0" min="0" oninput="updateSliderLabel()"/>
+          <label class="input-label">How much do you save?</label>
+          <div class="slider-row">
+            <input type="range" id="savingsRateSlider" min="0" max="100" value="20" oninput="updateSliderLabel()"/>
+            <span class="slider-pct" id="sliderPct">$0</span>
           </div>
+          <div class="slider-hint" id="sliderHint">Enter your income above first</div>
         </div>
+
 
         <div class="input-group">
           <label class="input-label">What % of your income do you save?</label>
@@ -874,19 +876,30 @@ async function dbInsert(table, data) {
 
   // ── Slider ─────────────────────────────
   function updateSliderLabel() {
-    const income = parseFloat(document.getElementById('income').value) || 0;
-    const rate   = parseInt(document.getElementById('savingsRateSlider').value);
-    const saved  = income * (rate / 100);
-    const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
-    document.getElementById('sliderPct').textContent = rate + '%';
-    document.getElementById('sliderHint').textContent = income > 0
-      ? `That's ${fmtM(saved)} saved per ${cycleWord}`
-      : 'Enter your income above first';
-    const slider = document.getElementById('savingsRateSlider');
-    const pct = ((rate - 1) / 79) * 100;
-    slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--fire-orange) ${pct}%, var(--border) ${pct}%)`;
-    updateSuperNote();
+  const income = parseFloat(document.getElementById('income').value) || 0;
+  const slider = document.getElementById('savingsRateSlider');
+  const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
+  
+  if (income <= 0) {
+    document.getElementById('sliderPct').textContent = '$0';
+    document.getElementById('sliderHint').textContent = 'Enter your income above first';
+    slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--border) 0%)`;
+    return;
   }
+
+  // Slider value is % of income, display as dollars
+  const pct = parseInt(slider.value);
+  const savedDollars = Math.round(income * (pct / 100));
+  const actualPct = Math.round(pct);
+  
+  document.getElementById('sliderPct').textContent = fmtM(savedDollars);
+  document.getElementById('sliderHint').textContent = `That's ${actualPct}% of your income`;
+  
+  const trackPct = ((pct - 0) / 100) * 100;
+  slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--fire-orange) ${trackPct}%, var(--border) ${trackPct}%)`;
+  updateSuperNote();
+}
+
 
   // ── Super note ─────────────────────────
   function updateSuperNote() {
