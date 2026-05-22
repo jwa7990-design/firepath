@@ -670,18 +670,14 @@ if ((!_t || _t === 'undefined' || _t === 'null') && !_g) {
   // Load saved persona if logged in
   const savedPersona = localStorage.getItem('fp_persona');
   async function loadSavedInputs() {
-  if (!fpToken || !fpUserId) {
-    alert('Not logged in - skipping load');
-    return;
-  }
+  if (!fpToken || !fpUserId) return;
   try {
     const res = await fetch(`${WORKER_URL}/db/calculations?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`, {
       headers: { 'Authorization': `Bearer ${fpToken}` }
     });
     const data = await res.json();
-
-
-    // Restore pay cycle first
+    if (!Array.isArray(data) || data.length === 0) return;
+    const last = data[0];
     if (last.pay_cycle) {
       selectedCycle = last.pay_cycle;
       document.querySelectorAll('.cycle-btn').forEach(b => {
@@ -722,10 +718,7 @@ async function dbInsert(table, data) {
       },
       body: JSON.stringify({ ...data, user_id: fpUserId })
     });
-    const text = await res.text();
-    alert('Insert result: ' + res.status + ' ' + text);
-  } catch (e) {
-  }
+      } catch (e) { console.log('DB save failed', e); }
 }
 
   async function savePersonaToDB(personaValue) {
@@ -1398,7 +1391,8 @@ async function dbInsert(table, data) {
     document.getElementById('pathFill').style.width    = pct + '%';
     document.getElementById('progressPct').textContent = pct + '%';
     document.getElementById('accPortfolio').textContent = fmtM(newSavings);
-    document.getElementById('accStreak').textContent    = streak + ' 🔥';
+    document.getElementById('accYearsToGo').textContent = newY07 ? Math.round(newY07)+'yrs' : '—';
+
 
     const currentYear = new Date().getFullYear();
     document.getElementById('accFreedomDate').textContent = newY07 ? currentYear + Math.round(newY07) : '50+ yrs';
