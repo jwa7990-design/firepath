@@ -670,14 +670,17 @@ if ((!_t || _t === 'undefined' || _t === 'null') && !_g) {
   // Load saved persona if logged in
   const savedPersona = localStorage.getItem('fp_persona');
   async function loadSavedInputs() {
-  if (!fpToken || !fpUserId) return;
+  if (!fpToken || !fpUserId) {
+    alert('Not logged in - skipping load');
+    return;
+  }
   try {
     const res = await fetch(`${WORKER_URL}/db/calculations?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`, {
       headers: { 'Authorization': `Bearer ${fpToken}` }
     });
     const data = await res.json();
-    if (!Array.isArray(data) || data.length === 0) return;
-    const last = data[0];
+    alert('Data: ' + JSON.stringify(data));
+
 
     // Restore pay cycle first
     if (last.pay_cycle) {
