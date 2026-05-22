@@ -637,6 +637,13 @@
 <script>
   const ANTHROPIC_API_KEY = 'your-key-here';
 
+  // ── Auth guard ─────────────────────────
+const _t = localStorage.getItem('fp_access_token');
+const _g = localStorage.getItem('fp_guest');
+if ((!_t || _t === 'undefined' || _t === 'null') && !_g) {
+  window.location.href = 'auth.html';
+}
+
   let persona = null;
   let selectedCycle = 'fortnightly';
   let inputMode = 'type';
@@ -697,24 +704,6 @@
 }
 
 
-    // Pre-fill inputs
-    if (last.income_monthly) {
-      document.getElementById('income').value = Math.round(last.income_monthly);
-    }
-    if (last.savings_rate) {
-      document.getElementById('savingsRateSlider').value = last.savings_rate;
-    }
-    if (last.current_savings) {
-      document.getElementById('savings').value = last.current_savings;
-    }
-    if (last.super_balance) {
-      document.getElementById('superBalance').value = last.super_balance;
-    }
-    updateSliderLabel();
-    updateSuperNote();
-  } catch (e) { console.log('Load inputs failed silently', e); }
-}
-
   // ── Database helpers ───────────────────
   async function dbInsert(table, data) {
     if (!fpToken || !fpUserId) return;
@@ -767,7 +756,6 @@
           diff: null
         }));
         streak = data.length;
-        document.getElementById('accYearsToGo').textContent = freedomYears ? Math.round(freedomYears)+'yrs' : '—';
         renderHistory();
       }
     } catch (e) { console.log('History load failed silently', e); }
@@ -829,7 +817,7 @@
     document.getElementById('continueBtn').disabled = false;
     savePersonaToDB(persona);
   }
-  
+
   // ── Screens ────────────────────────────
   function showScreen(n) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1299,7 +1287,7 @@
       document.getElementById('progressPct').textContent = pct + '%';
       document.getElementById('accFreedomDate').textContent = freedomYear ? freedomYear : '50+ yrs';
       document.getElementById('accPortfolio').textContent   = fmtM(savings);
-      document.getElementById('accStreak').textContent      = streak + ' 🔥';
+      document.getElementById('accYearsToGo').textContent = freedomYears ? Math.round(freedomYears)+'yrs' : '—';
       document.getElementById('ci-income').value = manualIncome || Math.round(mIncome);
 
       document.getElementById('ci-rate').value     = sRate;
