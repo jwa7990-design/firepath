@@ -669,6 +669,31 @@
     if (!Array.isArray(data) || data.length === 0) return;
     const last = data[0];
 
+    // Restore pay cycle first
+    if (last.pay_cycle) {
+      selectedCycle = last.pay_cycle;
+      document.querySelectorAll('.cycle-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.cycle === last.pay_cycle);
+      });
+    }
+
+    // Convert monthly income back to the user's cycle
+    if (last.income_monthly) {
+      const cycleIncome = last.pay_cycle === 'weekly' ? last.income_monthly * 12 / 52
+        : last.pay_cycle === 'fortnightly' ? last.income_monthly * 12 / 26
+        : last.income_monthly;
+      document.getElementById('income').value = Math.round(cycleIncome);
+    }
+    if (last.savings_rate) document.getElementById('savingsRateSlider').value = last.savings_rate;
+    if (last.current_savings) document.getElementById('savings').value = last.current_savings;
+    if (last.super_balance) document.getElementById('superBalance').value = last.super_balance;
+
+    updateSliderLabel();
+    updateSuperNote();
+  } catch (e) { console.log('Load inputs failed silently', e); }
+}
+
+
     // Pre-fill inputs
     if (last.income_monthly) {
       document.getElementById('income').value = Math.round(last.income_monthly);
@@ -1286,6 +1311,7 @@
       // Save calculation to database
       const ageGroupDB = !age ? 'unknown' : age < 40 ? 'young' : age < 55 ? 'mid' : 'senior';
       await dbInsert('calculations', {
+        pay_cycle: selectedCycle, 
         income_monthly: Math.round(mIncome),
         savings_rate: sRate,
         current_savings: savings,
