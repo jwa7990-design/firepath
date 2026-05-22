@@ -223,6 +223,24 @@
     .history-change.positive { color: #4CAF50; }
     .history-change.negative { color: #E53935; }
 
+    /* ── Hear Me Out ──────────────────────── */
+    .hear-me-out-card { background: white; border: 2px solid #7B61FF; border-radius: 20px; overflow: hidden; margin-bottom: 12px; }
+    .hmo-header { background: linear-gradient(135deg, #3D2B1F, #5C3D2E); padding: 20px 24px; color: white; }
+    .hmo-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .hmo-sub { font-size: 13px; opacity: 0.75; font-weight: 300; line-height: 1.6; margin-bottom: 10px; }
+    .hmo-disclaimer { display: inline-block; background: rgba(255,255,255,0.15); color: white; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .hmo-body { padding: 20px 24px; }
+    .hmo-inputs { display: flex; flex-direction: column; gap: 14px; margin-bottom: 8px; }
+    .hmo-input-row { display: flex; flex-direction: column; gap: 6px; }
+    .hmo-label { font-size: 13px; font-weight: 500; color: var(--warm-brown); }
+    .hmo-input { width: 100%; padding: 11px 14px 11px 30px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--warm-brown); background: white; outline: none; -moz-appearance: textfield; transition: border-color 0.2s; }
+    .hmo-input:focus { border-color: var(--fire-orange); }
+    .hmo-input::-webkit-inner-spin-button, .hmo-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .hmo-scenario-block { background: var(--warm-cream); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+    .hmo-scenario-title { font-size: 11px; font-weight: 700; color: var(--fire-orange); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .hmo-scenario-desc { font-size: 13px; color: var(--warm-brown); line-height: 1.7; font-weight: 300; }
+    .hmo-scenario-desc strong { font-weight: 600; }
+
     .disclaimer { text-align: center; font-size: 11px; color: var(--soft-grey); margin-top: 20px; line-height: 1.6; }
 
     @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -460,6 +478,106 @@
         </div>
       </div>
 
+      <!-- Hear Me Out -->
+      <div class="hear-me-out-card" id="hearMeOutCard" style="display:none">
+        <div class="hmo-header">
+          <div class="hmo-title">🤔 Hear me out</div>
+          <div class="hmo-sub">This might sound unconventional. But some people in your situation have found this changes everything.</div>
+          <div class="hmo-disclaimer">Not advice. Just the numbers.</div>
+        </div>
+
+        <div class="hmo-body">
+          <p style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;margin-bottom:20px;">
+            What if you <strong>sold your home and rented instead</strong> — then invested the equity? Here's what the maths looks like based on your numbers.
+          </p>
+
+          <!-- Inputs -->
+          <div class="hmo-inputs">
+            <div class="hmo-input-row">
+              <label class="hmo-label">Estimated sale price</label>
+              <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="hmoSalePrice" class="hmo-input" placeholder="0" oninput="runHearMeOut()"/></div>
+            </div>
+            <div class="hmo-input-row">
+              <label class="hmo-label">Selling costs (agent, legal etc)</label>
+              <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="hmoSellingCosts" class="hmo-input" placeholder="0" oninput="runHearMeOut()"/></div>
+            </div>
+            <div class="hmo-input-row">
+              <label class="hmo-label">Weekly rent in new place</label>
+              <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="hmoWeeklyRent" class="hmo-input" placeholder="0" oninput="runHearMeOut()"/></div>
+            </div>
+            <div class="hmo-input-row">
+              <label class="hmo-label">Assumed rent increase per year</label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="hmoRentIncrease" min="1" max="10" value="4" oninput="document.getElementById('hmoRentIncreasePct').textContent=this.value+'%';runHearMeOut()" style="flex:1"/>
+                <span id="hmoRentIncreasePct" style="font-weight:700;color:var(--fire-orange);min-width:36px">4%</span>
+              </div>
+            </div>
+            <div class="hmo-input-row">
+              <label class="hmo-label">Assumed investment return per year</label>
+              <div style="display:flex;align-items:center;gap:10px">
+                <input type="range" id="hmoReturnRate" min="3" max="12" value="7" oninput="document.getElementById('hmoReturnRatePct').textContent=this.value+'%';runHearMeOut()" style="flex:1"/>
+                <span id="hmoReturnRatePct" style="font-weight:700;color:var(--fire-orange);min-width:36px">7%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Three scenarios -->
+          <div id="hmoResults" style="display:none">
+
+            <!-- Summary cards -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:20px 0">
+              <div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:14px;padding:16px;color:white;text-align:center">
+                <div style="font-size:11px;opacity:0.6;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Current path</div>
+                <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--fire-amber)" id="hmoCurrentDate">—</div>
+                <div style="font-size:11px;opacity:0.5;margin-top:4px">Keep the house</div>
+              </div>
+              <div style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:14px;padding:16px;color:white;text-align:center">
+                <div style="font-size:11px;opacity:0.85;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Sell & invest</div>
+                <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700" id="hmoNewDate">—</div>
+                <div style="font-size:11px;opacity:0.8;margin-top:4px" id="hmoYearsSaved">—</div>
+              </div>
+            </div>
+
+            <!-- Scenario A — Full invest + annual drawdown -->
+            <div class="hmo-scenario-block">
+              <div class="hmo-scenario-title">📈 Scenario A — Invest all equity, withdraw rent annually</div>
+              <div class="hmo-scenario-desc" id="hmoScenarioA"></div>
+            </div>
+
+            <!-- Scenario B — Reserve fund + invest rest -->
+            <div class="hmo-scenario-block">
+              <div class="hmo-scenario-title">🛡️ Scenario B — Reserve fund for rent, invest the rest</div>
+              <div class="hmo-scenario-desc" id="hmoScenarioB"></div>
+            </div>
+
+            <!-- Year by year table -->
+            <div style="margin-top:20px">
+              <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);margin-bottom:12px">📊 Year by year — Scenario A</div>
+              <div style="overflow-x:auto">
+                <table id="hmoTable" style="width:100%;border-collapse:collapse;font-size:12px">
+                  <thead>
+                    <tr style="background:var(--warm-cream)">
+                      <th style="padding:8px 10px;text-align:left;color:var(--soft-grey);font-weight:500;border-bottom:1px solid var(--border)">Year</th>
+                      <th style="padding:8px 10px;text-align:right;color:var(--soft-grey);font-weight:500;border-bottom:1px solid var(--border)">Portfolio</th>
+                      <th style="padding:8px 10px;text-align:right;color:var(--soft-grey);font-weight:500;border-bottom:1px solid var(--border)">Growth</th>
+                      <th style="padding:8px 10px;text-align:right;color:var(--soft-grey);font-weight:500;border-bottom:1px solid var(--border)">Rent paid</th>
+                      <th style="padding:8px 10px;text-align:right;color:var(--soft-grey);font-weight:500;border-bottom:1px solid var(--border)">End value</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hmoTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+
+          <div style="margin-top:20px;padding:14px 16px;background:var(--warm-cream);border-radius:12px;font-size:12px;color:var(--soft-grey);line-height:1.7;font-weight:300;">
+            🤔 There are lifestyle, emotional and practical factors only you can weigh — community ties, stability, the meaning of home. But now you know what the maths says.<br/><br/>
+            <strong style="color:var(--warm-brown)">Not advice. Just the numbers.</strong>
+          </div>
+        </div>
+      </div>
+
       <p class="disclaimer">
         FirePath is an educational tool. We don't provide financial advice.<br/>
         Projections are illustrative only based on your inputs.
@@ -601,15 +719,26 @@
   }
 
   // ── User status on load ────────────────
-  const userStatusEl = document.getElementById('userStatus');
-  if (fpToken && localStorage.getItem('fp_email')) {
-    const email = localStorage.getItem('fp_email');
-    userStatusEl.innerHTML = `Signed in as ${email} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;
-  } else if (fpGuest) {
-    userStatusEl.innerHTML = `Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;
-  } else {
-    userStatusEl.innerHTML = `<a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save your progress →</a>`;
-  }
+  document.addEventListener('DOMContentLoaded', function() {
+    const userStatusEl = document.getElementById('userStatus');
+    if (!userStatusEl) return;
+    if (fpToken && localStorage.getItem('fp_email')) {
+      const email = localStorage.getItem('fp_email');
+      userStatusEl.innerHTML = `Signed in as ${email} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;
+    } else if (fpGuest) {
+      userStatusEl.innerHTML = `Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;
+    } else {
+      userStatusEl.innerHTML = `<a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save your progress →</a>`;
+    }
+    // Auto-select persona for returning users
+    if (savedPersona) {
+      persona = savedPersona;
+      document.querySelectorAll('.persona-card').forEach(c => {
+        if (c.dataset.persona === savedPersona) c.classList.add('selected');
+      });
+      document.getElementById('continueBtn').disabled = false;
+    }
+  });
 
   function signOut() {
     localStorage.removeItem('fp_access_token');
@@ -619,6 +748,8 @@
     localStorage.removeItem('fp_guest');
     window.location.href = 'auth.html';
   }
+
+  // ── Read aloud ─────────────────────────
   function readResultsAloud() {
     if (!('speechSynthesis' in window)) { alert('Text-to-speech is not supported in this browser.'); return; }
     window.speechSynthesis.cancel();
@@ -640,16 +771,6 @@
     persona = el.dataset.persona;
     document.getElementById('continueBtn').disabled = false;
     savePersonaToDB(persona);
-  }
-
-  // Auto-skip persona screen for returning logged-in users
-  if (savedPersona) {
-    persona = savedPersona;
-    // Pre-select the right card
-    document.querySelectorAll('.persona-card').forEach(c => {
-      if (c.dataset.persona === savedPersona) c.classList.add('selected');
-    });
-    document.getElementById('continueBtn').disabled = false;
   }
 
   // ── Screens ────────────────────────────
@@ -1129,8 +1250,13 @@
       document.getElementById('aiLoading').classList.remove('visible');
       document.getElementById('analyseBtn').style.display = 'block';
 
+      // Show Hear Me Out if: property owner, age 50+, freedom date 15+ years away
+      if (propVal > 0 && age && age >= 50 && freedomYears && freedomYears >= 15) {
+        showHearMeOut(propVal, freedomYears, savings, mSav, fireNum);
+      }
+
       // Save calculation to database
-      const ageGroup = !age ? 'unknown' : age < 40 ? 'young' : age < 55 ? 'mid' : 'senior';
+      const ageGroupDB = !age ? 'unknown' : age < 40 ? 'young' : age < 55 ? 'mid' : 'senior';
       await dbInsert('calculations', {
         income_monthly: Math.round(mIncome),
         savings_rate: sRate,
@@ -1141,7 +1267,7 @@
         property_mentioned: propEquity > 0,
         renting_mentioned: isRenting,
         caring_mentioned: /care|caring|carer|elderly|father|mother|parent/i.test(context),
-        age_group: ageGroup
+        age_group: ageGroupDB
       });
 
       // Load check-in history from DB
@@ -1195,7 +1321,7 @@
   function toggleTooltip(el) { el.classList.toggle('active'); }
 
   // ── Monthly check-in ───────────────────
-  function doCheckin() {
+  async function doCheckin() {
     const newIncome  = parseFloat(document.getElementById('ci-income').value)  || calcData.mIncome;
     const newRate    = parseFloat(document.getElementById('ci-rate').value)    || calcData.sRate;
     const newSavings = parseFloat(document.getElementById('ci-savings').value) || calcData.savings;
@@ -1268,6 +1394,134 @@
           ${h.diff > 0 ? '↓ ' + fmt(h.diff) + ' sooner' : h.diff < 0 ? '↑ ' + fmt(Math.abs(h.diff)) + ' later' : '→ no change'}
         </span>
       </div>`).join('');
+  }
+
+  // ── Hear Me Out ────────────────────────
+  function showHearMeOut(propVal, freedomYears, savings, mSav, fireNum) {
+    const card = document.getElementById('hearMeOutCard');
+    card.style.display = 'block';
+
+    // Pre-fill sale price from property value
+    document.getElementById('hmoSalePrice').value = propVal > 0 ? propVal : '';
+    document.getElementById('hmoSellingCosts').value = propVal > 0 ? Math.round(propVal * 0.03) : '';
+
+    // Store current path data for comparison
+    card.dataset.freedomYears = freedomYears || 99;
+    card.dataset.savings = savings;
+    card.dataset.mSav = mSav;
+    card.dataset.fireNum = fireNum;
+
+    runHearMeOut();
+  }
+
+  function runHearMeOut() {
+    const card      = document.getElementById('hearMeOutCard');
+    const salePrice = parseFloat(document.getElementById('hmoSalePrice').value) || 0;
+    const sellCosts = parseFloat(document.getElementById('hmoSellingCosts').value) || 0;
+    const weeklyRent = parseFloat(document.getElementById('hmoWeeklyRent').value) || 0;
+    const rentIncrease = parseFloat(document.getElementById('hmoRentIncrease').value) / 100 || 0.04;
+    const returnRate   = parseFloat(document.getElementById('hmoReturnRate').value) / 100 || 0.07;
+
+    const netEquity   = salePrice - sellCosts;
+    const currentSavings = parseFloat(card.dataset.savings) || 0;
+    const mSav           = parseFloat(card.dataset.mSav) || 0;
+    const fireNum        = parseFloat(card.dataset.fireNum) || 0;
+    const currentYears   = parseFloat(card.dataset.freedomYears) || 99;
+    const currentYear    = new Date().getFullYear();
+
+    if (salePrice <= 0 || weeklyRent <= 0) return;
+
+    document.getElementById('hmoResults').style.display = 'block';
+
+    // ── Current path ──
+    document.getElementById('hmoCurrentDate').textContent = currentYears < 99 ? currentYear + Math.round(currentYears) : '50+ yrs';
+
+    const annualRent = weeklyRent * 52;
+
+    // ── Scenario A — Full invest, annual drawdown ──
+    // New spending = old spending + rent (rent replaces housing costs)
+    // We assume they were paying roughly $200/week in housing costs already
+    // Net new housing cost = weeklyRent - 200 (rough offset)
+    const extraMonthly = Math.max(0, (weeklyRent - 200) * 52 / 12);
+    const newMSpend    = (parseFloat(calcData.mSpend) || 0) + extraMonthly;
+    const newFireNum   = newMSpend * 12 * 25;
+    const lumpSum      = netEquity + currentSavings;
+
+    // Years to new freedom with lump sum invested
+    let scenAYears = null;
+    let bal = lumpSum;
+    for (let m = 0; m < 1200; m++) {
+      bal = bal * (1 + returnRate / 12) + mSav;
+      if (bal >= newFireNum) { scenAYears = m / 12; break; }
+    }
+
+    // Year by year table — Scenario A (portfolio growth with annual rent withdrawal)
+    const tableBody = document.getElementById('hmoTableBody');
+    tableBody.innerHTML = '';
+    let portfolio = netEquity;
+    let annRent   = annualRent;
+    let rows = [];
+
+    for (let yr = 1; yr <= 20; yr++) {
+      const growth    = portfolio * returnRate;
+      const withdrawn = annRent;
+      const endVal    = portfolio + growth - withdrawn + (mSav * 12);
+      rows.push({ yr, start: portfolio, growth, withdrawn, end: endVal });
+      portfolio = endVal;
+      annRent  *= (1 + rentIncrease);
+    }
+
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid var(--border)';
+      const growthColor = r.growth > r.withdrawn ? '#2E7D32' : '#E53935';
+      tr.innerHTML = `
+        <td style="padding:8px 10px;color:var(--soft-grey)">${r.yr}</td>
+        <td style="padding:8px 10px;text-align:right">${fmtM(r.start)}</td>
+        <td style="padding:8px 10px;text-align:right;color:${growthColor}">+${fmtM(r.growth)}</td>
+        <td style="padding:8px 10px;text-align:right;color:#E53935">-${fmtM(r.withdrawn)}</td>
+        <td style="padding:8px 10px;text-align:right;font-weight:500">${fmtM(r.end)}</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+
+    // Scenario A description
+    const yr1 = rows[0];
+    const yr10 = rows[9];
+    document.getElementById('hmoScenarioA').innerHTML = `
+      You invest <strong>${fmtM(netEquity)}</strong> at ${Math.round(returnRate*100)}%. 
+      In year 1 your portfolio grows by <strong>${fmtM(yr1.growth)}</strong> — you withdraw <strong>${fmtM(yr1.withdrawn)}</strong> for rent, leaving <strong>${fmtM(yr1.end)}</strong>. 
+      By year 10 the portfolio could be worth <strong>${fmtM(yr10.end)}</strong> — still growing despite annual withdrawals. 
+      Because your investment return (${Math.round(returnRate*100)}%) outpaces rent increases (${Math.round(rentIncrease*100)}%), 
+      the portfolio keeps compounding. Your regular savings of ${fmtM(mSav*12)}/year add to this on top.
+    `;
+
+    // ── Scenario B — Reserve fund ──
+    const reserveYears   = 6;
+    const reserveFund    = annualRent * reserveYears;
+    const investedAmount = Math.max(0, netEquity - reserveFund);
+    let scenBYears = null;
+    let balB = investedAmount + currentSavings;
+    for (let m = 0; m < 1200; m++) {
+      balB = balB * (1 + returnRate / 12) + mSav;
+      if (balB >= newFireNum) { scenBYears = m / 12; break; }
+    }
+
+    document.getElementById('hmoScenarioB').innerHTML = `
+      Set aside <strong>${fmtM(reserveFund)}</strong> as a ${reserveYears}-year rent buffer — covering rent while you adjust. 
+      Invest the remaining <strong>${fmtM(investedAmount)}</strong> at ${Math.round(returnRate*100)}%. 
+      After ${reserveYears} years, your invested portfolio could be worth <strong>${fmtM(investedAmount * Math.pow(1 + returnRate, reserveYears))}</strong> — 
+      generating approximately <strong>${fmtM(investedAmount * Math.pow(1 + returnRate, reserveYears) * returnRate)}/year</strong> in returns, 
+      which could cover your rent costs at that point.
+    `;
+
+    // ── New freedom date ──
+    const bestYears = scenAYears !== null ? scenAYears : scenBYears;
+    const newFreedomYear = bestYears !== null ? currentYear + Math.round(bestYears) : null;
+    const yearsSaved = bestYears !== null && currentYears < 99 ? Math.round(currentYears - bestYears) : null;
+
+    document.getElementById('hmoNewDate').textContent = newFreedomYear ? newFreedomYear : 'Sooner';
+    document.getElementById('hmoYearsSaved').textContent = yearsSaved && yearsSaved > 0 ? `${yearsSaved} years sooner` : 'Significant improvement';
   }
 
   // ── Tabs ───────────────────────────────
