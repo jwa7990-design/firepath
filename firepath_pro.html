@@ -879,29 +879,7 @@ async function dbInsert(table, data) {
     const pct = income > 0 ? Math.round((saved / income) * 100) : 0;
     document.getElementById('sliderHint').textContent = income > 0 && saved > 0 ? `That's ${pct}% of your income` : '';
 }
-
-
-  // Set slider max to income
-  slider.max = income > 0 ? Math.round(income) : 100;
-  if (slider.value === '0' && income > 0) slider.value = Math.round(income * 0.2);
-
-
-  if (income <= 0) {
-    document.getElementById('sliderPct').textContent = '$0';
-    document.getElementById('sliderHint').textContent = 'Enter your income above first';
-    slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--border) 0%)`;
-    return;
-  }
   
-  document.getElementById('sliderPct').textContent = fmtM(savedDollars);
-  document.getElementById('sliderHint').textContent = `That's ${actualPct}% of your income`;
-  
-  const trackPct = ((pct - 0) / 100) * 100;
-  slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--fire-orange) ${trackPct}%, var(--border) ${trackPct}%)`;
-  updateSuperNote();
-}
-
-
   // ── Super note ─────────────────────────
   function updateSuperNote() {
     const superBal = parseFloat(document.getElementById('superBalance').value) || 0;
