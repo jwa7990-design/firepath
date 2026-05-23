@@ -704,8 +704,10 @@ if ((!_t || _t === 'undefined' || _t === 'null') && !_g) {
 
   // ── Database helpers ───────────────────
 async function dbInsert(table, data) {
-  if (!fpToken || !fpUserId) return;
-
+  if (!fpToken || !fpUserId) {
+    alert('dbInsert skipped - no token or userId');
+    return;
+  }
   try {
     const res = await fetch(`${WORKER_URL}/db/${table}`, {
       method: 'POST',
@@ -870,22 +872,57 @@ async function dbInsert(table, data) {
     return n;
   }
 
-// ── Slider ─────────────────────────────
-function updateSliderLabel() {
+  // ── Slider ─────────────────────────────
+  function updateSliderLabel() {
   const income = parseFloat(document.getElementById('income').value) || 0;
   const slider = document.getElementById('savingsRateSlider');
+  const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
+  
   if (income <= 0) {
-    document.getElementById('sliderPct').textContent = '0%';
+    document.getElementById('sliderPct').textContent = '$0';
     document.getElementById('sliderHint').textContent = 'Enter your income above first';
     slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--border) 0%)`;
     return;
   }
-  const pct = parseInt(slider.value);
-  document.getElementById('sliderPct').textContent = pct + '%';
-  document.getElementById('sliderHint').textContent = `That's $${Math.round(income * pct / 100)} saved`;
-  slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--fire-orange) ${pct}%, var(--border) ${pct}%)`;
+
+  // Slider value is % of income, display as dollars
+  function updateSliderLabel() {
+  const income = parseFloat(document.getElementById('income').value) || 0;
+  const slider = document.getElementById('savingsRateSlider');
+  const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
+
+  // Set slider max to income
+  slider.max = income > 0 ? Math.round(income) : 100;
+  if (slider.value === '0' && income > 0) slider.value = Math.round(income * 0.2);
+
+
+  if (income <= 0) {
+    document.getElementById('sliderPct').textContent = '$0';
+    document.getElementById('sliderHint').textContent = 'Enter your income above first';
+    slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--border) 0%)`;
+    return;
+  }
+
+  const savedDollars = parseInt(slider.value);
+  const actualPct = income > 0 ? Math.round((savedDollars / income) * 100) : 0;
+
+  document.getElementById('sliderPct').textContent = fmtM(savedDollars);
+  document.getElementById('sliderHint').textContent = `That's ${actualPct}% of your income`;
+
+  const trackPct = income > 0 ? (savedDollars / income) * 100 : 0;
+  slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--fire-orange) ${trackPct}%, var(--border) ${trackPct}%)`;
   updateSuperNote();
 }
+
+  
+  document.getElementById('sliderPct').textContent = fmtM(savedDollars);
+  document.getElementById('sliderHint').textContent = `That's ${actualPct}% of your income`;
+  
+  const trackPct = ((pct - 0) / 100) * 100;
+  slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--fire-orange) ${trackPct}%, var(--border) ${trackPct}%)`;
+  updateSuperNote();
+}
+
 
   // ── Super note ─────────────────────────
   function updateSuperNote() {
