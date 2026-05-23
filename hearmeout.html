@@ -456,6 +456,14 @@
           <span style="font-weight:600;font-size:15px" id="h-netEquity">—</span>
         </div>
         <div class="data-row">
+          <span class="data-label">12-month rent buffer (pre-funded)</span>
+          <span style="font-weight:600;font-size:15px;color:#C62828" id="h-rentBuffer">—</span>
+        </div>
+        <div class="data-row">
+          <span class="data-label">Starting portfolio (actually invested)</span>
+          <span style="font-weight:700;font-size:15px;color:var(--fire-orange)" id="h-startingPortfolio">—</span>
+        </div>
+        <div class="data-row">
           <span class="data-label">Year 1 portfolio growth</span>
           <span style="font-weight:600;font-size:15px;color:#2E7D32" id="h-yr1growth">—</span>
         </div>
@@ -786,9 +794,9 @@
     document.getElementById('home-results').style.display = 'block';
     document.getElementById('home-empty').style.display = 'none';
 
-    const netEquity = Math.max(0, salePrice - sellCosts - mortgage);
-
-    // Current path (savings only)
+    const annualRent = weeklyRent * 52;
+    const rentBuffer = annualRent;
+    const netEquity = Math.max(0, salePrice - sellCosts - mortgage - rentBuffer);
     const currentYears = fireNum > 0 ? yearsToGoal(fireNum, 0, monthlySav, 0.07) : null;
     const currentDate  = currentYears !== null ? currentYear + Math.round(currentYears) : null;
 
@@ -797,10 +805,13 @@
     const newDate  = newYears !== null ? currentYear + Math.round(newYears) : null;
     const yearsSaved = currentYears !== null && newYears !== null ? Math.round(currentYears - newYears) : null;
 
+    const yearsFromNow = newDate ? newDate - currentYear : null;
     document.getElementById('h-currentDate').textContent = currentDate ? currentDate : '50+ yrs';
     document.getElementById('h-newDate').textContent = newDate ? newDate : '—';
-    document.getElementById('h-yearsSaved').textContent = yearsSaved && yearsSaved > 0 ? yearsSaved + ' years sooner' : 'Significant improvement';
-    document.getElementById('h-netEquity').textContent = fmtM(netEquity);
+    document.getElementById('h-yearsSaved').textContent = yearsSaved && yearsSaved > 0 ? `${yearsFromNow} yrs away · ${yearsSaved} yrs sooner` : 'Significant improvement';
+    document.getElementById('h-netEquity').textContent = fmtM(salePrice - sellCosts - mortgage);
+    document.getElementById('h-rentBuffer').textContent = '−' + fmtM(rentBuffer);
+    document.getElementById('h-startingPortfolio').textContent = fmtM(netEquity);
 
     // Year 1
     const yr1Growth = netEquity * returnRate;
@@ -854,9 +865,11 @@
     const withYears    = yearsToGoal(fireNum, existing + amount, monthly, rate);
     const diff = withoutYears !== null && withYears !== null ? withoutYears - withYears : null;
 
+    const withDate = withYears !== null ? currentYear + Math.round(withYears) : null;
+    const yearsFromNow = withDate ? withDate - currentYear : null;
     document.getElementById('l-withoutDate').textContent = withoutYears !== null ? currentYear + Math.round(withoutYears) : '50+ yrs';
-    document.getElementById('l-withDate').textContent    = withYears !== null ? currentYear + Math.round(withYears) : '—';
-    document.getElementById('l-yearsSaved').textContent  = diff && diff > 0 ? Math.round(diff) + ' years sooner' : 'Meaningful boost';
+    document.getElementById('l-withDate').textContent    = withDate ? withDate : '—';
+    document.getElementById('l-yearsSaved').textContent  = diff && diff > 0 ? `${yearsFromNow} yrs away · ${Math.round(diff)} yrs sooner` : 'Meaningful boost';
 
     document.getElementById('l-10yr').textContent = fmtM(amount * Math.pow(1 + rate, 10));
     document.getElementById('l-20yr').textContent = fmtM(amount * Math.pow(1 + rate, 20));
