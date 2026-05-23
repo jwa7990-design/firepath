@@ -391,7 +391,7 @@
 
       <div class="input-row">
         <div class="input-label-text">Estimated sale price</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-salePrice" placeholder="600000" oninput="calcHome()"/></div>
+        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-salePrice" placeholder="600000" oninput="autoFillSellCosts();calcHome()"/>
       </div>
       <div class="input-row">
         <div class="input-label-text">Selling costs (agent, legal, etc)</div>
@@ -399,7 +399,7 @@
       </div>
       <div class="input-row">
         <div class="input-label-text">Mortgage remaining (if any)</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-mortgage" placeholder="0" oninput="calcHome()"/></div>
+        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-mortgage" placeholder="0" oninput="this.dataset.edited='true';calcHome()"/>
       </div>
       <div class="input-row">
         <div class="input-label-text">Weekly rent in new place</div>
@@ -745,6 +745,14 @@
     document.getElementById('panel-' + s).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+  function autoFillSellCosts() {
+  const price = parseFloat(document.getElementById('h-salePrice').value) || 0;
+  const costsField = document.getElementById('h-sellCosts');
+  if (price > 0 && !costsField.dataset.edited) {
+    costsField.value = Math.round(price * 0.025);
+  }
+}
 
   // ── Helpers ──
   function fmtM(n) {
