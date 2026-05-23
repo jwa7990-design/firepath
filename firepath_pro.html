@@ -330,11 +330,11 @@
        
         <div class="input-group">
           <label class="input-label">How much do you save?</label>
-          <div class="input-wrapper">
-            <span class="input-prefix">$</span>
-            <input type="number" id="savingsRateSlider" placeholder="0" min="0" oninput="updateSliderLabel()"/>
+          <div class="slider-row">
+            <input type="range" id="savingsRateSlider" min="0" max="100" value="0" oninput="updateSliderLabel()"/>
+            <span class="slider-pct" id="sliderPct">$0</span>
           </div>
-          <div class="slider-hint" id="sliderHint"></div>
+          <div class="slider-hint" id="sliderHint">Enter your income above first</div>
         </div>
 
         <div class="divider"></div>
@@ -872,14 +872,58 @@ async function dbInsert(table, data) {
     return n;
   }
 
+  // ── Slider ─────────────────────────────
+  function updateSliderLabel() {
+  const income = parseFloat(document.getElementById('income').value) || 0;
+  const slider = document.getElementById('savingsRateSlider');
+  const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
+  
+  if (income <= 0) {
+    document.getElementById('sliderPct').textContent = '$0';
+    document.getElementById('sliderHint').textContent = 'Enter your income above first';
+    slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--border) 0%)`;
+    return;
+  }
+
   // Slider value is % of income, display as dollars
   function updateSliderLabel() {
-    const income = parseFloat(document.getElementById('income').value) || 0;
-    const saved = parseFloat(document.getElementById('savingsRateSlider').value) || 0;
-    const pct = income > 0 ? Math.round((saved / income) * 100) : 0;
-    document.getElementById('sliderHint').textContent = income > 0 && saved > 0 ? `That's ${pct}% of your income` : '';
+  const income = parseFloat(document.getElementById('income').value) || 0;
+  const slider = document.getElementById('savingsRateSlider');
+  const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
+
+  // Set slider max to income
+  slider.max = income > 0 ? Math.round(income) : 100;
+  if (slider.value === '0' && income > 0) slider.value = Math.round(income * 0.2);
+
+
+  if (income <= 0) {
+    document.getElementById('sliderPct').textContent = '$0';
+    document.getElementById('sliderHint').textContent = 'Enter your income above first';
+    slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--border) 0%)`;
+    return;
+  }
+
+  const savedDollars = parseInt(slider.value);
+  const actualPct = income > 0 ? Math.round((savedDollars / income) * 100) : 0;
+
+  document.getElementById('sliderPct').textContent = fmtM(savedDollars);
+  document.getElementById('sliderHint').textContent = `That's ${actualPct}% of your income`;
+
+  const trackPct = income > 0 ? (savedDollars / income) * 100 : 0;
+  slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--fire-orange) ${trackPct}%, var(--border) ${trackPct}%)`;
+  updateSuperNote();
 }
+
   
+  document.getElementById('sliderPct').textContent = fmtM(savedDollars);
+  document.getElementById('sliderHint').textContent = `That's ${actualPct}% of your income`;
+  
+  const trackPct = ((pct - 0) / 100) * 100;
+  slider.style.background = `linear-gradient(to right, var(--fire-orange) 0%, var(--fire-orange) ${trackPct}%, var(--border) ${trackPct}%)`;
+  updateSuperNote();
+}
+
+
   // ── Super note ─────────────────────────
   function updateSuperNote() {
     const superBal = parseFloat(document.getElementById('superBalance').value) || 0;
@@ -967,30 +1011,29 @@ async function dbInsert(table, data) {
     contextRecognition.start();
   }
 
- // ── Analyse ────────────────────────────
- async function analyse() {
-   let userInput = '';
-   let manualIncome = 0, manualSavings = 0, manualSuper = 0, manualAge = 0, manualContext = '';
+  // ── Analyse ────────────────────────────
+  async function analyse() {
+    let userInput = '';
+    let manualIncome = 0, manualRate = 20, manualSavings = 0, manualSuper = 0, manualAge = 0, manualContext = '';
 
-   if (inputMode === 'voice') {
-     if (!transcriptText) { alert('Please speak your situation first, or switch to Type mode.'); return; }
-     userInput = transcriptText;
-   } else {
-     manualIncome   = parseFloat(document.getElementById('income').value) || 0;
-     const savedDollars = parseFloat(document.getElementById('savingsRateSlider').value) || 0;
-     const manualRate = manualIncome > 0 ? Math.round((savedDollars / manualIncome) * 100) : 0;
-     manualSavings  = parseFloat(document.getElementById('savings').value) || 0;
-     manualSuper    = parseFloat(document.getElementById('superBalance').value) || 0;
-     manualAge      = parseInt(document.getElementById('age').value) || 0;
-     manualContext  = document.getElementById('context').value;
+    if (inputMode === 'voice') {
+      if (!transcriptText) { alert('Please speak your situation first, or switch to Type mode.'); return; }
+      userInput = transcriptText;
+    } else {
+      manualIncome   = parseFloat(document.getElementById('income').value)       || 0;
+      manualRate     = parseInt(document.getElementById('savingsRateSlider').value) || 20;
+      manualSavings  = parseFloat(document.getElementById('savings').value)       || 0;
+      manualSuper    = parseFloat(document.getElementById('superBalance').value)  || 0;
+      manualAge      = parseInt(document.getElementById('age').value)             || 0;
+      manualContext  = document.getElementById('context').value;
 
-     if (manualIncome <= 0) { document.getElementById('errorMsg').style.display = 'block'; return; }
-     document.getElementById('errorMsg').style.display = 'none';
+      if (manualIncome <= 0) { document.getElementById('errorMsg').style.display = 'block'; return; }
+      document.getElementById('errorMsg').style.display = 'none';
 
-if (manualContext) userInput += ` Personal situation: ${manualContext}`;
-    }  // closes else
-  }    // closes if/else block
-
+      const savedPerCycle = manualIncome * (manualRate / 100);
+      userInput = `Pay cycle: ${selectedCycle}. Income: $${manualIncome} per ${selectedCycle}. Savings rate: ${manualRate}%. Amount saved per ${selectedCycle}: $${Math.round(savedPerCycle)}. Current savings/investments (excluding super): $${manualSavings}. Super balance: $${manualSuper}. Age: ${manualAge || 'not provided'}.`;
+      if (manualContext) userInput += ` Personal situation: ${manualContext}`;
+    }
 
     document.getElementById('analyseBtn').style.display = 'none';
     document.getElementById('aiLoading').classList.add('visible');
