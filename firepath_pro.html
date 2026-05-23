@@ -368,6 +368,14 @@
           <span class="compare-value highlight" id="timeSaved">—</span>
         </div>
       </div>
+      <!-- Hear Me Out button -->
+      <div onclick="saveHMOData(); window.location.href='hearmeout.html';" style="margin-bottom:16px;background:white;border:2px solid var(--warm-brown);border-radius:20px;padding:24px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;">
+        <div style="font-size:22px;margin-bottom:10px">🤔</div>
+        <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3">Okay, hear me out for a sec.</div>
+        <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px">What if you made one big move? Sold the house. Got a redundancy payout. Invested a lump sum. Run the numbers — no judgement, no advice. Just the maths.</div>
+        <div style="display:inline-flex;align-items:center;gap:8px;background:var(--warm-brown);color:white;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:500;">Show me the numbers →</div>
+      </div>
+
       <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
     </div>
     <div class="tab-content" id="tab-accountability">
@@ -555,6 +563,12 @@
       document.getElementById('continueBtn').disabled = false;
     }
   });
+
+  function saveHMOData() {
+    localStorage.setItem('hmo_fireNum', calcData.fireNum || 0);
+    localStorage.setItem('hmo_monthlySav', calcData.mSav || 0);
+    localStorage.setItem('hmo_propVal', calcData.propVal || 0);
+  }
 
   function signOut() {
     ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => localStorage.removeItem(k));
@@ -786,7 +800,7 @@
       const extracted = JSON.parse(raw);
 
       const mIncome  = extracted.income_monthly  || (inputMode === 'type' ? toMonthly(manualIncome) : 0);
-      const mSpend = inputMode === 'type' ? toMonthly(manualIncome) - toMonthly(manualSavedAmount) : (extracted.spending_monthly || 0);
+      const mSpend   = extracted.spending_monthly || (inputMode === 'type' ? toMonthly(manualIncome) * (1 - manualRate/100) : 0);
       const mSav     = mIncome - mSpend;
       const savings  = extracted.savings       || (inputMode === 'type' ? manualSavings : 0);
       const superBal = extracted.super_balance || (inputMode === 'type' ? manualSuper : 0);
@@ -796,7 +810,7 @@
       const fireNum  = (mSpend * 12) * 25;
       const sRate    = mIncome > 0 ? Math.round((mSav/mIncome)*100) : 0;
 
-      calcData = { mIncome, mSpend, mSav, savings, superBal, fireNum, sRate, age, context };
+      calcData = { mIncome, mSpend, mSav, savings, superBal, fireNum, sRate, age, context, propVal: 0 };
 
       const currentYear  = new Date().getFullYear();
       const freedomYears = yearsToGoal(fireNum, savings, mSav, 0.07);
