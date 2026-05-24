@@ -391,7 +391,7 @@
 
       <div class="input-row">
         <div class="input-label-text">Estimated sale price</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-salePrice" placeholder="600000" oninput="autoFillSellCosts();calcHome()"/>
+        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-salePrice" placeholder="600000" oninput="calcHome()"/></div>
       </div>
       <div class="input-row">
         <div class="input-label-text">Selling costs (agent, legal, etc)</div>
@@ -399,7 +399,7 @@
       </div>
       <div class="input-row">
         <div class="input-label-text">Mortgage remaining (if any)</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-mortgage" placeholder="0" oninput="this.dataset.edited='true';calcHome()"/>
+        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-mortgage" placeholder="0" oninput="calcHome()"/></div>
       </div>
       <div class="input-row">
         <div class="input-label-text">Weekly rent in new place</div>
@@ -505,6 +505,11 @@
     <div class="bottom-note">
       🤔 There are lifestyle, emotional and practical factors only you can weigh — community ties, stability, the meaning of home. But now you know what the maths says.<br/><br/>
       <strong>Not advice. Just the numbers.</strong>
+    </div>
+
+    <div onclick="saveAPFromHMO('sell_home'); window.location.href='actionplan.html';" style="margin-top:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:16px;padding:20px;cursor:pointer;text-align:center;color:white;">
+      <div style="font-size:15px;font-weight:500;margin-bottom:4px">Ready to make it happen?</div>
+      <div style="font-size:13px;opacity:0.8;font-weight:300">Get your personalised action plan →</div>
     </div>
   </div>
 
@@ -727,7 +732,12 @@
 </div>
 
 <script>
-  // ── Pre-populate from FirePath results ──
+  function saveAPFromHMO(scenario) {
+    localStorage.setItem('ap_scenario', scenario || 'sell_home');
+    localStorage.removeItem('ap_saved_plan');
+  }
+
+  let activeScenario = 'home';
   const hmoFireNum    = parseFloat(localStorage.getItem('hmo_fireNum')) || 0;
   const hmoMonthlySav = parseFloat(localStorage.getItem('hmo_monthlySav')) || 0;
   const hmoPropVal    = parseFloat(localStorage.getItem('hmo_propVal')) || 0;
@@ -745,14 +755,6 @@
     document.getElementById('panel-' + s).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
-
-  function autoFillSellCosts() {
-  const price = parseFloat(document.getElementById('h-salePrice').value) || 0;
-  const costsField = document.getElementById('h-sellCosts');
-  if (price > 0 && !costsField.dataset.edited) {
-    costsField.value = Math.round(price * 0.025);
-  }
-}
 
   // ── Helpers ──
   function fmtM(n) {

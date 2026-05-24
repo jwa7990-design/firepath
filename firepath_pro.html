@@ -368,6 +368,14 @@
           <span class="compare-value highlight" id="timeSaved">—</span>
         </div>
       </div>
+      <!-- Action Plan button -->
+      <div onclick="saveActionPlanData('save_more'); window.location.href='actionplan.html';" style="margin-bottom:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:20px;padding:24px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;">
+        <div style="font-size:22px;margin-bottom:10px">📋</div>
+        <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:white;margin-bottom:8px;line-height:1.3">Get your action plan</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.8);font-weight:300;line-height:1.6;margin-bottom:16px">Personalised steps built around your numbers and situation. Tick them off as you go — we'll save your progress.</div>
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.2);color:white;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:500;">Build my plan →</div>
+      </div>
+
       <!-- Hear Me Out button -->
       <div onclick="saveHMOData(); window.location.href='hearmeout.html';" style="margin-bottom:16px;background:white;border:2px solid var(--warm-brown);border-radius:20px;padding:24px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;">
         <div style="font-size:22px;margin-bottom:10px">🤔</div>
@@ -568,6 +576,22 @@
     localStorage.setItem('hmo_fireNum', calcData.fireNum || 0);
     localStorage.setItem('hmo_monthlySav', calcData.mSav || 0);
     localStorage.setItem('hmo_propVal', calcData.propVal || 0);
+  }
+
+  function saveActionPlanData(scenario) {
+    localStorage.setItem('ap_fireNum',    calcData.fireNum    || 0);
+    localStorage.setItem('ap_monthlySav', calcData.mSav      || 0);
+    localStorage.setItem('ap_income',     calcData.mIncome   || 0);
+    localStorage.setItem('ap_savings',    calcData.savings   || 0);
+    localStorage.setItem('ap_super',      calcData.superBal  || 0);
+    localStorage.setItem('ap_age',        calcData.age       || 0);
+    localStorage.setItem('ap_sRate',      calcData.sRate     || 0);
+    localStorage.setItem('ap_context',    calcData.context   || '');
+    localStorage.setItem('ap_persona',    persona            || 'building');
+    localStorage.setItem('ap_cycle',      selectedCycle      || 'fortnightly');
+    localStorage.setItem('ap_scenario',   scenario           || 'save_more');
+    localStorage.setItem('ap_freedomYrs', yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07) || 0);
+    localStorage.removeItem('ap_saved_plan');
   }
 
   function signOut() {
@@ -850,7 +874,7 @@
         }
       }
 
-        const isRenting = /rent|deposit|saving to buy|looking to buy|first home|want to buy/i.test(context);
+      const isRenting = /rent|deposit|house|buy|saving to buy|looking to buy|first home/i.test(context);
       if (isRenting) {
         const dBank = yearsToGoal(100000, savings, mSav, 0.0075);
         const d5    = yearsToGoal(100000, savings, mSav, 0.05);
@@ -878,11 +902,10 @@
         body: JSON.stringify({
           model: 'claude-sonnet-4-5',
           max_tokens: 400,
-          system: 'You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. User persona: ' + persona + '. ' + ageTone + ' Write 2-3 sentences of personalised insight. If the person mentions caring for family members or life constraints, acknowledge these FIRST with genuine empathy. Identify their single biggest financial lever. Never say "I recommend" or "you should invest in". End with "This is educational, not financial advice." If the person owns a home or mentions a significant asset, add: "There is a scenario worth running — tap Hear me out below." Format bold text with <strong> tags.',
+          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. User persona: ${persona}. ${ageTone} Tone: ${persona === 'beginner' ? 'warm, simple, human' : persona === 'building' ? 'clear, motivating, practical' : 'direct, analytical, peer-level'}. Write 2-3 sentences of personalised insight. If the person mentions caring for family members or life constraints, acknowledge these FIRST with genuine empathy. Identify their single biggest financial lever. Never say "I recommend" or "you should invest in". End with "This is educational, not financial advice." Format bold text with <strong> tags.`,
           messages: [{ role: 'user', content: `Monthly income: $${Math.round(mIncome)}, Monthly spending: $${Math.round(mSpend)}, Monthly saving: $${Math.round(mSav)}, Current savings: $${savings}, Super: $${superBal}, Freedom number: $${Math.round(fireNum)}, Savings rate: ${sRate}%, Freedom date: ${freedomYear || 'over 50 years away'}. Age: ${age || 'unknown'}. Personal situation: ${context}` }]
         })
-    });
-
+      });
 
       const insightData = await insightRes.json();
       const insight = insightData.content[0].text;
