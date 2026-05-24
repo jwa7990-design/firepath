@@ -388,7 +388,7 @@
       redundancy:'make the most of a redundancy payout'
     }[apScenario] || 'reach financial independence';
 
-    const prompt = `You are FirePath, a warm financial independence educational tool. Generate a personalised action plan for this person.
+   const prompt = `You are FirePath, a warm financial independence educational tool. Generate a personalised action plan for this person.
 
 Person details:
 - Income: $${Math.round(apIncome)} per ${cycleWord}
@@ -402,9 +402,43 @@ Person details:
 - Their situation: ${apContext || 'not provided'}
 - Their chosen path: ${scenarioLabel}
 
-Generate exactly 7 action steps personalised to their situation and chosen path. Think creatively and practically. For saving more money, suggest things like: selling unused items, cancelling forgotten subscriptions, meal prepping, negotiating phone/energy/insurance bills, picking up a side gig, buying secondhand, carpooling. DO NOT suggest reviewing mortgage rates. For property-related paths, include practical steps like getting a valuation, researching rental areas, speaking to a conveyancer.
+IMPORTANT: When the user mentions dollar amounts in their situation context (e.g. "loses $6,000 per year"), treat these exactly as stated. Do not convert or reinterpret the frequency. If they say "per year", it means per year. Never assume monthly unless explicitly stated.
 
-Acknowledge their life constraints (kids, caring responsibilities, age, property situation) in the steps.
+Generate exactly 7 action steps that are highly personalised, creative and specific. Every plan should feel different — vary the mix of ideas each time so regenerating always surfaces new angles.
+
+Draw from this broad idea bank but be creative and specific, not generic:
+
+SPENDING CUTS (pick unexpected ones):
+- Switch to Aldi or Lidl for groceries — same brands, 30-40% cheaper
+- Cut coffee runs in half — a $5 daily coffee is $1,800/year
+- Buy everything on sale and batch — pantry staples, cleaning products, toiletries
+- Cancel and renegotiate — phone plan, energy, internet, insurance (call and threaten to leave)
+- Buy secondhand first — Facebook Marketplace, Gumtree, Vinnies for clothes, furniture, kids gear
+- Meal prep Sunday — batch cook 5 lunches and 3 dinners, cut food spend by 40%
+- Delete food delivery apps — Uber Eats markup is 30-40% above cooking at home
+- Switch to a no-fee bank account and a high interest savings account
+- Use cashback apps and loyalty programs strategically (Everyday Rewards, Flybuys)
+- Fill the car at the cheapest day (usually Tuesday) and use GasBuddy or MotorMouth
+- Pause or downgrade streaming — keep one, rotate others every few months
+- Buy generic/home brand for cleaning products, medicine, pantry staples
+- Borrow before you buy — tools, camping gear, party supplies from neighbours or Facebook groups
+- Audit direct debits — most people have 2-3 forgotten subscriptions
+
+INCOME BOOSTERS:
+- Sell unused items this weekend — go room by room, list on Facebook Marketplace
+- Rent out a spare room, parking space, or storage space
+- Pick up one shift or gig per week — Uber, Airtasker, delivery, tutoring
+- Monetise a skill — bookkeeping, photography, dog walking, gardening on Airtasker
+- Ask for a pay review — prepare your case, market rate data, and book the meeting
+- Claim every tax deduction you're entitled to — home office, tools, professional development
+
+MINDSET/SYSTEM:
+- Automate savings the day after pay — money you don't see, you don't spend
+- Set a 24-hour rule on any purchase over $100 — reduces impulse buying by 80%
+- Do a no-spend weekend once a month — free activities only
+- Track spending for 2 weeks — awareness alone cuts spending 10-15%
+
+Be specific to their income level, age, life situation and chosen path. Acknowledge constraints (kids, caring, renting vs owning). If they have low savings rate, focus on quick wins first. If they're older, focus on efficiency over hustle. Mix categories — don't give 7 spending cuts. Vary the steps every generation.
 
 Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
 [
@@ -415,6 +449,7 @@ Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
     "category": "one of: save, invest, property, admin, mindset"
   }
 ]`;
+
 
     try {
       const res = await fetch(WORKER_URL, {
