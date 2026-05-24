@@ -396,6 +396,10 @@
         </div>
         <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">🔊 Read my results aloud</button>
       </div>
+      <div class="glass-card" id="whatThisMeansCard" style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">💡 What this means for you</div>
+        <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
+      </div>
       <div class="super-result-card" id="superResultCard">
         <div class="super-result-label">🏦 Your super picture</div>
         <div class="super-result-text" id="superResultText"></div>
@@ -480,6 +484,10 @@
           <p class="path-label">Progress to freedom</p>
           <div class="path-track"><div class="path-fill" id="pathFill" style="width:0%"></div></div>
           <div class="path-markers"><span>Start</span><span id="progressPct">0%</span><span>Freedom 🔥</span></div>
+          <div style="margin-bottom:20px;">
+            <p class="path-label">Your milestones</p>
+            <div id="milestonesRoadmap" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:20px">
           <div class="stat-box" style="background:var(--warm-cream)">
@@ -707,6 +715,24 @@ function setRetirementSpend(btn) {
   document.querySelectorAll('[data-spend]').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   retirementSpendMultiplier = parseFloat(btn.dataset.spend);
+}
+
+function renderMilestones(fireNum, savings, mSav) {
+  const container = document.getElementById('milestonesRoadmap');
+  if (!container) return;
+  const milestones = [0.25, 0.5, 0.75, 1.0];
+  const labels = ['🌱 25%', '💪 50%', '🔥 75%', '🎉 Freedom!'];
+  container.innerHTML = milestones.map((pct, i) => {
+    const target = fireNum * pct;
+    const years = yearsToGoal(target, savings, mSav, 0.07);
+    const year = years !== null ? currentYear + Math.round(years) : null;
+    const reached = savings >= target;
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${reached ? '#F0FFF4' : 'var(--warm-cream)'};border-radius:10px;border:1px solid ${reached ? '#A5D6A7' : 'var(--border)'};">
+        <div style="font-size:13px;font-weight:500;color:${reached ? '#2E7D32' : 'var(--warm-brown)'};">${labels[i]} — ${fmtM(target)}</div>
+        <div style="font-size:12px;color:${reached ? '#2E7D32' : 'var(--soft-grey)'};">${reached ? '✅ Done' : year ? year : '50+ yrs'}</div>
+      </div>`;
+  }).join('');
 }
 
   function togglePartner() {
@@ -1062,6 +1088,14 @@ if (hasPartner) {
       const cycleSaving = inputMode === 'type' ? manualSavedAmount : (selectedCycle === 'weekly' ? mSav * 12 / 52 : selectedCycle === 'fortnightly' ? mSav * 12 / 26 : mSav);
 
       document.getElementById('yearsOut').textContent         = fmt(yearsToGoal(fireNum, savings, mSav, 0.07));
+      const weeklyGap = ((fireNum - savings) / (freedomYears * 52)).toFixed(0);
+      const currentWeeklySaving = (mSav * 12 / 52).toFixed(0);
+      const onTrack = mSav > 0 && freedomYears !== null;
+      const gapText = onTrack
+      ? `You need <strong>$${Math.round(fireNum).toLocaleString()}</strong> to be free. You currently have <strong>$${Math.round(savings).toLocaleString()}</strong> — a gap of <strong>$${Math.round(fireNum - savings).toLocaleString()}</strong>. At your current savings rate of <strong>$${currentWeeklySaving}/week</strong> you're on track to get there in <strong>${fmt(yearsToGoal(fireNum, savings, mSav, 0.07))}</strong>. Every extra dollar you save per week gets you there <strong>${Math.round(52 / (mSav * 12 / fireNum))} days sooner</strong>.`
+      : `Enter your savings to see what this means for you.`;
+      document.getElementById('whatThisMeansText').innerHTML = gapText;
+
       document.getElementById('savingsRateOut').textContent   = sRate + '%';
       document.getElementById('fireNumberOut').textContent    = fmtM(fireNum);
       document.getElementById('monthlySavingOut').textContent = fmtM(cycleSaving);
@@ -1134,6 +1168,8 @@ if (hasPartner) {
       });
 
       await loadCheckinHistory();
+      renderMilestones(fireNum, savings, mSav);
+
       showScreen(3);
 
     } catch (err) {
