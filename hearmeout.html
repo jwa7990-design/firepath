@@ -424,7 +424,7 @@
         </div>
       </div>
       <div class="input-row">
-        <div class="input-label-text">Your current monthly savings</div>
+        <div class="input-label-text">Your current savings per ${hmoCycleWord}</div>
         <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-monthlySavings" placeholder="500" oninput="calcHome()"/></div>
       </div>
       <div class="input-row">
@@ -753,10 +753,13 @@
   let activeScenario = 'home';
   const hmoFireNum    = parseFloat(localStorage.getItem('hmo_fireNum')) || 0;
   const hmoMonthlySav = parseFloat(localStorage.getItem('hmo_monthlySav')) || 0;
+  const hmoCycle = localStorage.getItem('ap_cycle') || 'monthly';
+  const hmoCycleWord = hmoCycle === 'weekly' ? 'week' : hmoCycle === 'fortnightly' ? 'fortnight' : 'month';
+  const hmoCycleSav = hmoCycle === 'weekly' ? hmoMonthlySav * 12 / 52 : hmoCycle === 'fortnightly' ? hmoMonthlySav * 12 / 26 : hmoMonthlySav;
   const hmoPropVal    = parseFloat(localStorage.getItem('hmo_propVal')) || 0;
 
   if (hmoFireNum)    ['h-fireNum','l-fireNum','d-fireNum','r-fireNum'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoFireNum); });
-  if (hmoMonthlySav) ['h-monthlySavings','l-monthly','d-monthly','r-monthlySavings'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoMonthlySav); });
+  if (hmoMonthlySav) ['h-monthlySavings','l-monthly','d-monthly','r-monthlySavings'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoCyclesSav); });
   if (hmoPropVal)    { const el = document.getElementById('h-salePrice'); if (el) el.value = Math.round(hmoPropVal); const costs = document.getElementById('h-sellCosts'); if (costs) costs.value = Math.round(hmoPropVal * 0.03); }
 
 
