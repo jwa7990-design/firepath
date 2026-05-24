@@ -821,8 +821,8 @@
       const raw = extractData.content[0].text.replace(/```json|```/gi, '').trim();
       const extracted = JSON.parse(raw);
 
-      const mIncome  = extracted.income_monthly  || (inputMode === 'type' ? toMonthly(manualIncome) : 0);
-      const mSpend   = extracted.spending_monthly || (inputMode === 'type' ? toMonthly(manualIncome) * (1 - manualRate/100) : 0);
+      const mIncome  = inputMode === 'type' ? toMonthly(manualIncome) : (extracted.income_monthly || 0);
+      const mSpend   = inputMode === 'type' ? toMonthly(manualIncome) * (1 - manualRate/100) : (extracted.spending_monthly || 0);
       const mSav     = mIncome - mSpend;
       const savings  = extracted.savings       || (inputMode === 'type' ? manualSavings : 0);
       const superBal = extracted.super_balance || (inputMode === 'type' ? manualSuper : 0);
