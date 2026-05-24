@@ -66,7 +66,7 @@
     .input-wrapper { position: relative; }
     .input-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--soft-grey); font-weight: 500; }
     input[type="number"] { width: 100%; padding: 13px 14px 13px 30px; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--warm-brown); background: white; outline: none; transition: border-color 0.2s ease; -moz-appearance: textfield; }
-    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; }
+    input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type="number"]:focus { border-color: var(--fire-orange); }
     .savings-hint { font-size: 13px; color: var(--soft-grey); font-weight: 300; margin-top: 6px; }
     .divider { height: 1px; background: var(--border); margin: 20px 0; }
@@ -158,7 +158,7 @@
     .checkin-input-wrap { position: relative; width: 140px; }
     .checkin-prefix { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--soft-grey); }
     .checkin-input { width: 100%; padding: 9px 10px 9px 22px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--warm-brown); background: white; outline: none; -moz-appearance: textfield; }
-    .checkin-input::-webkit-inner-spin-button, .checkin-input::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; }
+    .checkin-input::-webkit-inner-spin-button, .checkin-input::-webkit-outer-spin-button { -webkit-appearance: none; }
     .checkin-input:focus { border-color: var(--fire-orange); }
     .milestone { background: linear-gradient(135deg, #FFF7F3, #FFF3E0); border: 1.5px solid rgba(244,98,42,0.2); border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; display: none; }
     .milestone.visible { display: block; animation: fadeUp 0.4s ease both; }
@@ -190,8 +190,49 @@
     <div id="userStatus" style="margin-top:8px;font-size:12px;color:var(--soft-grey)"></div>
   </div>
 
+  <!-- SCREEN 0 — What is FirePath -->
+  <div class="screen active" id="screen0">
+    <div class="card">
+      <div style="text-align:center;margin-bottom:24px">
+        <span style="font-size:48px">🔥</span>
+      </div>
+      <h1 class="card-title" style="text-align:center;margin-bottom:12px">What is FirePath?</h1>
+      <p style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:20px;text-align:center">FirePath helps you figure out when you could stop <em>having</em> to work — and what it would take to get there sooner.</p>
+      
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--warm-cream);border-radius:14px">
+          <span style="font-size:22px;flex-shrink:0">🔢</span>
+          <div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:3px">Know your number</div>
+            <div style="font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.5">Your "freedom number" is how much you need invested to live without working. We calculate it from your spending, not your income.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--warm-cream);border-radius:14px">
+          <span style="font-size:22px;flex-shrink:0">📅</span>
+          <div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:3px">See your freedom date</div>
+            <div style="font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.5">Based on what you save and how it grows, we show you when you could realistically get there — and what moves could get you there sooner.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--warm-cream);border-radius:14px">
+          <span style="font-size:22px;flex-shrink:0">📋</span>
+          <div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:3px">Get a personalised plan</div>
+            <div style="font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.5">After your results, you'll get an action plan with practical steps tailored to your life — not generic advice.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:12px;padding:14px;margin-bottom:24px;font-size:12px;color:var(--soft-grey);line-height:1.6;font-weight:300;">
+        🛡️ <strong style="color:var(--warm-brown)">Educational only.</strong> FirePath is not a financial advisor. We show you the numbers — you make the decisions.
+      </div>
+
+      <button class="cta-btn" onclick="showScreen(1)">Let's get started →</button>
+    </div>
+  </div>
+
   <!-- SCREEN 1 — Persona -->
-  <div class="screen active" id="screen1">
+  <div class="screen" id="screen1">
     <div class="card">
       <h1 class="card-title">Where are you on your journey?</h1>
       <p class="card-sub">FirePath Pro will tailor everything — your language, your AI insights, your path.</p>
@@ -251,6 +292,23 @@
             <input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint()"/>
           </div>
         </div>
+
+        <!-- Partner toggle -->
+        <div class="input-group" id="partnerToggleGroup">
+          <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;">
+            <span style="font-size:13px;font-weight:500;color:var(--warm-brown)">👫 Add a partner's income</span>
+            <span id="partnerToggleIcon" style="font-size:18px;color:var(--soft-grey)">＋</span>
+          </div>
+        </div>
+        <div id="partnerIncomeGroup" style="display:none">
+          <div class="input-group">
+            <label class="input-label" for="partnerIncome">Partner's take-home income</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="number" id="partnerIncome" placeholder="0" min="0" oninput="updateSavingsHint()"/>
+            </div>
+          </div>
+        </div>
         <div class="input-group">
           <label class="input-label" id="savingsRateLabel">How much do you save?</label>
           <div class="input-wrapper">
@@ -276,6 +334,13 @@
             <input type="number" id="superBalance" placeholder="0" min="0" oninput="updateSuperNote()"/>
           </div>
           <div class="super-note locked" id="superNote" style="display:none"></div>
+          <div id="superRateGroup" style="display:none;margin-top:10px">
+            <label class="input-label" style="font-size:12px;color:var(--soft-grey)">Super growth rate assumption</label>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+              <input type="range" id="superRate" min="3" max="10" value="7" style="-webkit-appearance:none;flex:1;height:6px;border-radius:6px;background:var(--border);outline:none;cursor:pointer" oninput="document.getElementById('superRateVal').textContent=this.value+'%';updateSuperNote()"/>
+              <span id="superRateVal" style="font-weight:700;color:var(--fire-orange);min-width:36px;font-size:14px">7%</span>
+            </div>
+          </div>
         </div>
         <div class="input-group">
           <label class="input-label" for="age">Your age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
@@ -327,7 +392,7 @@
           </div>
           <div class="stat-box">
             <span class="stat-value" id="fireNumberOut">—</span>
-            <span class="stat-name" id="stat2label">Freedom number</span>
+            <span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="font-size:10px;opacity:0.7">ℹ️<span class="tooltip" style="font-size:11px;width:220px">Your freedom number is 25x your annual spending. Why 25x? If you withdraw 4% of your portfolio each year, it should last indefinitely based on historical market returns. So if you spend $40K/year, you need $1M invested. This is the "4% rule" — a widely used financial independence guideline.</span></span></span>
           </div>
           <div class="stat-box">
             <span class="stat-value" id="monthlySavingOut">—</span>
@@ -343,6 +408,15 @@
       <div class="ai-insight-card">
         <div class="ai-insight-label">🧠 AI Insight — just for you</div>
         <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
+      </div>
+
+      <!-- What next card -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--soft-grey);margin-bottom:12px;">💡 What do I do with this?</div>
+        <div style="font-size:13px;color:var(--warm-brown);line-height:1.7;font-weight:300;">
+          Your freedom number is a target, not a deadline. The goal is to <strong>keep recalculating as your life changes</strong> — every time your income grows, your savings increase, or your spending changes, your freedom date moves.<br/><br/>
+          In the meantime: <strong>save consistently, let it grow, and use the check-in tab monthly</strong> to watch your progress. Small improvements compound dramatically over time.
+        </div>
       </div>
       <div class="compare-card">
         <p class="compare-title">💡 What if your savings worked harder?</p>
@@ -555,6 +629,15 @@
   // ── On load ────────────────────────────
   document.addEventListener('DOMContentLoaded', async function() {
     await loadSavedInputs();
+
+    // Show intro for new users only
+    const hasSeenIntro = localStorage.getItem('fp_seen_intro');
+    if (hasSeenIntro) {
+      document.getElementById('screen0').classList.remove('active');
+      document.getElementById('screen1').classList.add('active');
+    } else {
+      localStorage.setItem('fp_seen_intro', 'true');
+    }
     const userStatusEl = document.getElementById('userStatus');
     if (!userStatusEl) return;
     if (fpToken && localStorage.getItem('fp_email')) {
@@ -599,14 +682,25 @@
     window.location.href = 'auth.html';
   }
 
+  let partnerIncomeVisible = false;
+
+  function togglePartner() {
+    partnerIncomeVisible = !partnerIncomeVisible;
+    document.getElementById('partnerIncomeGroup').style.display = partnerIncomeVisible ? 'block' : 'none';
+    document.getElementById('partnerToggleIcon').textContent = partnerIncomeVisible ? '－' : '＋';
+    updateSavingsHint();
+  }
+
   // ── Savings hint ───────────────────────
   function updateSavingsHint() {
-    const income = parseFloat(document.getElementById('income').value) || 0;
-    const saved  = parseFloat(document.getElementById('savingsAmount').value) || 0;
-    const hint   = document.getElementById('savingsHintPct');
-    if (income > 0 && saved > 0) {
-      const pct = Math.round((saved / income) * 100);
-      hint.textContent = `That's ${pct}% of your income`;
+    const income  = parseFloat(document.getElementById('income').value) || 0;
+    const partner = partnerIncomeVisible ? (parseFloat(document.getElementById('partnerIncome').value) || 0) : 0;
+    const totalIncome = income + partner;
+    const saved   = parseFloat(document.getElementById('savingsAmount').value) || 0;
+    const hint    = document.getElementById('savingsHintPct');
+    if (totalIncome > 0 && saved > 0) {
+      const pct = Math.round((saved / totalIncome) * 100);
+      hint.textContent = partner > 0 ? `That's ${pct}% of your combined income` : `That's ${pct}% of your income`;
     } else {
       hint.textContent = '';
     }
@@ -617,8 +711,10 @@
     const superBal = parseFloat(document.getElementById('superBalance').value) || 0;
     const age      = parseInt(document.getElementById('age').value) || 0;
     const note     = document.getElementById('superNote');
-    if (superBal <= 0) { note.style.display = 'none'; return; }
+    const rateGroup = document.getElementById('superRateGroup');
+    if (superBal <= 0) { note.style.display = 'none'; rateGroup.style.display = 'none'; return; }
     note.style.display = 'block';
+    rateGroup.style.display = 'block';
     if (age === 0) {
       note.className = 'super-note locked';
       note.textContent = '📌 Super is typically locked until age 60. Enter your age and we\'ll show you exactly when it becomes accessible.';
@@ -789,6 +885,8 @@
       userInput = transcriptText;
     } else {
       manualIncome      = parseFloat(document.getElementById('income').value) || 0;
+      const partnerInc  = partnerIncomeVisible ? (parseFloat(document.getElementById('partnerIncome').value) || 0) : 0;
+      manualIncome      = manualIncome + partnerInc;
       manualSavedAmount = parseFloat(document.getElementById('savingsAmount').value) || 0;
       manualRate        = manualIncome > 0 ? Math.round((manualSavedAmount / manualIncome) * 100) : 20;
       manualSavings     = parseFloat(document.getElementById('savings').value) || 0;
@@ -874,13 +972,16 @@
         }
       }
 
-      const isRenting = /rent|deposit|house|buy|saving to buy|looking to buy|first home/i.test(context);
+      const isRenting = /rent|deposit|saving to buy|looking to buy|first home|want to buy/i.test(context);
       if (isRenting) {
-        const dBank = yearsToGoal(100000, savings, mSav, 0.0075);
-        const d5    = yearsToGoal(100000, savings, mSav, 0.05);
+        const baseDeposit = 100000;
+        const roughYears = yearsToGoal(baseDeposit, savings, mSav, 0.0075) || 20;
+        const inflatedDeposit = Math.round(baseDeposit * Math.pow(1.04, roughYears));
+        const dBank = yearsToGoal(inflatedDeposit, savings, mSav, 0.0075);
+        const d5    = yearsToGoal(inflatedDeposit, savings, mSav, 0.05);
         const dDiff = dBank !== null && d5 !== null ? dBank - d5 : null;
         if (d5 !== null) {
-          scenarios.push({ emoji: '🏡', title: 'House deposit scenario (assuming $100K target)', description: `Saving in a bank you could reach $100K by <strong>${dBank !== null ? currentYear + Math.round(dBank) : '100+ yrs'}</strong>. At 5% after inflation you could get there by <strong>${currentYear + Math.round(d5)}</strong>${dDiff && dDiff > 0.1 ? ', <strong>' + fmt(dDiff) + ' sooner</strong>' : ''}. Educational only.` });
+          scenarios.push({ emoji: '\u{1F3E1}', title: `House deposit (inflation-adjusted target: ${fmtM(inflatedDeposit)})`, description: `A $100K deposit today will likely need to be around <strong>${fmtM(inflatedDeposit)}</strong> by the time you get there, due to property price growth. Saving in a bank: <strong>${dBank !== null ? currentYear + Math.round(dBank) : '100+ yrs'}</strong>. At 5% after inflation: <strong>${currentYear + Math.round(d5)}</strong>${dDiff && dDiff > 0.1 ? ' — <strong>' + fmt(dDiff) + ' sooner</strong>' : ''}. Educational only.` });
         }
       }
 
@@ -895,6 +996,12 @@
         : ageGroup === 'mid'
         ? 'This person is in their 40s-50s. Balance savings encouragement with realistic life context.'
         : 'This person is younger. Time and compounding are their superpower.';
+
+      // Low earner tone
+      const isLowEarner = sRate < 10 || mSav < 300;
+      if (isLowEarner) {
+        ageTone += ' IMPORTANT: This person has a low savings rate or low income. Be extra warm and encouraging. Never make them feel like the goal is impossible. Focus on small wins and what IS possible, not the gap. Even saving a small amount is building something real. Acknowledge any life constraints that may be causing this with genuine empathy.';
+      }
 
       const insightRes = await fetch('https://firepath-api.jwa7990.workers.dev', {
         method: 'POST',
