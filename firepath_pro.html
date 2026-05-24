@@ -1210,6 +1210,11 @@ if (hasPartner) {
   }
 
   // ── Auto sign-out ──────────────────────
+  window.addEventListener('beforeunload', function() {
+  if (localStorage.getItem('fp_access_token')) {
+    ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => localStorage.removeItem(k));
+  }
+});
   let inactivityTimer;
   function resetInactivityTimer() {
     clearTimeout(inactivityTimer);
@@ -1219,7 +1224,7 @@ if (hasPartner) {
         alert('You\'ve been signed out due to inactivity.');
         window.location.href = 'auth.html';
       }
-    }, 30 * 60 * 1000);
+    }, 20 * 60 * 1000);
   }
   ['mousemove','keydown','click','scroll','touchstart'].forEach(e => document.addEventListener(e, resetInactivityTimer));
   resetInactivityTimer();
