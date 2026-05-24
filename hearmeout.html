@@ -753,21 +753,20 @@
   let activeScenario = 'home';
   const hmoFireNum    = parseFloat(localStorage.getItem('hmo_fireNum')) || 0;
   const hmoMonthlySav = parseFloat(localStorage.getItem('hmo_monthlySav')) || 0;
-  const hmoCycle = localStorage.getItem('ap_cycle') || 'monthly';
-  const hmoCycleWord = hmoCycle === 'weekly' ? 'week' : hmoCycle === 'fortnightly' ? 'fortnight' : 'month';
-  document.addEventListener('DOMContentLoaded', () => { 
-  const el = document.getElementById('hmoCycleLabelDisplay'); 
-  if (el) el.textContent = hmoCycleWord;
-  document.querySelectorAll('.hmoSavingsCycleLabel').forEach(el => el.textContent = hmoCycleWord);
-});
-
-  const hmoCycleSav = hmoCycle === 'weekly' ? hmoMonthlySav * 12 / 52 : hmoCycle === 'fortnightly' ? hmoMonthlySav * 12 / 26 : hmoMonthlySav;
+  const hmoCycle      = localStorage.getItem('ap_cycle') || 'monthly';
+  const hmoCycleWord  = hmoCycle === 'weekly' ? 'week' : hmoCycle === 'fortnightly' ? 'fortnight' : 'month';
+  const hmoCycleSav   = hmoCycle === 'weekly' ? hmoMonthlySav * 12 / 52 : hmoCycle === 'fortnightly' ? hmoMonthlySav * 12 / 26 : hmoMonthlySav;
   const hmoPropVal    = parseFloat(localStorage.getItem('hmo_propVal')) || 0;
 
-  if (hmoFireNum)    ['h-fireNum','l-fireNum','d-fireNum','r-fireNum'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoFireNum); });
-  if (hmoMonthlySav) ['h-monthlySavings','l-monthly','d-monthly','r-monthlySavings'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoCyclesSav); });
-  if (hmoPropVal)    { const el = document.getElementById('h-salePrice'); if (el) el.value = Math.round(hmoPropVal); const costs = document.getElementById('h-sellCosts'); if (costs) costs.value = Math.round(hmoPropVal * 0.03); }
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('hmoCycleLabelDisplay');
+    if (el) el.textContent = hmoCycleWord;
+    document.querySelectorAll('.hmoSavingsCycleLabel').forEach(el => el.textContent = hmoCycleWord);
+  });
 
+  if (hmoFireNum)    ['h-fireNum','l-fireNum','d-fireNum','r-fireNum'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoFireNum); });
+  if (hmoMonthlySav) ['h-monthlySavings','l-monthly','d-monthly','r-monthlySavings'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoCycleSav); });
+  if (hmoPropVal)    { const el = document.getElementById('h-salePrice'); if (el) el.value = Math.round(hmoPropVal); const costs = document.getElementById('h-sellCosts'); if (costs) costs.value = Math.round(hmoPropVal * 0.03); }
 
   function switchScenario(s) {
     activeScenario = s;
@@ -778,7 +777,6 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ── Helpers ──
   function fmtM(n) {
     if (n == null || isNaN(n)) return '—';
     if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
@@ -804,18 +802,23 @@
     return months < 1200 ? months / 12 : null;
   }
 
+  function toMonthly(val) {
+    return hmoCycle === 'weekly' ? val * 52 / 12 : hmoCycle === 'fortnightly' ? val * 26 / 12 : val;
+  }
+
   const currentYear = new Date().getFullYear();
 
   // ── Sell home ──────────────────────────
   function calcHome() {
-    const salePrice   = parseFloat(document.getElementById('h-salePrice').value) || 0;
-    const sellCosts   = parseFloat(document.getElementById('h-sellCosts').value) || 0;
-    const mortgage    = parseFloat(document.getElementById('h-mortgage').value) || 0;
-    const weeklyRent  = parseFloat(document.getElementById('h-weeklyRent').value) || 0;
-    const returnRate  = parseFloat(document.getElementById('h-returnRate').value) / 100 || 0.07;
-    const rentInc     = parseFloat(document.getElementById('h-rentIncrease').value) / 100 || 0.04;
-    const monthlySav  = parseFloat(document.getElementById('h-monthlySavings').value) || 0;
-    const fireNum     = parseFloat(document.getElementById('h-fireNum').value) || 0;
+    const salePrice  = parseFloat(document.getElementById('h-salePrice').value) || 0;
+    const sellCosts  = parseFloat(document.getElementById('h-sellCosts').value) || 0;
+    const mortgage   = parseFloat(document.getElementById('h-mortgage').value) || 0;
+    const weeklyRent = parseFloat(document.getElementById('h-weeklyRent').value) || 0;
+    const returnRate = parseFloat(document.getElementById('h-returnRate').value) / 100 || 0.07;
+    const rentInc    = parseFloat(document.getElementById('h-rentIncrease').value) / 100 || 0.04;
+    const cycleSav   = parseFloat(document.getElementById('h-monthlySavings').value) || 0;
+    const monthlySav = toMonthly(cycleSav);
+    const fireNum    = parseFloat(document.getElementById('h-fireNum').value) || 0;
 
     if (salePrice <= 0 || weeklyRent <= 0) {
       document.getElementById('home-results').style.display = 'none';
@@ -828,46 +831,40 @@
 
     const annualRent = weeklyRent * 52;
     const rentBuffer = annualRent;
-    const netEquity = Math.max(0, salePrice - sellCosts - mortgage - rentBuffer);
+    const netEquity  = Math.max(0, salePrice - sellCosts - mortgage - rentBuffer);
     const currentYears = fireNum > 0 ? yearsToGoal(fireNum, 0, monthlySav, 0.07) : null;
     const currentDate  = currentYears !== null ? currentYear + Math.round(currentYears) : null;
-
-    // New path (equity + savings)
-    const newYears = fireNum > 0 ? yearsToGoal(fireNum, netEquity, monthlySav, returnRate) : null;
-    const newDate  = newYears !== null ? currentYear + Math.round(newYears) : null;
-    const yearsSaved = currentYears !== null && newYears !== null ? Math.round(currentYears - newYears) : null;
-
+    const newYears     = fireNum > 0 ? yearsToGoal(fireNum, netEquity, monthlySav, returnRate) : null;
+    const newDate      = newYears !== null ? currentYear + Math.round(newYears) : null;
+    const yearsSaved   = currentYears !== null && newYears !== null ? Math.round(currentYears - newYears) : null;
     const yearsFromNow = newDate ? newDate - currentYear : null;
-    document.getElementById('h-currentDate').textContent = currentDate ? currentDate : '50+ yrs';
-    document.getElementById('h-newDate').textContent = newDate ? newDate : '—';
-    document.getElementById('h-yearsSaved').textContent = yearsSaved && yearsSaved > 0 ? `${yearsFromNow} yrs away · ${yearsSaved} yrs sooner` : 'Significant improvement';
-    document.getElementById('h-netEquity').textContent = fmtM(salePrice - sellCosts - mortgage);
-    document.getElementById('h-rentBuffer').textContent = '−' + fmtM(rentBuffer);
+
+    document.getElementById('h-currentDate').textContent     = currentDate ? currentDate : '50+ yrs';
+    document.getElementById('h-newDate').textContent         = newDate ? newDate : '—';
+    document.getElementById('h-yearsSaved').textContent      = yearsSaved && yearsSaved > 0 ? `${yearsFromNow} yrs away · ${yearsSaved} yrs sooner` : 'Significant improvement';
+    document.getElementById('h-netEquity').textContent       = fmtM(salePrice - sellCosts - mortgage);
+    document.getElementById('h-rentBuffer').textContent      = '−' + fmtM(rentBuffer);
     document.getElementById('h-startingPortfolio').textContent = fmtM(netEquity);
 
-    // Year 1
     const yr1Growth = netEquity * returnRate;
     const yr1Rent   = weeklyRent * 52;
     document.getElementById('h-yr1growth').textContent = '+' + fmtM(yr1Growth);
     document.getElementById('h-yr1rent').textContent   = '-' + fmtM(yr1Rent);
 
-    // Year 10
-    let port = netEquity;
-    let rent = yr1Rent;
+    let port = netEquity, rent = yr1Rent;
     for (let y = 1; y <= 10; y++) {
       port = port * (1 + returnRate) - rent + (monthlySav * 12);
       if (y < 10) rent *= (1 + rentInc);
     }
     document.getElementById('h-yr10val').textContent = fmtM(port);
 
-    // Table
     const tbody = document.getElementById('h-tableBody');
     tbody.innerHTML = '';
     let p = netEquity, r = yr1Rent;
     for (let y = 1; y <= 15; y++) {
-      const growth  = p * returnRate;
-      const end     = p + growth - r + (monthlySav * 12);
-      const tr = document.createElement('tr');
+      const growth = p * returnRate;
+      const end    = p + growth - r + (monthlySav * 12);
+      const tr     = document.createElement('tr');
       const growthColor = growth > r ? 'td-positive' : 'td-negative';
       tr.innerHTML = `<td>${currentYear + y}</td><td>${fmtM(p)}</td><td class="${growthColor}">+${fmtM(growth)}</td><td class="td-negative">-${fmtM(r)}</td><td class="td-highlight">${fmtM(end)}</td>`;
       tbody.appendChild(tr);
@@ -878,11 +875,12 @@
 
   // ── Lump sum ───────────────────────────
   function calcLump() {
-    const amount    = parseFloat(document.getElementById('l-amount').value) || 0;
-    const existing  = parseFloat(document.getElementById('l-existing').value) || 0;
-    const monthly   = parseFloat(document.getElementById('l-monthly').value) || 0;
-    const fireNum   = parseFloat(document.getElementById('l-fireNum').value) || 0;
-    const rate      = parseFloat(document.getElementById('l-returnRate').value) / 100 || 0.07;
+    const amount     = parseFloat(document.getElementById('l-amount').value) || 0;
+    const existing   = parseFloat(document.getElementById('l-existing').value) || 0;
+    const cycleSav   = parseFloat(document.getElementById('l-monthly').value) || 0;
+    const monthly    = toMonthly(cycleSav);
+    const fireNum    = parseFloat(document.getElementById('l-fireNum').value) || 0;
+    const rate       = parseFloat(document.getElementById('l-returnRate').value) / 100 || 0.07;
 
     if (amount <= 0) {
       document.getElementById('lump-results').style.display = 'none';
@@ -895,17 +893,16 @@
 
     const withoutYears = yearsToGoal(fireNum, existing, monthly, rate);
     const withYears    = yearsToGoal(fireNum, existing + amount, monthly, rate);
-    const diff = withoutYears !== null && withYears !== null ? withoutYears - withYears : null;
-
-    const withDate = withYears !== null ? currentYear + Math.round(withYears) : null;
+    const diff         = withoutYears !== null && withYears !== null ? withoutYears - withYears : null;
+    const withDate     = withYears !== null ? currentYear + Math.round(withYears) : null;
     const yearsFromNow = withDate ? withDate - currentYear : null;
+
     document.getElementById('l-withoutDate').textContent = withoutYears !== null ? currentYear + Math.round(withoutYears) : '50+ yrs';
     document.getElementById('l-withDate').textContent    = withDate ? withDate : '—';
     document.getElementById('l-yearsSaved').textContent  = diff && diff > 0 ? `${yearsFromNow} yrs away · ${Math.round(diff)} yrs sooner` : 'Meaningful boost';
-
-    document.getElementById('l-10yr').textContent = fmtM(amount * Math.pow(1 + rate, 10));
-    document.getElementById('l-20yr').textContent = fmtM(amount * Math.pow(1 + rate, 20));
-    document.getElementById('l-timeSaved').textContent = diff && diff > 0 ? fmt(diff) + ' sooner' : '—';
+    document.getElementById('l-10yr').textContent        = fmtM(amount * Math.pow(1 + rate, 10));
+    document.getElementById('l-20yr').textContent        = fmtM(amount * Math.pow(1 + rate, 20));
+    document.getElementById('l-timeSaved').textContent   = diff && diff > 0 ? fmt(diff) + ' sooner' : '—';
   }
 
   // ── Downsize ───────────────────────────
@@ -914,7 +911,8 @@
     const newHome     = parseFloat(document.getElementById('d-newHome').value) || 0;
     const costs       = parseFloat(document.getElementById('d-costs').value) || 0;
     const mortgage    = parseFloat(document.getElementById('d-mortgage').value) || 0;
-    const monthly     = parseFloat(document.getElementById('d-monthly').value) || 0;
+    const cycleSav    = parseFloat(document.getElementById('d-monthly').value) || 0;
+    const monthly     = toMonthly(cycleSav);
     const fireNum     = parseFloat(document.getElementById('d-fireNum').value) || 0;
     const rate        = parseFloat(document.getElementById('d-returnRate').value) / 100 || 0.07;
 
@@ -927,8 +925,7 @@
     document.getElementById('downsize-results').style.display = 'block';
     document.getElementById('downsize-empty').style.display = 'none';
 
-    const freed = Math.max(0, currentHome - newHome - costs - mortgage);
-
+    const freed        = Math.max(0, currentHome - newHome - costs - mortgage);
     const currentYears = yearsToGoal(fireNum, 0, monthly, rate);
     const newYears     = yearsToGoal(fireNum, freed, monthly, rate);
     const diff         = currentYears !== null && newYears !== null ? currentYears - newYears : null;
@@ -947,7 +944,8 @@
     const existing    = parseFloat(document.getElementById('r-existing').value) || 0;
     const monthlyCost = parseFloat(document.getElementById('r-monthlyCost').value) || 0;
     const months      = parseFloat(document.getElementById('r-months').value) || 0;
-    const monthlySav  = parseFloat(document.getElementById('r-monthlySavings').value) || 0;
+    const cycleSav    = parseFloat(document.getElementById('r-monthlySavings').value) || 0;
+    const monthlySav  = toMonthly(cycleSav);
     const fireNum     = parseFloat(document.getElementById('r-fireNum').value) || 0;
     const rate        = parseFloat(document.getElementById('r-returnRate').value) / 100 || 0.07;
 
@@ -960,12 +958,11 @@
     document.getElementById('redundancy-results').style.display = 'block';
     document.getElementById('redundancy-empty').style.display = 'none';
 
-    const buffer  = monthlyCost * months;
-    const surplus = Math.max(0, payout - buffer);
+    const buffer        = monthlyCost * months;
+    const surplus       = Math.max(0, payout - buffer);
     const totalInvested = existing + surplus;
-
-    const freedomYears = yearsToGoal(fireNum, totalInvested, monthlySav, rate);
-    const freedomDate  = freedomYears !== null ? currentYear + Math.round(freedomYears) : null;
+    const freedomYears  = yearsToGoal(fireNum, totalInvested, monthlySav, rate);
+    const freedomDate   = freedomYears !== null ? currentYear + Math.round(freedomYears) : null;
 
     document.getElementById('r-buffer').textContent      = fmtM(buffer);
     document.getElementById('r-surplus').textContent     = fmtM(surplus);
