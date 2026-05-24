@@ -273,6 +273,15 @@
             <input type="number" id="savings" placeholder="0" min="0"/>
           </div>
         </div>
+        <div class="input-group">
+          <label class="input-label">In retirement, how much do you expect to spend?</label>
+          <p class="input-hint">This adjusts your freedom number to your actual retirement lifestyle — not just your current spending.</p>
+          <div class="cycle-group" style="margin-bottom:0">
+            <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less 📉<div style="font-size:10px;margin-top:2px;opacity:0.7">Mortgage paid, kids grown</div></button>
+            <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same 🙂<div style="font-size:10px;margin-top:2px;opacity:0.7">Similar lifestyle</div></button>
+            <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More 🌏<div style="font-size:10px;margin-top:2px;opacity:0.7">Travel, experiences</div></button>
+          </div>
+        </div>
         <div class="super-group">
           <label class="input-label" for="superBalance">Superannuation balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
           <div class="input-hint">Your super is separate — we'll show you when it comes into play</div>
@@ -520,6 +529,7 @@
   let isListening = false;
   let isContextListening = false;
   let recognition = null;
+  let retirementSpendMultiplier = 1.0;
   let contextRecognition = null;
   const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
   let transcriptText = '';
@@ -692,6 +702,12 @@
     ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => localStorage.removeItem(k));
     window.location.href = 'auth.html';
   }
+
+function setRetirementSpend(btn) {
+  document.querySelectorAll('[data-spend]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  retirementSpendMultiplier = parseFloat(btn.dataset.spend);
+}
 
   function togglePartner() {
   const fields = document.getElementById('partnerFields');
@@ -957,7 +973,7 @@ if (hasPartner) {
       const age      = extracted.age           || (inputMode === 'type' ? manualAge : null);
       const context  = extracted.context       || (inputMode === 'type' ? manualContext : '');
 
-      const fireNum  = (mSpend * 12) * 25;
+      const fireNum = (mSpend * 12 * retirementSpendMultiplier) * 25;
       const sRate    = mIncome > 0 ? Math.round((mSav/mIncome)*100) : 0;
 
       calcData = { mIncome, mSpend, mSav, savings, superBal, fireNum, sRate, age, context, propVal: 0 };
