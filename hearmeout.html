@@ -526,7 +526,7 @@
         <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="l-existing" placeholder="0" oninput="calcLump()"/></div>
       </div>
       <div class="input-row">
-        <div class="input-label-text">Your monthly savings (ongoing)</div>
+        <div class="input-label-text">Your current savings per <span class="hmoSavingsCycleLabel">month</span> (ongoing)</div>
         <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="l-monthly" placeholder="500" oninput="calcLump()"/></div>
       </div>
       <div class="input-row">
@@ -611,7 +611,7 @@
         <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="d-mortgage" placeholder="0" oninput="calcDownsize()"/></div>
       </div>
       <div class="input-row">
-        <div class="input-label-text">Your monthly savings (ongoing)</div>
+        <div class="input-label-text">Your current savings per <span class="hmoSavingsCycleLabel">month</span> (ongoing)</div>
         <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="d-monthly" placeholder="500" oninput="calcDownsize()"/></div>
       </div>
       <div class="input-row">
@@ -755,7 +755,11 @@
   const hmoMonthlySav = parseFloat(localStorage.getItem('hmo_monthlySav')) || 0;
   const hmoCycle = localStorage.getItem('ap_cycle') || 'monthly';
   const hmoCycleWord = hmoCycle === 'weekly' ? 'week' : hmoCycle === 'fortnightly' ? 'fortnight' : 'month';
-  document.addEventListener('DOMContentLoaded', () => { const el = document.getElementById('hmoCycleLabelDisplay'); if (el) el.textContent = hmoCycleWord; });
+  document.addEventListener('DOMContentLoaded', () => { 
+  const el = document.getElementById('hmoCycleLabelDisplay'); 
+  if (el) el.textContent = hmoCycleWord;
+  document.querySelectorAll('.hmoSavingsCycleLabel').forEach(el => el.textContent = hmoCycleWord);
+});
 
   const hmoCycleSav = hmoCycle === 'weekly' ? hmoMonthlySav * 12 / 52 : hmoCycle === 'fortnightly' ? hmoMonthlySav * 12 / 26 : hmoMonthlySav;
   const hmoPropVal    = parseFloat(localStorage.getItem('hmo_propVal')) || 0;
