@@ -424,7 +424,7 @@
         </div>
       </div>
       <div class="input-row">
-        <div class="input-label-text">Your current savings per ${hmoCycleWord}</div>
+        <div class="input-label-text">Your current savings per <span id="hmoCycleLabelDisplay">month</span></div>
         <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-monthlySavings" placeholder="500" oninput="calcHome()"/></div>
       </div>
       <div class="input-row">
@@ -755,6 +755,8 @@
   const hmoMonthlySav = parseFloat(localStorage.getItem('hmo_monthlySav')) || 0;
   const hmoCycle = localStorage.getItem('ap_cycle') || 'monthly';
   const hmoCycleWord = hmoCycle === 'weekly' ? 'week' : hmoCycle === 'fortnightly' ? 'fortnight' : 'month';
+  document.addEventListener('DOMContentLoaded', () => { const el = document.getElementById('hmoCycleLabelDisplay'); if (el) el.textContent = hmoCycleWord; });
+
   const hmoCycleSav = hmoCycle === 'weekly' ? hmoMonthlySav * 12 / 52 : hmoCycle === 'fortnightly' ? hmoMonthlySav * 12 / 26 : hmoMonthlySav;
   const hmoPropVal    = parseFloat(localStorage.getItem('hmo_propVal')) || 0;
 
