@@ -1026,7 +1026,8 @@ if (hasPartner) {
 
         const dDiff = dBank !== null && d5 !== null ? dBank - d5 : null;
         if (d5 !== null) {
-          scenarios.push({ emoji: '🏡', title: 'House deposit scenario (assuming $100K target)', description: `A $100K deposit target grows to ~$${Math.round(inflatedTarget/1000)}K in 3 years at 4% inflation. Saving in a bank you could reach that by <strong>${dBank !== null ? currentYear + Math.round(dBank) : '100+ yrs'}</strong>. At 5% after inflation you could get there by <strong>${currentYear + Math.round(d5)}</strong>${dDiff && dDiff > 0.1 ? ', <strong>' + fmt(dDiff) + ' sooner</strong>' : ''}. Educational only.` });
+        const depositAtGoal = d5 !== null ? Math.round(100000 * Math.pow(1.04, d5) / 1000) * 1000 : null;
+        scenarios.push({ emoji: '🏡', title: 'House deposit scenario', description: `At your savings rate you'd reach a deposit around <strong>${d5 !== null ? currentYear + Math.round(d5) : '50+ yrs'}</strong> — but by then today's $100K deposit will cost roughly <strong>$${depositAtGoal ? Math.round(depositAtGoal/1000) + 'K' : '?'}</strong>. Saving in a bank you could reach that by <strong>${dBank !== null ? currentYear + Math.round(dBank) : '100+ yrs'}</strong>, investing at 5% gets you there <strong>${dDiff && dDiff > 0.1 ? fmt(dDiff) + ' sooner' : 'at a similar time'}</strong>. Educational only.` });
         }
       }
 
