@@ -290,6 +290,52 @@
           </div>
         </div>
         <div class="input-group">
+        <div style="margin-bottom:20px;">
+          <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;">
+            <div>
+              <div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div>
+              <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div>
+            </div>
+            <div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);transition:transform 0.2s;">+</div>
+          </div>
+
+          <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
+            <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
+
+          <div class="input-group">
+            <label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label>
+            <div class="input-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="number" id="partnerIncome" placeholder="0" min="0"/>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label>
+            <div class="input-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="number" id="partnerSavings" placeholder="0" min="0"/>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
+            <div class="input-wrapper">
+              <span class="input-prefix" style="font-size:13px;left:10px">age</span>
+              <input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/>
+            </div>
+          </div>
+
+          <div class="input-group" style="margin-bottom:0">
+            <label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
+            <div class="input-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="number" id="partnerSuper" placeholder="0" min="0"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
           <label class="context-label">Tell us honestly about your situation — we're here to help 🎤</label>
           <p class="context-sub">Share as much as you like — family, property, caring responsibilities, goals, worries. The more you share, the smarter your results.</p>
           <div class="context-wrapper">
@@ -623,6 +669,14 @@
     ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => localStorage.removeItem(k));
     window.location.href = 'auth.html';
   }
+
+  function togglePartner() {
+  const fields = document.getElementById('partnerFields');
+  const icon = document.getElementById('partnerToggleIcon');
+  const visible = fields.style.display !== 'none';
+  fields.style.display = visible ? 'none' : 'block';
+  icon.textContent = visible ? '+' : '−';
+}
 
   // ── Savings hint ───────────────────────
   function updateSavingsHint() {
