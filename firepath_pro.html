@@ -874,11 +874,15 @@
 
       const isRenting = /rent|deposit|house|buy|saving to buy|looking to buy|first home/i.test(context);
       if (isRenting) {
-        const dBank = yearsToGoal(100000, savings, mSav, 0.0075);
-        const d5    = yearsToGoal(100000, savings, mSav, 0.05);
+        const inflationRate = 0.04;
+        const yearsToSave = 3; // rough estimate
+        const inflatedTarget = Math.round(100000 * Math.pow(1 + inflationRate, yearsToSave) / 10000) * 10000;
+        const dBank = yearsToGoal(inflatedTarget, savings, mSav, 0.0075);
+        const d5    = yearsToGoal(inflatedTarget, savings, mSav, 0.05);
+
         const dDiff = dBank !== null && d5 !== null ? dBank - d5 : null;
         if (d5 !== null) {
-          scenarios.push({ emoji: '🏡', title: 'House deposit scenario (assuming $100K target)', description: `Saving in a bank you could reach $100K by <strong>${dBank !== null ? currentYear + Math.round(dBank) : '100+ yrs'}</strong>. At 5% after inflation you could get there by <strong>${currentYear + Math.round(d5)}</strong>${dDiff && dDiff > 0.1 ? ', <strong>' + fmt(dDiff) + ' sooner</strong>' : ''}. Educational only.` });
+          scenarios.push({ emoji: '🏡', title: 'House deposit scenario (assuming $100K target)', description: `A $100K deposit target grows to ~$${Math.round(inflatedTarget/1000)}K in 3 years at 4% inflation. Saving in a bank you could reach that by <strong>${dBank !== null ? currentYear + Math.round(dBank) : '100+ yrs'}</strong>. At 5% after inflation you could get there by <strong>${currentYear + Math.round(d5)}</strong>${dDiff && dDiff > 0.1 ? ', <strong>' + fmt(dDiff) + ' sooner</strong>' : ''}. Educational only.` });
         }
       }
 
