@@ -648,7 +648,7 @@
   async function saveUserContext(age, context) {
   if (!fpToken || !fpUserId) return;
   try {
-    await fetch(`${WORKER_URL}/db/users`, {
+    await fetch(`${WORKER_URL}/db/calculations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -656,8 +656,7 @@
         'Prefer': 'resolution=merge-duplicates'
       },
       body: JSON.stringify({ 
-        id: fpUserId, 
-        email: localStorage.getItem('fp_email') || '',
+        user_id: fpUserId,
         age: age || null,
         context: context || ''
       })
