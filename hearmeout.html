@@ -391,7 +391,7 @@
 
       <div class="input-row">
         <div class="input-label-text">Estimated sale price</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-salePrice" placeholder="600000" oninput="calcHome()"/></div>
+        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-salePrice" placeholder="600000" oninput="autoFillSellCosts(); calcHome()"/></div>
       </div>
       <div class="input-row">
         <div class="input-label-text">Selling costs (agent, legal, etc)</div>
@@ -808,6 +808,15 @@
 
   const currentYear = new Date().getFullYear();
 
+  function autoFillSellCosts() {
+    const salePrice = parseFloat(document.getElementById('h-salePrice').value) || 0;
+    const costsField = document.getElementById('h-sellCosts');
+    if (salePrice > 0 && costsField.value || costsField.dataset.auto === 'true') {
+        costsField.value = Math.round(salePrice * 0.03);
+        costsField.dataset.auto = 'true';       
+    }
+}
+  
   // ── Sell home ──────────────────────────
   function calcHome() {
     const salePrice  = parseFloat(document.getElementById('h-salePrice').value) || 0;
