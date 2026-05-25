@@ -567,8 +567,25 @@
 
 <script>
   // ── Auth guard ─────────────────────────
-  const _t = localStorage.getItem('fp_access_token');
-  const _g = localStorage.getItem('fp_guest');
+  function setStore(key, value) {
+  try { localStorage.setItem(key, value); }
+  catch(e) { sessionStorage.setItem(key, value); }
+}
+  function getStore(key) {
+  try {
+    const v = localStorage.getItem(key);
+    if (v) return v;
+  } catch(e) {}
+  return sessionStorage.getItem(key);
+}
+  function removeStore(key) {
+  try { localStorage.removeItem(key); } catch(e) {}
+  try { sessionStorage.removeItem(key); } catch(e) {}
+}
+  
+  const _t = getStore('fp_access_token');
+  const _g = getStore('fp_guest');
+
   if ((!_t || _t === 'undefined' || _t === 'null') && !_g) {
     window.location.href = 'auth.html';
   }
@@ -590,8 +607,8 @@
   let storedCalc = {};
 
   // ── Auth helpers ───────────────────────
-  const rawToken  = localStorage.getItem('fp_access_token');
-  const rawUserId = localStorage.getItem('fp_user_id');
+  const rawToken  = getStore('fp_access_token');
+  const rawUserId = getStore('fp_user_id');
   const fpToken   = (rawToken  && rawToken  !== 'undefined' && rawToken  !== 'null') ? rawToken  : null;
   const fpUserId  = (rawUserId && rawUserId !== 'undefined' && rawUserId !== 'null') ? rawUserId : null;
   const fpGuest   = localStorage.getItem('fp_guest');
@@ -749,7 +766,7 @@
   }
 
   function signOut() {
-    ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => localStorage.removeItem(k));
+    ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => removeStore(k));
     window.location.href = 'auth.html';
   }
 
