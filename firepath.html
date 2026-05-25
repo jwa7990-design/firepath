@@ -336,7 +336,7 @@
         <span class="house-label">Time you could save</span>
         <span class="house-value highlight" id="depositDiff">—</span>
       </div>
-      <p class="house-note">Using 5% as a conservative growth assumption — suitable for shorter-term goals. Educational only, not financial advice.</p>
+      <p class="house-note" id="depositInflationNote">Using 5% as a conservative growth assumption — suitable for shorter-term goals. Educational only, not financial advice.</p>
     </div>
 
     <div class="rate-card">
@@ -577,6 +577,8 @@
     const y5     = yearsToGoal(target, data.savings, data.mSav, 0.05);
     const diff   = yBank !== null && y5 !== null ? yBank - y5 : null;
     const currentYear = new Date().getFullYear();
+    const inflatedTarget = Math.round(target * Math.pow(1.04, y5 || 3) / 1000) * 1000;
+    document.getElementById('depositInflationNote').textContent = `💡 At 4% property price growth, a $${Math.round(target/1000)}K deposit today will cost roughly $${Math.round(inflatedTarget/1000)}K by the time you reach your goal. Consider adjusting your target above. Educational only, not financial advice.`;
     document.getElementById('depositBank').textContent = yBank !== null ? fmt(yBank) + ' (' + (currentYear + Math.round(yBank)) + ')' : '100+ yrs';
     document.getElementById('deposit5').textContent    = y5 !== null ? fmt(y5) + ' (' + (currentYear + Math.round(y5)) + ')' : '100+ yrs';
     document.getElementById('depositDiff').textContent = diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'similar timeline';
