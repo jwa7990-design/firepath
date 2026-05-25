@@ -244,7 +244,15 @@
         </div>
         <div class="slider-hint" id="sliderHint">That's $0 saved per cycle</div>
       </div>
-
+      <div class="input-group">
+        <label class="input-label">In retirement, how much do you expect to spend?</label>
+        <p style="font-size:11px;color:var(--soft-grey);font-weight:300;margin-bottom:10px;">This adjusts your freedom number to your actual retirement lifestyle.</p>
+        <div class="cycle-group" style="margin-bottom:0">
+          <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less 📉<div style="font-size:10px;margin-top:2px;opacity:0.7">Mortgage paid, kids grown</div></button>
+          <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same 🙂<div style="font-size:10px;margin-top:2px;opacity:0.7">Similar lifestyle</div></button>
+          <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More 🌏<div style="font-size:10px;margin-top:2px;opacity:0.7">Travel, experiences</div></button>
+        </div>
+      </div>
       <div class="divider"></div>
       <div class="input-group">
         <label class="input-label" id="savingsLabel" for="savings">Current savings &amp; investments</label>
@@ -389,6 +397,7 @@
 
   let persona = null;
   let selectedCycle = 'fortnightly';
+  let retirementSpendMultiplier = 1.0;
 
   function selectPersona(el) {
     document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected'));
@@ -396,6 +405,13 @@
     persona = el.dataset.persona;
     document.getElementById('continueBtn').disabled = false;
   }
+
+  function setRetirementSpend(btn) {
+  document.querySelectorAll('[data-spend]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  retirementSpendMultiplier = parseFloat(btn.dataset.spend);
+}
+
 
   function showScreen(n) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
