@@ -163,6 +163,23 @@
   const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
   const SUPABASE_URL = 'https://eeicdaxfrahzgjywrlgs.supabase.co';
 
+  // Storage helper — falls back to sessionStorage in private mode
+  function setStore(key, value) {
+    try { localStorage.setItem(key, value); } 
+    catch(e) { sessionStorage.setItem(key, value); }
+  }
+  function getStore(key) {
+    try { 
+      const v = localStorage.getItem(key);
+      if (v) return v;
+    } catch(e) {}
+    return sessionStorage.getItem(key);
+  }
+  function removeStore(key) {
+    try { localStorage.removeItem(key); } catch(e) {}
+    try { sessionStorage.removeItem(key); } catch(e) {}
+  }
+
   function toggleEye(inputId, btn) {
     const input = document.getElementById(inputId);
     if (input.type === 'password') {
@@ -208,13 +225,13 @@
       }
 
       // Save session
-      localStorage.setItem('fp_access_token', data.access_token);
-      localStorage.setItem('fp_user_id', data.user.id);
-      localStorage.setItem('fp_email', data.user.email);
+      setStore('fp_access_token', data.access_token);
+      setStore('fp_user_id', data.user.id);
+      setStore('fp_email', data.user.email);
 
       // Load user persona and redirect
       const persona = await getUserPersona(data.user.id, data.access_token);
-      if (persona) localStorage.setItem('fp_persona', persona);
+      if (persona) setStore('fp_persona', persona);
 
       window.location.href = 'firepath_pro.html';
 
@@ -252,7 +269,6 @@
         return;
       }
 
-      // Show success
       success.style.display = 'block';
       btn.textContent = 'Check your email ✓';
 
@@ -273,9 +289,9 @@
   }
 
   function continueAsGuest() {
-    localStorage.removeItem('fp_access_token');
-    localStorage.removeItem('fp_user_id');
-    localStorage.setItem('fp_guest', 'true');
+    removeStore('fp_access_token');
+    removeStore('fp_user_id');
+    setStore('fp_guest', 'true');
     window.location.href = 'firepath_pro.html';
   }
 
@@ -284,32 +300,32 @@
     el.style.display = 'block';
   }
 
-// Check if already logged in
-const hash = new URLSearchParams(window.location.hash.slice(1));
-const accessToken = hash.get('access_token');
-const type = hash.get('type');
+  // Check if already logged in
+  const hash = new URLSearchParams(window.location.hash.slice(1));
+  const accessToken = hash.get('access_token');
+  const type = hash.get('type');
 
-if (type === 'signup' && accessToken) {
-  showTab('login');
-  const msg = document.createElement('p');
-  msg.style.cssText = 'color:#2E7D32;font-size:13px;text-align:center;margin-top:12px;background:#E8F5E9;padding:10px;border-radius:8px;';
-  msg.textContent = '✓ Email confirmed! Sign in to your account.';
-  document.getElementById('loginForm').appendChild(msg);
-} else {
-  // Clear any bad tokens before checking
-  const token = localStorage.getItem('fp_access_token');
-  const userId = localStorage.getItem('fp_user_id');
-  const validToken = token && token !== 'undefined' && token !== 'null' && token !== '';
-  const validUser  = userId && userId !== 'undefined' && userId !== 'null' && userId !== '';
-  if (validToken && validUser) {
-    window.location.href = 'firepath_pro.html';
+  if (type === 'signup' && accessToken) {
+    showTab('login');
+    const msg = document.createElement('p');
+    msg.style.cssText = 'color:#2E7D32;font-size:13px;text-align:center;margin-top:12px;background:#E8F5E9;padding:10px;border-radius:8px;';
+    msg.textContent = '✓ Email confirmed! Sign in to your account.';
+    document.getElementById('loginForm').appendChild(msg);
   } else {
-    localStorage.removeItem('fp_access_token');
-    localStorage.removeItem('fp_user_id');
-    localStorage.removeItem('fp_email');
-    localStorage.removeItem('fp_persona');
+    const token = getStore('fp_access_token');
+    const userId = getStore('fp_user_id');
+    const validToken = token && token !== 'undefined' && token !== 'null' && token !== '';
+    const validUser  = userId && userId !== 'undefined' && userId !== 'null' && userId !== '';
+    if (validToken && validUser) {
+      window.location.href = 'firepath_pro.html';
+    } else {
+      removeStore('fp_access_token');
+      removeStore('fp_user_id');
+      removeStore('fp_email');
+      removeStore('fp_persona');
+    }
   }
-}
+  
 </script>
 </body>
 </html>
