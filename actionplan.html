@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Your Action Plan — FirePath</title>
+  <title>Things Worth Exploring — FirePath</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,7 +19,6 @@
 
     body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); min-height: 100vh; }
 
-    /* ── Header ── */
     .header {
       background: linear-gradient(135deg, #3D2B1F, #5C3D2E);
       padding: 40px 24px 32px;
@@ -57,7 +56,6 @@
       max-width: 400px; margin: 0 auto;
     }
 
-    /* ── Progress bar ── */
     .progress-section {
       background: white;
       border-bottom: 1px solid var(--border);
@@ -87,10 +85,8 @@
       font-weight: 300;
     }
 
-    /* ── Content ── */
     .content { padding: 24px 20px 80px; max-width: 560px; margin: 0 auto; }
 
-    /* ── Milestone ── */
     .milestone {
       background: linear-gradient(135deg, #FFF7F3, #FFF3E0);
       border: 1.5px solid rgba(244,98,42,0.25);
@@ -105,7 +101,6 @@
     .milestone-text { font-size: 15px; color: var(--warm-brown); line-height: 1.6; font-weight: 400; }
     .milestone-text strong { color: var(--fire-orange); }
 
-    /* ── Loading ── */
     .loading-card {
       background: white;
       border: 1px solid var(--border);
@@ -124,7 +119,6 @@
     .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
     .loading-text { font-size: 14px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; }
 
-    /* ── Step cards ── */
     .step-card {
       background: white;
       border: 1.5px solid var(--border);
@@ -194,7 +188,6 @@
     }
     .step-card.completed .step-why { display: none; }
 
-    /* ── Regenerate ── */
     .regen-btn {
       width: 100%;
       padding: 14px;
@@ -216,7 +209,6 @@
       line-height: 1.6;
     }
 
-    /* ── Empty / error ── */
     .empty-card {
       background: white;
       border: 1px solid var(--border);
@@ -246,20 +238,20 @@
 
 <div class="header">
   <a href="firepath_pro.html" class="back-link">← Back to FirePath</a>
-  <div class="header-badge">Your personalised plan</div>
-  <h1 class="header-title">Your Action Plan 🔥</h1>
-  <p class="header-sub">Steps built around your situation. Tick them off as you go — your progress is saved.</p>
+  <div class="header-badge">Curiosity starts here</div>
+  <h1 class="header-title">Things Worth Exploring 🔥</h1>
+  <p class="header-sub">Questions and ideas worth looking into — based on your situation. Tick them off as you go.</p>
 </div>
 
 <div class="progress-section" id="progressSection" style="display:none">
   <div class="progress-header">
     <span class="progress-label">Your progress</span>
-    <span class="progress-count" id="progressCount">0 of 0 steps done</span>
+    <span class="progress-count" id="progressCount">0 of 0 explored</span>
   </div>
   <div class="progress-track">
     <div class="progress-fill" id="progressFill" style="width:0%"></div>
   </div>
-  <div class="progress-pct" id="progressPct">0% complete</div>
+  <div class="progress-pct" id="progressPct">0% explored</div>
 </div>
 
 <div class="content">
@@ -270,18 +262,17 @@
 
   <div id="loadingCard" class="loading-card">
     <div class="loading-dots"><span></span><span></span><span></span></div>
-    <p class="loading-text" id="loadingText">Building your personalised action plan...<br/>This only runs once — we'll save it for you.</p>
+    <p class="loading-text" id="loadingText">Finding things worth exploring for your situation...<br/>This only runs once — we'll save it for you.</p>
   </div>
 
   <div id="stepsContainer"></div>
 
-  <button class="regen-btn" id="regenBtn" style="display:none" onclick="regeneratePlan()">↺ Generate a fresh plan</button>
+  <button class="regen-btn" id="regenBtn" style="display:none" onclick="regeneratePlan()">↺ Generate a fresh set of ideas</button>
 
-  <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>These steps are suggestions based on your situation — not professional advice.</p>
+  <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>These are questions and ideas to explore — not professional advice.</p>
 </div>
 
 <script>
-  // ── Auth guard ─────────────────────────
   const _t = localStorage.getItem('fp_access_token');
   const _g = localStorage.getItem('fp_guest');
   if ((!_t || _t === 'undefined' || _t === 'null') && !_g) {
@@ -294,7 +285,6 @@
   const fpToken   = (rawToken  && rawToken  !== 'undefined' && rawToken  !== 'null') ? rawToken  : null;
   const fpUserId  = (rawUserId && rawUserId !== 'undefined' && rawUserId !== 'null') ? rawUserId : null;
 
-  // ── Load context from localStorage ────
   const apFireNum    = parseFloat(localStorage.getItem('ap_fireNum'))    || 0;
   const apMonthlySav = parseFloat(localStorage.getItem('ap_monthlySav')) || 0;
   const apIncome     = parseFloat(localStorage.getItem('ap_income'))     || 0;
@@ -311,9 +301,7 @@
   let steps = [];
   let completedSteps = new Set();
 
-  // ── On load ────────────────────────────
   document.addEventListener('DOMContentLoaded', async () => {
-    // Try to load saved plan from DB first
     const saved = await loadSavedPlan();
     if (saved) {
       renderSteps(saved.steps, saved.completed);
@@ -324,19 +312,14 @@
     }
   });
 
-  // ── Load from DB ───────────────────────
   async function loadSavedPlan() {
     if (!fpToken || !fpUserId) {
-      // Try localStorage fallback for guests
       const local = localStorage.getItem('ap_saved_plan');
-      if (local) {
-        const parsed = JSON.parse(local);
-        return parsed;
-      }
+      if (local) return JSON.parse(local);
       return null;
     }
     try {
-      const res = await fetch(`${WORKER_URL}/db/learn_lab?user_id=eq.${fpUserId}&topic=eq.action_plan&order=created_at.desc&limit=1`, {
+      const res = await fetch(`${WORKER_URL}/db/learn_lab?user_id=${fpUserId}&topic=action_plan&order=created_at.desc&limit=1`, {
         headers: { 'Authorization': `Bearer ${fpToken}` }
       });
       const data = await res.json();
@@ -347,13 +330,9 @@
     return null;
   }
 
-  // ── Save to DB ─────────────────────────
   async function savePlan(stepsData, completedData) {
     const payload = { steps: stepsData, completed: Array.from(completedData) };
-
-    // Always save to localStorage as fallback
     localStorage.setItem('ap_saved_plan', JSON.stringify(payload));
-
     if (!fpToken || !fpUserId) return;
     try {
       await fetch(`${WORKER_URL}/db/learn_lab`, {
@@ -372,7 +351,6 @@
     } catch (e) { console.log('Save plan failed', e); }
   }
 
-  // ── Generate plan via AI ───────────────
   async function generatePlan() {
     document.getElementById('loadingCard').style.display = 'block';
     document.getElementById('stepsContainer').innerHTML = '';
@@ -388,7 +366,7 @@
       redundancy:'make the most of a redundancy payout'
     }[apScenario] || 'reach financial independence';
 
-    const prompt = `You are FirePath, a warm financial independence educational tool. Generate a personalised action plan for this person.
+    const prompt = `You are FirePath, a warm financial independence educational tool. Generate 7 personalised "things worth exploring" for this person — not action directives, but doors to open. Each one should spark curiosity and point toward a calculator, a question to investigate, or something to learn more about. Never tell them what to do. Open doors, don't push them through.
 
 Person details:
 - Income: $${Math.round(apIncome)} per ${cycleWord}
@@ -402,16 +380,34 @@ Person details:
 - Their situation: ${apContext || 'not provided'}
 - Their chosen path: ${scenarioLabel}
 
-Generate exactly 7 action steps personalised to their situation and chosen path. Think creatively and practically. For saving more money, suggest things like: selling unused items, cancelling forgotten subscriptions, meal prepping, negotiating phone/energy/insurance bills, picking up a side gig, buying secondhand, carpooling. DO NOT suggest reviewing mortgage rates. For property-related paths, include practical steps like getting a valuation, researching rental areas, speaking to a conveyancer.
+IMPORTANT: When the user mentions dollar amounts in their situation (e.g. "loses $6,000 per year"), treat these exactly as stated. Never assume monthly unless explicitly stated.
 
-Acknowledge their life constraints (kids, caring responsibilities, age, property situation) in the steps.
+Frame every step as curiosity and self-discovery — never as instruction. Use language like:
+- "Have you ever looked at..."
+- "Curious what X could mean for you?"
+- "It might be worth exploring whether..."
+- "Some people in this situation find it interesting to look at..."
+- "Run the numbers on X and see what comes up"
+
+NEVER write:
+- "Sell your X and redirect Y"
+- "You should invest in..."
+- "Cancel your X"
+- "Switch to..."
+
+Instead write:
+- "Curious what your grocery spend looks like? Some people find switching one shop per week to Aldi saves $50-80 — worth a look at your statements"
+- "Have you ever mapped out exactly where your money goes each week? Sometimes just seeing it is enough"
+- "Curious what your property equity could do? You can run that scenario yourself in Hear Me Out"
+
+For beginner personas, make it feel like a friend asking good questions — warm and non-judgmental. For FIRE personas, make it more analytical and data-focused.
 
 Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
 [
   {
-    "title": "Short action title",
-    "description": "1-2 sentences of what to actually do. Be specific and practical.",
-    "why": "One sentence on why this matters for their specific situation.",
+    "title": "Short curiosity-framed title — a question or observation",
+    "description": "2-3 sentences opening a door, not directing action. Specific, warm, points toward exploration.",
+    "why": "One sentence on why this is worth a look for their specific situation.",
     "category": "one of: save, invest, property, admin, mindset"
   }
 ]`;
@@ -440,13 +436,12 @@ Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
       console.error(err);
       document.getElementById('loadingCard').innerHTML = `
         <span style="font-size:32px;display:block;margin-bottom:12px">😔</span>
-        <p style="font-size:14px;color:var(--soft-grey);font-weight:300">Couldn't generate your plan right now. Please try again.</p>
+        <p style="font-size:14px;color:var(--soft-grey);font-weight:300">Couldn't generate your ideas right now. Please try again.</p>
         <button onclick="generatePlan()" style="margin-top:16px;padding:12px 24px;background:var(--fire-orange);border:none;border-radius:12px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;">Try again</button>
       `;
     }
   }
 
-  // ── Render steps ───────────────────────
   function renderSteps(stepsData, completedData) {
     steps = stepsData;
     completedSteps = new Set(completedData);
@@ -469,7 +464,7 @@ Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
       div.innerHTML = `
         <div class="step-checkbox"></div>
         <div class="step-body">
-          <div class="step-number">${emoji} Step ${i + 1}</div>
+          <div class="step-number">${emoji} Idea ${i + 1}</div>
           <div class="step-title">${step.title}</div>
           <div class="step-desc">${step.description}</div>
           <div class="step-why">💡 ${step.why}</div>
@@ -481,7 +476,6 @@ Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
     updateProgress();
   }
 
-  // ── Toggle step ────────────────────────
   async function toggleStep(index, el) {
     if (completedSteps.has(index)) {
       completedSteps.delete(index);
@@ -495,18 +489,16 @@ Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
     await savePlan(steps, completedSteps);
   }
 
-  // ── Progress ───────────────────────────
   function updateProgress() {
     const total = steps.length;
     const done  = completedSteps.size;
     const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
 
     document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('progressCount').textContent = `${done} of ${total} steps done`;
-    document.getElementById('progressPct').textContent = pct + '% complete';
+    document.getElementById('progressCount').textContent = `${done} of ${total} explored`;
+    document.getElementById('progressPct').textContent = pct + '% explored';
   }
 
-  // ── Milestones ─────────────────────────
   function checkMilestone() {
     const total = steps.length;
     const done  = completedSteps.size;
@@ -517,15 +509,15 @@ Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
 
     if (done === 1) {
       emoji.textContent = '✨';
-      text.innerHTML = `<strong>First step done!</strong> Every journey starts with one move. You're on your way.`;
+      text.innerHTML = `<strong>First idea explored!</strong> Curiosity is where it all starts. Keep going.`;
       m.classList.add('visible');
     } else if (pct >= 50 && pct < 100 && done === Math.ceil(total / 2)) {
       emoji.textContent = '🔥';
-      text.innerHTML = `<strong>Halfway there!</strong> You're building real momentum now. Keep going.`;
+      text.innerHTML = `<strong>Halfway through!</strong> You're asking the right questions. Keep exploring.`;
       m.classList.add('visible');
     } else if (done === total) {
       emoji.textContent = '🎉';
-      text.innerHTML = `<strong>You've completed your action plan!</strong> This is what taking control looks like. Ready for a fresh set of steps?`;
+      text.innerHTML = `<strong>You've explored everything!</strong> Knowledge is the first step to freedom. Ready for a fresh set?`;
       m.classList.add('visible');
     } else {
       m.classList.remove('visible');
@@ -534,22 +526,20 @@ Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
     setTimeout(() => m.classList.remove('visible'), 8000);
   }
 
-  // ── Regenerate ─────────────────────────
   async function regeneratePlan() {
-    if (!confirm('Generate a fresh action plan? Your current progress will be cleared.')) return;
+    if (!confirm('Generate a fresh set of ideas? Your current progress will be cleared.')) return;
     localStorage.removeItem('ap_saved_plan');
     completedSteps = new Set();
     await generatePlan();
   }
 
-  // ── Empty state ────────────────────────
   function showEmpty() {
     document.getElementById('loadingCard').style.display = 'none';
     document.getElementById('stepsContainer').innerHTML = `
       <div class="empty-card">
         <span class="empty-emoji">🔥</span>
-        <div class="empty-title">No plan yet</div>
-        <p class="empty-sub">Run your numbers in FirePath first — then come back here for your personalised action plan.</p>
+        <div class="empty-title">Nothing to explore yet</div>
+        <p class="empty-sub">Run your numbers in FirePath first — then come back here for ideas tailored to your situation.</p>
         <a href="firepath_pro.html" class="cta-btn">Go to FirePath →</a>
       </div>
     `;
