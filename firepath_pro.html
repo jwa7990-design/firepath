@@ -1170,26 +1170,62 @@ if (hasPartner) {
       const goalWord = persona === 'fire' ? 'FI' : 'freedom';
       document.getElementById('resultSub').textContent = `Saving ${fmtM(cycleSaving)} per ${cycleWord} toward your ${goalWord} number of ${fmtM(fireNum)}.`;
 
-      if (superBal > 0 && age) {
-        const superCard = document.getElementById('superResultCard');
-        const superText = document.getElementById('superResultText');
-        superCard.classList.add('visible');
-        const estimatedGross     = mIncome * 12 / 0.72;
-        const annualSuperContrib = estimatedGross * 0.115;
-        const monthlySuperContrib = annualSuperContrib / 12;
-        if (age >= 60) {
-          superText.innerHTML = `Your ${fmtM(superBal)} super is accessible now. Combined with your ${fmtM(savings)} in investments, your total wealth is <strong>${fmtM(savings + superBal)}</strong>.`;
-        } else {
-          const yearsToSuper = 60 - age;
-          const superGrowthOnly = superBal * Math.pow(1.07, yearsToSuper);
-          let superWithContribs = superBal;
-          const monthlyRate = 0.07 / 12;
-          for (let m = 0; m < yearsToSuper * 12; m++) {
-            superWithContribs = superWithContribs * (1 + monthlyRate) + monthlySuperContrib;
-          }
-          superText.innerHTML = `Your ${fmtM(superBal)} super is locked until age 60 — ${yearsToSuper} year${yearsToSuper !== 1 ? 's' : ''} away.<br/><br/><strong>Without contributions:</strong> ~${fmtM(superGrowthOnly)} at 60<br/><strong>With employer contributions (~${fmtM(annualSuperContrib)}/yr):</strong> ~<strong>${fmtM(superWithContribs)}</strong> at 60<br/><br/><span style="font-size:11px;font-style:italic;opacity:0.7">Educational only — not financial advice.</span>`;
-        }
+     const partnerAgeFinal = parseInt(document.getElementById('partnerAge').value) || 0;
+const partnerSuperFinal = parseFloat(document.getElementById('partnerSuper').value) || 0;
+
+if ((superBal > 0 && age) || (partnerSuperFinal > 0 && partnerAgeFinal)) {
+  const superCard = document.getElementById('superResultCard');
+  const superText = document.getElementById('superResultText');
+  superCard.classList.add('visible');
+
+  let superHTML = '';
+
+  // Your super
+  if (superBal > 0 && age) {
+    const estimatedGross = mIncome * 12 / 0.72;
+    const annualSuperContrib = estimatedGross * 0.115;
+    const monthlySuperContrib = annualSuperContrib / 12;
+    if (age >= 60) {
+      superHTML += `<p><strong>Your super:</strong> ${fmtM(superBal)} is accessible now.</p>`;
+    } else {
+      const yearsToSuper = 60 - age;
+      const superGrowthOnly = superBal * Math.pow(1.07, yearsToSuper);
+      let superWithContribs = superBal;
+      const monthlyRate = 0.07 / 12;
+      for (let m = 0; m < yearsToSuper * 12; m++) {
+        superWithContribs = superWithContribs * (1 + monthlyRate) + monthlySuperContrib;
       }
+      superHTML += `<p><strong>Your super:</strong> ${fmtM(superBal)} locked until age 60 — ${yearsToSuper} year${yearsToSuper !== 1 ? 's' : ''} away.<br/>
+      Without contributions: ~${fmtM(superGrowthOnly)} at 60<br/>
+      With employer contributions: ~<strong>${fmtM(superWithContribs)}</strong> at 60</p>`;
+    }
+  }
+
+  // Partner super
+  if (partnerSuperFinal > 0 && partnerAgeFinal) {
+    const partnerEstimatedGross = mIncome * 12 / 0.72;
+    const partnerAnnualContrib = partnerEstimatedGross * 0.115;
+    const partnerMonthlyContrib = partnerAnnualContrib / 12;
+    if (partnerAgeFinal >= 60) {
+      superHTML += `<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(partnerSuperFinal)} is accessible now.</p>`;
+    } else {
+      const partnerYearsToSuper = 60 - partnerAgeFinal;
+      const partnerGrowthOnly = partnerSuperFinal * Math.pow(1.07, partnerYearsToSuper);
+      let partnerWithContribs = partnerSuperFinal;
+      const monthlyRate = 0.07 / 12;
+      for (let m = 0; m < partnerYearsToSuper * 12; m++) {
+        partnerWithContribs = partnerWithContribs * (1 + monthlyRate) + partnerMonthlyContrib;
+      }
+      superHTML += `<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(partnerSuperFinal)} locked until age 60 — ${partnerYearsToSuper} year${partnerYearsToSuper !== 1 ? 's' : ''} away.<br/>
+      Without contributions: ~${fmtM(partnerGrowthOnly)} at 60<br/>
+      With employer contributions: ~<strong>${fmtM(partnerWithContribs)}</strong> at 60</p>`;
+    }
+  }
+
+  superHTML += `<br/><span style="font-size:11px;font-style:italic;opacity:0.7">Educational only — not financial advice.</span>`;
+  superText.innerHTML = superHTML;
+}
+
 
       const y0075 = yearsToGoal(fireNum, savings, mSav, 0.0075);
       const y07   = yearsToGoal(fireNum, savings, mSav, 0.07);
