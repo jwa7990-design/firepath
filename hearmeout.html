@@ -379,6 +379,7 @@
   <button class="scenario-pill" onclick="switchScenario('lump')">💰 Invest a lump sum</button>
   <button class="scenario-pill" onclick="switchScenario('downsize')">📦 Downsize home</button>
   <button class="scenario-pill" onclick="switchScenario('redundancy')">💼 Redundancy payout</button>
+  <button class="scenario-pill" onclick="switchScenario('rentvest')">🏠 Rent vs Invest</button>
 </div>
 
 <div class="content">
@@ -740,9 +741,134 @@
       <div style="font-size:15px;font-weight:500;margin-bottom:4px">Ready to make it happen?</div>
       <div style="font-size:13px;opacity:0.8;font-weight:300">Get your personalised action plan →</div>
     </div>
- </div>
 
-</div>
+    <!-- ── SCENARIO: Rent vs Invest ── -->
+    <div class="scenario-panel" id="panel-rentvest">
+      <div class="glass-card">
+        <div class="card-label">🏠 Your current situation</div>
+        <div class="input-row">
+          <div class="input-label-text">Weekly rent you're currently paying</div>
+          <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="rv-weeklyRent" placeholder="500" oninput="calcRentVest()"/></div>
+        </div>
+        <div class="input-row">
+          <div class="input-label-text">Annual rent increase %</div>
+          <div class="slider-row-dark">
+            <input type="range" class="dark-slider" id="rv-rentIncrease" min="1" max="10" value="4" oninput="document.getElementById('rv-rentIncreaseVal').textContent=this.value+'%';calcRentVest()"/>
+            <span class="slider-val" id="rv-rentIncreaseVal">4%</span>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="input-label-text">How much you're saving toward a deposit per <span class="hmoSavingsCycleLabel">month</span></div>
+          <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="rv-depositSaving" placeholder="1000" oninput="calcRentVest()"/></div>
+        </div>
+        <div class="input-row">
+          <div class="input-label-text">Deposit saved so far</div>
+          <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="rv-depositSaved" placeholder="20000" oninput="calcRentVest()"/></div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-label">🏡 If you buy</div>
+        <div class="input-row">
+          <div class="input-label-text">Property price you're targeting</div>
+          <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="rv-propPrice" placeholder="700000" oninput="calcRentVest()"/></div>
+        </div>
+        <div class="input-row">
+          <div class="input-label-text">Deposit target (usually 20%)</div>
+          <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="rv-depositTarget" placeholder="140000" oninput="calcRentVest()"/></div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-label">🏦 If you invest</div>
+        <div class="input-row">
+          <div class="input-label-text">Investment amount</div>
+          <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="rv-investAmount" placeholder="1000" oninput="calcRentVest()"/></div>
+        </div>
+        <div class="input-row">
+          <div class="input-label-text">Mortgage interest rate %</div>
+          <div class="slider-row-dark">
+            <input type="range" class="dark-slider" id="rv-mortgageRate" min="3" max="10" value="6" step="0.5" oninput="document.getElementById('rv-mortgageRateVal').textContent=this.value+'%';calcRentVest()"/>
+            <span class="slider-val" id="rv-mortgageRateVal">6%</span>
+          </div>
+        </div>
+        <div class="input-row">
+          <div class="input-label-text">Property growth rate per year %</div>
+          <div class="slider-row-dark">
+            <input type="range" class="dark-slider" id="rv-propGrowth" min="1" max="8" value="4" oninput="document.getElementById('rv-propGrowthVal').textContent=this.value+'%';calcRentVest()"/>
+            <span class="slider-val" id="rv-propGrowthVal">4%</span>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-label amber">📈 If you keep renting & invest instead</div>
+          <div class="input-row">
+            <div class="input-label-text">Investment return per year %</div>
+            <div class="slider-row-dark">
+              <input type="range" class="dark-slider" id="rv-investReturn" min="3" max="12" value="7" oninput="document.getElementById('rv-investReturnVal').textContent=this.value+'%';calcRentVest()"/>
+              <span class="slider-val" id="rv-investReturnVal">7%</span>
+            </div>
+          </div>
+
+        <div id="rentvest-results" style="display:none">
+          <div class="results-grid">
+          <div class="result-tile dark">
+            <div class="tile-label">Buy path</div>
+            <div class="tile-value" id="rv-buyWealth">—</div>
+            <div class="tile-sub">Net wealth at year 20</div>
+          </div>
+          <div class="result-tile glow">
+            <div class="tile-label">Rent & invest</div>
+            <div class="tile-value" id="rv-rentWealth">—</div>
+            <div class="tile-sub">Net wealth at year 20</div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-label orange">📊 The numbers at year 10, 20, 30</div>
+          <div class="data-row">
+            <span class="data-label">Years to save deposit</span>
+            <span style="font-weight:600;font-size:15px;" id="rv-yearsToDeposit">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Buy path — net wealth at year 10</span>
+            <span style="font-weight:600;font-size:15px;color:var(--soft-grey)" id="rv-buy10">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Rent & invest — net wealth at year 10</span>
+            <span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="rv-rent10">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Buy path — net wealth at year 20</span>
+            <span style="font-weight:600;font-size:15px;color:var(--soft-grey)" id="rv-buy20">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Rent & invest — net wealth at year 20</span>
+            <span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="rv-rent20">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Buy path — net wealth at year 30</span>
+            <span style="font-weight:600;font-size:15px;color:var(--soft-grey)" id="rv-buy30">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-label">Rent & invest — net wealth at year 30</span>
+            <span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="rv-rent30">—</span>
+          </div>
+        </div>
+
+        <div class="empty-state" id="rentvest-empty">Enter your details above to see the numbers.</div>
+
+        <div class="bottom-note">
+        🤔 Property has emotional and lifestyle value the numbers can't capture — stability, community, the feeling of home. This is just the maths. Only you can weigh what matters most.<br/><br/>
+        <strong>Not advice. Just the numbers.</strong>
+        </div>
+
+        <div onclick="saveAPFromHMO('rentvest'); window.location.href='actionplan.html';" style="margin-top:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:16px;padding:20px;cursor:pointer;text-align:center;color:white;">
+          <div style="font-size:15px;font-weight:500;margin-bottom:4px">Want to explore this further?</div>
+          <div style="font-size:13px;opacity:0.8;font-weight:300">See things worth exploring based on your situation →</div>
+        </div>
+      </div>
+    </div>
 
 <script>
   function saveAPFromHMO(scenario) {
@@ -977,7 +1103,99 @@
     document.getElementById('r-surplus').textContent     = fmtM(surplus);
     document.getElementById('r-10yr').textContent        = fmtM(surplus * Math.pow(1 + rate, 10));
     document.getElementById('r-freedomDate').textContent = freedomDate ? freedomDate : '—';
+
+    // ── Rent vs Invest ─────────────────────
+function calcRentVest() {
+  const weeklyRent    = parseFloat(document.getElementById('rv-weeklyRent').value) || 0;
+  const rentInc       = parseFloat(document.getElementById('rv-rentIncrease').value) / 100 || 0.04;
+  const cycleSav      = parseFloat(document.getElementById('rv-depositSaving').value) || 0;
+  const depositSaving = toMonthly(cycleSav);
+  const depositSaved  = parseFloat(document.getElementById('rv-depositSaved').value) || 0;
+  const propPrice     = parseFloat(document.getElementById('rv-propPrice').value) || 0;
+  const depositTarget = parseFloat(document.getElementById('rv-depositTarget').value) || 0;
+  const mortgageRate  = parseFloat(document.getElementById('rv-mortgageRate').value) / 100 || 0.06;
+  const propGrowth    = parseFloat(document.getElementById('rv-propGrowth').value) / 100 || 0.04;
+  const investReturn  = parseFloat(document.getElementById('rv-investReturn').value) / 100 || 0.07;
+
+  if (weeklyRent <= 0 || propPrice <= 0 || depositTarget <= 0) {
+    document.getElementById('rentvest-results').style.display = 'none';
+    document.getElementById('rentvest-empty').style.display = 'block';
+    return;
   }
+
+  document.getElementById('rentvest-results').style.display = 'block';
+  document.getElementById('rentvest-empty').style.display = 'none';
+
+  // Years to save deposit
+  const remainingDeposit = Math.max(0, depositTarget - depositSaved);
+  const yearsToDeposit = depositSaving > 0 ? remainingDeposit / (depositSaving * 12) : null;
+
+  // Monthly mortgage payment (principal + interest)
+  const loanAmount = propPrice - depositTarget;
+  const monthlyMortgageRate = mortgageRate / 12;
+  const mortgageTermMonths = 30 * 12;
+  const monthlyMortgage = loanAmount * (monthlyMortgageRate * Math.pow(1 + monthlyMortgageRate, mortgageTermMonths)) / (Math.pow(1 + monthlyMortgageRate, mortgageTermMonths) - 1);
+
+  // Annual property costs (rates, maintenance, insurance ~1.5%)
+  const annualPropCosts = propPrice * 0.015;
+
+  // Calculate wealth at year 10, 20, 30
+  function calcBuyWealth(years) {
+    if (!yearsToDeposit || yearsToDeposit > years) return null;
+    const yearsOwning = years - yearsToDeposit;
+    // Property value
+    const propValue = propPrice * Math.pow(1 + propGrowth, yearsOwning);
+    // Mortgage balance remaining
+    const monthsOwning = yearsOwning * 12;
+    let mortgageBalance = loanAmount;
+    for (let m = 0; m < monthsOwning; m++) {
+      const interest = mortgageBalance * monthlyMortgageRate;
+      const principal = monthlyMortgage - interest;
+      mortgageBalance -= principal;
+    }
+    mortgageBalance = Math.max(0, mortgageBalance);
+    return propValue - mortgageBalance;
+  }
+
+  function calcRentWealth(years) {
+    // During deposit saving phase — invest deposit savings
+    let portfolio = depositSaved;
+    const monthlyInvestReturn = investReturn / 12;
+    let monthlyRent = weeklyRent * 52 / 12;
+
+    for (let m = 0; m < years * 12; m++) {
+      portfolio = portfolio * (1 + monthlyInvestReturn) + depositSaving;
+      // Rent increases annually
+      if (m > 0 && m % 12 === 0) monthlyRent *= (1 + rentInc);
+    }
+    // Subtract total rent paid
+    let totalRent = 0;
+    let rent = weeklyRent * 52 / 12;
+    for (let y = 0; y < years; y++) {
+      totalRent += rent * 12;
+      rent *= (1 + rentInc);
+    }
+    return portfolio - totalRent;
+  }
+
+  const buy10  = calcBuyWealth(10);
+  const buy20  = calcBuyWealth(20);
+  const buy30  = calcBuyWealth(30);
+  const rent10 = calcRentWealth(10);
+  const rent20 = calcRentWealth(20);
+  const rent30 = calcRentWealth(30);
+
+  document.getElementById('rv-yearsToDeposit').textContent = yearsToDeposit ? Math.round(yearsToDeposit * 10) / 10 + ' years' : '—';
+  document.getElementById('rv-buy10').textContent  = buy10  !== null ? fmtM(buy10)  : 'Still saving deposit';
+  document.getElementById('rv-rent10').textContent = fmtM(rent10);
+  document.getElementById('rv-buy20').textContent  = buy20  !== null ? fmtM(buy20)  : 'Still saving deposit';
+  document.getElementById('rv-rent20').textContent = fmtM(rent20);
+  document.getElementById('rv-buy30').textContent  = buy30  !== null ? fmtM(buy30)  : 'Still saving deposit';
+  document.getElementById('rv-rent30').textContent = fmtM(rent30);
+  document.getElementById('rv-buyWealth').textContent  = buy20  !== null ? fmtM(buy20)  : '—';
+  document.getElementById('rv-rentWealth').textContent = fmtM(rent20);
+  }
+  
 </script>
 </body>
 </html>
