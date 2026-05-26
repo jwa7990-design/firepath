@@ -330,8 +330,10 @@
     // Cost of waiting
     const yearsTo60 = Math.max(0, 60 - age);
     const wNow  = calcAtYear(yearsTo60,      monthlyAmount, existing, returnRate, contribInc);
-    const w5    = calcAtYear(Math.max(0, yearsTo60 - 5),  monthlyAmount, 0, returnRate, contribInc);
-    const w10   = calcAtYear(Math.max(0, yearsTo60 - 10), monthlyAmount, 0, returnRate, contribInc);
+    const existingAt5  = existing * Math.pow(1 + returnRate, 5);
+    const existingAt10 = existing * Math.pow(1 + returnRate, 10);
+    const w5  = calcAtYear(Math.max(0, yearsTo60 - 5),  monthlyAmount, existingAt5,  returnRate, contribInc);
+    const w10 = calcAtYear(Math.max(0, yearsTo60 - 10), monthlyAmount, existingAt10, returnRate, contribInc);
     const cost5 = Math.max(0, wNow - w5);
 
     document.getElementById('w-now').textContent  = fmtM(wNow);
