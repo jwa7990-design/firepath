@@ -285,6 +285,9 @@
       </div>
       <div class="glass-card">
         <div class="card-label orange">📊 The numbers at year 10, 20, 30</div>
+        <div class="data-row"><span class="data-label">Portfolio value (rent & invest path)</span><span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="rv-portfolioVal">—</span></div>
+        <div class="data-row"><span class="data-label">Total rent paid over 20 years</span><span style="font-weight:600;font-size:15px;color:#C62828" id="rv-totalRent">—</span></div>
+        <div class="data-row"><span class="data-label">Net position (portfolio minus rent)</span><span style="font-weight:600;font-size:15px;color:var(--soft-grey)" id="rv-netPosition">—</span></div>
         <div class="data-row"><span class="data-label">Years to save deposit</span><span style="font-weight:600;font-size:15px;" id="rv-yearsToDeposit">—</span></div>
         <div class="data-row"><span class="data-label">Buy path — net wealth at year 10</span><span style="font-weight:600;font-size:15px;color:var(--soft-grey)" id="rv-buy10">—</span></div>
         <div class="data-row"><span class="data-label">Rent & invest — net wealth at year 10</span><span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="rv-rent10">—</span></div>
@@ -553,6 +556,20 @@
     document.getElementById('rv-rent20').textContent = fmtM(rent20);
     document.getElementById('rv-buy30').textContent  = buy30  !== null ? fmtM(buy30)  : 'Still saving deposit';
     document.getElementById('rv-rent30').textContent = fmtM(rent30);
+    
+    // Calculate portfolio and rent separately for transparency
+    let portfolioVal = depositSaved;
+    const mIR = investReturn / 12;
+    for (let m = 0; m < 20 * 12; m++) {
+    portfolioVal = portfolioVal * (1 + mIR) + depositSaving;
+}
+    let totalRent20 = 0;
+    let r20 = weeklyRent * 52 / 12;
+    for (let y = 0; y < 20; y++) { totalRent20 += r20 * 12; r20 *= (1 + rentInc); }
+
+    document.getElementById('rv-portfolioVal').textContent = fmtM(portfolioVal);
+    document.getElementById('rv-totalRent').textContent = fmtM(totalRent20);
+    document.getElementById('rv-netPosition').textContent = fmtM(portfolioVal - totalRent20);
     document.getElementById('rv-buyWealth').textContent  = buy20 !== null ? fmtM(buy20) : '—';
     document.getElementById('rv-rentWealth').textContent = fmtM(rent20);
   }
