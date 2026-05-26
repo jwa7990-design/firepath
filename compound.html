@@ -144,6 +144,7 @@
       <button class="mode-btn active" id="fixedBtn" onclick="setMode('fixed')">📌 Fixed amount</button>
       <button class="mode-btn" id="growingBtn" onclick="setMode('growing')">📈 Growing amount</button>
     </div>
+    <p id="modeExplainer" style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:10px;line-height:1.6;">You invest the same amount every cycle — simple and consistent.</p>
     <div id="growingOptions" style="display:none;">
       <div class="input-row" style="margin-top:8px;">
         <div class="input-label-text">Annual contribution increase %</div>
@@ -223,8 +224,12 @@
     document.getElementById('fixedBtn').classList.toggle('active', mode === 'fixed');
     document.getElementById('growingBtn').classList.toggle('active', mode === 'growing');
     document.getElementById('growingOptions').style.display = mode === 'growing' ? 'block' : 'none';
+    document.getElementById('modeExplainer').textContent = mode === 'fixed'
+      ? 'You invest the same amount every cycle — simple and consistent.'
+      : 'Your contributions grow a little each year — like a small pay rise going straight to investing.';
     calcCompound();
   }
+
 
   function toMonthly(n) {
     if (selectedCycle === 'weekly') return n * 52 / 12;
@@ -270,7 +275,7 @@
     const ratio = (total / contributed).toFixed(1);
     if (years <= 5) return `You've done most of the work so far — compounding is just getting started.`;
     if (years <= 10) return `Compounding is now adding ${compoundPct}% of your total. It's finding its rhythm.`;
-    if (years <= 15) return `For every $1 you put in, compounding has added ${fmtM(total - contributed)} in total. It's accelerating.`;
+    if (years <= 15) return `Compounding has now added ${fmtM(total - contributed)} on top of your ${fmtM(contributed)} invested. It's accelerating.`;
     if (years <= 20) return `Compounding has now overtaken you — it's doing more work than you are.`;
     if (years <= 30) return `You invested ${fmtM(contributed)}. Compounding turned it into ${fmtM(total)}. That's ${ratio}x your money.`;
     return `For every $1 you invested, compounding added $${(ratio - 1).toFixed(1)}. Time was your greatest asset.`;
