@@ -375,11 +375,11 @@
 
 <!-- Scenario pills -->
 <div class="scenario-selector">
-  <button class="scenario-pill active" onclick="switchScenario('home')">🏠 Sell & invest equity</button>
-  <button class="scenario-pill" onclick="switchScenario('lump')">💰 Invest a lump sum</button>
-  <button class="scenario-pill" onclick="switchScenario('downsize')">📦 Downsize home</button>
-  <button class="scenario-pill" onclick="switchScenario('redundancy')">💼 Redundancy payout</button>
-  <button class="scenario-pill" onclick="switchScenario('rentvest')">🏠 Rent vs Invest</button>
+  <button class="scenario-pill active" onclick="switchScenario('home', this)">🏠 Sell & invest equity</button>
+  <button class="scenario-pill" onclick="switchScenario('lump', this)">💰 Invest a lump sum</button>
+  <button class="scenario-pill" onclick="switchScenario('downsize', this)">📦 Downsize home</button>
+  <button class="scenario-pill" onclick="switchScenario('redundancy', this)">💼 Redundancy payout</button>
+  <button class="scenario-pill" onclick="switchScenario('rentvest', this)">🏠 Rent vs Invest</button>
 </div>
 
 <div class="content">
@@ -895,10 +895,10 @@
   if (hmoMonthlySav) ['h-monthlySavings','l-monthly','d-monthly','r-monthlySavings'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoCycleSav); });
   if (hmoPropVal)    { const el = document.getElementById('h-salePrice'); if (el) el.value = Math.round(hmoPropVal); const costs = document.getElementById('h-sellCosts'); if (costs) costs.value = Math.round(hmoPropVal * 0.03); }
 
-  function switchScenario(s) {
+  function switchScenario(s, el) {
     activeScenario = s;
     document.querySelectorAll('.scenario-pill').forEach(p => p.classList.remove('active'));
-    event.target.classList.add('active');
+    if (el) el.classList.add('active');
     document.querySelectorAll('.scenario-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + s).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
