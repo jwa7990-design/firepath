@@ -123,4 +123,192 @@
         <span class="slider-val" id="w-withdrawRateVal">4%</span>
       </div>
     </div>
-    <p id="w-rateExplainer" style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:8px;line-height:1.6;padding:10px 12px;background:var(--warm-cream);border-radius:8px;">The 4% rule is based on decades of research showing a 4% annual withdrawal has historically never depleted a
+    <p id="w-rateExplainer" style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:8px;line-height:1.6;padding:10px 12px;background:var(--warm-cream);border-radius:8px;">The 4% rule is based on decades of research showing a 4% annual withdrawal has historically never depleted a diversified portfolio over 30+ years.</p>
+  </div>
+
+  <div id="results" style="display:none">
+
+    <div class="income-hero">
+      <div class="income-label">Your annual income</div>
+      <div class="income-annual" id="w-annual">—</div>
+      <div class="income-sub" id="w-sub">from your portfolio — without touching the principal</div>
+      <div class="income-breakdown">
+        <div class="income-tile">
+          <div class="income-tile-label">Monthly</div>
+          <div class="income-tile-value" id="w-monthly">—</div>
+        </div>
+        <div class="income-tile">
+          <div class="income-tile-label">Fortnightly</div>
+          <div class="income-tile-value" id="w-fortnightly">—</div>
+        </div>
+        <div class="income-tile">
+          <div class="income-tile-label">Weekly</div>
+          <div class="income-tile-value" id="w-weekly">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="magic-card">
+      <div class="magic-title" id="w-magicTitle">✨ The magic of this</div>
+      <div class="magic-text" id="w-magicText">—</div>
+    </div>
+
+    <div class="portfolio-card">
+      <div class="portfolio-label">📈 Your portfolio over time</div>
+      <div class="data-row">
+        <span class="data-label">Portfolio today</span>
+        <span style="font-weight:600;font-size:15px;" id="w-portfolioNow">—</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Annual return earned</span>
+        <span style="font-weight:600;font-size:15px;color:#2E7D32" id="w-earned">—</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Annual withdrawal</span>
+        <span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="w-withdrawn">—</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Net portfolio growth per year</span>
+        <span style="font-weight:600;font-size:15px;" id="w-netGrowth">—</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Portfolio in 10 years</span>
+        <span style="font-weight:600;font-size:15px;color:var(--fire-amber)" id="w-10yr">—</span>
+      </div>
+      <div class="data-row">
+        <span class="data-label">Portfolio in 20 years</span>
+        <span style="font-weight:600;font-size:15px;color:var(--fire-amber)" id="w-20yr">—</span>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="card-label">📊 Compare withdrawal rates</div>
+      <p style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;line-height:1.6;">Same portfolio. Different withdrawal rates. See the trade-off between income and growth.</p>
+      <div id="w-rateComparison"></div>
+    </div>
+
+    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>The 4% rule is based on historical data — future returns are not guaranteed.<br/>Educational only — not financial advice.</p>
+  </div>
+
+</div>
+
+<script>
+  function fmtM(n) {
+    if (n == null || isNaN(n)) return '—';
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000)    return '$' + Math.round(n/1000) + 'K';
+    return '$' + Math.round(n);
+  }
+
+  function calcWithdrawal() {
+    const portfolio    = parseFloat(document.getElementById('w-portfolio').value) || 0;
+    const returnRate   = parseFloat(document.getElementById('w-returnRate').value) / 100 || 0.07;
+    const withdrawRate = parseFloat(document.getElementById('w-withdrawRate').value) / 100 || 0.04;
+
+    if (portfolio <= 0) {
+      document.getElementById('results').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('results').style.display = 'block';
+
+    const annualIncome    = portfolio * withdrawRate;
+    const annualReturn    = portfolio * returnRate;
+    const netGrowth       = annualReturn - annualIncome;
+    const growthRate      = returnRate - withdrawRate;
+
+    // Income breakdown
+    document.getElementById('w-annual').textContent      = fmtM(annualIncome);
+    document.getElementById('w-monthly').textContent     = fmtM(annualIncome / 12);
+    document.getElementById('w-fortnightly').textContent = fmtM(annualIncome / 26);
+    document.getElementById('w-weekly').textContent      = fmtM(annualIncome / 52);
+
+    // Portfolio stats
+    document.getElementById('w-portfolioNow').textContent = fmtM(portfolio);
+    document.getElementById('w-earned').textContent       = '+' + fmtM(annualReturn);
+    document.getElementById('w-withdrawn').textContent    = '-' + fmtM(annualIncome);
+
+    const netEl = document.getElementById('w-netGrowth');
+    if (netGrowth > 0) {
+      netEl.textContent = '+' + fmtM(netGrowth) + '/yr';
+      netEl.style.color = '#2E7D32';
+    } else if (netGrowth < 0) {
+      netEl.textContent = fmtM(netGrowth) + '/yr';
+      netEl.style.color = '#E53935';
+    } else {
+      netEl.textContent = 'Breaking even';
+      netEl.style.color = 'var(--soft-grey)';
+    }
+
+    // Portfolio in 10/20 years
+    const p10 = portfolio * Math.pow(1 + growthRate, 10);
+    const p20 = portfolio * Math.pow(1 + growthRate, 20);
+    document.getElementById('w-10yr').textContent = fmtM(p10);
+    document.getElementById('w-20yr').textContent = fmtM(p20);
+
+    // Rate explainer
+    const explainers = {
+      2: 'Ultra conservative — your portfolio will grow significantly while you live on a smaller income.',
+      2.5: 'Very conservative — maximum portfolio growth, lower income.',
+      3: 'Conservative — your portfolio grows comfortably while providing a solid income.',
+      3.5: 'Moderate — a good balance of income and portfolio growth.',
+      4: 'The FIRE benchmark — based on the Trinity Study showing 4% has historically never depleted a diversified portfolio over 30+ years.',
+      4.5: 'Slightly above benchmark — works well if returns are strong.',
+      5: 'Comfortable — portfolio may grow slowly or stay flat depending on returns.',
+      5.5: 'Higher lifestyle — portfolio growth slows significantly.',
+      6: 'Aggressive — portfolio may shrink over time if returns are average.',
+      6.5: 'High risk — portfolio likely to deplete over 20-30 years.',
+      7: 'Very aggressive — not recommended for long-term sustainability.',
+      7.5: 'Unsustainable at average returns — portfolio will shrink.',
+      8: 'Depleting — you are drawing down principal. Plan accordingly.'
+    };
+    const rateKey = parseFloat(document.getElementById('w-withdrawRate').value);
+    document.getElementById('w-rateExplainer').textContent = explainers[rateKey] || explainers[4];
+
+    // Magic moment
+    const magicTitle = document.getElementById('w-magicTitle');
+    const magicText  = document.getElementById('w-magicText');
+    if (withdrawRate < returnRate) {
+      magicTitle.textContent = '✨ The magic moment';
+      magicText.innerHTML = `Your portfolio earns <strong>${fmtM(annualReturn)}</strong> this year. You withdraw <strong>${fmtM(annualIncome)}</strong> to live on. The remaining <strong>${fmtM(netGrowth)}</strong> stays invested and keeps growing. You haven't touched the principal — and your wealth is still increasing.`;
+    } else if (withdrawRate === returnRate) {
+      magicTitle.textContent = '⚖️ Breaking even';
+      magicText.innerHTML = `Your portfolio earns exactly what you withdraw — <strong>${fmtM(annualIncome)}</strong> per year. Your principal stays the same forever. You could theoretically do this indefinitely, but there's no buffer if returns dip.`;
+    } else {
+      magicTitle.textContent = '⚠️ Drawing down principal';
+      magicText.innerHTML = `You're withdrawing more than your portfolio earns. You'll be slowly spending the principal — your portfolio will shrink over time. At this rate, consider whether a lower withdrawal rate or a larger portfolio would give you more security.`;
+    }
+
+    // Rate comparison
+    const rates = [3, 4, 5, 6];
+    const container = document.getElementById('w-rateComparison');
+    container.innerHTML = rates.map(rate => {
+      const income = portfolio * (rate / 100);
+      const growth = returnRate - (rate / 100);
+      const isActive = Math.abs(rate - rateKey) < 0.3;
+      const growthClass = growth > 0.02 ? 'positive' : growth > 0 ? 'warning' : 'danger';
+      const growthText = growth > 0 ? `Portfolio grows ${(growth * 100).toFixed(1)}%/yr` : growth === 0 ? 'Portfolio holds steady' : `Portfolio shrinks ${Math.abs(growth * 100).toFixed(1)}%/yr`;
+      const desc = rate === 3 ? 'Conservative' : rate === 4 ? 'FIRE benchmark' : rate === 5 ? 'Comfortable' : 'Aggressive';
+      return `
+        <div class="rate-row ${isActive ? 'active' : ''}">
+          <div class="rate-left">
+            <div class="rate-pct">${rate}% — ${desc}</div>
+            <div class="rate-desc">${fmtM(income / 52)}/week · ${fmtM(income / 26)}/fortnight · ${fmtM(income / 12)}/month</div>
+          </div>
+          <div style="text-align:right">
+            <div class="rate-income">${fmtM(income)}/yr</div>
+            <div class="rate-growth ${growthClass}">${growthText}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Auto-fill from compound calculator if available
+  const savedPortfolio = localStorage.getItem('fp_compound_portfolio');
+  if (savedPortfolio) {
+    document.getElementById('w-portfolio').value = savedPortfolio;
+    calcWithdrawal();
+  }
+</script>
+</body>
+</html>
