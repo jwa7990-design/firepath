@@ -124,7 +124,6 @@
     .info-icon { display: inline-block; position: relative; cursor: pointer; margin-left: 5px; font-size: 13px; vertical-align: middle; }
     .tooltip { display: none; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); background: white; color: var(--warm-brown); font-size: 12px; font-weight: 300; line-height: 1.6; padding: 10px 14px; border-radius: 10px; width: 240px; z-index: 10; box-shadow: 0 4px 20px rgba(61,43,31,0.3); border: 1px solid var(--border); }
     .tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: white; }
-    .tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--warm-brown); }
     .info-icon.active .tooltip, .info-icon:hover .tooltip { display: block; }
     .scenarios-wrapper { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
     .scenario-block { background: var(--warm-cream); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
@@ -184,9 +183,9 @@
 
 <!-- Burger Menu -->
 <div id="burgerBtn" onclick="toggleMenu()" style="position:fixed;top:16px;right:16px;z-index:100;width:40px;height:40px;background:var(--warm-brown);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;box-shadow:0 2px 12px rgba(61,43,31,0.2);">
-  <div style="width:18px;height:2px;background:white;border-radius:2px;transition:all 0.2s;" id="b1"></div>
-  <div style="width:18px;height:2px;background:white;border-radius:2px;transition:all 0.2s;" id="b2"></div>
-  <div style="width:18px;height:2px;background:white;border-radius:2px;transition:all 0.2s;" id="b3"></div>
+  <div style="width:18px;height:2px;background:white;border-radius:2px;" id="b1"></div>
+  <div style="width:18px;height:2px;background:white;border-radius:2px;" id="b2"></div>
+  <div style="width:18px;height:2px;background:white;border-radius:2px;" id="b3"></div>
 </div>
 
 <!-- Overlay -->
@@ -195,33 +194,29 @@
 <!-- Slide-in menu -->
 <div id="slideMenu" style="display:none;position:fixed;top:0;right:0;height:100%;width:280px;background:var(--warm-brown);z-index:99;padding:48px 24px 40px;flex-direction:column;gap:8px;box-shadow:-4px 0 40px rgba(0,0,0,0.2);">
   <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:white;margin-bottom:28px;">🔥 FirePath</div>
-  
-  <a onclick="toggleMenu();showScreen(2);" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🏠 <span>Recalculate</span></a>
-  
-  <a onclick="toggleMenu();saveActionPlanData('save_more');window.location.href='actionplan.html';" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📋 <span>Things Worth Exploring</span></a>
-  
-  <a onclick="toggleMenu();saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🤔 <span>Hear Me Out</span></a>
-  
-  <a onclick="toggleMenu();switchTab('accountability');" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📈 <span>My Progress</span></a>
 
-  <a href="feedback.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">💬 <span>Share Feedback</span></a>
-  <a href="compound.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🌱 <span>Compounding</span></a>
-  <a href="withdrawal.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🏖️ <span>Withdrawal Mode</span></a>
+  <div id="menuUpgradeBtn" onclick="upgradeToPro()" style="margin-bottom:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:14px;padding:16px;cursor:pointer;text-align:center;">
+    <div style="font-size:13px;font-weight:700;color:white;margin-bottom:2px;">🔥 Upgrade to Pro</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.8);font-weight:300;">$6/month — cancel anytime</div>
+  </div>
 
+  <a onclick="toggleMenu();showScreen(2);" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🏠 <span>Recalculate</span></a>
+  <a onclick="toggleMenu();saveActionPlanData('save_more');window.location.href='actionplan.html';" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📋 <span>Things Worth Exploring</span></a>
+  <a onclick="toggleMenu();saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🤔 <span>Hear Me Out</span></a>
+  <a onclick="toggleMenu();switchTab('accountability');" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📈 <span>My Progress</span></a>
+  <a href="feedback.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">💬 <span>Share Feedback</span></a>
+  <a href="compound.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🌱 <span>Compounding</span></a>
+  <a href="withdrawal.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🏖️ <span>Withdrawal Mode</span></a>
   <a style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.4);font-size:14px;font-weight:500;cursor:default;">
-  <span>🎓 Learn Lab</span>
-  <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;background:rgba(255,255,255,0.1);padding:3px 8px;border-radius:20px;">Coming soon</span>
+    <span>🎓 Learn Lab</span>
+    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;background:rgba(255,255,255,0.1);padding:3px 8px;border-radius:20px;">Coming soon</span>
   </a>
-
   <a style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.4);font-size:14px;font-weight:500;cursor:default;">
-  <span>📝 Blog</span>
-  <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;background:rgba(255,255,255,0.1);padding:3px 8px;border-radius:20px;">Coming soon</span>
+    <span>📝 Blog</span>
+    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;background:rgba(255,255,255,0.1);padding:3px 8px;border-radius:20px;">Coming soon</span>
   </a>
-
-
   <div style="flex:1"></div>
-  
-  <a onclick="toggleMenu();signOut();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;cursor:pointer;transition:background 0.2s;margin-top:auto;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">🔓 <span>Sign Out</span></a>
+  <a onclick="toggleMenu();signOut();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">🔓 <span>Sign Out</span></a>
 </div>
 
 <div class="container">
@@ -230,7 +225,6 @@
       <span style="font-size:26px">🔥</span>
       <span class="logo-text">Fire<span>Path</span> <span class="pro-badge">Pro</span></span>
     </a>
-
     <p class="tagline">Know your number. Light your path on Fire.</p>
     <div id="userStatus" style="margin-top:8px;font-size:12px;color:var(--soft-grey)"></div>
   </div>
@@ -238,12 +232,12 @@
   <!-- SCREEN 1 — Persona -->
   <div class="screen active" id="screen1">
     <div class="card">
-    <div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-radius:14px;padding:16px 18px;margin-bottom:20px;border:1px solid rgba(244,98,42,0.15);">
-    <div style="font-size:22px;margin-bottom:8px">🔥</div>
-    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:6px;">What is FirePath?</div>
-    <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;">FirePath shows you your <strong style="color:var(--warm-brown)">financial freedom number</strong> — the amount you need saved to never have to work again. Enter your income and spending, and we'll tell you exactly when you could be free. No jargon. Just your number and practical education to help you make informed decisions for your future.</div>
-  </div>
-  <h1 class="card-title">Where are you on your journey?</h1>
+      <div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-radius:14px;padding:16px 18px;margin-bottom:20px;border:1px solid rgba(244,98,42,0.15);">
+        <div style="font-size:22px;margin-bottom:8px">🔥</div>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:6px;">What is FirePath?</div>
+        <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;">FirePath shows you your <strong style="color:var(--warm-brown)">financial freedom number</strong> — the amount you need saved to never have to work again. Enter your income and spending, and we'll tell you exactly when you could be free. No jargon. Just your number and practical education to help you make informed decisions for your future.</div>
+      </div>
+      <h1 class="card-title">Where are you on your journey?</h1>
       <p class="card-sub">FirePath Pro will tailor everything — your language, your AI insights, your path.</p>
       <div class="persona-list">
         <div class="persona-card" data-persona="beginner" onclick="selectPersona(this)">
@@ -296,31 +290,22 @@
         </div>
         <div class="input-group">
           <label class="input-label" id="incomeLabel" for="income">Take-home income</label>
-          <div class="input-wrapper">
-            <span class="input-prefix">$</span>
-            <input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint()"/>
-          </div>
+          <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint()"/></div>
         </div>
         <div class="input-group">
           <label class="input-label" id="savingsRateLabel">How much do you save?</label>
-          <div class="input-wrapper">
-            <span class="input-prefix">$</span>
-            <input type="number" id="savingsAmount" placeholder="0" min="0" oninput="updateSavingsHint()"/>
-          </div>
+          <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savingsAmount" placeholder="0" min="0" oninput="updateSavingsHint()"/></div>
           <div class="savings-hint" id="savingsHintPct"></div>
         </div>
         <div class="divider"></div>
         <div class="input-group">
           <label class="input-label" id="savingsLabel" for="savings">Current savings &amp; investments</label>
           <div class="input-hint" id="savingsHint">e.g. bank savings, shares, ETFs — or your mortgage offset/ahead amount if you have one</div>
-          <div class="input-wrapper">
-            <span class="input-prefix">$</span>
-            <input type="number" id="savings" placeholder="0" min="0"/>
-          </div>
+          <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savings" placeholder="0" min="0"/></div>
         </div>
         <div class="input-group">
           <label class="input-label">In retirement, how much do you expect to spend?</label>
-          <p class="input-hint">This adjusts your freedom number to your actual retirement lifestyle — not just your current spending.</p>
+          <p class="input-hint">This adjusts your freedom number to your actual retirement lifestyle.</p>
           <div class="cycle-group" style="margin-bottom:0">
             <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less 📉<div style="font-size:10px;margin-top:2px;opacity:0.7">Mortgage paid, kids grown</div></button>
             <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same 🙂<div style="font-size:10px;margin-top:2px;opacity:0.7">Similar lifestyle</div></button>
@@ -330,70 +315,46 @@
         <div class="super-group">
           <label class="input-label" for="superBalance">Superannuation balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
           <div class="input-hint">Your super is separate — we'll show you when it comes into play</div>
-          <div class="input-wrapper">
-            <span class="input-prefix">$</span>
-            <input type="number" id="superBalance" placeholder="0" min="0" oninput="updateSuperNote()"/>
-          </div>
+          <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="superBalance" placeholder="0" min="0" oninput="updateSuperNote()"/></div>
           <div class="super-note locked" id="superNote" style="display:none"></div>
         </div>
         <div class="input-group">
           <label class="input-label" for="age">Your age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
-          <div class="input-wrapper">
-            <span class="input-prefix" style="font-size:13px;left:10px">age</span>
-            <input type="number" id="age" placeholder="0" min="16" max="80" style="padding-left:44px" oninput="updateSuperNote(); debounceSaveContext()"/>
-          </div>
+          <div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="age" placeholder="0" min="16" max="80" style="padding-left:44px" oninput="updateSuperNote(); debounceSaveContext()"/></div>
         </div>
         <div class="input-group">
-        <div style="margin-bottom:20px;">
-          <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;">
-            <div>
-              <div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div>
-              <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div>
+          <div style="margin-bottom:20px;">
+            <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;">
+              <div>
+                <div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div>
+                <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div>
+              </div>
+              <div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);">+</div>
             </div>
-            <div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);transition:transform 0.2s;">+</div>
-          </div>
-
-          <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
-            <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
-
-          <div class="input-group">
-            <label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label>
-            <div class="input-wrapper">
-              <span class="input-prefix">$</span>
-              <input type="number" id="partnerIncome" placeholder="0" min="0"/>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label>
-            <div class="input-wrapper">
-              <span class="input-prefix">$</span>
-              <input type="number" id="partnerSavings" placeholder="0" min="0"/>
-            </div>
-          </div>
-
-          <div class="input-group">
-            <label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
-            <div class="input-wrapper">
-              <span class="input-prefix" style="font-size:13px;left:10px">age</span>
-              <input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/>
+            <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
+              <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
+              <div class="input-group">
+                <label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label>
+                <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0"/></div>
+              </div>
+              <div class="input-group">
+                <label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label>
+                <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0"/></div>
+              </div>
+              <div class="input-group">
+                <label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
+                <div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/></div>
+              </div>
+              <div class="input-group" style="margin-bottom:0">
+                <label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
+                <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div>
+              </div>
             </div>
           </div>
-
-          <div class="input-group" style="margin-bottom:0">
-            <label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
-            <div class="input-wrapper">
-              <span class="input-prefix">$</span>
-              <input type="number" id="partnerSuper" placeholder="0" min="0"/>
-            </div>
-          </div>
-        </div>
-      </div>
-
           <label class="context-label">Tell us honestly about your situation — we're here to help 🎤</label>
-          <p class="context-sub">Share as much as you like — family, property, caring responsibilities, goals, worries. The more you share, the smarter your results.</p>
+          <p class="context-sub">Share as much as you like — family, property, caring responsibilities, goals, worries.</p>
           <div class="context-wrapper">
-          <textarea class="context-textarea" id="context" oninput="debounceSaveContext()" placeholder="e.g. I have two kids, a mortgage, and I'm looking after my elderly father. I want to know if I'll ever be able to stop working..."></textarea>
+            <textarea class="context-textarea" id="context" oninput="debounceSaveContext()" placeholder="e.g. I have two kids, a mortgage, and I'm looking after my elderly father. I want to know if I'll ever be able to stop working..."></textarea>
             <button class="context-mic-btn" id="contextMicBtn" onclick="toggleContextMic()" title="Tap to speak">🎤</button>
           </div>
         </div>
@@ -402,7 +363,7 @@
       <div id="voiceMode" class="voice-area">
         <button class="mic-btn" id="micBtn" onclick="toggleListening()">🎤</button>
         <p class="mic-label" id="micLabel">Tap the mic and speak naturally</p>
-        <p style="font-size:12px;color:var(--soft-grey);margin-top:8px;font-weight:300;">e.g. "I earn $3,500 a fortnight, save about $700, and have $15,000 saved. I rent and want to buy a home."</p>
+        <p style="font-size:12px;color:var(--soft-grey);margin-top:8px;font-weight:300;">e.g. "I earn $3,500 a fortnight, save about $700, and have $15,000 saved."</p>
         <div class="transcript-box" id="transcriptBox"></div>
       </div>
       <div class="ai-loading" id="aiLoading">
@@ -426,56 +387,42 @@
         <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
         <p class="result-sub" id="resultSub"></p>
         <div class="result-stats">
-          <div class="stat-box">
-            <span class="stat-value" id="savingsRateOut">—</span>
-            <span class="stat-name">Savings rate</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-value" id="fireNumberOut">—</span>
-            <span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)">ℹ️<span class="tooltip">Your freedom number is 25× your annual spending. It's based on the "4% rule" — research showing you can withdraw 4% of your portfolio each year and it should last 30+ years. So if you spend $40K/year, you need $1M to be free.</span></span></span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-value" id="monthlySavingOut">—</span>
-            <span class="stat-name" id="stat3label">Saved / month</span>
-          </div>
+          <div class="stat-box"><span class="stat-value" id="savingsRateOut">—</span><span class="stat-name">Savings rate</span></div>
+          <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)">ℹ️<span class="tooltip">Your freedom number is 25× your annual spending. It's based on the "4% rule" — research showing you can withdraw 4% of your portfolio each year and it should last 30+ years. So if you spend $40K/year, you need $1M to be free.</span></span></span></div>
+          <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / month</span></div>
         </div>
-        <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;transition:background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">🔊 Read my results aloud</button>
+        <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;">🔊 Read my results aloud</button>
       </div>
+
       <div class="glass-card" id="whatThisMeansCard" style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">💡 What this means for you</div>
         <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
       </div>
+
       <div class="super-result-card" id="superResultCard">
         <div class="super-result-label">🏦 Your super picture</div>
         <div class="super-result-text" id="superResultText"></div>
       </div>
+
       <div class="ai-insight-card">
         <div class="ai-insight-label">🧠 AI Insight — just for you</div>
         <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
       </div>
+
       <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">
         <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:16px;">Your next 3 steps 🔥</div>
         <div style="display:flex;flex-direction:column;gap:12px;">
           <div style="display:flex;align-items:center;gap:14px;padding:12px;background:#F0FFF4;border-radius:12px;border:1px solid #A5D6A7;">
             <div style="font-size:20px">✅</div>
-            <div>
-              <div style="font-size:14px;font-weight:500;color:#2E7D32;">Know your number</div>
-              <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">You've got your freedom number. That's the foundation.</div>
-            </div>
+            <div><div style="font-size:14px;font-weight:500;color:#2E7D32;">Know your number</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">You've got your freedom number. That's the foundation.</div></div>
           </div>
           <div onclick="saveHMOData(); window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
             <div style="font-size:20px">→</div>
-            <div>
-              <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if" scenario</div>
-              <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if you sold the house? Got a lump sum? See how it changes everything.</div>
-            </div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if" scenario</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if you sold the house? Got a lump sum? See how it changes everything.</div></div>
           </div>
           <div onclick="saveActionPlanData('save_more'); window.location.href='actionplan.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
             <div style="font-size:20px">→</div>
-            <div>
-              <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Things worth exploring</div>
-              <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">Questions and ideas worth looking into based on your numbers.</div>
-            </div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Things worth exploring</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">Questions and ideas worth looking into based on your numbers.</div></div>
           </div>
         </div>
       </div>
@@ -505,16 +452,23 @@
         </div>
       </div>
 
-      <!-- Hear Me Out button -->
-      <div onclick="saveHMOData(); window.location.href='hearmeout.html';" style="margin-bottom:16px;background:white;border:2px solid var(--warm-brown);border-radius:20px;padding:24px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;">
+      <div onclick="saveHMOData(); window.location.href='hearmeout.html';" style="margin-bottom:16px;background:white;border:2px solid var(--warm-brown);border-radius:20px;padding:24px;cursor:pointer;">
         <div style="font-size:22px;margin-bottom:10px">🤔</div>
         <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3">Okay, hear me out for a sec.</div>
         <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px">What if you made one big move? Sold the house. Got a redundancy payout. Invested a lump sum. Run the numbers — no judgement, no advice. Just the maths.</div>
         <div style="display:inline-flex;align-items:center;gap:8px;background:var(--warm-brown);color:white;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:500;">Show me the numbers →</div>
       </div>
 
+      <div id="upgradeNudge" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;color:white;">
+        <div style="font-size:20px;margin-bottom:8px;">🔥</div>
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:6px;">You're on the free plan</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;margin-bottom:16px;line-height:1.6;">Unlock AI insights, Hear Me Out scenarios, action plan, compounding calculator and more.</div>
+        <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:14px;font-weight:500;display:inline-block;">Upgrade to Pro — $6/month</div>
+      </div>
+
       <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
     </div>
+
     <div class="tab-content" id="tab-accountability">
       <div class="milestone" id="milestone">
         <span class="milestone-emoji" id="milestoneEmoji">🎉</span>
@@ -535,18 +489,9 @@
           </div>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:20px">
-          <div class="stat-box" style="background:var(--warm-cream)">
-            <span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accFreedomDate">—</span>
-            <span class="stat-name" style="opacity:0.7">Freedom date</span>
-          </div>
-          <div class="stat-box" style="background:var(--warm-cream)">
-            <span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accPortfolio">—</span>
-            <span class="stat-name" style="opacity:0.7">Portfolio today</span>
-          </div>
-          <div class="stat-box" style="background:var(--warm-cream)">
-            <span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accYearsToGo">—</span>
-            <span class="stat-name" style="opacity:0.7">Years to go</span>
-          </div>
+          <div class="stat-box" style="background:var(--warm-cream)"><span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accFreedomDate">—</span><span class="stat-name" style="opacity:0.7">Freedom date</span></div>
+          <div class="stat-box" style="background:var(--warm-cream)"><span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accPortfolio">—</span><span class="stat-name" style="opacity:0.7">Portfolio today</span></div>
+          <div class="stat-box" style="background:var(--warm-cream)"><span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accYearsToGo">—</span><span class="stat-name" style="opacity:0.7">Years to go</span></div>
         </div>
         <div class="checkin-section">
           <div class="checkin-title">Monthly check-in</div>
@@ -569,29 +514,21 @@
 </div>
 
 <script>
-  // ── Auth guard ─────────────────────────
   function setStore(key, value) {
-  try { localStorage.setItem(key, value); }
-  catch(e) { sessionStorage.setItem(key, value); }
-}
+    try { localStorage.setItem(key, value); } catch(e) { sessionStorage.setItem(key, value); }
+  }
   function getStore(key) {
-  try {
-    const v = localStorage.getItem(key);
-    if (v) return v;
-  } catch(e) {}
-  return sessionStorage.getItem(key);
-}
+    try { const v = localStorage.getItem(key); if (v) return v; } catch(e) {}
+    return sessionStorage.getItem(key);
+  }
   function removeStore(key) {
-  try { localStorage.removeItem(key); } catch(e) {}
-  try { sessionStorage.removeItem(key); } catch(e) {}
-}
-  
+    try { localStorage.removeItem(key); } catch(e) {}
+    try { sessionStorage.removeItem(key); } catch(e) {}
+  }
+
   const _t = getStore('fp_access_token');
   const _g = getStore('fp_guest');
-
-  if ((!_t || _t === 'undefined' || _t === 'null') && !_g) {
-    window.location.href = 'auth.html';
-  }
+  if ((!_t || _t === 'undefined' || _t === 'null') && !_g) { window.location.href = 'auth.html'; }
 
   let persona = null;
   let selectedCycle = 'fortnightly';
@@ -609,7 +546,6 @@
   let streak = 0;
   let storedCalc = {};
 
-  // ── Auth helpers ───────────────────────
   const rawToken  = getStore('fp_access_token');
   const rawUserId = getStore('fp_user_id');
   const fpToken   = (rawToken  && rawToken  !== 'undefined' && rawToken  !== 'null') ? rawToken  : null;
@@ -617,72 +553,35 @@
   const fpGuest   = localStorage.getItem('fp_guest');
   const savedPersona = localStorage.getItem('fp_persona');
 
-  // ── Load saved inputs ──────────────────
   async function loadSavedInputs() {
     if (!fpToken || !fpUserId) return;
     try {
-      const res = await fetch(`${WORKER_URL}/db/calculations?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`, {
-        headers: { 'Authorization': `Bearer ${fpToken}` }
-      });
+      const res = await fetch(`${WORKER_URL}/db/calculations?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
       const data = await res.json();
       if (!Array.isArray(data) || data.length === 0) return;
       const last = data[0];
-      if (last.pay_cycle) {
-        selectedCycle = last.pay_cycle;
-        document.querySelectorAll('.cycle-btn').forEach(b => {
-          b.classList.toggle('active', b.dataset.cycle === last.pay_cycle);
-        });
-      }
-      if (last.income_monthly) {
-        const cycleIncome = last.pay_cycle === 'weekly' ? last.income_monthly * 12 / 52
-          : last.pay_cycle === 'fortnightly' ? last.income_monthly * 12 / 26
-          : last.income_monthly;
-        document.getElementById('income').value = Math.round(cycleIncome);
-      }
-      if (last.savings_rate && last.income_monthly) {
-        const cycleIncome = last.pay_cycle === 'weekly' ? last.income_monthly * 12 / 52
-          : last.pay_cycle === 'fortnightly' ? last.income_monthly * 12 / 26
-          : last.income_monthly;
-        document.getElementById('savingsAmount').value = Math.round(cycleIncome * last.savings_rate / 100);
-      }
+      if (last.pay_cycle) { selectedCycle = last.pay_cycle; document.querySelectorAll('.cycle-btn').forEach(b => { b.classList.toggle('active', b.dataset.cycle === last.pay_cycle); }); }
+      if (last.income_monthly) { const cycleIncome = last.pay_cycle === 'weekly' ? last.income_monthly * 12 / 52 : last.pay_cycle === 'fortnightly' ? last.income_monthly * 12 / 26 : last.income_monthly; document.getElementById('income').value = Math.round(cycleIncome); }
+      if (last.savings_rate && last.income_monthly) { const cycleIncome = last.pay_cycle === 'weekly' ? last.income_monthly * 12 / 52 : last.pay_cycle === 'fortnightly' ? last.income_monthly * 12 / 26 : last.income_monthly; document.getElementById('savingsAmount').value = Math.round(cycleIncome * last.savings_rate / 100); }
       if (last.current_savings) document.getElementById('savings').value = last.current_savings;
       if (last.super_balance) document.getElementById('superBalance').value = last.super_balance;
       if (last.age) document.getElementById('age').value = last.age;
       if (last.context) document.getElementById('context').value = last.context;
-      updateSavingsHint();
-      updateSuperNote();
+      updateSavingsHint(); updateSuperNote();
     } catch (e) { console.log('Load inputs failed silently', e); }
-
   }
 
-  // ── Database helpers ───────────────────
   async function dbInsert(table, data) {
     if (!fpToken || !fpUserId) return;
     try {
-      await fetch(`${WORKER_URL}/db/${table}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${fpToken}`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ ...data, user_id: fpUserId })
-      });
+      await fetch(`${WORKER_URL}/db/${table}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'return=minimal' }, body: JSON.stringify({ ...data, user_id: fpUserId }) });
     } catch (e) { console.log('DB save failed', e); }
   }
 
   async function savePersonaToDB(personaValue) {
     if (!fpToken || !fpUserId) return;
     try {
-      await fetch(`${WORKER_URL}/db/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${fpToken}`,
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: JSON.stringify({ id: fpUserId, email: localStorage.getItem('fp_email') || '', persona: personaValue })
-      });
+      await fetch(`${WORKER_URL}/db/users`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify({ id: fpUserId, email: localStorage.getItem('fp_email') || '', persona: personaValue }) });
       localStorage.setItem('fp_persona', personaValue);
     } catch (e) { console.log('Persona save failed silently', e); }
   }
@@ -690,45 +589,53 @@
   async function loadCheckinHistory() {
     if (!fpToken || !fpUserId) return;
     try {
-      const res = await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`, {
-        headers: { 'Authorization': `Bearer ${fpToken}` }
-      });
+      const res = await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        checkinHistory = data.map(d => ({
-          month: new Date(d.created_at).toLocaleString('default', { month: 'short', year: 'numeric' }),
-          savings: d.savings_total,
-          sRate: d.savings_rate,
-          diff: null
-        }));
-        streak = data.length;
-        renderHistory();
-      }
+      if (Array.isArray(data) && data.length > 0) { checkinHistory = data.map(d => ({ month: new Date(d.created_at).toLocaleString('default', { month: 'short', year: 'numeric' }), savings: d.savings_total, sRate: d.savings_rate, diff: null })); streak = data.length; renderHistory(); }
     } catch (e) { console.log('History load failed silently', e); }
   }
 
   async function saveUserContext(age, context) {
-  if (!fpToken || !fpUserId) return;
-  try {
-    await fetch(`${WORKER_URL}/db/calculations`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${fpToken}`,
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify({ 
-        user_id: fpUserId,
-        age: age || null,
-        context: context || ''
-      })
-    });
-  } catch(e) { console.log('Save context failed silently', e); }
-}
+    if (!fpToken || !fpUserId) return;
+    try {
+      await fetch(`${WORKER_URL}/db/calculations`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify({ user_id: fpUserId, age: age || null, context: context || '' }) });
+    } catch(e) { console.log('Save context failed silently', e); }
+  }
 
-  // ── On load ────────────────────────────
+  // ── Stripe ─────────────────────────────
+  async function upgradeToPro() {
+    const userId = getStore('fp_user_id');
+    const email  = getStore('fp_email');
+    if (!userId || !email) { window.location.href = 'auth.html'; return; }
+    try {
+      const res = await fetch(`${WORKER_URL}/stripe/checkout`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, email }) });
+      const data = await res.json();
+      if (data.url) { window.location.href = data.url; }
+      else { alert('Something went wrong. Please try again.'); }
+    } catch (e) { alert('Something went wrong. Please try again.'); }
+  }
+
+  async function checkProStatus() {
+    const userId = getStore('fp_user_id');
+    const token  = getStore('fp_access_token');
+    if (!userId || !token) return;
+    try {
+      const res = await fetch(`${WORKER_URL}/db/users?id=eq.${userId}&select=is_pro`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      const isPro = data[0]?.is_pro === true;
+      const nudge = document.getElementById('upgradeNudge');
+      if (nudge) nudge.style.display = isPro ? 'none' : 'block';
+      const menuUpgrade = document.getElementById('menuUpgradeBtn');
+      if (menuUpgrade) menuUpgrade.style.display = isPro ? 'none' : 'block';
+      setStore('fp_is_pro', isPro ? 'true' : 'false');
+    } catch(e) { console.log('Pro check failed', e); }
+  }
+
   document.addEventListener('DOMContentLoaded', async function() {
     await loadSavedInputs();
+    await checkProStatus();
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('upgraded') === 'true') alert('🔥 Welcome to FirePath Pro!');
     const userStatusEl = document.getElementById('userStatus');
     if (!userStatusEl) return;
     if (fpToken && localStorage.getItem('fp_email')) {
@@ -739,305 +646,128 @@
     }
     if (savedPersona) {
       persona = savedPersona;
-      document.querySelectorAll('.persona-card').forEach(c => {
-        if (c.dataset.persona === savedPersona) c.classList.add('selected');
-      });
+      document.querySelectorAll('.persona-card').forEach(c => { if (c.dataset.persona === savedPersona) c.classList.add('selected'); });
       document.getElementById('continueBtn').disabled = false;
     }
   });
 
-  function saveHMOData() {
-    localStorage.setItem('hmo_fireNum', calcData.fireNum || 0);
-    localStorage.setItem('hmo_monthlySav', calcData.mSav || 0);
-    localStorage.setItem('hmo_propVal', calcData.propVal || 0);
-  }
+  function saveHMOData() { localStorage.setItem('hmo_fireNum', calcData.fireNum || 0); localStorage.setItem('hmo_monthlySav', calcData.mSav || 0); localStorage.setItem('hmo_propVal', calcData.propVal || 0); }
 
   function saveActionPlanData(scenario) {
-    localStorage.setItem('ap_fireNum',    calcData.fireNum    || 0);
-    localStorage.setItem('ap_monthlySav', calcData.mSav      || 0);
-    localStorage.setItem('ap_income',     calcData.mIncome   || 0);
-    localStorage.setItem('ap_savings',    calcData.savings   || 0);
-    localStorage.setItem('ap_super',      calcData.superBal  || 0);
-    localStorage.setItem('ap_age',        calcData.age       || 0);
-    localStorage.setItem('ap_sRate',      calcData.sRate     || 0);
-    localStorage.setItem('ap_context',    calcData.context   || '');
-    localStorage.setItem('ap_persona',    persona            || 'building');
-    localStorage.setItem('ap_cycle',      selectedCycle      || 'fortnightly');
-    localStorage.setItem('ap_scenario',   scenario           || 'save_more');
-    localStorage.setItem('ap_freedomYrs', yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07) || 0);
-    localStorage.removeItem('ap_saved_plan');
+    localStorage.setItem('ap_fireNum', calcData.fireNum || 0); localStorage.setItem('ap_monthlySav', calcData.mSav || 0); localStorage.setItem('ap_income', calcData.mIncome || 0); localStorage.setItem('ap_savings', calcData.savings || 0); localStorage.setItem('ap_super', calcData.superBal || 0); localStorage.setItem('ap_age', calcData.age || 0); localStorage.setItem('ap_sRate', calcData.sRate || 0); localStorage.setItem('ap_context', calcData.context || ''); localStorage.setItem('ap_persona', persona || 'building'); localStorage.setItem('ap_cycle', selectedCycle || 'fortnightly'); localStorage.setItem('ap_scenario', scenario || 'save_more'); localStorage.setItem('ap_freedomYrs', yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07) || 0); localStorage.removeItem('ap_saved_plan');
   }
 
-  function signOut() {
-    ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => removeStore(k));
-    window.location.href = 'auth.html';
-  }
+  function signOut() { ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => removeStore(k)); window.location.href = 'auth.html'; }
+  function setRetirementSpend(btn) { document.querySelectorAll('[data-spend]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); retirementSpendMultiplier = parseFloat(btn.dataset.spend); }
+  function toggleMenu() { const menu = document.getElementById('slideMenu'); const overlay = document.getElementById('menuOverlay'); const isOpen = menu.style.display === 'flex'; menu.style.display = isOpen ? 'none' : 'flex'; overlay.style.display = isOpen ? 'none' : 'block'; }
 
-function setRetirementSpend(btn) {
-  document.querySelectorAll('[data-spend]').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  retirementSpendMultiplier = parseFloat(btn.dataset.spend);
-}
-
-function toggleMenu() {
-  const menu = document.getElementById('slideMenu');
-  const overlay = document.getElementById('menuOverlay');
-  const isOpen = menu.style.display === 'flex';
-  menu.style.display = isOpen ? 'none' : 'flex';
-  overlay.style.display = isOpen ? 'none' : 'block';
-}
-
-
-function renderMilestones(fireNum, savings, mSav) {
-  const container = document.getElementById('milestonesRoadmap');
-  if (!container) return;
-  const milestones = [0.25, 0.5, 0.75, 1.0];
-  const labels = ['🌱 25%', '💪 50%', '🔥 75%', '🎉 Freedom!'];
-  container.innerHTML = milestones.map((pct, i) => {
-    const target = fireNum * pct;
-    const years = yearsToGoal(target, savings, mSav, 0.07);
-    const year = years !== null ? currentYear + Math.round(years) : null;
-    const reached = savings >= target;
-    return `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${reached ? '#F0FFF4' : 'var(--warm-cream)'};border-radius:10px;border:1px solid ${reached ? '#A5D6A7' : 'var(--border)'};">
+  function renderMilestones(fireNum, savings, mSav) {
+    const container = document.getElementById('milestonesRoadmap');
+    if (!container) return;
+    const milestones = [0.25, 0.5, 0.75, 1.0];
+    const labels = ['🌱 25%', '💪 50%', '🔥 75%', '🎉 Freedom!'];
+    container.innerHTML = milestones.map((pct, i) => {
+      const target = fireNum * pct;
+      const years = yearsToGoal(target, savings, mSav, 0.07);
+      const year = years !== null ? currentYear + Math.round(years) : null;
+      const reached = savings >= target;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${reached ? '#F0FFF4' : 'var(--warm-cream)'};border-radius:10px;border:1px solid ${reached ? '#A5D6A7' : 'var(--border)'};">
         <div style="font-size:13px;font-weight:500;color:${reached ? '#2E7D32' : 'var(--warm-brown)'};">${labels[i]} — ${fmtM(target)}</div>
         <div style="font-size:12px;color:${reached ? '#2E7D32' : 'var(--soft-grey)'};">${reached ? '✅ Done' : year ? year : '50+ yrs'}</div>
       </div>`;
-  }).join('');
-}
-
-  function togglePartner() {
-  const fields = document.getElementById('partnerFields');
-  const icon = document.getElementById('partnerToggleIcon');
-  const visible = fields.style.display !== 'none';
-  fields.style.display = visible ? 'none' : 'block';
-  icon.textContent = visible ? '+' : '−';
-}
-
-let contextSaveTimer;
-function debounceSaveContext() {
-  clearTimeout(contextSaveTimer);
-  contextSaveTimer = setTimeout(() => {
-    const age = document.getElementById('age').value;
-    const context = document.getElementById('context').value;
-    saveUserContext(age, context);
-  }, 1500);
-}
-
-  // ── Savings hint ───────────────────────
-  function updateSavingsHint() {
-    const income = parseFloat(document.getElementById('income').value) || 0;
-    const saved  = parseFloat(document.getElementById('savingsAmount').value) || 0;
-    const hint   = document.getElementById('savingsHintPct');
-    if (income > 0 && saved > 0) {
-      const pct = Math.round((saved / income) * 100);
-      hint.textContent = `That's ${pct}% of your income`;
-    } else {
-      hint.textContent = '';
-    }
+    }).join('');
   }
 
-  // ── Super note ─────────────────────────
+  function togglePartner() { const fields = document.getElementById('partnerFields'); const icon = document.getElementById('partnerToggleIcon'); const visible = fields.style.display !== 'none'; fields.style.display = visible ? 'none' : 'block'; icon.textContent = visible ? '+' : '−'; }
+
+  let contextSaveTimer;
+  function debounceSaveContext() { clearTimeout(contextSaveTimer); contextSaveTimer = setTimeout(() => { const age = document.getElementById('age').value; const context = document.getElementById('context').value; saveUserContext(age, context); }, 1500); }
+
+  function updateSavingsHint() { const income = parseFloat(document.getElementById('income').value) || 0; const saved = parseFloat(document.getElementById('savingsAmount').value) || 0; const hint = document.getElementById('savingsHintPct'); if (income > 0 && saved > 0) { hint.textContent = `That's ${Math.round((saved / income) * 100)}% of your income`; } else { hint.textContent = ''; } }
+
   function updateSuperNote() {
     const superBal = parseFloat(document.getElementById('superBalance').value) || 0;
-    const age      = parseInt(document.getElementById('age').value) || 0;
-    const note     = document.getElementById('superNote');
+    const age = parseInt(document.getElementById('age').value) || 0;
+    const note = document.getElementById('superNote');
     if (superBal <= 0) { note.style.display = 'none'; return; }
     note.style.display = 'block';
-    if (age === 0) {
-      note.className = 'super-note locked';
-      note.textContent = '📌 Super is typically locked until age 60. Enter your age and we\'ll show you exactly when it becomes accessible.';
-    } else if (age < 55) {
-      note.className = 'super-note locked';
-      note.textContent = `🔒 Your super is locked for another ${60 - age} years (until age 60). We won't count it in your freedom date — but we'll show it separately on your results.`;
-    } else if (age < 60) {
-      note.className = 'super-note soon';
-      note.textContent = `⏳ You're ${60 - age} year${60 - age !== 1 ? 's' : ''} away from accessing your super.`;
-    } else {
-      note.className = 'super-note accessible';
-      note.textContent = `✅ You're past preservation age — your super is accessible now. We'll include it in your results.`;
-    }
+    if (age === 0) { note.className = 'super-note locked'; note.textContent = '📌 Super is typically locked until age 60. Enter your age and we\'ll show you exactly when it becomes accessible.'; }
+    else if (age < 55) { note.className = 'super-note locked'; note.textContent = `🔒 Your super is locked for another ${60 - age} years (until age 60).`; }
+    else if (age < 60) { note.className = 'super-note soon'; note.textContent = `⏳ You're ${60 - age} year${60 - age !== 1 ? 's' : ''} away from accessing your super.`; }
+    else { note.className = 'super-note accessible'; note.textContent = `✅ You're past preservation age — your super is accessible now.`; }
   }
 
-  // ── Persona ────────────────────────────
-  function selectPersona(el) {
-    if (!el) return;
-    document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    persona = el.dataset.persona;
-    document.getElementById('continueBtn').disabled = false;
-    savePersonaToDB(persona);
-  }
+  function selectPersona(el) { if (!el) return; document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected')); el.classList.add('selected'); persona = el.dataset.persona; document.getElementById('continueBtn').disabled = false; savePersonaToDB(persona); }
 
-  // ── Screens ────────────────────────────
-  function showScreen(n) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById('screen' + n).classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (n === 2) applyPersonaLabels();
-  }
+  function showScreen(n) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('screen' + n).classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); if (n === 2) applyPersonaLabels(); }
 
   function applyPersonaLabels() {
-    if (persona === 'beginner') {
-      document.getElementById('s2title').textContent = 'Tell me about your situation';
-      document.getElementById('s2sub').textContent = "Type your numbers below, or tap Speak. Plain English is totally fine!";
-      document.getElementById('incomeLabel').textContent = 'Money coming in (after tax)';
-      document.getElementById('savingsRateLabel').textContent = 'How much do you save?';
-      document.getElementById('savingsLabel').textContent = 'Money already saved';
-      document.getElementById('savingsHint').textContent = 'e.g. bank savings, shares, ETFs — or your mortgage offset/ahead amount';
-    } else if (persona === 'building') {
-      document.getElementById('s2title').textContent = 'Tell me about your situation';
-      document.getElementById('s2sub').textContent = "Enter your numbers and any context — the AI picks up on what matters.";
-      document.getElementById('incomeLabel').textContent = 'Take-home income';
-      document.getElementById('savingsRateLabel').textContent = 'How much do you save?';
-      document.getElementById('savingsLabel').textContent = 'Current savings & investments';
-      document.getElementById('savingsHint').textContent = 'e.g. bank savings, shares, ETFs, managed funds — or mortgage offset';
-    } else {
-      document.getElementById('s2title').textContent = 'Run your numbers';
-      document.getElementById('s2sub').textContent = "Give me your numbers and any nuance — portfolio, goals, timeline.";
-      document.getElementById('incomeLabel').textContent = 'Net income';
-      document.getElementById('savingsRateLabel').textContent = 'Amount saved per cycle';
-      document.getElementById('savingsLabel').textContent = 'Current portfolio value';
-      document.getElementById('savingsHint').textContent = 'e.g. ETFs, index funds, shares, cash — excluding super';
-    }
+    if (persona === 'beginner') { document.getElementById('s2title').textContent = 'Tell me about your situation'; document.getElementById('s2sub').textContent = "Type your numbers below, or tap Speak. Plain English is totally fine!"; document.getElementById('incomeLabel').textContent = 'Money coming in (after tax)'; document.getElementById('savingsRateLabel').textContent = 'How much do you save?'; document.getElementById('savingsLabel').textContent = 'Money already saved'; document.getElementById('savingsHint').textContent = 'e.g. bank savings, shares, ETFs — or your mortgage offset/ahead amount'; }
+    else if (persona === 'building') { document.getElementById('s2title').textContent = 'Tell me about your situation'; document.getElementById('s2sub').textContent = "Enter your numbers and any context — the AI picks up on what matters."; document.getElementById('incomeLabel').textContent = 'Take-home income'; document.getElementById('savingsRateLabel').textContent = 'How much do you save?'; document.getElementById('savingsLabel').textContent = 'Current savings & investments'; document.getElementById('savingsHint').textContent = 'e.g. bank savings, shares, ETFs, managed funds — or mortgage offset'; }
+    else { document.getElementById('s2title').textContent = 'Run your numbers'; document.getElementById('s2sub').textContent = "Give me your numbers and any nuance — portfolio, goals, timeline."; document.getElementById('incomeLabel').textContent = 'Net income'; document.getElementById('savingsRateLabel').textContent = 'Amount saved per cycle'; document.getElementById('savingsLabel').textContent = 'Current portfolio value'; document.getElementById('savingsHint').textContent = 'e.g. ETFs, index funds, shares, cash — excluding super'; }
   }
 
-  // ── Input mode ─────────────────────────
-  function setInputMode(mode) {
-    inputMode = mode;
-    document.getElementById('typeToggle').classList.toggle('active', mode === 'type');
-    document.getElementById('voiceToggle').classList.toggle('active', mode === 'voice');
-    document.getElementById('typeMode').style.display  = mode === 'type' ? 'block' : 'none';
-    document.getElementById('voiceMode').classList.toggle('visible', mode === 'voice');
-  }
+  function setInputMode(mode) { inputMode = mode; document.getElementById('typeToggle').classList.toggle('active', mode === 'type'); document.getElementById('voiceToggle').classList.toggle('active', mode === 'voice'); document.getElementById('typeMode').style.display = mode === 'type' ? 'block' : 'none'; document.getElementById('voiceMode').classList.toggle('visible', mode === 'voice'); }
 
-  // ── Pay cycle ──────────────────────────
-  function setCycle(btn) {
-    document.querySelectorAll('.cycle-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedCycle = btn.dataset.cycle;
-    updateSavingsHint();
-    const word = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
-    document.getElementById('partnerCycleLabel').textContent = word;
-    document.getElementById('partnerCycleLabel2').textContent = word;
-  }
+  function setCycle(btn) { document.querySelectorAll('.cycle-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); selectedCycle = btn.dataset.cycle; updateSavingsHint(); const word = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month'; document.getElementById('partnerCycleLabel').textContent = word; document.getElementById('partnerCycleLabel2').textContent = word; }
 
-  function toMonthly(n) {
-    if (selectedCycle === 'weekly') return n * 52 / 12;
-    if (selectedCycle === 'fortnightly') return n * 26 / 12;
-    return n;
-  }
+  function toMonthly(n) { if (selectedCycle === 'weekly') return n * 52 / 12; if (selectedCycle === 'fortnightly') return n * 26 / 12; return n; }
 
-  // ── Voice — main mic ───────────────────
   function toggleListening() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Voice input needs Chrome or Edge. Switch to Type mode instead.'); return;
-    }
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert('Voice input needs Chrome or Edge.'); return; }
     if (isListening) { recognition.stop(); return; }
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SR();
-    recognition.continuous = true; recognition.interimResults = true; recognition.lang = 'en-AU';
+    recognition = new SR(); recognition.continuous = true; recognition.interimResults = true; recognition.lang = 'en-AU';
     let silenceTimer = null;
-    recognition.onstart = () => {
-      isListening = true;
-      document.getElementById('micBtn').classList.add('listening');
-      document.getElementById('micBtn').textContent = '⏹';
-      document.getElementById('micLabel').textContent = 'Listening... tap to stop';
-      document.getElementById('transcriptBox').classList.add('visible');
-    };
-    recognition.onresult = (e) => {
-      let t = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
-      transcriptText = t;
-      document.getElementById('transcriptBox').textContent = t || '...';
-      clearTimeout(silenceTimer);
-      silenceTimer = setTimeout(() => { if (isListening) recognition.stop(); }, 4000);
-    };
-    recognition.onend = () => {
-      isListening = false;
-      document.getElementById('micBtn').classList.remove('listening');
-      document.getElementById('micBtn').textContent = '🎤';
-      document.getElementById('micLabel').textContent = transcriptText ? 'Got it! Hit analyse when ready.' : 'Tap the mic and speak naturally';
-    };
+    recognition.onstart = () => { isListening = true; document.getElementById('micBtn').classList.add('listening'); document.getElementById('micBtn').textContent = '⏹'; document.getElementById('micLabel').textContent = 'Listening... tap to stop'; document.getElementById('transcriptBox').classList.add('visible'); };
+    recognition.onresult = (e) => { let t = ''; for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript; transcriptText = t; document.getElementById('transcriptBox').textContent = t || '...'; clearTimeout(silenceTimer); silenceTimer = setTimeout(() => { if (isListening) recognition.stop(); }, 4000); };
+    recognition.onend = () => { isListening = false; document.getElementById('micBtn').classList.remove('listening'); document.getElementById('micBtn').textContent = '🎤'; document.getElementById('micLabel').textContent = transcriptText ? 'Got it! Hit analyse when ready.' : 'Tap the mic and speak naturally'; };
     recognition.start();
   }
 
-  // ── Voice — context mic ────────────────
   function toggleContextMic() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert('Voice input needs Chrome or Edge.'); return;
-    }
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { alert('Voice input needs Chrome or Edge.'); return; }
     if (isContextListening) { contextRecognition.stop(); return; }
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    contextRecognition = new SR();
-    contextRecognition.continuous = true; contextRecognition.interimResults = true; contextRecognition.lang = 'en-AU';
-    contextRecognition.onstart = () => {
-      isContextListening = true;
-      document.getElementById('contextMicBtn').classList.add('listening');
-      document.getElementById('contextMicBtn').textContent = '⏹';
-    };
-    contextRecognition.onresult = (e) => {
-      let t = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript;
-      document.getElementById('context').value = t;
-    };
-    contextRecognition.onend = () => {
-      isContextListening = false;
-      document.getElementById('contextMicBtn').classList.remove('listening');
-      document.getElementById('contextMicBtn').textContent = '🎤';
-    };
+    contextRecognition = new SR(); contextRecognition.continuous = true; contextRecognition.interimResults = true; contextRecognition.lang = 'en-AU';
+    contextRecognition.onstart = () => { isContextListening = true; document.getElementById('contextMicBtn').classList.add('listening'); document.getElementById('contextMicBtn').textContent = '⏹'; };
+    contextRecognition.onresult = (e) => { let t = ''; for (let i = e.resultIndex; i < e.results.length; i++) t += e.results[i][0].transcript; document.getElementById('context').value = t; };
+    contextRecognition.onend = () => { isContextListening = false; document.getElementById('contextMicBtn').classList.remove('listening'); document.getElementById('contextMicBtn').textContent = '🎤'; };
     contextRecognition.start();
   }
 
-  // ── Read aloud ─────────────────────────
   function readResultsAloud() {
     if (!('speechSynthesis' in window)) { alert('Text-to-speech is not supported in this browser.'); return; }
     window.speechSynthesis.cancel();
-    const years   = document.getElementById('yearsOut').textContent;
-    const sub     = document.getElementById('resultSub').textContent;
+    const years = document.getElementById('yearsOut').textContent;
+    const sub = document.getElementById('resultSub').textContent;
     const insight = document.getElementById('aiInsightText').textContent.replace(/[🧠🏠💰✂️🏡📈🏦]/g, '');
     const utterance = new SpeechSynthesisUtterance(`Your FirePath result. You could be free in ${years}. ${sub}. ${insight}`);
     utterance.lang = 'en-AU'; utterance.rate = 0.95;
     window.speechSynthesis.speak(utterance);
   }
 
-  // ── Analyse ────────────────────────────
   async function analyse() {
     let userInput = '';
-    let manualIncome = 0;
-    let manualSavedAmount = 0;
-    let manualRate = 20;
-    let manualSavings = 0;
-    let manualSuper = 0;
-    let manualAge = 0;
-    let manualContext = '';
+    let manualIncome = 0, manualSavedAmount = 0, manualRate = 20, manualSavings = 0, manualSuper = 0, manualAge = 0, manualContext = '';
 
     if (inputMode === 'voice') {
       if (!transcriptText) { alert('Please speak your situation first, or switch to Type mode.'); return; }
       userInput = transcriptText;
     } else {
-      manualIncome      = parseFloat(document.getElementById('income').value) || 0;
+      manualIncome = parseFloat(document.getElementById('income').value) || 0;
       manualSavedAmount = parseFloat(document.getElementById('savingsAmount').value) || 0;
-      manualRate        = manualIncome > 0 ? Math.round((manualSavedAmount / manualIncome) * 100) : 20;
-      manualSavings     = parseFloat(document.getElementById('savings').value) || 0;
-      manualSuper       = parseFloat(document.getElementById('superBalance').value) || 0;
-      manualAge         = parseInt(document.getElementById('age').value) || 0;
-      manualContext     = document.getElementById('context').value;
-      const partnerIncome  = parseFloat(document.getElementById('partnerIncome').value) || 0;
+      manualRate = manualIncome > 0 ? Math.round((manualSavedAmount / manualIncome) * 100) : 20;
+      manualSavings = parseFloat(document.getElementById('savings').value) || 0;
+      manualSuper = parseFloat(document.getElementById('superBalance').value) || 0;
+      manualAge = parseInt(document.getElementById('age').value) || 0;
+      manualContext = document.getElementById('context').value;
+      const partnerIncome = parseFloat(document.getElementById('partnerIncome').value) || 0;
       const partnerSavings = parseFloat(document.getElementById('partnerSavings').value) || 0;
-      const partnerAge     = parseInt(document.getElementById('partnerAge').value) || 0;
-      const partnerSuper   = parseFloat(document.getElementById('partnerSuper').value) || 0;
-      const hasPartner     = partnerIncome > 0;
-
-if (hasPartner) {
-  manualIncome += partnerIncome;
-  manualSavedAmount += partnerSavings;
-  manualSuper += partnerSuper;
-}
-
+      const partnerSuper = parseFloat(document.getElementById('partnerSuper').value) || 0;
+      if (partnerIncome > 0) { manualIncome += partnerIncome; manualSavedAmount += partnerSavings; manualSuper += partnerSuper; }
       if (manualIncome <= 0) { document.getElementById('errorMsg').style.display = 'block'; return; }
       document.getElementById('errorMsg').style.display = 'none';
-
       userInput = `Pay cycle: ${selectedCycle}. Income: $${manualIncome} per ${selectedCycle}. Savings rate: ${manualRate}%. Amount saved per ${selectedCycle}: $${Math.round(manualSavedAmount)}. Current savings/investments (excluding super): $${manualSavings}. Super balance: $${manualSuper}. Age: ${manualAge || 'not provided'}.`;
       if (manualContext) userInput += ` Personal situation: ${manualContext}`;
     }
@@ -1047,30 +777,22 @@ if (hasPartner) {
     document.getElementById('loadingText').textContent = 'FirePath AI is reading your situation...';
 
     try {
-      const extractRes = await fetch('https://firepath-api.jwa7990.workers.dev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
-          max_tokens: 400,
-          system: 'You are a financial data extractor. Extract income, spending, savings, super, pay cycle, age and context from the user input. Respond ONLY with valid JSON and nothing else — no markdown, no backticks, no explanation. Format: {"income_monthly": number, "spending_monthly": number, "savings": number, "super_balance": number, "age": number_or_null, "context": "string"}. Convert all amounts to monthly. Weekly x 52/12, fortnightly x 26/12. If savings rate is given, calculate spending as income minus (income x rate). If value not mentioned use 0. IMPORTANT: When extracting dollar amounts from context (e.g. "loses $6,000 per year", "costs $500 per month"), preserve the exact frequency stated by the user in the context field — do not convert these amounts. Only convert income and savings figures to monthly.',
-          messages: [{ role: 'user', content: userInput }]
-        })
+      const extractRes = await fetch(WORKER_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 400, system: 'You are a financial data extractor. Extract income, spending, savings, super, pay cycle, age and context from the user input. Respond ONLY with valid JSON and nothing else — no markdown, no backticks, no explanation. Format: {"income_monthly": number, "spending_monthly": number, "savings": number, "super_balance": number, "age": number_or_null, "context": "string"}. Convert all amounts to monthly. Weekly x 52/12, fortnightly x 26/12. If savings rate is given, calculate spending as income minus (income x rate). If value not mentioned use 0. IMPORTANT: When extracting dollar amounts from context (e.g. "loses $6,000 per year"), preserve the exact frequency stated by the user in the context field — do not convert these amounts. Only convert income and savings figures to monthly.', messages: [{ role: 'user', content: userInput }] })
       });
-
       const extractData = await extractRes.json();
       const raw = extractData.content[0].text.replace(/```json|```/gi, '').trim();
       const extracted = JSON.parse(raw);
 
-      const mIncome  = inputMode === 'type' ? toMonthly(manualIncome) : (extracted.income_monthly || 0);
-      const mSpend   = inputMode === 'type' ? toMonthly(manualIncome) * (1 - manualRate/100) : (extracted.spending_monthly || 0);
-      const mSav     = mIncome - mSpend;
+      const mIncome = inputMode === 'type' ? toMonthly(manualIncome) : (extracted.income_monthly || 0);
+      const mSpend  = inputMode === 'type' ? toMonthly(manualIncome) * (1 - manualRate/100) : (extracted.spending_monthly || 0);
+      const mSav    = mIncome - mSpend;
       const savings  = extracted.savings       || (inputMode === 'type' ? manualSavings : 0);
       const superBal = extracted.super_balance || (inputMode === 'type' ? manualSuper : 0);
       const age      = extracted.age           || (inputMode === 'type' ? manualAge : null);
       const context  = extracted.context       || (inputMode === 'type' ? manualContext : '');
-
-      const fireNum = (mSpend * 12 * retirementSpendMultiplier) * 25;
+      const fireNum  = (mSpend * 12 * retirementSpendMultiplier) * 25;
       const sRate    = mIncome > 0 ? Math.round((mSav/mIncome)*100) : 0;
 
       calcData = { mIncome, mSpend, mSav, savings, superBal, fireNum, sRate, age, context, propVal: 0 };
@@ -1090,162 +812,101 @@ if (hasPartner) {
         const boostYears  = yearsToGoal(fireNum, savings, mSav + extraSaving, 0.07);
         const boostYear   = boostYears !== null ? currentYear + Math.round(boostYears) : null;
         const boostDiff   = freedomYears !== null && boostYears !== null ? freedomYears - boostYears : null;
-        if (boostDiff && boostDiff > 0.5) {
-          scenarios.push({ emoji: '💰', title: `Save 10% more (${fmtCycle(extraSaving)} extra)`, description: `Redirecting an extra <strong>${fmtCycle(extraSaving)}</strong> toward savings could move your freedom date to <strong>${boostYear}</strong> — <strong>${fmt(boostDiff)} sooner</strong>. Time is your biggest superpower right now.` });
-        }
+        if (boostDiff && boostDiff > 0.5) scenarios.push({ emoji: '💰', title: `Save 10% more (${fmtCycle(extraSaving)} extra)`, description: `Redirecting an extra <strong>${fmtCycle(extraSaving)}</strong> toward savings could move your freedom date to <strong>${boostYear}</strong> — <strong>${fmt(boostDiff)} sooner</strong>.` });
       } else if (ageGroup === 'mid') {
         const extraSaving = mIncome * 0.05;
         const boostYears  = yearsToGoal(fireNum, savings, mSav + extraSaving, 0.07);
         const boostYear   = boostYears !== null ? currentYear + Math.round(boostYears) : null;
         const boostDiff   = freedomYears !== null && boostYears !== null ? freedomYears - boostYears : null;
-        if (boostDiff && boostDiff > 0.3) {
-          scenarios.push({ emoji: '💰', title: `Save 5% more (${fmtCycle(extraSaving)} extra)`, description: `Even a modest extra <strong>${fmtCycle(extraSaving)}</strong> could move your freedom date to <strong>${boostYear}</strong> — <strong>${fmt(boostDiff)} sooner</strong>.` });
-        }
+        if (boostDiff && boostDiff > 0.3) scenarios.push({ emoji: '💰', title: `Save 5% more (${fmtCycle(extraSaving)} extra)`, description: `Even a modest extra <strong>${fmtCycle(extraSaving)}</strong> could move your freedom date to <strong>${boostYear}</strong> — <strong>${fmt(boostDiff)} sooner</strong>.` });
       } else if (ageGroup === 'senior') {
         if (superBal > 0) {
           const withSuper = yearsToGoal(fireNum, savings + superBal, mSav, 0.07);
           const superYear = withSuper !== null ? currentYear + Math.round(withSuper) : null;
           const superDiff = freedomYears !== null && withSuper !== null ? freedomYears - withSuper : null;
-          if (superDiff && superDiff > 0.3) {
-            scenarios.push({ emoji: '🏦', title: 'Including your super (accessible now)', description: `With your ${fmtM(superBal)} super now accessible, your combined wealth is ${fmtM(savings + superBal)}. Your freedom date could be <strong>${superYear}</strong> — <strong>${fmt(superDiff)} sooner</strong>.` });
-          }
+          if (superDiff && superDiff > 0.3) scenarios.push({ emoji: '🏦', title: 'Including your super (accessible now)', description: `With your ${fmtM(superBal)} super now accessible, your combined wealth is ${fmtM(savings + superBal)}. Your freedom date could be <strong>${superYear}</strong> — <strong>${fmt(superDiff)} sooner</strong>.` });
         }
       }
 
       const isRenting = /rent|deposit|house|buy|saving to buy|looking to buy|first home/i.test(context);
       if (isRenting) {
         const inflationRate = 0.04;
-        const yearsToSave = 3; // rough estimate
+        const yearsToSave = 3;
         const inflatedTarget = Math.round(100000 * Math.pow(1 + inflationRate, yearsToSave) / 10000) * 10000;
         const dBank = yearsToGoal(inflatedTarget, savings, mSav, 0.0075);
         const d5    = yearsToGoal(inflatedTarget, savings, mSav, 0.05);
-
         const dDiff = dBank !== null && d5 !== null ? dBank - d5 : null;
         if (d5 !== null) {
-        const depositAtGoal = d5 !== null ? Math.round(100000 * Math.pow(1.04, d5) / 1000) * 1000 : null;
-        scenarios.push({ emoji: '🏡', title: 'House deposit scenario', description: `At your savings rate you'd reach a deposit around <strong>${d5 !== null ? currentYear + Math.round(d5) : '50+ yrs'}</strong> — but by then today's $100K deposit will cost roughly <strong>$${depositAtGoal ? Math.round(depositAtGoal/1000) + 'K' : '?'}</strong>. Saving in a bank you could reach that by <strong>${dBank !== null ? currentYear + Math.round(dBank) : '100+ yrs'}</strong>, investing at 5% gets you there <strong>${dDiff && dDiff > 0.1 ? fmt(dDiff) + ' sooner' : 'at a similar time'}</strong>. Educational only.` });
+          const depositAtGoal = Math.round(100000 * Math.pow(1.04, d5) / 1000) * 1000;
+          scenarios.push({ emoji: '🏡', title: 'House deposit scenario', description: `At your savings rate you'd reach a deposit around <strong>${d5 !== null ? currentYear + Math.round(d5) : '50+ yrs'}</strong> — but by then today's $100K deposit will cost roughly <strong>$${depositAtGoal ? Math.round(depositAtGoal/1000) + 'K' : '?'}</strong>. Educational only.` });
         }
       }
 
-      const scenarioHTML = scenarios.length > 0
-        ? scenarios.map(s => `<div class="scenario-block"><div class="scenario-title">${s.emoji} ${s.title}</div><div class="scenario-body">${s.description}</div></div>`).join('')
-        : '';
+      const scenarioHTML = scenarios.length > 0 ? scenarios.map(s => `<div class="scenario-block"><div class="scenario-title">${s.emoji} ${s.title}</div><div class="scenario-body">${s.description}</div></div>`).join('') : '';
 
       document.getElementById('loadingText').textContent = 'Generating your personalised insight...';
 
-      let ageTone = ageGroup === 'senior'
-        ? 'This person is older (55+). Focus on making existing wealth work smarter. Acknowledge their life stage with warmth.'
-        : ageGroup === 'mid'
-        ? 'This person is in their 40s-50s. Balance savings encouragement with realistic life context.'
-        : 'This person is younger. Time and compounding are their superpower.';
+      let ageTone = ageGroup === 'senior' ? 'This person is older (55+). Focus on making existing wealth work smarter.' : ageGroup === 'mid' ? 'This person is in their 40s-50s. Balance savings encouragement with realistic life context.' : 'This person is younger. Time and compounding are their superpower.';
 
-      const insightRes = await fetch('https://firepath-api.jwa7990.workers.dev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
-          max_tokens: 400,
-          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor and must never act like one.
-
-          User persona: ${persona}.
-          ${ageTone}
-
-          Tone: ${persona === 'beginner' ? 'warm, simple, human' : persona === 'building' ? 'clear, motivating, practical' : 'direct, analytical, peer-level'}.
-
-          Your job is to:
-          1. If the person mentions caring responsibilities, family constraints or life pressures - acknowledge these FIRST with genuine empathy in one sentence.
-          2. Identify their single biggest financial lever in plain numbers - what it is and what it is currently costing them mathematically.
-          3. Frame any opportunity as a question worth exploring, not an action to take. Use language like "worth exploring", "some people in this situation consider", "a question worth asking is".
-          4. Never name specific investment products, platforms, fund types, or asset classes.
-          5. Never use language like "you should", "I recommend", "redirect your money into", "invest in".
-          6. Keep it to 3 short paragraphs maximum.
-          7. End every response with exactly: "This is educational, not financial advice."
-
-          Format bold text with <strong> tags.`,
-          messages: [{ role: 'user', content: `Monthly income: $${Math.round(mIncome)}, Monthly spending: $${Math.round(mSpend)}, Monthly saving: $${Math.round(mSav)}, Current savings: $${savings}, Super: $${superBal}, Freedom number: $${Math.round(fireNum)}, Savings rate: ${sRate}%, Freedom date: ${freedomYear || 'over 50 years away'}. Age: ${age || 'unknown'}. Personal situation: ${context}` }]
-        })
+      const insightRes = await fetch(WORKER_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 400, system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor and must never act like one. User persona: ${persona}. ${ageTone}. Tone: ${persona === 'beginner' ? 'warm, simple, human' : persona === 'building' ? 'clear, motivating, practical' : 'direct, analytical, peer-level'}. Your job is to: 1. If the person mentions caring responsibilities, family constraints or life pressures - acknowledge these FIRST with genuine empathy in one sentence. 2. Identify their single biggest financial lever in plain numbers. 3. Frame any opportunity as a question worth exploring, not an action to take. 4. Never name specific investment products, platforms, fund types, or asset classes. 5. Never use language like "you should", "I recommend", "redirect your money into". 6. Keep it to 3 short paragraphs maximum. 7. End every response with exactly: "This is educational, not financial advice." Format bold text with <strong> tags.`, messages: [{ role: 'user', content: `Monthly income: $${Math.round(mIncome)}, Monthly spending: $${Math.round(mSpend)}, Monthly saving: $${Math.round(mSav)}, Current savings: $${savings}, Super: $${superBal}, Freedom number: $${Math.round(fireNum)}, Savings rate: ${sRate}%, Freedom date: ${freedomYear || 'over 50 years away'}. Age: ${age || 'unknown'}. Personal situation: ${context}` }] })
       });
-
-
       const insightData = await insightRes.json();
       const insight = insightData.content[0].text;
 
-      const cycleWord      = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
+      const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
       const cycleStatLabel = selectedCycle === 'weekly' ? 'Saved / week' : selectedCycle === 'fortnightly' ? 'Saved / fortnight' : 'Saved / month';
       const cycleSaving = inputMode === 'type' ? manualSavedAmount : (selectedCycle === 'weekly' ? mSav * 12 / 52 : selectedCycle === 'fortnightly' ? mSav * 12 / 26 : mSav);
 
-      document.getElementById('yearsOut').textContent         = fmt(yearsToGoal(fireNum, savings, mSav, 0.07));
-      const weeklyGap = ((fireNum - savings) / (freedomYears * 52)).toFixed(0);
+      document.getElementById('yearsOut').textContent = fmt(yearsToGoal(fireNum, savings, mSav, 0.07));
       const currentWeeklySaving = (mSav * 12 / 52).toFixed(0);
       const onTrack = mSav > 0 && freedomYears !== null;
-      const gapText = onTrack
-      ? `You need <strong>$${Math.round(fireNum).toLocaleString()}</strong> to be free. You currently have <strong>$${Math.round(savings).toLocaleString()}</strong> — a gap of <strong>$${Math.round(fireNum - savings).toLocaleString()}</strong>. At your current savings rate of <strong>$${currentWeeklySaving}/week</strong> you're on track to get there in <strong>${fmt(yearsToGoal(fireNum, savings, mSav, 0.07))}</strong>. To close the gap faster, focus on increasing your savings rate — even an extra <strong>$50/week</strong> makes a significant difference over time.`
-      : `Enter your savings to see what this means for you.`;
-      document.getElementById('whatThisMeansText').innerHTML = gapText;
-      document.getElementById('savingsRateOut').textContent   = sRate + '%';
-      document.getElementById('fireNumberOut').textContent    = fmtM(fireNum);
+      document.getElementById('whatThisMeansText').innerHTML = onTrack ? `You need <strong>$${Math.round(fireNum).toLocaleString()}</strong> to be free. You currently have <strong>$${Math.round(savings).toLocaleString()}</strong> — a gap of <strong>$${Math.round(fireNum - savings).toLocaleString()}</strong>. At your current savings rate of <strong>$${currentWeeklySaving}/week</strong> you're on track to get there in <strong>${fmt(yearsToGoal(fireNum, savings, mSav, 0.07))}</strong>. To close the gap faster, focus on increasing your savings rate — even an extra <strong>$50/week</strong> makes a significant difference over time.` : `Enter your savings to see what this means for you.`;
+      document.getElementById('savingsRateOut').textContent = sRate + '%';
+      document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
       document.getElementById('monthlySavingOut').textContent = fmtM(cycleSaving);
-      document.getElementById('stat3label').textContent       = cycleStatLabel;
+      document.getElementById('stat3label').textContent = cycleStatLabel;
+      document.getElementById('resultSub').textContent = `Saving ${fmtM(cycleSaving)} per ${cycleWord} toward your ${persona === 'fire' ? 'FI' : 'freedom'} number of ${fmtM(fireNum)}.`;
 
-      const goalWord = persona === 'fire' ? 'FI' : 'freedom';
-      document.getElementById('resultSub').textContent = `Saving ${fmtM(cycleSaving)} per ${cycleWord} toward your ${goalWord} number of ${fmtM(fireNum)}.`;
+      const partnerAgeFinal = parseInt(document.getElementById('partnerAge').value) || 0;
+      const partnerSuperFinal = parseFloat(document.getElementById('partnerSuper').value) || 0;
 
-     const partnerAgeFinal = parseInt(document.getElementById('partnerAge').value) || 0;
-const partnerSuperFinal = parseFloat(document.getElementById('partnerSuper').value) || 0;
-
-if ((superBal > 0 && age) || (partnerSuperFinal > 0 && partnerAgeFinal)) {
-  const superCard = document.getElementById('superResultCard');
-  const superText = document.getElementById('superResultText');
-  superCard.classList.add('visible');
-
-  let superHTML = '';
-
-  // Your super
-  if (superBal > 0 && age) {
-    const estimatedGross = mIncome * 12 / 0.72;
-    const annualSuperContrib = estimatedGross * 0.115;
-    const monthlySuperContrib = annualSuperContrib / 12;
-    if (age >= 60) {
-      superHTML += `<p><strong>Your super:</strong> ${fmtM(superBal)} is accessible now.</p>`;
-    } else {
-      const yearsToSuper = 60 - age;
-      const superGrowthOnly = superBal * Math.pow(1.07, yearsToSuper);
-      let superWithContribs = superBal;
-      const monthlyRate = 0.07 / 12;
-      for (let m = 0; m < yearsToSuper * 12; m++) {
-        superWithContribs = superWithContribs * (1 + monthlyRate) + monthlySuperContrib;
+      if ((superBal > 0 && age) || (partnerSuperFinal > 0 && partnerAgeFinal)) {
+        const superCard = document.getElementById('superResultCard');
+        const superText = document.getElementById('superResultText');
+        superCard.classList.add('visible');
+        let superHTML = '';
+        if (superBal > 0 && age) {
+          const estimatedGross = mIncome * 12 / 0.72;
+          const annualSuperContrib = estimatedGross * 0.115;
+          const monthlySuperContrib = annualSuperContrib / 12;
+          if (age >= 60) { superHTML += `<p><strong>Your super:</strong> ${fmtM(superBal)} is accessible now.</p>`; }
+          else {
+            const yearsToSuper = 60 - age;
+            const superGrowthOnly = superBal * Math.pow(1.07, yearsToSuper);
+            let superWithContribs = superBal;
+            const monthlyRate = 0.07 / 12;
+            for (let m = 0; m < yearsToSuper * 12; m++) { superWithContribs = superWithContribs * (1 + monthlyRate) + monthlySuperContrib; }
+            superHTML += `<p><strong>Your super:</strong> ${fmtM(superBal)} locked until age 60 — ${yearsToSuper} year${yearsToSuper !== 1 ? 's' : ''} away.<br/>Without contributions: ~${fmtM(superGrowthOnly)} at 60<br/>With employer contributions: ~<strong>${fmtM(superWithContribs)}</strong> at 60</p>`;
+          }
+        }
+        if (partnerSuperFinal > 0 && partnerAgeFinal) {
+          const partnerAnnualContrib = (mIncome * 12 / 0.72) * 0.115;
+          const partnerMonthlyContrib = partnerAnnualContrib / 12;
+          if (partnerAgeFinal >= 60) { superHTML += `<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(partnerSuperFinal)} is accessible now.</p>`; }
+          else {
+            const partnerYearsToSuper = 60 - partnerAgeFinal;
+            const partnerGrowthOnly = partnerSuperFinal * Math.pow(1.07, partnerYearsToSuper);
+            let partnerWithContribs = partnerSuperFinal;
+            const monthlyRate = 0.07 / 12;
+            for (let m = 0; m < partnerYearsToSuper * 12; m++) { partnerWithContribs = partnerWithContribs * (1 + monthlyRate) + partnerMonthlyContrib; }
+            superHTML += `<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(partnerSuperFinal)} locked until age 60 — ${partnerYearsToSuper} year${partnerYearsToSuper !== 1 ? 's' : ''} away.<br/>Without contributions: ~${fmtM(partnerGrowthOnly)} at 60<br/>With employer contributions: ~<strong>${fmtM(partnerWithContribs)}</strong> at 60</p>`;
+          }
+        }
+        superHTML += `<br/><span style="font-size:11px;font-style:italic;opacity:0.7">Educational only — not financial advice.</span>`;
+        superText.innerHTML = superHTML;
       }
-      superHTML += `<p><strong>Your super:</strong> ${fmtM(superBal)} locked until age 60 — ${yearsToSuper} year${yearsToSuper !== 1 ? 's' : ''} away.<br/>
-      Without contributions: ~${fmtM(superGrowthOnly)} at 60<br/>
-      With employer contributions: ~<strong>${fmtM(superWithContribs)}</strong> at 60</p>`;
-    }
-  }
-
-  // Partner super
-  if (partnerSuperFinal > 0 && partnerAgeFinal) {
-    const partnerEstimatedGross = mIncome * 12 / 0.72;
-    const partnerAnnualContrib = partnerEstimatedGross * 0.115;
-    const partnerMonthlyContrib = partnerAnnualContrib / 12;
-    if (partnerAgeFinal >= 60) {
-      superHTML += `<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(partnerSuperFinal)} is accessible now.</p>`;
-    } else {
-      const partnerYearsToSuper = 60 - partnerAgeFinal;
-      const partnerGrowthOnly = partnerSuperFinal * Math.pow(1.07, partnerYearsToSuper);
-      let partnerWithContribs = partnerSuperFinal;
-      const monthlyRate = 0.07 / 12;
-      for (let m = 0; m < partnerYearsToSuper * 12; m++) {
-        partnerWithContribs = partnerWithContribs * (1 + monthlyRate) + partnerMonthlyContrib;
-      }
-      superHTML += `<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(partnerSuperFinal)} locked until age 60 — ${partnerYearsToSuper} year${partnerYearsToSuper !== 1 ? 's' : ''} away.<br/>
-      Without contributions: ~${fmtM(partnerGrowthOnly)} at 60<br/>
-      With employer contributions: ~<strong>${fmtM(partnerWithContribs)}</strong> at 60</p>`;
-    }
-  }
-
-  superHTML += `<br/><span style="font-size:11px;font-style:italic;opacity:0.7">Educational only — not financial advice.</span>`;
-  superText.innerHTML = superHTML;
-}
-
 
       const y0075 = yearsToGoal(fireNum, savings, mSav, 0.0075);
       const y07   = yearsToGoal(fireNum, savings, mSav, 0.07);
@@ -1268,34 +929,19 @@ if ((superBal > 0 && age) || (partnerSuperFinal > 0 && partnerAgeFinal)) {
       document.getElementById('accFreedomDate').textContent = freedomYear ? freedomYear : '50+ yrs';
       document.getElementById('accPortfolio').textContent   = fmtM(savings);
       document.getElementById('accYearsToGo').textContent   = freedomYears ? Math.round(freedomYears) + 'yrs' : '—';
-      document.getElementById('ci-income').value = manualIncome || Math.round(mIncome);
-      document.getElementById('ci-rate').value   = sRate;
+      document.getElementById('ci-income').value  = manualIncome || Math.round(mIncome);
+      document.getElementById('ci-rate').value    = sRate;
       document.getElementById('ci-savings').value = savings;
 
       document.getElementById('aiLoading').classList.remove('visible');
       document.getElementById('analyseBtn').style.display = 'block';
 
-      const ageGroupDB = !age ? 'unknown' : age < 40 ? 'young' : age < 55 ? 'mid' : 'senior';
-      await dbInsert('calculations', {
-        pay_cycle: selectedCycle,
-        income_monthly: Math.round(mIncome),
-        savings_rate: sRate,
-        current_savings: savings,
-        super_balance: superBal || 0,
-        freedom_number: Math.round(fireNum),
-        freedom_years: freedomYears ? Math.round(freedomYears * 10) / 10 : null,
-        renting_mentioned: isRenting,
-        caring_mentioned: /care|caring|carer|elderly|father|mother|parent/i.test(context),
-        age_group: ageGroupDB,
-        age: age || null,
-        context: context || ''
-      });
-
+      await dbInsert('calculations', { pay_cycle: selectedCycle, income_monthly: Math.round(mIncome), savings_rate: sRate, current_savings: savings, super_balance: superBal || 0, freedom_number: Math.round(fireNum), freedom_years: freedomYears ? Math.round(freedomYears * 10) / 10 : null, renting_mentioned: isRenting, caring_mentioned: /care|caring|carer|elderly|father|mother|parent/i.test(context), age_group: !age ? 'unknown' : age < 40 ? 'young' : age < 55 ? 'mid' : 'senior', age: age || null, context: context || '' });
 
       await loadCheckinHistory();
       renderMilestones(fireNum, savings, mSav);
-
       showScreen(3);
+      await checkProStatus();
 
     } catch (err) {
       document.getElementById('aiLoading').classList.remove('visible');
@@ -1305,46 +951,15 @@ if ((superBal > 0 && age) || (partnerSuperFinal > 0 && partnerAgeFinal)) {
     }
   }
 
-  // ── Maths ──────────────────────────────
-  function yearsToGoal(goal, current, mSaving, rate) {
-    if (mSaving <= 0) return null;
-    if (current >= goal) return 0;
-    const r = rate / 12;
-    let bal = current, months = 0;
-    while (bal < goal && months < 1200) { bal = bal * (1 + r) + mSaving; months++; }
-    return months < 1200 ? months / 12 : null;
-  }
-
-  function fmt(y) {
-    if (y === null) return '100+ yrs';
-    if (y === 0)   return 'Already there!';
-    const yr = Math.floor(y), mo = Math.round((y - yr) * 12);
-    if (yr === 0) return mo + ' months';
-    if (mo === 0) return yr + ' yr' + (yr !== 1 ? 's' : '');
-    return yr + 'yr ' + mo + 'mo';
-  }
-
-  function fmtM(n) {
-    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
-    if (n >= 1000)    return '$' + Math.round(n/1000) + 'K';
-    return '$' + Math.round(n);
-  }
-
-  // ── Rate dropdown ──────────────────────
-  function updateRateRow() {
-    const rate = parseFloat(document.getElementById('rateSelector').value);
-    const y    = yearsToGoal(storedCalc.fireNum, storedCalc.savings, storedCalc.mSav, rate);
-    const diff = storedCalc.y0075 !== null && y !== null ? storedCalc.y0075 - y : null;
-    document.getElementById('investYears').textContent = fmt(y);
-    document.getElementById('timeSaved').textContent   = diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'similar timeline';
-  }
-
+  function yearsToGoal(goal, current, mSaving, rate) { if (mSaving <= 0) return null; if (current >= goal) return 0; const r = rate / 12; let bal = current, months = 0; while (bal < goal && months < 1200) { bal = bal * (1 + r) + mSaving; months++; } return months < 1200 ? months / 12 : null; }
+  function fmt(y) { if (y === null) return '100+ yrs'; if (y === 0) return 'Already there!'; const yr = Math.floor(y), mo = Math.round((y - yr) * 12); if (yr === 0) return mo + ' months'; if (mo === 0) return yr + ' yr' + (yr !== 1 ? 's' : ''); return yr + 'yr ' + mo + 'mo'; }
+  function fmtM(n) { if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + Math.round(n); }
+  function updateRateRow() { const rate = parseFloat(document.getElementById('rateSelector').value); const y = yearsToGoal(storedCalc.fireNum, storedCalc.savings, storedCalc.mSav, rate); const diff = storedCalc.y0075 !== null && y !== null ? storedCalc.y0075 - y : null; document.getElementById('investYears').textContent = fmt(y); document.getElementById('timeSaved').textContent = diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'similar timeline'; }
   function toggleTooltip(el) { el.classList.toggle('active'); }
 
-  // ── Monthly check-in ───────────────────
   async function doCheckin() {
-    const newIncome  = parseFloat(document.getElementById('ci-income').value)  || calcData.mIncome;
-    const newRate    = parseFloat(document.getElementById('ci-rate').value)    || calcData.sRate;
+    const newIncome  = parseFloat(document.getElementById('ci-income').value) || calcData.mIncome;
+    const newRate    = parseFloat(document.getElementById('ci-rate').value) || calcData.sRate;
     const newSavings = parseFloat(document.getElementById('ci-savings').value) || calcData.savings;
     const cappedRate = Math.min(newRate, 90);
     const newMSav    = toMonthly(newIncome) * (cappedRate / 100);
@@ -1352,86 +967,49 @@ if ((superBal > 0 && age) || (partnerSuperFinal > 0 && partnerAgeFinal)) {
     const newY07     = yearsToGoal(newFireNum, newSavings, newMSav, 0.07);
     const oldY07     = yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07);
     const diff       = oldY07 !== null && newY07 !== null ? oldY07 - newY07 : null;
-
     calcData.mSav = newMSav; calcData.savings = newSavings; calcData.fireNum = newFireNum; calcData.sRate = newRate;
     streak++;
-
     const pct = Math.min(Math.round((newSavings / newFireNum) * 100), 100);
     document.getElementById('pathFill').style.width    = pct + '%';
     document.getElementById('progressPct').textContent = pct + '%';
     document.getElementById('accPortfolio').textContent = fmtM(newSavings);
     document.getElementById('accYearsToGo').textContent = newY07 ? Math.round(newY07) + 'yrs' : '—';
     document.getElementById('accFreedomDate').textContent = newY07 ? new Date().getFullYear() + Math.round(newY07) : '50+ yrs';
-
-    const dot = document.getElementById('statusDot');
-    const txt = document.getElementById('statusText');
-    if (diff && diff > 0.1)       { dot.querySelector('.dot').className = 'dot green'; txt.textContent = 'On track 🟢'; }
-    else if (diff && diff < -0.1) { dot.querySelector('.dot').className = 'dot red';   txt.textContent = 'Needs attention 🔴'; }
-    else                          { dot.querySelector('.dot').className = 'dot amber'; txt.textContent = 'Steady 🟡'; }
-
+    const dot = document.getElementById('statusDot'); const txt = document.getElementById('statusText');
+    if (diff && diff > 0.1) { dot.querySelector('.dot').className = 'dot green'; txt.textContent = 'On track 🟢'; }
+    else if (diff && diff < -0.1) { dot.querySelector('.dot').className = 'dot red'; txt.textContent = 'Needs attention 🔴'; }
+    else { dot.querySelector('.dot').className = 'dot amber'; txt.textContent = 'Steady 🟡'; }
     if (diff && diff > 0) showMilestone(diff, pct);
-
-    await dbInsert('checkins', {
-      savings_total: newSavings,
-      savings_rate: Math.round(newRate),
-      freedom_years: newY07 ? Math.round(newY07 * 10) / 10 : null,
-      streak: streak
-    });
-
-    const month = new Date().toLocaleString('default', { month: 'short', year: 'numeric' });
-    checkinHistory.unshift({ month, diff, savings: newSavings, sRate: newRate });
+    await dbInsert('checkins', { savings_total: newSavings, savings_rate: Math.round(newRate), freedom_years: newY07 ? Math.round(newY07 * 10) / 10 : null, streak: streak });
+    checkinHistory.unshift({ month: new Date().toLocaleString('default', { month: 'short', year: 'numeric' }), diff, savings: newSavings, sRate: newRate });
     renderHistory();
   }
 
   function showMilestone(diff, pct) {
-    const m = document.getElementById('milestone');
-    const emoji = document.getElementById('milestoneEmoji');
-    const text  = document.getElementById('milestoneText');
+    const m = document.getElementById('milestone'); const emoji = document.getElementById('milestoneEmoji'); const text = document.getElementById('milestoneText');
     let msg = '';
-    if (pct >= 100)     { emoji.textContent = '🎉'; msg = `<strong>You've done it!</strong> Your portfolio has hit your freedom number.`; }
+    if (pct >= 100) { emoji.textContent = '🎉'; msg = `<strong>You've done it!</strong> Your portfolio has hit your freedom number.`; }
     else if (pct >= 75) { emoji.textContent = '🔥'; msg = `<strong>75% of the way there!</strong> Your freedom date moved <strong>${fmt(diff)} closer</strong>.`; }
     else if (pct >= 50) { emoji.textContent = '💪'; msg = `<strong>Halfway to freedom!</strong> Your date moved <strong>${fmt(diff)} closer</strong>.`; }
-    else                { emoji.textContent = '✨'; msg = `Your freedom date moved <strong>${fmt(diff)} closer</strong>. Every month compounds.`; }
-    text.innerHTML = msg;
-    m.classList.add('visible');
-    setTimeout(() => m.classList.remove('visible'), 8000);
+    else { emoji.textContent = '✨'; msg = `Your freedom date moved <strong>${fmt(diff)} closer</strong>. Every month compounds.`; }
+    text.innerHTML = msg; m.classList.add('visible'); setTimeout(() => m.classList.remove('visible'), 8000);
   }
 
   function renderHistory() {
-    const card = document.getElementById('historyCard');
-    const list = document.getElementById('historyList');
+    const card = document.getElementById('historyCard'); const list = document.getElementById('historyList');
     if (checkinHistory.length === 0) { card.style.display = 'none'; return; }
     card.style.display = 'block';
-    list.innerHTML = checkinHistory.map(h => `
-      <div class="history-item">
-        <span class="history-date">${h.month}</span>
-        <span>${fmtM(h.savings)} saved</span>
-        <span class="history-change ${h.diff > 0 ? 'positive' : 'negative'}">
-          ${h.diff > 0 ? '↓ ' + fmt(h.diff) + ' sooner' : h.diff < 0 ? '↑ ' + fmt(Math.abs(h.diff)) + ' later' : '→ no change'}
-        </span>
-      </div>`).join('');
+    list.innerHTML = checkinHistory.map(h => `<div class="history-item"><span class="history-date">${h.month}</span><span>${fmtM(h.savings)} saved</span><span class="history-change ${h.diff > 0 ? 'positive' : 'negative'}">${h.diff > 0 ? '↓ ' + fmt(h.diff) + ' sooner' : h.diff < 0 ? '↑ ' + fmt(Math.abs(h.diff)) + ' later' : '→ no change'}</span></div>`).join('');
   }
 
   function switchTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach((b, i) => {
-      b.classList.toggle('active', (i === 0 && tab === 'results') || (i === 1 && tab === 'accountability'));
-    });
+    document.querySelectorAll('.tab-btn').forEach((b, i) => { b.classList.toggle('active', (i === 0 && tab === 'results') || (i === 1 && tab === 'accountability')); });
     document.getElementById('tab-results').classList.toggle('active', tab === 'results');
     document.getElementById('tab-accountability').classList.toggle('active', tab === 'accountability');
   }
 
-  // ── Auto sign-out ──────────────────────
   let inactivityTimer;
-  function resetInactivityTimer() {
-    clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(() => {
-      if (localStorage.getItem('fp_access_token')) {
-        ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => localStorage.removeItem(k));
-        alert('You\'ve been signed out due to inactivity.');
-        window.location.href = 'auth.html';
-      }
-    }, 20 * 60 * 1000);
-  }
+  function resetInactivityTimer() { clearTimeout(inactivityTimer); inactivityTimer = setTimeout(() => { if (localStorage.getItem('fp_access_token')) { ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => localStorage.removeItem(k)); alert('You\'ve been signed out due to inactivity.'); window.location.href = 'auth.html'; } }, 20 * 60 * 1000); }
   ['mousemove','keydown','click','scroll','touchstart'].forEach(e => document.addEventListener(e, resetInactivityTimer));
   resetInactivityTimer();
 </script>
