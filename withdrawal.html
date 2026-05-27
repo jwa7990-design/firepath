@@ -137,7 +137,6 @@
         <span class="slider-val" id="w-inflationVal">3%</span>
       </div>
     </div>
-
     <p id="w-rateExplainer" style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:8px;line-height:1.6;padding:10px 12px;background:var(--warm-cream);border-radius:8px;">The 4% rule is based on decades of research showing a 4% annual withdrawal has historically never depleted a diversified portfolio over 30+ years.</p>
   </div>
 
@@ -234,6 +233,11 @@
 
     // Income breakdown
     document.getElementById('w-annual').textContent      = fmtM(annualIncome);
+    const years = parseFloat(document.getElementById('w-years').value) || 25;
+    const inflation = parseFloat(document.getElementById('w-inflation').value) / 100 || 0.03;
+    const todayValue = annualIncome / Math.pow(1 + inflation, years);
+    document.getElementById('w-sub').textContent = `${fmtM(annualIncome)}/year in ${years} years — worth about ${fmtM(todayValue)} in today's money`;
+
     document.getElementById('w-monthly').textContent     = fmtM(annualIncome / 12);
     document.getElementById('w-fortnightly').textContent = fmtM(annualIncome / 26);
     document.getElementById('w-weekly').textContent      = fmtM(annualIncome / 52);
