@@ -479,6 +479,11 @@
       <p class="house-note" id="depositInflationNote">Using 5% as a conservative growth assumption — suitable for shorter-term goals. Educational only, not financial advice.</p>
     </div>
 
+    <!-- Smart scenario cards — injected by JS -->
+    <div id="debtCard" style="display:none"></div>
+    <div id="boostCard" style="display:none"></div>
+    <div id="superScenarioCard" style="display:none"></div>
+
     <div class="rate-card">
       <div class="rate-header" onclick="toggleRate(this)">
         <div class="rate-left">
@@ -751,13 +756,18 @@
 
     fillThoughtCentre();
 
-    // House deposit — show if renting and savings under $200K
-    const showHouseCard = housingStatus === 'renting' && savings < 200000 && fireNum > savings;
+    // House deposit — only if renting, no debt, savings under $200K
+    const showHouseCard = housingStatus === 'renting' && debt === 0 && savings < 200000 && fireNum > savings;
     document.getElementById('houseCard').style.display = showHouseCard ? 'block' : 'none';
     if (showHouseCard) {
       window._depositCalcData = { savings, mSav };
       updateDepositCard();
     }
+
+    // Smart scenario cards
+    buildDebtCard(debt, savings, mSav, mI, fireNum, y07);
+    buildBoostCard(savings, mSav, mI, fireNum, y07);
+    buildSuperScenarioCard(superBal, savings, mSav, fireNum);
 
     showScreen(3);
   }
@@ -813,6 +823,88 @@
     const chevron = header.querySelector('.chevron');
     body.classList.toggle('open');
     chevron.classList.toggle('open');
+  }
+
+  function buildDebtCard(debt, savings, mSav, mI, fireNum, y07) {
+    const el = document.getElementById('debtCard');
+    if (!el) return;
+    if (debt <= 0) { el.style.display = 'none'; return; }
+
+    // Estimate monthly debt repayment as ~3% of debt (typical minimum)
+    const estMonthlyRepayment = Math.max(debt * 0.03, debt / 36);
+    const monthsToPayoff = Math.ceil(debt / estMonthlyRepayment);
+    const yearsToPayoff = (monthsToPayoff / 12).toFixed(1);
+
+    // After debt is cleared, that repayment redirects to savings
+    const boostedMSav = mSav + estMonthlyRepayment;
+    const yAfterDebt = yearsToGoal(fireNum, savings, boostedMSav, 0.07);
+    const diff = y07 !== null && yAfterDebt !== null ? y07 - yAfterDebt : null;
+
+    el.style.display = 'block';
+    el.innerHTML = `<div style="background:white;border:2px solid #FFD54F;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">💳 What if you cleared your debt first?</div>
+      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">
+        You have <strong style="color:var(--warm-brown)">${fmtM(debt)}</strong> in debt. Once it's gone, the money you were putting toward repayments could go straight into building your freedom number instead.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Estimated payoff time</span><span style="font-weight:500">${yearsToPayoff} yrs</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Freed-up monthly saving</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(estMonthlyRepayment)}/month extra</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Freedom date impact</span><span style="font-weight:700;color:var(--fire-orange)">${diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'meaningful improvement'}</span></div>
+      </div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Assumes repayment amount redirected to savings after debt is cleared.</p>
+    </div>`;
+  }
+
+  function buildBoostCard(savings, mSav, mI, fireNum, y07) {
+    const el = document.getElementById('boostCard');
+    if (!el) return;
+    const sRate = mI > 0 ? (mSav / mI) * 100 : 0;
+    if (sRate >= 20) { el.style.display = 'none'; return; }
+
+    const extraWeekly = Math.round(mI * 12 / 52 * 0.05); // 5% of weekly income
+    const extraMonthly = extraWeekly * 52 / 12;
+    const boostedMSav = mSav + extraMonthly;
+    const yBoosted = yearsToGoal(fireNum, savings, boostedMSav, 0.07);
+    const diff = y07 !== null && yBoosted !== null ? y07 - yBoosted : null;
+    const yBoosted10 = yearsToGoal(fireNum, savings, mSav + (mI * 0.10), 0.07);
+    const diff10 = y07 !== null && yBoosted10 !== null ? y07 - yBoosted10 : null;
+
+    el.style.display = 'block';
+    el.innerHTML = `<div style="background:white;border:2px solid #A5D6A7;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">📈 What if you saved a little more?</div>
+      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">
+        Small increases compound dramatically over time. Here's what an extra <strong style="color:var(--warm-brown)">$${extraWeekly}/week</strong> could do:
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Save $${extraWeekly} more/week (5% boost)</span><span style="font-weight:700;color:#2E7D32">${diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'meaningful improvement'}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Save $${extraWeekly * 2} more/week (10% boost)</span><span style="font-weight:700;color:#2E7D32">${diff10 && diff10 > 0.1 ? fmt(diff10) + ' sooner' : 'meaningful improvement'}</span></div>
+      </div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 7% annual growth assumption.</p>
+    </div>`;
+  }
+
+  function buildSuperScenarioCard(superBal, savings, mSav, fireNum) {
+    const el = document.getElementById('superScenarioCard');
+    if (!el) return;
+    if (superBal <= 0) { el.style.display = 'none'; return; }
+
+    const yWithSuper = yearsToGoal(fireNum, savings + superBal, mSav, 0.07);
+    const yWithout   = yearsToGoal(fireNum, savings, mSav, 0.07);
+    const diff = yWithout !== null && yWithSuper !== null ? yWithout - yWithSuper : null;
+    const superAt7 = Math.round(superBal * Math.pow(1.07, 20));
+
+    el.style.display = 'block';
+    el.innerHTML = `<div style="background:white;border:2px solid #A5D6A7;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🦘 Your super is quietly growing</div>
+      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">
+        Your <strong style="color:var(--warm-brown)">${fmtM(superBal)}</strong> in super can't be touched yet — but it's compounding in the background. Here's the bigger picture:
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Super at 7% growth over 20 years</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(superAt7)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">If included in your freedom number</span><span style="font-weight:700;color:#2E7D32">${diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'significant boost'}</span></div>
+      </div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super is locked until preservation age (~60). This is for context only — educational, not financial advice.</p>
+    </div>`;
   }
 </script>
 </body>
