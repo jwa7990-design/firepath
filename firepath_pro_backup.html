@@ -46,22 +46,6 @@
     .toggle-btn { flex: 1; padding: 12px; background: white; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--soft-grey); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .toggle-btn.active { background: var(--fire-orange); color: white; }
     .toggle-btn:first-child { border-right: 1.5px solid var(--border); }
-    /* Housing toggle — different class to avoid conflicts with input-toggle */
-    .housing-group { display: flex; gap: 8px; margin-bottom: 16px; }
-    .housing-btn { flex: 1; padding: 10px 8px; border: 1.5px solid var(--border); background: white; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--soft-grey); cursor: pointer; transition: all 0.2s ease; text-align: center; }
-    .housing-btn:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
-    .housing-btn.active { background: var(--fire-orange); border-color: var(--fire-orange); color: white; }
-    /* Counter */
-    .counter-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-    .counter-label { flex: 1; font-size: 13px; font-weight: 500; color: var(--warm-brown); }
-    .counter-controls { display: flex; align-items: center; gap: 8px; }
-    .counter-btn { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border); background: white; font-size: 18px; color: var(--soft-grey); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; line-height: 1; font-family: 'DM Sans', sans-serif; }
-    .counter-btn:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
-    .counter-val { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--warm-brown); min-width: 24px; text-align: center; }
-    /* Section divider */
-    .section-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0 16px; }
-    .section-divider span { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--soft-grey); white-space: nowrap; }
-    .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
     .voice-area { text-align: center; padding: 16px 0; display: none; }
     .voice-area.visible { display: block; }
     .mic-btn { width: 80px; height: 80px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px; box-shadow: 0 4px 20px rgba(244,98,42,0.35); transition: all 0.2s ease; }
@@ -203,13 +187,19 @@
   <div style="width:18px;height:2px;background:white;border-radius:2px;" id="b2"></div>
   <div style="width:18px;height:2px;background:white;border-radius:2px;" id="b3"></div>
 </div>
+
+<!-- Overlay -->
 <div id="menuOverlay" onclick="toggleMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:98;"></div>
+
+<!-- Slide-in menu -->
 <div id="slideMenu" style="display:none;position:fixed;top:0;right:0;height:100%;width:280px;background:var(--warm-brown);z-index:99;padding:48px 24px 40px;flex-direction:column;gap:8px;box-shadow:-4px 0 40px rgba(0,0,0,0.2);">
   <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:white;margin-bottom:28px;">🔥 FirePath</div>
+
   <div id="menuUpgradeBtn" onclick="upgradeToPro()" style="margin-bottom:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:14px;padding:16px;cursor:pointer;text-align:center;">
     <div style="font-size:13px;font-weight:700;color:white;margin-bottom:2px;">🔥 Upgrade to Pro</div>
     <div style="font-size:11px;color:rgba(255,255,255,0.8);font-weight:300;">$6/month — cancel anytime</div>
   </div>
+
   <a onclick="toggleMenu();showScreen(2);" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🏠 <span>Recalculate</span></a>
   <a onclick="toggleMenu();saveActionPlanData('save_more');window.location.href='actionplan.html';" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📋 <span>Things Worth Exploring</span></a>
   <a onclick="toggleMenu();saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🤔 <span>Hear Me Out</span></a>
@@ -217,8 +207,14 @@
   <a href="feedback.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">💬 <span>Share Feedback</span></a>
   <a href="compound.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🌱 <span>Compounding</span></a>
   <a href="withdrawal.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🏖️ <span>Withdrawal Mode</span></a>
-  <a style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.4);font-size:14px;font-weight:500;cursor:default;"><span>🎓 Learn Lab</span><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;background:rgba(255,255,255,0.1);padding:3px 8px;border-radius:20px;">Coming soon</span></a>
-  <a style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.4);font-size:14px;font-weight:500;cursor:default;"><span>📝 Blog</span><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;background:rgba(255,255,255,0.1);padding:3px 8px;border-radius:20px;">Coming soon</span></a>
+  <a style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.4);font-size:14px;font-weight:500;cursor:default;">
+    <span>🎓 Learn Lab</span>
+    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;background:rgba(255,255,255,0.1);padding:3px 8px;border-radius:20px;">Coming soon</span>
+  </a>
+  <a style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.4);font-size:14px;font-weight:500;cursor:default;">
+    <span>📝 Blog</span>
+    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;background:rgba(255,255,255,0.1);padding:3px 8px;border-radius:20px;">Coming soon</span>
+  </a>
   <div style="flex:1"></div>
   <a onclick="toggleMenu();signOut();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">🔓 <span>Sign Out</span></a>
 </div>
@@ -244,11 +240,34 @@
       <h1 class="card-title">Where are you on your journey?</h1>
       <p class="card-sub">FirePath Pro will tailor everything — your language, your AI insights, your path.</p>
       <div class="persona-list">
-        <div class="persona-card" data-persona="beginner" onclick="selectPersona(this)"><span class="persona-icon">🌱</span><div class="persona-info"><div class="persona-name">Just getting started</div><div class="persona-desc">I've heard about financial freedom but don't know where to begin</div></div><div class="persona-check"></div></div>
-        <div class="persona-card" data-persona="building" onclick="selectPersona(this)"><span class="persona-icon">📈</span><div class="persona-info"><div class="persona-name">Building towards it</div><div class="persona-desc">I know the basics and I'm working on my plan</div></div><div class="persona-check"></div></div>
-        <div class="persona-card" data-persona="fire" onclick="selectPersona(this)"><span class="persona-icon">🔥</span><div class="persona-info"><div class="persona-name">FIRE community</div><div class="persona-desc">I know my SWR, my FI number, and I'm deep in the journey</div></div><div class="persona-check"></div></div>
+        <div class="persona-card" data-persona="beginner" onclick="selectPersona(this)">
+          <span class="persona-icon">🌱</span>
+          <div class="persona-info">
+            <div class="persona-name">Just getting started</div>
+            <div class="persona-desc">I've heard about financial freedom but don't know where to begin</div>
+          </div>
+          <div class="persona-check"></div>
+        </div>
+        <div class="persona-card" data-persona="building" onclick="selectPersona(this)">
+          <span class="persona-icon">📈</span>
+          <div class="persona-info">
+            <div class="persona-name">Building towards it</div>
+            <div class="persona-desc">I know the basics and I'm working on my plan</div>
+          </div>
+          <div class="persona-check"></div>
+        </div>
+        <div class="persona-card" data-persona="fire" onclick="selectPersona(this)">
+          <span class="persona-icon">🔥</span>
+          <div class="persona-info">
+            <div class="persona-name">FIRE community</div>
+            <div class="persona-desc">I know my SWR, my FI number, and I'm deep in the journey</div>
+          </div>
+          <div class="persona-check"></div>
+        </div>
       </div>
-      <div style="margin-top:20px"><button class="cta-btn" id="continueBtn" disabled onclick="showScreen(2)">Continue →</button></div>
+      <div style="margin-top:20px">
+        <button class="cta-btn" id="continueBtn" disabled onclick="showScreen(2)">Continue →</button>
+      </div>
     </div>
   </div>
 
@@ -303,50 +322,33 @@
           <label class="input-label" for="age">Your age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
           <div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="age" placeholder="0" min="16" max="80" style="padding-left:44px" oninput="updateSuperNote(); debounceSaveContext()"/></div>
         </div>
-
-        <!-- ── NEW FIELDS ── -->
-        <div class="section-divider"><span>Debt</span></div>
-        <div class="input-group">
-          <label class="input-label" for="debtTotal">Total debt <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
-          <div class="input-hint">Credit cards, car loans, personal loans — not your mortgage</div>
-          <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="debtTotal" placeholder="0" min="0"/></div>
-        </div>
-        <div class="input-group">
-          <label class="input-label" for="mortgageRemaining">Mortgage remaining <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
-          <div class="input-hint">Only if you own — helps us give you a more complete picture</div>
-          <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="mortgageRemaining" placeholder="0" min="0"/></div>
-        </div>
-
-        <div class="section-divider"><span>Your situation</span></div>
-        <div class="input-group">
-          <label class="input-label">Do you rent or own?</label>
-          <div class="housing-group">
-            <button class="housing-btn active" data-housing="renting" onclick="setHousing(this)">🏠 Renting</button>
-            <button class="housing-btn" data-housing="owning" onclick="setHousing(this)">🔑 Own my home</button>
-          </div>
-        </div>
-        <div class="counter-row">
-          <div class="counter-label">Dependants (kids, caring responsibilities)</div>
-          <div class="counter-controls">
-            <button class="counter-btn" onclick="adjustDependants(-1)">−</button>
-            <span class="counter-val" id="dependantsVal">0</span>
-            <button class="counter-btn" onclick="adjustDependants(1)">+</button>
-          </div>
-        </div>
-        <!-- ── END NEW FIELDS ── -->
-
         <div class="input-group">
           <div style="margin-bottom:20px;">
             <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;">
-              <div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div></div>
+              <div>
+                <div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div>
+                <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div>
+              </div>
               <div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);">+</div>
             </div>
             <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
               <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
-              <div class="input-group"><label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0"/></div></div>
-              <div class="input-group"><label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0"/></div></div>
-              <div class="input-group"><label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/></div></div>
-              <div class="input-group" style="margin-bottom:0"><label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div></div>
+              <div class="input-group">
+                <label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label>
+                <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0"/></div>
+              </div>
+              <div class="input-group">
+                <label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label>
+                <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0"/></div>
+              </div>
+              <div class="input-group">
+                <label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
+                <div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/></div>
+              </div>
+              <div class="input-group" style="margin-bottom:0">
+                <label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label>
+                <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div>
+              </div>
             </div>
           </div>
           <label class="context-label">Tell us honestly about your situation — we're here to help 🎤</label>
@@ -372,7 +374,7 @@
     </div>
   </div>
 
-  <!-- SCREEN 3 — Results (unchanged) -->
+  <!-- SCREEN 3 — Results -->
   <div class="screen" id="screen3">
     <button class="back-btn" onclick="showScreen(2)">← Recalculate</button>
     <div class="tab-nav">
@@ -386,61 +388,105 @@
         <p class="result-sub" id="resultSub"></p>
         <div class="result-stats">
           <div class="stat-box"><span class="stat-value" id="savingsRateOut">—</span><span class="stat-name">Savings rate</span></div>
-          <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)">ℹ️<span class="tooltip">Your freedom number is 25× your annual spending. It's based on the "4% rule" — research showing you can withdraw 4% of your portfolio each year and it should last 30+ years.</span></span></span></div>
+          <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)">ℹ️<span class="tooltip">Your freedom number is 25× your annual spending. It's based on the "4% rule" — research showing you can withdraw 4% of your portfolio each year and it should last 30+ years. So if you spend $40K/year, you need $1M to be free.</span></span></span></div>
           <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / month</span></div>
         </div>
         <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;">🔊 Read my results aloud</button>
       </div>
+
       <div class="glass-card" id="whatThisMeansCard" style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">💡 What this means for you</div>
         <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
       </div>
-      <div class="super-result-card" id="superResultCard"><div class="super-result-label">🏦 Your super picture</div><div class="super-result-text" id="superResultText"></div></div>
+
+      <div class="super-result-card" id="superResultCard">
+        <div class="super-result-label">🏦 Your super picture</div>
+        <div class="super-result-text" id="superResultText"></div>
+      </div>
+
       <div class="ai-insight-card">
         <div class="ai-insight-label">🧠 AI Insight — just for you</div>
         <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
       </div>
+
       <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">
         <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:16px;">Your next 3 steps 🔥</div>
         <div style="display:flex;flex-direction:column;gap:12px;">
-          <div style="display:flex;align-items:center;gap:14px;padding:12px;background:#F0FFF4;border-radius:12px;border:1px solid #A5D6A7;"><div style="font-size:20px">✅</div><div><div style="font-size:14px;font-weight:500;color:#2E7D32;">Know your number</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">You've got your freedom number. That's the foundation.</div></div></div>
-          <div onclick="saveHMOData(); window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px">→</div><div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if" scenario</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if you sold the house? Got a lump sum? See how it changes everything.</div></div></div>
-          <div onclick="saveActionPlanData('save_more'); window.location.href='actionplan.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px">→</div><div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Things worth exploring</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">Questions and ideas worth looking into based on your numbers.</div></div></div>
+          <div style="display:flex;align-items:center;gap:14px;padding:12px;background:#F0FFF4;border-radius:12px;border:1px solid #A5D6A7;">
+            <div style="font-size:20px">✅</div>
+            <div><div style="font-size:14px;font-weight:500;color:#2E7D32;">Know your number</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">You've got your freedom number. That's the foundation.</div></div>
+          </div>
+          <div onclick="saveHMOData(); window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
+            <div style="font-size:20px">→</div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if" scenario</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if you sold the house? Got a lump sum? See how it changes everything.</div></div>
+          </div>
+          <div onclick="saveActionPlanData('save_more'); window.location.href='actionplan.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
+            <div style="font-size:20px">→</div>
+            <div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Things worth exploring</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">Questions and ideas worth looking into based on your numbers.</div></div>
+          </div>
         </div>
       </div>
+
       <div class="compare-card">
         <p class="compare-title">💡 What if your savings worked harder?</p>
-        <div style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--warm-brown);line-height:1.6;font-weight:300;">💬 <strong>Why does this matter?</strong> A bank typically pays ~5% interest but inflation runs at ~4.25% — leaving a <strong>real return of just 0.75%</strong>. Meanwhile, diversified investments have historically returned ~7% after inflation.</div>
-        <div class="compare-row"><span class="compare-label">Saving in a bank (0.75% after inflation)<span class="info-icon" onclick="toggleTooltip(this)">ℹ️<span class="tooltip">Banks typically offer around 5% interest, but inflation runs at roughly 4.25%. That leaves a real return of only 0.75%.</span></span></span><span class="compare-value" id="bankYears">—</span></div>
+        <div style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--warm-brown);line-height:1.6;font-weight:300;">
+          💬 <strong>Why does this matter?</strong> A bank typically pays ~5% interest but inflation runs at ~4.25% — leaving a <strong>real return of just 0.75%</strong>. Meanwhile, diversified investments have historically returned ~7% after inflation.
+        </div>
         <div class="compare-row">
-          <span class="compare-label"><select id="rateSelector" onchange="updateRateRow()" style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--warm-brown);border:none;background:transparent;cursor:pointer;outline:none;padding:0;"><option value="0.07">Investing at 7% after inflation</option><option value="0.05">Investing at 5% after inflation</option><option value="0.10">Investing at 10% after inflation</option></select></span>
+          <span class="compare-label">Saving in a bank (0.75% after inflation)<span class="info-icon" onclick="toggleTooltip(this)">ℹ️<span class="tooltip">Banks typically offer around 5% interest, but inflation runs at roughly 4.25%. That leaves a real return of only 0.75%.</span></span></span>
+          <span class="compare-value" id="bankYears">—</span>
+        </div>
+        <div class="compare-row">
+          <span class="compare-label">
+            <select id="rateSelector" onchange="updateRateRow()" style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--warm-brown);border:none;background:transparent;cursor:pointer;outline:none;padding:0;">
+              <option value="0.07">Investing at 7% after inflation</option>
+              <option value="0.05">Investing at 5% after inflation</option>
+              <option value="0.10">Investing at 10% after inflation</option>
+            </select>
+          </span>
           <span class="compare-value highlight" id="investYears">—</span>
         </div>
-        <div class="compare-row"><span class="compare-label">Time you could save</span><span class="compare-value highlight" id="timeSaved">—</span></div>
+        <div class="compare-row">
+          <span class="compare-label">Time you could save</span>
+          <span class="compare-value highlight" id="timeSaved">—</span>
+        </div>
       </div>
+
       <div onclick="saveHMOData(); window.location.href='hearmeout.html';" style="margin-bottom:16px;background:white;border:2px solid var(--warm-brown);border-radius:20px;padding:24px;cursor:pointer;">
         <div style="font-size:22px;margin-bottom:10px">🤔</div>
         <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3">Okay, hear me out for a sec.</div>
         <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px">What if you made one big move? Sold the house. Got a redundancy payout. Invested a lump sum. Run the numbers — no judgement, no advice. Just the maths.</div>
         <div style="display:inline-flex;align-items:center;gap:8px;background:var(--warm-brown);color:white;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:500;">Show me the numbers →</div>
       </div>
+
       <div id="upgradeNudge" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;color:white;">
         <div style="font-size:20px;margin-bottom:8px;">🔥</div>
         <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:6px;">You're on the free plan</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;margin-bottom:16px;line-height:1.6;">Unlock AI insights, Hear Me Out scenarios, action plan, compounding calculator and more.</div>
         <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:14px;font-weight:500;display:inline-block;">Upgrade to Pro — $6/month</div>
       </div>
+
       <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
     </div>
+
     <div class="tab-content" id="tab-accountability">
-      <div class="milestone" id="milestone"><span class="milestone-emoji" id="milestoneEmoji">🎉</span><div class="milestone-text" id="milestoneText"></div></div>
+      <div class="milestone" id="milestone">
+        <span class="milestone-emoji" id="milestoneEmoji">🎉</span>
+        <div class="milestone-text" id="milestoneText"></div>
+      </div>
       <div class="accountability-card">
-        <div class="acc-header"><div class="acc-title">Your Path</div><div class="status-dot" id="statusDot"><div class="dot green"></div><span id="statusText">On track</span></div></div>
+        <div class="acc-header">
+          <div class="acc-title">Your Path</div>
+          <div class="status-dot" id="statusDot"><div class="dot green"></div><span id="statusText">On track</span></div>
+        </div>
         <div class="progress-path">
           <p class="path-label">Progress to freedom</p>
           <div class="path-track"><div class="path-fill" id="pathFill" style="width:0%"></div></div>
           <div class="path-markers"><span>Start</span><span id="progressPct">0%</span><span>Freedom 🔥</span></div>
-          <div style="margin-bottom:20px;"><p class="path-label">Your milestones</p><div id="milestonesRoadmap" style="display:flex;flex-direction:column;gap:8px;"></div></div>
+          <div style="margin-bottom:20px;">
+            <p class="path-label">Your milestones</p>
+            <div id="milestonesRoadmap" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:20px">
           <div class="stat-box" style="background:var(--warm-cream)"><span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accFreedomDate">—</span><span class="stat-name" style="opacity:0.7">Freedom date</span></div>
@@ -458,16 +504,27 @@
           <button class="cta-btn" onclick="doCheckin()">Update my path 🔥</button>
         </div>
       </div>
-      <div class="accountability-card" id="historyCard" style="display:none"><div class="history-title">Check-in history</div><div id="historyList"></div></div>
+      <div class="accountability-card" id="historyCard" style="display:none">
+        <div class="history-title">Check-in history</div>
+        <div id="historyList"></div>
+      </div>
       <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.</p>
     </div>
   </div>
 </div>
 
 <script>
-  function setStore(key, value) { try { localStorage.setItem(key, value); } catch(e) { sessionStorage.setItem(key, value); } }
-  function getStore(key) { try { const v = localStorage.getItem(key); if (v) return v; } catch(e) {} return sessionStorage.getItem(key); }
-  function removeStore(key) { try { localStorage.removeItem(key); } catch(e) {} try { sessionStorage.removeItem(key); } catch(e) {} }
+  function setStore(key, value) {
+    try { localStorage.setItem(key, value); } catch(e) { sessionStorage.setItem(key, value); }
+  }
+  function getStore(key) {
+    try { const v = localStorage.getItem(key); if (v) return v; } catch(e) {}
+    return sessionStorage.getItem(key);
+  }
+  function removeStore(key) {
+    try { localStorage.removeItem(key); } catch(e) {}
+    try { sessionStorage.removeItem(key); } catch(e) {}
+  }
 
   const _t = getStore('fp_access_token');
   const _g = getStore('fp_guest');
@@ -481,8 +538,6 @@
   let recognition = null;
   let retirementSpendMultiplier = 1.0;
   let contextRecognition = null;
-  let housingStatus = 'renting';
-  let dependants = 0;
   const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
   let transcriptText = '';
   let calcData = {};
@@ -497,17 +552,6 @@
   const fpUserId  = (rawUserId && rawUserId !== 'undefined' && rawUserId !== 'null') ? rawUserId : null;
   const fpGuest   = localStorage.getItem('fp_guest');
   const savedPersona = localStorage.getItem('fp_persona');
-
-  function setHousing(btn) {
-    document.querySelectorAll('.housing-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    housingStatus = btn.dataset.housing;
-  }
-
-  function adjustDependants(delta) {
-    dependants = Math.max(0, Math.min(10, dependants + delta));
-    document.getElementById('dependantsVal').textContent = dependants;
-  }
 
   async function loadSavedInputs() {
     if (!fpToken || !fpUserId) return;
@@ -558,6 +602,7 @@
     } catch(e) { console.log('Save context failed silently', e); }
   }
 
+  // ── Stripe ─────────────────────────────
   async function upgradeToPro() {
     const userId = getStore('fp_user_id');
     const email  = getStore('fp_email');
@@ -607,9 +652,11 @@
   });
 
   function saveHMOData() { localStorage.setItem('hmo_fireNum', calcData.fireNum || 0); localStorage.setItem('hmo_monthlySav', calcData.mSav || 0); localStorage.setItem('hmo_propVal', calcData.propVal || 0); }
+
   function saveActionPlanData(scenario) {
     localStorage.setItem('ap_fireNum', calcData.fireNum || 0); localStorage.setItem('ap_monthlySav', calcData.mSav || 0); localStorage.setItem('ap_income', calcData.mIncome || 0); localStorage.setItem('ap_savings', calcData.savings || 0); localStorage.setItem('ap_super', calcData.superBal || 0); localStorage.setItem('ap_age', calcData.age || 0); localStorage.setItem('ap_sRate', calcData.sRate || 0); localStorage.setItem('ap_context', calcData.context || ''); localStorage.setItem('ap_persona', persona || 'building'); localStorage.setItem('ap_cycle', selectedCycle || 'fortnightly'); localStorage.setItem('ap_scenario', scenario || 'save_more'); localStorage.setItem('ap_freedomYrs', yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07) || 0); localStorage.removeItem('ap_saved_plan');
   }
+
   function signOut() { ['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k => removeStore(k)); window.location.href = 'auth.html'; }
   function setRetirementSpend(btn) { document.querySelectorAll('[data-spend]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); retirementSpendMultiplier = parseFloat(btn.dataset.spend); }
   function toggleMenu() { const menu = document.getElementById('slideMenu'); const overlay = document.getElementById('menuOverlay'); const isOpen = menu.style.display === 'flex'; menu.style.display = isOpen ? 'none' : 'flex'; overlay.style.display = isOpen ? 'none' : 'block'; }
@@ -703,7 +750,6 @@
   async function analyse() {
     let userInput = '';
     let manualIncome = 0, manualSavedAmount = 0, manualRate = 20, manualSavings = 0, manualSuper = 0, manualAge = 0, manualContext = '';
-    let manualDebt = 0, manualMortgage = 0;
 
     if (inputMode === 'voice') {
       if (!transcriptText) { alert('Please speak your situation first, or switch to Type mode.'); return; }
@@ -716,15 +762,13 @@
       manualSuper = parseFloat(document.getElementById('superBalance').value) || 0;
       manualAge = parseInt(document.getElementById('age').value) || 0;
       manualContext = document.getElementById('context').value;
-      manualDebt = parseFloat(document.getElementById('debtTotal').value) || 0;
-      manualMortgage = parseFloat(document.getElementById('mortgageRemaining').value) || 0;
       const partnerIncome = parseFloat(document.getElementById('partnerIncome').value) || 0;
       const partnerSavings = parseFloat(document.getElementById('partnerSavings').value) || 0;
       const partnerSuper = parseFloat(document.getElementById('partnerSuper').value) || 0;
       if (partnerIncome > 0) { manualIncome += partnerIncome; manualSavedAmount += partnerSavings; manualSuper += partnerSuper; }
       if (manualIncome <= 0) { document.getElementById('errorMsg').style.display = 'block'; return; }
       document.getElementById('errorMsg').style.display = 'none';
-      userInput = `Pay cycle: ${selectedCycle}. Income: $${manualIncome} per ${selectedCycle}. Savings rate: ${manualRate}%. Amount saved per ${selectedCycle}: $${Math.round(manualSavedAmount)}. Current savings/investments (excluding super): $${manualSavings}. Super balance: $${manualSuper}. Age: ${manualAge || 'not provided'}. Housing: ${housingStatus}. Dependants: ${dependants}. Total debt (excl mortgage): $${manualDebt}. Mortgage remaining: $${manualMortgage}.`;
+      userInput = `Pay cycle: ${selectedCycle}. Income: $${manualIncome} per ${selectedCycle}. Savings rate: ${manualRate}%. Amount saved per ${selectedCycle}: $${Math.round(manualSavedAmount)}. Current savings/investments (excluding super): $${manualSavings}. Super balance: $${manualSuper}. Age: ${manualAge || 'not provided'}.`;
       if (manualContext) userInput += ` Personal situation: ${manualContext}`;
     }
 
@@ -748,12 +792,10 @@
       const superBal = extracted.super_balance || (inputMode === 'type' ? manualSuper : 0);
       const age      = extracted.age           || (inputMode === 'type' ? manualAge : null);
       const context  = extracted.context       || (inputMode === 'type' ? manualContext : '');
-      const debt     = inputMode === 'type' ? manualDebt : 0;
-      const mortgage = inputMode === 'type' ? manualMortgage : 0;
       const fireNum  = (mSpend * 12 * retirementSpendMultiplier) * 25;
       const sRate    = mIncome > 0 ? Math.round((mSav/mIncome)*100) : 0;
 
-      calcData = { mIncome, mSpend, mSav, savings, superBal, fireNum, sRate, age, context, propVal: 0, debt, mortgage, housingStatus, dependants };
+      calcData = { mIncome, mSpend, mSav, savings, superBal, fireNum, sRate, age, context, propVal: 0 };
 
       const freedomYears = yearsToGoal(fireNum, savings, mSav, 0.07);
       const freedomYear  = freedomYears !== null ? currentYear + Math.round(freedomYears) : null;
@@ -786,21 +828,18 @@
         }
       }
 
-      const isRenting = housingStatus === 'renting' || /rent|deposit|house|buy|saving to buy|looking to buy|first home/i.test(context);
-      if (isRenting && savings < 200000) {
+      const isRenting = /rent|deposit|house|buy|saving to buy|looking to buy|first home/i.test(context);
+      if (isRenting) {
         const inflationRate = 0.04;
         const yearsToSave = 3;
         const inflatedTarget = Math.round(100000 * Math.pow(1 + inflationRate, yearsToSave) / 10000) * 10000;
         const dBank = yearsToGoal(inflatedTarget, savings, mSav, 0.0075);
         const d5    = yearsToGoal(inflatedTarget, savings, mSav, 0.05);
+        const dDiff = dBank !== null && d5 !== null ? dBank - d5 : null;
         if (d5 !== null) {
           const depositAtGoal = Math.round(100000 * Math.pow(1.04, d5) / 1000) * 1000;
           scenarios.push({ emoji: '🏡', title: 'House deposit scenario', description: `At your savings rate you'd reach a deposit around <strong>${d5 !== null ? currentYear + Math.round(d5) : '50+ yrs'}</strong> — but by then today's $100K deposit will cost roughly <strong>$${depositAtGoal ? Math.round(depositAtGoal/1000) + 'K' : '?'}</strong>. Educational only.` });
         }
-      }
-
-      if (debt > 0) {
-        scenarios.push({ emoji: '💳', title: `Clear $${Math.round(debt/1000)}K debt first`, description: `Paying off your debt frees up money currently going to interest. Once cleared, redirecting that repayment into savings could meaningfully accelerate your timeline.` });
       }
 
       const scenarioHTML = scenarios.length > 0 ? scenarios.map(s => `<div class="scenario-block"><div class="scenario-title">${s.emoji} ${s.title}</div><div class="scenario-body">${s.description}</div></div>`).join('') : '';
@@ -808,14 +847,10 @@
       document.getElementById('loadingText').textContent = 'Generating your personalised insight...';
 
       let ageTone = ageGroup === 'senior' ? 'This person is older (55+). Focus on making existing wealth work smarter.' : ageGroup === 'mid' ? 'This person is in their 40s-50s. Balance savings encouragement with realistic life context.' : 'This person is younger. Time and compounding are their superpower.';
-      const debtContext = debt > 0 ? ` They have $${debt} in non-mortgage debt.` : '';
-      const mortgageContext = mortgage > 0 ? ` Mortgage remaining: $${mortgage}.` : '';
-      const dependantContext = dependants > 0 ? ` They have ${dependants} dependant(s).` : '';
-      const housingContext = `They are ${housingStatus === 'renting' ? 'renting' : 'a homeowner'}.`;
 
       const insightRes = await fetch(WORKER_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 400, system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor and must never act like one. User persona: ${persona}. ${ageTone}. ${housingContext}${debtContext}${mortgageContext}${dependantContext} Tone: ${persona === 'beginner' ? 'warm, simple, human' : persona === 'building' ? 'clear, motivating, practical' : 'direct, analytical, peer-level'}. Your job is to: 1. If the person mentions caring responsibilities, family constraints or life pressures - acknowledge these FIRST with genuine empathy in one sentence. 2. Identify their single biggest financial lever in plain numbers. 3. Frame any opportunity as a question worth exploring, not an action to take. 4. Never name specific investment products, platforms, fund types, or asset classes. 5. Never use language like "you should", "I recommend", "redirect your money into". 6. Keep it to 3 short paragraphs maximum. 7. End every response with exactly: "This is educational, not financial advice." Format bold text with <strong> tags.`, messages: [{ role: 'user', content: `Monthly income: $${Math.round(mIncome)}, Monthly spending: $${Math.round(mSpend)}, Monthly saving: $${Math.round(mSav)}, Current savings: $${savings}, Super: $${superBal}, Freedom number: $${Math.round(fireNum)}, Savings rate: ${sRate}%, Freedom date: ${freedomYear || 'over 50 years away'}. Age: ${age || 'unknown'}. Debt: $${debt}. Mortgage: $${mortgage}. Dependants: ${dependants}. Housing: ${housingStatus}. Personal situation: ${context}` }] })
+        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 400, system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor and must never act like one. User persona: ${persona}. ${ageTone}. Tone: ${persona === 'beginner' ? 'warm, simple, human' : persona === 'building' ? 'clear, motivating, practical' : 'direct, analytical, peer-level'}. Your job is to: 1. If the person mentions caring responsibilities, family constraints or life pressures - acknowledge these FIRST with genuine empathy in one sentence. 2. Identify their single biggest financial lever in plain numbers. 3. Frame any opportunity as a question worth exploring, not an action to take. 4. Never name specific investment products, platforms, fund types, or asset classes. 5. Never use language like "you should", "I recommend", "redirect your money into". 6. Keep it to 3 short paragraphs maximum. 7. End every response with exactly: "This is educational, not financial advice." Format bold text with <strong> tags.`, messages: [{ role: 'user', content: `Monthly income: $${Math.round(mIncome)}, Monthly spending: $${Math.round(mSpend)}, Monthly saving: $${Math.round(mSav)}, Current savings: $${savings}, Super: $${superBal}, Freedom number: $${Math.round(fireNum)}, Savings rate: ${sRate}%, Freedom date: ${freedomYear || 'over 50 years away'}. Age: ${age || 'unknown'}. Personal situation: ${context}` }] })
       });
       const insightData = await insightRes.json();
       const insight = insightData.content[0].text;
@@ -827,11 +862,7 @@
       document.getElementById('yearsOut').textContent = fmt(yearsToGoal(fireNum, savings, mSav, 0.07));
       const currentWeeklySaving = (mSav * 12 / 52).toFixed(0);
       const onTrack = mSav > 0 && freedomYears !== null;
-      let wtmText = onTrack ? `You need <strong>$${Math.round(fireNum).toLocaleString()}</strong> to be free. You currently have <strong>$${Math.round(savings).toLocaleString()}</strong> — a gap of <strong>$${Math.round(fireNum - savings).toLocaleString()}</strong>. At your current savings rate of <strong>$${currentWeeklySaving}/week</strong> you're on track to get there in <strong>${fmt(yearsToGoal(fireNum, savings, mSav, 0.07))}</strong>.` : `Enter your savings to see what this means for you.`;
-      if (debt > 0) wtmText += ` You also have <strong>${fmtM(debt)}</strong> in debt — clearing this could free up more to invest.`;
-      if (dependants > 0) wtmText += ` With ${dependants} dependant${dependants > 1 ? 's' : ''}, your costs may shift as they grow — worth factoring into your plan.`;
-      document.getElementById('whatThisMeansText').innerHTML = wtmText;
-
+      document.getElementById('whatThisMeansText').innerHTML = onTrack ? `You need <strong>$${Math.round(fireNum).toLocaleString()}</strong> to be free. You currently have <strong>$${Math.round(savings).toLocaleString()}</strong> — a gap of <strong>$${Math.round(fireNum - savings).toLocaleString()}</strong>. At your current savings rate of <strong>$${currentWeeklySaving}/week</strong> you're on track to get there in <strong>${fmt(yearsToGoal(fireNum, savings, mSav, 0.07))}</strong>. To close the gap faster, focus on increasing your savings rate — even an extra <strong>$50/week</strong> makes a significant difference over time.` : `Enter your savings to see what this means for you.`;
       document.getElementById('savingsRateOut').textContent = sRate + '%';
       document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
       document.getElementById('monthlySavingOut').textContent = fmtM(cycleSaving);
@@ -905,7 +936,7 @@
       document.getElementById('aiLoading').classList.remove('visible');
       document.getElementById('analyseBtn').style.display = 'block';
 
-      await dbInsert('calculations', { pay_cycle: selectedCycle, income_monthly: Math.round(mIncome), savings_rate: sRate, current_savings: savings, super_balance: superBal || 0, freedom_number: Math.round(fireNum), freedom_years: freedomYears ? Math.round(freedomYears * 10) / 10 : null, renting_mentioned: isRenting, caring_mentioned: /care|caring|carer|elderly|father|mother|parent/i.test(context) || dependants > 0, age_group: !age ? 'unknown' : age < 40 ? 'young' : age < 55 ? 'mid' : 'senior', age: age || null, context: context || '' });
+      await dbInsert('calculations', { pay_cycle: selectedCycle, income_monthly: Math.round(mIncome), savings_rate: sRate, current_savings: savings, super_balance: superBal || 0, freedom_number: Math.round(fireNum), freedom_years: freedomYears ? Math.round(freedomYears * 10) / 10 : null, renting_mentioned: isRenting, caring_mentioned: /care|caring|carer|elderly|father|mother|parent/i.test(context), age_group: !age ? 'unknown' : age < 40 ? 'young' : age < 55 ? 'mid' : 'senior', age: age || null, context: context || '' });
 
       await loadCheckinHistory();
       renderMilestones(fireNum, savings, mSav);
