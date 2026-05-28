@@ -541,12 +541,8 @@
       <div class="rate-body" id="body-10"></div>
     </div>
 
-    <div onclick="window.location.href='firepath_pro.html'" style="margin-bottom:16px;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;cursor:pointer;text-align:center;color:white;">
-      <div style="font-size:22px;margin-bottom:10px">🔥</div>
-      <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;margin-bottom:8px;">Want to go deeper?</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;line-height:1.6;margin-bottom:16px;">FirePath Pro adds AI-powered insights personalised to your situation, a step-by-step action plan, partner mode, "Hear Me Out" scenarios and progress tracking.</div>
-      <div style="display:inline-flex;align-items:center;gap:8px;background:var(--fire-orange);color:white;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:500;">Try FirePath Pro →</div>
-    </div>
+    <!-- Smart Pro upgrade banner — injected by JS -->
+    <div id="proUpgradeBanner"></div>
 
     <p class="disclaimer">
       FirePath is an educational tool. We don't provide financial advice.<br/>
@@ -731,7 +727,7 @@
     let debtNote = debt > 0 ? `<br/><br/>💳 You have <strong>${fmtM(debt)}</strong> in debt. Clearing this frees up money that's currently going to interest — every dollar of debt paid down is a dollar that can start building your future instead.` : '';
     let superNote = superBal > 0 ? `<br/><br/>🦘 Your super of <strong>${fmtM(superBal)}</strong> is part of your bigger picture — it's locked until preservation age, but it's quietly growing in the background.` : '';
     let dependantNote = dependants > 0 ? `<br/><br/>👨‍👧 With ${dependants} dependant${dependants > 1 ? 's' : ''}, your costs may shift as they grow. The "Less" retirement spend option above can reflect this.` : '';
-    let contextNote = context ? `<br/><br/><em style="color:var(--soft-grey);font-size:13px;">📝 You mentioned: "${context}"</em>` : '';
+    // context note removed from free version
 
     const weeklyGapAmt = fmtM(mSav * 12 / 52);
     let gapText = '';
@@ -786,6 +782,9 @@
     // Super timeline card
     buildSuperTimelineCard(age, superBal, mI, savings, mSav, fireNum);
 
+    // Pro upgrade banner
+    buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
+
     // Smart scenario cards
     buildDebtCard(debt, savings, mSav, mI, fireNum, y07);
     buildBoostCard(savings, mSav, mI, fireNum, y07);
@@ -837,6 +836,59 @@
     document.getElementById('body-5').innerHTML    = c.five[key];
     document.getElementById('body-7').innerHTML    = c.seven[key];
     document.getElementById('body-10').innerHTML   = c.ten[key];
+  }
+
+  function buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07) {
+    const el = document.getElementById('proUpgradeBanner');
+    if (!el) return;
+
+    const currentYear = new Date().getFullYear();
+    const freedomYear = y07 !== null ? currentYear + Math.round(y07) : null;
+
+    // Build personalised hooks based on their data
+    const hooks = [];
+
+    if (debt > 0) {
+      hooks.push(`💳 You have ${fmtM(debt)} in debt — Pro's AI can build you a personalised debt-first or invest-alongside strategy based on your actual interest rates and timeline.`);
+    }
+    if (superBal > 0 && age > 0 && age < 60) {
+      const yearsToSuper = 60 - age;
+      hooks.push(`🦘 Your super unlocks in ${yearsToSuper} years — Pro models your exact two-phase journey and shows what happens when that kicks in.`);
+    }
+    if (sRate < 15) {
+      hooks.push(`📈 Your savings rate is ${sRate}% — Pro's action plan finds specific ways to move that needle based on your income, spending and life situation.`);
+    }
+    if (context && context.length > 10) {
+      hooks.push(`🧠 You shared something about your situation — Pro's AI reads that and gives you a personalised insight, not a generic calculator result.`);
+    }
+    if (freedomYear && freedomYear > currentYear + 30) {
+      hooks.push(`⏩ Pro's "Hear Me Out" tool lets you model big moves — what if you sold an asset, got a pay rise, or redirected one expense? See exactly how much it changes your number.`);
+    }
+    if (hooks.length === 0) {
+      hooks.push(`🔥 Pro's AI reads your full situation and gives you a personalised insight — not a generic result.`);
+    }
+
+    // Pick the 2 most relevant hooks
+    const topHooks = hooks.slice(0, 2);
+
+    el.innerHTML = `<div style="margin-bottom:16px;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;color:white;">
+      <div style="font-size:22px;margin-bottom:12px;">🔥</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;line-height:1.3;">Your path doesn't end here.</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:20px;">FirePath Pro takes everything you've just entered and goes deeper — with AI that actually understands your situation.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">
+        ${topHooks.map(h => `<div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;font-weight:300;">${h}</div>`).join('')}
+      </div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:10px;">Pro also includes</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          ${['🧠 AI insight', '📋 Action plan', '🤔 What-if scenarios', '📈 Progress tracker', '👫 Partner mode', '🏖️ Withdrawal planner'].map(f => `<div style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:300;">${f}</div>`).join('')}
+        </div>
+      </div>
+      <div onclick="window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:14px 24px;cursor:pointer;font-size:14px;font-weight:500;text-align:center;">
+        Start FirePath Pro — $6/month →
+      </div>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.35);">Cancel anytime. No lock-in.</div>
+    </div>`;
   }
 
   function toggleRate(header) {
