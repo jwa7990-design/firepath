@@ -702,19 +702,26 @@
       ctxEl.style.display = 'none';
     }
 
-    // What this means — context aware
+    // What this means — always show something meaningful
     const gap = fireNum - savings;
-    let debtNote = debt > 0 ? ` You also have <strong>${fmtM(debt)}</strong> in debt — paying this off first could free up more to invest.` : '';
-    let superNote = superBal > 0 ? ` Your super of <strong>${fmtM(superBal)}</strong> adds to your long-term picture — it just isn't accessible until preservation age.` : '';
-    let dependantNote = dependants > 0 ? ` With ${dependants} dependant${dependants > 1 ? 's' : ''}, your spending needs may shift over time — the "Less" retirement spend option above reflects this.` : '';
+    let debtNote = debt > 0 ? `<br/><br/>💳 You have <strong>${fmtM(debt)}</strong> in debt. Clearing this frees up money that's currently going to interest — every dollar of debt paid down is a dollar that can start building your future instead.` : '';
+    let superNote = superBal > 0 ? `<br/><br/>🦘 Your super of <strong>${fmtM(superBal)}</strong> is part of your bigger picture — it's locked until preservation age, but it's quietly growing in the background.` : '';
+    let dependantNote = dependants > 0 ? `<br/><br/>👨‍👧 With ${dependants} dependant${dependants > 1 ? 's' : ''}, your costs may shift as they grow. The "Less" retirement spend option above can reflect this.` : '';
     let contextNote = context ? `<br/><br/><em style="color:var(--soft-grey);font-size:13px;">📝 You mentioned: "${context}"</em>` : '';
 
-    const weeklyGap = gap > 0 ? fmtM(mSav * 12 / 52) : null;
-    const gapText = y07 !== null && gap > 0
-      ? `You need <strong>${fmtM(fireNum)}</strong> to be free. You currently have <strong>${fmtM(savings)}</strong> — a gap of <strong>${fmtM(gap)}</strong>. At your current savings rate of <strong>${weeklyGap}/week</strong> you're on track to get there in <strong>${fmt(y07)}</strong>. If your savings were growing at 7% annually instead of sitting in a bank, you could get there <strong>${fmt(y0075 !== null ? y0075 - y07 : null)} sooner</strong>.${debtNote}${superNote}${dependantNote}${contextNote}`
-      : savings >= fireNum
-      ? `<strong>You've already hit your freedom number!</strong> Your savings of ${fmtM(savings)} cover your freedom target of ${fmtM(fireNum)}.`
-      : `Enter your savings above to see what this means for you.`;
+    const weeklyGapAmt = fmtM(mSav * 12 / 52);
+    let gapText = '';
+
+    if (savings >= fireNum) {
+      gapText = `<strong>You've already hit your freedom number!</strong> Your savings of ${fmtM(savings)} cover your freedom target of ${fmtM(fireNum)}. You're there.`;
+    } else if (y07 !== null) {
+      const timeSavedVsBank = (y0075 !== null && y07 !== null && y0075 - y07 > 0.1) ? ` If that money was growing at 7% instead of sitting in a bank, you could get there <strong>${fmt(y0075 - y07)} sooner</strong>.` : '';
+      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's what it costs to never have to work again.${savings > 0 ? ` You currently have <strong>${fmtM(savings)}</strong>, leaving a gap of <strong>${fmtM(gap)}</strong>.` : ''} At <strong>${weeklyGapAmt}/week</strong> you're on track to get there in <strong>${fmt(y07)}</strong>.${timeSavedVsBank}${debtNote}${superNote}${dependantNote}${contextNote}`;
+    } else {
+      // Low/no savings rate — still give them something
+      const toReach10yrs = yearsToGoal(fireNum, savings, fireNum / (10 * 12), 0.07);
+      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's 25× your annual spending, the amount that means you never have to work again.<br/><br/>Right now your savings rate is low, which means the timeline is long. But the number itself hasn't changed — and every extra dollar you save each week shortens that gap. Even going from <strong>${weeklyGapAmt}/week</strong> to a little more makes a real difference over time, because of compounding.${debtNote}${superNote}${dependantNote}${contextNote}`;
+    }
 
     document.getElementById('whatThisMeansText').innerHTML = gapText;
     document.getElementById('savingsRateOut').textContent   = sRate + '%';
