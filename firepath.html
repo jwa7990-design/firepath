@@ -496,7 +496,6 @@
     <!-- Smart scenario cards — injected by JS -->
     <div id="debtCard" style="display:none"></div>
     <div id="boostCard" style="display:none"></div>
-    <div id="superScenarioCard" style="display:none"></div>
 
     <div class="rate-card">
       <div class="rate-header" onclick="toggleRate(this)">
@@ -790,7 +789,6 @@
     // Smart scenario cards
     buildDebtCard(debt, savings, mSav, mI, fireNum, y07);
     buildBoostCard(savings, mSav, mI, fireNum, y07);
-    buildSuperScenarioCard(superBal, savings, mSav, fireNum);
 
     showScreen(3);
   }
@@ -906,7 +904,7 @@
         <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Years until super unlocks</span><span style="font-weight:500">${yearsToSuper} yrs (age 60)</span></div>
       </div>
       ${superPhaseText}
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at 7% growth with 11.5% employer contributions estimated from income. Educational only — not financial advice.</p>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at 8% annual growth — a conservative estimate based on long-run balanced fund returns. Employer contributions estimated at 11.5% of gross income. Educational only — not financial advice.</p>
     </div>`;
   }
 
@@ -979,29 +977,7 @@
     </div>`;
   }
 
-  function buildSuperScenarioCard(superBal, savings, mSav, fireNum) {
-    const el = document.getElementById('superScenarioCard');
-    if (!el) return;
-    if (superBal <= 0) { el.style.display = 'none'; return; }
 
-    const yWithSuper = yearsToGoalCapped(fireNum, savings + superBal, mSav, 0.07);
-    const yWithout   = yearsToGoalCapped(fireNum, savings, mSav, 0.07);
-    const diff = yWithout - yWithSuper;
-    const superAt7 = Math.round(superBal * Math.pow(1.07, 20));
-
-    el.style.display = 'block';
-    el.innerHTML = `<div style="background:white;border:2px solid #A5D6A7;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🦘 Your super is quietly growing</div>
-      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">
-        Your <strong style="color:var(--warm-brown)">${fmtM(superBal)}</strong> in super can't be touched yet — but it's compounding in the background. Here's the bigger picture:
-      </div>
-      <div style="display:flex;flex-direction:column;gap:0;">
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Super at 7% growth over 20 years</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(superAt7)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">If included in your freedom number</span><span style="font-weight:700;color:#2E7D32">${diff > 0.1 ? fmt(diff) + ' sooner' : 'significant boost'}</span></div>
-      </div>
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super is locked until preservation age (~60). This is for context only — educational, not financial advice.</p>
-    </div>`;
-  }
 </script>
 </body>
 </html>
