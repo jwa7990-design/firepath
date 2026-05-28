@@ -328,6 +328,17 @@
       </div>
 
       <!-- ── SAVINGS & INVESTMENTS ── -->
+      <div class="section-divider"><span>About you</span></div>
+
+      <div class="input-group">
+        <label class="input-label" for="age">Your age</label>
+        <span class="input-hint">Used to calculate super projections and your two-phase freedom timeline</span>
+        <div class="input-wrapper">
+          <span class="input-prefix" style="font-size:13px;left:10px">age</span>
+          <input type="number" id="age" placeholder="e.g. 28" min="16" max="80" style="padding-left:44px" oninput="updateSavingsHint()"/>
+        </div>
+      </div>
+
       <div class="section-divider"><span>Savings &amp; assets</span></div>
 
       <div class="input-group">
@@ -479,6 +490,9 @@
       <p class="house-note" id="depositInflationNote">Using 5% as a conservative growth assumption — suitable for shorter-term goals. Educational only, not financial advice.</p>
     </div>
 
+    <!-- Super timeline card -->
+    <div id="superTimelineCard" style="display:none"></div>
+
     <!-- Smart scenario cards — injected by JS -->
     <div id="debtCard" style="display:none"></div>
     <div id="boostCard" style="display:none"></div>
@@ -620,12 +634,12 @@
     if (current >= goal) return 0;
     const r = rate / 12;
     let bal = current, months = 0;
-    while (bal < goal && months < 600) { bal = bal * (1 + r) + mSaving; months++; }
-    return months < 600 ? months / 12 : null;
+    while (bal < goal && months < 1200) { bal = bal * (1 + r) + mSaving; months++; }
+    return months < 1200 ? months / 12 : null;
   }
 
   function fmt(y) {
-    if (y === null) return '50+ yrs';
+    if (y === null) return '100+ yrs';
     if (y === 0) return 'Already there!';
     const yr = Math.floor(y), mo = Math.round((y - yr) * 12);
     if (yr === 0) return mo + ' months';
@@ -662,11 +676,17 @@
     const debt     = parseFloat(document.getElementById('debtTotal').value) || 0;
     const mortgage = parseFloat(document.getElementById('mortgageRemaining').value) || 0;
     const context  = document.getElementById('contextNote').value.trim();
+    const age      = parseInt(document.getElementById('age').value) || 0;
 
     if (income <= 0) {
       document.getElementById('errorMsg').style.display = 'block'; return;
     }
+    if (age <= 0) {
+      document.getElementById('errorMsg').textContent = 'Please enter your age.';
+      document.getElementById('errorMsg').style.display = 'block'; return;
+    }
     document.getElementById('errorMsg').style.display = 'none';
+    document.getElementById('errorMsg').textContent = 'Please enter your income first.';
 
     const mI    = toMonthly(income);
     const mSav  = toMonthly(savingPerCycle);
@@ -764,6 +784,9 @@
       updateDepositCard();
     }
 
+    // Super timeline card
+    buildSuperTimelineCard(age, superBal, mI, savings, mSav, fireNum);
+
     // Smart scenario cards
     buildDebtCard(debt, savings, mSav, mI, fireNum, y07);
     buildBoostCard(savings, mSav, mI, fireNum, y07);
@@ -823,6 +846,68 @@
     const chevron = header.querySelector('.chevron');
     body.classList.toggle('open');
     chevron.classList.toggle('open');
+  }
+
+  function buildSuperTimelineCard(age, superBal, mI, savings, mSav, fireNum) {
+    const el = document.getElementById('superTimelineCard');
+    if (!el || age <= 0) { if (el) el.style.display = 'none'; return; }
+
+    const currentYear = new Date().getFullYear();
+    const yearsToSuper = Math.max(0, 60 - age);
+
+    // Estimate gross from take-home (assume ~72% net of gross for avg bracket)
+    const annualGross = mI * 12 / 0.72;
+    const monthlyEmployerSuper = (annualGross * 0.115) / 12;
+
+    // Project super at 60 with employer contributions + growth
+    const r = 0.07 / 12;
+    let superAt60 = superBal;
+    for (let m = 0; m < yearsToSuper * 12; m++) {
+      superAt60 = superAt60 * (1 + r) + monthlyEmployerSuper;
+    }
+    superAt60 = Math.round(superAt60);
+
+    // Phase 1: years to reach freedom with savings only (no super)
+    const phase1Years = yearsToGoalCapped(fireNum, savings, mSav, 0.07);
+    const phase1Year = currentYear + Math.round(phase1Years);
+
+    // Phase 2: if super unlocks at 60, how much sooner does that make it?
+    let superPhaseText = '';
+    if (age < 60) {
+      // Savings at age 60
+      let savingsAt60 = savings;
+      for (let m = 0; m < yearsToSuper * 12; m++) {
+        savingsAt60 = savingsAt60 * (1 + r) + mSav;
+      }
+      const combinedAt60 = savingsAt60 + superAt60;
+      const remainingAfter60 = yearsToGoal(fireNum, combinedAt60, mSav, 0.07);
+      const totalYears = yearsToSuper + (remainingAfter60 || 0);
+      const freedomYearWithSuper = currentYear + Math.round(totalYears);
+      const saving = phase1Years - totalYears;
+
+      if (remainingAfter60 === 0 || combinedAt60 >= fireNum) {
+        superPhaseText = `<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">🎉 <strong>Super unlocks at 60 and covers the rest.</strong> If your savings haven't hit your freedom number by then, your super balance of ~${fmtM(superAt60)} closes the gap. Freedom in ${currentYear + Math.round(totalYears)}.</div>`;
+      } else if (saving > 1) {
+        superPhaseText = `<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">🚀 <strong>Super unlocks at 60 and accelerates the final stretch.</strong> At 60 you'd have ~${fmtM(combinedAt60)} combined — moving your freedom date from ${phase1Year} to <strong>${freedomYearWithSuper}</strong> — roughly <strong>${fmt(saving)} sooner</strong>.</div>`;
+      }
+    } else {
+      superPhaseText = `<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">✅ <strong>Your super is accessible now.</strong> Including it moves your freedom date significantly.</div>`;
+    }
+
+    el.style.display = 'block';
+    el.innerHTML = `<div style="background:white;border:2px solid #A5D6A7;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🦘 Your super two-phase timeline</div>
+      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">
+        Your super compounds quietly in the background. At 60 it unlocks — here's how that changes everything:
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Projected super at age 60</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(superAt60)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Employer contributions/month</span><span style="font-weight:500">${fmtM(monthlyEmployerSuper)}/mo</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Years until super unlocks</span><span style="font-weight:500">${yearsToSuper} yrs (age 60)</span></div>
+      </div>
+      ${superPhaseText}
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at 7% growth with 11.5% employer contributions estimated from income. Educational only — not financial advice.</p>
+    </div>`;
   }
 
   function yearsToGoalCapped(goal, current, mSaving, rate) {
