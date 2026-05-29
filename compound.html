@@ -5,102 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>The Compounding Effect — FirePath</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --fire-orange: #F4622A;
-      --fire-amber:  #F9A825;
-      --warm-cream:  #FDF6EE;
-      --warm-brown:  #3D2B1F;
-      --soft-grey:   #9E8E85;
-      --border:      #EDE3DA;
-    }
-    body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); min-height: 100vh; }
-
-    .hero {
-      background: linear-gradient(135deg, #3D2B1F, #5C3D2E);
-      padding: 48px 24px 40px;
-      text-align: center;
-      color: white;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero::before { content: ''; position: absolute; top: -100px; left: 50%; transform: translateX(-50%); width: 500px; height: 500px; background: radial-gradient(circle, rgba(244,98,42,0.2) 0%, transparent 65%); pointer-events: none; }
-    .back-link { display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.5); font-size: 13px; text-decoration: none; margin-bottom: 28px; }
-    .back-link:hover { color: white; }
-    .hero-badge { display: inline-block; background: rgba(244,98,42,0.2); border: 1px solid rgba(244,98,42,0.4); color: var(--fire-amber); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 16px; border-radius: 20px; margin-bottom: 20px; }
-    .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 7vw, 48px); font-weight: 900; line-height: 1.1; margin-bottom: 12px; }
-    .hero-sub { font-size: 15px; color: rgba(255,255,255,0.6); font-weight: 300; line-height: 1.7; max-width: 480px; margin: 0 auto; }
-
-    .content { padding: 24px 20px 80px; max-width: 580px; margin: 0 auto; }
-
-    .glass-card { background: white; border: 1px solid var(--border); border-radius: 20px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 20px rgba(61,43,31,0.05); }
-    .card-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fire-orange); margin-bottom: 16px; }
-
-    .input-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-    .input-row:last-child { margin-bottom: 0; }
-    .input-label-text { font-size: 13px; color: var(--soft-grey); font-weight: 400; }
-    .input-wrap { position: relative; }
-    .input-prefix-dark { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--soft-grey); }
-    .dark-input { width: 100%; padding: 13px 14px 13px 30px; background: white; border: 1.5px solid var(--border); border-radius: 12px; font-family: 'DM Sans', sans-serif; font-size: 16px; color: var(--warm-brown); outline: none; transition: border-color 0.2s; -moz-appearance: textfield; }
-    .dark-input::-webkit-inner-spin-button, .dark-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-    .dark-input:focus { border-color: var(--fire-orange); }
-    .dark-input::placeholder { color: #CCC5BF; }
-
-    .cycle-group { display: flex; gap: 8px; margin-bottom: 0; }
-    .cycle-btn { flex: 1; padding: 10px 6px; border: 1.5px solid var(--border); background: white; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--soft-grey); cursor: pointer; transition: all 0.2s; }
-    .cycle-btn.active { background: var(--fire-orange); border-color: var(--fire-orange); color: white; }
-
-    .mode-toggle { display: flex; gap: 0; margin-bottom: 16px; border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; }
-    .mode-btn { flex: 1; padding: 12px; background: white; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--soft-grey); cursor: pointer; transition: all 0.2s; }
-    .mode-btn:first-child { border-right: 1.5px solid var(--border); }
-    .mode-btn.active { background: var(--fire-orange); color: white; }
-
-    .slider-row { display: flex; align-items: center; gap: 14px; }
-    input[type="range"].dark-slider { flex: 1; -webkit-appearance: none; height: 6px; border-radius: 6px; background: var(--border); outline: none; cursor: pointer; }
-    input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--fire-orange); box-shadow: 0 2px 8px rgba(244,98,42,0.4); cursor: pointer; }
-    .slider-val { font-weight: 700; color: var(--fire-orange); min-width: 44px; text-align: right; font-size: 15px; }
-
-    /* Milestone cards */
-    .milestones { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
-    .milestone-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; transition: all 0.3s; }
-    .milestone-card.highlight { border-color: var(--fire-orange); box-shadow: 0 4px 20px rgba(244,98,42,0.1); }
-    .milestone-year { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--soft-grey); margin-bottom: 4px; }
-    .milestone-total { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--warm-brown); margin-bottom: 12px; }
-    .milestone-total span { color: var(--fire-orange); }
-    .milestone-bar-wrap { height: 8px; background: var(--border); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
-    .milestone-bar { height: 100%; border-radius: 8px; display: flex; }
-    .bar-contributed { background: var(--soft-grey); height: 100%; }
-    .bar-compound { background: linear-gradient(90deg, var(--fire-orange), var(--fire-amber)); height: 100%; }
-    .milestone-breakdown { display: flex; justify-content: space-between; font-size: 12px; }
-    .breakdown-you { color: var(--soft-grey); }
-    .breakdown-compound { color: var(--fire-orange); font-weight: 500; }
-    .milestone-insight { margin-top: 10px; padding: 8px 12px; background: var(--warm-cream); border-radius: 8px; font-size: 12px; color: var(--warm-brown); line-height: 1.5; font-style: italic; }
-
-    /* Cost of waiting */
-    .waiting-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-    .waiting-tile { border-radius: 12px; padding: 16px 12px; text-align: center; border: 1px solid var(--border); }
-    .waiting-tile.now { background: linear-gradient(135deg, #3D2B1F, #5C3D2E); border-color: transparent; }
-    .waiting-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 6px; }
-    .waiting-tile.now .waiting-label { color: rgba(255,255,255,0.5); }
-    .waiting-value { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--fire-orange); }
-    .waiting-tile.now .waiting-value { color: var(--fire-amber); }
-    .waiting-sub { font-size: 10px; color: var(--soft-grey); margin-top: 4px; }
-    .waiting-tile.now .waiting-sub { color: rgba(255,255,255,0.4); }
-
-    .cost-banner { background: linear-gradient(135deg, #FFF7F3, #FFF3E0); border: 1.5px solid rgba(244,98,42,0.2); border-radius: 14px; padding: 16px 20px; text-align: center; }
-    .cost-banner-label { font-size: 12px; color: var(--soft-grey); margin-bottom: 6px; }
-    .cost-banner-value { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: var(--fire-orange); margin-bottom: 4px; }
-    .cost-banner-sub { font-size: 12px; color: var(--soft-grey); font-weight: 300; }
-
-    .disclaimer { text-align: center; font-size: 11px; color: var(--soft-grey); margin-top: 20px; line-height: 1.6; }
-
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-    .milestones { animation: fadeUp 0.4s ease both; }
-  </style>
+  <link rel="stylesheet" href="css/main.css"/>
+<style>
+  body { display:block; padding:0; }
+  .hero { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);padding:48px 24px 40px;text-align:center;color:white;position:relative;overflow:hidden;width:100%; }
+  .hero::before { content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(244,98,42,0.2) 0%,transparent 65%);pointer-events:none; }
+  .back-link { display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,0.5);font-size:13px;text-decoration:none;margin-bottom:28px; }
+  .back-link:hover { color:white; }
+  .hero-badge { display:inline-block;background:rgba(244,98,42,0.2);border:1px solid rgba(244,98,42,0.4);color:var(--fire-amber);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:20px; }
+  .hero-title { font-family:'Playfair Display',serif;font-size:clamp(28px,7vw,48px);font-weight:900;line-height:1.1;margin-bottom:12px; }
+  .hero-sub { font-size:15px;color:rgba(255,255,255,0.6);font-weight:300;line-height:1.7;max-width:480px;margin:0 auto; }
+  .content { padding:24px 20px 80px;max-width:580px;margin:0 auto; }
+  .glass-card { background:white;border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;box-shadow:0 2px 20px rgba(61,43,31,0.05); }
+  .card-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:16px; }
+  .input-row { display:flex;flex-direction:column;gap:6px;margin-bottom:16px; }
+  .input-row:last-child { margin-bottom:0; }
+  .input-label-text { font-size:13px;color:var(--soft-grey);font-weight:400; }
+  .input-wrap { position:relative; }
+  .input-prefix-dark { position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--soft-grey); }
+  .dark-input { width:100%;padding:13px 14px 13px 30px;background:white;border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;color:var(--warm-brown);outline:none;transition:border-color 0.2s;-moz-appearance:textfield; }
+  .dark-input::-webkit-inner-spin-button,.dark-input::-webkit-outer-spin-button { -webkit-appearance:none; }
+  .dark-input:focus { border-color:var(--fire-orange); }
+  .dark-input::placeholder { color:#CCC5BF; }
+  .mode-toggle { display:flex;gap:0;margin-bottom:16px;border:1.5px solid var(--border);border-radius:12px;overflow:hidden; }
+  .mode-btn { flex:1;padding:12px;background:white;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--soft-grey);cursor:pointer;transition:all 0.2s; }
+  .mode-btn:first-child { border-right:1.5px solid var(--border); }
+  .mode-btn.active { background:var(--fire-orange);color:white; }
+  .slider-row { display:flex;align-items:center;gap:14px; }
+  input[type="range"].dark-slider { flex:1;-webkit-appearance:none;height:6px;border-radius:6px;background:var(--border);outline:none;cursor:pointer; }
+  input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--fire-orange);box-shadow:0 2px 8px rgba(244,98,42,0.4);cursor:pointer; }
+  .slider-val { font-weight:700;color:var(--fire-orange);min-width:44px;text-align:right;font-size:15px; }
+  .milestones { display:flex;flex-direction:column;gap:12px;margin-bottom:16px;animation:fadeUp 0.4s ease both; }
+  .milestone-card { background:white;border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:all 0.3s; }
+  .milestone-card.highlight { border-color:var(--fire-orange);box-shadow:0 4px 20px rgba(244,98,42,0.1); }
+  .milestone-year { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--soft-grey);margin-bottom:4px; }
+  .milestone-total { font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--warm-brown);margin-bottom:12px; }
+  .milestone-total span { color:var(--fire-orange); }
+  .milestone-bar-wrap { height:8px;background:var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden; }
+  .milestone-bar { height:100%;border-radius:8px;display:flex; }
+  .bar-contributed { background:var(--soft-grey);height:100%; }
+  .bar-compound { background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));height:100%; }
+  .milestone-breakdown { display:flex;justify-content:space-between;font-size:12px; }
+  .breakdown-you { color:var(--soft-grey); }
+  .breakdown-compound { color:var(--fire-orange);font-weight:500; }
+  .milestone-insight { margin-top:10px;padding:8px 12px;background:var(--warm-cream);border-radius:8px;font-size:12px;color:var(--warm-brown);line-height:1.5;font-style:italic; }
+  .waiting-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px; }
+  .waiting-tile { border-radius:12px;padding:16px 12px;text-align:center;border:1px solid var(--border); }
+  .waiting-tile.now { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-color:transparent; }
+  .waiting-label { font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);margin-bottom:6px; }
+  .waiting-tile.now .waiting-label { color:rgba(255,255,255,0.5); }
+  .waiting-value { font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--fire-orange); }
+  .waiting-tile.now .waiting-value { color:var(--fire-amber); }
+  .waiting-sub { font-size:10px;color:var(--soft-grey);margin-top:4px; }
+  .waiting-tile.now .waiting-sub { color:rgba(255,255,255,0.4); }
+  .cost-banner { background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:1.5px solid rgba(244,98,42,0.2);border-radius:14px;padding:16px 20px;text-align:center; }
+  .cost-banner-label { font-size:12px;color:var(--soft-grey);margin-bottom:6px; }
+  .cost-banner-value { font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--fire-orange);margin-bottom:4px; }
+  .cost-banner-sub { font-size:12px;color:var(--soft-grey);font-weight:300; }
+</style>
 </head>
 <body>
-
 <div class="hero">
   <div><a href="firepath_pro.html" class="back-link">← Back to FirePath</a></div>
   <div class="hero-badge">The most powerful force in finance</div>
