@@ -5,234 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Things Worth Exploring — FirePath</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --fire-orange: #F4622A;
-      --fire-amber:  #F9A825;
-      --warm-cream:  #FDF6EE;
-      --warm-brown:  #3D2B1F;
-      --soft-grey:   #9E8E85;
-      --card-bg:     #FFFFFF;
-      --border:      #EDE3DA;
-    }
-
-    body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); min-height: 100vh; }
-
-    .header {
-      background: linear-gradient(135deg, #3D2B1F, #5C3D2E);
-      padding: 40px 24px 32px;
-      color: white;
-      text-align: center;
-      position: relative;
-    }
-    .back-link {
-      position: absolute;
-      top: 20px; left: 20px;
-      color: rgba(255,255,255,0.5);
-      font-size: 13px;
-      text-decoration: none;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .back-link:hover { color: white; }
-    .header-badge {
-      display: inline-block;
-      background: rgba(244,98,42,0.2);
-      border: 1px solid rgba(244,98,42,0.4);
-      color: var(--fire-amber);
-      font-size: 11px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 5px 14px; border-radius: 20px;
-      margin-bottom: 16px;
-    }
-    .header-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 28px; font-weight: 700;
-      margin-bottom: 8px; line-height: 1.2;
-    }
-    .header-sub {
-      font-size: 14px; color: rgba(255,255,255,0.55);
-      font-weight: 300; line-height: 1.6;
-      max-width: 400px; margin: 0 auto;
-    }
-
-    .progress-section {
-      background: white;
-      border-bottom: 1px solid var(--border);
-      padding: 20px 24px;
-    }
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .progress-label { font-size: 13px; font-weight: 500; color: var(--warm-brown); }
-    .progress-count { font-size: 13px; color: var(--soft-grey); font-weight: 300; }
-    .progress-track {
-      height: 8px; background: var(--border);
-      border-radius: 8px; overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--fire-orange), var(--fire-amber));
-      border-radius: 8px;
-      transition: width 0.6s ease;
-    }
-    .progress-pct {
-      font-size: 12px; color: var(--soft-grey);
-      margin-top: 6px; text-align: right;
-      font-weight: 300;
-    }
-
-    .content { padding: 24px 20px 80px; max-width: 560px; margin: 0 auto; }
-
-    .milestone {
-      background: linear-gradient(135deg, #FFF7F3, #FFF3E0);
-      border: 1.5px solid rgba(244,98,42,0.25);
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      display: none;
-      animation: fadeUp 0.4s ease both;
-    }
-    .milestone.visible { display: block; }
-    .milestone-emoji { font-size: 28px; margin-bottom: 8px; display: block; }
-    .milestone-text { font-size: 15px; color: var(--warm-brown); line-height: 1.6; font-weight: 400; }
-    .milestone-text strong { color: var(--fire-orange); }
-
-    .loading-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 40px 24px;
-      text-align: center;
-      margin-bottom: 16px;
-    }
-    .loading-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
-    .loading-dots span {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--fire-orange);
-      animation: bounce 1.2s ease infinite;
-    }
-    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-    .loading-text { font-size: 14px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; }
-
-    .step-card {
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 12px;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-      transition: all 0.2s ease;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .step-card:hover { border-color: var(--fire-orange); box-shadow: 0 4px 20px rgba(244,98,42,0.08); }
-    .step-card.completed {
-      background: #F9FFF9;
-      border-color: #A5D6A7;
-      opacity: 0.8;
-    }
-
-    .step-checkbox {
-      width: 26px; height: 26px;
-      border: 2px solid var(--border);
-      border-radius: 50%;
-      flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; color: white;
-      transition: all 0.2s;
-      margin-top: 2px;
-    }
-    .step-card.completed .step-checkbox {
-      background: #4CAF50;
-      border-color: #4CAF50;
-    }
-    .step-card.completed .step-checkbox::after { content: '✓'; }
-
-    .step-body { flex: 1; }
-    .step-number {
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.1em;
-      color: var(--fire-orange); margin-bottom: 4px;
-    }
-    .step-card.completed .step-number { color: #4CAF50; }
-    .step-title {
-      font-size: 15px; font-weight: 500;
-      margin-bottom: 6px; line-height: 1.3;
-      color: var(--warm-brown);
-    }
-    .step-card.completed .step-title {
-      text-decoration: line-through;
-      color: var(--soft-grey);
-    }
-    .step-desc {
-      font-size: 13px; color: var(--soft-grey);
-      font-weight: 300; line-height: 1.6;
-      margin-bottom: 8px;
-    }
-    .step-why {
-      font-size: 12px;
-      background: var(--warm-cream);
-      border-left: 3px solid var(--fire-amber);
-      padding: 8px 10px;
-      border-radius: 0 8px 8px 0;
-      color: var(--warm-brown);
-      font-weight: 300;
-      line-height: 1.5;
-    }
-    .step-card.completed .step-why { display: none; }
-
-    .regen-btn {
-      width: 100%;
-      padding: 14px;
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px; font-weight: 500;
-      color: var(--soft-grey);
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 8px;
-    }
-    .regen-btn:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
-
-    .disclaimer {
-      text-align: center; font-size: 11px;
-      color: var(--soft-grey); margin-top: 20px;
-      line-height: 1.6;
-    }
-
-    .empty-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 40px 24px;
-      text-align: center;
-    }
-    .empty-emoji { font-size: 40px; margin-bottom: 16px; display: block; }
-    .empty-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-    .empty-sub { font-size: 14px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; margin-bottom: 24px; }
-    .cta-btn {
-      display: inline-block;
-      padding: 14px 28px;
-      background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-      border: none; border-radius: 14px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px; font-weight: 500; color: white;
-      text-decoration: none; cursor: pointer;
-      box-shadow: 0 4px 20px rgba(244,98,42,0.3);
-    }
-
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-  </style>
+  body { display:block; padding:0; }
+  .header { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);padding:40px 24px 32px;color:white;text-align:center;position:relative; }
+  .back-link { position:absolute;top:20px;left:20px;color:rgba(255,255,255,0.5);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px; }
+  .back-link:hover { color:white; }
+  .header-badge { display:inline-block;background:rgba(244,98,42,0.2);border:1px solid rgba(244,98,42,0.4);color:var(--fire-amber);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:5px 14px;border-radius:20px;margin-bottom:16px; }
+  .header-title { font-family:'Playfair Display',serif;font-size:28px;font-weight:700;margin-bottom:8px;line-height:1.2; }
+  .header-sub { font-size:14px;color:rgba(255,255,255,0.55);font-weight:300;line-height:1.6;max-width:400px;margin:0 auto; }
+  .progress-section { background:white;border-bottom:1px solid var(--border);padding:20px 24px; }
+  .progress-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:10px; }
+  .progress-label { font-size:13px;font-weight:500;color:var(--warm-brown); }
+  .progress-count { font-size:13px;color:var(--soft-grey);font-weight:300; }
+  .progress-track { height:8px;background:var(--border);border-radius:8px;overflow:hidden; }
+  .progress-fill { height:100%;background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));border-radius:8px;transition:width 0.6s ease; }
+  .progress-pct { font-size:12px;color:var(--soft-grey);margin-top:6px;text-align:right;font-weight:300; }
+  .content { padding:24px 20px 80px;max-width:560px;margin:0 auto; }
+  .milestone { background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:1.5px solid rgba(244,98,42,0.25);border-radius:16px;padding:20px;margin-bottom:20px;display:none;animation:fadeUp 0.4s ease both; }
+  .milestone.visible { display:block; }
+  .milestone-emoji { font-size:28px;margin-bottom:8px;display:block; }
+  .milestone-text { font-size:15px;color:var(--warm-brown);line-height:1.6;font-weight:400; }
+  .milestone-text strong { color:var(--fire-orange); }
+  .loading-card { background:white;border:1px solid var(--border);border-radius:20px;padding:40px 24px;text-align:center;margin-bottom:16px; }
+  .step-card { background:white;border:1.5px solid var(--border);border-radius:18px;padding:20px;margin-bottom:12px;display:flex;gap:16px;align-items:flex-start;transition:all 0.2s ease;cursor:pointer;-webkit-tap-highlight-color:transparent; }
+  .step-card:hover { border-color:var(--fire-orange);box-shadow:0 4px 20px rgba(244,98,42,0.08); }
+  .step-card.completed { background:#F9FFF9;border-color:#A5D6A7;opacity:0.8; }
+  .step-checkbox { width:26px;height:26px;border:2px solid var(--border);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:white;transition:all 0.2s;margin-top:2px; }
+  .step-card.completed .step-checkbox { background:#4CAF50;border-color:#4CAF50; }
+  .step-card.completed .step-checkbox::after { content:'✓'; }
+  .step-body { flex:1; }
+  .step-number { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px; }
+  .step-card.completed .step-number { color:#4CAF50; }
+  .step-title { font-size:15px;font-weight:500;margin-bottom:6px;line-height:1.3;color:var(--warm-brown); }
+  .step-card.completed .step-title { text-decoration:line-through;color:var(--soft-grey); }
+  .step-desc { font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:8px; }
+  .step-why { font-size:12px;background:var(--warm-cream);border-left:3px solid var(--fire-amber);padding:8px 10px;border-radius:0 8px 8px 0;color:var(--warm-brown);font-weight:300;line-height:1.5; }
+  .step-card.completed .step-why { display:none; }
+  .regen-btn { width:100%;padding:14px;background:white;border:1.5px solid var(--border);border-radius:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--soft-grey);cursor:pointer;transition:all 0.2s;margin-top:8px; }
+  .regen-btn:hover { border-color:var(--fire-orange);color:var(--fire-orange); }
+  .empty-card { background:white;border:1px solid var(--border);border-radius:20px;padding:40px 24px;text-align:center; }
+  .empty-emoji { font-size:40px;margin-bottom:16px;display:block; }
+  .empty-title { font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px; }
+  .empty-sub { font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:24px; }
+</style>
 </head>
 <body>
 
