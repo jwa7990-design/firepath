@@ -27,6 +27,7 @@
   .glass-card { background:white;border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;box-shadow:0 2px 20px rgba(61,43,31,0.05); }
   .card-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:16px;display:flex;align-items:center;gap:8px; }
   .card-label.amber { color:var(--soft-grey); }
+  .card-label.orange { color:var(--fire-orange); }
   .input-row { display:flex;flex-direction:column;gap:6px;margin-bottom:16px; }
   .input-row:last-child { margin-bottom:0; }
   .input-label-text { font-size:13px;color:var(--soft-grey);font-weight:400; }
@@ -68,6 +69,11 @@
   .data-value { font-weight:600;font-size:15px; }
   .empty-state { text-align:center;padding:40px 20px;color:var(--soft-grey);font-size:14px;font-weight:300; }
   .ap-btn { margin-top:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:16px;padding:20px;cursor:pointer;text-align:center;color:white; }
+  .phase-block { background:var(--warm-cream);border-radius:12px;padding:14px 16px;margin-bottom:10px; }
+  .phase-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px; }
+  .phase-label.red { color:#C62828; }
+  .phase-label.green { color:#2E7D32; }
+  .phase-text { font-size:13px;color:var(--soft-grey);line-height:1.7; }
 </style>
 </head>
 <body>
@@ -86,6 +92,7 @@
   <button class="scenario-pill" onclick="switchScenario('downsize', this)">📦 Downsize home</button>
   <button class="scenario-pill" onclick="switchScenario('redundancy', this)">💼 Redundancy payout</button>
   <button class="scenario-pill" onclick="switchScenario('rentvest', this)">🏠 Rent vs Invest</button>
+  <button class="scenario-pill" onclick="switchScenario('loan', this)">💳 Loan payoff → invest</button>
   <button class="scenario-pill" onclick="window.location.href='compound.html'">🌱 Compounding</button>
 </div>
 
@@ -95,41 +102,17 @@
   <div class="scenario-panel active" id="panel-home">
     <div class="glass-card">
       <div class="card-label">🏠 Your home details</div>
-      <div class="input-row">
-        <div class="input-label-text">Estimated sale price</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-salePrice" placeholder="600000" oninput="autoFillSellCosts(); calcHome()"/></div>
-      </div>
-      <div class="input-row">
-        <div class="input-label-text">Selling costs (agent, legal, etc)</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-sellCosts" placeholder="20000" oninput="calcHome()"/></div>
-      </div>
-      <div class="input-row">
-        <div class="input-label-text">Mortgage remaining (if any)</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-mortgage" placeholder="0" oninput="calcHome()"/></div>
-      </div>
-      <div class="input-row">
-        <div class="input-label-text">Weekly rent in new place</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-weeklyRent" placeholder="500" oninput="calcHome()"/></div>
-      </div>
+      <div class="input-row"><div class="input-label-text">Estimated sale price</div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-salePrice" placeholder="600000" oninput="autoFillSellCosts(); calcHome()"/></div></div>
+      <div class="input-row"><div class="input-label-text">Selling costs (agent, legal, etc)</div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-sellCosts" placeholder="20000" oninput="calcHome()"/></div></div>
+      <div class="input-row"><div class="input-label-text">Mortgage remaining (if any)</div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-mortgage" placeholder="0" oninput="calcHome()"/></div></div>
+      <div class="input-row"><div class="input-label-text">Weekly rent in new place</div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-weeklyRent" placeholder="500" oninput="calcHome()"/></div></div>
     </div>
     <div class="glass-card">
       <div class="card-label amber">📈 Assumptions</div>
-      <div class="input-row">
-        <div class="input-label-text">Investment return per year</div>
-        <div class="slider-row-dark"><input type="range" class="dark-slider" id="h-returnRate" min="3" max="12" value="7" oninput="document.getElementById('h-returnRateVal').textContent=this.value+'%';calcHome()"/><span class="slider-val" id="h-returnRateVal">7%</span></div>
-      </div>
-      <div class="input-row">
-        <div class="input-label-text">Annual rent increase</div>
-        <div class="slider-row-dark"><input type="range" class="dark-slider" id="h-rentIncrease" min="1" max="8" value="4" oninput="document.getElementById('h-rentIncreaseVal').textContent=this.value+'%';calcHome()"/><span class="slider-val" id="h-rentIncreaseVal">4%</span></div>
-      </div>
-      <div class="input-row">
-        <div class="input-label-text">Your current savings per <span id="hmoCycleLabelDisplay">month</span></div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-monthlySavings" placeholder="500" oninput="calcHome()"/></div>
-      </div>
-      <div class="input-row">
-        <div class="input-label-text">Your freedom number (25x annual expenses)</div>
-        <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-fireNum" placeholder="1000000" oninput="calcHome()"/></div>
-      </div>
+      <div class="input-row"><div class="input-label-text">Investment return per year</div><div class="slider-row-dark"><input type="range" class="dark-slider" id="h-returnRate" min="3" max="12" value="7" oninput="document.getElementById('h-returnRateVal').textContent=this.value+'%';calcHome()"/><span class="slider-val" id="h-returnRateVal">7%</span></div></div>
+      <div class="input-row"><div class="input-label-text">Annual rent increase</div><div class="slider-row-dark"><input type="range" class="dark-slider" id="h-rentIncrease" min="1" max="8" value="4" oninput="document.getElementById('h-rentIncreaseVal').textContent=this.value+'%';calcHome()"/><span class="slider-val" id="h-rentIncreaseVal">4%</span></div></div>
+      <div class="input-row"><div class="input-label-text">Your current savings per <span id="hmoCycleLabelDisplay">month</span></div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-monthlySavings" placeholder="500" oninput="calcHome()"/></div></div>
+      <div class="input-row"><div class="input-label-text">Your freedom number (25x annual expenses)</div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="h-fireNum" placeholder="1000000" oninput="calcHome()"/></div></div>
     </div>
     <div id="home-results" style="display:none">
       <div class="results-grid">
@@ -290,6 +273,50 @@
     <div class="ap-btn" onclick="saveAPFromHMO('rentvest'); window.location.href='discover.html';"><div style="font-size:15px;font-weight:500;margin-bottom:4px">Want to explore this further?</div><div style="font-size:13px;opacity:0.8;font-weight:300">See things worth exploring →</div></div>
   </div>
 
+  <!-- LOAN PAYOFF → INVEST -->
+  <div class="scenario-panel" id="panel-loan">
+    <div class="glass-card">
+      <div class="card-label">💳 Your loan details</div>
+      <div class="input-row"><div class="input-label-text">Total loan amount remaining</div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="lo-balance" placeholder="20000" oninput="calcLoan()"/></div></div>
+      <div class="input-row"><div class="input-label-text">Interest rate per year %</div><div class="slider-row-dark"><input type="range" class="dark-slider" id="lo-rate" min="1" max="25" value="10" oninput="document.getElementById('lo-rateVal').textContent=this.value+'%';calcLoan()"/><span class="slider-val" id="lo-rateVal">10%</span></div></div>
+      <div class="input-row"><div class="input-label-text">Monthly repayment</div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="lo-repayment" placeholder="500" oninput="calcLoan()"/></div></div>
+    </div>
+    <div class="glass-card">
+      <div class="card-label">🔥 After the loan is gone</div>
+      <div class="input-row"><div class="input-label-text">Current savings/investments (excluding loan)</div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="lo-savings" placeholder="0" oninput="calcLoan()"/></div></div>
+      <div class="input-row"><div class="input-label-text">Your freedom number</div><div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="lo-fireNum" placeholder="1000000" oninput="calcLoan()"/></div></div>
+      <div class="input-row"><div class="input-label-text">Investment return per year %</div><div class="slider-row-dark"><input type="range" class="dark-slider" id="lo-investRate" min="3" max="12" value="7" oninput="document.getElementById('lo-investRateVal').textContent=this.value+'%';calcLoan()"/><span class="slider-val" id="lo-investRateVal">7%</span></div></div>
+    </div>
+    <div id="loan-results" style="display:none">
+      <div class="results-grid">
+        <div class="result-tile dark"><div class="tile-label">Loan paid off in</div><div class="tile-value" id="lo-payoffTime">—</div><div class="tile-sub" id="lo-payoffDate">—</div></div>
+        <div class="result-tile glow"><div class="tile-label">Freedom date</div><div class="tile-value" id="lo-freedomDate">—</div><div class="tile-sub" id="lo-totalTime">—</div></div>
+      </div>
+      <div class="glass-card">
+        <div class="card-label orange">📊 The full picture</div>
+        <div class="data-row"><span class="data-label">Monthly repayment redirected to investing</span><span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="lo-redirected">—</span></div>
+        <div class="data-row"><span class="data-label">Total interest paid on loan</span><span style="font-weight:600;font-size:15px;color:#C62828" id="lo-totalInterest">—</span></div>
+        <div class="data-row"><span class="data-label">Portfolio at loan payoff date</span><span style="font-weight:600;font-size:15px;" id="lo-portfolioAtPayoff">—</span></div>
+        <div class="data-row"><span class="data-label">Portfolio value 10 years after payoff</span><span style="font-weight:600;font-size:15px;color:var(--fire-amber)" id="lo-10yr">—</span></div>
+        <div class="data-row"><span class="data-label">Total years from today to freedom</span><span style="font-weight:600;font-size:15px;color:#2E7D32" id="lo-totalYears">—</span></div>
+      </div>
+      <div class="glass-card">
+        <div class="card-label">📅 Phase by phase</div>
+        <div class="phase-block">
+          <div class="phase-label red">Phase 1 — Pay off the loan</div>
+          <div class="phase-text" id="lo-phase1"></div>
+        </div>
+        <div class="phase-block" style="margin-bottom:0">
+          <div class="phase-label green">Phase 2 — Invest the repayment</div>
+          <div class="phase-text" id="lo-phase2"></div>
+        </div>
+      </div>
+    </div>
+    <div class="empty-state" id="loan-empty">Enter your loan details above to see the numbers.</div>
+    <div class="bottom-note">💳 Paying off debt first removes the interest drag — then flipping that repayment into investing creates a compounding tailwind. The order matters.<br/><br/><strong>Not advice. Just the numbers.</strong></div>
+    <div class="ap-btn" onclick="saveAPFromHMO('loan_payoff'); window.location.href='discover.html';"><div style="font-size:15px;font-weight:500;margin-bottom:4px">Ready to explore further?</div><div style="font-size:13px;opacity:0.8;font-weight:300">See things worth exploring →</div></div>
+  </div>
+
 </div>
 
 <script>
@@ -312,7 +339,7 @@
     document.querySelectorAll('.hmoSavingsCycleLabel').forEach(el => el.textContent = hmoCycleWord);
   });
 
-  if (hmoFireNum)    ['h-fireNum','l-fireNum','d-fireNum','r-fireNum'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoFireNum); });
+  if (hmoFireNum)    ['h-fireNum','l-fireNum','d-fireNum','r-fireNum','lo-fireNum'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoFireNum); });
   if (hmoMonthlySav) ['h-monthlySavings','l-monthly','d-monthly','r-monthlySavings'].forEach(id => { const el = document.getElementById(id); if (el) el.value = Math.round(hmoCycleSav); });
   if (hmoPropVal)    { const el = document.getElementById('h-salePrice'); if (el) el.value = Math.round(hmoPropVal); const costs = document.getElementById('h-sellCosts'); if (costs) costs.value = Math.round(hmoPropVal * 0.03); }
 
@@ -489,54 +516,38 @@
     const mortgageRate  = parseFloat(document.getElementById('rv-mortgageRate').value) / 100 || 0.06;
     const propGrowth    = parseFloat(document.getElementById('rv-propGrowth').value) / 100 || 0.04;
     const investReturn  = parseFloat(document.getElementById('rv-investReturn').value) / 100 || 0.07;
-
-    if (weeklyRent <= 0 || propPrice <= 0 || depositTarget <= 0) {
-      document.getElementById('rentvest-results').style.display = 'none';
-      document.getElementById('rentvest-empty').style.display = 'block';
-      return;
-    }
-
+    if (weeklyRent <= 0 || propPrice <= 0 || depositTarget <= 0) { document.getElementById('rentvest-results').style.display = 'none'; document.getElementById('rentvest-empty').style.display = 'block'; return; }
     document.getElementById('rentvest-results').style.display = 'block';
     document.getElementById('rentvest-empty').style.display = 'none';
-
     const remainingDeposit  = Math.max(0, depositTarget - depositSaved);
     const yearsToDeposit    = depositSaving > 0 ? remainingDeposit / (depositSaving * 12) : null;
     const loanAmount        = propPrice - depositTarget;
     const monthlyMortgageRate = mortgageRate / 12;
     const mortgageTermMonths  = 30 * 12;
     const monthlyMortgage   = loanAmount * (monthlyMortgageRate * Math.pow(1 + monthlyMortgageRate, mortgageTermMonths)) / (Math.pow(1 + monthlyMortgageRate, mortgageTermMonths) - 1);
-
     function calcBuyWealth(years) {
       if (!yearsToDeposit || yearsToDeposit > years) return null;
       const yearsOwning = years - yearsToDeposit;
       const propValue = propPrice * Math.pow(1 + propGrowth, yearsOwning);
       let mortgageBalance = loanAmount;
-      for (let m = 0; m < yearsOwning * 12; m++) {
-        const interest = mortgageBalance * monthlyMortgageRate;
-        mortgageBalance -= (monthlyMortgage - interest);
-      }
+      for (let m = 0; m < yearsOwning * 12; m++) { const interest = mortgageBalance * monthlyMortgageRate; mortgageBalance -= (monthlyMortgage - interest); }
       return propValue - Math.max(0, mortgageBalance);
     }
-
     function calcRentWealth(years) {
       let portfolio = depositSaved;
-      const monthlyInvestReturn = investReturn / 12;
-      for (let m = 0; m < years * 12; m++) {
-        portfolio = portfolio * (1 + monthlyInvestReturn) + depositSaving;
-      }
-      let totalRent = 0;
-      let rent = weeklyRent * 52 / 12;
+      const mIR = investReturn / 12;
+      for (let m = 0; m < years * 12; m++) { portfolio = portfolio * (1 + mIR) + depositSaving; }
+      let totalRent = 0, rent = weeklyRent * 52 / 12;
       for (let y = 0; y < years; y++) { totalRent += rent * 12; rent *= (1 + rentInc); }
       return portfolio - totalRent;
     }
-
-    const buy10  = calcBuyWealth(10);
-    const buy20  = calcBuyWealth(20);
-    const buy30  = calcBuyWealth(30);
-    const rent10 = calcRentWealth(10);
-    const rent20 = calcRentWealth(20);
-    const rent30 = calcRentWealth(30);
-
+    const buy10 = calcBuyWealth(10), buy20 = calcBuyWealth(20), buy30 = calcBuyWealth(30);
+    const rent10 = calcRentWealth(10), rent20 = calcRentWealth(20), rent30 = calcRentWealth(30);
+    let portfolioVal = depositSaved;
+    const mIR = investReturn / 12;
+    for (let m = 0; m < 20 * 12; m++) { portfolioVal = portfolioVal * (1 + mIR) + depositSaving; }
+    let totalRent20 = 0, r20 = weeklyRent * 52 / 12;
+    for (let y = 0; y < 20; y++) { totalRent20 += r20 * 12; r20 *= (1 + rentInc); }
     document.getElementById('rv-yearsToDeposit').textContent = yearsToDeposit ? Math.round(yearsToDeposit * 10) / 10 + ' years' : '—';
     document.getElementById('rv-buy10').textContent  = buy10  !== null ? fmtM(buy10)  : 'Still saving deposit';
     document.getElementById('rv-rent10').textContent = fmtM(rent10);
@@ -544,22 +555,56 @@
     document.getElementById('rv-rent20').textContent = fmtM(rent20);
     document.getElementById('rv-buy30').textContent  = buy30  !== null ? fmtM(buy30)  : 'Still saving deposit';
     document.getElementById('rv-rent30').textContent = fmtM(rent30);
-    
-    // Calculate portfolio and rent separately for transparency
-    let portfolioVal = depositSaved;
-    const mIR = investReturn / 12;
-    for (let m = 0; m < 20 * 12; m++) {
-    portfolioVal = portfolioVal * (1 + mIR) + depositSaving;
-}
-    let totalRent20 = 0;
-    let r20 = weeklyRent * 52 / 12;
-    for (let y = 0; y < 20; y++) { totalRent20 += r20 * 12; r20 *= (1 + rentInc); }
-
     document.getElementById('rv-portfolioVal').textContent = fmtM(portfolioVal);
     document.getElementById('rv-totalRent').textContent = fmtM(totalRent20);
     document.getElementById('rv-netPosition').textContent = fmtM(portfolioVal - totalRent20);
     document.getElementById('rv-buyWealth').textContent  = buy20 !== null ? fmtM(buy20) : '—';
     document.getElementById('rv-rentWealth').textContent = fmtM(rent20);
+  }
+
+  function calcLoan() {
+    const balance    = parseFloat(document.getElementById('lo-balance').value) || 0;
+    const rate       = parseFloat(document.getElementById('lo-rate').value) / 100 || 0.10;
+    const repayment  = parseFloat(document.getElementById('lo-repayment').value) || 0;
+    const savings    = parseFloat(document.getElementById('lo-savings').value) || 0;
+    const fireNum    = parseFloat(document.getElementById('lo-fireNum').value) || 0;
+    const investRate = parseFloat(document.getElementById('lo-investRate').value) / 100 || 0.07;
+    if (balance <= 0 || repayment <= 0) { document.getElementById('loan-results').style.display = 'none'; document.getElementById('loan-empty').style.display = 'block'; return; }
+    document.getElementById('loan-results').style.display = 'block';
+    document.getElementById('loan-empty').style.display = 'none';
+    const monthlyRate = rate / 12;
+    let bal = balance, months = 0, totalInterest = 0;
+    while (bal > 0 && months < 600) {
+      const interest = bal * monthlyRate;
+      totalInterest += interest;
+      bal = bal + interest - repayment;
+      if (bal < 0) bal = 0;
+      months++;
+    }
+    const payoffYears = months / 12;
+    const payoffDate  = currentYear + Math.round(payoffYears);
+    const portfolioAtPayoff = savings;
+    const monthlyInvest = repayment;
+    const freedomYears  = fireNum > 0 ? yearsToGoal(fireNum, portfolioAtPayoff, monthlyInvest, investRate) : null;
+    const totalYears    = freedomYears !== null ? payoffYears + freedomYears : null;
+    const freedomDate   = totalYears !== null ? currentYear + Math.round(totalYears) : null;
+    const r12 = investRate / 12;
+    let p10 = portfolioAtPayoff;
+    for (let m = 0; m < 120; m++) { p10 = p10 * (1 + r12) + monthlyInvest; }
+    document.getElementById('lo-payoffTime').textContent    = fmt(payoffYears);
+    document.getElementById('lo-payoffDate').textContent    = `Paid off ${payoffDate}`;
+    document.getElementById('lo-freedomDate').textContent   = freedomDate ? freedomDate : '—';
+    document.getElementById('lo-totalTime').textContent     = totalYears ? Math.round(totalYears) + ' yrs total' : '—';
+    document.getElementById('lo-redirected').textContent    = fmtM(repayment) + '/month';
+    document.getElementById('lo-totalInterest').textContent = fmtM(totalInterest);
+    document.getElementById('lo-portfolioAtPayoff').textContent = fmtM(portfolioAtPayoff);
+    document.getElementById('lo-10yr').textContent          = fmtM(p10);
+    document.getElementById('lo-totalYears').textContent    = totalYears ? Math.round(totalYears) + ' years' : '—';
+    document.getElementById('lo-phase1').innerHTML =
+      `You pay <strong>${fmtM(repayment)}/month</strong> for <strong>${fmt(payoffYears)}</strong>, clearing the loan by <strong>${payoffDate}</strong>. Total interest paid: <strong style="color:#C62828">${fmtM(totalInterest)}</strong>.`;
+    document.getElementById('lo-phase2').innerHTML = freedomYears !== null
+      ? `Once the loan is gone, you redirect <strong>${fmtM(repayment)}/month</strong> straight into investing. At <strong>${investRate*100}% growth</strong>, that gets you to your freedom number in another <strong>${fmt(freedomYears)}</strong> — freedom in <strong>${freedomDate}</strong>.`
+      : `Enter your freedom number above to see Phase 2.`;
   }
 </script>
 <script src="js/auth.js"></script>
