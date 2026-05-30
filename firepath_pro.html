@@ -158,7 +158,7 @@
       <div id="houseCard" style="display:none"></div>
 
       <!-- Partner super result -->
-      <div class="super-result-card" id="superResultCard"><div class="super-result-label">🏦 Your super picture</div><div class="super-result-text" id="superResultText"></div></div>
+      <div class="super-result-card" id="superResultCard" style="display:none">
 
       <!-- AI Insight -->
       <div class="ai-insight-card">
@@ -340,28 +340,62 @@
   }
 
   function buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum){
-    const el=document.getElementById('superTimelineCard');
-    if(!el||age<=0||superBal<=0){if(el)el.style.display='none';return;}
-    const yts=Math.max(0,60-age),ag=mI*12/0.72,mes=(ag*0.115)/12,r=0.07/12;
-    let s60=superBal;for(let m=0;m<yts*12;m++){s60=s60*(1+r)+mes;}s60=Math.round(s60);
-    const p1=yearsToGoalCapped(fireNum,savings,mSav,0.07),p1y=currentYear+Math.round(p1);
-    let spt='';
-    if(age<60){let s=savings;for(let m=0;m<yts*12;m++){s=s*(1+r)+mSav;}const c60=s+s60,rem=yearsToGoal(fireNum,c60,mSav,0.07),tot=yts+(rem||0),fyw=currentYear+Math.round(tot),sv=p1-tot;
-      if(rem===0||c60>=fireNum){spt=`<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">🎉 <strong>Super unlocks at 60 and covers the rest.</strong> Your super balance of ~${fmtM(s60)} closes the gap. Freedom in ${currentYear+Math.round(tot)}.</div>`;}
-      else if(sv>1){spt=`<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">🚀 <strong>Super unlocks at 60 and accelerates the final stretch.</strong> At 60 you'd have ~${fmtM(c60)} combined — moving your freedom date from ${p1y} to <strong>${fyw}</strong> — roughly <strong>${fmt(sv)} sooner</strong>.</div>`;}
-    }else{spt=`<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">✅ <strong>Your super is accessible now.</strong> Including it moves your freedom date significantly.</div>`;}
-    el.style.display='block';
-    el.innerHTML=`<div style="background:white;border:2px solid #A5D6A7;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🦘 Your super two-phase timeline</div>
-      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">Your super compounds quietly in the background. At 60 it unlocks — here's how that changes everything:</div>
-      <div style="display:flex;flex-direction:column;gap:0;">
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Projected super at age 60</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(s60)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Employer contributions/month</span><span style="font-weight:500">${fmtM(mes)}/mo</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Years until super unlocks</span><span style="font-weight:500">${yts} yrs (age 60)</span></div>
-      </div>${spt}
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at 8% annual growth — a conservative estimate based on long-run balanced fund returns. Employer contributions estimated at 11.5% of gross income. Educational only — not financial advice.</p>
+  const el=document.getElementById('superTimelineCard');
+  if(!el||age<=0||superBal<=0){if(el)el.style.display='none';return;}
+  const yts=Math.max(0,60-age),ag=mI*12/0.72,mes=(ag*0.115)/12,r=0.07/12;
+  let s60=superBal;
+  for(let m=0;m<yts*12;m++){s60=s60*(1+r)+mes;}
+  s60=Math.round(s60);
+  let sav60=savings;
+  for(let m=0;m<yts*12;m++){sav60=sav60*(1+r)+mSav;}
+  sav60=Math.round(sav60);
+  const combined60=sav60+s60;
+  const gap60=Math.max(0,fireNum-combined60);
+  const p1=yearsToGoalCapped(fireNum,savings,mSav,0.07);
+  const p1y=currentYear+Math.round(p1);
+  const currentWeekly=Math.round(mSav*12/52);
+  const rW=0.07/52,nW=yts*52;
+  const extraWeeklyNeeded=gap60>0?Math.round(gap60*rW/(Math.pow(1+rW,nW)-1)):0;
+  const totalWeeklyNeeded=currentWeekly+extraWeeklyNeeded;
+  let breakdownHTML='';
+  if(age>=60){
+    breakdownHTML=`<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">✅ <strong>Your super is accessible now.</strong> Including it moves your freedom date significantly.</div>`;
+  } else if(combined60>=fireNum){
+    breakdownHTML=`<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">🎉 <strong>You're on track to be free by age 60.</strong> Your current savings rate combined with super is enough to hit your freedom number — no extra saving needed.</div>`;
+  } else {
+    const rem=yearsToGoal(fireNum,combined60,mSav,0.07),tot=yts+(rem||0),sv=p1-tot;
+    breakdownHTML=`<div style="margin-top:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--warm-brown);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">📊 The full picture at age 60</div>
+      <div style="background:var(--warm-cream);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--soft-grey);line-height:1.6;">💡 <strong style="color:var(--warm-brown)">How to read this:</strong> "Savings + contributions" is your current balance <strong style="color:var(--warm-brown)">(${fmtM(savings)})</strong> growing at 7% for ${yts} years, plus your ongoing <strong style="color:var(--warm-brown)">$${currentWeekly}/week</strong> over that time.</div>
+      <div style="display:flex;flex-direction:column;gap:0;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Savings + contributions at 60</span><span style="font-weight:500">${fmtM(sav60)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Super (with employer contributions)</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(s60)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Combined at 60</span><span style="font-weight:700">${fmtM(combined60)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Freedom number</span><span style="font-weight:700">${fmtM(fireNum)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:2px solid var(--border);margin-top:4px;font-size:13px;"><span style="color:var(--soft-grey)">Shortfall at 60</span><span style="font-weight:700;color:#E53935">${fmtM(gap60)}</span></div>
+      </div>
+      ${sv>1?`<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#2E7D32;line-height:1.6;">🚀 <strong>Super moves your freedom date.</strong> Without super: ${p1y}. With super: <strong>${currentYear+Math.round(tot)}</strong> — roughly <strong>${fmt(sv)} sooner</strong>.</div>`:''}
+      <div style="background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;">
+        <div style="font-weight:700;color:var(--warm-brown);margin-bottom:8px;">💡 To close the $${Math.round(gap60/1000)}K shortfall by age 60:</div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--soft-grey)">You currently save</span><span style="font-weight:500;">$${currentWeekly}/week</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--soft-grey)">Extra needed on top</span><span style="font-weight:700;color:#E53935;">+$${extraWeeklyNeeded}/week</span></div>
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:2px solid var(--border);margin-top:4px;"><span style="font-weight:600;color:var(--warm-brown)">Total saving needed</span><span style="font-weight:700;color:var(--fire-orange);">$${totalWeeklyNeeded}/week</span></div>
+      </div>
     </div>`;
   }
+  el.style.display='block';
+  el.innerHTML=`<div style="background:white;border:2px solid #A5D6A7;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+    <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🦘 Your super two-phase timeline</div>
+    <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">Your super compounds quietly in the background. At 60 it unlocks — here's the full picture:</div>
+    <div style="display:flex;flex-direction:column;gap:0;">
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Projected super at age 60</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(s60)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Employer contributions/month</span><span style="font-weight:500">${fmtM(mes)}/mo</span></div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Years until super unlocks</span><span style="font-weight:500">${yts} yrs (age 60)</span></div>
+    </div>
+    ${breakdownHTML}
+    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at 7% annual growth. Employer contributions estimated at 11.5% of gross income. Educational only — not financial advice.</p>
+  </div>`;
+}
 
   function buildDebtCard(debt,savings,mSav,mI,fireNum){
     const el=document.getElementById('debtCard');if(!el||debt<=0){if(el)el.style.display='none';return;}
@@ -388,7 +422,7 @@
     const yb10=yearsToGoalCapped(fireNum,savings,mSav+(mI*0.10),0.07),d10=by-yb10;
     el.style.display='block';
     el.innerHTML=`<div style="background:white;border:2px solid #A5D6A7;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">📈 What if you saved a little more?</div>
+      <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">📈 What if you saved more — without relying on super?</div>
       <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">Small increases compound dramatically over time. Here's what an extra <strong style="color:var(--warm-brown)">$${ew}/week</strong> could do:</div>
       <div style="display:flex;flex-direction:column;gap:0;">
         <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Save $${ew} more/week (5% boost)</span><span style="font-weight:700;color:#2E7D32">${d>0.1?fmt(d)+' sooner':'slight improvement'}</span></div>
