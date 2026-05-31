@@ -138,9 +138,9 @@
         <p id="freedomAgeNote" style="font-size:15px;color:var(--fire-amber);font-weight:500;margin-top:4px;margin-bottom:0;"></p>
         <p class="result-sub" id="resultSub"></p>
         <div class="result-stats">
-          <div class="stat-box"><span class="stat-value" id="savingsRateOut">—</span><span class="stat-name">Savings rate</span></div>
+          <div class="stat-box"><span class="stat-value" id="freedomAgeOut">—</span><span class="stat-name">Your freedom age</span></div>
           <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span></span><div id="inflationNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:6px;font-style:italic;line-height:1.5;"></div></div>
-          <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / month</span></div>
+          <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / week</span><div id="savingsRateNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;"></div></div>
         </div>
         <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;">🔊 Read my results aloud</button>
       </div>
@@ -525,7 +525,8 @@
       if(superBal>0&&age&&age<60)wtm+=` Your super of <strong>${fmtM(superBal)}</strong> is quietly compounding — it unlocks at 60 and could significantly accelerate your timeline.`;
       if(dependants>0)wtm+=` With ${dependants} dependant${dependants>1?'s':''}, your costs may shift as they grow.`;
       document.getElementById('whatThisMeansText').innerHTML=wtm;
-      document.getElementById('savingsRateOut').textContent=sRate+'%';
+      document.getElementById('freedomAgeOut').textContent=freedomAge||'—';
+      document.getElementById('savingsRateNote').textContent=sRate+'% of income';
       document.getElementById('fireNumberOut').textContent=fmtM(fireNum);
       const inflYrs=Math.round(fy||25);
       const futureNum=fireNum*Math.pow(1.03,inflYrs);
