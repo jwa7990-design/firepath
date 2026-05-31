@@ -236,9 +236,6 @@
   </div>
 </div>
 <script>
-  function setStore(k,v){try{localStorage.setItem(k,v);}catch(e){sessionStorage.setItem(k,v);}}
-  function getStore(k){try{const v=localStorage.getItem(k);if(v)return v;}catch(e){}return sessionStorage.getItem(k);}
-  function removeStore(k){try{localStorage.removeItem(k);}catch(e){}try{sessionStorage.removeItem(k);}catch(e){}}
   const _t=getStore('fp_access_token'),_g=getStore('fp_guest');
   if(!_t||_t==='undefined'||_t==='null'){window.location.href='auth.html';}
   let persona=null,selectedCycle='fortnightly',inputMode='type',isListening=false,isContextListening=false;
@@ -275,8 +272,6 @@
   async function savePersonaToDB(pv){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/users`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:fpUserId,email:localStorage.getItem('fp_email')||'',persona:pv})});localStorage.setItem('fp_persona',pv);}catch(e){}}
   async function loadCheckinHistory(){if(!fpToken||!fpUserId)return;try{const res=await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`,{headers:{'Authorization':`Bearer ${fpToken}`}});const data=await res.json();if(Array.isArray(data)&&data.length>0){checkinHistory=data.map(d=>({month:new Date(d.created_at).toLocaleString('default',{month:'short',year:'numeric'}),savings:d.savings_total,sRate:d.savings_rate,diff:null}));streak=data.length;renderHistory();}}catch(e){}}
   async function saveUserContext(age,context){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/calculations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({user_id:fpUserId,age:age||null,context:context||''})});}catch(e){}}
-  async function upgradeToPro(){const userId=getStore('fp_user_id'),email=getStore('fp_email');if(!userId||!email){window.location.href='auth.html';return;}try{const res=await fetch(`${WORKER_URL}/stripe/checkout`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,email})});const data=await res.json();if(data.url)window.location.href=data.url;else alert('Something went wrong.');}catch(e){alert('Something went wrong.');}}
-  async function checkProStatus(){const userId=getStore('fp_user_id'),token=getStore('fp_access_token');if(!userId||!token)return;try{const res=await fetch(`${WORKER_URL}/db/users?id=eq.${userId}&select=is_pro`,{headers:{'Authorization':`Bearer ${token}`}});const data=await res.json();const isPro=data[0]?.is_pro===true;setStore('fp_is_pro',isPro?'true':'false');const mu=document.getElementById('menuUpgradeBtn');if(mu)mu.style.display=isPro?'none':'block';if(!isPro){window.location.href='firepath.html';return;}const nudge=document.getElementById('upgradeNudge');if(nudge)nudge.style.display='none';}catch(e){console.log('Pro check failed',e);}}
 
   document.addEventListener('DOMContentLoaded',async function(){
     await loadSavedInputs();await checkProStatus();
@@ -289,7 +284,6 @@
 
   function saveHMOData(){localStorage.setItem('hmo_fireNum',calcData.fireNum||0);localStorage.setItem('hmo_monthlySav',calcData.mSav||0);localStorage.setItem('hmo_propVal',calcData.propVal||0);}
   function saveActionPlanData(scenario){localStorage.setItem('ap_fireNum',calcData.fireNum||0);localStorage.setItem('ap_monthlySav',calcData.mSav||0);localStorage.setItem('ap_income',calcData.mIncome||0);localStorage.setItem('ap_savings',calcData.savings||0);localStorage.setItem('ap_super',calcData.superBal||0);localStorage.setItem('ap_age',calcData.age||0);localStorage.setItem('ap_sRate',calcData.sRate||0);localStorage.setItem('ap_context',calcData.context||'');localStorage.setItem('ap_persona',persona||'building');localStorage.setItem('ap_cycle',selectedCycle||'fortnightly');localStorage.setItem('ap_scenario',scenario||'save_more');localStorage.setItem('ap_freedomYrs',yearsToGoal(calcData.fireNum,calcData.savings,calcData.mSav,0.07)||0);localStorage.removeItem('ap_saved_plan');}
-  function signOut(){['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k=>removeStore(k));window.location.href='auth.html';}
   function setRetirementSpend(btn){document.querySelectorAll('[data-spend]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');retirementSpendMultiplier=parseFloat(btn.dataset.spend);}
   function toggleMenu(){const menu=document.getElementById('slideMenu'),overlay=document.getElementById('menuOverlay'),isOpen=menu.style.display==='flex';menu.style.display=isOpen?'none':'flex';overlay.style.display=isOpen?'none':'block';}
   function togglePartner(){const f=document.getElementById('partnerFields'),i=document.getElementById('partnerToggleIcon'),v=f.style.display!=='none';f.style.display=v?'none':'block';i.textContent=v?'+':'−';}
@@ -591,10 +585,6 @@
 
   function switchTab(tab){document.querySelectorAll('.tab-btn').forEach((b,i)=>{b.classList.toggle('active',(i===0&&tab==='results')||(i===1&&tab==='accountability'));});document.getElementById('tab-results').classList.toggle('active',tab==='results');document.getElementById('tab-accountability').classList.toggle('active',tab==='accountability');}
 
-  let inactivityTimer;
-  function resetInactivityTimer(){clearTimeout(inactivityTimer);inactivityTimer=setTimeout(()=>{if(localStorage.getItem('fp_access_token')){['fp_access_token','fp_user_id','fp_email','fp_persona','fp_guest'].forEach(k=>localStorage.removeItem(k));alert('You\'ve been signed out due to inactivity.');window.location.href='auth.html';}},20*60*1000);}
-  ['mousemove','keydown','click','scroll','touchstart'].forEach(e=>document.addEventListener(e,resetInactivityTimer));
-  resetInactivityTimer();
 </script>
 </body>
 </html>
