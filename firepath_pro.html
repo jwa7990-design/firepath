@@ -269,20 +269,19 @@
   async function loadCheckinHistory(){if(!fpToken||!fpUserId)return;try{const res=await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`,{headers:{'Authorization':`Bearer ${fpToken}`}});const data=await res.json();if(Array.isArray(data)&&data.length>0){checkinHistory=data.map(d=>({month:new Date(d.created_at).toLocaleString('default',{month:'short',year:'numeric'}),savings:d.savings_total,sRate:d.savings_rate,diff:null}));streak=data.length;renderHistory();}}catch(e){}}
   async function saveUserContext(age,context){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/calculations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({user_id:fpUserId,age:age||null,context:context||''})});}catch(e){}}
 
-  document.addEventListener('DOMContentLoaded',async function(){
-    const{data:{session}}=await supabase.auth.getSession();
-    if(!session){window.location.href='auth.html';return;}
-    fpToken=session.access_token;
-    fpUserId=session.user.id;
-    await loadSavedInputs();await checkProStatus();
-    const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('🔥 Welcome to FirePath Pro!');
-    const uel=document.getElementById('userStatus');if(!uel)return;
-    if(fpToken&&localStorage.getItem('fp_email')){uel.innerHTML=`Signed in as ${localStorage.getItem('fp_email')} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;}
-    else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;}
-    if(savedPersona){persona=savedPersona;document.querySelectorAll('.persona-card').forEach(c=>{if(c.dataset.persona===savedPersona)c.classList.add('selected');});document.getElementById('continueBtn').disabled=false;}
-  });
-
-
+  document.addEventListener('DOMContentLoaded', async function(){
+  const token = getToken();
+  const userId = getUserId();
+  if(!token || !userId){ window.location.href='auth.html'; return; }
+  fpToken = token;
+  fpUserId = userId;
+  await loadSavedInputs(); await checkProStatus();
+  const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('🔥 Welcome to FirePath Pro!');
+  const uel=document.getElementById('userStatus');if(!uel)return;
+  if(localStorage.getItem('fp_email')){uel.innerHTML=`Signed in as ${localStorage.getItem('fp_email')} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;}
+  else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;}
+  if(savedPersona){persona=savedPersona;document.querySelectorAll('.persona-card').forEach(c=>{if(c.dataset.persona===savedPersona)c.classList.add('selected');});document.getElementById('continueBtn').disabled=false;}
+});
 
   function saveHMOData(){localStorage.setItem('hmo_fireNum',calcData.fireNum||0);localStorage.setItem('hmo_monthlySav',calcData.mSav||0);localStorage.setItem('hmo_propVal',calcData.propVal||0);}
   function saveActionPlanData(scenario){localStorage.setItem('ap_fireNum',calcData.fireNum||0);localStorage.setItem('ap_monthlySav',calcData.mSav||0);localStorage.setItem('ap_income',calcData.mIncome||0);localStorage.setItem('ap_savings',calcData.savings||0);localStorage.setItem('ap_super',calcData.superBal||0);localStorage.setItem('ap_age',calcData.age||0);localStorage.setItem('ap_sRate',calcData.sRate||0);localStorage.setItem('ap_context',calcData.context||'');localStorage.setItem('ap_persona',persona||'building');localStorage.setItem('ap_cycle',selectedCycle||'fortnightly');localStorage.setItem('ap_scenario',scenario||'save_more');localStorage.setItem('ap_freedomYrs',yearsToGoal(calcData.fireNum,calcData.savings,calcData.mSav,0.07)||0);localStorage.removeItem('ap_saved_plan');}
