@@ -555,7 +555,7 @@
       document.getElementById('aiLoading').classList.remove('visible');document.getElementById('analyseBtn').style.display='block';
       await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||''});
       await loadCheckinHistory();renderMilestones(fireNum,savings,mSav);showScreen(3);await checkProStatus();
-    }catch(err){document.getElementById('aiLoading').classList.remove('visible');document.getElementById('analyseBtn').style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
+    }catch(err){const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');const ab=document.getElementById('analyseBtn');if(ab)ab.style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
   }
 
   function updateRateRow(){const r=parseFloat(document.getElementById('rateSelector').value),y=yearsToGoal(storedCalc.fireNum,storedCalc.savings,storedCalc.mSav,r),d=storedCalc.y0075&&y?storedCalc.y0075-y:null;document.getElementById('investYears').textContent=fmt(y);document.getElementById('timeSaved').textContent=d&&d>0.1?fmt(d)+' sooner':'similar timeline';}
