@@ -236,15 +236,11 @@
   </div>
 </div>
 <script>
-  const _t=getStore('fp_access_token'),_g=getStore('fp_guest');
-  if(!_t||_t==='undefined'||_t==='null'){window.location.href='auth.html';}
   let persona=null,selectedCycle='fortnightly',inputMode='type',isListening=false,isContextListening=false;
   let recognition=null,retirementSpendMultiplier=1.0,contextRecognition=null,housingStatus='renting',dependants=0;
   let transcriptText='',calcData={},checkinHistory=[],streak=0,storedCalc={};
   const currentYear=new Date().getFullYear();
-  const rawToken=getStore('fp_access_token'),rawUserId=getStore('fp_user_id');
-  const fpToken=(rawToken&&rawToken!=='undefined'&&rawToken!=='null')?rawToken:null;
-  const fpUserId=(rawUserId&&rawUserId!=='undefined'&&rawUserId!=='null')?rawUserId:null;
+  let fpToken=null,fpUserId=null;
   const fpGuest=localStorage.getItem('fp_guest'),savedPersona=localStorage.getItem('fp_persona');
 
   function setHousing(btn){document.querySelectorAll('.housing-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');housingStatus=btn.dataset.housing;}
@@ -274,6 +270,10 @@
   async function saveUserContext(age,context){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/calculations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({user_id:fpUserId,age:age||null,context:context||''})});}catch(e){}}
 
   document.addEventListener('DOMContentLoaded',async function(){
+    const{data:{session}}=await supabase.auth.getSession();
+    if(!session){window.location.href='auth.html';return;}
+    fpToken=session.access_token;
+    fpUserId=session.user.id;
     await loadSavedInputs();await checkProStatus();
     const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('🔥 Welcome to FirePath Pro!');
     const uel=document.getElementById('userStatus');if(!uel)return;
@@ -281,6 +281,8 @@
     else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;}
     if(savedPersona){persona=savedPersona;document.querySelectorAll('.persona-card').forEach(c=>{if(c.dataset.persona===savedPersona)c.classList.add('selected');});document.getElementById('continueBtn').disabled=false;}
   });
+
+
 
   function saveHMOData(){localStorage.setItem('hmo_fireNum',calcData.fireNum||0);localStorage.setItem('hmo_monthlySav',calcData.mSav||0);localStorage.setItem('hmo_propVal',calcData.propVal||0);}
   function saveActionPlanData(scenario){localStorage.setItem('ap_fireNum',calcData.fireNum||0);localStorage.setItem('ap_monthlySav',calcData.mSav||0);localStorage.setItem('ap_income',calcData.mIncome||0);localStorage.setItem('ap_savings',calcData.savings||0);localStorage.setItem('ap_super',calcData.superBal||0);localStorage.setItem('ap_age',calcData.age||0);localStorage.setItem('ap_sRate',calcData.sRate||0);localStorage.setItem('ap_context',calcData.context||'');localStorage.setItem('ap_persona',persona||'building');localStorage.setItem('ap_cycle',selectedCycle||'fortnightly');localStorage.setItem('ap_scenario',scenario||'save_more');localStorage.setItem('ap_freedomYrs',yearsToGoal(calcData.fireNum,calcData.savings,calcData.mSav,0.07)||0);localStorage.removeItem('ap_saved_plan');}
