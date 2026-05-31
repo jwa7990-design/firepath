@@ -134,7 +134,8 @@
     <div class="tab-content active" id="tab-results">
       <div class="result-card">
         <p class="result-label">Your FirePath Pro result</p>
-        <h2 class="result-headline" style="font-size:clamp(20px,5vw,32px);">You could be free in <span id="yearsOut">—</span></h2>
+        <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
+        <p id="freedomAgeNote" style="font-size:15px;color:var(--fire-amber);font-weight:500;margin-top:4px;margin-bottom:0;"></p>
         <p class="result-sub" id="resultSub"></p>
         <div class="result-stats">
           <div class="stat-box"><span class="stat-value" id="savingsRateOut">—</span><span class="stat-name">Savings rate</span></div>
@@ -515,7 +516,9 @@
       const csl=selectedCycle==='weekly'?'Saved / week':selectedCycle==='fortnightly'?'Saved / fortnight':'Saved / month';
       const cs=inputMode==='type'?mSavAmt:(selectedCycle==='weekly'?mSav*12/52:selectedCycle==='fortnightly'?mSav*12/26:mSav);
       const freedomAge=age?Math.round(age+(fy||0)):null;
-      document.getElementById('yearsOut').textContent=fmt(yearsToGoal(fireNum,savings,mSav,0.07))+(freedomAge?` — at age ${freedomAge}`:'');
+      document.getElementById('yearsOut').textContent=fmt(yearsToGoal(fireNum,savings,mSav,0.07));
+      const fan=document.getElementById('freedomAgeNote');
+      if(fan)fan.textContent=freedomAge?`At age ${freedomAge}`:'';
       const wsav=(mSav*12/52).toFixed(0),onT=mSav>0&&fy!==null;
       let wtm=onT?`You need <strong>$${Math.round(fireNum).toLocaleString()}</strong> to be free. You currently have <strong>$${Math.round(savings).toLocaleString()}</strong> — a gap of <strong>$${Math.round(fireNum-savings).toLocaleString()}</strong>. At your current savings rate of <strong>$${wsav}/week</strong> you're on track to get there in <strong>${fmt(yearsToGoal(fireNum,savings,mSav,0.07))}</strong>.`:`Enter your savings to see what this means for you.`;
       if(debt>0)wtm+=` You also have <strong>${fmtM(debt)}</strong> in debt — clearing this could free up more to invest.`;
