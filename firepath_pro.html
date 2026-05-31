@@ -395,73 +395,41 @@
   </div>`;
 }
 
-  function buildDebtCard(debt,savings,mSav,mI,fireNum){
-    const el=document.getElementById('debtCard');if(!el||debt<=0){if(el)el.style.display='none';return;}
-    const em=Math.max(debt*0.03,debt/36),mtp=Math.ceil(debt/em),ytp=(mtp/12).toFixed(1),bm=mSav+em;
-    const by=yearsToGoalCapped(fireNum,savings,mSav,0.07),ay=yearsToGoalCapped(fireNum,savings,bm,0.07),diff=by-ay;
+  function buildBoostCard(savings,mSav,mI,fireNum,currentPersona){
+    const el=document.getElementById('boostCard');if(!el)return;
+    const intros={
+      beginner:`🌱 <strong>Life has a way of getting more expensive over time</strong> — kids, travel, health, upgrades you didn't plan for. Here's what that could mean for your timeline.`,
+      building:`📈 <strong>Lifestyle creep is one of the biggest risks to your freedom date.</strong> Here's how different spending trajectories change your timeline.`,
+      fire:`🔥 <strong>Modelling spending growth is critical</strong> — most FIRE calculators assume flat real spending. Here's what lifestyle inflation does to your number.`
+    };
+    const labels={
+      beginner:['Same as now','A bit more','Quite a bit more','A lot more'],
+      building:['Same','＋15%','＋30%','＋50%'],
+      fire:['Flat','＋15% real','＋30% real','＋50% real']
+    };
+    const multipliers=[1.0,1.15,1.30,1.50];
+    const p=currentPersona||'building';
+    const intro=intros[p]||intros.building;
+    const labs=labels[p]||labels.building;
+    const baseYrs=yearsToGoalCapped(fireNum,savings,mSav,0.07);
+    const resultLines=multipliers.map((m,i)=>{
+      const newFireNum=fireNum*m;
+      const newYrs=yearsToGoalCapped(newFireNum,savings,mSav,0.07);
+      const diff=Math.round((newYrs-baseYrs)*10)/10;
+      const diffText=diff<=0?'No change':`+${fmt(diff)} longer`;
+      return{label:labs[i],diff:diffText,yrs:fmt(newYrs),active:i===0};
+    });
     el.style.display='block';
     el.innerHTML=`<div style="background:white;border:2px solid #FFD54F;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">💳 What if you cleared your debt first?</div>
-      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">You have <strong style="color:var(--warm-brown)">${fmtM(debt)}</strong> in debt. Once it's gone, the money you were putting toward repayments could go straight into building your freedom number instead.</div>
-      <div style="display:flex;flex-direction:column;gap:0;">
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Estimated payoff time</span><span style="font-weight:500">${ytp} yrs</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Freed-up monthly saving</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(em)}/month extra</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Freedom date impact</span><span style="font-weight:700;color:var(--fire-orange)">${diff>0.1?fmt(diff)+' sooner':'slight improvement'}</span></div>
+      <div style="font-size:13px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">💸 What if your lifestyle gets more expensive?</div>
+      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:16px;">${intro}</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        ${resultLines.map((r,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:${i===0?'#FFF7F3':'var(--warm-cream)'};border-radius:10px;border:1.5px solid ${i===0?'rgba(244,98,42,0.3)':'var(--border)'};font-size:13px;"><span style="font-weight:500;color:var(--warm-brown);">${r.label}</span><span style="font-weight:700;color:${i===0?'var(--fire-orange)':'#E53935'};">${i===0?r.yrs:r.diff}</span></div>`).join('')}
       </div>
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Assumes repayment amount redirected to savings after debt is cleared.</p>
+      <div style="font-size:12px;color:var(--soft-grey);font-style:italic;line-height:1.6;">${p==='beginner'?'💡 This isn\'t meant to scare you — it\'s just worth knowing. Small choices now can protect your future freedom.':p==='building'?'💡 Lifestyle creep is gradual and invisible until it isn\'t. Awareness is the first step.':'💡 Real spending growth materially impacts SWR sustainability. Worth stress-testing your model.'}</div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice.</p>
     </div>`;
   }
-
-  buildBoostCard(savings,mSav,mI,fireNum,persona);
-  const el=document.getElementById('boostCard');if(!el)return;
-  
-  const intros={
-    beginner:`🌱 <strong>Life has a way of getting more expensive over time</strong> — kids, travel, health, upgrades you didn't plan for. Here's what that could mean for your timeline.`,
-    building:`📈 <strong>Lifestyle creep is one of the biggest risks to your freedom date.</strong> Here's how different spending trajectories change your timeline.`,
-    fire:`🔥 <strong>Modelling spending growth is critical</strong> — most FIRE calculators assume flat real spending. Here's what lifestyle inflation does to your number.`
-  };
-  
-  const labels={
-    beginner:['Same as now','A bit more','Quite a bit more','A lot more'],
-    building:['Same','＋15%','＋30%','＋50%'],
-    fire:['Flat','＋15% real','＋30% real','＋50% real']
-  };
-
-  const multipliers=[1.0,1.15,1.30,1.50];
-  const p=currentPersona||'building';
-  const intro=intros[p]||intros.building;
-  const labs=labels[p]||labels.building;
-  
-  const baseYrs=yearsToGoalCapped(fireNum,savings,mSav,0.07);
-  
-  const resultLines=multipliers.map((m,i)=>{
-    const newFireNum=fireNum*m;
-    const newYrs=yearsToGoalCapped(newFireNum,savings,mSav,0.07);
-    const diff=Math.round((newYrs-baseYrs)*10)/10;
-    const diffText=diff<=0?'No change':`+${fmt(diff)} longer`;
-    return{label:labs[i],diff:diffText,yrs:fmt(newYrs),active:i===0};
-  });
-
-  el.style.display='block';
-  el.innerHTML=`<div style="background:white;border:2px solid #FFD54F;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-    <div style="font-size:13px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">💸 What if your lifestyle gets more expensive?</div>
-    <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:16px;">${intro}</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-      ${resultLines.map((r,i)=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:${i===0?'#FFF7F3':'var(--warm-cream)'};border-radius:10px;border:1.5px solid ${i===0?'rgba(244,98,42,0.3)':'var(--border)'};font-size:13px;">
-          <span style="font-weight:500;color:var(--warm-brown);">${r.label}</span>
-          <span style="font-weight:700;color:${i===0?'var(--fire-orange)':'#E53935'};">${i===0?r.yrs:r.diff}</span>
-        </div>`).join('')}
-    </div>
-    <div style="font-size:12px;color:var(--soft-grey);font-style:italic;line-height:1.6;">${
-      p==='beginner'?'💡 This isn\'t meant to scare you — it\'s just worth knowing. Small choices now can protect your future freedom.':
-      p==='building'?'💡 Lifestyle creep is gradual and invisible until it isn\'t. Awareness is the first step.':
-      '💡 Real spending growth materially impacts SWR sustainability. Worth stress-testing your model.'
-    }</div>
-    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice.</p>
-  </div>`;
-}
-
 
   function buildHouseCard(housing,debt,savings,mSav,fireNum){
     const el=document.getElementById('houseCard');if(!el)return;
@@ -577,7 +545,7 @@
 
       buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum);
       buildDebtCard(debt,savings,mSav,mI,fireNum);
-      buildBoostCard(savings,mSav,mI,fireNum);
+      buildBoostCard(savings,mSav,mI,fireNum,persona);
       buildHouseCard(housingStatus,debt,savings,mSav,fireNum);
 
       const paf=parseInt(document.getElementById('partnerAge').value)||0,psf=parseFloat(document.getElementById('partnerSuper').value)||0;
