@@ -240,8 +240,23 @@
     const validToken = token && token !== 'undefined' && token !== 'null' && token !== '';
     const validUser  = userId && userId !== 'undefined' && userId !== 'null' && userId !== '';
     if (validToken && validUser) {
-    window.location.href = 'firepath_pro.html';
-  }
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('upgrade') === 'true') {
+        // Call Stripe directly
+        const userId = getStore('fp_user_id');
+        const email = getStore('fp_email');
+        fetch(`${WORKER_URL}/stripe/checkout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, email })
+        }).then(r => r.json()).then(data => {
+          if(data.url) window.location.href = data.url;
+          else window.location.href = 'firepath_pro.html';
+        }).catch(() => window.location.href = 'firepath_pro.html');
+      } else {
+        window.location.href = 'firepath_pro.html';
+      }
+    }
 
     else {
       removeStore('fp_access_token');
