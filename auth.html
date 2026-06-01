@@ -238,15 +238,12 @@
     const validToken = token && token !== 'undefined' && token !== 'null' && token !== '';
     const validUser  = userId && userId !== 'undefined' && userId !== 'null' && userId !== '';
     if (validToken && validUser) {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('upgrade') === 'true') {
-  window.location.href = 'firepath_pro.html?upgrade=true';
-  return;
-}
-  else {
-    window.location.href = 'firepath_pro.html';
+    if (params.get('upgrade') === 'true') {
+      window.location.href = 'firepath_pro.html?upgrade=true';
+    } else {
+      window.location.href = 'firepath_pro.html';
+    }
   }
-}
     else {
       removeStore('fp_access_token');
       removeStore('fp_user_id');
