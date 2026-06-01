@@ -53,7 +53,7 @@ function isLoggedIn() {
    Clears all auth state and redirects to auth page.
 ──────────────────────────────────────────────────────────── */
 function signOut() {
-  ['fp_access_token', 'fp_user_id', 'fp_email', 'fp_persona', 'fp_guest'].forEach(k => removeStore(k));
+  ['fp_access_token', 'fp_user_id', 'fp_email', 'fp_persona', 'fp_guest', 'fp_is_pro'].forEach(k => removeStore(k));
   window.location.href = 'auth.html';
 }
 
@@ -134,7 +134,7 @@ function resetInactivityTimer() {
   clearTimeout(_inactivityTimer);
   _inactivityTimer = setTimeout(() => {
     if (getToken()) {
-      ['fp_access_token', 'fp_user_id', 'fp_email', 'fp_persona', 'fp_guest'].forEach(k => localStorage.removeItem(k));
+      ['fp_access_token', 'fp_user_id', 'fp_email', 'fp_persona', 'fp_guest', 'fp_is_pro'].forEach(k => localStorage.removeItem(k));
       alert('You\'ve been signed out due to inactivity.');
       window.location.href = 'auth.html';
     }
