@@ -227,12 +227,14 @@
   const type = hash.get('type');
 
   if (type === 'signup' && accessToken) {
-    showTab('login');
-    const msg = document.createElement('p');
-    msg.style.cssText = 'color:#2E7D32;font-size:13px;text-align:center;margin-top:12px;background:#E8F5E9;padding:10px;border-radius:8px;';
-    msg.textContent = '✓ Email confirmed! Sign in to your account.';
-    document.getElementById('loginForm').appendChild(msg);
-  } else {
+  setStore('fp_access_token', accessToken);
+  const refreshToken = hash.get('refresh_token');
+  if(refreshToken) setStore('fp_refresh_token', refreshToken);
+  const userData = JSON.parse(atob(accessToken.split('.')[1]));
+  if(userData.sub) setStore('fp_user_id', userData.sub);
+  if(userData.email) setStore('fp_email', userData.email);
+  window.location.href = 'auth.html?upgrade=true';
+} else {
     const token = getStore('fp_access_token');
     const userId = getStore('fp_user_id');
     const validToken = token && token !== 'undefined' && token !== 'null' && token !== '';
