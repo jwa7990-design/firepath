@@ -534,7 +534,16 @@
       const csl=selectedCycle==='weekly'?'Saved / week':selectedCycle==='fortnightly'?'Saved / fortnight':'Saved / month';
       const cs=inputMode==='type'?mSavAmt:(selectedCycle==='weekly'?mSav*12/52:selectedCycle==='fortnightly'?mSav*12/26:mSav);
       const freedomAge=age?Math.round(age+(fy||0)):null;
-      document.getElementById('yearsOut').textContent=fmt(yearsToGoal(fireNum,savings,mSav,0.07));
+      const fy_display = yearsToGoal(fireNum,savings,mSav,0.07);
+      const freedomAge_display = age ? Math.round(age + (fy_display||0)) : null;
+
+      if(freedomAge_display && freedomAge_display > 70 && superBal > 0){
+        // Lead with super story for later starters
+        document.getElementById('yearsOut').textContent = `${fmt(yearsToGoalCapped(fireNum, savings+superBal, mSav, 0.07))} with super`;
+        document.querySelector('.result-label').textContent = 'Your FirePath Pro result — super included';
+      } else {
+        document.getElementById('yearsOut').textContent = fmt(fy_display);
+      }
       const fan=document.getElementById('freedomAgeNote');
       if(fan)fan.textContent=freedomAge?`At age ${freedomAge}`:'';
       const wsav=(mSav*12/52).toFixed(0),onT=mSav>0&&fy!==null;
@@ -559,7 +568,9 @@
  
       document.getElementById('monthlySavingOut').textContent=fmtM(cs);
       document.getElementById('stat3label').textContent=csl;
-      document.getElementById('resultSub').textContent=`Saving ${fmtM(cs)} per ${cw} toward your ${persona==='fire'?'FI':'freedom'} number of ${fmtM(fireNum)}.`;
+      document.getElementById('resultSub').textContent = freedomAge_display && freedomAge_display > 70 && superBal > 0 
+        ? `Super unlocks at 60 — that's your real accelerator. Your freedom number is ${fmtM(fireNum)}.`
+        : `Saving ${fmtM(cs)} per ${cw} toward your ${persona==='fire'?'FI':'freedom'} number of ${fmtM(fireNum)}.`;
 
       buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum);
       buildDebtCard(debt,savings,mSav,mI,fireNum);
