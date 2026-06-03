@@ -451,7 +451,7 @@
 
   function buildHouseCard(housing,debt,savings,mSav,fireNum){
     const el=document.getElementById('houseCard');if(!el)return;
-    const show=housing==='renting'&&debt===0&&savings<200000&&fireNum>savings;
+    const show=housing==='renting'&&debt===0&&savings<200000&&fireNum>savings&&persona!=='fire';
     if(!show){el.style.display='none';return;}
     const t=100000,yb=yearsToGoal(t,savings,mSav,0.0075),y5=yearsToGoal(t,savings,mSav,0.05),diff=yb&&y5?yb-y5:null,inf=Math.round(t*Math.pow(1.04,y5||3)/1000)*1000;
     el.style.display='block';
@@ -538,11 +538,14 @@
       const freedomAge_display = age ? Math.round(age + (fy_display||0)) : null;
 
       if(freedomAge_display && freedomAge_display > 70 && superBal > 0){
-        // Lead with super story for later starters
-        document.getElementById('yearsOut').textContent = `${fmt(yearsToGoalCapped(fireNum, savings+superBal, mSav, 0.07))} with super`;
-        document.querySelector('.result-label').textContent = 'Your FirePath Pro result — super included';
+        document.getElementById('freedomAgeOut').textContent='60';
+        document.getElementById('freedomAgeOut').nextElementSibling.textContent='Super unlocks at';
+      } else if(freedomAge_display && freedomAge_display <= 70 && superBal > 0 && age < 60){
+        document.getElementById('freedomAgeOut').textContent=freedomAge||'—';
+        document.getElementById('freedomAgeOut').nextElementSibling.textContent='Your freedom age';
       } else {
-        document.getElementById('yearsOut').textContent = fmt(fy_display);
+        document.getElementById('freedomAgeOut').textContent=freedomAge||'—';
+        document.getElementById('freedomAgeOut').nextElementSibling.textContent='Your freedom age';
       }
       const fan=document.getElementById('freedomAgeNote');
       if(fan)fan.textContent=freedomAge?`At age ${freedomAge}`:'';
