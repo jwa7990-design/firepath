@@ -522,7 +522,8 @@
       else if(ag==='senior'&&superBal>0){const ws=yearsToGoal(fireNum,savings+superBal,mSav,0.07),syr=ws?currentYear+Math.round(ws):null,sd=fy&&ws?fy-ws:null;if(sd&&sd>0.3)scenarios.push({emoji:'🏦',title:'Including your super (accessible now)',description:`With your ${fmtM(superBal)} super now accessible, your combined wealth is ${fmtM(savings+superBal)}. Your freedom date could be <strong>${syr}</strong> — <strong>${fmt(sd)} sooner</strong>.`});}
       const isRenting=housingStatus==='renting';
       if(isRenting&&savings<200000){const it=Math.round(100000*Math.pow(1.04,3)/10000)*10000,d5=yearsToGoal(it,savings,mSav,0.05);if(d5){const da=Math.round(100000*Math.pow(1.04,d5)/1000)*1000;scenarios.push({emoji:'🏡',title:'House deposit scenario',description:`At your savings rate you'd reach a deposit around <strong>${currentYear+Math.round(d5)}</strong> — but by then today's $100K deposit will cost roughly <strong>$${Math.round(da/1000)}K</strong>. Educational only.`});}}
-      if(debt>0)scenarios.push({emoji:'💳',title:`Clear $${Math.round(debt/1000)}K debt first`,description:`Paying off your debt frees up money currently going to interest. Once cleared, redirecting that repayment into savings could meaningfully accelerate your timeline.`});
+      if(ag==='senior'&&fy&&fy>25)wtm+=` <em>Worth noting — your current spending includes work-related costs that often reduce in retirement. Selecting "Less" above adjusts your freedom number to reflect a more realistic retirement lifestyle.</em>`;
+      if(debt>0)wtm+=` You also have <strong>${fmtM(debt)}</strong> in debt — clearing this could free up more to invest.`;
       const scenHTML=scenarios.length>0?scenarios.map(s=>`<div class="scenario-block"><div class="scenario-title">${s.emoji} ${s.title}</div><div class="scenario-body">${s.description}</div></div>`).join(''):'';
 
       document.getElementById('loadingText').textContent='Generating your personalised insight...';
