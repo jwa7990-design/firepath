@@ -221,34 +221,36 @@
     el.style.display = 'block';
   }
 
-  // Check if already logged in
+   // Check if already logged in
   const hash = new URLSearchParams(window.location.hash.slice(1));
   const accessToken = hash.get('access_token');
   const type = hash.get('type');
 
   if (type === 'signup' && accessToken) {
-  setStore('fp_access_token', accessToken);
-  const refreshToken = hash.get('refresh_token');
-  if(refreshToken) setStore('fp_refresh_token', refreshToken);
-  const userData = JSON.parse(atob(accessToken.split('.')[1]));
-  if(userData.sub) setStore('fp_user_id', userData.sub);
-  if(userData.email) setStore('fp_email', userData.email);
-  window.location.href = 'auth.html?upgrade=true';
-} else {
+    setStore('fp_access_token', accessToken);
+    const refreshToken = hash.get('refresh_token');
+    if(refreshToken) setStore('fp_refresh_token', refreshToken);
+    try {
+      const userData = JSON.parse(atob(accessToken.split('.')[1]));
+      if(userData.sub) setStore('fp_user_id', userData.sub);
+      if(userData.email) setStore('fp_email', userData.email);
+    } catch(e) {}
+    window.location.href = 'auth.html?upgrade=true';
+  } else {
     const token = getStore('fp_access_token');
     const userId = getStore('fp_user_id');
     const validToken = token && token !== 'undefined' && token !== 'null' && token !== '';
     const validUser  = userId && userId !== 'undefined' && userId !== 'null' && userId !== '';
+
     if (validToken && validUser) {
       const params = new URLSearchParams(window.location.search);
       if (params.get('upgrade') === 'true') {
-        // Call Stripe directly
-        const userId = getStore('fp_user_id');
+        const uid = getStore('fp_user_id');
         const email = getStore('fp_email');
         fetch(`${WORKER_URL}/stripe/checkout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, email })
+          body: JSON.stringify({ userId: uid, email })
         }).then(r => r.json()).then(data => {
           if(data.url) window.location.href = data.url;
           else window.location.href = 'firepath_pro.html';
@@ -256,9 +258,7 @@
       } else {
         window.location.href = 'firepath_pro.html';
       }
-    }
-
-    else {
+    } else {
       removeStore('fp_access_token');
       removeStore('fp_user_id');
       removeStore('fp_email');
@@ -267,7 +267,5 @@
   }
   
 </script>
-<script src="js/auth.js"></script>
-<script src="js/calculations.js"></script>
 </body>
 </html>
