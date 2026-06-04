@@ -6,31 +6,38 @@
 const TOUR_STEPS = [
   {
     emoji: '✍️',
-    tag: 'STEP 1 OF 4',
+    tag: 'STEP 1 OF 5',
     title: 'Be honest with us',
     body: 'The more accurate your numbers, the more useful your results. Income, savings, super, age — put in what\'s real. No judgement. FirePath only works if you give it something true to work with.',
     cta: 'Got it →',
   },
   {
     emoji: '🔥',
-    tag: 'STEP 2 OF 4',
+    tag: 'STEP 2 OF 5',
     title: 'Your results page',
     body: 'Once you submit, you\'ll see your freedom number — the amount you need invested to never have to work again. You\'ll also see your freedom age and how long it\'ll take at your current savings rate.',
     cta: 'Show me more →',
   },
   {
     emoji: '🧮',
-    tag: 'STEP 3 OF 4',
+    tag: 'STEP 3 OF 5',
     title: 'Run your "what if" scenarios',
     body: 'The Hear Me Out calculators let you stress-test your plan. What if you got a pay rise? Sold an asset? Moved somewhere cheaper? Model it and see exactly how many years it shaves off — or adds on.',
     cta: 'One more →',
   },
   {
     emoji: '🗺️',
-    tag: 'STEP 4 OF 4',
+    tag: 'STEP 4 OF 5',
     title: 'Things worth exploring',
     body: 'FirePath surfaces questions and ideas tailored to your numbers — things most people don\'t think to ask but probably should. It\'s where the real optimisation happens.',
-    cta: 'Let\'s go →',
+    cta: 'Nearly there →',
+  },
+  {
+    emoji: '💬',
+    tag: 'STEP 5 OF 5',
+    title: 'Have an idea or hit a snag?',
+    body: 'Got an idea for FirePath or experiencing an issue? We\'d love to hear from you. Tap the feedback link in the menu and the team will get back to you as soon as possible.',
+    cta: 'Let\'s go 🔥',
   },
 ];
 
