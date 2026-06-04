@@ -196,38 +196,141 @@
       <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
     </div>
 
-    <!-- Accountability tab -->
-    <div class="tab-content" id="tab-accountability">
-      <div class="milestone" id="milestone"><span class="milestone-emoji" id="milestoneEmoji">🎉</span><div class="milestone-text" id="milestoneText"></div></div>
-      <div class="accountability-card">
-        <div class="acc-header"><div class="acc-title">Your Path</div><div class="status-dot" id="statusDot"><div class="dot green"></div><span id="statusText">On track</span></div></div>
-        <div class="progress-path">
-          <p class="path-label">Progress to freedom</p>
-          <div class="path-track"><div class="path-fill" id="pathFill" style="width:0%"></div></div>
-          <div class="path-markers"><span>Start</span><span id="progressPct">0%</span><span>Freedom 🔥</span></div>
-          <div style="margin-bottom:20px;"><p class="path-label">Your milestones</p><div id="milestonesRoadmap" style="display:flex;flex-direction:column;gap:8px;"></div></div>
-        </div>
-        <div style="display:flex;gap:10px;margin-bottom:20px">
-          <div class="stat-box" style="background:var(--warm-cream)"><span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accFreedomDate">—</span><span class="stat-name" style="opacity:0.7">Freedom date</span></div>
-          <div class="stat-box" style="background:var(--warm-cream)"><span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accPortfolio">—</span><span class="stat-name" style="opacity:0.7">Portfolio today</span></div>
-          <div class="stat-box" style="background:var(--warm-cream)"><span class="stat-value" style="color:var(--warm-brown);font-size:16px" id="accYearsToGo">—</span><span class="stat-name" style="opacity:0.7">Years to go</span></div>
-        </div>
-        <div class="checkin-section">
-          <div class="checkin-title">Monthly check-in</div>
-          <div class="checkin-sub">Update your numbers — watch your freedom date move.</div>
-          <div class="checkin-inputs">
-            <div class="checkin-row"><span class="checkin-label">Income this cycle</span><div class="checkin-input-wrap"><span class="checkin-prefix">$</span><input type="number" class="checkin-input" id="ci-income" placeholder="0"/></div></div>
-            <div class="checkin-row"><span class="checkin-label">Savings rate %</span><div class="checkin-input-wrap"><span class="checkin-prefix">%</span><input type="number" class="checkin-input" id="ci-rate" placeholder="0" style="padding-left:22px"/></div></div>
-            <div class="checkin-row"><span class="checkin-label">Total savings now</span><div class="checkin-input-wrap"><span class="checkin-prefix">$</span><input type="number" class="checkin-input" id="ci-savings" placeholder="0"/></div></div>
+    <!-- Accountability tab — My Progress -->
+      <div class="tab-content" id="tab-accountability">
+
+      <!-- Milestone flash -->
+      <div class="milestone" id="milestone">
+        <span class="milestone-emoji" id="milestoneEmoji">🎉</span>
+        <div class="milestone-text" id="milestoneText"></div>
+      </div>
+
+      <!-- SECTION 1: Commitment -->
+      <div id="commitSection" style="margin-bottom:16px;">
+
+        <!-- No commitment yet -->
+        <div id="noCommitCard" style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;color:white;text-align:center;">
+          <div style="font-size:36px;margin-bottom:12px;">🔥</div>
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;line-height:1.3;">Commit to your future self</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.7;margin-bottom:24px;">Based on what you've just learned — what extra amount will you commit to saving? Every time you log back in and confirm you hit it, you earn a 🔥.</div>
+
+          <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:20px;margin-bottom:20px;text-align:left;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:14px;">My commitment</div>
+
+            <!-- Frequency selector -->
+            <div style="margin-bottom:16px;">
+              <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">I'll save this extra amount every:</div>
+              <div style="display:flex;gap:8px;">
+                <button onclick="setCommitCycle(this,'weekly')" data-cycle="weekly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Weekly</button>
+                <button onclick="setCommitCycle(this,'fortnightly')" data-cycle="fortnightly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Fortnightly</button>
+                <button onclick="setCommitCycle(this,'monthly')" data-cycle="monthly" class="commit-cycle-btn active-cycle" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid var(--fire-orange);background:rgba(244,98,42,0.2);color:white;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Monthly</button>
+              </div>
+            </div>
+
+            <!-- Amount input -->
+            <div style="margin-bottom:16px;">
+              <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Extra amount I'll save:</div>
+              <div style="display:flex;align-items:center;background:rgba(255,255,255,0.1);border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);overflow:hidden;">
+                <span style="padding:12px 14px;color:rgba(255,255,255,0.5);font-size:16px;">$</span>
+                <input type="number" id="commitAmount" placeholder="0" min="0"
+                  style="flex:1;background:transparent;border:none;outline:none;color:white;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;padding:12px 8px 12px 0;"
+                  oninput="updateCommitPreview()"/>
+              </div>
+            </div>
+
+            <!-- Preview — shows impact on freedom date -->
+            <div id="commitPreview" style="display:none;background:rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;"></div>
           </div>
-          <button class="cta-btn" onclick="doCheckin()">Update my path 🔥</button>
+
+          <button onclick="saveCommitment()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border:none;border-radius:14px;color:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0.3px;">
+            I commit to this 🔥
+          </button>
+        </div>
+
+        <!-- Has commitment -->
+        <div id="hasCommitCard" style="display:none;">
+
+          <!-- Commitment header -->
+          <div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;color:white;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:6px;">Your commitment</div>
+            <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--fire-amber);" id="commitDisplay">—</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px;" id="commitStreakLine">—</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:8px;font-style:italic;" id="commitImpactLine"></div>
+
+            <!-- Streak flames -->
+            <div id="streakFlames" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:16px;min-height:28px;"></div>
+
+            <button onclick="resetCommitment()" style="margin-top:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;">
+              Change commitment
+            </button>
+          </div>
+
+          <!-- Check-in card -->
+          <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:12px;">
+            <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:4px;">Log your check-in 🔥</div>
+            <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:20px;" id="checkinDueLabel">Did you hit your target this period?</div>
+
+            <div style="display:flex;gap:10px;margin-bottom:16px;">
+              <button onclick="logCheckin(true)" style="flex:1;padding:14px;background:linear-gradient(135deg,#2E7D32,#43A047);border:none;border-radius:12px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">
+                ✅ Yes, I hit it!
+              </button>
+              <button onclick="logCheckin(false)" style="flex:1;padding:14px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:12px;color:var(--warm-brown);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">
+                Not this time
+              </button>
+            </div>
+
+            <!-- Update portfolio -->
+            <div style="border-top:1px solid var(--border);padding-top:16px;">
+              <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:10px;">Update your portfolio balance (optional):</div>
+              <div style="display:flex;align-items:center;background:var(--warm-cream);border-radius:10px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:10px;">
+                <span style="padding:10px 12px;color:var(--soft-grey);font-size:14px;">$</span>
+                <input type="number" id="ci-savings" placeholder="Current total savings" min="0"
+                  style="flex:1;background:transparent;border:none;outline:none;color:var(--warm-brown);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 8px 10px 0;"/>
+              </div>
+              <div style="font-size:11px;color:var(--soft-grey);font-style:italic;">This updates your freedom date in real time.</div>
+            </div>
+          </div>
+
+          <!-- Progress stats -->
+          <div style="display:flex;gap:10px;margin-bottom:12px;">
+            <div class="stat-box" style="background:var(--warm-cream);flex:1;">
+              <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accFreedomDate">—</span>
+              <span class="stat-name" style="opacity:0.7;">Freedom date</span>
+            </div>
+            <div class="stat-box" style="background:var(--warm-cream);flex:1;">
+              <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accPortfolio">—</span>
+              <span class="stat-name" style="opacity:0.7;">Portfolio today</span>
+            </div>
+            <div class="stat-box" style="background:var(--warm-cream);flex:1;">
+              <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accYearsToGo">—</span>
+              <span class="stat-name" style="opacity:0.7;">Years to go</span>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
+            <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:10px;">Progress to freedom</div>
+            <div class="path-track"><div class="path-fill" id="pathFill" style="width:0%"></div></div>
+            <div class="path-markers" style="margin-top:6px;"><span>Start</span><span id="progressPct">0%</span><span>Freedom 🔥</span></div>
+          </div>
+
+          <!-- Milestones -->
+          <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
+            <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:12px;">Your milestones</div>
+            <div id="milestonesRoadmap" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+
         </div>
       </div>
-      <div class="accountability-card" id="historyCard" style="display:none"><div class="history-title">Check-in history</div><div id="historyList"></div></div>
+
+      <!-- Check-in history -->
+      <div id="historyCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:600;color:var(--warm-brown);margin-bottom:12px;">Check-in history</div>
+        <div id="historyList"></div>
+      </div>
+
       <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.</p>
     </div>
-  </div>
-</div>
 <script>
   let persona=null,selectedCycle='fortnightly',inputMode='type',isListening=false,isContextListening=false;
   let recognition=null,retirementSpendMultiplier=1.0,contextRecognition=null,housingStatus='renting',dependants=0;
@@ -573,7 +676,7 @@
       const pct=Math.min(Math.round((savings/fireNum)*100),100);
       document.getElementById('pathFill').style.width=pct+'%';document.getElementById('progressPct').textContent=pct+'%';
       document.getElementById('accFreedomDate').textContent=fyear?fyear:'100+ yrs';document.getElementById('accPortfolio').textContent=fmtM(savings);document.getElementById('accYearsToGo').textContent=fy?Math.round(fy)+'yrs':'—';
-      document.getElementById('ci-income').value=mInc||Math.round(mI);document.getElementById('ci-rate').value=sRate;document.getElementById('ci-savings').value=savings;
+      document.getElementById('ci-savings').value=savings;
       document.getElementById('aiLoading').classList.remove('visible');document.getElementById('analyseBtn').style.display='block';
       await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||''});
       await loadCheckinHistory();renderMilestones(fireNum,savings,mSav);showScreen(3);await checkProStatus();
@@ -583,36 +686,191 @@
   function updateRateRow(){const r=parseFloat(document.getElementById('rateSelector').value),y=yearsToGoal(storedCalc.fireNum,storedCalc.savings,storedCalc.mSav,r),d=storedCalc.y0075&&y?storedCalc.y0075-y:null;document.getElementById('investYears').textContent=fmt(y);document.getElementById('timeSaved').textContent=d&&d>0.1?fmt(d)+' sooner':'similar timeline';}
   function toggleTooltip(el){el.classList.toggle('active');}
 
-  async function doCheckin(){
-    const ni=parseFloat(document.getElementById('ci-income').value)||calcData.mIncome,nr=parseFloat(document.getElementById('ci-rate').value)||calcData.sRate,ns=parseFloat(document.getElementById('ci-savings').value)||calcData.savings;
-    const cr=Math.min(nr,90),nm=toMonthly(ni)*(cr/100),nf=((toMonthly(ni)-nm)*12)*25,ny=yearsToGoal(nf,ns,nm,0.07),oy=yearsToGoal(calcData.fireNum,calcData.savings,calcData.mSav,0.07),diff=oy&&ny?oy-ny:null;
-    calcData.mSav=nm;calcData.savings=ns;calcData.fireNum=nf;calcData.sRate=nr;streak++;
-    const pct=Math.min(Math.round((ns/nf)*100),100);
-    document.getElementById('pathFill').style.width=pct+'%';document.getElementById('progressPct').textContent=pct+'%';document.getElementById('accPortfolio').textContent=fmtM(ns);document.getElementById('accYearsToGo').textContent=ny?Math.round(ny)+'yrs':'—';document.getElementById('accFreedomDate').textContent=ny?new Date().getFullYear()+Math.round(ny):'100+ yrs';
-    const dot=document.getElementById('statusDot'),txt=document.getElementById('statusText');
-    if(diff&&diff>0.1){dot.querySelector('.dot').className='dot green';txt.textContent='On track 🟢';}else if(diff&&diff<-0.1){dot.querySelector('.dot').className='dot red';txt.textContent='Needs attention 🔴';}else{dot.querySelector('.dot').className='dot amber';txt.textContent='Steady 🟡';}
-    if(diff&&diff>0)showMilestone(diff,pct);
-    await dbInsert('checkins',{savings_total:ns,savings_rate:Math.round(nr),freedom_years:ny?Math.round(ny*10)/10:null,streak});
-    checkinHistory.unshift({month:new Date().toLocaleString('default',{month:'short',year:'numeric'}),diff,savings:ns,sRate:nr});renderHistory();
+// ── Commitment state ──
+  let commitCycle = 'monthly';
+  let commitmentData = null;
+
+  function setCommitCycle(btn, cycle) {
+    document.querySelectorAll('.commit-cycle-btn').forEach(b => {
+      b.style.borderColor = 'rgba(255,255,255,0.2)';
+      b.style.background = 'transparent';
+      b.style.color = 'rgba(255,255,255,0.7)';
+    });
+    btn.style.borderColor = 'var(--fire-orange)';
+    btn.style.background = 'rgba(244,98,42,0.2)';
+    btn.style.color = 'white';
+    commitCycle = cycle;
+    updateCommitPreview();
   }
 
-  function showMilestone(diff,pct){
-    const m=document.getElementById('milestone'),e=document.getElementById('milestoneEmoji'),t=document.getElementById('milestoneText');let msg='';
-    if(pct>=100){e.textContent='🎉';msg=`<strong>You've done it!</strong> Your portfolio has hit your freedom number.`;}
-    else if(pct>=75){e.textContent='🔥';msg=`<strong>75% of the way there!</strong> Your freedom date moved <strong>${fmt(diff)} closer</strong>.`;}
-    else if(pct>=50){e.textContent='💪';msg=`<strong>Halfway to freedom!</strong> Your date moved <strong>${fmt(diff)} closer</strong>.`;}
-    else{e.textContent='✨';msg=`Your freedom date moved <strong>${fmt(diff)} closer</strong>. Every month compounds.`;}
-    t.innerHTML=msg;m.classList.add('visible');setTimeout(()=>m.classList.remove('visible'),8000);
+  function updateCommitPreview() {
+    const amount = parseFloat(document.getElementById('commitAmount').value) || 0;
+    const preview = document.getElementById('commitPreview');
+    if (amount <= 0) { preview.style.display = 'none'; return; }
+
+    const cycleLabel = commitCycle === 'weekly' ? 'week' : commitCycle === 'fortnightly' ? 'fortnight' : 'month';
+    const totalCheckins = commitCycle === 'weekly' ? 52 : commitCycle === 'fortnightly' ? 26 : 12;
+
+    // Convert commitment to monthly
+    const commitMonthly = commitCycle === 'weekly' ? amount * 52 / 12 : commitCycle === 'fortnightly' ? amount * 26 / 12 : amount;
+
+    // Current monthly savings from calcData
+    const currentMonthly = calcData.mSav || 0;
+    const currentCycleAmount = commitCycle === 'weekly' ? Math.round(currentMonthly * 12 / 52) : commitCycle === 'fortnightly' ? Math.round(currentMonthly * 12 / 26) : Math.round(currentMonthly);
+    const extra = amount - currentCycleAmount;
+    const newTotalMonthly = currentMonthly + commitMonthly;
+
+    // New freedom date based on current + extra
+    const fireNum = calcData.fireNum || 0;
+    const savings = calcData.savings || 0;
+    const currentYrs = yearsToGoal(fireNum, savings, currentMonthly, 0.07);
+    const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
+    const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
+    const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
+
+    preview.style.display = 'block';
+    preview.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div>💰 <strong style="color:white;">Extra $${amount.toLocaleString()}/${cycleLabel}</strong> on top of what you already save</div>
+        ${diff && diff > 0.1
+          ? `<div>🔥 Moves your freedom date to <strong style="color:var(--fire-amber);">${newDate}</strong> — <strong style="color:var(--fire-amber);">${fmt(diff)} sooner</strong></div>`
+          : diff && diff < -0.1
+          ? `<div>⚠️ At this rate your freedom date shifts back by <strong style="color:#FFD54F;">${fmt(Math.abs(diff))}</strong></div>`
+          : newDate ? `<div>📅 Freedom date stays around <strong style="color:var(--fire-amber);">${newDate}</strong></div>` : ''}
+        <div style="opacity:0.6;font-size:12px;">${totalCheckins} check-ins to earn your 🔥 flames this year</div>
+      </div>
+    `;
   }
 
-  function renderHistory(){
-    const card=document.getElementById('historyCard'),list=document.getElementById('historyList');
-    if(checkinHistory.length===0){card.style.display='none';return;}card.style.display='block';
-    list.innerHTML=checkinHistory.map(h=>`<div class="history-item"><span class="history-date">${h.month}</span><span>${fmtM(h.savings)} saved</span><span class="history-change ${h.diff>0?'positive':'negative'}">${h.diff>0?'↓ '+fmt(h.diff)+' sooner':h.diff<0?'↑ '+fmt(Math.abs(h.diff))+' later':'→ no change'}</span></div>`).join('');
+  function saveCommitment() {
+    const amount = parseFloat(document.getElementById('commitAmount').value) || 0;
+    if (amount <= 0) { alert('Please enter an amount first.'); return; }
+
+    // Calculate and store impact
+    const commitMonthly = commitCycle === 'weekly' ? amount * 52 / 12 : commitCycle === 'fortnightly' ? amount * 26 / 12 : amount;
+    const newTotalMonthly = (calcData.mSav || 0) + commitMonthly;
+    const fireNum = calcData.fireNum || 0;
+    const savings = calcData.savings || 0;
+    const currentYrs = yearsToGoal(fireNum, savings, calcData.mSav || 0, 0.07);
+    const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
+    const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
+    const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
+
+    commitmentData = {
+      amount, cycle: commitCycle,
+      startDate: new Date().toISOString(),
+      streak: 0, hits: [],
+      impactText: diff && diff > 0.1 ? `Moves freedom date to ${newDate} — ${fmt(diff)} sooner` : '',
+    };
+    localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
+    renderCommitmentView();
   }
 
-  function switchTab(tab){document.querySelectorAll('.tab-btn').forEach((b,i)=>{b.classList.toggle('active',(i===0&&tab==='results')||(i===1&&tab==='accountability'));});document.getElementById('tab-results').classList.toggle('active',tab==='results');document.getElementById('tab-accountability').classList.toggle('active',tab==='accountability');}
+  function resetCommitment() {
+    if (!confirm('Reset your commitment? Your streak will be lost.')) return;
+    localStorage.removeItem('fp_commitment');
+    commitmentData = null;
+    document.getElementById('noCommitCard').style.display = 'block';
+    document.getElementById('hasCommitCard').style.display = 'none';
+  }
 
+  function loadCommitment() {
+    const saved = localStorage.getItem('fp_commitment');
+    if (saved) { try { commitmentData = JSON.parse(saved); } catch(e) { commitmentData = null; } }
+    renderCommitmentView();
+  }
+
+  function renderCommitmentView() {
+    if (!commitmentData) {
+      document.getElementById('noCommitCard').style.display = 'block';
+      document.getElementById('hasCommitCard').style.display = 'none';
+      return;
+    }
+    document.getElementById('noCommitCard').style.display = 'none';
+    document.getElementById('hasCommitCard').style.display = 'block';
+
+    const { amount, cycle, streak, hits, impactText } = commitmentData;
+    const cycleLabel = cycle === 'weekly' ? 'week' : cycle === 'fortnightly' ? 'fortnight' : 'month';
+    const totalPossible = cycle === 'weekly' ? 52 : cycle === 'fortnightly' ? 26 : 12;
+
+    document.getElementById('commitDisplay').textContent = `Extra $${amount.toLocaleString()} / ${cycleLabel}`;
+    document.getElementById('commitStreakLine').textContent = `${streak} of ${totalPossible} check-ins completed · ${hits.length} 🔥 earned`;
+
+    const impactEl = document.getElementById('commitImpactLine');
+    if (impactEl) impactEl.textContent = impactText || '';
+
+    // Render flames
+    const flamesEl = document.getElementById('streakFlames');
+    flamesEl.innerHTML = '';
+    for (let i = 0; i < totalPossible; i++) {
+      const flame = document.createElement('span');
+      flame.style.fontSize = '16px';
+      flame.style.opacity = i < hits.length ? '1' : '0.15';
+      flame.textContent = '🔥';
+      flamesEl.appendChild(flame);
+    }
+
+    document.getElementById('checkinDueLabel').textContent = `Did you save an extra $${amount.toLocaleString()} this ${cycleLabel}?`;
+  }
+
+  function logCheckin(hit) {
+    if (!commitmentData) return;
+    commitmentData.streak = (commitmentData.streak || 0) + 1;
+    if (hit) commitmentData.hits.push(new Date().toISOString());
+    localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
+    renderCommitmentView();
+
+    const newSavings = parseFloat(document.getElementById('ci-savings').value) || 0;
+    if (newSavings > 0 && calcData.fireNum) {
+      const mSav = calcData.mSav || 0;
+      const fireNum = calcData.fireNum;
+      const ny = yearsToGoal(fireNum, newSavings, mSav, 0.07);
+      const pct = Math.min(Math.round((newSavings / fireNum) * 100), 100);
+      document.getElementById('pathFill').style.width = pct + '%';
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('accPortfolio').textContent = fmtM(newSavings);
+      document.getElementById('accYearsToGo').textContent = ny ? Math.round(ny) + ' yrs' : '—';
+      document.getElementById('accFreedomDate').textContent = ny ? currentYear + Math.round(ny) : '100+ yrs';
+      const oy = yearsToGoal(fireNum, calcData.savings, mSav, 0.07);
+      calcData.savings = newSavings;
+      renderMilestones(fireNum, newSavings, mSav);
+      if (hit && oy && ny) showMilestone(oy - ny, pct);
+      dbInsert('checkins', { savings_total: newSavings, savings_rate: calcData.sRate || 0, freedom_years: ny ? Math.round(ny * 10) / 10 : null, streak: commitmentData.streak });
+      checkinHistory.unshift({ month: new Date().toLocaleString('default', { month: 'short', year: 'numeric' }), savings: newSavings, hit });
+      renderHistory();
+    }
+
+    const feedbackEl = document.createElement('div');
+    feedbackEl.innerHTML = hit
+      ? '<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame! Keep going.</div>'
+      : '<div style="background:#FFF7F3;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:var(--warm-brown);font-weight:500;margin-bottom:12px;">No worries — next one is yours.</div>';
+    const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
+    if (checkinCard) checkinCard.insertAdjacentElement('afterend', feedbackEl);
+    setTimeout(() => feedbackEl.remove(), 4000);
+  }
+
+  function showMilestone(diff, pct) {
+    const m = document.getElementById('milestone'), e = document.getElementById('milestoneEmoji'), t = document.getElementById('milestoneText');
+    let msg = '';
+    if (pct >= 100) { e.textContent = '🎉'; msg = `<strong>You've done it!</strong> Your portfolio has hit your freedom number.`; }
+    else if (pct >= 75) { e.textContent = '🔥'; msg = `<strong>75% of the way there!</strong> Your freedom date moved <strong>${fmt(diff)} closer</strong>.`; }
+    else if (pct >= 50) { e.textContent = '💪'; msg = `<strong>Halfway to freedom!</strong> Your date moved <strong>${fmt(diff)} closer</strong>.`; }
+    else if (diff > 0) { e.textContent = '✨'; msg = `Your freedom date moved <strong>${fmt(diff)} closer</strong>. Every period compounds.`; }
+    if (msg) { t.innerHTML = msg; m.classList.add('visible'); setTimeout(() => m.classList.remove('visible'), 8000); }
+  }
+
+  function renderHistory() {
+    const card = document.getElementById('historyCard'), list = document.getElementById('historyList');
+    if (checkinHistory.length === 0) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    list.innerHTML = checkinHistory.map(h => `<div class="history-item"><span class="history-date">${h.month}</span><span>${h.savings ? fmtM(h.savings) + ' saved' : '—'}</span><span class="history-change ${h.hit ? 'positive' : 'negative'}">${h.hit ? '🔥 Hit it' : '→ Missed'}</span></div>`).join('');
+  }
+
+  function loadCommitmentOnTabSwitch(tab) {
+    if (tab === 'accountability') loadCommitment();
+  }
+  function switchTab(tab){document.querySelectorAll('.tab-btn').forEach((b,i)=>{b.classList.toggle('active',(i===0&&tab==='results')||(i===1&&tab==='accountability'));});document.getElementById('tab-results').classList.toggle('active',tab==='results');document.getElementById('tab-accountability').classList.toggle('active',tab==='accountability');loadCommitmentOnTabSwitch(tab);}
+  
 </script>
 </body>
 </html>
