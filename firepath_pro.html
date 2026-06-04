@@ -104,7 +104,7 @@
               <div class="input-group" style="margin-bottom:0"><label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div></div>
             </div>
           </div>
-          <label class="context-label">Tell us honestly about your situation 🎤</label>
+          <label class="context-label">Tell us honestly about your situation</label>
           <p class="context-sub">Share as much as you like — family, property, caring responsibilities, goals, worries.</p>
           <div class="context-wrapper"><textarea class="context-textarea" id="context" oninput="debounceSaveContext()" placeholder="e.g. I have two kids, a mortgage, and I'm looking after my elderly father..."></textarea></div>
         </div>
@@ -296,24 +296,6 @@
   function setInputMode(mode){inputMode=mode;document.getElementById('typeToggle').classList.toggle('active',mode==='type');document.getElementById('voiceToggle').classList.toggle('active',mode==='voice');document.getElementById('typeMode').style.display=mode==='type'?'block':'none';document.getElementById('voiceMode').classList.toggle('visible',mode==='voice');}
   function setCycle(btn){document.querySelectorAll('.cycle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedCycle=btn.dataset.cycle;updateSavingsHint();const w=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';document.getElementById('partnerCycleLabel').textContent=w;document.getElementById('partnerCycleLabel2').textContent=w;}
 
-  function toggleListening(){
-    if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){alert('Voice input needs Chrome or Edge.');return;}
-    if(isListening){recognition.stop();return;}
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;recognition=new SR();recognition.continuous=true;recognition.interimResults=true;recognition.lang='en-AU';let st=null;
-    recognition.onstart=()=>{isListening=true;document.getElementById('micBtn').classList.add('listening');document.getElementById('micBtn').textContent='⏹';document.getElementById('micLabel').textContent='Listening... tap to stop';document.getElementById('transcriptBox').classList.add('visible');};
-    recognition.onresult=(e)=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;transcriptText=t;document.getElementById('transcriptBox').textContent=t||'...';clearTimeout(st);st=setTimeout(()=>{if(isListening)recognition.stop();},4000);};
-    recognition.onend=()=>{isListening=false;document.getElementById('micBtn').classList.remove('listening');document.getElementById('micBtn').textContent='🎤';document.getElementById('micLabel').textContent=transcriptText?'Got it! Hit analyse when ready.':'Tap the mic and speak naturally';};
-    recognition.start();
-  }
-  function toggleContextMic(){
-    if(!('webkitSpeechRecognition'in window)&&!('SpeechRecognition'in window)){alert('Voice input needs Chrome or Edge.');return;}
-    if(isContextListening){contextRecognition.stop();return;}
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;contextRecognition=new SR();contextRecognition.continuous=true;contextRecognition.interimResults=true;contextRecognition.lang='en-AU';
-    contextRecognition.onstart=()=>{isContextListening=true;document.getElementById('contextMicBtn').classList.add('listening');document.getElementById('contextMicBtn').textContent='⏹';};
-    contextRecognition.onresult=(e)=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++)t+=e.results[i][0].transcript;document.getElementById('context').value=t;};
-    contextRecognition.onend=()=>{isContextListening=false;document.getElementById('contextMicBtn').classList.remove('listening');document.getElementById('contextMicBtn').textContent='🎤';};
-    contextRecognition.start();
-  }
   function readResultsAloud(){if(!('speechSynthesis'in window)){alert('Not supported.');return;}window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(`Your FirePath result. You could be free in ${document.getElementById('yearsOut').textContent}. ${document.getElementById('resultSub').textContent}. ${document.getElementById('aiInsightText').textContent.replace(/[🧠🏠💰✂️🏡📈🏦]/g,'')}`);u.lang='en-AU';u.rate=0.95;window.speechSynthesis.speak(u);}
 
   // ── Pro smart card builders ──
