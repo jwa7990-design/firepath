@@ -32,7 +32,10 @@
   .success-title { font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:12px; }
   .success-sub { font-size:14px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.7;margin-bottom:24px; }
   .success-sig { font-size:13px;color:rgba(255,255,255,0.5);font-style:italic; }
-</style>
+  @keyframes fadeUp { from { opacity:0;transform:translateY(16px); } to { opacity:1;transform:translateY(0); } }
+  input[type="email"] { width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--warm-brown);background:white;outline:none;box-sizing:border-box;transition:border-color 0.2s; }
+  input[type="email"]:focus { border-color:var(--fire-orange); }
+  </style>
 </head>
 <body>
 
@@ -93,8 +96,75 @@
 
     <p class="disclaimer">Everything you share stays between us and goes straight into making FirePath better.</p>
   </div>
+
+  <!-- Success state -->
+  <div class="success-card" id="successCard">
+    <span class="success-emoji">🔥</span>
+    <div class="success-title">Thank you — genuinely.</div>
+    <p class="success-sub">We read every response and your feedback goes straight into shaping what FirePath becomes. We'll be in touch if you left your email.</p>
+    <p class="success-sig">— The FirePath team</p>
+    <a href="firepath_pro.html" style="display:inline-block;margin-top:24px;background:rgba(255,255,255,0.15);color:white;padding:12px 24px;border-radius:50px;font-size:13px;font-weight:500;text-decoration:none;">← Back to FirePath</a>
   </div>
-  <script src="js/auth.js"></script>
-  <script src="js/calculations.js"></script>
+
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/calculations.js"></script>
+<script>
+  let selectedRating = 0;
+
+  function selectRating(btn) {
+    // Clear all selected states
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    // Select this one
+    btn.classList.add('selected');
+    selectedRating = parseInt(btn.dataset.rating);
+    // Update label
+    const labels = ['', 'Not useful', 'Somewhat useful', 'Pretty useful', 'Very useful', 'Loved it 🔥'];
+    document.getElementById('ratingLabel').textContent = labels[selectedRating];
+  }
+
+  async function submitFeedback() {
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    const payload = {
+      rating: selectedRating || null,
+      gaps: document.getElementById('q1').value.trim() || null,
+      confusing: document.getElementById('q2').value.trim() || null,
+      bring_back: document.getElementById('q3').value.trim() || null,
+      other: document.getElementById('q4').value.trim() || null,
+      email: document.getElementById('feedbackEmail').value.trim() || null,
+      submitted_at: new Date().toISOString(),
+    };
+
+    try {
+      // Save to Supabase if logged in
+      const token = typeof getToken === 'function' ? getToken() : null;
+      const userId = typeof getUserId === 'function' ? getUserId() : null;
+
+      if (token && userId) {
+        await fetch(`${WORKER_URL}/db/feedback`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({ ...payload, user_id: userId }),
+        });
+      }
+    } catch (e) {
+      console.log('Feedback save error:', e);
+      // Still show success — don't block on DB errors
+    }
+
+    // Show success state regardless
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('successCard').classList.add('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
 </body>
 </html>
