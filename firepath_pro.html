@@ -74,10 +74,10 @@
           <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
           <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
         </div>
-        <div class="input-group"><label class="input-label" id="incomeLabel">Take-home income</label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint()"/></div></div>
-        <div class="input-group"><label class="input-label" id="savingsRateLabel">How much do you save?</label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savingsAmount" placeholder="0" min="0" oninput="updateSavingsHint()"/></div><div class="savings-hint" id="savingsHintPct"></div></div>
+        <div class="input-group"><label class="input-label" id="incomeLabel">Take-home income</label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint();updateInputHint('income','incomeHint')"/></div><div class="savings-hint" id="incomeHint"></div></div>
+        <div class="input-group"><label class="input-label" id="savingsRateLabel">How much do you save?</label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savingsAmount" placeholder="0" min="0" oninput="updateSavingsHint();updateInputHint('savingsAmount','savingsAmtHint')"/></div><div class="savings-hint" id="savingsHintPct"></div><div class="savings-hint" id="savingsAmtHint"></div></div>
         <div class="divider"></div>
-        <div class="input-group"><label class="input-label" id="savingsLabel">Current savings &amp; investments</label><div class="input-hint" id="savingsHint">e.g. bank savings, shares, ETFs — or your mortgage offset/ahead amount</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savings" placeholder="0" min="0"/></div></div>
+        <div class="input-group"><label class="input-label" id="savingsLabel">Current savings &amp; investments</label><div class="input-hint" id="savingsHint">e.g. bank savings, shares, ETFs — or your mortgage offset/ahead amount</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savings" placeholder="0" min="0" oninput="updateInputHint('savings','savingsHintFormatted')"/></div><div class="savings-hint" id="savingsHintFormatted"></div></div>
         <div class="input-group"><label class="input-label">In retirement, how much do you expect to spend?</label><p class="input-hint">This adjusts your freedom number.</p>
           <div class="cycle-group" style="margin-bottom:0">
             <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less 📉<div style="font-size:10px;margin-top:2px;opacity:0.7">Mortgage paid, kids grown</div></button>
@@ -85,11 +85,11 @@
             <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More 🌏<div style="font-size:10px;margin-top:2px;opacity:0.7">Travel, experiences</div></button>
           </div>
         </div>
-        <div class="super-group"><label class="input-label">Superannuation <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Your super is separate — we'll show you when it comes into play</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="superBalance" placeholder="0" min="0" oninput="updateSuperNote()"/></div><div class="super-note locked" id="superNote" style="display:none"></div></div>
+        <div class="super-group"><label class="input-label">Superannuation <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Your super is separate — we'll show you when it comes into play</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="superBalance" placeholder="0" min="0" oninput="updateSuperNote();updateInputHint('superBalance','superHint')"/></div><div class="savings-hint" id="superHint"></div><div class="super-note locked" id="superNote" style="display:none"></div></div>
         <div class="input-group"><label class="input-label">Your age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="age" placeholder="0" min="16" max="80" style="padding-left:44px" oninput="updateSuperNote();debounceSaveContext()"/></div></div>
         <div class="section-divider"><span>Debt</span></div>
-        <div class="input-group"><label class="input-label">Total debt <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Credit cards, car loans, personal loans — not your mortgage</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="debtTotal" placeholder="0" min="0"/></div></div>
-        <div class="input-group"><label class="input-label">Mortgage remaining <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Only if you own</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="mortgageRemaining" placeholder="0" min="0"/></div></div>
+        <div class="input-group"><label class="input-label">Total debt <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Credit cards, car loans, personal loans — not your mortgage</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="debtTotal" placeholder="0" min="0" oninput="updateInputHint('debtTotal','debtHint')"/></div><div class="savings-hint" id="debtHint"></div></div>
+        <div class="input-group"><label class="input-label">Mortgage remaining <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Only if you own</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="mortgageRemaining" placeholder="0" min="0" oninput="updateInputHint('mortgageRemaining','mortgageHint')"/></div><div class="savings-hint" id="mortgageHint"></div></div>
         <div class="section-divider"><span>Your situation</span></div>
         <div class="input-group"><label class="input-label">Do you rent or own?</label><div class="housing-group"><button class="housing-btn active" data-housing="renting" onclick="setHousing(this)">🏠 Renting</button><button class="housing-btn" data-housing="owning" onclick="setHousing(this)">🔑 Own my home</button></div></div>
         <div class="counter-row"><div class="counter-label">Dependants (kids, caring responsibilities)</div><div class="counter-controls"><button class="counter-btn" onclick="adjustDependants(-1)">−</button><span class="counter-val" id="dependantsVal">0</span><button class="counter-btn" onclick="adjustDependants(1)">+</button></div></div>
@@ -98,10 +98,10 @@
             <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;"><div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div></div><div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);">+</div></div>
             <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
               <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
-              <div class="input-group"><label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0"/></div></div>
-              <div class="input-group"><label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0"/></div></div>
+              <div class="input-group"><label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0" oninput="updateInputHint('partnerIncome','partnerIncomeHint')"/></div><div class="savings-hint" id="partnerIncomeHint"></div></div>
+              <div class="input-group"><label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0" oninput="updateInputHint('partnerSavings','partnerSavingsHint')"/></div><div class="savings-hint" id="partnerSavingsHint"></div></div>
               <div class="input-group"><label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/></div></div>
-              <div class="input-group" style="margin-bottom:0"><label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div></div>
+              <div class="input-group" style="margin-bottom:0"><label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0" oninput="updateInputHint('partnerSuper','partnerSuperHint')"/></div><div class="savings-hint" id="partnerSuperHint"></div></div>
             </div>
           </div>
           <label class="context-label">Tell us honestly about your situation</label>
@@ -145,6 +145,7 @@
       </div>
 
       <!-- Pro smart cards — injected by JS, sit before AI insight -->
+      <div id="zeroSavingsCard" style="display:none"></div>
       <div id="superTimelineCard" style="display:none"></div>
       <div id="debtCard" style="display:none"></div>
       <div id="boostCard" style="display:none"></div>
@@ -340,6 +341,7 @@
   if (!hint) return;
   hint.textContent = val >= 1000 ? '$' + val.toLocaleString('en-AU') : '';
 }
+
   let persona=null,selectedCycle='fortnightly',inputMode='type',isListening=false,isContextListening=false;
   let recognition=null,retirementSpendMultiplier=1.0,contextRecognition=null,housingStatus='renting',dependants=0;
   let transcriptText='',calcData={},checkinHistory=[],streak=0,storedCalc={};
@@ -550,6 +552,34 @@
       <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice.</p>
     </div>`;
   }
+  function buildZeroSavingsCard(mI, fireNum, isPro) {
+    const el = document.getElementById('zeroSavingsCard');
+    if (!el) return;
+    const weeklyIncome = Math.round(mI * 12 / 52);
+    const smallSave = 50;
+    const medSave = Math.round(weeklyIncome * 0.05);
+    const smallYrs = yearsToGoal(fireNum, 0, smallSave * 52 / 12, 0.07);
+    const medYrs = yearsToGoal(fireNum, 0, medSave * 52 / 12, 0.07);
+    const smallDate = smallYrs ? currentYear + Math.round(smallYrs) : null;
+    const medDate = medYrs ? currentYear + Math.round(medYrs) : null;
+    const proNudge = isPro ? '' : `
+      <div style="background:rgba(244,98,42,0.08);border:1.5px solid rgba(244,98,42,0.2);border-radius:12px;padding:14px;margin-top:16px;">
+        <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:4px;">💡 Not sure where to find extra savings?</div>
+        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:10px;">FirePath Pro analyses your situation and gives you personalised ideas based on your income, lifestyle and goals — not generic tips.</div>
+        <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">Try Pro free for 7 days</div>
+      </div>`;
+    el.style.display = 'block';
+    el.innerHTML = `<div style="background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:var(--fire-orange);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🌱 You're not saving yet — but that's exactly why you're here</div>
+      <div style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;margin-bottom:16px;">Right now every dollar is going out the door. That's okay — knowing that is the starting point. Even a small amount saved consistently changes the picture dramatically.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        ${smallDate ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#FFF7F3;border-radius:10px;border:1.5px solid rgba(244,98,42,0.2);font-size:13px;"><div><span style="font-weight:500;color:var(--warm-brown);">If you saved $${smallSave}/week</span><div style="font-size:11px;color:var(--soft-grey);margin-top:2px;">A coffee a day</div></div><span style="font-weight:700;color:var(--fire-orange);">Free by ${smallDate}</span></div>` : ''}
+        ${medDate && medSave > smallSave ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--warm-cream);border-radius:10px;border:1.5px solid var(--border);font-size:13px;"><div><span style="font-weight:500;color:var(--warm-brown);">If you saved $${medSave}/week</span><div style="font-size:11px;color:var(--soft-grey);margin-top:2px;">5% of your income</div></div><span style="font-weight:700;color:var(--fire-orange);">Free by ${medDate}</span></div>` : ''}
+      </div>
+      <div style="font-size:12px;color:var(--soft-grey);font-style:italic;line-height:1.6;">The best time to start was yesterday. The second best time is now.</div>
+      ${proNudge}
+    </div>`;
+  }
 
   function renderMilestones(fireNum,savings,mSav){
     const c=document.getElementById('milestonesRoadmap');if(!c)return;
@@ -592,6 +622,7 @@
       const age=ext.age||(inputMode==='type'?mAge:null),context=ext.context||(inputMode==='type'?mCtx:'');
       const debt=inputMode==='type'?mDebt:0,mortgage=inputMode==='type'?mMort:0;
       const fireNum=(mSp*12*retirementSpendMultiplier)*25,sRate=mI>0?Math.round((mSav/mI)*100):0;
+      const isZeroSavings = mSavAmt <= 0;
       calcData={mIncome:mI,mSpend:mSp,mSav,savings,superBal,fireNum,sRate,age,context,propVal:0,debt,mortgage,housingStatus,dependants};
       const fy=yearsToGoal(fireNum,savings,mSav,0.07),fyear=fy?currentYear+Math.round(fy):null;
 
@@ -606,8 +637,6 @@
       else if(ag==='senior'&&superBal>0){const ws=yearsToGoal(fireNum,savings+superBal,mSav,0.07),syr=ws?currentYear+Math.round(ws):null,sd=fy&&ws?fy-ws:null;if(sd&&sd>0.3)scenarios.push({emoji:'🏦',title:'Including your super (accessible now)',description:`With your ${fmtM(superBal)} super now accessible, your combined wealth is ${fmtM(savings+superBal)}. Your freedom date could be <strong>${syr}</strong> — <strong>${fmt(sd)} sooner</strong>.`});}
       const isRenting=housingStatus==='renting';
       if(isRenting&&savings<200000){const it=Math.round(100000*Math.pow(1.04,3)/10000)*10000,d5=yearsToGoal(it,savings,mSav,0.05);if(d5){const da=Math.round(100000*Math.pow(1.04,d5)/1000)*1000;scenarios.push({emoji:'🏡',title:'House deposit scenario',description:`At your savings rate you'd reach a deposit around <strong>${currentYear+Math.round(d5)}</strong> — but by then today's $100K deposit will cost roughly <strong>$${Math.round(da/1000)}K</strong>. Educational only.`});}}
-      if(ag==='senior'&&fy&&fy>25)wtm+=` <em>Worth noting — your current spending includes work-related costs that often reduce in retirement. Selecting "Less" above adjusts your freedom number to reflect a more realistic retirement lifestyle.</em>`;
-      if(debt>0)wtm+=` You also have <strong>${fmtM(debt)}</strong> in debt — clearing this could free up more to invest.`;
       const scenHTML=scenarios.length>0?scenarios.map(s=>`<div class="scenario-block"><div class="scenario-title">${s.emoji} ${s.title}</div><div class="scenario-body">${s.description}</div></div>`).join(''):'';
 
       document.getElementById('loadingText').textContent='Generating your personalised insight...';
@@ -633,21 +662,34 @@
         document.getElementById('freedomAgeOut').textContent=freedomAge||'—';
         document.getElementById('freedomAgeOut').nextElementSibling.textContent='Your freedom age';
       }
-
-
+      if (isZeroSavings) {
+        document.getElementById('yearsOut').textContent = 'not yet calculated';
+        document.querySelector('.result-label').textContent = 'Your FirePath Pro result';
+        document.getElementById('freedomAgeOut').textContent = '—';
+        document.getElementById('resultSub').textContent = `Your freedom number is ${fmtM(fireNum)}. Start saving and watch this change.`;
+        document.getElementById('monthlySavingOut').textContent = '$0';
+      }
+      
       const fan=document.getElementById('freedomAgeNote');
       if(fan)fan.textContent=freedomAge?`At age ${freedomAge}`:'';
       const wsav=(mSav*12/52).toFixed(0),onT=mSav>0&&fy!==null;
       const inflYrs=Math.round(fy||25);
       const futureNum=fireNum*Math.pow(1.03,inflYrs);
-      let wtm=onT?`Your freedom number is <strong>${fmtM(fireNum)}</strong>. You currently have <strong>$${Math.round(savings).toLocaleString()}</strong> — a gap of <strong>$${Math.round(fireNum-savings).toLocaleString()}</strong>. At your current savings rate of <strong>$${wsav}/week</strong> you're on track to get there in <strong>${fmt(yearsToGoal(fireNum,savings,mSav,0.07))}</strong>.`:`Enter your savings to see what this means for you.`;
-      if(ag==='senior'&&fy&&fy>25)wtm+=` <em>Worth noting — your current spending includes work-related costs that often reduce in retirement. Selecting "Less" above adjusts your freedom number to reflect that.</em>`;
-      if(debt>0)wtm+=` You also have <strong>${fmtM(debt)}</strong> in debt — clearing this could free up more to invest.`;
-      if(superBal>0&&age&&age<60)wtm+=` Your <strong>${fmtM(superBal)}</strong> super is quietly compounding in the background — it unlocks at 60 and could significantly shorten your timeline.`;
-      if(dependants>0)wtm+=` With ${dependants} dependant${dependants>1?'s':''}, your costs may shift as they grow.`;
-      wtm+=` Keep in mind — <strong>${fmtM(fireNum)}</strong> in today's dollars will need to work harder over ${inflYrs} years as prices rise. Where you save matters as much as how much you save. The cards below explore what different approaches could mean for your timeline.`;
+      let wtm;
+      if (isZeroSavings) {
+        wtm = `You're not saving right now — and that's exactly where FirePath starts. Your freedom number is <strong>${fmtM(fireNum)}</strong>, based on your current spending. The gap feels large, but the first step doesn't have to be. Even $50/week invested consistently starts compounding in your favour.`;
+        if (superBal>0&&age&&age<60) wtm += ` Your <strong>${fmtM(superBal)}</strong> super is already working quietly in the background — it unlocks at 60 regardless of what you save today.`;
+      } else {
+        const onT = mSav>0&&fy!==null;
+        wtm = onT ? `Your freedom number is <strong>${fmtM(fireNum)}</strong>. You currently have <strong>$${Math.round(savings).toLocaleString()}</strong> — a gap of <strong>$${Math.round(fireNum-savings).toLocaleString()}</strong>. At your current savings rate of <strong>$${wsav}/week</strong> you're on track to get there in <strong>${fmt(yearsToGoal(fireNum,savings,mSav,0.07))}</strong>.` : `Enter your savings to see what this means for you.`;
+        if(ag==='senior'&&fy&&fy>25)wtm+=` <em>Worth noting — your current spending includes work-related costs that often reduce in retirement. Selecting "Less" above adjusts your freedom number to reflect that.</em>`;
+        if(debt>0)wtm+=` You also have <strong>${fmtM(debt)}</strong> in debt — clearing this could free up more to invest.`;
+        if(superBal>0&&age&&age<60)wtm+=` Your <strong>${fmtM(superBal)}</strong> super is quietly compounding in the background — it unlocks at 60 and could significantly shorten your timeline.`;
+        if(dependants>0)wtm+=` With ${dependants} dependant${dependants>1?'s':''}, your costs may shift as they grow.`;
+        wtm+=` Keep in mind — <strong>${fmtM(fireNum)}</strong> in today's dollars will need to work harder over ${inflYrs} years as prices rise. Where you save matters as much as how much you save. The cards below explore what different approaches could mean for your timeline.`;
+      }
       document.getElementById('whatThisMeansText').innerHTML=wtm;
-      
+
       document.getElementById('savingsRateNote').textContent=sRate+'% of income';
       document.getElementById('fireNumberOut').textContent=fmtM(fireNum);
       const inflationNotes={
@@ -663,10 +705,20 @@
         ? `Your freedom number is ${fmtM(fireNum)}. Super at 60 could significantly shorten your timeline.`
         : `Saving ${fmtM(cs)} per ${cw} toward your ${persona==='fire'?'FI':'freedom'} number of ${fmtM(fireNum)}.`;
 
-      buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum);
-      buildDebtCard(debt,savings,mSav,mI,fireNum);
-      buildBoostCard(savings,mSav,mI,fireNum,persona);
-      buildHouseCard(housingStatus,debt,savings,mSav,fireNum);
+      const isPro = localStorage.getItem('fp_pro') === 'true';
+      if (isZeroSavings) {
+        buildZeroSavingsCard(mI, fireNum, isPro);
+        document.getElementById('superTimelineCard').style.display='none';
+        document.getElementById('debtCard').style.display='none';
+        document.getElementById('boostCard').style.display='none';
+        document.getElementById('houseCard').style.display='none';
+      } else {
+        document.getElementById('zeroSavingsCard').style.display='none';
+        buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum);
+        buildDebtCard(debt,savings,mSav,mI,fireNum);
+        buildBoostCard(savings,mSav,mI,fireNum,persona);
+        buildHouseCard(housingStatus,debt,savings,mSav,fireNum);
+      }
 
       const paf=parseInt(document.getElementById('partnerAge').value)||0,psf=parseFloat(document.getElementById('partnerSuper').value)||0;
       if((superBal>0&&age)||(psf>0&&paf)){
