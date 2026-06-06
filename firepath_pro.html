@@ -334,6 +334,12 @@
       <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.</p>
     </div>
 <script>
+  function updateInputHint(inputId, hintId) {
+  const val = parseFloat(document.getElementById(inputId).value) || 0;
+  const hint = document.getElementById(hintId);
+  if (!hint) return;
+  hint.textContent = val >= 1000 ? '$' + val.toLocaleString('en-AU') : '';
+}
   let persona=null,selectedCycle='fortnightly',inputMode='type',isListening=false,isContextListening=false;
   let recognition=null,retirementSpendMultiplier=1.0,contextRecognition=null,housingStatus='renting',dependants=0;
   let transcriptText='',calcData={},checkinHistory=[],streak=0,storedCalc={};
