@@ -248,8 +248,8 @@
     }
   }
 
-    async function saveNewPassword() {
-     const password = document.getElementById('resetPassword').value;
+  async function saveNewPassword() {
+    const password = document.getElementById('resetPassword').value;
     const err = document.getElementById('resetError');
     if (password.length < 8) { showError(err, 'Password must be at least 8 characters.'); return; }
     const btn = document.getElementById('resetBtn');
@@ -261,17 +261,24 @@
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'apikey': token,
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ password })
       });
       const data = await res.json();
-      if (data.error) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Save new password →'; return; }
+      if (data.error) { 
+        showError(err, data.error.message || 'Something went wrong.'); 
+        btn.disabled = false; 
+        btn.textContent = 'Save new password →'; 
+        return; 
+      }
       alert('Password updated! Signing you in...');
       window.location.href = 'firepath_pro.html';
     } catch(e) {
       showError(err, 'Something went wrong. Please try again.');
-      btn.disabled = false; btn.textContent = 'Save new password →';
+      btn.disabled = false; 
+      btn.textContent = 'Save new password →';
     }
   }
 
@@ -294,6 +301,7 @@
 
   if (type === 'recovery' && accessToken) {
     setStore('fp_access_token', accessToken);
+    document.querySelector('.tabs').style.display = 'none';
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('signupForm').style.display = 'none';
     document.getElementById('resetForm').style.display = 'block';
