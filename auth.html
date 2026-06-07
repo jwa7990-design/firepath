@@ -246,7 +246,9 @@
   const type = hash.get('type');
 
   if (type === 'recovery' && accessToken) {
-    // SDK automatically picks up the session from the hash — just show the reset form
+    // Explicitly set session from hash tokens so page refreshes still work
+    const refreshToken = hash.get('refresh_token');
+    supabaseClient.auth.setSession({ access_token: accessToken, refresh_token: refreshToken || '' });
     document.querySelector('.tabs').style.display = 'none';
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('signupForm').style.display = 'none';
