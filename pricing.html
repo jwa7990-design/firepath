@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FirePath — Free vs Pro</title>
+  <meta name="description" content="FirePath Free vs Pro — start free, upgrade when you're ready. Less than a coffee a month."/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --fire-orange: #F4622A;
+      --fire-amber:  #F9A825;
+      --warm-cream:  #FDF6EE;
+      --warm-brown:  #3D2B1F;
+      --soft-grey:   #9E8E85;
+      --border:      #EDE3DA;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); }
+
+    .trial-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 200; background: linear-gradient(135deg, #F4622A, #F9A825); padding: 8px 20px; text-align: center; font-size: 13px; font-weight: 500; color: white; }
+
+    nav { position: fixed; top: 40px; left: 0; right: 0; background: rgba(253,246,238,0.95); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--warm-brown); text-decoration: none; }
+    .nav-logo span { color: var(--fire-orange); }
+    .nav-links { display: flex; align-items: center; gap: 16px; }
+    .nav-link { font-size: 14px; color: var(--soft-grey); text-decoration: none; font-weight: 500; }
+    .nav-link:hover { color: var(--warm-brown); }
+    .nav-cta { background: var(--fire-orange); color: white; padding: 9px 20px; border-radius: 20px; font-size: 14px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+    .nav-cta:hover { background: #e05520; }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; background: none; border: none; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--warm-brown); border-radius: 2px; transition: all 0.3s; }
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Hero */
+    .page-hero { padding: 140px 24px 60px; text-align: center; max-width: 680px; margin: 0 auto; }
+    .hero-badge { display: inline-block; background: rgba(244,98,42,0.1); color: var(--fire-orange); font-size: 12px; font-weight: 700; padding: 6px 16px; border-radius: 20px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; }
+    .page-title { font-family: 'Playfair Display', serif; font-size: clamp(32px, 6vw, 52px); font-weight: 700; line-height: 1.15; margin-bottom: 20px; }
+    .page-title span { color: var(--fire-orange); }
+    .page-sub { font-size: 18px; color: var(--soft-grey); font-weight: 300; line-height: 1.7; }
+
+    /* Pricing cards */
+    .pricing-section { max-width: 860px; margin: 0 auto; padding: 20px 24px 80px; }
+    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .plan-card { background: white; border: 1.5px solid var(--border); border-radius: 24px; padding: 36px 32px; }
+    .plan-card.pro { border-color: var(--fire-orange); box-shadow: 0 8px 40px rgba(244,98,42,0.12); position: relative; overflow: hidden; }
+    .plan-card.pro::before { content: 'Most popular'; position: absolute; top: 16px; right: -28px; background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; font-size: 10px; font-weight: 700; padding: 4px 40px; transform: rotate(45deg); letter-spacing: 0.06em; text-transform: uppercase; }
+    .plan-name { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 12px; }
+    .plan-name.pro-name { color: var(--fire-orange); }
+    .plan-price { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+    .plan-price-sub { font-size: 13px; color: var(--soft-grey); font-weight: 300; margin-bottom: 8px; }
+    .plan-coffee { font-size: 13px; color: var(--fire-orange); font-weight: 500; margin-bottom: 28px; }
+    .plan-trial { display: inline-block; background: rgba(244,98,42,0.08); color: var(--fire-orange); font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 28px; }
+    .plan-btn { display: block; text-align: center; padding: 14px 24px; border-radius: 12px; font-size: 15px; font-weight: 500; text-decoration: none; transition: all 0.2s; margin-bottom: 28px; }
+    .plan-btn-free { background: var(--warm-cream); color: var(--warm-brown); border: 1.5px solid var(--border); }
+    .plan-btn-free:hover { border-color: var(--warm-brown); }
+    .plan-btn-pro { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; box-shadow: 0 4px 16px rgba(244,98,42,0.3); }
+    .plan-btn-pro:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(244,98,42,0.4); }
+    .plan-divider { height: 1px; background: var(--border); margin-bottom: 24px; }
+    .plan-feature { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; font-size: 14px; }
+    .plan-feature-check { color: var(--fire-orange); font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .plan-feature-text { color: var(--warm-brown); font-weight: 400; line-height: 1.5; }
+    .plan-feature-text.coming { color: var(--soft-grey); font-style: italic; }
+
+    /* Comparison table */
+    .compare-section { max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+    .compare-title { font-family: 'Playfair Display', serif; font-size: clamp(24px, 4vw, 36px); font-weight: 700; margin-bottom: 32px; }
+    .compare-table { width: 100%; border-collapse: collapse; background: white; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
+    .compare-table th { padding: 16px 20px; font-size: 13px; font-weight: 600; text-align: center; }
+    .compare-table th:first-child { text-align: left; }
+    .compare-table th.free-col { color: var(--soft-grey); }
+    .compare-table th.pro-col { color: var(--fire-orange); }
+    .compare-table td { padding: 14px 20px; font-size: 14px; border-top: 1px solid var(--border); text-align: center; }
+    .compare-table td:first-child { text-align: left; color: var(--warm-brown); font-weight: 400; }
+    .compare-table tr:nth-child(even) td { background: rgba(253,246,238,0.5); }
+    .compare-table .category-row td { background: var(--warm-cream); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); padding: 10px 20px; }
+    .tick { color: var(--fire-orange); font-size: 16px; }
+    .cross { color: var(--border); font-size: 16px; }
+    .soon { font-size: 11px; font-weight: 700; color: var(--fire-orange); background: rgba(244,98,42,0.08); padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Reassurance */
+    .reassure-section { max-width: 700px; margin: 0 auto; padding: 0 24px 80px; text-align: center; }
+    .reassure-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-top: 32px; }
+    .reassure-item { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 24px 20px; }
+    .reassure-icon { font-size: 24px; margin-bottom: 10px; display: block; }
+    .reassure-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .reassure-desc { font-size: 12px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; }
+
+    /* CTA */
+    .cta-section { text-align: center; padding: 0 24px 80px; }
+    .cta-inner { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); border-radius: 28px; padding: 60px 40px; color: white; max-width: 700px; margin: 0 auto; }
+    .cta-title { font-family: 'Playfair Display', serif; font-size: clamp(26px, 5vw, 40px); font-weight: 700; margin-bottom: 16px; }
+    .cta-sub { font-size: 17px; opacity: 0.85; font-weight: 300; margin-bottom: 36px; line-height: 1.6; }
+    .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .cta-btn-white { background: white; color: var(--fire-orange); padding: 16px 32px; border-radius: 14px; font-size: 16px; font-weight: 500; text-decoration: none; transition: all 0.2s; }
+    .cta-btn-white:hover { transform: translateY(-2px); }
+    .cta-btn-outline { background: transparent; color: white; padding: 16px 32px; border-radius: 14px; font-size: 16px; font-weight: 500; text-decoration: none; border: 2px solid rgba(255,255,255,0.5); transition: all 0.2s; }
+    .cta-btn-outline:hover { border-color: white; }
+
+    footer { border-top: 1px solid var(--border); padding: 32px 24px; text-align: center; }
+    .footer-logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .footer-logo span { color: var(--fire-orange); }
+    .footer-links { display: flex; justify-content: center; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
+    .footer-link { font-size: 13px; color: var(--soft-grey); text-decoration: none; }
+    .footer-link:hover { color: var(--fire-orange); }
+    .footer-text { font-size: 12px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; }
+
+    @media (max-width: 640px) {
+      nav { top: 40px; }
+      .nav-links { display: none; flex-direction: column; position: fixed; top: 97px; left: 0; right: 0; background: rgba(253,246,238,0.98); border-bottom: 1px solid var(--border); padding: 20px 24px; gap: 20px; z-index: 99; }
+      .nav-links.open { display: flex; }
+      .hamburger { display: flex; }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .plan-card.pro::before { display: none; }
+      .compare-table { font-size: 13px; }
+      .compare-table th, .compare-table td { padding: 12px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="trial-banner">🔥 Try FirePath Pro free for 7 days — cancel anytime</div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">🔥 Fire<span>Path</span></a>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="features.html" class="nav-link" onclick="closeMenu()">Features</a>
+      <a href="pricing.html" class="nav-link" onclick="closeMenu()">Free vs Pro</a>
+      <a href="auth.html" class="nav-link" onclick="closeMenu()">Sign in</a>
+      <a href="firepath.html" class="nav-cta" onclick="closeMenu()">Try Free →</a>
+    </div>
+  </nav>
+
+  <div class="page-hero">
+    <div class="hero-badge">Free vs Pro</div>
+    <h1 class="page-title">Start free. Go further for <span>less than a coffee.</span></h1>
+    <p class="page-sub">Your number is free — always. When you're ready to build a real plan, Pro is $6 a month. That's one coffee. One time. Every month.</p>
+  </div>
+
+  <!-- Pricing cards -->
+  <div class="pricing-section">
+    <div class="pricing-grid">
+
+      <!-- Free -->
+      <div class="plan-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-price-sub">forever</div>
+        <div class="plan-coffee">No credit card. No catch.</div>
+        <a href="firepath.html" class="plan-btn plan-btn-free">Start for free →</a>
+        <div class="plan-divider"></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">Your financial independence date</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">Bank vs investing comparison</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">The Thought Centre — growth rates explained in plain English</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">No signup required</span></div>
+      </div>
+
+      <!-- Pro -->
+      <div class="plan-card pro">
+        <div class="plan-name pro-name">Pro</div>
+        <div class="plan-price">$6</div>
+        <div class="plan-price-sub">per month</div>
+        <div class="plan-coffee">☕ Less than one coffee a month</div>
+        <div class="plan-trial">7-day free trial — cancel anytime</div>
+        <a href="auth.html" class="plan-btn plan-btn-pro">Try Pro free for 7 days →</a>
+        <div class="plan-divider"></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">Everything in Free</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">Hear Me Out scenarios — run any "what if"</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">AI insight personalised to your situation</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">7-step personalised action plan</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">Partner & family mode</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">Super projections at 60</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text">Monthly accountability & progress tracking</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text coming">Learning Lab — coming soon</span></div>
+        <div class="plan-feature"><span class="plan-feature-check">✓</span><span class="plan-feature-text coming">FirePath Blog — coming soon</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <div class="compare-section">
+    <h2 class="compare-title">Everything side by side</h2>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th class="free-col">Free</th>
+          <th class="pro-col">Pro</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="category-row"><td colspan="3">Core calculator</td></tr>
+        <tr><td>Financial independence date</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>Bank vs investing comparison</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>The Thought Centre</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>No signup required</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+        <tr class="category-row"><td colspan="3">Pro features</td></tr>
+        <tr><td>Hear Me Out scenarios</td><td><span class="cross">—</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>AI insight — personalised to you</td><td><span class="cross">—</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>7-step action plan</td><td><span class="cross">—</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>Partner & family mode</td><td><span class="cross">—</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>Super projections at 60</td><td><span class="cross">—</span></td><td><span class="tick">✓</span></td></tr>
+        <tr><td>Monthly accountability & tracking</td><td><span class="cross">—</span></td><td><span class="tick">✓</span></td></tr>
+        <tr class="category-row"><td colspan="3">Coming soon</td></tr>
+        <tr><td>Learning Lab</td><td><span class="cross">—</span></td><td><span class="soon">Soon</span></td></tr>
+        <tr><td>FirePath Blog</td><td><span class="tick">✓</span></td><td><span class="tick">✓</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Reassurance -->
+  <div class="reassure-section">
+    <div class="reassure-grid">
+      <div class="reassure-item">
+        <span class="reassure-icon">🔓</span>
+        <div class="reassure-title">Cancel anytime</div>
+        <div class="reassure-desc">No lock-in. Cancel in one click. We're not interested in keeping your money if we're not adding value.</div>
+      </div>
+      <div class="reassure-item">
+        <span class="reassure-icon">☕</span>
+        <div class="reassure-title">Less than a coffee</div>
+        <div class="reassure-desc">$6 a month. One coffee. That's it. We kept it low because we built this for everyday Australians, not high earners.</div>
+      </div>
+      <div class="reassure-item">
+        <span class="reassure-icon">🔒</span>
+        <div class="reassure-title">Your data stays yours</div>
+        <div class="reassure-desc">We don't sell your data. We don't share it. FirePath is a tool, not a data business.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="cta-inner">
+      <div class="cta-title">Try Pro free for 7 days.</div>
+      <p class="cta-sub">No charge until your trial ends. Cancel before then and you'll never pay a cent.</p>
+      <div class="cta-buttons">
+        <a href="auth.html" class="cta-btn-white">Start my free trial 🔥</a>
+        <a href="firepath.html" class="cta-btn-outline">Try the free calculator first</a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">🔥 Fire<span>Path</span></div>
+    <div class="footer-links">
+      <a href="index.html" class="footer-link">Home</a>
+      <a href="features.html" class="footer-link">Features</a>
+      <a href="auth.html" class="footer-link">Sign in</a>
+      <a href="privacy.html" class="footer-link">Privacy</a>
+      <a href="terms.html" class="footer-link">Terms</a>
+    </div>
+    <p class="footer-text">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only. Always consider your personal circumstances.</p>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById('navLinks').classList.toggle('open');
+      document.getElementById('hamburger').classList.toggle('open');
+    }
+    function closeMenu() {
+      document.getElementById('navLinks').classList.remove('open');
+      document.getElementById('hamburger').classList.remove('open');
+    }
+  </script>
+</body>
+</html>
