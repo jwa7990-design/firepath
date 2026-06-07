@@ -103,7 +103,7 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWNkYXhmcmFoemdqeXdybGdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5ODI5NTcsImV4cCI6MjA2MTU1ODk1N30.ICN1i-HK1DWDaXHBhNsNsLjRBdqSJnJ_PZbMXPFjcyA';
 
   // Initialise Supabase client — handles session from URL hash automatically
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   function setStore(key, value) {
     try { localStorage.setItem(key, value); } catch(e) { sessionStorage.setItem(key, value); }
@@ -205,7 +205,7 @@
 
     try {
       // Supabase SDK uses the session it established from the URL hash
-      const { data, error } = await supabase.auth.updateUser({ password });
+      const { data, error } = await supabaseClient.auth.updateUser({ password });
       console.log('Reset response:', data, error);
 
       if (error) {
@@ -215,7 +215,7 @@
       }
 
       // Grab fresh session and store for the rest of the app
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await supabaseClient.auth.getSession();
       const session = sessionData?.session;
       if (session) {
         setStore('fp_access_token', session.access_token);
