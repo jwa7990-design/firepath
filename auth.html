@@ -204,24 +204,37 @@
     btn.disabled = true; btn.textContent = 'Saving...';
 
     try {
-      // Supabase SDK uses the session it established from the URL hash
-      const { data, error } = await supabaseClient.auth.updateUser({ password });
-      console.log('Reset response:', data, error);
+      // Use token from store (set by onAuthStateChange) or fall back to URL hash token
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const token = getStore('fp_access_token') || hashParams.get('access_token');
 
-      if (error) {
-        showError(err, error.message || 'Something went wrong.');
+      if (!token) {
+        showError(err, 'Session expired. Please request a new password reset email.');
         btn.disabled = false; btn.textContent = 'Save new password →';
         return;
       }
 
-      // Grab fresh session and store for the rest of the app
-      const { data: sessionData } = await supabaseClient.auth.getSession();
-      const session = sessionData?.session;
-      if (session) {
-        setStore('fp_access_token', session.access_token);
-        setStore('fp_user_id', session.user.id);
-        setStore('fp_email', session.user.email);
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWNkYXhmcmFoemdqeXdybGdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5ODI5NTcsImV4cCI6MjA2MTU1ODk1N30.ICN1i-HK1DWDaXHBhNsNsLjRBdqSJnJ_PZbMXPFjcyA'
+        },
+        body: JSON.stringify({ password })
+      });
+
+      const data = await res.json();
+      console.log('Reset response:', data);
+
+      if (data.error || !data.id) {
+        showError(err, data.msg || data.error_description || data.error || 'Something went wrong.');
+        btn.disabled = false; btn.textContent = 'Save new password →';
+        return;
       }
+
+      setStore('fp_user_id', data.id);
+      setStore('fp_email', data.email);
 
       alert('Password updated! Signing you in...');
       window.location.href = 'firepath_pro.html';
@@ -246,13 +259,22 @@
   const type = hash.get('type');
 
   if (type === 'recovery' && accessToken) {
-    // Explicitly set session from hash tokens so page refreshes still work
-    const refreshToken = hash.get('refresh_token');
-    supabaseClient.auth.setSession({ access_token: accessToken, refresh_token: refreshToken || '' });
+    // Show reset form immediately
     document.querySelector('.tabs').style.display = 'none';
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('signupForm').style.display = 'none';
     document.getElementById('resetForm').style.display = 'block';
+
+    // Listen for Supabase to exchange the recovery token into a real session
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        // Session is live — store tokens so saveNewPassword can use them
+        setStore('fp_access_token', session.access_token);
+        setStore('fp_refresh_token', session.refresh_token);
+        setStore('fp_user_id', session.user.id);
+        setStore('fp_email', session.user.email);
+      }
+    });
   } else if (type === 'signup' && accessToken) {
     setStore('fp_access_token', accessToken);
     const refreshToken = hash.get('refresh_token');
