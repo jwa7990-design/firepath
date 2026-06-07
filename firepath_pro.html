@@ -128,7 +128,7 @@
         <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
         <p class="result-sub" id="resultSub"></p>
         <div class="result-stats">
-          <div class="stat-box"><span class="stat-value" id="freedomAgeOut">—</span><span class="stat-name">Your freedom age</span></div>
+          <div class="stat-box"><span class="stat-value" id="freedomAgeOut">—</span><span class="stat-name" id="freedomAgeLabel">Your freedom age</span></div>
           <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span></span><div id="inflationNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:6px;font-style:italic;line-height:1.5;"></div></div>
           <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / week</span><div id="savingsRateNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;"></div></div>
         </div>
@@ -655,12 +655,12 @@
         document.getElementById('yearsOut').textContent=`${fmt(yearsToGoalCapped(fireNum,savings+superBal,mSav,0.07))} with super`;
         document.querySelector('.result-label').textContent='Your FirePath Pro result — super included';
         document.getElementById('freedomAgeOut').textContent=freedomAge||'—';
-        document.getElementById('freedomAgeOut').nextElementSibling.textContent='Your freedom age';
+        document.getElementById('freedomAgeLabel').textContent='Your freedom age';
       } else {
         document.getElementById('yearsOut').textContent=fmt(fy_display);
         document.querySelector('.result-label').textContent='Your FirePath Pro result';
         document.getElementById('freedomAgeOut').textContent=freedomAge||'—';
-        document.getElementById('freedomAgeOut').nextElementSibling.textContent='Your freedom age';
+        document.getElementById('freedomAgeLabel').textContent=persona==='fire'&&freedomAge&&freedomAge<60?'Freedom age (pre-super)':'Your freedom age';
       }
       if (isZeroSavings) {
         document.getElementById('yearsOut').textContent = 'not yet calculated';
