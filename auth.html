@@ -201,15 +201,29 @@
       const token = getStore('fp_access_token');
       const res = await fetch(`${WORKER_URL}/auth/user`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWNkYXhmcmFoemdqeXdybGdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5ODI5NTcsImV4cCI6MjA2MTU1ODk1N30.ICN1i-HK1DWDaXHBhNsNsLjRBdqSJnJ_PZbMXPFjcyA'
+        },
         body: JSON.stringify({ password })
       });
       const data = await res.json();
-      if (data.error) { showError(err, data.error.message || 'Something went wrong.'); btn.disabled = false; btn.textContent = 'Save new password →'; return; }
+      console.log('Reset response:', data);
+      if (data.error) { 
+        showError(err, data.msg || data.error || 'Something went wrong.'); 
+        btn.disabled = false; btn.textContent = 'Save new password →'; 
+        return; 
+      }
       alert('Password updated! Signing you in...');
       window.location.href = 'firepath_pro.html';
-    } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Save new password →'; }
+    } catch(e) {
+      console.error(e);
+      showError(err, 'Something went wrong. Please try again.');
+      btn.disabled = false; btn.textContent = 'Save new password →';
+    }
   }
+
 
   function continueAsGuest() {
     removeStore('fp_access_token'); removeStore('fp_user_id');
