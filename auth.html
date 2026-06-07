@@ -6,7 +6,6 @@
   <title>FirePath — Sign in</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   .tabs { display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border); }
   .tab { flex:1;padding:12px;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--soft-grey);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s; }
@@ -100,10 +99,6 @@
 <script>
   const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
   const SUPABASE_URL = 'https://eeicdaxfrahzgjywrlgs.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWNkYXhmcmFoemdqeXdybGdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5ODI5NTcsImV4cCI6MjA2MTU1ODk1N30.ICN1i-HK1DWDaXHBhNsNsLjRBdqSJnJ_PZbMXPFjcyA';
-
-  // Initialise Supabase client — handles session from URL hash automatically
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   function setStore(key, value) {
     try { localStorage.setItem(key, value); } catch(e) { sessionStorage.setItem(key, value); }
@@ -204,9 +199,9 @@
     btn.disabled = true; btn.textContent = 'Saving...';
 
     try {
-      // Use token from store (set by onAuthStateChange) or fall back to URL hash token
+      // Read recovery token directly from URL hash — stays there regardless of refresh
       const hashParams = new URLSearchParams(window.location.hash.slice(1));
-      const token = getStore('fp_access_token') || hashParams.get('access_token');
+      const token = hashParams.get('access_token');
 
       if (!token) {
         showError(err, 'Session expired. Please request a new password reset email.');
@@ -214,12 +209,12 @@
         return;
       }
 
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      // Worker now correctly forwards Authorization header to Supabase
+      const res = await fetch(`${WORKER_URL}/auth/user`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWNkYXhmcmFoemdqeXdybGdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5ODI5NTcsImV4cCI6MjA2MTU1ODk1N30.ICN1i-HK1DWDaXHBhNsNsLjRBdqSJnJ_PZbMXPFjcyA'
         },
         body: JSON.stringify({ password })
       });
@@ -233,6 +228,8 @@
         return;
       }
 
+      // Store session for app use
+      setStore('fp_access_token', token);
       setStore('fp_user_id', data.id);
       setStore('fp_email', data.email);
 
@@ -259,22 +256,11 @@
   const type = hash.get('type');
 
   if (type === 'recovery' && accessToken) {
-    // Show reset form immediately
+    // Show reset form — token lives in the URL hash, no need to store it
     document.querySelector('.tabs').style.display = 'none';
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('signupForm').style.display = 'none';
     document.getElementById('resetForm').style.display = 'block';
-
-    // Listen for Supabase to exchange the recovery token into a real session
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' && session) {
-        // Session is live — store tokens so saveNewPassword can use them
-        setStore('fp_access_token', session.access_token);
-        setStore('fp_refresh_token', session.refresh_token);
-        setStore('fp_user_id', session.user.id);
-        setStore('fp_email', session.user.email);
-      }
-    });
   } else if (type === 'signup' && accessToken) {
     setStore('fp_access_token', accessToken);
     const refreshToken = hash.get('refresh_token');
