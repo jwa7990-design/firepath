@@ -6,6 +6,7 @@
   <title>FirePath — Sign in</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   .tabs { display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border); }
   .tab { flex:1;padding:12px;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--soft-grey);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s; }
@@ -99,6 +100,10 @@
 <script>
   const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
   const SUPABASE_URL = 'https://eeicdaxfrahzgjywrlgs.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWNkYXhmcmFoemdqeXdybGdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5ODI5NTcsImV4cCI6MjA2MTU1ODk1N30.ICN1i-HK1DWDaXHBhNsNsLjRBdqSJnJ_PZbMXPFjcyA';
+
+  // Initialise Supabase client — handles session from URL hash automatically
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   function setStore(key, value) {
     try { localStorage.setItem(key, value); } catch(e) { sessionStorage.setItem(key, value); }
@@ -191,48 +196,42 @@
     } catch(e) { showError(err, 'Something went wrong. Please try again.'); }
   }
 
-async function saveNewPassword() {
-  const password = document.getElementById('resetPassword').value;
-  const err = document.getElementById('resetError');
-  if (password.length < 8) { showError(err, 'Password must be at least 8 characters.'); return; }
-  const btn = document.getElementById('resetBtn');
-  btn.disabled = true; btn.textContent = 'Saving...';
+  async function saveNewPassword() {
+    const password = document.getElementById('resetPassword').value;
+    const err = document.getElementById('resetError');
+    if (password.length < 8) { showError(err, 'Password must be at least 8 characters.'); return; }
+    const btn = document.getElementById('resetBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
 
-  try {
-    const token = getStore('fp_access_token'); // the recovery token from the URL hash
+    try {
+      // Supabase SDK uses the session it established from the URL hash
+      const { data, error } = await supabase.auth.updateUser({ password });
+      console.log('Reset response:', data, error);
 
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWNkYXhmcmFoemdqeXdybGdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5ODI5NTcsImV4cCI6MjA2MTU1ODk1N30.ICN1i-HK1DWDaXHBhNsNsLjRBdqSJnJ_PZbMXPFjcyA'
-      },
-      body: JSON.stringify({ password })
-    });
+      if (error) {
+        showError(err, error.message || 'Something went wrong.');
+        btn.disabled = false; btn.textContent = 'Save new password →';
+        return;
+      }
 
-    const data = await res.json();
-    console.log('Reset response:', data);
+      // Grab fresh session and store for the rest of the app
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+      if (session) {
+        setStore('fp_access_token', session.access_token);
+        setStore('fp_user_id', session.user.id);
+        setStore('fp_email', session.user.email);
+      }
 
-    if (data.error || !data.id) {
-      showError(err, data.msg || data.error_description || data.error || 'Something went wrong.');
+      alert('Password updated! Signing you in...');
+      window.location.href = 'firepath_pro.html';
+
+    } catch(e) {
+      console.error(e);
+      showError(err, 'Something went wrong. Please try again.');
       btn.disabled = false; btn.textContent = 'Save new password →';
-      return;
     }
-
-    // Store user details from the response
-    setStore('fp_user_id', data.id);
-    setStore('fp_email', data.email);
-
-    alert('Password updated! Signing you in...');
-    window.location.href = 'firepath_pro.html';
-
-  } catch(e) {
-    console.error(e);
-    showError(err, 'Something went wrong. Please try again.');
-    btn.disabled = false; btn.textContent = 'Save new password →';
   }
-}
 
   function continueAsGuest() {
     removeStore('fp_access_token'); removeStore('fp_user_id');
@@ -247,7 +246,7 @@ async function saveNewPassword() {
   const type = hash.get('type');
 
   if (type === 'recovery' && accessToken) {
-    setStore('fp_access_token', accessToken);
+    // SDK automatically picks up the session from the hash — just show the reset form
     document.querySelector('.tabs').style.display = 'none';
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('signupForm').style.display = 'none';
