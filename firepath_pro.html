@@ -624,7 +624,8 @@
       const fireNum=(mSp*12*retirementSpendMultiplier)*25,sRate=mI>0?Math.round((mSav/mI)*100):0;
       const isZeroSavings = mSavAmt <= 0;
       calcData={mIncome:mI,mSpend:mSp,mSav,savings,superBal,fireNum,sRate,age,context,propVal:0,debt,mortgage,housingStatus,dependants};
-      const fy=yearsToGoal(fireNum,savings,mSav,0.07),fyear=fy?currentYear+Math.round(fy):null;
+      const alreadyFree=savings>=fireNum&&fireNum>0;
+      const fy=alreadyFree?0:yearsToGoal(fireNum,savings,mSav,0.07),fyear=fy!==null?currentYear+Math.round(fy):null;
 
       buildContextTags(savings,superBal,debt,mortgage,housingStatus,dependants);
 
