@@ -50,6 +50,9 @@
         </div>
       </div>
       <button class="cta-btn" id="loginBtn" onclick="login()">Sign in →</button>
+      <div style="text-align:center;margin-top:12px;">
+        <a href="#" onclick="forgotPassword(event)" style="font-size:13px;color:var(--fire-orange);text-decoration:none;">Forgot password?</a>
+      </div>
       <p class="error-msg" id="loginError"></p>
     </div>
 
@@ -207,6 +210,25 @@
       const data = await res.json();
       return data[0]?.persona || null;
     } catch { return null; }
+  }
+
+  async function forgotPassword(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const err = document.getElementById('loginError');
+    if (!email) { showError(err, 'Enter your email address first.'); return; }
+    try {
+      const res = await fetch(`${WORKER_URL}/auth/recover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, redirectTo: 'https://firepath.pro/auth.html' })
+      });
+      showError(err, '');
+      document.getElementById('loginError').style.display = 'none';
+      alert('Password reset email sent — check your inbox.');
+    } catch(e) {
+      showError(err, 'Something went wrong. Please try again.');
+    }
   }
 
   function continueAsGuest() {
