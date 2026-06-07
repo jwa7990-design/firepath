@@ -6,7 +6,6 @@
   <title>FirePath — Sign in</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
-
 <style>
   .tabs { display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border); }
   .tab { flex:1;padding:12px;background:none;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--soft-grey);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s; }
@@ -18,7 +17,6 @@
   .success-msg { display:none;color:#2E7D32;font-size:13px;margin-top:10px;background:#E8F5E9;padding:10px;border-radius:8px; }
   .logo-tagline { font-size:13px;color:var(--soft-grey);margin-top:4px; }
 </style>
-
 </head>
 <body>
 <div class="container">
@@ -90,10 +88,6 @@
       <button class="cta-btn" id="resetBtn" onclick="saveNewPassword()">Save new password →</button>
       <p class="error-msg" id="resetError"></p>
     </div>
-  </div>
-      <button class="cta-btn" id="resetBtn" onclick="saveNewPassword()">Save new password →</button>
-      <p class="error-msg" id="resetError"></p>
-    </div>
 
   </div>
 
@@ -106,16 +100,11 @@
   const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
   const SUPABASE_URL = 'https://eeicdaxfrahzgjywrlgs.supabase.co';
 
-  // Storage helper — falls back to sessionStorage in private mode
   function setStore(key, value) {
-    try { localStorage.setItem(key, value); } 
-    catch(e) { sessionStorage.setItem(key, value); }
+    try { localStorage.setItem(key, value); } catch(e) { sessionStorage.setItem(key, value); }
   }
   function getStore(key) {
-    try { 
-      const v = localStorage.getItem(key);
-      if (v) return v;
-    } catch(e) {}
+    try { const v = localStorage.getItem(key); if (v) return v; } catch(e) {}
     return sessionStorage.getItem(key);
   }
   function removeStore(key) {
@@ -125,107 +114,63 @@
 
   function toggleEye(inputId, btn) {
     const input = document.getElementById(inputId);
-    if (input.type === 'password') {
-      input.type = 'text';
-      btn.textContent = '🙈';
-    } else {
-      input.type = 'password';
-      btn.textContent = '👁';
-    }
+    if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+    else { input.type = 'password'; btn.textContent = '👁'; }
   }
 
   function showTab(tab) {
     document.getElementById('loginTab').classList.toggle('active', tab === 'login');
     document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
-    document.getElementById('loginForm').style.display  = tab === 'login'  ? 'block' : 'none';
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
     document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
   }
 
   async function login() {
-    const email    = document.getElementById('loginEmail').value.trim();
+    const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const btn      = document.getElementById('loginBtn');
-    const err      = document.getElementById('loginError');
-
+    const btn = document.getElementById('loginBtn');
+    const err = document.getElementById('loginError');
     if (!email || !password) { showError(err, 'Please enter your email and password.'); return; }
-
-    btn.disabled = true;
-    btn.textContent = 'Signing in...';
-    err.style.display = 'none';
-
+    btn.disabled = true; btn.textContent = 'Signing in...'; err.style.display = 'none';
     try {
       const res = await fetch(`${WORKER_URL}/auth/token?grant_type=password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-
-      if (data.error) {
-        showError(err, data.error_description || 'Invalid email or password.');
-        btn.disabled = false; btn.textContent = 'Sign in →';
-        return;
-      }
-
-      // Save session
+      if (data.error) { showError(err, data.error_description || 'Invalid email or password.'); btn.disabled = false; btn.textContent = 'Sign in →'; return; }
       setStore('fp_access_token', data.access_token);
       setStore('fp_user_id', data.user.id);
       setStore('fp_email', data.user.email);
-
-      // Load user persona and redirect
       const persona = await getUserPersona(data.user.id, data.access_token);
       if (persona) setStore('fp_persona', persona);
-
       window.location.href = 'firepath_pro.html';
-
-    } catch (e) {
-      showError(err, 'Something went wrong. Please try again.');
-      btn.disabled = false; btn.textContent = 'Sign in →';
-    }
+    } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Sign in →'; }
   }
 
   async function signup() {
-    const email    = document.getElementById('signupEmail').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
     const password = document.getElementById('signupPassword').value;
-    const btn      = document.getElementById('signupBtn');
-    const err      = document.getElementById('signupError');
-    const success  = document.getElementById('signupSuccess');
-
+    const btn = document.getElementById('signupBtn');
+    const err = document.getElementById('signupError');
+    const success = document.getElementById('signupSuccess');
     if (!email || !password) { showError(err, 'Please enter your email and password.'); return; }
     if (password.length < 8) { showError(err, 'Password must be at least 8 characters.'); return; }
-
-    btn.disabled = true;
-    btn.textContent = 'Creating account...';
-    err.style.display = 'none';
-
+    btn.disabled = true; btn.textContent = 'Creating account...'; err.style.display = 'none';
     try {
       const res = await fetch(`${WORKER_URL}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-
-      if (data.error) {
-        showError(err, data.msg || data.error || 'Could not create account.');
-        btn.disabled = false; btn.textContent = 'Create account →';
-        return;
-      }
-
-      success.style.display = 'block';
-      btn.textContent = 'Check your email ✓';
-
-    } catch (e) {
-      showError(err, 'Something went wrong. Please try again.');
-      btn.disabled = false; btn.textContent = 'Create account →';
-    }
+      if (data.error) { showError(err, data.msg || data.error || 'Could not create account.'); btn.disabled = false; btn.textContent = 'Create account →'; return; }
+      success.style.display = 'block'; btn.textContent = 'Check your email ✓';
+    } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Create account →'; }
   }
 
   async function getUserPersona(userId, token) {
     try {
-      const res = await fetch(`${WORKER_URL}/db/users?id=eq.${userId}&select=persona`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await fetch(`${WORKER_URL}/db/users?id=eq.${userId}&select=persona`, { headers: { 'Authorization': `Bearer ${token}` } });
       const data = await res.json();
       return data[0]?.persona || null;
     } catch { return null; }
@@ -237,17 +182,13 @@
     const err = document.getElementById('loginError');
     if (!email) { showError(err, 'Enter your email address first.'); return; }
     try {
-      const res = await fetch(`${WORKER_URL}/auth/recover`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch(`${WORKER_URL}/auth/recover`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, redirectTo: 'https://firepath.pro/auth.html' })
       });
-      showError(err, '');
-      document.getElementById('loginError').style.display = 'none';
+      err.style.display = 'none';
       alert('Password reset email sent — check your inbox.');
-    } catch(e) {
-      showError(err, 'Something went wrong. Please try again.');
-    }
+    } catch(e) { showError(err, 'Something went wrong. Please try again.'); }
   }
 
   async function saveNewPassword() {
@@ -255,48 +196,29 @@
     const err = document.getElementById('resetError');
     if (password.length < 8) { showError(err, 'Password must be at least 8 characters.'); return; }
     const btn = document.getElementById('resetBtn');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
+    btn.disabled = true; btn.textContent = 'Saving...';
     try {
       const token = getStore('fp_access_token');
       const res = await fetch(`${WORKER_URL}/auth/user`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': token,
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ password })
       });
       const data = await res.json();
-      if (data.error) { 
-        showError(err, data.error.message || 'Something went wrong.'); 
-        btn.disabled = false; 
-        btn.textContent = 'Save new password →'; 
-        return; 
-      }
+      if (data.error) { showError(err, data.error.message || 'Something went wrong.'); btn.disabled = false; btn.textContent = 'Save new password →'; return; }
       alert('Password updated! Signing you in...');
       window.location.href = 'firepath_pro.html';
-    } catch(e) {
-      showError(err, 'Something went wrong. Please try again.');
-      btn.disabled = false; 
-      btn.textContent = 'Save new password →';
-    }
+    } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Save new password →'; }
   }
 
   function continueAsGuest() {
-    removeStore('fp_access_token');
-    removeStore('fp_user_id');
-    setStore('fp_guest', 'true');
-    window.location.href = 'firepath_pro.html';
+    removeStore('fp_access_token'); removeStore('fp_user_id');
+    setStore('fp_guest', 'true'); window.location.href = 'firepath_pro.html';
   }
 
-  function showError(el, msg) {
-    el.textContent = msg;
-    el.style.display = 'block';
-  }
+  function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
 
-   // Check if already logged in
+  // Check token in URL hash
   const hash = new URLSearchParams(window.location.hash.slice(1));
   const accessToken = hash.get('access_token');
   const type = hash.get('type');
@@ -304,50 +226,44 @@
   if (type === 'recovery' && accessToken) {
     setStore('fp_access_token', accessToken);
     document.querySelector('.tabs').style.display = 'none';
-    document.querySelector('.card').style.paddingTop = '24px';
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('signupForm').style.display = 'none';
     document.getElementById('resetForm').style.display = 'block';
   } else if (type === 'signup' && accessToken) {
     setStore('fp_access_token', accessToken);
     const refreshToken = hash.get('refresh_token');
-    if(refreshToken) setStore('fp_refresh_token', refreshToken);
+    if (refreshToken) setStore('fp_refresh_token', refreshToken);
     try {
       const userData = JSON.parse(atob(accessToken.split('.')[1]));
-      if(userData.sub) setStore('fp_user_id', userData.sub);
-      if(userData.email) setStore('fp_email', userData.email);
+      if (userData.sub) setStore('fp_user_id', userData.sub);
+      if (userData.email) setStore('fp_email', userData.email);
     } catch(e) {}
     window.location.href = 'auth.html?upgrade=true';
   } else {
     const token = getStore('fp_access_token');
     const userId = getStore('fp_user_id');
     const validToken = token && token !== 'undefined' && token !== 'null' && token !== '';
-    const validUser  = userId && userId !== 'undefined' && userId !== 'null' && userId !== '';
-
+    const validUser = userId && userId !== 'undefined' && userId !== 'null' && userId !== '';
     if (validToken && validUser) {
       const params = new URLSearchParams(window.location.search);
       if (params.get('upgrade') === 'true') {
         const uid = getStore('fp_user_id');
         const email = getStore('fp_email');
         fetch(`${WORKER_URL}/stripe/checkout`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: uid, email })
         }).then(r => r.json()).then(data => {
-          if(data.url) window.location.href = data.url;
+          if (data.url) window.location.href = data.url;
           else window.location.href = 'firepath_pro.html';
         }).catch(() => window.location.href = 'firepath_pro.html');
       } else {
         window.location.href = 'firepath_pro.html';
       }
     } else {
-      removeStore('fp_access_token');
-      removeStore('fp_user_id');
-      removeStore('fp_email');
-      removeStore('fp_persona');
+      removeStore('fp_access_token'); removeStore('fp_user_id');
+      removeStore('fp_email'); removeStore('fp_persona');
     }
   }
-  
 </script>
 </body>
 </html>
