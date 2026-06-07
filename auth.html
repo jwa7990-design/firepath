@@ -191,39 +191,48 @@
     } catch(e) { showError(err, 'Something went wrong. Please try again.'); }
   }
 
-  async function saveNewPassword() {
-    const password = document.getElementById('resetPassword').value;
-    const err = document.getElementById('resetError');
-    if (password.length < 8) { showError(err, 'Password must be at least 8 characters.'); return; }
-    const btn = document.getElementById('resetBtn');
-    btn.disabled = true; btn.textContent = 'Saving...';
-    try {
-      const token = getStore('fp_access_token');
-      const res = await fetch(`${WORKER_URL}/auth/user`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWNkYXhmcmFoemdqeXdybGdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5ODI5NTcsImV4cCI6MjA2MTU1ODk1N30.ICN1i-HK1DWDaXHBhNsNsLjRBdqSJnJ_PZbMXPFjcyA'
-        },
-        body: JSON.stringify({ password })
-      });
-      const data = await res.json();
-      console.log('Reset response:', data);
-      if (data.error) { 
-        showError(err, data.msg || data.error || 'Something went wrong.'); 
-        btn.disabled = false; btn.textContent = 'Save new password →'; 
-        return; 
-      }
-      alert('Password updated! Signing you in...');
-      window.location.href = 'firepath_pro.html';
-    } catch(e) {
-      console.error(e);
-      showError(err, 'Something went wrong. Please try again.');
-      btn.disabled = false; btn.textContent = 'Save new password →';
-    }
-  }
+async function saveNewPassword() {
+  const password = document.getElementById('resetPassword').value;
+  const err = document.getElementById('resetError');
+  if (password.length < 8) { showError(err, 'Password must be at least 8 characters.'); return; }
+  const btn = document.getElementById('resetBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
 
+  try {
+    const token = getStore('fp_access_token'); // the recovery token from the URL hash
+
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaWNkYXhmcmFoemdqeXdybGdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5ODI5NTcsImV4cCI6MjA2MTU1ODk1N30.ICN1i-HK1DWDaXHBhNsNsLjRBdqSJnJ_PZbMXPFjcyA'
+      },
+      body: JSON.stringify({ password })
+    });
+
+    const data = await res.json();
+    console.log('Reset response:', data);
+
+    if (data.error || !data.id) {
+      showError(err, data.msg || data.error_description || data.error || 'Something went wrong.');
+      btn.disabled = false; btn.textContent = 'Save new password →';
+      return;
+    }
+
+    // Store user details from the response
+    setStore('fp_user_id', data.id);
+    setStore('fp_email', data.email);
+
+    alert('Password updated! Signing you in...');
+    window.location.href = 'firepath_pro.html';
+
+  } catch(e) {
+    console.error(e);
+    showError(err, 'Something went wrong. Please try again.');
+    btn.disabled = false; btn.textContent = 'Save new password →';
+  }
+}
 
   function continueAsGuest() {
     removeStore('fp_access_token'); removeStore('fp_user_id');
