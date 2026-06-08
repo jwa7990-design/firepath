@@ -153,7 +153,7 @@
       <div id="proSection"></div>
 
       <div style="text-align:center;margin:20px 0;">
-        <button onclick="markAsRead(currentTopic.id, currentTopic.title, currentTopic.track)"
+        <button onclick="isPro ? markAsRead(currentTopic.id, currentTopic.title, currentTopic.track) : showProGateMarkAsRead()"
           style="background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 28px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;"
           onmouseover="this.style.background='var(--fire-orange)';this.style.color='white'"
           onmouseout="this.style.background='white';this.style.color='var(--fire-orange)'">
@@ -185,7 +185,7 @@
     fireNum: parseFloat(localStorage.getItem('ap_fireNum')) || 0,
     monthlySav: parseFloat(localStorage.getItem('ap_monthlySav')) || 0,
   };
-  const isPro = localStorage.getItem('fp_pro') === 'true';
+  const isPro = localStorage.getItem('fp_is_pro') === 'true';
 
   function fmtM(n) { if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + Math.round(n); }
   const currentYear = new Date().getFullYear();
@@ -313,6 +313,17 @@
     document.getElementById('articleView').style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
+function showProGateMarkAsRead() {
+  const nextEl = document.getElementById('whatsNextSection');
+  nextEl.style.display = 'block';
+  nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;">
+    <div style="font-size:20px;margin-bottom:8px;">🎓</div>
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Track your progress with Pro</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members get personalised research pathways, AI-suggested next articles and progress tracking — all tailored to your actual numbers.</div>
+    <div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div>
+  </div>`;
+}
 
   function showProGate(title) {
     alert(`"${title}" is a Pro article. Upgrade to FirePath Pro to unlock all in-depth personalised articles.`);
