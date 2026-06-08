@@ -151,6 +151,18 @@
     <div id="articleContent" style="display:none;">
       <div class="article-body" id="articleBody"></div>
       <div id="proSection"></div>
+
+      <div style="text-align:center;margin:20px 0;">
+        <button onclick="markAsRead(currentTopic.id, currentTopic.title, currentTopic.track)"
+          style="background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 28px;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;"
+          onmouseover="this.style.background='var(--fire-orange)';this.style.color='white'"
+          onmouseout="this.style.background='white';this.style.color='var(--fire-orange)'">
+          ✓ Mark as read — show me what's next
+        </button>
+      </div>
+
+      <div id="whatsNextSection" style="display:none;"></div>
+
       <p class="disclaimer">FirePath Learning Lab is educational only — not financial advice. Always consider your personal circumstances before making any financial decisions.</p>
     </div>
   </div>
@@ -158,10 +170,13 @@
 </div>
 
 <script src="js/auth.js"></script>
+<script src="js/calculations.js"></script>
 <script>
   // Beta gate — only accessible via ?beta=true
   const isBeta = new URLSearchParams(window.location.search).get('beta');
   if (!isBeta) window.location.href = 'firepath_pro.html';
+
+  const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
 
   // ── Load user data from localStorage ──
   const userData = {
@@ -414,6 +429,62 @@ Never say "you should" or "I recommend". Never name specific brokers or platform
     const data = await res.json();
     const text = data.content[0].text;
     return text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>');
+  }
+
+  // ── Read tracking ──
+  let readTopics = JSON.parse(localStorage.getItem('fp_lab_read') || '[]');
+
+  function markAsRead(topicId, title, track) {
+    if (!readTopics.includes(topicId)) {
+      readTopics.push(topicId);
+      localStorage.setItem('fp_lab_read', JSON.stringify(readTopics));
+    }
+    showWhatsNext(topicId, title, track);
+  }
+
+  async function showWhatsNext(topicId, title, track) {
+    const nextEl = document.getElementById('whatsNextSection');
+    if (!nextEl) return;
+    nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">✅ Marked as read</div>
+      <div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:16px;">Generating your next lesson...</div>
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>`;
+    nextEl.style.display = 'block';
+
+    try {
+      const persona = userData.persona || 'building';
+      const tone = persona === 'beginner' ? 'warm, simple, plain English' : persona === 'fire' ? 'direct, analytical, peer-level' : 'clear, practical, motivating';
+      const readList = readTopics.join(', ');
+
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5',
+          max_tokens: 300,
+          system: `You are the FirePath Learning Lab. The user just finished reading about "${title}". Their persona: ${persona}. Tone: ${tone}. Topics already read: ${readList || 'none yet'}. Suggest ONE specific follow-up angle that builds naturally on what they just learned. Respond with JSON only: {"title": "short topic title", "why": "one sentence why this is the logical next step", "topicId": "kebab-case-id", "track": "${track}"}`,
+          messages: [{ role: 'user', content: `What should I learn after "${title}"?` }]
+        })
+      });
+
+      const data = await res.json();
+      const raw = data.content[0].text.replace(/```json|```/gi, '').trim();
+      const suggestion = JSON.parse(raw);
+
+      nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">✅ Marked as read · What's next?</div>
+        <div style="font-size:16px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">${suggestion.title}</div>
+        <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px;">${suggestion.why}</div>
+        <div onclick="openArticle('${suggestion.topicId}', '${suggestion.track}', '${suggestion.title}')" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
+        <div onclick="showTopicView()" style="display:inline-flex;align-items:center;gap:8px;margin-left:10px;color:var(--soft-grey);font-size:13px;cursor:pointer;">Back to topics</div>
+      </div>`;
+    } catch(e) {
+      nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">✅ Marked as read</div>
+        <div onclick="showTopicView()" style="font-size:13px;color:var(--fire-orange);cursor:pointer;">Back to all topics</div>
+      </div>`;
+    }
   }
 
   // ── Init ──
