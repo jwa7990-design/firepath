@@ -85,6 +85,16 @@
             <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More 🌏<div style="font-size:10px;margin-top:2px;opacity:0.7">Travel, experiences</div></button>
           </div>
         </div>
+        <div class="input-group">
+          <label class="input-label">Where is this money held?</label>
+          <div class="input-hint">This helps FirePath give you a more accurate insight</div>
+          <div class="housing-group">
+            <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)">🏦 Cash / bank</button>
+            <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)">📈 ETFs / shares</button>
+            <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)">🏠 Offset account</button>
+            <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)">🌐 Mix of these</button>
+          </div>
+        </div>
         <div class="super-group"><label class="input-label">Superannuation <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Your super is separate — we'll show you when it comes into play</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="superBalance" placeholder="0" min="0" oninput="updateSuperNote();updateInputHint('superBalance','superHint')"/></div><div class="savings-hint" id="superHint"></div><div class="super-note locked" id="superNote" style="display:none"></div></div>
         <div class="input-group"><label class="input-label">Your age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="age" placeholder="0" min="16" max="80" style="padding-left:44px" oninput="updateSuperNote();debounceSaveContext()"/></div></div>
         <div class="section-divider"><span>Debt</span></div>
@@ -342,7 +352,7 @@
   hint.textContent = val >= 1000 ? '$' + val.toLocaleString('en-AU') : '';
 }
 
-  let persona=null,selectedCycle='fortnightly',inputMode='type',isListening=false,isContextListening=false;
+  let persona=null,selectedCycle='fortnightly',savingsType='cash',inputMode='type',isListening=false,isContextListening=false;
   let recognition=null,retirementSpendMultiplier=1.0,contextRecognition=null,housingStatus='renting',dependants=0;
   let transcriptText='',calcData={},checkinHistory=[],streak=0,storedCalc={};
   const currentYear=new Date().getFullYear();
@@ -607,7 +617,7 @@
       if(pI>0){mInc+=pI;mSavAmt+=pS;mSup+=pSup;}
       if(mInc<=0){document.getElementById('errorMsg').style.display='block';return;}
       document.getElementById('errorMsg').style.display='none';
-      userInput=`Pay cycle: ${selectedCycle}. Income: $${mInc} per ${selectedCycle}. Savings rate: ${mRate}%. Amount saved per ${selectedCycle}: $${Math.round(mSavAmt)}. Current savings/investments (excluding super): $${mSavs}. Super balance: $${mSup}. Age: ${mAge||'not provided'}. Housing: ${housingStatus}. Dependants: ${dependants}. Total debt (excl mortgage): $${mDebt}. Mortgage remaining: $${mMort}.`;
+      userInput=`Pay cycle: ${selectedCycle}. Income: $${mInc} per ${selectedCycle}. Savings rate: ${mRate}%. Amount saved per ${selectedCycle}: $${Math.round(mSavAmt)}. Current savings/investments (excluding super): $${mSavs}. Savings held in: ${savingsType}. Super balance: $${mSup}. Age: ${mAge||'not provided'}. Housing: ${housingStatus}. Dependants: ${dependants}. Total debt (excl mortgage): $${mDebt}. Mortgage remaining: $${mMort}.`;
       if(mCtx)userInput+=` Personal situation: ${mCtx}`;
     }
     document.getElementById('analyseBtn').style.display='none';
