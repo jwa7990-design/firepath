@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FirePath — Learning Lab</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <style>
+    .lab-hero { text-align:center; padding: 32px 0 24px; }
+    .lab-hero h1 { font-family:'Playfair Display',serif; font-size:clamp(24px,5vw,36px); font-weight:700; margin-bottom:8px; }
+    .lab-hero p { font-size:15px; color:var(--soft-grey); font-weight:300; line-height:1.7; max-width:480px; margin:0 auto; }
+
+    .track-selector { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
+    .track-card { background:white; border:2px solid var(--border); border-radius:16px; padding:20px; cursor:pointer; transition:all 0.2s; }
+    .track-card:hover { border-color:var(--fire-orange); box-shadow:0 4px 16px rgba(244,98,42,0.1); }
+    .track-card.selected { border-color:var(--fire-orange); background:#FFF7F3; }
+    .track-header { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+    .track-badge { font-family:'Playfair Display',serif; font-size:14px; font-weight:700; color:white; border-radius:8px; padding:4px 12px; }
+    .track-badge.t5 { background:#7CB97E; }
+    .track-badge.t7 { background:var(--fire-orange); }
+    .track-badge.t10 { background:#C0392B; }
+    .track-name { font-size:15px; font-weight:500; }
+    .track-desc { font-size:13px; color:var(--soft-grey); font-weight:300; line-height:1.6; }
+    .track-risk { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin-top:8px; }
+    .track-risk.low { color:#7CB97E; }
+    .track-risk.mid { color:var(--fire-orange); }
+    .track-risk.high { color:#C0392B; }
+
+    .section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--fire-orange); margin-bottom:12px; }
+
+    .topics-list { display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
+    .topic-item { background:white; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.2s; }
+    .topic-item:hover { border-color:var(--fire-orange); transform:translateY(-1px); }
+    .topic-left { display:flex; align-items:center; gap:12px; }
+    .topic-icon { font-size:20px; }
+    .topic-title { font-size:14px; font-weight:500; }
+    .topic-sub { font-size:12px; color:var(--soft-grey); font-weight:300; margin-top:2px; }
+    .topic-arrow { font-size:14px; color:var(--fire-orange); }
+    .pro-lock { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber)); color:white; padding:2px 8px; border-radius:10px; }
+
+    .foundation-section { margin-bottom:28px; }
+
+    /* Article view */
+    .article-view { display:none; }
+    .article-header { margin-bottom:20px; }
+    .article-track-badge { display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:4px 12px; border-radius:20px; color:white; margin-bottom:12px; }
+    .article-track-badge.t5 { background:#7CB97E; }
+    .article-track-badge.t7 { background:var(--fire-orange); }
+    .article-track-badge.t10 { background:#C0392B; }
+    .article-track-badge.foundation { background:var(--warm-brown); }
+    .article-title { font-family:'Playfair Display',serif; font-size:clamp(20px,4vw,28px); font-weight:700; margin-bottom:8px; line-height:1.3; }
+    .article-meta { font-size:12px; color:var(--soft-grey); font-weight:300; }
+
+    .article-body { background:white; border:1.5px solid var(--border); border-radius:16px; padding:24px; margin-bottom:16px; font-size:14px; color:var(--warm-brown); line-height:1.8; font-weight:300; }
+    .article-body h3 { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; margin:20px 0 10px; }
+    .article-body p { margin-bottom:14px; }
+    .article-body strong { font-weight:500; color:var(--warm-brown); }
+    .article-body .highlight-box { background:#FFF7F3; border:1px solid rgba(244,98,42,0.2); border-radius:10px; padding:14px; margin:16px 0; font-size:13px; line-height:1.7; }
+    .article-body .think-box { background:var(--warm-cream); border-left:3px solid var(--fire-orange); padding:14px 16px; border-radius:0 10px 10px 0; margin:16px 0; font-size:13px; line-height:1.7; font-style:italic; }
+
+    .pro-teaser { background:linear-gradient(135deg,#3D2B1F,#5C3D2E); border-radius:16px; padding:24px; color:white; margin-bottom:16px; text-align:center; }
+    .pro-teaser h3 { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; margin-bottom:8px; }
+    .pro-teaser p { font-size:13px; color:rgba(255,255,255,0.65); font-weight:300; line-height:1.6; margin-bottom:16px; }
+    .pro-teaser-btn { display:inline-block; background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber)); color:white; padding:12px 24px; border-radius:50px; font-size:13px; font-weight:500; cursor:pointer; }
+
+    .loading-state { text-align:center; padding:40px 20px; }
+    .loading-state p { font-size:14px; color:var(--soft-grey); font-weight:300; margin-top:12px; }
+
+    .disclaimer { font-size:11px; color:var(--soft-grey); font-style:italic; text-align:center; line-height:1.6; margin-top:8px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <a href="firepath_pro.html" style="text-decoration:none;">
+      <div class="logo"><span style="font-size:26px">🔥</span><span class="logo-text">Fire<span>Path</span> <span class="pro-badge">Learning Lab</span></span></div>
+    </a>
+    <p class="tagline">Education that speaks your language — based on your numbers.</p>
+  </div>
+
+  <!-- TRACK SELECTION VIEW -->
+  <div id="trackView">
+    <div class="lab-hero">
+      <h1>What's your <span style="color:var(--fire-orange)">return goal?</span></h1>
+      <p>Choose your track and we'll show you the education that matches — explained in plain English, using your actual numbers.</p>
+    </div>
+
+    <!-- User context pill -->
+    <div id="userContext" style="display:none;background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--warm-brown);line-height:1.6;"></div>
+
+    <!-- Foundation topics — for everyone -->
+    <div class="foundation-section">
+      <div class="section-label">Start here — the foundations</div>
+      <div class="topics-list" id="foundationTopics"></div>
+    </div>
+
+    <div class="section-label">Choose your learning track</div>
+    <div class="track-selector">
+      <div class="track-card" onclick="selectTrack('5')">
+        <div class="track-header">
+          <span class="track-badge t5">5%</span>
+          <span class="track-name">Steady & Safe</span>
+        </div>
+        <div class="track-desc">Conservative growth with lower risk. Great if you want your money working harder without big swings.</div>
+        <div class="track-risk low">⬤ Lower risk</div>
+      </div>
+      <div class="track-card" onclick="selectTrack('7')">
+        <div class="track-header">
+          <span class="track-badge t7">7%</span>
+          <span class="track-name">The FIRE Standard</span>
+        </div>
+        <div class="track-desc">The benchmark used by the financial independence community. Historically achievable with diversified index investing.</div>
+        <div class="track-risk mid">⬤ Moderate risk</div>
+      </div>
+      <div class="track-card" onclick="selectTrack('10')">
+        <div class="track-header">
+          <span class="track-badge t10">10%+</span>
+          <span class="track-name">Growth Focused</span>
+        </div>
+        <div class="track-desc">Higher potential returns — but higher risk and volatility. For those with long timelines and strong risk tolerance.</div>
+        <div class="track-risk high">⬤ Higher risk</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOPIC LIST VIEW -->
+  <div id="topicView" style="display:none;">
+    <button class="back-btn" onclick="showTrackView()">← Back to tracks</button>
+    <div id="trackHero" style="margin-bottom:20px;"></div>
+    <div class="section-label" id="topicSectionLabel">Your learning path</div>
+    <div class="topics-list" id="topicsList"></div>
+    <p class="disclaimer">FirePath Learning Lab is educational only. Nothing here is financial advice. Always consider your personal circumstances.</p>
+  </div>
+
+  <!-- ARTICLE VIEW -->
+  <div id="articleView" class="article-view">
+    <button class="back-btn" id="articleBackBtn" onclick="showTopicView()">← Back to topics</button>
+
+    <div class="article-header">
+      <div class="article-track-badge" id="articleBadge">Track</div>
+      <div class="article-title" id="articleTitle">Loading...</div>
+      <div class="article-meta" id="articleMeta"></div>
+    </div>
+
+    <div id="loadingState" class="loading-state">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <p>Generating your personalised article...</p>
+    </div>
+
+    <div id="articleContent" style="display:none;">
+      <div class="article-body" id="articleBody"></div>
+      <div id="proSection"></div>
+      <p class="disclaimer">FirePath Learning Lab is educational only — not financial advice. Always consider your personal circumstances before making any financial decisions.</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/calculations.js"></script>
+<script>
+  // Beta gate — only accessible via ?beta=true
+  const isBeta = new URLSearchParams(window.location.search).get('beta');
+  if (!isBeta) window.location.href = 'firepath_pro.html';
+
+  const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
+
+  // ── Load user data from localStorage ──
+  const userData = {
+    income: parseFloat(localStorage.getItem('ap_income')) || 0,
+    savings: parseFloat(localStorage.getItem('ap_savings')) || 0,
+    superBal: parseFloat(localStorage.getItem('ap_super')) || 0,
+    age: parseFloat(localStorage.getItem('ap_age')) || 0,
+    sRate: parseFloat(localStorage.getItem('ap_sRate')) || 0,
+    persona: localStorage.getItem('ap_persona') || localStorage.getItem('fp_persona') || 'building',
+    cycle: localStorage.getItem('ap_cycle') || 'fortnightly',
+    freedomYrs: parseFloat(localStorage.getItem('ap_freedomYrs')) || 0,
+    fireNum: parseFloat(localStorage.getItem('ap_fireNum')) || 0,
+    monthlySav: parseFloat(localStorage.getItem('ap_monthlySav')) || 0,
+  };
+  const isPro = localStorage.getItem('fp_pro') === 'true';
+
+  function fmtM(n) { if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + Math.round(n); }
+  const currentYear = new Date().getFullYear();
+  const freedomYear = userData.freedomYrs ? currentYear + Math.round(userData.freedomYrs) : null;
+  const weeklyAmt = userData.monthlySav ? Math.round(userData.monthlySav * 12 / 52) : 0;
+
+  // ── Show user context pill ──
+  function showUserContext() {
+    const el = document.getElementById('userContext');
+    if (!userData.income && !userData.savings) { el.style.display = 'none'; return; }
+    const parts = [];
+    if (userData.income) parts.push(`💰 Earning ${fmtM(userData.income)}/month`);
+    if (weeklyAmt) parts.push(`📈 Saving $${weeklyAmt}/week`);
+    if (userData.savings) parts.push(`🏦 ${fmtM(userData.savings)} saved`);
+    if (freedomYear) parts.push(`🔥 Freedom target: ${freedomYear}`);
+    el.innerHTML = `<strong>Based on what you told us:</strong> ${parts.join(' · ')}`;
+    el.style.display = 'block';
+  }
+
+  // ── Topic definitions ──
+  const foundationTopics = [
+    { id: 'what-is-fire', icon: '🔥', title: 'What is FIRE and is it realistic for me?', sub: 'The basics of financial independence', track: 'foundation' },
+    { id: 'compounding', icon: '📈', title: 'How compound interest actually works', sub: 'With your actual numbers', track: 'foundation' },
+    { id: 'saving-vs-investing', icon: '💡', title: 'The difference between saving and investing', sub: 'Why it matters for your timeline', track: 'foundation' },
+    { id: 'two-phase', icon: '🦘', title: 'Your two-phase freedom timeline', sub: 'Savings now, super at 60', track: 'foundation' },
+  ];
+
+  const trackTopics = {
+    '5': [
+      { id: 'bonds', icon: '📜', title: 'What is a bond and why it matters', sub: 'The conservative building block' },
+      { id: 'hisa', icon: '🏦', title: 'High interest savings vs term deposits', sub: 'Making your cash work harder' },
+      { id: 'balanced-funds', icon: '⚖️', title: 'Balanced funds explained', sub: 'A bit of everything, less risk' },
+      { id: 'diversification', icon: '🌐', title: 'What diversification actually means', sub: "Don't put all your eggs in one basket" },
+      { id: 'inflation', icon: '📊', title: 'Why inflation is your silent enemy', sub: 'The number eroding your savings right now' },
+      { id: 'etf-intro', icon: '🧺', title: 'Introduction to ETFs', sub: 'The conservative starting point', pro: true },
+      { id: 'risk-reward', icon: '🎯', title: 'How to think about risk vs reward', sub: 'Finding your comfort zone', pro: true },
+    ],
+    '7': [
+      { id: 'index-funds', icon: '📊', title: 'What is an index fund and why it works', sub: 'The FIRE community favourite' },
+      { id: 'etf-how', icon: '🧺', title: 'ETFs — how to buy, what they cost', sub: 'The practical guide' },
+      { id: 'compounding-numbers', icon: '📈', title: 'Compounding with your actual numbers', sub: 'Seeing it in real terms' },
+      { id: 'dca', icon: '🔄', title: 'Dollar cost averaging', sub: 'What it is and why it works', pro: true },
+      { id: 'aus-vs-global', icon: '🌏', title: 'Australian shares vs global shares', sub: 'Where should your money live?', pro: true },
+      { id: 'super-vehicle', icon: '🦘', title: 'Superannuation as an investment vehicle', sub: 'More than just a retirement fund', pro: true },
+      { id: 'four-percent', icon: '🎯', title: 'The 4% rule — where it comes from', sub: 'The foundation of FIRE', pro: true },
+      { id: 'tax-basics', icon: '🧾', title: 'Tax and investing basics in Australia', sub: 'What you need to know', pro: true },
+    ],
+    '10': [
+      { id: 'individual-shares', icon: '📉', title: 'Individual shares — how they work', sub: 'Higher risk, higher potential' },
+      { id: 'property', icon: '🏠', title: 'Property investing explained', sub: 'Leverage, equity, cash flow' },
+      { id: 'arbitrage', icon: '⚡', title: 'Arbitrage explained simply', sub: 'Finding the gap between prices' },
+      { id: 'growth-vs-value', icon: '📊', title: 'Growth vs value investing', sub: 'Two very different approaches', pro: true },
+      { id: 'dividends', icon: '💸', title: 'Dividends vs capital growth', sub: 'Income now or wealth later?', pro: true },
+      { id: 'franking', icon: '🇦🇺', title: 'Franking credits in Australia', sub: 'A uniquely Australian advantage', pro: true },
+      { id: 'volatility', icon: '🎢', title: 'Volatility — the emotional side', sub: 'How to handle the ride', pro: true },
+    ]
+  };
+
+  let currentTrack = null;
+  let currentTopic = null;
+
+  // ── Render foundation topics ──
+  function renderFoundationTopics() {
+    const el = document.getElementById('foundationTopics');
+    el.innerHTML = foundationTopics.map(t => `
+      <div class="topic-item" onclick="openArticle('${t.id}', '${t.track}', '${t.title}')">
+        <div class="topic-left">
+          <span class="topic-icon">${t.icon}</span>
+          <div>
+            <div class="topic-title">${t.title}</div>
+            <div class="topic-sub">${t.sub}</div>
+          </div>
+        </div>
+        <span class="topic-arrow">→</span>
+      </div>
+    `).join('');
+  }
+
+  function selectTrack(track) {
+    currentTrack = track;
+    const trackInfo = {
+      '5': { name: 'Steady & Safe', badge: 't5', label: '5%', desc: 'Conservative growth with lower risk. These articles explain the building blocks of safer investing.', risk: 'Lower risk · Suitable for cautious investors or shorter timelines' },
+      '7': { name: 'The FIRE Standard', badge: 't7', label: '7%', desc: 'The benchmark used by the FIRE community. Index investing, compounding, and the maths behind financial independence.', risk: 'Moderate risk · The most commonly used FIRE assumption' },
+      '10': { name: 'Growth Focused', badge: 't10', label: '10%+', desc: 'Higher potential returns require understanding higher risk. These articles explain the growth-focused approaches.', risk: 'Higher risk · Requires long timelines and strong risk tolerance' },
+    };
+    const info = trackInfo[track];
+
+    document.getElementById('trackHero').innerHTML = `
+      <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span class="track-badge ${info.badge}" style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:white;border-radius:8px;padding:4px 12px;">${info.label}%</span>
+          <span style="font-size:16px;font-weight:500;">${info.name}</span>
+        </div>
+        <p style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:8px;">${info.desc}</p>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);">${info.risk}</div>
+      </div>
+    `;
+
+    const topics = trackTopics[track];
+    document.getElementById('topicsList').innerHTML = topics.map(t => `
+      <div class="topic-item" onclick="${t.pro && !isPro ? `showProGate('${t.title}')` : `openArticle('${t.id}', '${track}', '${t.title}')`}">
+        <div class="topic-left">
+          <span class="topic-icon">${t.icon}</span>
+          <div>
+            <div class="topic-title">${t.title}</div>
+            <div class="topic-sub">${t.sub}</div>
+          </div>
+        </div>
+        ${t.pro && !isPro ? '<span class="pro-lock">Pro</span>' : '<span class="topic-arrow">→</span>'}
+      </div>
+    `).join('');
+
+    showTopicView();
+  }
+
+  function showTrackView() {
+    document.getElementById('trackView').style.display = 'block';
+    document.getElementById('topicView').style.display = 'none';
+    document.getElementById('articleView').style.display = 'none';
+  }
+
+  function showTopicView() {
+    document.getElementById('trackView').style.display = 'none';
+    document.getElementById('topicView').style.display = 'block';
+    document.getElementById('articleView').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showProGate(title) {
+    alert(`"${title}" is a Pro article. Upgrade to FirePath Pro to unlock all in-depth personalised articles.`);
+  }
+
+  // ── Open and generate article ──
+  async function openArticle(topicId, track, title) {
+    currentTopic = { id: topicId, track, title };
+
+    // Set up article view
+    const badgeClass = track === 'foundation' ? 'foundation' : track === '5' ? 't5' : track === '7' ? 't7' : 't10';
+    const badgeLabel = track === 'foundation' ? 'Foundation' : track === '5' ? '5% Track' : track === '7' ? '7% Track' : '10%+ Track';
+
+    document.getElementById('articleBadge').className = `article-track-badge ${badgeClass}`;
+    document.getElementById('articleBadge').textContent = badgeLabel;
+    document.getElementById('articleTitle').textContent = title;
+    document.getElementById('articleMeta').textContent = isPro ? 'Personalised to your FirePath numbers · Pro' : 'Introductory article · Free';
+    document.getElementById('articleBackBtn').onclick = track === 'foundation' ? showTrackView : showTopicView;
+
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('articleContent').style.display = 'none';
+    document.getElementById('trackView').style.display = 'none';
+    document.getElementById('topicView').style.display = 'none';
+    document.getElementById('articleView').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      const article = await generateArticle(topicId, track, title, isPro);
+      document.getElementById('articleBody').innerHTML = article;
+
+      if (!isPro) {
+        document.getElementById('proSection').innerHTML = `
+          <div class="pro-teaser">
+            <h3>See how this applies to your numbers</h3>
+            <p>The full Pro version of this article uses your actual income, savings rate and freedom timeline to make every example personal to you.</p>
+            <div class="pro-teaser-btn" onclick="window.location.href='auth.html'">Unlock with Pro — $6/month →</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:10px;">7-day free trial · Cancel anytime</div>
+          </div>
+        `;
+      } else {
+        document.getElementById('proSection').innerHTML = '';
+      }
+
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('articleContent').style.display = 'block';
+
+    } catch(e) {
+      console.error(e);
+      document.getElementById('loadingState').innerHTML = '<p style="color:#E53935;">Something went wrong generating this article. Please try again.</p>';
+    }
+  }
+
+  // ── Generate article via Anthropic API ──
+  async function generateArticle(topicId, track, title, isPro) {
+    const persona = userData.persona || 'building';
+    const tone = persona === 'beginner' ? 'warm, simple, plain English — no jargon' : persona === 'fire' ? 'direct, analytical, peer-level — technical depth welcome' : 'clear, practical, motivating';
+
+    const userContext = isPro && userData.income ? `
+The reader's FirePath data:
+- Monthly income: ${fmtM(userData.income)}
+- Weekly savings: $${weeklyAmt}
+- Current savings/investments: ${fmtM(userData.savings)}
+- Super balance: ${fmtM(userData.superBal)}
+- Age: ${userData.age || 'not provided'}
+- Savings rate: ${userData.sRate}%
+- Freedom number: ${fmtM(userData.fireNum)}
+- Projected freedom year: ${freedomYear || 'not calculated'}
+
+Use their ACTUAL numbers in examples throughout the article. Make it feel written just for them.
+` : `Use realistic average Australian numbers as examples (e.g. $80K income, $500/fortnight savings, $50K savings).`;
+
+    const riskNote = track === '10' ? 'IMPORTANT: Clearly explain that higher returns come with higher risk and volatility. Never downplay risk.' : track === '5' ? 'Emphasise the lower-risk nature and suitability for cautious investors.' : 'Present a balanced view of risk and return.';
+
+    const system = `You are the FirePath Learning Lab — a financial education tool for everyday Australians. You are NOT a financial advisor. 
+
+Write a short educational article about: "${title}"
+Learning track: ${track === 'foundation' ? 'Foundation' : track + '% return target'}
+Reader persona: ${persona}
+Tone: ${tone}
+
+${userContext}
+
+${riskNote}
+
+Format rules:
+- Start with a short engaging opening paragraph (no heading)
+- Use 2-3 short sections with clear headings
+- Include a "highlight box" with a key insight using this HTML: <div class="highlight-box">...</div>
+- End with a "think about this" question using: <div class="think-box">💭 [question here]</div>
+- Keep total length under 350 words
+- Use <strong> for emphasis
+- Never use bullet points — prose only
+- End with exactly: <p style="font-size:11px;color:var(--soft-grey);font-style:italic;">📚 Educational only — not financial advice. Always consider your personal circumstances.</p>
+
+Never say "you should" or "I recommend". Never name specific brokers or platforms. Frame everything as education and questions worth exploring.`;
+
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 600,
+        system,
+        messages: [{ role: 'user', content: `Write the Learning Lab article about: ${title}` }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content[0].text;
+    return text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>');
+  }
+
+  // ── Init ──
+  showUserContext();
+  renderFoundationTopics();
+</script>
+</body>
+</html>
