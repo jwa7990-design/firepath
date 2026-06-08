@@ -171,6 +171,9 @@
 
 <script src="js/auth.js"></script>
 <script>
+  // Beta gate — only accessible via ?beta=true
+  const isBeta = new URLSearchParams(window.location.search).get('beta');
+  if (!isBeta) window.location.href = 'firepath_pro.html';
 
   // ── Load user data from localStorage ──
   const userData = {
@@ -185,7 +188,7 @@
     fireNum: parseFloat(localStorage.getItem('ap_fireNum')) || 0,
     monthlySav: parseFloat(localStorage.getItem('ap_monthlySav')) || 0,
   };
-  const isPro = localStorage.getItem('fp_is_pro') === 'true';
+  const isPro = localStorage.getItem('fp_pro') === 'true';
 
   function fmtM(n) { if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + Math.round(n); }
   const currentYear = new Date().getFullYear();
@@ -441,42 +444,95 @@ Never say "you should" or "I recommend". Never name specific brokers or platform
     if (!nextEl) return;
     nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">✅ Marked as read</div>
-      <div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:16px;">Generating your next lesson...</div>
+      <div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:16px;">Building your research pathway...</div>
       <div class="loading-dots"><span></span><span></span><span></span></div>
     </div>`;
     nextEl.style.display = 'block';
 
     try {
       const persona = userData.persona || 'building';
-      const tone = persona === 'beginner' ? 'warm, simple, plain English' : persona === 'fire' ? 'direct, analytical, peer-level' : 'clear, practical, motivating';
+      const tone = persona === 'beginner' ? 'warm, simple, plain English — no jargon' : persona === 'fire' ? 'direct, analytical, peer-level' : 'clear, practical, motivating';
       const readList = readTopics.join(', ');
+      const age = userData.age || 'unknown';
+      const housing = userData.savings ? 'has savings' : 'building savings';
 
       const res = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-5',
-          max_tokens: 300,
-          system: `You are the FirePath Learning Lab. The user just finished reading about "${title}". Their persona: ${persona}. Tone: ${tone}. Topics already read: ${readList || 'none yet'}. Suggest ONE specific follow-up angle that builds naturally on what they just learned. Respond with JSON only: {"title": "short topic title", "why": "one sentence why this is the logical next step", "topicId": "kebab-case-id", "track": "${track}"}`,
-          messages: [{ role: 'user', content: `What should I learn after "${title}"?` }]
+          max_tokens: 600,
+          system: `You are the FirePath Learning Lab — a financial education tool for everyday Australians. NOT a financial advisor.
+
+The user just finished reading about "${title}". Persona: ${persona}. Age: ${age}. Topics already read: ${readList || 'none'}.
+
+Generate a JSON response with TWO things:
+
+1. A research pathway — if this topic resonates with them, where should they go to learn more on their own? Give 4-5 specific, actionable research steps using real Australian resources. Each step should have a title and a specific search term or website to visit. Frame everything as "worth exploring" or "worth searching" — never as instructions or advice.
+
+2. The next article suggestion — one logical follow-up topic that builds on what they just learned.
+
+Respond ONLY with valid JSON:
+{
+  "research": {
+    "headline": "If ${title} resonates with you — here's where to explore further",
+    "disclaimer": "This is a starting point for your own research, not advice. Always consider your personal circumstances.",
+    "steps": [
+      {"title": "step title", "description": "specific search term or website worth visiting and why"},
+      {"title": "step title", "description": "specific search term or website worth visiting and why"},
+      {"title": "step title", "description": "specific search term or website worth visiting and why"},
+      {"title": "step title", "description": "specific search term or website worth visiting and why"}
+    ]
+  },
+  "next": {
+    "title": "next article title",
+    "why": "one sentence why this follows naturally",
+    "topicId": "kebab-case-id",
+    "track": "${track}"
+  }
+}`,
+          messages: [{ role: 'user', content: `Generate research pathway and next article after reading about: ${title}` }]
         })
       });
 
       const data = await res.json();
       const raw = data.content[0].text.replace(/```json|```/gi, '').trim();
-      const suggestion = JSON.parse(raw);
+      const result = JSON.parse(raw);
+      const r = result.research;
+      const next = result.next;
 
-      nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">✅ Marked as read · What's next?</div>
-        <div style="font-size:16px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">${suggestion.title}</div>
-        <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px;">${suggestion.why}</div>
-        <div onclick="openArticle('${suggestion.topicId}', '${suggestion.track}', '${suggestion.title}')" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
-        <div onclick="showTopicView()" style="display:inline-flex;align-items:center;gap:8px;margin-left:10px;color:var(--soft-grey);font-size:13px;cursor:pointer;">Back to topics</div>
-      </div>`;
+      nextEl.innerHTML = `
+        <!-- Research pathway -->
+        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">✅ Marked as read</div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--warm-brown);margin-bottom:6px;line-height:1.4;">${r.headline}</div>
+          <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:20px;font-style:italic;">${r.disclaimer}</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            ${r.steps.map((step, i) => `
+              <div style="background:var(--warm-cream);border-radius:12px;padding:14px 16px;border-left:3px solid var(--fire-orange);">
+                <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:4px;">${i + 1}. ${step.title}</div>
+                <div style="font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;">${step.description}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Next article -->
+        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">📚 Continue learning</div>
+          <div style="font-size:15px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">${next.title}</div>
+          <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px;">${next.why}</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div onclick="openArticle('${next.topicId}', '${next.track}', '${next.title}')" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
+            <div onclick="showTopicView()" style="display:inline-flex;align-items:center;gap:8px;color:var(--soft-grey);font-size:13px;cursor:pointer;padding:12px 0;">Back to all topics</div>
+          </div>
+        </div>`;
+
     } catch(e) {
+      console.error(e);
       nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">✅ Marked as read</div>
-        <div onclick="showTopicView()" style="font-size:13px;color:var(--fire-orange);cursor:pointer;">Back to all topics</div>
+        <div onclick="showTopicView()" style="font-size:13px;color:var(--fire-orange);cursor:pointer;">← Back to all topics</div>
       </div>`;
     }
   }
