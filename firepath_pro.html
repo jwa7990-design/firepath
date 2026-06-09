@@ -380,7 +380,13 @@
     if(last.super_balance)document.getElementById('superBalance').value=last.super_balance;
     if(last.age)document.getElementById('age').value=last.age;
     if(last.context)document.getElementById('context').value=last.context;
-    updateSavingsHint();updateSuperNote();}catch(e){console.log('Load failed',e);}
+        if(last.savings_type){savingsType=last.savings_type;document.querySelectorAll('[data-savings]').forEach(b=>{b.classList.toggle('active',b.dataset.savings===last.savings_type);});}
+        if(last.retirement_spend){retirementSpendMultiplier=last.retirement_spend;document.querySelectorAll('[data-spend]').forEach(b=>{b.classList.toggle('active',parseFloat(b.dataset.spend)===last.retirement_spend);});}
+        if(last.dependants){dependants=last.dependants;document.getElementById('dependantsVal').textContent=last.dependants;}
+        if(last.housing_status){housingStatus=last.housing_status;document.querySelectorAll('[data-housing]').forEach(b=>{b.classList.toggle('active',b.dataset.housing===last.housing_status);});}
+        if(last.debt_total)document.getElementById('debtTotal').value=last.debt_total;
+        if(last.mortgage_remaining)document.getElementById('mortgageRemaining').value=last.mortgage_remaining;
+        updateSavingsHint();updateSuperNote();}catch(e){console.log('Load failed',e);}
   }
   async function dbInsert(table,data){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/${table}`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'return=minimal'},body:JSON.stringify({...data,user_id:fpUserId})});}catch(e){}}
   async function savePersonaToDB(pv){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/users`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:fpUserId,email:localStorage.getItem('fp_email')||'',persona:pv})});localStorage.setItem('fp_persona',pv);}catch(e){}}
@@ -753,7 +759,7 @@
       document.getElementById('accFreedomDate').textContent=fyear?fyear:'100+ yrs';document.getElementById('accPortfolio').textContent=fmtM(savings);document.getElementById('accYearsToGo').textContent=fy?Math.round(fy)+'yrs':'—';
       document.getElementById('ci-savings').value=savings;
       document.getElementById('aiLoading').classList.remove('visible');document.getElementById('analyseBtn').style.display='block';
-      await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||''});
+      await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||'',savings_type:savingsType||'cash',retirement_spend:retirementSpendMultiplier||1.0,dependants:dependants||0,housing_status:housingStatus||'renting',persona:persona||'building',debt_total:mDebt||0,mortgage_remaining:mMort||0});
       await loadCheckinHistory();renderMilestones(fireNum,savings,mSav);showScreen(3);await checkProStatus();
     }catch(err){const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');const ab=document.getElementById('analyseBtn');if(ab)ab.style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
   }
