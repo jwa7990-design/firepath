@@ -87,7 +87,7 @@
       <div class="card-question">What's one thing that would make you come back to FirePath?</div>
       <textarea id="q3" placeholder="e.g. If it could track my progress over time, or if there was a mobile app..."></textarea>
     </div>
-     <div class="card">
+    <div class="card" id="proInterestCard">
       <div class="card-label">Considering Pro?</div>
       <div class="card-question">Based on what you've seen, would you consider upgrading to Pro for $6/month?</div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
@@ -136,6 +136,11 @@
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
 <script>
+   // Hide Pro interest question for Pro users
+  const isPro = localStorage.getItem('fp_is_pro') === 'true';
+  const proCard = document.getElementById('proInterestCard');
+  if (isPro && proCard) proCard.style.display = 'none';
+  
   let selectedRating = 0;
 
   function selectRating(btn) {
@@ -161,6 +166,7 @@
       bring_back: document.getElementById('q3').value.trim() || null,
       pro_interest: document.querySelector('input[name="proInterest"]:checked')?.value || null,
       other: document.getElementById('q4').value.trim() || null,
+      is_pro: localStorage.getItem('fp_is_pro') === 'true',
       email: document.getElementById('feedbackEmail').value.trim() || null,
       submitted_at: new Date().toISOString(),
     };
