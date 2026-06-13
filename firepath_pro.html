@@ -452,9 +452,10 @@
   function buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum){
   const el=document.getElementById('superTimelineCard');
   if(!el||age<=0||superBal<=0){if(el)el.style.display='none';return;}
-  const yts=Math.max(0,60-age),ag=mI*12/0.72,mes=(ag*0.115)/12,r=0.07/12;
+  const yts=Math.max(0,60-age),ag=mI*12/0.72,mes=(ag*FP_ASSUMPTIONS.sgRate)/12,r=0.07/12;
   let s60=superBal;
-  for(let m=0;m<yts*12;m++){s60=s60*(1+r)+mes;}
+  const mesAfterTax=mes*0.85;
+  for(let m=0;m<yts*12;m++){s60=s60*(1+r)+mesAfterTax;}
   s60=Math.round(s60);
   let sav60=savings;
   for(let m=0;m<yts*12;m++){sav60=sav60*(1+r)+mSav;}
@@ -503,7 +504,7 @@
       <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Years until super unlocks</span><span style="font-weight:500">${yts} yrs (age 60)</span></div>
     </div>
     ${breakdownHTML}
-    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at 7% annual growth. Employer contributions estimated at 11.5% of gross income. Educational only — not financial advice.</p>
+    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at 7% annual growth. Employer contributions at ${(FP_ASSUMPTIONS.sgRate*100).toFixed(1)}% of gross income, after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
   </div>`;
 }
     function buildDebtCard(debt,savings,mSav,mI,fireNum){
@@ -755,8 +756,8 @@
       const paf=parseInt(document.getElementById('partnerAge').value)||0,psf=parseFloat(document.getElementById('partnerSuper').value)||0;
       if((superBal>0&&age)||(psf>0&&paf)){
         const sc=document.getElementById('superResultCard'),st=document.getElementById('superResultText');sc.classList.add('visible');let sh='';
-        if(superBal>0&&age){const eg=mI*12/0.72,ac=eg*0.115/12;if(age>=60){sh+=`<p><strong>Your super:</strong> ${fmtM(superBal)} is accessible now.</p>`;}else{const yt=60-age;let sw=superBal;const mr=0.07/12;for(let m=0;m<yt*12;m++){sw=sw*(1+mr)+ac;}sh+=`<p><strong>Your super:</strong> ${fmtM(superBal)} locked until age 60 — ${yt} year${yt!==1?'s':''} away.<br/>With employer contributions: ~<strong>${fmtM(sw)}</strong> at 60</p>`;}}
-        if(psf>0&&paf){const pac=mI*12/0.72*0.115/12;if(paf>=60){sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} is accessible now.</p>`;}else{const pyt=60-paf;let pw=psf;const mr=0.07/12;for(let m=0;m<pyt*12;m++){pw=pw*(1+mr)+pac;}sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} locked — ${pyt} year${pyt!==1?'s':''} away.<br/>With employer contributions: ~<strong>${fmtM(pw)}</strong> at 60</p>`;}}
+        if(superBal>0&&age){const eg=mI*12/0.72,ac=eg*FP_ASSUMPTIONS.sgRate/12;if(age>=60){sh+=`<p><strong>Your super:</strong> ${fmtM(superBal)} is accessible now.</p>`;}else{const yt=60-age;let sw=superBal;const mr=0.07/12;for(let m=0;m<yt*12;m++){sw=sw*(1+mr)+ac;}sh+=`<p><strong>Your super:</strong> ${fmtM(superBal)} locked until age 60 — ${yt} year${yt!==1?'s':''} away.<br/>With employer contributions: ~<strong>${fmtM(sw)}</strong> at 60</p>`;}}
+        if(psf>0&&paf){const pac=mI*12/0.72*FP_ASSUMPTIONS.sgRate/12;if(paf>=60){sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} is accessible now.</p>`;}else{const pyt=60-paf;let pw=psf;const mr=0.07/12;for(let m=0;m<pyt*12;m++){pw=pw*(1+mr)+pac;}sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} locked — ${pyt} year${pyt!==1?'s':''} away.<br/>With employer contributions: ~<strong>${fmtM(pw)}</strong> at 60</p>`;}}
         sh+=`<br/><span style="font-size:11px;font-style:italic;opacity:0.7">Educational only — not financial advice.</span>`;st.innerHTML=sh;
       }
       const bankRate=FP_ASSUMPTIONS.bankRealReturn;
