@@ -44,6 +44,20 @@
   .thought-header h3 { font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:4px; }
   .thought-header p { font-size:13px;color:var(--soft-grey);font-weight:300; }
   .slider-hint { font-size:13px;color:var(--soft-grey);font-weight:300;margin-top:2px; }
+  .needle-card { background:white;border:1.5px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden; }
+  .needle-tabs { display:flex;border-bottom:1px solid var(--border); }
+  .needle-tab { flex:1;padding:12px 8px;text-align:center;font-size:13px;font-weight:500;color:var(--soft-grey);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s; }
+  .needle-tab.active { color:var(--fire-orange);border-bottom-color:var(--fire-orange); }
+  .needle-panel { display:none;padding:16px; }
+  .needle-panel.active { display:block; }
+  .needle-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
+  .needle-row:last-child { border-bottom:none; }
+  .needle-label { color:var(--soft-grey);font-weight:300; }
+  .needle-result { font-weight:700; }
+  .needle-result.better { color:#2E7D32; }
+  .needle-result.worse { color:#E53935; }
+  .needle-result.base { color:var(--warm-brown); }
+  .needle-pro-nudge { background:#FFF7F3;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:12px;color:var(--warm-brown);line-height:1.6; }
 </style>
 </head>
 <body>
@@ -232,6 +246,9 @@
       </div>
     </div>
 
+    <!-- What moves the needle — free version -->
+    <div id="needleCard"></div>
+ 
     <!-- Smart Pro upgrade banner -->
     <div id="proUpgradeBanner"></div>
 
@@ -371,6 +388,8 @@
     document.getElementById('tc-7').textContent = fmt(y07);
     document.getElementById('tc-10').textContent = fmt(y10);
     document.getElementById('thoughtSubtitle').textContent = persona === 'fire' ? 'Model different return assumptions against your portfolio.' : 'See how different growth rates change your timeline — explained in plain English.';
+   
+    buildNeedleCard(fireNum, savings, mSav, y07);
 
     fillThoughtCentre();
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
@@ -449,6 +468,71 @@
       <div onclick="gtag('event', 'upgrade_click', {'event_category': 'conversion', 'event_label': 'free_to_pro'}); window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:14px 24px;cursor:pointer;font-size:14px;font-weight:500;text-align:center;">Start FirePath Pro — $6/month →</div>
       <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.35);">Cancel anytime. No lock-in.</div>
     </div>`;
+  }
+
+  function buildNeedleCard(fireNum, savings, mSav, y07) {
+    const el = document.getElementById('needleCard');
+    if (!el || !y07) return;
+    const cy = new Date().getFullYear();
+    const base = cy + Math.round(y07);
+
+    // Tab 1 — what moves it forward (3 levers for free)
+    const mSavWeekly = mSav * 12 / 52;
+    const levers = [
+      { label: 'Save an extra $50/week', mSavNew: mSav + (50 * 52 / 12) },
+      { label: 'Save an extra $100/week', mSavNew: mSav + (100 * 52 / 12) },
+      { label: 'Save an extra $200/week', mSavNew: mSav + (200 * 52 / 12) },
+    ];
+    const leverRows = levers.map(l => {
+      const y = yearsToGoal(fireNum, savings, l.mSavNew, 0.07);
+      const yr = y ? cy + Math.round(y) : null;
+      const diff = y && y07 ? Math.round(y07 - y) : 0;
+      return `<div class="needle-row">
+        <span class="needle-label">${l.label}</span>
+        <span class="needle-result better">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : '') : '100+ yrs'}</span>
+      </div>`;
+    }).join('');
+
+    // Tab 2 — what pushes it back (spending scenarios)
+    const headwinds = [
+      { label: 'Spending up 15%', mult: 1.15 },
+      { label: 'Spending up 30%', mult: 1.30 },
+      { label: 'Spending up 50%', mult: 1.50 },
+    ];
+    const headwindRows = headwinds.map(h => {
+      const newFireNum = fireNum * h.mult;
+      const y = yearsToGoal(newFireNum, savings, mSav, 0.07);
+      const yr = y ? cy + Math.round(y) : null;
+      const diff = y && y07 ? Math.round(y - y07) : 0;
+      return `<div class="needle-row">
+        <span class="needle-label">${h.label}</span>
+        <span class="needle-result worse">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : '') : '100+ yrs'}</span>
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `<div class="needle-card">
+      <div style="padding:16px 16px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);">🎯 What changes your freedom date?</div>
+      <div style="padding:4px 16px 0;font-size:13px;color:var(--soft-grey);font-weight:300;">Your base: <strong style="color:var(--warm-brown)">${base}</strong></div>
+      <div class="needle-tabs">
+        <div class="needle-tab active" onclick="switchNeedleTab('forward', this)">🚀 What moves it forward</div>
+        <div class="needle-tab" onclick="switchNeedleTab('back', this)">📉 What pushes it back</div>
+      </div>
+      <div class="needle-panel active" id="needle-forward">
+        ${leverRows}
+        <div class="needle-pro-nudge">🔥 <strong>Pro unlocks more levers</strong> — salary sacrifice, pay rises, lump sum investments and more. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div>
+      </div>
+      <div class="needle-panel" id="needle-back">
+        ${headwindRows}
+        <div class="needle-pro-nudge">📊 <strong>Pro models these in full detail</strong> — with your actual super, debt, and income factored in. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div>
+      </div>
+    </div>`;
+  }
+
+  function switchNeedleTab(tab, btn) {
+    document.querySelectorAll('.needle-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.needle-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('needle-' + tab).classList.add('active');
   }
 
   function toggleRate(header) {
