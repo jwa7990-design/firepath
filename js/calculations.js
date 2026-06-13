@@ -18,7 +18,7 @@ function yearsToGoal(goal, current, mSaving, rate) {
   }
   return months < 1200 ? months / 12 : null;
 }
-valu
+
 /* ── Time to goal (capped) ─────────────────────────────────
    Same as above but always returns a number (never null).
    Returns 9999 if unreachable — useful for comparisons.
