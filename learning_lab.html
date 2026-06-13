@@ -100,6 +100,9 @@
       <div class="saved-section-title">🔖 Saved articles</div>
       <div id="savedList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
+    <div id="liveRatesBar" style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--warm-brown);line-height:1.6;display:none;">
+      📡 <strong>Live data:</strong> RBA cash rate <strong id="llCashRate">—</strong> · CPI <strong id="llCpi">—</strong> · Bank real return <strong id="llBank">—</strong> · Super guarantee <strong id="llSg">—</strong>
+    </div>
 
     <div class="foundation-section">
       <div class="section-label">Start here — the foundations</div>
@@ -166,6 +169,7 @@
 </div>
 
 <script src="js/auth.js"></script>
+<script src="js/calculations.js"></script>
 <script>
   const userData = {
     income: parseFloat(localStorage.getItem('ap_income')) || 0,
@@ -504,7 +508,13 @@ The reader's FirePath data:
 - Projected freedom year: ${freedomYear || 'not calculated'}
 Use their ACTUAL numbers in examples throughout the article. Make it feel written just for them.
 ` : `Use realistic average Australian numbers as examples (e.g. $80K income, $500/fortnight savings, $50K savings).`;
-    const riskNote = track === '10' ? 'IMPORTANT: Clearly explain that higher returns come with higher risk and volatility. Never downplay risk.' : track === '5' ? 'Emphasise the lower-risk nature and suitability for cautious investors.' : 'Present a balanced view of risk and return.';
+  const liveRates = `Current Australian rates (use these exact figures when relevant):
+- RBA cash rate: ${FP_ASSUMPTIONS.cashRate.toFixed(2)}%
+- CPI inflation: ${FP_ASSUMPTIONS.cpi.toFixed(1)}%
+- Bank real return: ${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(2)}%
+- Super guarantee rate: ${(FP_ASSUMPTIONS.sgRate*100).toFixed(1)}%
+- Super preservation age: ${FP_ASSUMPTIONS.preservationAge}`;  
+const riskNote = track === '10' ? 'IMPORTANT: Clearly explain that higher returns come with higher risk and volatility. Never downplay risk.' : track === '5' ? 'Emphasise the lower-risk nature and suitability for cautious investors.' : 'Present a balanced view of risk and return.';
     const system = `You are the FirePath Learning Lab — a financial education tool for everyday Australians. You are NOT a financial advisor. 
 Write a short educational article about: "${title}"
 Learning track: ${track === 'foundation' ? 'Foundation' : track + '% return target'}
@@ -512,6 +522,7 @@ Reader persona: ${persona}
 Tone: ${tone}
 ${userContext}
 ${riskNote}
+${liveRates}
 Format rules:
 - Start with a short engaging opening paragraph (no heading)
 - Use 2-3 short sections with clear headings
@@ -614,6 +625,18 @@ Respond ONLY with valid JSON:
       </div>`;
     }
   }
+
+    async function showLiveRates() {
+    await loadAssumptions();
+    const bar = document.getElementById('liveRatesBar');
+    if (!bar) return;
+    document.getElementById('llCashRate').textContent = FP_ASSUMPTIONS.cashRate.toFixed(2) + '%';
+    document.getElementById('llCpi').textContent = FP_ASSUMPTIONS.cpi.toFixed(1) + '%';
+    document.getElementById('llBank').textContent = (FP_ASSUMPTIONS.bankRealReturn*100).toFixed(2) + '%';
+    document.getElementById('llSg').textContent = (FP_ASSUMPTIONS.sgRate*100).toFixed(1) + '%';
+    bar.style.display = 'block';
+  }
+  showLiveRates();
 
   // ── Init ──
   showUserContext();
