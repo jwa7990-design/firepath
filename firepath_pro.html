@@ -405,7 +405,7 @@
   fpToken = token;
   fpUserId = userId;
   
-  await loadSavedInputs(); await checkProStatus();
+  await loadAssumptions(); await loadSavedInputs(); await checkProStatus();
   const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('🔥 Welcome to FirePath Pro!');
   const uel=document.getElementById('userStatus');
   if(localStorage.getItem('fp_email')){uel.innerHTML=`Signed in as ${localStorage.getItem('fp_email')} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;}
@@ -562,7 +562,7 @@
     const el=document.getElementById('houseCard');if(!el)return;
     const show=housing==='renting'&&debt===0&&savings<100000&&fireNum>savings&&persona!=='fire';
     if(!show){el.style.display='none';return;}
-    const t=100000,yb=yearsToGoal(t,savings,mSav,0.0075),y5=yearsToGoal(t,savings,mSav,0.05),diff=yb&&y5?yb-y5:null,inf=Math.round(t*Math.pow(1.04,y5||3)/1000)*1000;
+    const t=100000,yb=yearsToGoal(t,savings,mSav,FP_ASSUMPTIONS.bankRealReturn),y5=yearsToGoal(t,savings,mSav,0.05),diff=yb&&y5?yb-y5:null,inf=Math.round(t*Math.pow(1.04,y5||3)/1000)*1000;
     el.style.display='block';
     el.innerHTML=`<div style="background:white;border:2px solid var(--fire-amber);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
       <div style="font-size:13px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🏡 Saving for a house deposit?</div>
@@ -757,7 +757,8 @@
         if(psf>0&&paf){const pac=mI*12/0.72*0.115/12;if(paf>=60){sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} is accessible now.</p>`;}else{const pyt=60-paf;let pw=psf;const mr=0.07/12;for(let m=0;m<pyt*12;m++){pw=pw*(1+mr)+pac;}sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} locked — ${pyt} year${pyt!==1?'s':''} away.<br/>With employer contributions: ~<strong>${fmtM(pw)}</strong> at 60</p>`;}}
         sh+=`<br/><span style="font-size:11px;font-style:italic;opacity:0.7">Educational only — not financial advice.</span>`;st.innerHTML=sh;
       }
-      const y0075=yearsToGoal(fireNum,savings,mSav,0.0075),y07=yearsToGoal(fireNum,savings,mSav,0.07);
+      const bankRate=FP_ASSUMPTIONS.bankRealReturn;
+      const y0075=yearsToGoal(fireNum,savings,mSav,bankRate),y07=yearsToGoal(fireNum,savings,mSav,0.07);
       document.getElementById('bankYears').textContent=fmt(y0075);document.getElementById('investYears').textContent=fmt(y07);
       const ba=y0075===null?100:y0075,ad=y07!==null?ba-y07:null;
       document.getElementById('timeSaved').textContent=ad&&ad>0.1?fmt(ad)+' sooner':'similar timeline';

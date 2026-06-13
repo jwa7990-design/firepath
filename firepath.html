@@ -151,7 +151,20 @@
         </div>
       </div>
       <div class="input-group">
-        <label class="input-label">Anything else we should know? <span class="optional-badge">optional</span></label>
+        <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;margin-bottom:0;">
+          <div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div></div>
+          <div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);">+</div>
+        </div>
+        <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
+          <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
+          <div class="input-group"><label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0"/></div></div>
+          <div class="input-group"><label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0"/></div></div>
+          <div class="input-group"><label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/></div></div>
+          <div class="input-group" style="margin-bottom:0"><label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div></div>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Anything else we should know?</label>
         <span class="input-hint" id="contextHint">e.g. irregular income, self-employed, saving for a house</span>
         <textarea class="context-textarea" id="contextNote" placeholder="Tell us a bit about your situation…"></textarea>
       </div>
@@ -245,6 +258,7 @@
   function setRetirementSpend(btn) { document.querySelectorAll('[data-spend]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); retirementSpendMultiplier = parseFloat(btn.dataset.spend); }
   function setHousing(btn) { document.querySelectorAll('[data-housing]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); housingStatus = btn.dataset.housing; }
   function adjustDependants(delta) { dependants = Math.max(0, Math.min(10, dependants + delta)); document.getElementById('dependantsVal').textContent = dependants; }
+  function togglePartner(){const f=document.getElementById('partnerFields'),i=document.getElementById('partnerToggleIcon'),v=f.style.display!=='none';f.style.display=v?'none':'block';i.textContent=v?'+':'−';}
   function showScreen(n) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('screen' + n).classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 
   function goToScreen2() {
@@ -262,7 +276,7 @@
     showScreen(2);
   }
 
-  function setCycle(btn) { document.querySelectorAll('.cycle-btn[data-cycle]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); selectedCycle = btn.dataset.cycle; updateSavingsHint(); }
+  function setCycle(btn) { document.querySelectorAll('.cycle-btn[data-cycle]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); selectedCycle = btn.dataset.cycle; updateSavingsHint(); const w=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';const pl=document.getElementById('partnerCycleLabel'),pl2=document.getElementById('partnerCycleLabel2');if(pl)pl.textContent=w;if(pl2)pl2.textContent=w; }
   function toMonthly(n) { if (selectedCycle === 'weekly') return n * 52 / 12; if (selectedCycle === 'fortnightly') return n * 26 / 12; return n; }
 
   function yearsToGoal(goal, current, mSaving, rate) {
@@ -308,17 +322,21 @@
     if (age <= 0) { document.getElementById('errorMsg').textContent = 'Please enter your age.'; document.getElementById('errorMsg').style.display = 'block'; return; }
     document.getElementById('errorMsg').style.display = 'none';
 
-    const mI = toMonthly(income), mSav = toMonthly(savingPerCycle);
+    const pI = parseFloat(document.getElementById('partnerIncome').value)||0;
+    const pS = parseFloat(document.getElementById('partnerSavings').value)||0;
+    const mI = toMonthly(income + pI), mSav = toMonthly(savingPerCycle + pS);
     const mS = mI - mSav, fireNum = mS * 12 * 25 * retirementSpendMultiplier;
     const sRate = income > 0 ? Math.round((savingPerCycle / income) * 100) : 0;
     const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
     const cycleStatLabel = selectedCycle === 'weekly' ? 'Saved / week' : selectedCycle === 'fortnightly' ? 'Saved / fortnight' : 'Saved / month';
     const cycleSaving = selectedCycle === 'weekly' ? mSav * 12 / 52 : selectedCycle === 'fortnightly' ? mSav * 12 / 26 : mSav;
 
-    const y0075 = yearsToGoal(fireNum, savings, mSav, 0.0075);
+    const bankRate = FP_ASSUMPTIONS.bankRealReturn;
+    const y0075 = yearsToGoal(fireNum, savings, mSav, bankRate);
     const y05 = yearsToGoal(fireNum, savings, mSav, 0.05);
     const y07 = yearsToGoal(fireNum, savings, mSav, 0.07);
     const y10 = yearsToGoal(fireNum, savings, mSav, 0.10);
+
 
     const alreadyFree = savings >= fireNum && fireNum > 0;
     document.getElementById('yearsOut').textContent = alreadyFree ? 'Already there! 🎉' : fmt(y07);
@@ -437,5 +455,8 @@
 </script>
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
+<script>
+  loadAssumptions();
+</script>
 </body>
 </html>
