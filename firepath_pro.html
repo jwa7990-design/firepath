@@ -179,7 +179,7 @@
       <div id="zeroSavingsCard" style="display:none"></div>
       <div id="superTimelineCard" style="display:none"></div>
       <div id="debtCard" style="display:none"></div>
-      <div id="boostCard" style="display:none"></div>
+      <div id="boostCard" style="display:none;"></div>
       <div id="houseCard" style="display:none"></div>
 
       <!-- Partner super result -->
@@ -766,7 +766,6 @@
         document.getElementById('zeroSavingsCard').style.display='none';
         buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum);
         buildDebtCard(debt,savings,mSav,mI,fireNum);
-        buildBoostCard(savings,mSav,mI,fireNum,persona);
         buildHouseCard(housingStatus,debt,savings,mSav,fireNum);
       }
 
@@ -830,10 +829,11 @@
       { label: 'Spending up 15%', mult: 1.15 },
       { label: 'Spending up 30%', mult: 1.30 },
       { label: 'Spending up 50%', mult: 1.50 },
-      { label: 'Stop saving for 2 years', fn: () => {
+            { label: 'Stop saving for 2 years', fn: () => {
         const bal2 = savings * Math.pow(1 + 0.07/12, 24);
         return yearsToGoal(fireNum, bal2, mSav, 0.07);
       }},
+
       { label: 'Returns drop to 5%', multFn: true, rate: 0.05 },
     ];
     const headwindRows = headwinds.map(h => {
