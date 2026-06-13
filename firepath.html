@@ -198,7 +198,7 @@
     <!-- Bank vs 7% comparison -->
     <div class="compare-card">
       <p class="compare-title">💡 What if your savings worked harder?</p>
-      <div class="compare-row"><span class="compare-label">Saving in a bank (0.75%)</span><span class="compare-value" id="bankYears">—</span></div>
+      <div class="compare-row"><span class="compare-label" id="bankRateLabel">Saving in a bank (0.75%)</span><span class="compare-value" id="bankYears">—</span></div>
       <div class="compare-row"><span class="compare-label">Investing at 7% growth</span><span class="compare-value highlight" id="investYears">—</span></div>
       <div class="compare-row"><span class="compare-label">Time you could save</span><span class="compare-value highlight" id="timeSaved">—</span></div>
     </div>
@@ -373,7 +373,12 @@
 
     fillThoughtCentre();
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
+    const bankLbl = document.getElementById('bankRateLabel');
+    if (bankLbl) bankLbl.textContent = `Saving in a bank (${(FP_ASSUMPTIONS.bankRealReturn * 100).toFixed(1)}% real return)`;
+    const tcBank = document.querySelector('.rate-badge.bank');
+    if (tcBank) tcBank.textContent = `${(FP_ASSUMPTIONS.bankRealReturn * 100).toFixed(2)}%`;
     showScreen(3);
+
   }
 
   function fillThoughtCentre() {
