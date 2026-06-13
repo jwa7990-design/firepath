@@ -18,7 +18,7 @@ function yearsToGoal(goal, current, mSaving, rate) {
   }
   return months < 1200 ? months / 12 : null;
 }
-
+valu
 /* ── Time to goal (capped) ─────────────────────────────────
    Same as above but always returns a number (never null).
    Returns 9999 if unreachable — useful for comparisons.
@@ -115,7 +115,7 @@ function safeWithdrawal(portfolio, rate) {
 const FP_ASSUMPTIONS = {
   cashRate: 4.35,
   cpi: 3.7,
-  sgRate: 11.5,
+  sgRate: 12 / 100,
   preservationAge: 60,
   bankRealReturn: 0.0075,
   investReturn: 0.07,
