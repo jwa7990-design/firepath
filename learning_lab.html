@@ -76,6 +76,27 @@
     .btn-saved { background:#FFF3E0; border:2px solid var(--fire-amber); color:#E65100; padding:12px 24px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; }
     .saved-section { background:white; border:1.5px solid var(--fire-amber); border-radius:16px; padding:20px; margin-bottom:20px; }
     .saved-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#E65100; margin-bottom:12px; }
+
+    /* ── Glossary styles ── */
+    .glossary-filter-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+    .glossary-filter-btn { padding:8px 16px; border-radius:50px; border:1.5px solid var(--border); background:white; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--soft-grey); cursor:pointer; transition:all 0.2s; }
+    .glossary-filter-btn.active { border-color:var(--fire-orange); background:#FFF7F3; color:var(--warm-brown); }
+    .glossary-grid { display:flex; flex-direction:column; gap:10px; }
+    .glossary-card { background:white; border:1.5px solid var(--border); border-radius:14px; overflow:hidden; transition:all 0.2s; }
+    .glossary-card:hover { border-color:var(--fire-orange); }
+    .glossary-card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; }
+    .glossary-term { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--fire-orange); }
+    .glossary-full { font-size:13px; font-weight:500; color:var(--warm-brown); margin-top:2px; }
+    .glossary-chevron { font-size:10px; color:var(--soft-grey); transition:transform 0.2s; }
+    .glossary-chevron.open { transform:rotate(180deg); }
+    .glossary-body { display:none; border-top:1px solid var(--border); padding:16px 18px; }
+    .glossary-body.open { display:block; }
+    .glossary-plain { font-size:14px; color:var(--warm-brown); line-height:1.7; font-weight:300; margin-bottom:10px; }
+    .glossary-context { font-size:13px; color:var(--soft-grey); line-height:1.6; font-weight:300; font-style:italic; margin-bottom:12px; }
+    .glossary-personal { background:#FFF7F3; border:1px solid rgba(244,98,42,0.2); border-radius:10px; padding:12px 14px; font-size:13px; color:var(--warm-brown); line-height:1.6; margin-bottom:12px; }
+    .glossary-deep-btn { display:inline-flex; align-items:center; gap:6px; background:white; border:1.5px solid var(--fire-orange); color:var(--fire-orange); padding:8px 16px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; }
+    .glossary-deep-result { margin-top:12px; font-size:13px; color:var(--warm-brown); line-height:1.7; font-weight:300; background:var(--warm-cream); border-radius:10px; padding:14px; }
+    .glossary-loading { font-size:12px; color:var(--soft-grey); font-style:italic; }
   </style>
 </head>
 <body>
@@ -165,6 +186,14 @@
       <div id="whatsNextSection" style="display:none;"></div>
       <p class="disclaimer">FirePath Learning Lab is educational only — not financial advice. Always consider your personal circumstances before making any financial decisions.</p>
     </div>
+
+    <!-- GLOSSARY VIEW — shown instead of article for acronyms topic -->
+    <div id="glossaryContent" style="display:none;">
+      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px;">Tap any term to see what it means in plain English. Tap "Go deeper" to get an AI explanation tailored to your situation.</div>
+      <div class="glossary-filter-bar" id="glossaryFilterBar"></div>
+      <div class="glossary-grid" id="glossaryGrid"></div>
+      <p class="disclaimer" style="margin-top:16px;">FirePath Learning Lab is educational only — not financial advice.</p>
+    </div>
   </div>
 </div>
 
@@ -190,20 +219,146 @@
   const freedomYear = userData.freedomYrs ? currentYear + Math.round(userData.freedomYrs) : null;
   const weeklyAmt = userData.monthlySav ? Math.round(userData.monthlySav * 12 / 52) : 0;
 
-  // ── Auth helpers ──
   const fpToken = getToken ? getToken() : localStorage.getItem('fp_access_token');
   const fpUserId = getUserId ? getUserId() : localStorage.getItem('fp_user_id');
 
-  // ── Lab progress state ──
   let readTopics = [];
   let savedTopics = [];
 
-  // ── Load progress from Supabase ──
+  // ── Glossary data ──
+  const glossaryData = {
+    'FIRE Basics': [
+      { term: 'FIRE', full: 'Financial Independence, Retire Early', plain: 'The goal of building enough wealth that work becomes optional — and you can choose to stop at any age, not just 65.', context: 'Used in: "I\'m on the FIRE path" or "when do I hit FIRE?"', personal: () => userData.fireNum ? `Your FIRE number — the amount you need saved — is ${fmtM(userData.fireNum)}.` : null },
+      { term: 'FI', full: 'Financial Independence', plain: 'The point where your investments generate enough income to cover your living costs. You don\'t need to work — though you might choose to.', context: 'FI is the goal. RE (retiring early) is optional. Many people reach FI and keep working because they love what they do.', personal: () => freedomYear ? `At your current savings rate, you could reach FI around ${freedomYear}.` : null },
+      { term: 'RE', full: 'Retire Early', plain: 'Stopping paid work before the traditional retirement age of 65. Could mean 35, 45, or 55 — it\'s up to you.', context: 'The RE part of FIRE is personal. Some people on FIRE forums use it loosely to mean "financially optional work".', personal: () => null },
+      { term: 'SWR', full: 'Safe Withdrawal Rate', plain: 'The percentage of your portfolio you can spend each year without running out of money over a 30+ year retirement. The most commonly used rate is 4%.', context: 'If your SWR is 4% and your portfolio is $1M, you can spend $40K/year. FirePath uses this as the basis for your freedom number (25× annual spending).', personal: () => userData.fireNum ? `Your freedom number of ${fmtM(userData.fireNum)} is based on a 4% SWR applied to your current spending.` : null },
+      { term: 'LeanFIRE', full: 'Lean Financial Independence', plain: 'Reaching FIRE on a tight budget — typically under $40K/year spending. Requires frugality but gets you there faster.', context: 'Popular with minimalists and those willing to trade lifestyle for time freedom.', personal: () => null },
+      { term: 'FatFIRE', full: 'Fat Financial Independence', plain: 'FIRE with a high annual spending target — usually $100K+ per year. Needs a much larger portfolio but means no lifestyle compromise.', context: 'Used in: "I\'m aiming for FatFIRE so I need a $3M portfolio."', personal: () => null },
+      { term: 'BaristaFIRE', full: 'Barista FIRE', plain: 'Semi-retirement — you\'ve saved enough that a small part-time income covers the gap. Named after the idea of working a café job just for health insurance.', context: 'Popular in Australia because the part-time income can be anything — freelance, consulting, casual work.', personal: () => null },
+      { term: 'CoastFIRE', full: 'Coast Financial Independence', plain: 'You\'ve saved enough that — if you stop contributing today — compound growth alone will get you to your FIRE number by retirement age. You just need to cover expenses in the meantime.', context: 'Used in: "I\'ve CoastFIREd — my super will cover retirement, so now I just need to cover day-to-day costs."', personal: () => userData.superBal && userData.age ? `Your super balance of ${fmtM(userData.superBal)} is compounding quietly. At 7% growth it could be a significant CoastFIRE asset by age 60.` : null },
+    ],
+    'Investing': [
+      { term: 'ETF', full: 'Exchange Traded Fund', plain: 'A basket of shares or assets bundled into a single investment you can buy and sell like a stock. Low fees, instant diversification.', context: 'The most popular FIRE investing vehicle in Australia. One ETF can own hundreds of companies at once.', personal: () => null },
+      { term: 'LIC', full: 'Listed Investment Company', plain: 'A company that holds a portfolio of investments and trades on the stock exchange. Similar to an ETF but structured differently and often actively managed.', context: 'Popular in Australian FIRE circles. Examples include AFIC and Argo — both have long dividend histories.', personal: () => null },
+      { term: 'DCA', full: 'Dollar Cost Averaging', plain: 'Investing a fixed amount at regular intervals regardless of price — rather than trying to time the market. Smooths out the effect of volatility over time.', context: 'Used in: "I DCA $500 into index funds every fortnight."', personal: () => weeklyAmt ? `Investing your current savings of $${weeklyAmt}/week consistently is a form of DCA.` : null },
+      { term: 'P/E', full: 'Price to Earnings Ratio', plain: 'A measure of how expensive a share is relative to its profits. A P/E of 20 means you\'re paying $20 for every $1 of earnings.', context: 'Used to compare whether a share is cheap or expensive. Less relevant for index fund investors who own everything.', personal: () => null },
+      { term: 'DRP', full: 'Dividend Reinvestment Plan', plain: 'Instead of receiving dividends as cash, they\'re automatically used to buy more shares. Compounds your returns without you doing anything.', context: 'Many Australian ETFs and LICs offer DRPs. Powerful for long-term compounding.', personal: () => null },
+      { term: 'NW', full: 'Net Worth', plain: 'Everything you own minus everything you owe. Savings + investments + super + property equity, minus debts and mortgage.', context: 'The key number FIRE people track over time. Used in: "My NW just hit $100K."', personal: () => {
+        const nw = (userData.savings || 0) + (userData.superBal || 0);
+        return nw > 0 ? `Based on what you entered, your investable assets are approximately ${fmtM(nw)} (savings + super, excluding property).` : null;
+      }},
+    ],
+    'Australian': [
+      { term: 'SG', full: 'Super Guarantee', plain: `Your employer is legally required to pay ${(FP_ASSUMPTIONS.sgRate*100).toFixed(1)}% of your gross income into your super fund. This is on top of your salary.`, context: 'The SG rate is currently 12% (as of July 2025). It\'s one of the best forced-savings mechanisms in the world.', personal: () => userData.income ? `Based on your income, your employer is contributing approximately ${fmtM(userData.income * 12 * FP_ASSUMPTIONS.sgRate / 0.72)} per year into your super.` : null },
+      { term: 'CC', full: 'Concessional Contributions', plain: 'Before-tax super contributions — includes your employer SG payments and any salary sacrifice. Taxed at 15% inside super (instead of your marginal rate).', context: 'The annual CC cap is $30,000. Going over it triggers extra tax.', personal: () => null },
+      { term: 'NCC', full: 'Non-Concessional Contributions', plain: 'After-tax money you put into super yourself. No tax deduction but grows tax-free inside super.', context: 'The annual NCC cap is $120,000. A powerful strategy for high earners or those with a lump sum to invest.', personal: () => null },
+      { term: 'TTR', full: 'Transition to Retirement', plain: 'A strategy that lets you access some of your super as an income stream once you reach preservation age, while still working.', context: `Available once you reach ${FP_ASSUMPTIONS.preservationAge}. Can be used to reduce hours while maintaining income.`, personal: () => userData.age && userData.age >= FP_ASSUMPTIONS.preservationAge ? '✅ You\'ve reached preservation age — TTR is available to you.' : userData.age ? `You\'ll be eligible for TTR in ${FP_ASSUMPTIONS.preservationAge - userData.age} years.` : null },
+      { term: 'SMSF', full: 'Self Managed Super Fund', plain: 'A private super fund you run yourself. Full control over investments — but you\'re responsible for compliance and administration.', context: 'Generally only worth it above $200-300K in super. Significant admin burden. Popular with property investors.', personal: () => null },
+      { term: 'CGT', full: 'Capital Gains Tax', plain: 'Tax on the profit when you sell an asset for more than you paid. In Australia, assets held over 12 months get a 50% CGT discount.', context: 'Used in: "I\'ll trigger a CGT event if I sell those shares." Doesn\'t apply inside super (different tax rules there).', personal: () => null },
+      { term: 'FY', full: 'Financial Year', plain: 'Australia\'s tax year runs from 1 July to 30 June — not the calendar year. Important for contribution caps, tax returns, and EOFY strategies.', context: 'Used in: "I\'m maxing my CC cap before FY end." EOFY = End of Financial Year.', personal: () => null },
+      { term: 'PPOR', full: 'Principal Place of Residence', plain: 'Your main home — the one you actually live in. Important for tax because your PPOR is generally exempt from Capital Gains Tax when you sell.', context: 'Used constantly in property discussions. "Is this your PPOR or an IP?"', personal: () => null },
+      { term: 'LVR', full: 'Loan to Value Ratio', plain: 'How much you\'ve borrowed as a percentage of the property\'s value. An LVR of 80% means you\'ve borrowed 80% and have 20% equity.', context: 'Used in: "My LVR is down to 60% now." Lenders use it to assess risk. Under 80% usually means no LMI required.', personal: () => null },
+      { term: 'IO', full: 'Interest Only', plain: 'A loan type where you only pay the interest each month — not the principal. Your debt doesn\'t shrink. Common for investment properties.', context: 'Lower short-term repayments but you\'re not building equity. Can be a strategy for maximising tax deductions on investment properties.', personal: () => null },
+      { term: 'P&I', full: 'Principal and Interest', plain: 'The standard home loan type — you pay off both the interest and a portion of the actual debt each month. Your loan balance shrinks over time.', context: 'Used in: "I switched from IO to P&I last year." Most owner-occupier loans are P&I.', personal: () => null },
+      { term: 'OCR', full: 'Official Cash Rate', plain: `The interest rate set by the Reserve Bank of Australia — currently ${FP_ASSUMPTIONS.cashRate.toFixed(2)}%. It\'s the baseline that influences all other rates including mortgages and savings accounts.`, context: 'When the RBA raises the OCR, mortgage rates go up. When it cuts, borrowing gets cheaper. Follows CPI closely.', personal: () => null },
+    ],
+    'Forum & Lifestyle': [
+      { term: 'PPOR', full: 'Principal Place of Residence', plain: 'Your main home. Tax-free for CGT purposes when you sell.', context: 'See the Australian section for full detail.', personal: () => null },
+      { term: 'SINK', full: 'Single Income No Kids', plain: 'A household with one income and no children. Generally higher savings potential than family households.', context: 'Used to describe household type when discussing savings rates and FIRE timelines.', personal: () => null },
+      { term: 'DINK', full: 'Double Income No Kids', plain: 'Two incomes, no children. Often cited as the fastest path to FIRE due to high combined income and low household costs per person.', context: 'Used in: "We\'re DINKs so we\'re saving 50% of our income."', personal: () => null },
+      { term: 'DINKY', full: 'Double Income No Kids Yet', plain: 'A couple earning two incomes who plan to have children eventually. The "yet" signals that spending and savings will change.', context: 'The FIRE community often talks about the DINKY phase as the optimal savings window before kids arrive.', personal: () => null },
+      { term: 'HENRY', full: 'High Earner Not Rich Yet', plain: 'Someone earning well above average but not yet wealthy — usually because of high costs, lifestyle inflation, or just starting their wealth journey.', context: 'Used in: "I\'m a HENRY — $150K salary but still feel broke." Common among professionals in their 30s.', personal: () => null },
+      { term: 'DD', full: 'Due Diligence', plain: 'Doing your own research before making a financial decision. Checking the facts, reading the fine print, understanding what you\'re buying into.', context: 'Used in: "Did you do your DD before buying that ETF?" Often followed by DYOR.', personal: () => null },
+      { term: 'YOLO', full: 'You Only Live Once', plain: 'Used in finance forums to describe a high-risk, all-in bet on a single investment. The opposite of diversification.', context: 'Seen in: "I went full YOLO on that stock." Generally used ironically or as a warning sign in serious FIRE discussions.', personal: () => null },
+      { term: 'OO', full: 'Owner Occupier', plain: 'Someone who lives in the property they own (as opposed to renting it out). OO loans often have different rates and tax treatment to investor loans.', context: 'Used in: "Is this for OO or investment?" when discussing loan types.', personal: () => null },
+      { term: 'IP', full: 'Investment Property', plain: 'A property you own but don\'t live in — typically rented out for income. Different tax rules apply compared to your PPOR.', context: 'Used constantly in Australian property discussions. "How many IPs do you have?"', personal: () => null },
+      { term: 'OP', full: 'Original Poster', plain: 'The person who started a forum thread or Reddit post. When people say "as OP mentioned" they\'re referring back to whoever posted first.', context: 'Used in: "OP asked about ETFs — here\'s my take." Not finance-specific but you\'ll see it constantly in r/AusFinance and r/fiaustralia.', personal: () => null },
+      { term: 'NFA', full: 'Not Financial Advice', plain: 'A disclaimer people add when sharing financial opinions online. Means "I\'m sharing my view but I\'m not a licensed advisor and you shouldn\'t treat this as professional advice."', context: 'Used constantly: "Here\'s what I\'d do — NFA." FirePath operates on the same principle — educational, not advice.', personal: () => null },
+      { term: 'FA', full: 'Financial Advisor / Financial Adviser', plain: 'A licensed professional who provides personalised financial advice. In Australia, they must hold an Australian Financial Services Licence (AFSL).', context: 'Forum distinction: FA = licensed professional. NFA = not that. For complex situations, a fee-only FA is worth considering.', personal: () => null },
+    ]
+  };
+
+  let currentGlossaryCategory = 'FIRE Basics';
+
+  function renderGlossary() {
+    const filterBar = document.getElementById('glossaryFilterBar');
+    const grid = document.getElementById('glossaryGrid');
+    const categories = Object.keys(glossaryData);
+
+    filterBar.innerHTML = categories.map(cat => `
+      <button class="glossary-filter-btn ${cat === currentGlossaryCategory ? 'active' : ''}"
+        onclick="setGlossaryCategory('${cat}')">
+        ${cat === 'FIRE Basics' ? '🔥' : cat === 'Investing' ? '📈' : cat === 'Australian' ? '🦘' : '💬'} ${cat}
+      </button>
+    `).join('');
+
+    const terms = glossaryData[currentGlossaryCategory];
+    grid.innerHTML = terms.map((t, i) => {
+      const personalNote = t.personal ? t.personal() : null;
+      return `
+        <div class="glossary-card" id="gcard-${i}">
+          <div class="glossary-card-header" onclick="toggleGlossaryCard(${i})">
+            <div>
+              <div class="glossary-term">${t.term}</div>
+              <div class="glossary-full">${t.full}</div>
+            </div>
+            <span class="glossary-chevron" id="gchev-${i}">▼</span>
+          </div>
+          <div class="glossary-body" id="gbody-${i}">
+            <p class="glossary-plain">${t.plain}</p>
+            <p class="glossary-context">${t.context}</p>
+            ${personalNote ? `<div class="glossary-personal">💡 <strong>For you:</strong> ${personalNote}</div>` : ''}
+            <button class="glossary-deep-btn" onclick="goDeeper('${t.term}', '${t.full}', ${i})">
+              🤔 Explain this more deeply →
+            </button>
+            <div id="gdeep-${i}"></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function setGlossaryCategory(cat) {
+    currentGlossaryCategory = cat;
+    renderGlossary();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function toggleGlossaryCard(i) {
+    const body = document.getElementById(`gbody-${i}`);
+    const chev = document.getElementById(`gchev-${i}`);
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    chev.classList.toggle('open', !isOpen);
+  }
+
+  async function goDeeper(term, full, i) {
+    const deepEl = document.getElementById(`gdeep-${i}`);
+    deepEl.innerHTML = `<div class="glossary-deep-result glossary-loading">Generating deeper explanation...</div>`;
+    const persona = userData.persona || 'building';
+    const tone = persona === 'beginner' ? 'warm, simple, plain English' : persona === 'fire' ? 'direct, analytical, peer-level' : 'clear, practical';
+    const userCtx = userData.income ? `The reader earns ${fmtM(userData.income)}/month, saves $${weeklyAmt}/week, has ${fmtM(userData.savings)} saved and ${fmtM(userData.superBal)} in super.` : '';
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5',
+          max_tokens: 300,
+          system: `You are FirePath Learning Lab — educational, not financial advice. Explain the term "${term} (${full})" in depth for an Australian reader. Persona: ${persona}. Tone: ${tone}. ${userCtx} Use their numbers in examples if relevant. Keep under 150 words. Plain prose, no bullet points. End with exactly: "Educational only — not financial advice."`,
+          messages: [{ role: 'user', content: `Explain ${term} in more depth with practical Australian context.` }]
+        })
+      });
+      const data = await res.json();
+      deepEl.innerHTML = `<div class="glossary-deep-result">${data.content[0].text.replace(/\n/g, '<br/>')}</div>`;
+    } catch(e) {
+      deepEl.innerHTML = `<div class="glossary-deep-result" style="color:#E53935;">Something went wrong. Please try again.</div>`;
+    }
+  }
+
+  // ── Lab progress state ──
   async function loadLabProgress() {
-    // Always load from localStorage as fallback
     readTopics = JSON.parse(localStorage.getItem('fp_lab_read') || '[]');
     savedTopics = JSON.parse(localStorage.getItem('fp_lab_saved') || '[]');
-
     if (!fpToken || !fpUserId) return;
     try {
       const res = await fetch(`${WORKER_URL}/db/lab_progress?user_id=eq.${fpUserId}`, {
@@ -213,7 +368,6 @@
       if (Array.isArray(data)) {
         readTopics = data.filter(r => !r.saved).map(r => r.topic_id);
         savedTopics = data.filter(r => r.saved).map(r => ({ id: r.topic_id, title: r.topic_title, track: r.track }));
-        // Sync to localStorage
         localStorage.setItem('fp_lab_read', JSON.stringify(readTopics));
         localStorage.setItem('fp_lab_saved', JSON.stringify(savedTopics));
       }
@@ -223,50 +377,32 @@
     renderSavedArticles();
   }
 
-  // ── Save to Supabase ──
   async function saveLabProgress(topicId, title, track, saved = false) {
     if (!fpToken || !fpUserId) return;
     try {
       await fetch(`${WORKER_URL}/db/lab_progress`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${fpToken}`,
-          'Prefer': 'resolution=merge-duplicates'
-        },
-        body: JSON.stringify({
-          user_id: fpUserId,
-          topic_id: topicId,
-          topic_title: title,
-          track: track,
-          saved: saved,
-          read_at: new Date().toISOString()
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({ user_id: fpUserId, topic_id: topicId, topic_title: title, track, saved, read_at: new Date().toISOString() })
       });
-    } catch(e) {
-      console.log('Lab progress save failed', e);
-    }
+    } catch(e) {}
   }
 
-  // ── Mark as read ──
   function markAsRead(topicId, title, track) {
     if (!readTopics.includes(topicId)) {
       readTopics.push(topicId);
       localStorage.setItem('fp_lab_read', JSON.stringify(readTopics));
       saveLabProgress(topicId, title, track, false);
     }
-    // Update button
     const btn = document.getElementById('markReadBtn');
     if (btn) { btn.textContent = '✅ Explored'; btn.style.background = '#E8F5E9'; btn.style.borderColor = '#A5D6A7'; btn.style.color = '#2E7D32'; }
     showWhatsNext(topicId, title, track);
   }
 
-  // ── Toggle save ──
   async function toggleSave(topicId, title, track) {
     const alreadySaved = savedTopics.some(s => s.id === topicId);
     if (alreadySaved) {
       savedTopics = savedTopics.filter(s => s.id !== topicId);
-      // Update in Supabase — set saved to false
       await saveLabProgress(topicId, title, track, false);
       const btn = document.getElementById('saveBtn');
       if (btn) { btn.textContent = '🔖 Save article'; btn.className = 'btn-save'; }
@@ -283,15 +419,9 @@
   function showProGateSave() {
     const nextEl = document.getElementById('whatsNextSection');
     nextEl.style.display = 'block';
-    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;">
-      <div style="font-size:20px;margin-bottom:8px;">🔖</div>
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Save articles with Pro</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members can save articles to read again, track progress across devices, and get AI-suggested next lessons.</div>
-      <div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div>
-    </div>`;
+    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;"><div style="font-size:20px;margin-bottom:8px;">🔖</div><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Save articles with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members can save articles to read again, track progress across devices, and get AI-suggested next lessons.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
   }
 
-  // ── Render saved articles section ──
   function renderSavedArticles() {
     const section = document.getElementById('savedSection');
     const list = document.getElementById('savedList');
@@ -299,16 +429,9 @@
     section.style.display = 'block';
     list.innerHTML = savedTopics.map(s => `
       <div class="topic-item saved" onclick="openArticle('${s.id}', '${s.track}', '${s.title}')">
-        <div class="topic-left">
-          <span class="topic-icon">🔖</span>
-          <div>
-            <div class="topic-title">${s.title}</div>
-            <div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track + '% track'}</div>
-          </div>
-        </div>
+        <div class="topic-left"><span class="topic-icon">🔖</span><div><div class="topic-title">${s.title}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track + '% track'}</div></div></div>
         <span class="saved-badge">Saved</span>
-      </div>
-    `).join('');
+      </div>`).join('');
   }
 
   function showUserContext() {
@@ -328,6 +451,7 @@
     { id: 'compounding', icon: '📈', title: 'How compound interest actually works', sub: 'With your actual numbers', track: 'foundation' },
     { id: 'saving-vs-investing', icon: '💡', title: 'The difference between saving and investing', sub: 'Why it matters for your timeline', track: 'foundation' },
     { id: 'two-phase', icon: '🦘', title: 'Your two-phase freedom timeline', sub: 'Savings now, super at 60', track: 'foundation' },
+    { id: 'acronyms', icon: '🔤', title: 'The FIRE glossary — every acronym explained', sub: 'PPOR, DINK, ETF, SWR and every term you see in forums', track: 'foundation' },
   ];
 
   const trackTopics = {
@@ -370,13 +494,10 @@
       const isRead = readTopics.includes(t.id);
       const isSaved = savedTopics.some(s => s.id === t.id);
       return `
-        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" onclick="openArticle('${t.id}', '${t.track}', '${t.title}')">
+        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" onclick="openArticle('${t.id}', '${t.track}', '${t.title.replace(/'/g, "\\'")}')">
           <div class="topic-left">
             <span class="topic-icon">${t.icon}</span>
-            <div>
-              <div class="topic-title">${t.title}</div>
-              <div class="topic-sub">${t.sub}</div>
-            </div>
+            <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
           </div>
           ${isRead ? '<span class="read-badge">✅ Explored</span>' : isSaved ? '<span class="saved-badge">🔖 Saved</span>' : '<span class="topic-arrow">→</span>'}
         </div>`;
@@ -406,13 +527,10 @@
       const isSaved = savedTopics.some(s => s.id === t.id);
       const locked = t.pro && !isPro;
       return `
-        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" onclick="${locked ? `showProGate('${t.title}')` : `openArticle('${t.id}', '${track}', '${t.title}')`}">
+        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" onclick="${locked ? `showProGate('${t.title.replace(/'/g, "\\'")}')` : `openArticle('${t.id}', '${track}', '${t.title.replace(/'/g, "\\'")}')`}">
           <div class="topic-left">
             <span class="topic-icon">${t.icon}</span>
-            <div>
-              <div class="topic-title">${t.title}</div>
-              <div class="topic-sub">${t.sub}</div>
-            </div>
+            <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
           </div>
           ${locked ? '<span class="pro-lock">Pro</span>' : isRead ? '<span class="read-badge">✅ Read</span>' : isSaved ? '<span class="saved-badge">🔖 Saved</span>' : '<span class="topic-arrow">→</span>'}
         </div>`;
@@ -438,12 +556,7 @@
   function showProGateMarkAsRead() {
     const nextEl = document.getElementById('whatsNextSection');
     nextEl.style.display = 'block';
-    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;">
-      <div style="font-size:20px;margin-bottom:8px;">🎓</div>
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Track your progress with Pro</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members get personalised research pathways, AI-suggested next articles and progress tracking — all tailored to your actual numbers.</div>
-      <div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div>
-    </div>`;
+    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;"><div style="font-size:20px;margin-bottom:8px;">🎓</div><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Track your progress with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members get personalised research pathways, AI-suggested next articles and progress tracking.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
   }
 
   function showProGate(title) {
@@ -452,22 +565,36 @@
 
   async function openArticle(topicId, track, title) {
     currentTopic = { id: topicId, track, title };
-    const badgeClass = track === 'foundation' ? 'foundation' : track === '5' ? 't5' : track === '7' ? 't7' : 't10';
-    const badgeLabel = track === 'foundation' ? 'Foundation' : track === '5' ? '5% Track' : track === '7' ? '7% Track' : '10%+ Track';
-    document.getElementById('articleBadge').className = `article-track-badge ${badgeClass}`;
-    document.getElementById('articleBadge').textContent = badgeLabel;
-    document.getElementById('articleTitle').textContent = title;
-    document.getElementById('articleMeta').textContent = isPro ? 'Personalised to your FirePath numbers · Pro' : 'Introductory article · Free';
-    document.getElementById('articleBackBtn').onclick = track === 'foundation' ? showTrackView : showTopicView;
-    document.getElementById('loadingState').style.display = 'block';
-    document.getElementById('articleContent').style.display = 'none';
+
+    // Show article view shell
     document.getElementById('trackView').style.display = 'none';
     document.getElementById('topicView').style.display = 'none';
     document.getElementById('articleView').style.display = 'block';
     document.getElementById('whatsNextSection').style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Update button states
+    const badgeClass = track === 'foundation' ? 'foundation' : track === '5' ? 't5' : track === '7' ? 't7' : 't10';
+    const badgeLabel = track === 'foundation' ? 'Foundation' : track === '5' ? '5% Track' : track === '7' ? '7% Track' : '10%+ Track';
+    document.getElementById('articleBadge').className = `article-track-badge ${badgeClass}`;
+    document.getElementById('articleBadge').textContent = badgeLabel;
+    document.getElementById('articleTitle').textContent = title;
+    document.getElementById('articleMeta').textContent = topicId === 'acronyms' ? 'Interactive glossary · Free' : isPro ? 'Personalised to your FirePath numbers · Pro' : 'Introductory article · Free';
+    document.getElementById('articleBackBtn').onclick = track === 'foundation' ? showTrackView : showTopicView;
+
+    // ── GLOSSARY SPECIAL CASE ──
+    if (topicId === 'acronyms') {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('articleContent').style.display = 'none';
+      document.getElementById('glossaryContent').style.display = 'block';
+      renderGlossary();
+      return;
+    }
+
+    // ── REGULAR ARTICLE ──
+    document.getElementById('glossaryContent').style.display = 'none';
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('articleContent').style.display = 'none';
+
     const isRead = readTopics.includes(topicId);
     const isSaved = savedTopics.some(s => s.id === topicId);
     const markBtn = document.getElementById('markReadBtn');
@@ -508,13 +635,13 @@ The reader's FirePath data:
 - Projected freedom year: ${freedomYear || 'not calculated'}
 Use their ACTUAL numbers in examples throughout the article. Make it feel written just for them.
 ` : `Use realistic average Australian numbers as examples (e.g. $80K income, $500/fortnight savings, $50K savings).`;
-  const liveRates = `Current Australian rates (use these exact figures when relevant):
+    const liveRates = `Current Australian rates (use these exact figures when relevant):
 - RBA cash rate: ${FP_ASSUMPTIONS.cashRate.toFixed(2)}%
 - CPI inflation: ${FP_ASSUMPTIONS.cpi.toFixed(1)}%
 - Bank real return: ${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(2)}%
 - Super guarantee rate: ${(FP_ASSUMPTIONS.sgRate*100).toFixed(1)}%
-- Super preservation age: ${FP_ASSUMPTIONS.preservationAge}`;  
-const riskNote = track === '10' ? 'IMPORTANT: Clearly explain that higher returns come with higher risk and volatility. Never downplay risk.' : track === '5' ? 'Emphasise the lower-risk nature and suitability for cautious investors.' : 'Present a balanced view of risk and return.';
+- Super preservation age: ${FP_ASSUMPTIONS.preservationAge}`;
+    const riskNote = track === '10' ? 'IMPORTANT: Clearly explain that higher returns come with higher risk and volatility. Never downplay risk.' : track === '5' ? 'Emphasise the lower-risk nature and suitability for cautious investors.' : 'Present a balanced view of risk and return.';
     const system = `You are the FirePath Learning Lab — a financial education tool for everyday Australians. You are NOT a financial advisor. 
 Write a short educational article about: "${title}"
 Learning track: ${track === 'foundation' ? 'Foundation' : track + '% return target'}
@@ -539,60 +666,39 @@ Never say "you should" or "I recommend". Never name specific brokers or platform
       body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 600, system, messages: [{ role: 'user', content: `Write the Learning Lab article about: ${title}` }] })
     });
     const data = await res.json();
-    const text = data.content[0].text;
-    return text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>');
+    return data.content[0].text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>');
   }
 
   async function showWhatsNext(topicId, title, track) {
     const nextEl = document.getElementById('whatsNextSection');
     if (!nextEl) return;
-    nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">✅ Marked as read</div>
-      <div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:16px;">Building your research pathway...</div>
-      <div class="loading-dots"><span></span><span></span><span></span></div>
-    </div>`;
+    nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">✅ Marked as read</div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:16px;">Building your research pathway...</div><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
     nextEl.style.display = 'block';
     try {
       const persona = userData.persona || 'building';
-      const tone = persona === 'beginner' ? 'warm, simple, plain English — no jargon' : persona === 'fire' ? 'direct, analytical, peer-level' : 'clear, practical, motivating';
       const readList = readTopics.join(', ');
       const age = userData.age || 'unknown';
       const res = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-5',
-          max_tokens: 600,
-          system: `You are the FirePath Learning Lab — a financial education tool for everyday Australians. NOT a financial advisor.
-The user just finished reading about "${title}". Persona: ${persona}. Age: ${age}. Topics already read: ${readList || 'none'}.
-Generate a JSON response with TWO things:
-1. A research pathway — 4-5 specific, actionable research steps using real Australian resources. Frame as "worth exploring" — never as instructions or advice.
-2. The next article suggestion — one logical follow-up topic.
+          model: 'claude-sonnet-4-5', max_tokens: 600,
+          system: `You are the FirePath Learning Lab — educational, not financial advice.
+The user just finished reading about "${title}". Persona: ${persona}. Age: ${age}. Topics read: ${readList || 'none'}.
 Respond ONLY with valid JSON:
 {
   "research": {
-    "headline": "If ${title} resonates with you — here's where to explore further",
-    "disclaimer": "This is a starting point for your own research, not advice. Always consider your personal circumstances.",
-    "steps": [
-      {"title": "step title", "description": "specific search term or website worth visiting and why"},
-      {"title": "step title", "description": "specific search term or website worth visiting and why"},
-      {"title": "step title", "description": "specific search term or website worth visiting and why"},
-      {"title": "step title", "description": "specific search term or website worth visiting and why"}
-    ]
+    "headline": "string",
+    "disclaimer": "string",
+    "steps": [{"title":"string","description":"string"},{"title":"string","description":"string"},{"title":"string","description":"string"},{"title":"string","description":"string"}]
   },
-  "next": {
-    "title": "next article title",
-    "why": "one sentence why this follows naturally",
-    "topicId": "kebab-case-id",
-    "track": "${track}"
-  }
+  "next": {"title":"string","why":"string","topicId":"kebab-case","track":"${track}"}
 }`,
-          messages: [{ role: 'user', content: `Generate research pathway and next article after reading about: ${title}` }]
+          messages: [{ role: 'user', content: `Generate research pathway and next article after: ${title}` }]
         })
       });
       const data = await res.json();
-      const raw = data.content[0].text.replace(/```json|```/gi, '').trim();
-      const result = JSON.parse(raw);
+      const result = JSON.parse(data.content[0].text.replace(/```json|```/gi, '').trim());
       const r = result.research;
       const next = result.next;
       nextEl.innerHTML = `
@@ -601,11 +707,7 @@ Respond ONLY with valid JSON:
           <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--warm-brown);margin-bottom:6px;line-height:1.4;">${r.headline}</div>
           <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:20px;font-style:italic;">${r.disclaimer}</div>
           <div style="display:flex;flex-direction:column;gap:12px;">
-            ${r.steps.map((step, i) => `
-              <div style="background:var(--warm-cream);border-radius:12px;padding:14px 16px;border-left:3px solid var(--fire-orange);">
-                <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:4px;">${i + 1}. ${step.title}</div>
-                <div style="font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;">${step.description}</div>
-              </div>`).join('')}
+            ${r.steps.map((s,i) => `<div style="background:var(--warm-cream);border-radius:12px;padding:14px 16px;border-left:3px solid var(--fire-orange);"><div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:4px;">${i+1}. ${s.title}</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;">${s.description}</div></div>`).join('')}
           </div>
         </div>
         <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-bottom:12px;">
@@ -613,20 +715,16 @@ Respond ONLY with valid JSON:
           <div style="font-size:15px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">${next.title}</div>
           <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px;">${next.why}</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <div onclick="openArticle('${next.topicId}', '${next.track}', '${next.title}')" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
+            <div onclick="openArticle('${next.topicId}','${next.track}','${next.title}')" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
             <div onclick="showTopicView()" style="display:inline-flex;align-items:center;gap:8px;color:var(--soft-grey);font-size:13px;cursor:pointer;padding:12px 0;">Back to all topics</div>
           </div>
         </div>`;
     } catch(e) {
-      console.error(e);
-      nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">✅ Marked as read</div>
-        <div onclick="showTopicView()" style="font-size:13px;color:var(--fire-orange);cursor:pointer;">← Back to all topics</div>
-      </div>`;
+      nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">✅ Marked as read</div><div onclick="showTopicView()" style="font-size:13px;color:var(--fire-orange);cursor:pointer;">← Back to all topics</div></div>`;
     }
   }
 
-    async function showLiveRates() {
+  async function showLiveRates() {
     await loadAssumptions();
     const bar = document.getElementById('liveRatesBar');
     if (!bar) return;
@@ -638,7 +736,6 @@ Respond ONLY with valid JSON:
   }
   showLiveRates();
 
-  // ── Init ──
   showUserContext();
   loadLabProgress().then(() => {
     renderFoundationTopics();
