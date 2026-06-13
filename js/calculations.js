@@ -107,3 +107,37 @@ function fireNumber(annualSpending) {
 function safeWithdrawal(portfolio, rate) {
   return portfolio * (rate || 0.04);
 }
+
+/* ── Live assumptions from RBA/ATO ─────────────────────────
+   Fetches live data from the Worker and stores globally.
+   Falls back to hardcoded values if fetch fails.
+──────────────────────────────────────────────────────────── */
+const FP_ASSUMPTIONS = {
+  cashRate: 4.35,
+  cpi: 3.7,
+  sgRate: 11.5,
+  preservationAge: 60,
+  bankRealReturn: 0.0075,
+  investReturn: 0.07,
+  source: 'fallback'
+};
+
+async function loadAssumptions() {
+  try {
+    const res = await fetch(`${WORKER_URL}/assumptions`);
+    const data = await res.json();
+    if (data.cashRate) FP_ASSUMPTIONS.cashRate = data.cashRate;
+    if (data.cpi) {
+      FP_ASSUMPTIONS.cpi = data.cpi;
+      // Real bank return = cash rate minus inflation
+      FP_ASSUMPTIONS.bankRealReturn = Math.max(0.001, Math.round((data.cashRate - data.cpi) * 10) / 1000);
+    }
+    if (data.sgRate) FP_ASSUMPTIONS.sgRate = data.sgRate / 100;
+    if (data.preservationAge) FP_ASSUMPTIONS.preservationAge = data.preservationAge;
+    FP_ASSUMPTIONS.source = data.source || 'rba';
+    console.log('✅ Assumptions loaded:', FP_ASSUMPTIONS);
+  } catch (e) {
+    console.log('⚠️ Assumptions fetch failed, using fallback:', e.message);
+  }
+}
+
