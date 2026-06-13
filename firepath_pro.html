@@ -189,13 +189,14 @@
       </div>
 
       <!-- Compare -->
-      <div class="compare-card">
-        <p class="compare-title">💡 What if your savings worked harder?</p>
-        <div style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--warm-brown);line-height:1.6;font-weight:300;">💬 <strong>Why does this matter?</strong> A bank typically pays ~5% interest but inflation runs at ~4.25% — leaving a <strong>real return of just 0.75%</strong>. Meanwhile, diversified investments have historically returned ~7% after inflation.</div>
-        <div class="compare-row"><span class="compare-label">Saving in a bank (0.75% after inflation)</span><span class="compare-value" id="bankYears">—</span></div>
-        <div class="compare-row"><span class="compare-label"><select id="rateSelector" onchange="updateRateRow()" style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--warm-brown);border:none;background:transparent;cursor:pointer;outline:none;padding:0;"><option value="0.07">Investing at 7% after inflation</option><option value="0.05">Investing at 5% after inflation</option><option value="0.10">Investing at 10% after inflation</option></select></span><span class="compare-value highlight" id="investYears">—</span></div>
-        <div class="compare-row"><span class="compare-label">Time you could save</span><span class="compare-value highlight" id="timeSaved">—</span></div>
-      </div>
+     <div class="compare-card">
+       <p class="compare-title">💡 What if your savings worked harder?</p>
+       <div style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--warm-brown);line-height:1.6;font-weight:300;">💬 <strong>Why does this matter?</strong> A bank typically pays ~5% interest but inflation runs at ~4.25% — leaving a <strong>real return of just 0.75%</strong>. Meanwhile, diversified investments have historically returned ~7% after inflation.</div>
+       <div class="compare-row"><span class="compare-label" id="bankRateLabel">Saving in a bank (0.75%)</span><span class="compare-value" id="bankYears">—</span></div>
+       <div class="compare-row"><span class="compare-label"><select id="rateSelector" onchange="updateRateRow()" style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--warm-brown);border:none;background:transparent;cursor:pointer;outline:none;padding:0;"><option value="0.07">Investing at 7% after inflation</option><option value="0.05">Investing at 5% after inflation</option><option value="0.10">Investing at 10% after inflation</option></select></span><span class="compare-value highlight" id="investYears">—</span></div>
+       <div class="compare-row"><span class="compare-label">Time you could save</span><span class="compare-value highlight" id="timeSaved">—</span></div>
+     </div>
+
 
       <div onclick="saveHMOData();window.location.href='hearmeout.html';" style="margin-bottom:16px;background:white;border:2px solid var(--warm-brown);border-radius:20px;padding:24px;cursor:pointer;">
         <div style="font-size:22px;margin-bottom:10px">🤔</div>
@@ -762,6 +763,8 @@
       document.getElementById('bankYears').textContent=fmt(y0075);document.getElementById('investYears').textContent=fmt(y07);
       const ba=y0075===null?100:y0075,ad=y07!==null?ba-y07:null;
       document.getElementById('timeSaved').textContent=ad&&ad>0.1?fmt(ad)+' sooner':'similar timeline';
+      const bankLbl=document.getElementById('bankRateLabel');
+      if(bankLbl)bankLbl.textContent=`Saving in a bank (${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(1)}% real return)`;
       storedCalc={fireNum,savings,mSav,y0075};document.getElementById('rateSelector').value='0.07';
       document.getElementById('aiInsightText').innerHTML=insight.replace(/\n/g,'<br/>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+(scenHTML?'<div class="scenarios-wrapper">'+scenHTML+'</div>':'')+`<div onclick="saveHMOData();window.location.href='hearmeout.html';" style="margin-top:16px;padding:12px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;font-size:13px;color:var(--fire-orange);font-weight:500;">→ Want to run the numbers on a big move? Try the Hear Me Out calculators</div>`;
       const pct=Math.min(Math.round((savings/fireNum)*100),100);
