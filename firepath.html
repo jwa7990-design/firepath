@@ -141,6 +141,16 @@
         <label class="input-label" id="savingsLabel" for="savings">Current savings &amp; investments</label>
         <span class="input-hint">Include everything — bank savings, shares, ETFs, and your mortgage offset balance. If it's working for you, it counts here.</span>
         <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savings" placeholder="0" min="0"/></div>
+        <div style="margin-top:12px;">
+          <label class="input-label" style="margin-bottom:8px;">Where is this money held?</label>
+          <span class="input-hint">This helps FirePath show your real starting point</span>
+          <div class="housing-group" style="margin-top:8px;">
+            <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)">🏦 Bank / cash</button>
+            <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)">📈 ETFs / shares</button>
+            <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)">🏠 Offset</button>
+            <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)">🌐 Mix</button>
+          </div>
+        </div>
       </div>
       <div class="input-group">
         <label class="input-label" for="superBalance">Super balance <span class="optional-badge">optional</span></label>
@@ -262,7 +272,10 @@
 
 <script>
   let persona = null, selectedCycle = 'fortnightly', retirementSpendMultiplier = 1.0;
-  let housingStatus = 'renting', dependants = 0;
+  let housingStatus = 'renting', dependants = 0, savingsType = 'cash';
+
+  function setSavingsType(btn) { document.querySelectorAll('[data-savings]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); savingsType = btn.dataset.savings; }
+
 
   function selectPersona(el) {
     document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected'));
@@ -380,7 +393,7 @@
     const diff = (y0075 !== null && y07 !== null) ? y0075 - y07 : null;
     document.getElementById('timeSaved').textContent = (y0075 === null && y07 !== null) ? fmt(y07) + ' sooner than bank' : diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'similar timeline';
     
-    buildRangeCard(fireNum, savings, mSav, y05, y07, y10);
+    buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate);
     buildNeedleCard(fireNum, savings, mSav, y07);
 
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
@@ -429,32 +442,74 @@
     </div>`;
   }
 
-  function buildRangeCard(fireNum, savings, mSav, y05, y07, y10) {
+  function buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate) {
     const el = document.getElementById('rangeCard');
     const rows = document.getElementById('rangeRows');
     if (!el || !rows) return;
     const cy = new Date().getFullYear();
+
+    // Row 1 — their current reality based on where money is held
+    const rateMap = { cash: FP_ASSUMPTIONS.bankRealReturn, etfs: 0.07, offset: 0.05, mix: 0.04 };
+    const labelMap = {
+      cash: '😴 Your money in the bank',
+      etfs: '✅ Your money in ETFs/shares',
+      offset: '🏠 Your money in offset',
+      mix: '🌐 Your current mix'
+    };
+    const noteMap = {
+      cash: `(${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(1)}% real return)`,
+      etfs: '(7% real return — already invested)',
+      offset: '(~5% — saving on mortgage interest)',
+      mix: '(~4% blended estimate)'
+    };
+    const currentRate = rateMap[savingsType] || FP_ASSUMPTIONS.bankRealReturn;
+    const yCurrentReality = yearsToGoal(fireNum, savings, mSav, currentRate);
+    const fmtReality = yCurrentReality ? cy + Math.round(yCurrentReality) : '100+ yrs';
+
+    // Row 2 — if invested at 7%
     const fmt7 = y07 ? cy + Math.round(y07) : '100+ yrs';
-    const fmt5 = y05 ? cy + Math.round(y05) : '100+ yrs';
-    const fmt10 = y10 ? cy + Math.round(y10) : '100+ yrs';
-    const diff5 = y05 && y07 ? Math.round(y05 - y07) : null;
-    const diff10 = y07 && y10 ? Math.round(y07 - y10) : null;
-    rows.innerHTML = `
+    const diffReality = yCurrentReality && y07 ? Math.round(yCurrentReality - y07) : null;
+
+    // Row 3 — invested at 7% + $50/week more
+    const extraLabel = sRate === 0 ? 'if you started saving $50/week' : 'if you found an extra $50/week';
+    const mSavPlus = mSav + (50 * 52 / 12);
+    const yPlus = yearsToGoal(fireNum, savings, mSavPlus, 0.07);
+    const fmtPlus = yPlus ? cy + Math.round(yPlus) : '100+ yrs';
+    const diffPlus = y07 && yPlus ? Math.round(y07 - yPlus) : null;
+
+    // If already invested at 7%, row 1 and row 2 are the same — collapse to 2 rows
+    const alreadyInvested = savingsType === 'etfs';
+
+    rows.innerHTML = !alreadyInvested ? `
       <div class="range-row">
-        <span class="range-label">😟 <strong>Conservative</strong> — 5% real return</span>
-        <span class="range-value conservative">${fmt5}${diff5 && diff5 > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(+${diff5}yr)</span>` : ''}</span>
+        <span class="range-label">😴 <strong>${labelMap[savingsType]}</strong><br/><span style="font-size:11px">${noteMap[savingsType]}</span></span>
+        <span class="range-value conservative">${fmtReality}</span>
       </div>
       <div class="range-row base">
-        <span class="range-label">😊 <strong>Base case</strong> — 7% real return</span>
-        <span class="range-value base">${fmt7} ← you are here</span>
+        <span class="range-label">📈 <strong>If your money was invested</strong><br/><span style="font-size:11px">(7% real return)</span></span>
+        <span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffReality}yr sooner)</span>` : ''}</span>
       </div>
       <div class="range-row">
-        <span class="range-label">🚀 <strong>Optimistic</strong> — 10% real return</span>
-        <span class="range-value optimistic">${fmt10}${diff10 && diff10 > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diff10}yr sooner)</span>` : ''}</span>
+        <span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span>
+        <span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span>
+      </div>` : `
+      <div class="range-row base">
+        <span class="range-label">✅ <strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span>
+        <span class="range-value base">${fmt7}</span>
+      </div>
+      <div class="range-row">
+        <span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span>
+        <span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span>
       </div>`;
+
+    // Update card subtitle
+    const subtitle = el.querySelector('div:nth-child(2)');
+    if (subtitle) subtitle.textContent = alreadyInvested
+      ? "You're already investing — here's what one more step could do."
+      : "Here's your current reality, and what changes if your money works harder.";
+
     el.style.display = 'block';
   }
-
 
   function buildNeedleCard(fireNum, savings, mSav, y07) {
     const el = document.getElementById('needleCard');
