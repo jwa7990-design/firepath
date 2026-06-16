@@ -58,6 +58,16 @@
   .needle-result.worse { color:#E53935; }
   .needle-result.base { color:var(--warm-brown); }
   .needle-pro-nudge { background:#FFF7F3;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:12px;color:var(--warm-brown);line-height:1.6; }
+  .range-card { background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px; }
+  .range-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
+  .range-row:last-child { border-bottom:none; }
+  .range-row.base { background:#FFF7F3;margin:0 -20px;padding:10px 20px;border-bottom:1px solid rgba(244,98,42,0.15); }
+  .range-label { color:var(--soft-grey);font-weight:300; }
+  .range-label strong { color:var(--warm-brown);font-weight:500; }
+  .range-value { font-weight:700;color:var(--warm-brown); }
+  .range-value.optimistic { color:#2E7D32; }
+  .range-value.base { color:var(--fire-orange); }
+  .range-value.conservative { color:#E65100; }
 </style>
 </head>
 <body>
@@ -203,6 +213,14 @@
       </div>
     </div>
 
+    <!-- Range card -->
+    <div id="rangeCard" style="display:none;" class="range-card">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">📊 Your projected range</div>
+      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Same savings, different return assumptions — all based on real market history.</div>
+      <div id="rangeRows"></div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
+    </div>
+
     <!-- What this means — basic, no debt/super/dependant notes -->
     <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">💡 What this means for you</div>
@@ -215,29 +233,6 @@
       <div class="compare-row"><span class="compare-label" id="bankRateLabel">Saving in a bank (0.75%)</span><span class="compare-value" id="bankYears">—</span></div>
       <div class="compare-row"><span class="compare-label">Investing at 7% real return (after inflation)</span><span class="compare-value highlight" id="investYears">—</span></div>
       <div class="compare-row"><span class="compare-label">Time you could save</span><span class="compare-value highlight" id="timeSaved">—</span></div>
-    </div>
-
-    <!-- Thought Centre — education only -->
-    <div class="thought-header">
-      <h3>🧠 The Thought Centre</h3>
-      <p id="thoughtSubtitle">What different growth rates mean for your numbers.</p>
-    </div>
-    <div class="rate-card">
-      <div class="rate-header" onclick="toggleRate(this)"><div class="rate-left"><span class="rate-badge bank">0.75%</span><div><div class="rate-title">Savings account</div><div class="rate-subtitle">The default path</div></div></div><div class="rate-right"><span class="rate-result muted" id="tc-bank">—</span><span class="chevron">▼</span></div></div>
-      <div class="rate-body" id="body-bank"></div>
-    </div>
-    <div class="rate-card">
-      <div class="rate-header" onclick="toggleRate(this)"><div class="rate-left"><span class="rate-badge low">5%</span><div><div class="rate-title">Conservative growth</div><div class="rate-subtitle">Steadier, lower risk</div></div></div><div class="rate-right"><span class="rate-result" id="tc-5">—</span><span class="chevron">▼</span></div></div>
-      <div class="rate-body" id="body-5"></div>
-    </div>
-    <div class="rate-card">
-      <div class="rate-header" onclick="toggleRate(this)"><div class="rate-left"><span class="rate-badge mid">7%</span><div><div class="rate-title">The FIRE benchmark</div><div class="rate-subtitle">7% real return — after inflation</div>
-      </div></div><div class="rate-right"><span class="rate-result" id="tc-7">—</span><span class="chevron">▼</span></div></div>
-      <div class="rate-body" id="body-7"></div>
-    </div>
-    <div class="rate-card">
-      <div class="rate-header" onclick="toggleRate(this)"><div class="rate-left"><span class="rate-badge high">10%</span><div><div class="rate-title">Higher growth potential</div><div class="rate-subtitle">More risk, more upside</div></div></div><div class="rate-right"><span class="rate-result" id="tc-10">—</span><span class="chevron">▼</span></div></div>
-      <div class="rate-body" id="body-10"></div>
     </div>
     <div onclick="window.location.href='learning_lab.html'" style="margin-bottom:16px;background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:2px solid var(--fire-orange);border-radius:16px;padding:20px;cursor:pointer;display:flex;align-items:center;gap:14px;">
       <span style="font-size:28px;">🎓</span>
@@ -384,12 +379,8 @@
     document.getElementById('investYears').textContent = fmt(y07);
     const diff = (y0075 !== null && y07 !== null) ? y0075 - y07 : null;
     document.getElementById('timeSaved').textContent = (y0075 === null && y07 !== null) ? fmt(y07) + ' sooner than bank' : diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'similar timeline';
-    document.getElementById('tc-bank').textContent = fmt(y0075);
-    document.getElementById('tc-5').textContent = fmt(y05);
-    document.getElementById('tc-7').textContent = fmt(y07);
-    document.getElementById('tc-10').textContent = fmt(y10);
-    document.getElementById('thoughtSubtitle').textContent = persona === 'fire' ? 'Model different return assumptions against your portfolio.' : 'See how different growth rates change your timeline — explained in plain English.';
-   
+    
+    buildRangeCard(fireNum, savings, mSav, y05, y07, y10);
     buildNeedleCard(fireNum, savings, mSav, y07);
 
     fillThoughtCentre();
@@ -470,6 +461,58 @@
       <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.35);">Cancel anytime. No lock-in.</div>
     </div>`;
   }
+  function buildRangeCard(fireNum, savings, mSav, y05, y07, y10) {
+    const el = document.getElementById('rangeCard');
+    const rows = document.getElementById('rangeRows');
+    if (!el || !rows) return;
+    const cy = new Date().getFullYear();
+    const fmt7 = y07 ? cy + Math.round(y07) : '100+ yrs';
+    const fmt5 = y05 ? cy + Math.round(y05) : '100+ yrs';
+    const fmt10 = y10 ? cy + Math.round(y10) : '100+ yrs';
+    const diff5 = y05 && y07 ? Math.round(y05 - y07) : null;
+    const diff10 = y07 && y10 ? Math.round(y07 - y10) : null;
+    rows.innerHTML = `
+      <div class="range-row">
+        <span class="range-label">😟 <strong>Conservative</strong> — 5% real return</span>
+        <span class="range-value conservative">${fmt5}${diff5 && diff5 > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(+${diff5}yr)</span>` : ''}</span>
+      </div>
+      <div class="range-row base">
+        <span class="range-label">😊 <strong>Base case</strong> — 7% real return</span>
+        <span class="range-value base">${fmt7} ← you are here</span>
+      </div>
+      <div class="range-row">
+        <span class="range-label">🚀 <strong>Optimistic</strong> — 10% real return</span>
+        <span class="range-value optimistic">${fmt10}${diff10 && diff10 > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diff10}yr sooner)</span>` : ''}</span>
+      </div>`;
+    el.style.display = 'block';
+  }
+
+  function buildRangeCard(fireNum, savings, mSav, y05, y07, y10) {
+    const el = document.getElementById('rangeCard');
+    const rows = document.getElementById('rangeRows');
+    if (!el || !rows) return;
+    const cy = new Date().getFullYear();
+    const fmt7 = y07 ? cy + Math.round(y07) : '100+ yrs';
+    const fmt5 = y05 ? cy + Math.round(y05) : '100+ yrs';
+    const fmt10 = y10 ? cy + Math.round(y10) : '100+ yrs';
+    const diff5 = y05 && y07 ? Math.round(y05 - y07) : null;
+    const diff10 = y07 && y10 ? Math.round(y07 - y10) : null;
+    rows.innerHTML = `
+      <div class="range-row">
+        <span class="range-label">😟 <strong>Conservative</strong> — 5% real return</span>
+        <span class="range-value conservative">${fmt5}${diff5 && diff5 > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(+${diff5}yr)</span>` : ''}</span>
+      </div>
+      <div class="range-row base">
+        <span class="range-label">😊 <strong>Base case</strong> — 7% real return</span>
+        <span class="range-value base">${fmt7} ← you are here</span>
+      </div>
+      <div class="range-row">
+        <span class="range-label">🚀 <strong>Optimistic</strong> — 10% real return</span>
+        <span class="range-value optimistic">${fmt10}${diff10 && diff10 > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diff10}yr sooner)</span>` : ''}</span>
+      </div>`;
+    el.style.display = 'block';
+  }
+
 
   function buildNeedleCard(fireNum, savings, mSav, y07) {
     const el = document.getElementById('needleCard');
