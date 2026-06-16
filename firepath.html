@@ -244,13 +244,6 @@
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">💡 What this means for you</div>
       <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
     </div>
-    <div onclick="window.location.href='learning_lab.html'" style="margin-bottom:16px;background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:2px solid var(--fire-orange);border-radius:16px;padding:20px;cursor:pointer;display:flex;align-items:center;gap:14px;">
-      <span style="font-size:28px;">🎓</span>
-      <div>
-        <div style="font-size:14px;font-weight:700;color:var(--fire-orange);">Visit the Learning Lab →</div>
-        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Free financial education — explained in your language, based on your numbers.</div>
-      </div>
-    </div>
 
     <!-- What moves the needle — free version -->
     <div id="needleCard"></div>
@@ -405,11 +398,20 @@
       };
       recReason.textContent = sRate === 0 ? 'You\'re not saving yet — start here.' : persona === 'fire' ? 'Based on your FIRE journey, this is the next level.' : (reasonMap[savingsType] || 'Based on your situation, this is where to start.');
       const labUrl = `learning_lab.html?topic=${rec.topic}&track=${rec.track}&title=${encodeURIComponent(rec.title)}`;
-      recBtn.onclick = () => {
+            recBtn.onclick = () => {
         localStorage.setItem('ap_persona', persona);
         localStorage.setItem('ap_sRate', sRate);
         window.location.href = labUrl;
       };
+      recBtn.textContent = 'Read this article →';
+      if (!document.getElementById('browseLabBtn')) {
+        const browseBtn = document.createElement('div');
+        browseBtn.id = 'browseLabBtn';
+        browseBtn.onclick = () => window.location.href = 'learning_lab.html';
+        browseBtn.textContent = 'Browse all topics →';
+        browseBtn.style.cssText = 'display:inline-flex;align-items:center;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;margin-left:10px;';
+        recBtn.parentNode.appendChild(browseBtn);
+      }
       recCard.style.display = 'block';
     }
     buildNeedleCard(fireNum, savings, mSav, y07);
