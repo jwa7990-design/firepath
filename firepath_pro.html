@@ -155,250 +155,180 @@
       <button class="cta-btn" id="analyseBtn" onclick="analyse()" style="margin-top:20px">Show me my path 🔥</button>
     </div>
   </div>
+<!-- ============================================================
+     SCREEN 3 — replace everything from <div class="screen" id="screen3">
+     down to its closing </div> with this block
+     ============================================================ -->
 
-  <!-- SCREEN 3 -->
-  <div class="screen" id="screen3">
-    <button class="back-btn" onclick="showScreen(2)">← Recalculate</button>
-    <div class="tab-nav">
-      <button class="tab-btn active" onclick="switchTab('results')">📊 Results</button>
-      <button class="tab-btn" onclick="switchTab('accountability')">📈 My Progress</button>
+<div class="screen" id="screen3">
+  <button class="back-btn" onclick="showScreen(2)">← Recalculate</button>
+
+  <!-- Result card — always visible -->
+  <div class="result-card">
+    <p class="result-label">Your FirePath Pro result</p>
+    <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
+    <p class="result-sub" id="resultSub"></p>
+    <div class="result-stats">
+      <div class="stat-box">
+        <span class="stat-value" id="freedomAgeOut">—</span>
+        <span class="stat-name" id="freedomAgeLabel">Your freedom age</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-value" id="fireNumberOut">—</span>
+        <span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span></span>
+        <div id="inflationNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:6px;font-style:italic;line-height:1.5;"></div>
+      </div>
+      <div class="stat-box">
+        <span class="stat-value" id="monthlySavingOut">—</span>
+        <span class="stat-name" id="stat3label">Saved / week</span>
+        <div id="savingsRateNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;"></div>
+      </div>
     </div>
-    <div class="tab-content active" id="tab-results">
-      <div class="result-card">
-        <p class="result-label">Your FirePath Pro result</p>
-        <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
-        <p class="result-sub" id="resultSub"></p>
-        <div class="result-stats">
-          <div class="stat-box"><span class="stat-value" id="freedomAgeOut">—</span><span class="stat-name" id="freedomAgeLabel">Your freedom age</span></div>
-          <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span></span><div id="inflationNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:6px;font-style:italic;line-height:1.5;"></div></div>
-          <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / week</span><div id="savingsRateNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;"></div></div>
-        </div>
-        <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;">🔊 Read my results aloud</button>
-      </div>
+    <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;">🔊 Read my results aloud</button>
+  </div>
 
-      <!-- Range card -->
-      <div id="rangeCard" style="display:none;" class="range-card">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">📊 Your projected range</div>
-        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Here's your current reality, and what changes if your money works harder.</div>
-        <div id="rangeRows"></div>
-        <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
-      </div>
+  <!-- Projected range — always visible -->
+  <div id="rangeCard" style="display:none;" class="range-card">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">📊 Your projected range</div>
+    <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Here's your current reality, and what changes if your money works harder.</div>
+    <div id="rangeRows"></div>
+    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
+  </div>
 
-      <!-- Recommended article card -->
-      <div id="recommendedCard" style="display:none;background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:20px;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">📖 Recommended for you</div>
-        <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;" id="recommendedReason"></div>
-        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--warm-brown);margin-bottom:16px;line-height:1.4;" id="recommendedTitle"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <div id="recommendedBtn" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read this article →</div>
-          <div onclick="window.location.href='learning_lab.html'" style="display:inline-flex;align-items:center;gap:8px;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Browse all topics →</div>
-        </div>
-      </div>
+  <!-- Recommended article — always visible -->
+  <div id="recommendedCard" style="display:none;background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:20px;margin-bottom:12px;">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">📖 Recommended for you</div>
+    <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;" id="recommendedReason"></div>
+    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--warm-brown);margin-bottom:16px;line-height:1.4;" id="recommendedTitle"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div id="recommendedBtn" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read this article →</div>
+      <div onclick="window.location.href='learning_lab.html'" style="display:inline-flex;align-items:center;gap:8px;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Browse all topics →</div>
+    </div>
+  </div>
 
-      <!-- Pro: context summary tags -->
-      <div class="context-summary" id="contextSummary" style="display:none"></div>
+  <!-- ── Tab nav ── -->
+  <div class="tab-nav" id="resultTabNav" style="display:flex;gap:0;background:white;border:1.5px solid var(--border);border-radius:14px;padding:4px;margin-bottom:12px;overflow-x:auto;">
+    <button class="rtab-btn active" onclick="switchResultTab('insight', this)" style="flex:1;padding:10px 6px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">🧠 AI Insight</button>
+    <button class="rtab-btn" onclick="switchResultTab('super', this)" id="superTabBtn" style="flex:1;padding:10px 6px;border:none;border-radius:10px;background:transparent;color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;display:none;">🦘 Super</button>
+    <button class="rtab-btn" onclick="switchResultTab('needle', this)" style="flex:1;padding:10px 6px;border:none;border-radius:10px;background:transparent;color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;">🎯 My Date</button>
+    <button class="rtab-btn" onclick="switchResultTab('next', this)" style="flex:1;padding:10px 6px;border:none;border-radius:10px;background:transparent;color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;">🔥 What's Next</button>
+  </div>
 
-      <!-- Pro: what this means with personalised notes -->
-      <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">💡 What this means for you</div>
-        <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
-      </div>
+  <!-- ── Tab: AI Insight ── -->
+  <div class="rtab-content active" id="rtab-insight">
 
-      <!-- Pro smart cards — injected by JS, sit before AI insight -->
-      <div id="zeroSavingsCard" style="display:none"></div>
-      <div id="superTimelineCard" style="display:none"></div>
-      <div id="debtCard" style="display:none"></div>
-      <div id="needleCard"></div>
-      <div id="houseCard" style="display:none"></div>
+    <!-- Context summary tags -->
+    <div class="context-summary" id="contextSummary" style="display:none"></div>
 
+    <!-- Situational cards -->
+    <div id="zeroSavingsCard" style="display:none"></div>
+    <div id="debtCard" style="display:none"></div>
+    <div id="houseCard" style="display:none"></div>
 
-      <!-- Partner super result -->
-     <div class="super-result-card" id="superResultCard" style="display:none">
-       <div id="superResultText"></div>
-     </div>
-
-      <!-- AI Insight -->
-      <div class="ai-insight-card">
-        <div class="ai-insight-label">🧠 AI Insight — just for you</div>
-        <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
-      </div>
-
-      <!-- Next steps -->
-      <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">
-        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:16px;">Your next 3 steps 🔥</div>
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <div style="display:flex;align-items:center;gap:14px;padding:12px;background:#F0FFF4;border-radius:12px;border:1px solid #A5D6A7;"><div style="font-size:20px">✅</div><div><div style="font-size:14px;font-weight:500;color:#2E7D32;">Know your number</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">You've got your freedom number. That's the foundation.</div></div></div>
-          <div onclick="window.location.href='learning_lab.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px">🎓</div><div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Understand how to get there</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">The Learning Lab explains the how — in your language, using your numbers.</div></div></div>
-          <div onclick="saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px">→</div><div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if" scenario</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if you sold the house? Got a lump sum? See how it changes everything.</div></div></div>
-        </div>
-      </div>
-
-      <!-- Compare -->
-     <div class="compare-card">
-       <p class="compare-title">💡 What if your savings worked harder?</p>
-       <div id="compareExplainer" style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--warm-brown);line-height:1.6;font-weight:300;">💬 <strong>Why does this matter?</strong> A bank typically pays ~5% interest but inflation runs at ~4.25% — leaving a <strong>real return of just 0.75%</strong>. Meanwhile, diversified investments have historically returned ~7% after inflation.</div>
-       <div class="compare-row"><span class="compare-label" id="bankRateLabel">Saving in a bank (0.75%)</span><span class="compare-value" id="bankYears">—</span></div>
-       <div class="compare-row"><span class="compare-label"><select id="rateSelector" onchange="updateRateRow()" style="font-family:'DM Sans',sans-serif;font-size:13px;color:var(--warm-brown);border:none;background:transparent;cursor:pointer;outline:none;padding:0;"><option value="0.07">Investing at 7% after inflation</option><option value="0.05">Investing at 5% after inflation</option><option value="0.10">Investing at 10% after inflation</option></select></span><span class="compare-value highlight" id="investYears">—</span></div>
-       <div class="compare-row"><span class="compare-label">Time you could save</span><span class="compare-value highlight" id="timeSaved">—</span></div>
-     </div>
-
-
-      <div onclick="saveHMOData();window.location.href='hearmeout.html';" style="margin-bottom:16px;background:white;border:2px solid var(--warm-brown);border-radius:20px;padding:24px;cursor:pointer;">
-        <div style="font-size:22px;margin-bottom:10px">🤔</div>
-        <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3">Okay, hear me out for a sec.</div>
-        <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px">What if you made one big move? Sold the house. Got a redundancy payout. Invested a lump sum. Run the numbers — no judgement, no advice. Just the maths.</div>
-        <div style="display:inline-flex;align-items:center;gap:8px;background:var(--warm-brown);color:white;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:500;">Show me the numbers →</div>
-      </div>
-      <div id="upgradeNudge" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;color:white;">
-        <div style="font-size:20px;margin-bottom:8px;">🔥</div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:6px;">You're on the free plan</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;margin-bottom:16px;line-height:1.6;">Unlock AI insights, Hear Me Out scenarios, Things Worth Exploring, and more.</div>
-        <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:14px;font-weight:500;display:inline-block;">Try Pro free for 7 days</div>
-      </div>
-      <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
-      <p style="text-align:center;font-size:12px;margin-bottom:16px;">
-        <a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · 
-        <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> · 
-        <a href="faq.html" style="color:var(--fire-orange);">FAQ</a> · 
-        <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a>
-      </p>
+    <!-- AI Insight -->
+    <div class="ai-insight-card">
+      <div class="ai-insight-label">🧠 AI Insight — just for you</div>
+      <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
     </div>
 
-    <!-- Accountability tab — My Progress -->
-      <div class="tab-content" id="tab-accountability">
+    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
+    <p style="text-align:center;font-size:12px;margin-bottom:16px;">
+      <a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · 
+      <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> · 
+      <a href="faq.html" style="color:var(--fire-orange);">FAQ</a> · 
+      <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a>
+    </p>
+  </div>
 
-      <!-- Milestone flash -->
-      <div class="milestone" id="milestone">
-        <span class="milestone-emoji" id="milestoneEmoji">🎉</span>
-        <div class="milestone-text" id="milestoneText"></div>
+  <!-- ── Tab: Super Timeline ── -->
+  <div class="rtab-content" id="rtab-super" style="display:none;">
+
+    <!-- Intro explanation -->
+    <div style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7;border-radius:16px;padding:20px;margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">🦘 How super fits your freedom plan</div>
+      <div style="font-size:14px;color:#2E7D32;line-height:1.75;font-weight:300;">
+        Most Australians have <strong>two separate financial timelines</strong> running at the same time — and most calculators ignore one of them.<br/><br/>
+        <strong>Timeline 1 — Your freedom savings.</strong> Everything outside super. ETFs, cash, offset, shares. You can access this any time. This is what FirePath uses to calculate your freedom date.<br/><br/>
+        <strong>Timeline 2 — Your super.</strong> Compounding quietly in the background, with employer contributions going in every pay cycle. Locked until age 60, but growing the whole time.<br/><br/>
+        The goal isn't just to hit your freedom number with savings alone — it's to understand how these two timelines connect, and what gap (if any) you actually need to close yourself.
       </div>
-
-      <!-- SECTION 1: Commitment -->
-      <div id="commitSection" style="margin-bottom:16px;">
-
-        <!-- No commitment yet -->
-        <div id="noCommitCard" style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;color:white;text-align:center;">
-          <div style="font-size:36px;margin-bottom:12px;">🔥</div>
-          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;line-height:1.3;">Commit to your future self</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.7;margin-bottom:24px;">Based on what you've just learned — what extra amount will you commit to saving? Every time you log back in and confirm you hit it, you earn a 🔥.</div>
-
-          <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:20px;margin-bottom:20px;text-align:left;">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:14px;">My commitment</div>
-
-            <!-- Frequency selector -->
-            <div style="margin-bottom:16px;">
-              <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">I'll save this extra amount every:</div>
-              <div style="display:flex;gap:8px;">
-                <button onclick="setCommitCycle(this,'weekly')" data-cycle="weekly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Weekly</button>
-                <button onclick="setCommitCycle(this,'fortnightly')" data-cycle="fortnightly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Fortnightly</button>
-                <button onclick="setCommitCycle(this,'monthly')" data-cycle="monthly" class="commit-cycle-btn active-cycle" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid var(--fire-orange);background:rgba(244,98,42,0.2);color:white;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Monthly</button>
-              </div>
-            </div>
-
-            <!-- Amount input -->
-            <div style="margin-bottom:16px;">
-              <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Extra amount I'll save:</div>
-              <div style="display:flex;align-items:center;background:rgba(255,255,255,0.1);border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);overflow:hidden;">
-                <span style="padding:12px 14px;color:rgba(255,255,255,0.5);font-size:16px;">$</span>
-                <input type="number" id="commitAmount" placeholder="0" min="0"
-                  style="flex:1;background:transparent;border:none;outline:none;color:white;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;padding:12px 8px 12px 0;"
-                  oninput="updateCommitPreview()"/>
-              </div>
-            </div>
-
-            <!-- Preview — shows impact on freedom date -->
-            <div id="commitPreview" style="display:none;background:rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;"></div>
-          </div>
-
-          <button onclick="saveCommitment()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border:none;border-radius:14px;color:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0.3px;">
-            I commit to this 🔥
-          </button>
-        </div>
-
-        <!-- Has commitment -->
-        <div id="hasCommitCard" style="display:none;">
-
-          <!-- Commitment header -->
-          <div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;color:white;margin-bottom:12px;">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:6px;">Your commitment</div>
-            <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--fire-amber);" id="commitDisplay">—</div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px;" id="commitStreakLine">—</div>
-            <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:8px;font-style:italic;" id="commitImpactLine"></div>
-
-            <!-- Streak flames -->
-            <div id="streakFlames" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:16px;min-height:28px;"></div>
-
-            <button onclick="resetCommitment()" style="margin-top:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;">
-              Change commitment
-            </button>
-          </div>
-
-          <!-- Check-in card -->
-          <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:12px;">
-            <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:4px;">Log your check-in 🔥</div>
-            <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:20px;" id="checkinDueLabel">Did you hit your target this period?</div>
-
-            <div style="display:flex;gap:10px;margin-bottom:16px;">
-              <button onclick="logCheckin(true)" style="flex:1;padding:14px;background:linear-gradient(135deg,#2E7D32,#43A047);border:none;border-radius:12px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">
-                ✅ Yes, I hit it!
-              </button>
-              <button onclick="logCheckin(false)" style="flex:1;padding:14px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:12px;color:var(--warm-brown);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">
-                Not this time
-              </button>
-            </div>
-
-            <!-- Update portfolio -->
-            <div style="border-top:1px solid var(--border);padding-top:16px;">
-              <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:10px;">Update your portfolio balance (optional):</div>
-              <div style="display:flex;align-items:center;background:var(--warm-cream);border-radius:10px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:10px;">
-                <span style="padding:10px 12px;color:var(--soft-grey);font-size:14px;">$</span>
-                <input type="number" id="ci-savings" placeholder="Current total savings" min="0"
-                  style="flex:1;background:transparent;border:none;outline:none;color:var(--warm-brown);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 8px 10px 0;"/>
-              </div>
-              <div style="font-size:11px;color:var(--soft-grey);font-style:italic;">This updates your freedom date in real time.</div>
-            </div>
-          </div>
-
-          <!-- Progress stats -->
-          <div style="display:flex;gap:10px;margin-bottom:12px;">
-            <div class="stat-box" style="background:var(--warm-cream);flex:1;">
-              <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accFreedomDate">—</span>
-              <span class="stat-name" style="opacity:0.7;">Freedom date</span>
-            </div>
-            <div class="stat-box" style="background:var(--warm-cream);flex:1;">
-              <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accPortfolio">—</span>
-              <span class="stat-name" style="opacity:0.7;">Portfolio today</span>
-            </div>
-            <div class="stat-box" style="background:var(--warm-cream);flex:1;">
-              <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accYearsToGo">—</span>
-              <span class="stat-name" style="opacity:0.7;">Years to go</span>
-            </div>
-          </div>
-
-          <!-- Progress bar -->
-          <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
-            <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:10px;">Progress to freedom</div>
-            <div class="path-track"><div class="path-fill" id="pathFill" style="width:0%"></div></div>
-            <div class="path-markers" style="margin-top:6px;"><span>Start</span><span id="progressPct">0%</span><span>Freedom 🔥</span></div>
-          </div>
-
-          <!-- Milestones -->
-          <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
-            <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:12px;">Your milestones</div>
-            <div id="milestonesRoadmap" style="display:flex;flex-direction:column;gap:8px;"></div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Check-in history -->
-      <div id="historyCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
-        <div style="font-size:13px;font-weight:600;color:var(--warm-brown);margin-bottom:12px;">Check-in history</div>
-        <div id="historyList"></div>
-      </div>
-
-      <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.</p>
     </div>
+
+    <!-- Super timeline card (injected by buildSuperTimelineCard) -->
+    <div id="superTimelineCard" style="display:none"></div>
+
+    <!-- Partner super result -->
+    <div class="super-result-card" id="superResultCard" style="display:none">
+      <div id="superResultText"></div>
+    </div>
+
+    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Super projected at 7% annual growth with employer contributions after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
+  </div>
+
+  <!-- ── Tab: What Changes My Date (Needle) ── -->
+  <div class="rtab-content" id="rtab-needle" style="display:none;">
+    <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:12px;padding:0 2px;">Small changes compound over time. Here's exactly what each lever does to your freedom date — based on your numbers.</div>
+    <div id="needleCard"></div>
+    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. All projections assume 7% real return unless otherwise stated.</p>
+  </div>
+
+  <!-- ── Tab: What's Next ── -->
+  <div class="rtab-content" id="rtab-next" style="display:none;">
+
+    <!-- Next 3 steps -->
+    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">
+      <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:16px;">Your next 3 steps 🔥</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:14px;padding:12px;background:#F0FFF4;border-radius:12px;border:1px solid #A5D6A7;">
+          <div style="font-size:20px">✅</div>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:#2E7D32;">Know your number</div>
+            <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">You've got your freedom number. That's the foundation.</div>
+          </div>
+        </div>
+        <div onclick="window.location.href='learning_lab.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
+          <div style="font-size:20px">🎓</div>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Understand how to get there</div>
+            <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">The Learning Lab explains the how — in your language, using your numbers.</div>
+          </div>
+        </div>
+        <div onclick="saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
+          <div style="font-size:20px">→</div>
+          <div>
+            <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if" scenario</div>
+            <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if you sold the house? Got a lump sum? See how it changes everything.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hear Me Out promo -->
+    <div onclick="saveHMOData();window.location.href='hearmeout.html';" style="margin-bottom:16px;background:white;border:2px solid var(--warm-brown);border-radius:20px;padding:24px;cursor:pointer;">
+      <div style="font-size:22px;margin-bottom:10px">🤔</div>
+      <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3">Okay, hear me out for a sec.</div>
+      <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px">What if you made one big move? Sold the house. Got a redundancy payout. Invested a lump sum. Run the numbers — no judgement, no advice. Just the maths.</div>
+      <div style="display:inline-flex;align-items:center;gap:8px;background:var(--warm-brown);color:white;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:500;">Show me the numbers →</div>
+    </div>
+
+    <!-- Upgrade nudge (free users only) -->
+    <div id="upgradeNudge" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;color:white;">
+      <div style="font-size:20px;margin-bottom:8px;">🔥</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:6px;">You're on the free plan</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;margin-bottom:16px;line-height:1.6;">Unlock AI insights, Hear Me Out scenarios, Things Worth Exploring, and more.</div>
+      <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:14px;font-weight:500;display:inline-block;">Try Pro free for 7 days</div>
+    </div>
+
+    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
+    <p style="text-align:center;font-size:12px;margin-bottom:16px;">
+      <a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · 
+      <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> · 
+      <a href="faq.html" style="color:var(--fire-orange);">FAQ</a> · 
+      <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a>
+    </p>
+  </div>
+
+</div><!-- end screen3 -->
 <script>
   function updateInputHint(inputId, hintId) {
   const val = parseFloat(document.getElementById(inputId).value) || 0;
@@ -409,7 +339,7 @@
 
   let persona=null,selectedCycle='fortnightly',savingsType='cash',inputMode='type',isListening=false,isContextListening=false;
   let recognition=null,retirementSpendMultiplier=1.0,contextRecognition=null,housingStatus='renting',dependants=0;
-  let transcriptText='',calcData={},checkinHistory=[],streak=0,storedCalc={};
+  let transcriptText='',calcData={},storedCalc={};
   const currentYear=new Date().getFullYear();
   let fpToken=null,fpUserId=null;
   const fpGuest=localStorage.getItem('fp_guest'),savedPersona=localStorage.getItem('fp_persona');
@@ -571,43 +501,6 @@
     </div>`;
   }
 
-  function buildBoostCard(savings,mSav,mI,fireNum,currentPersona){
-    const el=document.getElementById('boostCard');if(!el)return;
-    const intros={
-      beginner:`🌱 <strong>Life has a way of getting more expensive over time</strong> — kids, travel, health, upgrades you didn't plan for. Here's what that could mean for your timeline.`,
-      building:`📈 <strong>Lifestyle creep is one of the biggest risks to your freedom date.</strong> Here's how different spending trajectories change your timeline.`,
-      fire:`🔥 <strong>Modelling spending growth is critical</strong> — most FIRE calculators assume flat real spending. Here's what lifestyle inflation does to your number.`
-    };
-    const labels={
-      beginner:['Same as now','A bit more','Quite a bit more','A lot more'],
-      building:['Same','＋15%','＋30%','＋50%'],
-      fire:['Flat','＋15% real','＋30% real','＋50% real']
-    };
-    const helpers=['Assumes your spending only rises with inflation.','Lifestyle grows slightly faster than inflation.','Noticeably faster — kids, health, upgrades.','Significantly faster — major life changes.'];
-    const multipliers=[1.0,1.15,1.30,1.50];
-    const p=currentPersona||'building';
-    const intro=intros[p]||intros.building;
-    const labs=labels[p]||labels.building;
-    const baseYrs=yearsToGoalCapped(fireNum,savings,mSav,0.07);
-    const resultLines=multipliers.map((m,i)=>{
-      const newFireNum=fireNum*m;
-      const newYrs=yearsToGoalCapped(newFireNum,savings,mSav,0.07);
-      const diff=Math.round((newYrs-baseYrs)*10)/10;
-      const diffText=diff<=0?'No change':`+${fmt(diff)} longer`;
-      return{label:labs[i],helper:helpers[i],diff:diffText,yrs:fmt(newYrs),active:i===0};
-    });
-    el.style.display='block';
-    el.innerHTML=`<div style="background:white;border:2px solid #FFD54F;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">💸 Will your future lifestyle cost more than today?</div>
-      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:16px;">${intro}</div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-        ${resultLines.map((r,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:${i===0?'#FFF7F3':'var(--warm-cream)'};border-radius:10px;border:1.5px solid ${i===0?'rgba(244,98,42,0.3)':'var(--border)'};font-size:13px;"><div><span style="font-weight:500;color:var(--warm-brown);">${r.label}</span><div style="font-size:11px;color:var(--soft-grey);margin-top:2px;">${r.helper}</div></div><span style="font-weight:700;color:${i===0?'var(--fire-orange)':'#E53935'};">${i===0?r.yrs:r.diff}</span></div>`).join('')}
-      </div>
-      <div style="font-size:12px;color:var(--soft-grey);font-style:italic;line-height:1.6;">${p==='beginner'?'💡 This isn\'t meant to scare you — it\'s just worth knowing. Small choices now can protect your future freedom.':p==='building'?'💡 Lifestyle creep is gradual and invisible until it isn\'t. Awareness is the first step.':'💡 Real spending growth materially impacts SWR sustainability. Worth stress-testing your model.'}</div>
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice.</p>
-    </div>`;
-  }
-
   function buildHouseCard(housing,debt,savings,mSav,fireNum){
     const el=document.getElementById('houseCard');if(!el)return;
     const show=housing==='renting'&&debt===0&&savings<100000&&fireNum>savings&&persona!=='fire';
@@ -753,20 +646,6 @@
       const wsav=(mSav*12/52).toFixed(0),onT=mSav>0&&fy!==null;
       const inflYrs=Math.round(fy||25);
       const futureNum=fireNum*Math.pow(1.03,inflYrs);
-      let wtm;
-      if (isZeroSavings) {
-        wtm = `You're not saving right now — and that's exactly where FirePath starts. Your freedom number is <strong>${fmtM(fireNum)}</strong>, based on your current spending. The gap feels large, but the first step doesn't have to be. Even $50/week invested consistently starts compounding in your favour.`;
-        if (superBal>0&&age&&age<60) wtm += ` Your <strong>${fmtM(superBal)}</strong> super is already working quietly in the background — it unlocks at 60 regardless of what you save today.`;
-      } else {
-        const onT = mSav>0&&fy!==null;
-        wtm = onT ? `Your freedom number is <strong>${fmtM(fireNum)}</strong>. You currently have <strong>$${Math.round(savings).toLocaleString()}</strong> — a gap of <strong>$${Math.round(fireNum-savings).toLocaleString()}</strong>. At your current savings rate of <strong>$${wsav}/week</strong> you're on track to get there in <strong>${fmt(yearsToGoal(fireNum,savings,mSav,0.07))}</strong>.` : `Enter your savings to see what this means for you.`;
-        if(ag==='senior'&&fy&&fy>25)wtm+=` <em>Worth noting — your current spending includes work-related costs that often reduce in retirement. Selecting "Less" above adjusts your freedom number to reflect that.</em>`;
-        if(debt>0)wtm+=` You also have <strong>${fmtM(debt)}</strong> in debt — clearing this could free up more to invest.`;
-        if(superBal>0&&age&&age<60)wtm+=` Your <strong>${fmtM(superBal)}</strong> super is quietly compounding in the background — it unlocks at 60 and could significantly shorten your timeline.`;
-        if(dependants>0)wtm+=` With ${dependants} dependant${dependants>1?'s':''}, your costs may shift as they grow.`;
-        wtm+=` Keep in mind — <strong>${fmtM(fireNum)}</strong> in today's dollars will need to work harder over ${inflYrs} years as prices rise. Where you save matters as much as how much you save. The cards below explore what different approaches could mean for your timeline.`;
-      }
-      document.getElementById('whatThisMeansText').innerHTML=wtm;
 
       document.getElementById('savingsRateNote').textContent=sRate+'% of income';
       document.getElementById('fireNumberOut').textContent=fmtM(fireNum);
@@ -790,11 +669,11 @@
         buildZeroSavingsCard(mI, fireNum, isPro);
         document.getElementById('superTimelineCard').style.display='none';
         document.getElementById('debtCard').style.display='none';
-        document.getElementById('boostCard').style.display='none';
         document.getElementById('houseCard').style.display='none';
       } else {
         document.getElementById('zeroSavingsCard').style.display='none';
         buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum);
+        updateSuperTabVisibility(age, superBal);
         buildDebtCard(debt,savings,mSav,mI,fireNum);
         buildHouseCard(housingStatus,debt,savings,mSav,fireNum);
       }
@@ -806,21 +685,9 @@
         if(psf>0&&paf){const pac=mI*12/0.72*FP_ASSUMPTIONS.sgRate/12;if(paf>=60){sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} is accessible now.</p>`;}else{const pyt=60-paf;let pw=psf;const mr=0.07/12;for(let m=0;m<pyt*12;m++){pw=pw*(1+mr)+pac;}sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} locked — ${pyt} year${pyt!==1?'s':''} away.<br/>With employer contributions: ~<strong>${fmtM(pw)}</strong> at 60</p>`;}}
         sh+=`<br/><span style="font-size:11px;font-style:italic;opacity:0.7">Educational only — not financial advice.</span>`;st.innerHTML=sh;
       }
-      const bankRate=FP_ASSUMPTIONS.bankRealReturn;
-      const y0075=yearsToGoal(fireNum,savings,mSav,bankRate),y07=yearsToGoal(fireNum,savings,mSav,0.07);
-      document.getElementById('bankYears').textContent=fmt(y0075);document.getElementById('investYears').textContent=fmt(y07);
-      const ba=y0075===null?100:y0075,ad=y07!==null?ba-y07:null;
-      document.getElementById('timeSaved').textContent=ad&&ad>0.1?fmt(ad)+' sooner':'similar timeline';
-      const bankLbl=document.getElementById('bankRateLabel');
-      if(bankLbl)bankLbl.textContent=`Saving in a bank (${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(1)}% real return)`;
-      const explainer=document.getElementById('compareExplainer');
-      if(explainer){const cr=FP_ASSUMPTIONS.cashRate.toFixed(2),cp=FP_ASSUMPTIONS.cpi.toFixed(1),br=(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(1);explainer.innerHTML=`💬 <strong>Why does this matter?</strong> The RBA cash rate is currently <strong>${cr}%</strong> but inflation is running at <strong>${cp}%</strong> — leaving a real return of just <strong>${br}%</strong> in a bank. Meanwhile, diversified investments have historically returned ~7% after inflation.`;}
-      storedCalc={fireNum,savings,mSav,y0075};document.getElementById('rateSelector').value='0.07';
+      const y07=yearsToGoal(fireNum,savings,mSav,0.07);
+      storedCalc={fireNum,savings,mSav};
       document.getElementById('aiInsightText').innerHTML=insight.replace(/\n/g,'<br/>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+(scenHTML?'<div class="scenarios-wrapper">'+scenHTML+'</div>':'')+`<div onclick="saveHMOData();window.location.href='hearmeout.html';" style="margin-top:16px;padding:12px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;font-size:13px;color:var(--fire-orange);font-weight:500;">→ Want to run the numbers on a big move? Try the Hear Me Out calculators</div>`;
-      const pct=Math.min(Math.round((savings/fireNum)*100),100);
-      document.getElementById('pathFill').style.width=pct+'%';document.getElementById('progressPct').textContent=pct+'%';
-      document.getElementById('accFreedomDate').textContent=fyear?fyear:'100+ yrs';document.getElementById('accPortfolio').textContent=fmtM(savings);document.getElementById('accYearsToGo').textContent=fy?Math.round(fy)+'yrs':'—';
-      document.getElementById('ci-savings').value=savings;
       document.getElementById('aiLoading').classList.remove('visible');document.getElementById('analyseBtn').style.display='block';
       await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||'',savings_type:savingsType||'cash',retirement_spend:retirementSpendMultiplier||1.0,dependants:dependants||0,housing_status:housingStatus||'renting',persona:persona||'building',debt_total:mDebt||0,mortgage_remaining:mMort||0});
            buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt);
@@ -842,7 +709,7 @@
         recCard.style.display = 'block';
       }
       buildNeedleCard(fireNum,savings,mSav,y07);
-      await loadCheckinHistory();renderMilestones(fireNum,savings,mSav);showScreen(3);await checkProStatus();
+      localStorage.setItem('fp_last_calc', JSON.stringify({fireNum: calcData.fireNum, savings: calcData.savings, mSav: calcData.mSav, sRate: calcData.sRate}));showScreen(3);await checkProStatus();
     }catch(err){const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');const ab=document.getElementById('analyseBtn');if(ab)ab.style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
   }
 
@@ -996,193 +863,35 @@
     document.getElementById('needle-' + tab).classList.add('active');
   }
 
-  function updateRateRow(){const r=parseFloat(document.getElementById('rateSelector').value),y=yearsToGoal(storedCalc.fireNum,storedCalc.savings,storedCalc.mSav,r),d=storedCalc.y0075&&y?storedCalc.y0075-y:null;document.getElementById('investYears').textContent=fmt(y);document.getElementById('timeSaved').textContent=d&&d>0.1?fmt(d)+' sooner':'similar timeline';}
+  function updateSuperTabVisibility(age, superBal) {
+  const btn = document.getElementById('superTabBtn');
+  if (!btn) return;
+  if (age > 0 && superBal > 0) {
+    btn.style.display = 'flex';
+  } else {
+    btn.style.display = 'none';
+  }
+}
   function toggleTooltip(el){el.classList.toggle('active');}
 
-// ── Commitment state ──
-  let commitCycle = 'monthly';
-  let commitmentData = null;
+function switchResultTab(tab, btn) {
+  document.querySelectorAll('.rtab-btn').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--soft-grey)';
+    b.style.fontWeight = '500';
+  });
+  btn.style.background = 'linear-gradient(135deg,var(--fire-orange),var(--fire-amber))';
+  btn.style.color = 'white';
+  btn.style.fontWeight = '600';
+  document.querySelectorAll('.rtab-content').forEach(p => p.style.display = 'none');
+  document.getElementById('rtab-' + tab).style.display = 'block';
+}
 
-  function setCommitCycle(btn, cycle) {
-    document.querySelectorAll('.commit-cycle-btn').forEach(b => {
-      b.style.borderColor = 'rgba(255,255,255,0.2)';
-      b.style.background = 'transparent';
-      b.style.color = 'rgba(255,255,255,0.7)';
-    });
-    btn.style.borderColor = 'var(--fire-orange)';
-    btn.style.background = 'rgba(244,98,42,0.2)';
-    btn.style.color = 'white';
-    commitCycle = cycle;
-    updateCommitPreview();
+function switchTab(tab) {
+  if (tab === 'accountability') {
+    window.location.href = 'progress.html';
   }
-
-  function updateCommitPreview() {
-    const amount = parseFloat(document.getElementById('commitAmount').value) || 0;
-    const preview = document.getElementById('commitPreview');
-    if (amount <= 0) { preview.style.display = 'none'; return; }
-
-    const cycleLabel = commitCycle === 'weekly' ? 'week' : commitCycle === 'fortnightly' ? 'fortnight' : 'month';
-    const totalCheckins = commitCycle === 'weekly' ? 52 : commitCycle === 'fortnightly' ? 26 : 12;
-
-    // Convert commitment to monthly
-    const commitMonthly = commitCycle === 'weekly' ? amount * 52 / 12 : commitCycle === 'fortnightly' ? amount * 26 / 12 : amount;
-
-    // Current monthly savings from calcData
-    const currentMonthly = calcData.mSav || 0;
-    const currentCycleAmount = commitCycle === 'weekly' ? Math.round(currentMonthly * 12 / 52) : commitCycle === 'fortnightly' ? Math.round(currentMonthly * 12 / 26) : Math.round(currentMonthly);
-    const extra = amount - currentCycleAmount;
-    const newTotalMonthly = currentMonthly + commitMonthly;
-
-    // New freedom date based on current + extra
-    const fireNum = calcData.fireNum || 0;
-    const savings = calcData.savings || 0;
-    const currentYrs = yearsToGoal(fireNum, savings, currentMonthly, 0.07);
-    const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
-    const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
-    const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
-
-    preview.style.display = 'block';
-    preview.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div>💰 <strong style="color:white;">Extra $${amount.toLocaleString()}/${cycleLabel}</strong> on top of what you already save</div>
-        ${diff && diff > 0.1
-          ? `<div>🔥 Moves your freedom date to <strong style="color:var(--fire-amber);">${newDate}</strong> — <strong style="color:var(--fire-amber);">${fmt(diff)} sooner</strong></div>`
-          : diff && diff < -0.1
-          ? `<div>⚠️ At this rate your freedom date shifts back by <strong style="color:#FFD54F;">${fmt(Math.abs(diff))}</strong></div>`
-          : newDate ? `<div>📅 Freedom date stays around <strong style="color:var(--fire-amber);">${newDate}</strong></div>` : ''}
-        <div style="opacity:0.6;font-size:12px;">${totalCheckins} check-ins to earn your 🔥 flames this year</div>
-      </div>
-    `;
-  }
-
-  function saveCommitment() {
-    const amount = parseFloat(document.getElementById('commitAmount').value) || 0;
-    if (amount <= 0) { alert('Please enter an amount first.'); return; }
-
-    // Calculate and store impact
-    const commitMonthly = commitCycle === 'weekly' ? amount * 52 / 12 : commitCycle === 'fortnightly' ? amount * 26 / 12 : amount;
-    const newTotalMonthly = (calcData.mSav || 0) + commitMonthly;
-    const fireNum = calcData.fireNum || 0;
-    const savings = calcData.savings || 0;
-    const currentYrs = yearsToGoal(fireNum, savings, calcData.mSav || 0, 0.07);
-    const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
-    const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
-    const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
-
-    commitmentData = {
-      amount, cycle: commitCycle,
-      startDate: new Date().toISOString(),
-      streak: 0, hits: [],
-      impactText: diff && diff > 0.1 ? `Moves freedom date to ${newDate} — ${fmt(diff)} sooner` : '',
-    };
-    localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
-    renderCommitmentView();
-  }
-
-  function resetCommitment() {
-    if (!confirm('Reset your commitment? Your streak will be lost.')) return;
-    localStorage.removeItem('fp_commitment');
-    commitmentData = null;
-    document.getElementById('noCommitCard').style.display = 'block';
-    document.getElementById('hasCommitCard').style.display = 'none';
-  }
-
-  function loadCommitment() {
-    const saved = localStorage.getItem('fp_commitment');
-    if (saved) { try { commitmentData = JSON.parse(saved); } catch(e) { commitmentData = null; } }
-    renderCommitmentView();
-  }
-
-  function renderCommitmentView() {
-    if (!commitmentData) {
-      document.getElementById('noCommitCard').style.display = 'block';
-      document.getElementById('hasCommitCard').style.display = 'none';
-      return;
-    }
-    document.getElementById('noCommitCard').style.display = 'none';
-    document.getElementById('hasCommitCard').style.display = 'block';
-
-    const { amount, cycle, streak, hits, impactText } = commitmentData;
-    const cycleLabel = cycle === 'weekly' ? 'week' : cycle === 'fortnightly' ? 'fortnight' : 'month';
-    const totalPossible = cycle === 'weekly' ? 52 : cycle === 'fortnightly' ? 26 : 12;
-
-    document.getElementById('commitDisplay').textContent = `Extra $${amount.toLocaleString()} / ${cycleLabel}`;
-    document.getElementById('commitStreakLine').textContent = `${streak} of ${totalPossible} check-ins completed · ${hits.length} 🔥 earned`;
-
-    const impactEl = document.getElementById('commitImpactLine');
-    if (impactEl) impactEl.textContent = impactText || '';
-
-    // Render flames
-    const flamesEl = document.getElementById('streakFlames');
-    flamesEl.innerHTML = '';
-    for (let i = 0; i < totalPossible; i++) {
-      const flame = document.createElement('span');
-      flame.style.fontSize = '16px';
-      flame.style.opacity = i < hits.length ? '1' : '0.15';
-      flame.textContent = '🔥';
-      flamesEl.appendChild(flame);
-    }
-
-    document.getElementById('checkinDueLabel').textContent = `Did you save an extra $${amount.toLocaleString()} this ${cycleLabel}?`;
-  }
-
-  function logCheckin(hit) {
-    if (!commitmentData) return;
-    commitmentData.streak = (commitmentData.streak || 0) + 1;
-    if (hit) commitmentData.hits.push(new Date().toISOString());
-    localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
-    renderCommitmentView();
-
-    const newSavings = parseFloat(document.getElementById('ci-savings').value) || 0;
-    if (newSavings > 0 && calcData.fireNum) {
-      const mSav = calcData.mSav || 0;
-      const fireNum = calcData.fireNum;
-      const ny = yearsToGoal(fireNum, newSavings, mSav, 0.07);
-      const pct = Math.min(Math.round((newSavings / fireNum) * 100), 100);
-      document.getElementById('pathFill').style.width = pct + '%';
-      document.getElementById('progressPct').textContent = pct + '%';
-      document.getElementById('accPortfolio').textContent = fmtM(newSavings);
-      document.getElementById('accYearsToGo').textContent = ny ? Math.round(ny) + ' yrs' : '—';
-      document.getElementById('accFreedomDate').textContent = ny ? currentYear + Math.round(ny) : '100+ yrs';
-      const oy = yearsToGoal(fireNum, calcData.savings, mSav, 0.07);
-      calcData.savings = newSavings;
-      renderMilestones(fireNum, newSavings, mSav);
-      if (hit && oy && ny) showMilestone(oy - ny, pct);
-      dbInsert('checkins', { savings_total: newSavings, savings_rate: calcData.sRate || 0, freedom_years: ny ? Math.round(ny * 10) / 10 : null, streak: commitmentData.streak });
-      checkinHistory.unshift({ month: new Date().toLocaleString('default', { month: 'short', year: 'numeric' }), savings: newSavings, hit });
-      renderHistory();
-    }
-
-    const feedbackEl = document.createElement('div');
-    feedbackEl.innerHTML = hit
-      ? '<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame! Keep going.</div>'
-      : '<div style="background:#FFF7F3;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:var(--warm-brown);font-weight:500;margin-bottom:12px;">No worries — next one is yours.</div>';
-    const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
-    if (checkinCard) checkinCard.insertAdjacentElement('afterend', feedbackEl);
-    setTimeout(() => feedbackEl.remove(), 4000);
-  }
-
-  function showMilestone(diff, pct) {
-    const m = document.getElementById('milestone'), e = document.getElementById('milestoneEmoji'), t = document.getElementById('milestoneText');
-    let msg = '';
-    if (pct >= 100) { e.textContent = '🎉'; msg = `<strong>You've done it!</strong> Your portfolio has hit your freedom number.`; }
-    else if (pct >= 75) { e.textContent = '🔥'; msg = `<strong>75% of the way there!</strong> Your freedom date moved <strong>${fmt(diff)} closer</strong>.`; }
-    else if (pct >= 50) { e.textContent = '💪'; msg = `<strong>Halfway to freedom!</strong> Your date moved <strong>${fmt(diff)} closer</strong>.`; }
-    else if (diff > 0) { e.textContent = '✨'; msg = `Your freedom date moved <strong>${fmt(diff)} closer</strong>. Every period compounds.`; }
-    if (msg) { t.innerHTML = msg; m.classList.add('visible'); setTimeout(() => m.classList.remove('visible'), 8000); }
-  }
-
-  function renderHistory() {
-    const card = document.getElementById('historyCard'), list = document.getElementById('historyList');
-    if (checkinHistory.length === 0) { card.style.display = 'none'; return; }
-    card.style.display = 'block';
-    list.innerHTML = checkinHistory.map(h => `<div class="history-item"><span class="history-date">${h.month}</span><span>${h.savings ? fmtM(h.savings) + ' saved' : '—'}</span><span class="history-change ${h.hit ? 'positive' : 'negative'}">${h.hit ? '🔥 Hit it' : '→ Missed'}</span></div>`).join('');
-  }
-
-  function loadCommitmentOnTabSwitch(tab) {
-    if (tab === 'accountability') loadCommitment();
-  }
-  function switchTab(tab){document.querySelectorAll('.tab-btn').forEach((b,i)=>{b.classList.toggle('active',(i===0&&tab==='results')||(i===1&&tab==='accountability'));});document.getElementById('tab-results').classList.toggle('active',tab==='results');document.getElementById('tab-accountability').classList.toggle('active',tab==='accountability');loadCommitmentOnTabSwitch(tab);}
+}
   
 </script>
 </body>

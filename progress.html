@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-Q2QZ662MJ9');
+  </script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Progress — FirePath Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <script src="js/auth.js"></script>
+  <script src="js/calculations.js"></script>
+</head>
+<body>
+
+<!-- Burger Menu -->
+<div id="burgerBtn" onclick="toggleMenu()" style="position:fixed;top:16px;right:16px;z-index:100;width:40px;height:40px;background:var(--warm-brown);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;box-shadow:0 2px 12px rgba(61,43,31,0.2);">
+  <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
+  <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
+  <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
+</div>
+<div id="menuOverlay" onclick="toggleMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:98;"></div>
+<div id="slideMenu" style="display:none;position:fixed;top:0;right:0;height:100%;width:280px;background:var(--warm-brown);z-index:99;padding:48px 24px 40px;flex-direction:column;gap:8px;box-shadow:-4px 0 40px rgba(0,0,0,0.2);">
+  <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:white;margin-bottom:28px;">🔥 FirePath</div>
+  <a href="index.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🏠 <span>Recalculate</span></a>
+  <a href="learning_lab.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🎓 <span>Learning Lab</span></a>
+  <a href="hearmeout.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🤔 <span>Hear Me Out</span></a>
+  <a href="progress.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,0.1);color:white;text-decoration:none;font-size:14px;font-weight:500;">📈 <span>My Progress</span></a>
+  <a href="feedback.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">💬 <span>Share Feedback</span></a>
+  <div style="flex:1"></div>
+  <a onclick="signOut();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">🔓 <span>Sign Out</span></a>
+</div>
+
+<div class="container">
+  <div class="header">
+    <a href="index.html" class="logo" style="text-decoration:none;"><span style="font-size:26px">🔥</span><span class="logo-text">Fire<span>Path</span> <span class="pro-badge">Pro</span></span></a>
+    <p class="tagline">My Progress</p>
+    <div id="userStatus" style="margin-top:8px;font-size:12px;color:var(--soft-grey)"></div>
+  </div>
+
+  <!-- No calc data warning -->
+  <div id="noCalcWarning" style="display:none;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;">
+    <div style="font-size:20px;margin-bottom:8px;">📊</div>
+    <div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">Run your numbers first</div>
+    <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;">Your progress tracker uses your freedom number and savings rate from your last calculation.</div>
+    <a href="index.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:11px 24px;border-radius:50px;font-size:13px;font-weight:500;text-decoration:none;">Calculate my path →</a>
+  </div>
+
+  <!-- Milestone flash -->
+  <div class="milestone" id="milestone">
+    <span class="milestone-emoji" id="milestoneEmoji">🎉</span>
+    <div class="milestone-text" id="milestoneText"></div>
+  </div>
+
+  <!-- SECTION 1: Commitment -->
+  <div id="commitSection" style="margin-bottom:16px;">
+
+    <!-- No commitment yet -->
+    <div id="noCommitCard" style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;color:white;text-align:center;">
+      <div style="font-size:36px;margin-bottom:12px;">🔥</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;line-height:1.3;">Commit to your future self</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.7;margin-bottom:24px;">Based on what you've just learned — what extra amount will you commit to saving? Every time you log back in and confirm you hit it, you earn a 🔥.</div>
+
+      <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:20px;margin-bottom:20px;text-align:left;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:14px;">My commitment</div>
+
+        <!-- Frequency selector -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">I'll save this extra amount every:</div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="setCommitCycle(this,'weekly')" data-cycle="weekly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Weekly</button>
+            <button onclick="setCommitCycle(this,'fortnightly')" data-cycle="fortnightly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Fortnightly</button>
+            <button onclick="setCommitCycle(this,'monthly')" data-cycle="monthly" class="commit-cycle-btn active-cycle" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid var(--fire-orange);background:rgba(244,98,42,0.2);color:white;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Monthly</button>
+          </div>
+        </div>
+
+        <!-- Amount input -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Extra amount I'll save:</div>
+          <div style="display:flex;align-items:center;background:rgba(255,255,255,0.1);border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);overflow:hidden;">
+            <span style="padding:12px 14px;color:rgba(255,255,255,0.5);font-size:16px;">$</span>
+            <input type="number" id="commitAmount" placeholder="0" min="0"
+              style="flex:1;background:transparent;border:none;outline:none;color:white;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;padding:12px 8px 12px 0;"
+              oninput="updateCommitPreview()"/>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div id="commitPreview" style="display:none;background:rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;"></div>
+      </div>
+
+      <button onclick="saveCommitment()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border:none;border-radius:14px;color:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0.3px;">
+        I commit to this 🔥
+      </button>
+    </div>
+
+    <!-- Has commitment -->
+    <div id="hasCommitCard" style="display:none;">
+
+      <!-- Commitment header -->
+      <div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;color:white;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:6px;">Your commitment</div>
+        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--fire-amber);" id="commitDisplay">—</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px;" id="commitStreakLine">—</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:8px;font-style:italic;" id="commitImpactLine"></div>
+        <div id="streakFlames" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:16px;min-height:28px;"></div>
+        <button onclick="resetCommitment()" style="margin-top:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;">
+          Change commitment
+        </button>
+      </div>
+
+      <!-- Check-in card -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:12px;">
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:4px;">Log your check-in 🔥</div>
+        <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:20px;" id="checkinDueLabel">Did you hit your target this period?</div>
+
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+          <button onclick="logCheckin(true)" style="flex:1;padding:14px;background:linear-gradient(135deg,#2E7D32,#43A047);border:none;border-radius:12px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">
+            ✅ Yes, I hit it!
+          </button>
+          <button onclick="logCheckin(false)" style="flex:1;padding:14px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:12px;color:var(--warm-brown);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">
+            Not this time
+          </button>
+        </div>
+
+        <!-- Update portfolio -->
+        <div style="border-top:1px solid var(--border);padding-top:16px;">
+          <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:10px;">Update your portfolio balance (optional):</div>
+          <div style="display:flex;align-items:center;background:var(--warm-cream);border-radius:10px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:10px;">
+            <span style="padding:10px 12px;color:var(--soft-grey);font-size:14px;">$</span>
+            <input type="number" id="ci-savings" placeholder="Current total savings" min="0"
+              style="flex:1;background:transparent;border:none;outline:none;color:var(--warm-brown);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 8px 10px 0;"/>
+          </div>
+          <div style="font-size:11px;color:var(--soft-grey);font-style:italic;">This updates your freedom date in real time.</div>
+        </div>
+      </div>
+
+      <!-- Progress stats -->
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <div class="stat-box" style="background:var(--warm-cream);flex:1;">
+          <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accFreedomDate">—</span>
+          <span class="stat-name" style="opacity:0.7;">Freedom date</span>
+        </div>
+        <div class="stat-box" style="background:var(--warm-cream);flex:1;">
+          <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accPortfolio">—</span>
+          <span class="stat-name" style="opacity:0.7;">Portfolio today</span>
+        </div>
+        <div class="stat-box" style="background:var(--warm-cream);flex:1;">
+          <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accYearsToGo">—</span>
+          <span class="stat-name" style="opacity:0.7;">Years to go</span>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:10px;">Progress to freedom</div>
+        <div class="path-track"><div class="path-fill" id="pathFill" style="width:0%"></div></div>
+        <div class="path-markers" style="margin-top:6px;"><span>Start</span><span id="progressPct">0%</span><span>Freedom 🔥</span></div>
+      </div>
+
+      <!-- Milestones -->
+      <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:12px;">Your milestones</div>
+        <div id="milestonesRoadmap" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Check-in history -->
+  <div id="historyCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
+    <div style="font-size:13px;font-weight:600;color:var(--warm-brown);margin-bottom:12px;">Check-in history</div>
+    <div id="historyList"></div>
+  </div>
+
+  <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.</p>
+  <p style="text-align:center;font-size:12px;margin-bottom:32px;">
+    <a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · 
+    <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a>
+  </p>
+</div>
+
+<script>
+  // ── Auth & init ──
+  const currentYear = new Date().getFullYear();
+  let fpToken = null, fpUserId = null;
+  let commitCycle = 'monthly';
+  let commitmentData = null;
+  let checkinHistory = [];
+  let calcData = {};
+
+  document.addEventListener('DOMContentLoaded', async function () {
+    const token = getToken();
+    const userId = getUserId();
+    if (!token || !userId) { window.location.href = 'auth.html'; return; }
+    fpToken = token;
+    fpUserId = userId;
+
+    const uel = document.getElementById('userStatus');
+    if (localStorage.getItem('fp_email')) {
+      uel.innerHTML = `Signed in as ${localStorage.getItem('fp_email')} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;
+    }
+
+    // Load last calc data from localStorage (set by main app after analyse())
+    const stored = localStorage.getItem('fp_last_calc');
+    if (stored) {
+      try { calcData = JSON.parse(stored); } catch(e) { calcData = {}; }
+    }
+
+    if (!calcData.fireNum) {
+      document.getElementById('noCalcWarning').style.display = 'block';
+    } else {
+      // Populate progress stats from stored calc
+      const pct = Math.min(Math.round(((calcData.savings || 0) / calcData.fireNum) * 100), 100);
+      document.getElementById('pathFill').style.width = pct + '%';
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('accPortfolio').textContent = fmtM(calcData.savings || 0);
+      const fy = yearsToGoal(calcData.fireNum, calcData.savings || 0, calcData.mSav || 0, 0.07);
+      document.getElementById('accYearsToGo').textContent = fy ? Math.round(fy) + ' yrs' : '—';
+      document.getElementById('accFreedomDate').textContent = fy ? currentYear + Math.round(fy) : '100+ yrs';
+      document.getElementById('ci-savings').value = calcData.savings || 0;
+      renderMilestones(calcData.fireNum, calcData.savings || 0, calcData.mSav || 0);
+    }
+
+    await loadCheckinHistory();
+    loadCommitment();
+  });
+
+  // ── Helpers (mirrors main app) ──
+  function fmtM(n) { if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return'$'+Math.round(n/1000)+'K';return'$'+Math.round(n); }
+  function fmt(y) { if(y===null)return'100+ yrs';if(y===0)return'Already there!';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo'; }
+  function yearsToGoal(goal,cur,ms,rate) { if(ms<=0)return null;if(cur>=goal)return 0;const r=rate/12;let b=cur,m=0;while(b<goal&&m<1200){b=b*(1+r)+ms;m++;}return m<1200?m/12:null; }
+
+  function toggleMenu() {
+    const menu = document.getElementById('slideMenu'), overlay = document.getElementById('menuOverlay');
+    const isOpen = menu.style.display === 'flex';
+    menu.style.display = isOpen ? 'none' : 'flex';
+    overlay.style.display = isOpen ? 'none' : 'block';
+  }
+
+  async function dbInsert(table, data) {
+    if (!fpToken || !fpUserId) return;
+    try {
+      await fetch(`${WORKER_URL}/db/${table}`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'return=minimal'}, body:JSON.stringify({...data, user_id:fpUserId}) });
+    } catch(e) {}
+  }
+
+  async function loadCheckinHistory() {
+    if (!fpToken || !fpUserId) return;
+    try {
+      const res = await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`, { headers:{'Authorization':`Bearer ${fpToken}`} });
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        checkinHistory = data.map(d => ({ month: new Date(d.created_at).toLocaleString('default',{month:'short',year:'numeric'}), savings: d.savings_total, sRate: d.savings_rate, hit: true }));
+        renderHistory();
+      }
+    } catch(e) {}
+  }
+
+  // ── Commitment ──
+  function setCommitCycle(btn, cycle) {
+    document.querySelectorAll('.commit-cycle-btn').forEach(b => {
+      b.style.borderColor = 'rgba(255,255,255,0.2)';
+      b.style.background = 'transparent';
+      b.style.color = 'rgba(255,255,255,0.7)';
+    });
+    btn.style.borderColor = 'var(--fire-orange)';
+    btn.style.background = 'rgba(244,98,42,0.2)';
+    btn.style.color = 'white';
+    commitCycle = cycle;
+    updateCommitPreview();
+  }
+
+  function updateCommitPreview() {
+    const amount = parseFloat(document.getElementById('commitAmount').value) || 0;
+    const preview = document.getElementById('commitPreview');
+    if (amount <= 0) { preview.style.display = 'none'; return; }
+    const cycleLabel = commitCycle === 'weekly' ? 'week' : commitCycle === 'fortnightly' ? 'fortnight' : 'month';
+    const totalCheckins = commitCycle === 'weekly' ? 52 : commitCycle === 'fortnightly' ? 26 : 12;
+    const commitMonthly = commitCycle === 'weekly' ? amount*52/12 : commitCycle === 'fortnightly' ? amount*26/12 : amount;
+    const currentMonthly = calcData.mSav || 0;
+    const newTotalMonthly = currentMonthly + commitMonthly;
+    const fireNum = calcData.fireNum || 0;
+    const savings = calcData.savings || 0;
+    const currentYrs = yearsToGoal(fireNum, savings, currentMonthly, 0.07);
+    const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
+    const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
+    const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
+    preview.style.display = 'block';
+    preview.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">
+      <div>💰 <strong style="color:white;">Extra $${amount.toLocaleString()}/${cycleLabel}</strong> on top of what you already save</div>
+      ${diff && diff > 0.1 ? `<div>🔥 Moves your freedom date to <strong style="color:var(--fire-amber);">${newDate}</strong> — <strong style="color:var(--fire-amber);">${fmt(diff)} sooner</strong></div>` : newDate ? `<div>📅 Freedom date stays around <strong style="color:var(--fire-amber);">${newDate}</strong></div>` : ''}
+      <div style="opacity:0.6;font-size:12px;">${totalCheckins} check-ins to earn your 🔥 flames this year</div>
+    </div>`;
+  }
+
+  function saveCommitment() {
+    const amount = parseFloat(document.getElementById('commitAmount').value) || 0;
+    if (amount <= 0) { alert('Please enter an amount first.'); return; }
+    const commitMonthly = commitCycle === 'weekly' ? amount*52/12 : commitCycle === 'fortnightly' ? amount*26/12 : amount;
+    const newTotalMonthly = (calcData.mSav || 0) + commitMonthly;
+    const fireNum = calcData.fireNum || 0;
+    const savings = calcData.savings || 0;
+    const currentYrs = yearsToGoal(fireNum, savings, calcData.mSav || 0, 0.07);
+    const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
+    const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
+    const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
+    commitmentData = {
+      amount, cycle: commitCycle,
+      startDate: new Date().toISOString(),
+      streak: 0, hits: [],
+      impactText: diff && diff > 0.1 ? `Moves freedom date to ${newDate} — ${fmt(diff)} sooner` : '',
+    };
+    localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
+    renderCommitmentView();
+  }
+
+  function resetCommitment() {
+    if (!confirm('Reset your commitment? Your streak will be lost.')) return;
+    localStorage.removeItem('fp_commitment');
+    commitmentData = null;
+    document.getElementById('noCommitCard').style.display = 'block';
+    document.getElementById('hasCommitCard').style.display = 'none';
+  }
+
+  function loadCommitment() {
+    const saved = localStorage.getItem('fp_commitment');
+    if (saved) { try { commitmentData = JSON.parse(saved); } catch(e) { commitmentData = null; } }
+    renderCommitmentView();
+  }
+
+  function renderCommitmentView() {
+    if (!commitmentData) {
+      document.getElementById('noCommitCard').style.display = 'block';
+      document.getElementById('hasCommitCard').style.display = 'none';
+      return;
+    }
+    document.getElementById('noCommitCard').style.display = 'none';
+    document.getElementById('hasCommitCard').style.display = 'block';
+    const { amount, cycle, streak, hits, impactText } = commitmentData;
+    const cycleLabel = cycle === 'weekly' ? 'week' : cycle === 'fortnightly' ? 'fortnight' : 'month';
+    const totalPossible = cycle === 'weekly' ? 52 : cycle === 'fortnightly' ? 26 : 12;
+    document.getElementById('commitDisplay').textContent = `Extra $${amount.toLocaleString()} / ${cycleLabel}`;
+    document.getElementById('commitStreakLine').textContent = `${streak} of ${totalPossible} check-ins completed · ${hits.length} 🔥 earned`;
+    const impactEl = document.getElementById('commitImpactLine');
+    if (impactEl) impactEl.textContent = impactText || '';
+    const flamesEl = document.getElementById('streakFlames');
+    flamesEl.innerHTML = '';
+    for (let i = 0; i < totalPossible; i++) {
+      const flame = document.createElement('span');
+      flame.style.fontSize = '16px';
+      flame.style.opacity = i < hits.length ? '1' : '0.15';
+      flame.textContent = '🔥';
+      flamesEl.appendChild(flame);
+    }
+    document.getElementById('checkinDueLabel').textContent = `Did you save an extra $${amount.toLocaleString()} this ${cycleLabel}?`;
+  }
+
+  function logCheckin(hit) {
+    if (!commitmentData) return;
+    commitmentData.streak = (commitmentData.streak || 0) + 1;
+    if (hit) commitmentData.hits.push(new Date().toISOString());
+    localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
+    renderCommitmentView();
+
+    const newSavings = parseFloat(document.getElementById('ci-savings').value) || 0;
+    if (newSavings > 0 && calcData.fireNum) {
+      const mSav = calcData.mSav || 0;
+      const fireNum = calcData.fireNum;
+      const ny = yearsToGoal(fireNum, newSavings, mSav, 0.07);
+      const pct = Math.min(Math.round((newSavings / fireNum) * 100), 100);
+      document.getElementById('pathFill').style.width = pct + '%';
+      document.getElementById('progressPct').textContent = pct + '%';
+      document.getElementById('accPortfolio').textContent = fmtM(newSavings);
+      document.getElementById('accYearsToGo').textContent = ny ? Math.round(ny) + ' yrs' : '—';
+      document.getElementById('accFreedomDate').textContent = ny ? currentYear + Math.round(ny) : '100+ yrs';
+      const oy = yearsToGoal(fireNum, calcData.savings, mSav, 0.07);
+      calcData.savings = newSavings;
+      renderMilestones(fireNum, newSavings, mSav);
+      if (hit && oy && ny) showMilestone(oy - ny, pct);
+      dbInsert('checkins', { savings_total: newSavings, savings_rate: calcData.sRate || 0, freedom_years: ny ? Math.round(ny*10)/10 : null, streak: commitmentData.streak });
+      checkinHistory.unshift({ month: new Date().toLocaleString('default',{month:'short',year:'numeric'}), savings: newSavings, hit });
+      renderHistory();
+    }
+
+    const feedbackEl = document.createElement('div');
+    feedbackEl.innerHTML = hit
+      ? '<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame! Keep going.</div>'
+      : '<div style="background:#FFF7F3;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:var(--warm-brown);font-weight:500;margin-bottom:12px;">No worries — next one is yours.</div>';
+    const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
+    if (checkinCard) checkinCard.insertAdjacentElement('afterend', feedbackEl);
+    setTimeout(() => feedbackEl.remove(), 4000);
+  }
+
+  function showMilestone(diff, pct) {
+    const m = document.getElementById('milestone'), e = document.getElementById('milestoneEmoji'), t = document.getElementById('milestoneText');
+    let msg = '';
+    if (pct >= 100) { e.textContent = '🎉'; msg = `<strong>You've done it!</strong> Your portfolio has hit your freedom number.`; }
+    else if (pct >= 75) { e.textContent = '🔥'; msg = `<strong>75% of the way there!</strong> Your freedom date moved <strong>${fmt(diff)} closer</strong>.`; }
+    else if (pct >= 50) { e.textContent = '💪'; msg = `<strong>Halfway to freedom!</strong> Your date moved <strong>${fmt(diff)} closer</strong>.`; }
+    else if (diff > 0) { e.textContent = '✨'; msg = `Your freedom date moved <strong>${fmt(diff)} closer</strong>. Every period compounds.`; }
+    if (msg) { t.innerHTML = msg; m.classList.add('visible'); setTimeout(() => m.classList.remove('visible'), 8000); }
+  }
+
+  function renderMilestones(fireNum, savings, mSav) {
+    const c = document.getElementById('milestonesRoadmap'); if (!c) return;
+    const ms = [0.25,0.5,0.75,1.0], ls = ['🌱 25%','💪 50%','🔥 75%','🎉 Freedom!'];
+    c.innerHTML = ms.map((p,i) => {
+      const t = fireNum*p, y = yearsToGoal(t,savings,mSav,0.07), yr = y ? currentYear+Math.round(y) : null, r = savings >= t;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${r?'#F0FFF4':'var(--warm-cream)'};border-radius:10px;border:1px solid ${r?'#A5D6A7':'var(--border)'};">
+        <div style="font-size:13px;font-weight:500;color:${r?'#2E7D32':'var(--warm-brown)'};">${ls[i]} — ${fmtM(t)}</div>
+        <div style="font-size:12px;color:${r?'#2E7D32':'var(--soft-grey)'};">${r?'✅ Done':yr?yr:'100+ yrs'}</div></div>`;
+    }).join('');
+  }
+
+  function renderHistory() {
+    const card = document.getElementById('historyCard'), list = document.getElementById('historyList');
+    if (checkinHistory.length === 0) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    list.innerHTML = checkinHistory.map(h => `<div class="history-item"><span class="history-date">${h.month}</span><span>${h.savings ? fmtM(h.savings)+' saved' : '—'}</span><span class="history-change ${h.hit?'positive':'negative'}">${h.hit?'🔥 Hit it':'→ Missed'}</span></div>`).join('');
+  }
+</script>
+</body>
+</html>
