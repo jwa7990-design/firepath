@@ -231,6 +231,14 @@
       <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
     </div>
 
+    <!-- Recommended article card -->
+    <div id="recommendedCard" style="display:none;background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:20px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">📖 Recommended for you</div>
+      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;" id="recommendedReason"></div>
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--warm-brown);margin-bottom:16px;line-height:1.4;" id="recommendedTitle"></div>
+      <div id="recommendedBtn" onclick="" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read in the Learning Lab →</div>
+    </div>
+
     <!-- What this means — basic, no debt/super/dependant notes -->
     <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">💡 What this means for you</div>
@@ -381,6 +389,29 @@
     document.getElementById('whatThisMeansText').innerHTML = gapText;
     
     buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate);
+        // Recommended article
+    const rec = recommendArticle(savingsType, persona, sRate);
+    const recCard = document.getElementById('recommendedCard');
+    const recTitle = document.getElementById('recommendedTitle');
+    const recReason = document.getElementById('recommendedReason');
+    const recBtn = document.getElementById('recommendedBtn');
+    if (recCard && recTitle && recReason && recBtn) {
+      recTitle.textContent = rec.title;
+      const reasonMap = {
+        'cash': 'Your money is in the bank — this is the most important thing to understand next.',
+        'etfs': 'You\'re already investing — here\'s how to think about what happens next.',
+        'offset': 'Your offset is working hard — here\'s how it compares to investing.',
+        'mix': 'With a mix of savings types, this will help you think about the full picture.'
+      };
+      recReason.textContent = sRate === 0 ? 'You\'re not saving yet — start here.' : persona === 'fire' ? 'Based on your FIRE journey, this is the next level.' : (reasonMap[savingsType] || 'Based on your situation, this is where to start.');
+      const labUrl = `learning_lab.html?topic=${rec.topic}&track=${rec.track}&title=${encodeURIComponent(rec.title)}`;
+      recBtn.onclick = () => {
+        localStorage.setItem('ap_persona', persona);
+        localStorage.setItem('ap_sRate', sRate);
+        window.location.href = labUrl;
+      };
+      recCard.style.display = 'block';
+    }
     buildNeedleCard(fireNum, savings, mSav, y07);
 
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
@@ -426,10 +457,22 @@
     </div>`;
   }
 
+  function recommendArticle(savingsType, persona, sRate) {
+    if (sRate === 0) return { topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?' };
+    if (persona === 'fire') return { topic: 'four-percent', track: '7', title: 'The 4% rule — where it comes from' };
+    if (savingsType === 'cash' && persona === 'beginner') return { topic: 'saving-vs-investing', track: 'foundation', title: 'The difference between saving and investing' };
+    if (savingsType === 'cash') return { topic: 'index-funds', track: '7', title: 'What is an index fund and why it works' };
+    if (savingsType === 'etfs') return { topic: 'compounding-numbers', track: '7', title: 'Compounding with your actual numbers' };
+    if (savingsType === 'offset') return { topic: 'saving-vs-investing', track: 'foundation', title: 'The difference between saving and investing' };
+    if (savingsType === 'mix') return { topic: 'diversification', track: '5', title: 'What diversification actually means' };
+    return { topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?' };
+  }
+
   function buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate) {
     const el = document.getElementById('rangeCard');
     const rows = document.getElementById('rangeRows');
     if (!el || !rows) return;
+    if (!FP_ASSUMPTIONS || !FP_ASSUMPTIONS.bankRealReturn) return;
     const cy = new Date().getFullYear();
 
     // Row 1 — their current reality based on where money is held
