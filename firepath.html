@@ -236,14 +236,6 @@
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">💡 What this means for you</div>
       <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
     </div>
-
-    <!-- Bank vs 7% comparison -->
-    <div class="compare-card">
-      <p class="compare-title">💡 What if your savings worked harder?</p>
-      <div class="compare-row"><span class="compare-label" id="bankRateLabel">Saving in a bank (0.75%)</span><span class="compare-value" id="bankYears">—</span></div>
-      <div class="compare-row"><span class="compare-label">Investing at 7% real return (after inflation)</span><span class="compare-value highlight" id="investYears">—</span></div>
-      <div class="compare-row"><span class="compare-label">Time you could save</span><span class="compare-value highlight" id="timeSaved">—</span></div>
-    </div>
     <div onclick="window.location.href='learning_lab.html'" style="margin-bottom:16px;background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:2px solid var(--fire-orange);border-radius:16px;padding:20px;cursor:pointer;display:flex;align-items:center;gap:14px;">
       <span style="font-size:28px;">🎓</span>
       <div>
@@ -387,20 +379,12 @@
       gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's 25× your annual spending, the amount that means you never have to work again.<br/><br/>Right now your savings rate is low, which means the timeline is long. But every extra dollar you save each week shortens that gap — because of compounding. FirePath Pro can show you exactly what moves the needle most for your situation.`;
     }
     document.getElementById('whatThisMeansText').innerHTML = gapText;
-
-    document.getElementById('bankYears').textContent = fmt(y0075);
-    document.getElementById('investYears').textContent = fmt(y07);
-    const diff = (y0075 !== null && y07 !== null) ? y0075 - y07 : null;
-    document.getElementById('timeSaved').textContent = (y0075 === null && y07 !== null) ? fmt(y07) + ' sooner than bank' : diff && diff > 0.1 ? fmt(diff) + ' sooner' : 'similar timeline';
     
     buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate);
     buildNeedleCard(fireNum, savings, mSav, y07);
 
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
-    const bankLbl = document.getElementById('bankRateLabel');
-    if (bankLbl) bankLbl.textContent = `Saving in a bank (${(FP_ASSUMPTIONS.bankRealReturn * 100).toFixed(1)}% real return)`;
     showScreen(3);
-
   }
 
   function buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07) {
