@@ -30,6 +30,16 @@
   .needle-result { font-weight:700; }
   .needle-result.better { color:#2E7D32; }
   .needle-result.worse { color:#E53935; }
+  .range-card { background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px; }
+  .range-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
+  .range-row:last-child { border-bottom:none; }
+  .range-row.base { background:#FFF7F3;margin:0 -20px;padding:10px 20px;border-bottom:1px solid rgba(244,98,42,0.15); }
+  .range-label { color:var(--soft-grey);font-weight:300; }
+  .range-label strong { color:var(--warm-brown);font-weight:500; }
+  .range-value { font-weight:700;color:var(--warm-brown); }
+  .range-value.optimistic { color:#2E7D32; }
+  .range-value.base { color:var(--fire-orange); }
+  .range-value.conservative { color:#E65100; }
 </style>
 
 </head>
@@ -164,6 +174,25 @@
           <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / week</span><div id="savingsRateNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;"></div></div>
         </div>
         <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;">🔊 Read my results aloud</button>
+      </div>
+
+      <!-- Range card -->
+      <div id="rangeCard" style="display:none;" class="range-card">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">📊 Your projected range</div>
+        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Here's your current reality, and what changes if your money works harder.</div>
+        <div id="rangeRows"></div>
+        <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
+      </div>
+
+      <!-- Recommended article card -->
+      <div id="recommendedCard" style="display:none;background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:20px;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">📖 Recommended for you</div>
+        <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;" id="recommendedReason"></div>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--warm-brown);margin-bottom:16px;line-height:1.4;" id="recommendedTitle"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div id="recommendedBtn" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read this article →</div>
+          <div onclick="window.location.href='learning_lab.html'" style="display:inline-flex;align-items:center;gap:8px;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Browse all topics →</div>
+        </div>
       </div>
 
       <!-- Pro: context summary tags -->
@@ -794,11 +823,101 @@
       document.getElementById('ci-savings').value=savings;
       document.getElementById('aiLoading').classList.remove('visible');document.getElementById('analyseBtn').style.display='block';
       await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||'',savings_type:savingsType||'cash',retirement_spend:retirementSpendMultiplier||1.0,dependants:dependants||0,housing_status:housingStatus||'renting',persona:persona||'building',debt_total:mDebt||0,mortgage_remaining:mMort||0});
+           buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt);
+
+      const rec = recommendArticlePro(savingsType, persona, sRate, superBal, debt, age);
+      const recCard = document.getElementById('recommendedCard');
+      const recTitle = document.getElementById('recommendedTitle');
+      const recReason = document.getElementById('recommendedReason');
+      const recBtn = document.getElementById('recommendedBtn');
+      if (recCard && recTitle && recReason && recBtn) {
+        recTitle.textContent = rec.title;
+        recReason.textContent = rec.reason;
+        const labUrl = `learning_lab.html?topic=${rec.topic}&track=${rec.track}&title=${encodeURIComponent(rec.title)}`;
+        recBtn.onclick = () => {
+          localStorage.setItem('ap_persona', persona);
+          localStorage.setItem('ap_sRate', sRate);
+          window.location.href = labUrl;
+        };
+        recCard.style.display = 'block';
+      }
       buildNeedleCard(fireNum,savings,mSav,y07);
       await loadCheckinHistory();renderMilestones(fireNum,savings,mSav);showScreen(3);await checkProStatus();
     }catch(err){const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');const ab=document.getElementById('analyseBtn');if(ab)ab.style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
   }
 
+    function recommendArticlePro(savingsType, persona, sRate, superBal, debt, age) {
+    if (sRate === 0) return { topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', reason: 'You\'re not saving yet — this is worth understanding before anything else.' };
+    if (persona === 'fire') return { topic: 'four-percent', track: '7', title: 'The 4% rule — where it comes from', reason: 'Worth exploring the maths behind the number that drives your whole strategy.' };
+    if (debt > 0 && superBal > 0) return { topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', reason: `With ${fmtM(debt)} in debt and ${fmtM(superBal)} in super, understanding how compounding works on both sides is worth exploring.` };
+    if (superBal > 0 && age && age < 45) return { topic: 'two-phase', track: 'foundation', title: 'Your two-phase freedom timeline', reason: `With super locked until 60, understanding how your two timelines interact is worth exploring.` };
+    if (savingsType === 'cash') return { topic: 'index-funds', track: '7', title: 'What is an index fund and why it works', reason: 'Your savings are in cash — this article explores what the alternative looks like and the questions worth thinking through.' };
+    if (savingsType === 'etfs') return { topic: 'compounding-numbers', track: '7', title: 'Compounding with your actual numbers', reason: 'You\'re already investing — this explores what happens as your portfolio grows.' };
+    if (savingsType === 'offset') return { topic: 'saving-vs-investing', track: 'foundation', title: 'The difference between saving and investing', reason: 'Your offset is working hard — worth understanding how it compares to other approaches.' };
+    if (savingsType === 'mix') return { topic: 'diversification', track: '5', title: 'What diversification actually means', reason: 'With a mix of savings types, this explores how to think about what you\'re holding and why.' };
+    return { topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', reason: 'The single most important concept behind your freedom number — worth really understanding.' };
+  }
+
+  function buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt) {
+    const el = document.getElementById('rangeCard');
+    const rows = document.getElementById('rangeRows');
+    if (!el || !rows) return;
+    if (!FP_ASSUMPTIONS || !FP_ASSUMPTIONS.bankRealReturn) return;
+    const cy = new Date().getFullYear();
+
+    const rateMap = { cash: FP_ASSUMPTIONS.bankRealReturn, etfs: 0.07, offset: 0.05, mix: 0.04 };
+    const labelMap = { cash: 'Your money in the bank', etfs: 'Your money in ETFs/shares', offset: 'Your money in offset', mix: 'Your current mix' };
+    const noteMap = {
+      cash: `(${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(1)}% real return)`,
+      etfs: '(7% real return — already invested)',
+      offset: '(~5% — saving on mortgage interest)',
+      mix: '(~4% blended estimate)'
+    };
+    const currentRate = rateMap[savingsType] || FP_ASSUMPTIONS.bankRealReturn;
+    const yReality = yearsToGoal(fireNum, savings, mSav, currentRate);
+    const fmtReality = yReality ? cy + Math.round(yReality) : '100+ yrs';
+    const fmt7 = y07 ? cy + Math.round(y07) : '100+ yrs';
+    const diffReality = yReality && y07 ? Math.round(yReality - y07) : null;
+
+    // Row 3 — Pro: spending reduction (double effect)
+    const spendReductionMonthly = 50 * 52 / 12;
+    const newFireNum = fireNum * (1 - spendReductionMonthly / (calcData.mSpend * 12));
+    const mSavPlus = mSav + spendReductionMonthly;
+    const yPlus = yearsToGoal(newFireNum, savings, mSavPlus, 0.07);
+    const fmtPlus = yPlus ? cy + Math.round(yPlus) : '100+ yrs';
+    const diffPlus = y07 && yPlus ? Math.round(y07 - yPlus) : null;
+
+    const alreadyInvested = savingsType === 'etfs';
+
+    rows.innerHTML = !alreadyInvested ? `
+      <div class="range-row">
+        <span class="range-label">😴 <strong>${labelMap[savingsType]}</strong><br/><span style="font-size:11px">${noteMap[savingsType]}</span></span>
+        <span class="range-value conservative">${fmtReality}</span>
+      </div>
+      <div class="range-row base">
+        <span class="range-label">📈 <strong>If your money was invested</strong><br/><span style="font-size:11px">(7% real return)</span></span>
+        <span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffReality}yr sooner)</span>` : ''}</span>
+      </div>
+      <div class="range-row">
+        <span class="range-label">🚀 <strong>Invested + spend $50/week less</strong><br/><span style="font-size:11px">(lowers your number AND boosts savings)</span></span>
+        <span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span>
+      </div>` : `
+      <div class="range-row base">
+        <span class="range-label">✅ <strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span>
+        <span class="range-value base">${fmt7}</span>
+      </div>
+      <div class="range-row">
+        <span class="range-label">🚀 <strong>Invested + spend $50/week less</strong><br/><span style="font-size:11px">(lowers your number AND boosts savings)</span></span>
+        <span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span>
+      </div>`;
+
+    const subtitle = el.querySelector('div:nth-child(2)');
+    if (subtitle) subtitle.textContent = alreadyInvested
+      ? "You're already investing — here's what one more lever could do."
+      : "Here's your current reality, and what changes if your money works harder.";
+
+    el.style.display = 'block';
+  }
   
     function buildNeedleCard(fireNum, savings, mSav, y07) {
     const el = document.getElementById('needleCard');
@@ -813,10 +932,11 @@
       { label: 'Save an extra $100/week', mSavNew: mSav + (100 * 52 / 12) },
       { label: 'Save an extra $200/week', mSavNew: mSav + (200 * 52 / 12) },
       { label: 'Income up $10K/year', mSavNew: mSav + (10000 / 12) },
-      { label: 'Salary sacrifice $100/week', mSavNew: mSav + (100 * 52 / 12) },
+      { label: 'Reduce spending by $50/week', mSavNew: mSav + (50 * 52 / 12), spendReduction: true },
     ];
     const leverRows = levers.map(l => {
-      const y = yearsToGoal(fireNum, savings, l.mSavNew, 0.07);
+      const adjustedFireNum = l.spendReduction ? fireNum * (1 - (50 * 52 / 12) / (calcData.mSpend * 12)) : fireNum;
+      const y = yearsToGoal(adjustedFireNum, savings, l.mSavNew, 0.07);
       const yr = y ? cy + Math.round(y) : null;
       const diff = y && y07 ? Math.round(y07 - y) : 0;
       return `<div class="needle-row">
