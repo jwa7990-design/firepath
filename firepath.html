@@ -374,8 +374,18 @@
     if (savings >= fireNum) {
       gapText = `<strong>You've already hit your freedom number!</strong> Your savings of ${fmtM(savings)} cover your freedom target of ${fmtM(fireNum)}. You're there.`;
     } else if (y07 !== null) {
-      const timeSavedVsBank = (y0075 !== null && y0075 - y07 > 0.1) ? ` If that money was growing at 7% instead of sitting in a bank, you could get there <strong>${fmt(y0075 - y07)} sooner</strong>.` : '';
-      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's what it costs to never have to work again.${savings > 0 ? ` You currently have <strong>${fmtM(savings)}</strong>, leaving a gap of <strong>${fmtM(gap)}</strong>.` : ''} At <strong>${weeklyAmt}/week</strong> you're on track to get there in <strong>${fmt(y07)}</strong>.${timeSavedVsBank}`;
+      const cy = new Date().getFullYear();
+      const mSavPlus = mSav + (50 * 52 / 12);
+      const yPlus = yearsToGoal(fireNum, savings, mSavPlus, 0.07);
+      const currentRate = { cash: FP_ASSUMPTIONS.bankRealReturn, etfs: 0.07, offset: 0.05, mix: 0.04 }[savingsType] || FP_ASSUMPTIONS.bankRealReturn;
+      const yReality = yearsToGoal(fireNum, savings, mSav, currentRate);
+      const realityNote = savingsType !== 'etfs' && yReality && y07 && yReality - y07 > 0.5
+        ? ` Right now your money is ${savingsType === 'cash' ? 'in a bank' : savingsType === 'offset' ? 'in your offset' : 'spread across different places'} — if it was invested at 7%, you could get there <strong>${fmt(yReality - y07)} sooner</strong>.`
+        : savingsType === 'etfs' ? ` Your money is already invested — you're on the right track.` : '';
+      const plusNote = yPlus && y07 && y07 - yPlus > 0.3
+        ? ` Find an extra $50/week on top of that and it moves to <strong>${cy + Math.round(yPlus)}</strong>.`
+        : '';
+      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's what it costs to never have to work again.${savings > 0 ? ` You currently have <strong>${fmtM(savings)}</strong>, leaving a gap of <strong>${fmtM(gap)}</strong>.` : ''} At <strong>${weeklyAmt}/week</strong> you're on track to get there in <strong>${fmt(y07)}</strong>.${realityNote}${plusNote} The article above is the best place to start understanding how that works.`;
     } else {
       gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's 25× your annual spending, the amount that means you never have to work again.<br/><br/>Right now your savings rate is low, which means the timeline is long. But every extra dollar you save each week shortens that gap — because of compounding. FirePath Pro can show you exactly what moves the needle most for your situation.`;
     }
