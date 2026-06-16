@@ -736,11 +736,22 @@ Respond ONLY with valid JSON:
   }
   showLiveRates();
 
-  showUserContext();
+   showUserContext();
   loadLabProgress().then(() => {
     renderFoundationTopics();
     renderSavedArticles();
+
+    // ── URL param deep-link handler ──
+    const params = new URLSearchParams(window.location.search);
+    const pTopic = params.get('topic');
+    const pTrack = params.get('track');
+    const pTitle = params.get('title');
+    if (pTopic && pTrack && pTitle) {
+      if (pTrack !== 'foundation') selectTrack(pTrack);
+      openArticle(pTopic, pTrack, decodeURIComponent(pTitle));
+    }
   });
+
 </script>
 </body>
 </html>
