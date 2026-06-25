@@ -1023,13 +1023,13 @@ function redrawWithInflation() {
 
   if (inflationMode === 'nominal') {
     // Recalculate with nominal rate
-    const fyNominal = yearsToGoal(fireNum, savings, mSav, NOMINAL_RATE);
-    const futureFireNum = fireNum * Math.pow(1 + INFLATION, fyNominal || 25);
-    const freedomAgeNominal = age ? Math.round(age + (fyNominal || 0)) : null;
+    const fy = yearsToGoal(fireNum, savings, mSav, 0.07);
+    const futureFireNum = fireNum * Math.pow(1 + INFLATION, fy || 25);
+    const freedomAge = age ? Math.round(age + (fy || 0)) : null;
 
     document.getElementById('fireNumberOut').textContent = fmtM(futureFireNum);
-    document.getElementById('yearsOut').textContent = fyNominal ? fmt(fyNominal) : '100+ yrs';
-    document.getElementById('freedomAgeOut').textContent = freedomAgeNominal || '—';
+    document.getElementById('yearsOut').textContent = fy ? fmt(fy) : '100+ yrs';
+    document.getElementById('freedomAgeOut').textContent = freedomAge || '—';
     document.getElementById('inflationNote').innerHTML = `Future dollars at 2.5% inflation. In today's purchasing power that's <strong>${fmtM(fireNum)}</strong>. <a href="assumptions.html" style="color:rgba(255,255,255,0.6);">How we calculate →</a>`;
     document.getElementById('stat2label').innerHTML = `Freedom number <span style="font-size:10px;font-weight:300;opacity:0.7">(future $)</span>`;
   } else {
