@@ -272,54 +272,10 @@
     <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. All projections assume 7% real return unless otherwise stated.</p>
   </div>
 
-  <!-- ── Tab: What's Next ── -->
+    <!-- ── Tab: What's Next ── -->
   <div class="rtab-content" id="rtab-next" style="display:none;">
-
-    <!-- Next 3 steps -->
-    <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;">
-      <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:16px;">Your next 3 steps 🔥</div>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="display:flex;align-items:center;gap:14px;padding:12px;background:#F0FFF4;border-radius:12px;border:1px solid #A5D6A7;">
-          <div style="font-size:20px">✅</div>
-          <div>
-            <div style="font-size:14px;font-weight:500;color:#2E7D32;">Know your number</div>
-            <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">You've got your freedom number. That's the foundation.</div>
-          </div>
-        </div>
-        <div onclick="window.location.href='learning_lab.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
-          <div style="font-size:20px">🎓</div>
-          <div>
-            <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Understand how to get there</div>
-            <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">The Learning Lab explains the how — in your language, using your numbers.</div>
-          </div>
-        </div>
-        <div onclick="saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
-          <div style="font-size:20px">→</div>
-          <div>
-            <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if" scenario</div>
-            <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if you sold the house? Got a lump sum? See how it changes everything.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Hear Me Out promo -->
-    <div onclick="saveHMOData();window.location.href='hearmeout.html';" style="margin-bottom:16px;background:white;border:2px solid var(--warm-brown);border-radius:20px;padding:24px;cursor:pointer;">
-      <div style="font-size:22px;margin-bottom:10px">🤔</div>
-      <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3">Okay, hear me out for a sec.</div>
-      <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px">What if you made one big move? Sold the house. Got a redundancy payout. Invested a lump sum. Run the numbers — no judgement, no advice. Just the maths.</div>
-      <div style="display:inline-flex;align-items:center;gap:8px;background:var(--warm-brown);color:white;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:500;">Show me the numbers →</div>
-    </div>
-
-    <!-- Upgrade nudge (free users only) -->
-    <div id="upgradeNudge" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;color:white;">
-      <div style="font-size:20px;margin-bottom:8px;">🔥</div>
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:6px;">You're on the free plan</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;margin-bottom:16px;line-height:1.6;">Unlock AI insights, Hear Me Out scenarios, Things Worth Exploring, and more.</div>
-      <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:14px;font-weight:500;display:inline-block;">Try Pro free for 7 days</div>
-    </div>
-
-    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
+    <div id="whatsNextContent"></div>
+    <p class="disclaimer" style="margin-top:8px;">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
     <p style="text-align:center;font-size:12px;margin-bottom:16px;">
       <a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · 
       <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> · 
@@ -769,6 +725,12 @@ async function saveProfile() {
         recCard.style.display = 'block';
       }
       buildNeedleCard(fireNum,savings,mSav,y07);
+      buildWhatsNextTab({
+        fireNum, savings, mSav, fy, fyear, freedomAge,
+        sRate, superBal, debt, mortgage, age,
+        isZeroSavings, alreadyFree,
+        isPro: localStorage.getItem('fp_is_pro') === 'true'
+      });
       localStorage.setItem('fp_last_calc', JSON.stringify({fireNum: calcData.fireNum, savings: calcData.savings, mSav: calcData.mSav, sRate: calcData.sRate}));await saveProfile(); showScreen(3);await checkProStatus();
     }catch(err){const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');const ab=document.getElementById('analyseBtn');if(ab)ab.style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
   }
@@ -951,6 +913,140 @@ function switchTab(tab) {
   if (tab === 'accountability') {
     window.location.href = 'progress.html';
   }
+}
+function buildWhatsNextTab(params) {
+  const { fireNum, savings, mSav, fy, fyear, freedomAge, sRate, superBal, debt, mortgage, age, isZeroSavings, alreadyFree, isPro } = params;
+  const el = document.getElementById('whatsNextContent');
+  if (!el) return;
+
+  const isPartner = (parseFloat(document.getElementById('partnerIncome').value) || 0) > 0;
+  const you = isPartner ? 'you two' : 'you';
+  const your = isPartner ? 'your combined' : 'your';
+  const cy = new Date().getFullYear();
+  const blocks = [];
+
+  // ── Hero status block ──
+  if (alreadyFree) {
+    blocks.push(`<div style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:2px solid #A5D6A7;border-radius:20px;padding:24px;margin-bottom:16px;">
+      <div style="font-size:28px;margin-bottom:10px;">🎉</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#2E7D32;margin-bottom:8px;line-height:1.3;">You're already there.</div>
+      <div style="font-size:14px;color:#2E7D32;font-weight:300;line-height:1.7;">Your savings already cover ${your} freedom number. The focus now shifts from building to protecting — making sure ${your} money lasts and works as hard as you did to earn it.</div>
+    </div>`);
+  } else if (isZeroSavings) {
+    blocks.push(`<div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;">
+      <div style="font-size:28px;margin-bottom:10px;">🌱</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3;">Every journey starts somewhere.</div>
+      <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;">${isPartner ? 'You two have' : 'You have'} the number now. The next step is finding even a small amount to put to work — because the earlier it starts, the harder it compounds.</div>
+    </div>`);
+  } else if (fy !== null && fy <= 10) {
+    blocks.push(`<div style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:2px solid #A5D6A7;border-radius:20px;padding:24px;margin-bottom:16px;">
+      <div style="font-size:28px;margin-bottom:10px;">🔥</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#2E7D32;margin-bottom:8px;line-height:1.3;">${fyear ? fyear + ' is close.' : 'Freedom is close.'}</div>
+      <div style="font-size:14px;color:#2E7D32;font-weight:300;line-height:1.7;">${isPartner ? 'You two are' : 'You\'re'} ${fmt(fy)} away${freedomAge ? ' — freedom age ' + freedomAge : ''}. At this stage, staying the course matters more than finding new levers. The compounding is doing the work.</div>
+    </div>`);
+  } else if (fy !== null && fy <= 20) {
+    blocks.push(`<div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;">
+      <div style="font-size:28px;margin-bottom:10px;">📈</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3;">${isPartner ? 'You two are' : 'You\'re'} building something real.</div>
+      <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;">${fmt(fy)} to freedom${freedomAge ? ' at age ' + freedomAge : ''}. ${your.charAt(0).toUpperCase() + your.slice(1)} savings rate of ${sRate}% is ${sRate >= 20 ? 'strong' : 'a solid start'} — the levers below show what moves the date.</div>
+    </div>`);
+  } else {
+    blocks.push(`<div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;">
+      <div style="font-size:28px;margin-bottom:10px;">🧭</div>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3;">The path is long — but it's visible now.</div>
+      <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;">${isPartner ? 'You two have' : 'You have'} ${your} number. ${fy ? fmt(fy) + ' is a long road' : 'The timeline is long'}, but knowing where ${you} stand is the thing most people never bother to find out. That's already further ahead than most.</div>
+    </div>`);
+  }
+
+  // ── Your single biggest lever ──
+  if (!alreadyFree && !isZeroSavings && fy) {
+    const extraWeekly = 50;
+    const newMSav = mSav + (extraWeekly * 52 / 12);
+    const newFy = yearsToGoal(fireNum, savings, newMSav, 0.07);
+    const diff = newFy && fy ? Math.round(fy - newFy) : null;
+
+    let leverMsg = '';
+    if (savingsType === 'cash' && savings > 0) {
+      leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} savings are in cash. The single biggest question worth exploring: what happens if that money is invested instead? The My Date tab shows the exact difference.`;
+    } else if (debt > 0) {
+      leverMsg = `${isPartner ? 'You two have' : 'You have'} ${fmtM(debt)} in debt. Once that's gone, the repayments become savings — and that changes the date.`;
+    } else if (sRate < 15) {
+      leverMsg = diff && diff > 0 ? `Saving an extra $${extraWeekly}/week could move ${your} freedom date by ${diff} year${diff !== 1 ? 's' : ''}. Small, but compounding turns small into significant.` : `${your.charAt(0).toUpperCase() + your.slice(1)} savings rate has room to grow. Even small increases compound into years of difference.`;
+    } else if (superBal > 0 && age && age < 55) {
+      leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} super is quietly compounding in the background. The Super tab shows how it connects to ${your} freedom date at 60.`;
+    } else {
+      leverMsg = diff && diff > 0 ? `An extra $${extraWeekly}/week could bring ${your} freedom date forward by ${diff} year${diff !== 1 ? 's' : ''}. The My Date tab has the full picture.` : `${your.charAt(0).toUpperCase() + your.slice(1)} plan is solid. The My Date tab shows what would move it further.`;
+    }
+
+    blocks.push(`<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:10px;">💡 Your biggest lever right now</div>
+      <div style="font-size:14px;color:var(--warm-brown);font-weight:300;line-height:1.7;">${leverMsg}</div>
+    </div>`);
+  }
+
+  // ── Action steps ──
+  const steps = [];
+
+  steps.push(`<div style="display:flex;align-items:center;gap:14px;padding:12px;background:#F0FFF4;border-radius:12px;border:1px solid #A5D6A7;">
+    <div style="font-size:20px">✅</div>
+    <div>
+      <div style="font-size:14px;font-weight:500;color:#2E7D32;">Know ${your} number</div>
+      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">${your.charAt(0).toUpperCase() + your.slice(1)} freedom number is ${fmtM(fireNum)}. That's the foundation everything else builds on.</div>
+    </div>
+  </div>`);
+
+  if (!alreadyFree) {
+    steps.push(`<div onclick="switchResultTab('needle', document.querySelector('.rtab-btn:nth-child(3)'))" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
+      <div style="font-size:20px">🎯</div>
+      <div>
+        <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">See what moves ${your} date</div>
+        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">The My Date tab shows exactly what each lever does to ${your} freedom year — in real numbers.</div>
+      </div>
+    </div>`);
+  }
+
+  if (persona === 'beginner' || persona === 'building') {
+    steps.push(`<div onclick="window.location.href='learning_lab.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
+      <div style="font-size:20px">🎓</div>
+      <div>
+        <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">${persona === 'beginner' ? 'Understand the basics' : 'Go deeper on the concepts'}</div>
+        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">${persona === 'beginner' ? 'The Learning Lab explains how this all works — in plain language, no jargon.' : 'The Learning Lab covers compounding, ETFs, super, and the 4% rule — in your language.'}</div>
+      </div>
+    </div>`);
+  }
+
+  steps.push(`<div onclick="saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
+    <div style="font-size:20px">🤔</div>
+    <div>
+      <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if"</div>
+      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if ${you} sold the house? Got a lump sum? Hear Me Out lets ${you} model the big moves.</div>
+    </div>
+  </div>`);
+
+  blocks.push(`<div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;">
+    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:14px;">${isPartner ? 'Your next steps together' : 'Your next steps'} 🔥</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">${steps.join('')}</div>
+  </div>`);
+
+  // ── Super nudge if relevant ──
+  if (superBal > 0 && age && age < 60 && !alreadyFree) {
+    blocks.push(`<div onclick="switchResultTab('super', document.getElementById('superTabBtn'))"style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7;border-radius:16px;padding:20px;margin-bottom:16px;cursor:pointer;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#2E7D32;margin-bottom:8px;">🦘 Don't forget your super</div>
+      <div style="font-size:14px;color:#2E7D32;font-weight:300;line-height:1.6;">${isPartner ? 'You two have' : 'You have'} ${fmtM(superBal)} compounding in the background. The Super tab shows how it fits ${your} freedom plan at 60. →</div>
+    </div>`);
+  }
+
+  // ── Upgrade nudge for free users ──
+  if (!isPro) {
+    blocks.push(`<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;color:white;">
+      <div style="font-size:20px;margin-bottom:8px;">🔥</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:6px;">You're on the free plan</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;margin-bottom:16px;line-height:1.6;">Unlock AI insights, Hear Me Out scenarios, the full My Date tab, and more.</div>
+      <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:14px;font-weight:500;display:inline-block;">Try Pro free for 7 days</div>
+    </div>`);
+  }
+
+  el.innerHTML = blocks.join('');
 }
   
 </script>
