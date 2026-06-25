@@ -224,6 +224,7 @@
     <div id="zeroSavingsCard" style="display:none"></div>
     <div id="debtCard" style="display:none"></div>
     <div id="houseCard" style="display:none"></div>
+    <div id="withdrawalCard" style="display:none"></div>
 
     <!-- AI Insight -->
     <div class="ai-insight-card">
@@ -691,6 +692,7 @@ async function saveProfile() {
         updateSuperTabVisibility(age, superBal);
         buildDebtCard(debt,savings,mSav,mI,fireNum);
         buildHouseCard(housingStatus,debt,savings,mSav,fireNum);
+        buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro);
       }
 
       const paf=parseInt(document.getElementById('partnerAge').value)||0,psf=parseFloat(document.getElementById('partnerSuper').value)||0;
@@ -913,6 +915,70 @@ function switchTab(tab) {
   if (tab === 'accountability') {
     window.location.href = 'progress.html';
   }
+}
+function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
+  const el = document.getElementById('withdrawalCard');
+  if (!el) return;
+
+  // Show when freedom age exceeds 65 or FIRE is unreachable — partial freedom framing
+  const freedomAge = age ? Math.round(age + (fy || 0)) : null;
+  const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
+  if (!isLongRoad || savings <= 0) { el.style.display = 'none'; return; }
+
+  // What the portfolio generates at 4%
+  const portfolioIncome = Math.round(savings * 0.04);
+  const portfolioIncomeWeekly = Math.round(portfolioIncome / 52);
+  const annualSpend = Math.round(mSp * 12);
+  const gap = Math.max(0, annualSpend - portfolioIncome);
+  const gapWeekly = Math.round(gap / 52);
+
+  // Hours/week to fill the gap (based on their hourly rate — estimate from income)
+  const hourlyRate = Math.round((mI * 12) / 52 / 38); // assume 38hr week
+  const hoursToFillGap = hourlyRate > 0 ? Math.round(gapWeekly / hourlyRate) : null;
+
+  // What saving extra does — how long to close the gap to full FIRE
+  const extraSave100 = mSav + (100 * 52 / 12);
+  const fyExtra = yearsToGoal(fireNum, savings, extraSave100, 0.07);
+  const fyExtraYear = fyExtra ? currentYear + Math.round(fyExtra) : null;
+
+  const proDetail = isPro ? `
+    <div style="display:flex;flex-direction:column;gap:0;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span style="color:var(--soft-grey)">Your portfolio generates (4% rule)</span>
+        <span style="font-weight:700;color:var(--fire-orange)">${fmtM(portfolioIncome)}/yr</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span style="color:var(--soft-grey)">Your annual spending</span>
+        <span style="font-weight:500">${fmtM(annualSpend)}/yr</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span style="color:var(--soft-grey)">The gap</span>
+        <span style="font-weight:700;color:var(--warm-brown)">${fmtM(gap)}/yr (${fmtM(gapWeekly)}/week)</span>
+      </div>
+      ${hoursToFillGap !== null ? `<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span style="color:var(--soft-grey)">Hours/week to fill the gap</span>
+        <span style="font-weight:700;color:var(--warm-brown)">~${hoursToFillGap} hrs/week</span>
+      </div>` : ''}
+      ${fyExtraYear ? `<div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;">
+        <span style="color:var(--soft-grey)">Save $100/week extra → full FIRE</span>
+        <span style="font-weight:700;color:#2E7D32">${fyExtraYear}</span>
+      </div>` : ''}
+    </div>
+    <div style="background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--soft-grey);line-height:1.7;">
+      💡 This is your <strong style="color:var(--warm-brown)">actual freedom equation</strong> — not a failure. Your portfolio is already working. The question worth exploring is how much work you actually need to do to cover the gap, and whether that changes if you save a little more now.
+    </div>` 
+  : `<div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">
+      Your portfolio would generate <strong>${fmtM(portfolioIncome)}/year</strong> at 4%. That's your starting point — not your ceiling. Upgrade to Pro to see the full breakdown: the gap, the hours, and the path to closing it.
+    </div>
+    <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div>`;
+
+  el.style.display = 'block';
+  el.innerHTML = `<div style="background:white;border:2px solid var(--warm-brown);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+    <div style="font-size:13px;font-weight:700;color:var(--warm-brown);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">💸 Your actual freedom equation</div>
+    <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:16px;">Full financial independence isn't the only version of freedom. Right now your portfolio is already generating income — here's what that picture actually looks like.</div>
+    ${proDetail}
+    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 4% withdrawal rate.</p>
+  </div>`;
 }
 function buildWhatsNextTab(params) {
   const { fireNum, savings, mSav, fy, fyear, freedomAge, sRate, superBal, debt, mortgage, age, isZeroSavings, alreadyFree, isPro } = params;
