@@ -184,6 +184,14 @@
         <div id="savingsRateNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;"></div>
       </div>
     </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;margin-bottom:4px;">
+      <span style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:300;">Today's dollars</span>
+      <div id="inflationToggle" onclick="toggleInflation()" style="width:44px;height:24px;background:rgba(255,255,255,0.2);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;">
+        <div id="inflationThumb" style="width:20px;height:20px;background:white;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;"></div>
+      </div>
+      <span style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:300;">Future dollars</span>
+    </div>
+    <div id="inflationToggleNote" style="font-size:11px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:12px;">Based on RBA's long-run target of 2.5% inflation</div>
     <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;">🔊 Read my results aloud</button>
   </div>
 
@@ -589,6 +597,11 @@ async function saveProfile() {
       'event_category': 'engagement',
       'event_label': 'show_me_my_path_pro'
     });
+    inflationMode = 'real';
+    const inflThumb = document.getElementById('inflationThumb');
+    const inflToggle = document.getElementById('inflationToggle');
+    if (inflThumb) inflThumb.style.left = '2px';
+    if (inflToggle) inflToggle.style.background = 'rgba(255,255,255,0.2)';
     let userInput='',mInc=0,mSavAmt=0,mRate=20,mSavs=0,mSup=0,mAge=0,mCtx='',mDebt=0,mMort=0;
     if(inputMode==='voice'){if(!transcriptText){alert('Please speak first, or switch to Type mode.');return;}userInput=transcriptText;}
     else{
@@ -664,14 +677,14 @@ async function saveProfile() {
       if(fan)fan.textContent=freedomAge?`At age ${freedomAge}`:'';
       const wsav=(mSav*12/52).toFixed(0),onT=mSav>0&&fy!==null;
       const inflYrs=Math.round(fy||25);
-      const futureNum=fireNum*Math.pow(1.03,inflYrs);
+      const futureNum=fireNum*Math.pow(1.025,inflYrs);
 
       document.getElementById('savingsRateNote').textContent=sRate+'% of income';
       document.getElementById('fireNumberOut').textContent=fmtM(fireNum);
       const inflationNotes={
         beginner:`💡 Just so you know — prices rise over time, so in ${inflYrs} years ${fmtM(fireNum)} won't stretch as far as it does today. This is why <em>where</em> you save matters as much as <em>how much</em> you save.`,
-        building:`💡 In today's purchasing power. At 3% inflation over ${inflYrs} years, you'd need <strong>${fmtM(futureNum)}</strong> in future dollars — but your portfolio grows in nominal terms too.`,
-        fire:`Nominal: <strong>${fmtM(futureNum)}</strong> · Real (today's $): <strong>${fmtM(fireNum)}</strong> · Assumed inflation: 3% · ${inflYrs} yrs`
+        building:`💡 In today's purchasing power. At 2.5% inflation over ${inflYrs} years, you'd need <strong>${fmtM(futureNum)}</strong> in future dollars — but your portfolio grows in nominal terms too.`,
+        fire:`Nominal: <strong>${fmtM(futureNum)}</strong> · Real (today's $): <strong>${fmtM(fireNum)}</strong> · Assumed inflation: 2.5% · ${inflYrs} yrs`
      };
       document.getElementById('inflationNote').innerHTML=inflationNotes[persona]||inflationNotes.building;
  
@@ -983,6 +996,63 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
     <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 4% withdrawal rate.</p>
   </div>`;
 }
+
+let inflationMode = 'real'; // 'real' or 'nominal'
+
+function toggleInflation() {
+  inflationMode = inflationMode === 'real' ? 'nominal' : 'real';
+  const thumb = document.getElementById('inflationThumb');
+  const toggle = document.getElementById('inflationToggle');
+  if (inflationMode === 'nominal') {
+    thumb.style.left = '22px';
+    toggle.style.background = 'rgba(255,255,255,0.5)';
+  } else {
+    thumb.style.left = '2px';
+    toggle.style.background = 'rgba(255,255,255,0.2)';
+  }
+  redrawWithInflation();
+}
+
+function redrawWithInflation() {
+  if (!calcData || !calcData.fireNum) return;
+  const { fireNum, savings, mSav, mSpend, sRate, age } = calcData;
+  const INFLATION = 0.025;
+  const NOMINAL_RATE = 0.07 + INFLATION; // 9.5%
+
+  const cy = new Date().getFullYear();
+
+  if (inflationMode === 'nominal') {
+    // Recalculate with nominal rate
+    const fyNominal = yearsToGoal(fireNum, savings, mSav, NOMINAL_RATE);
+    const futureFireNum = fireNum * Math.pow(1 + INFLATION, fyNominal || 25);
+    const freedomAgeNominal = age ? Math.round(age + (fyNominal || 0)) : null;
+
+    document.getElementById('fireNumberOut').textContent = fmtM(futureFireNum);
+    document.getElementById('yearsOut').textContent = fyNominal ? fmt(fyNominal) : '100+ yrs';
+    document.getElementById('freedomAgeOut').textContent = freedomAgeNominal || '—';
+    document.getElementById('inflationNote').innerHTML = `Future dollars at 2.5% inflation. In today's purchasing power that's <strong>${fmtM(fireNum)}</strong>. <a href="assumptions.html" style="color:rgba(255,255,255,0.6);">How we calculate →</a>`;
+    document.getElementById('stat2label').innerHTML = `Freedom number <span style="font-size:10px;font-weight:300;opacity:0.7">(future $)</span>`;
+  } else {
+    // Real — restore original values
+    const fy = yearsToGoal(fireNum, savings, mSav, 0.07);
+    const freedomAge = age ? Math.round(age + (fy || 0)) : null;
+    const inflYrs = Math.round(fy || 25);
+    const futureNum = fireNum * Math.pow(1.03, inflYrs);
+
+    document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
+    document.getElementById('yearsOut').textContent = fy ? fmt(fy) : '100+ yrs';
+    document.getElementById('freedomAgeOut').textContent = freedomAge || '—';
+
+    const inflationNotes = {
+      beginner: `💡 Just so you know — prices rise over time, so in ${inflYrs} years ${fmtM(fireNum)} won't stretch as far as it does today. This is why <em>where</em> you save matters as much as <em>how much</em> you save.`,
+      building: `💡 In today's purchasing power. At 2.5% inflation over ${inflYrs} years, you'd need <strong>${fmtM(futureNum)}</strong> in future dollars — but your portfolio grows in nominal terms too.`,
+      fire: `Nominal: <strong>${fmtM(futureNum)}</strong> · Real (today's $): <strong>${fmtM(fireNum)}</strong> · Assumed inflation: 2.5% · ${inflYrs} yrs`
+    };
+    document.getElementById('inflationNote').innerHTML = inflationNotes[persona] || inflationNotes.building;
+    document.getElementById('stat2label').innerHTML = `Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span>`;
+  }
+}
+
 function buildWhatsNextTab(params) {
   const { fireNum, savings, mSav, fy, fyear, freedomAge, sRate, superBal, debt, mortgage, age, isZeroSavings, alreadyFree, isPro } = params;
   const el = document.getElementById('whatsNextContent');
