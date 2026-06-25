@@ -247,6 +247,9 @@
 
     <!-- What moves the needle — free version -->
     <div id="needleCard"></div>
+
+    <!-- Withdrawal card -->
+    <div id="withdrawalCard" style="display:none"></div>
  
     <!-- Smart Pro upgrade banner -->
     <div id="proUpgradeBanner"></div>
@@ -425,6 +428,7 @@
       recCard.style.display = 'block';
     }
     buildNeedleCard(fireNum, savings, mSav, y07);
+    buildWithdrawalCard(savings, mSav, mI, fireNum, mS, y07, age);
 
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
     showScreen(3);
@@ -621,7 +625,30 @@
     body.classList.toggle('open');
     chevron.classList.toggle('open');
   }
-  
+
+  function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, age) {
+  const el = document.getElementById('withdrawalCard');
+  if (!el) return;
+
+  const freedomAge = age ? Math.round(age + (fy || 0)) : null;
+  // Show when freedom age exceeds 65 or FIRE is unreachable — partial freedom framing
+  const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
+  if (!isLongRoad || savings <= 0) { el.style.display = 'none'; return; }
+
+  const portfolioIncome = Math.round(savings * 0.04);
+
+  el.style.display = 'block';
+  el.innerHTML = `<div style="background:white;border:2px solid var(--warm-brown);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+    <div style="font-size:13px;font-weight:700;color:var(--warm-brown);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">💸 What your money is already doing for you</div>
+    <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;">Full financial independence isn't the only version of freedom. Your portfolio is already generating income — right now.</div>
+    <div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">
+      Your portfolio would generate <strong>${fmtM(portfolioIncome)}/year</strong> at 4%. That's your starting point — not your ceiling. Pro shows the full breakdown: the gap, the hours to fill it, and the path to closing it.
+    </div>
+    <div onclick="window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div>
+    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 4% withdrawal rate.</p>
+  </div>`;
+}
+
 </script>
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
