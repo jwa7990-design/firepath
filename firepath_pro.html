@@ -401,6 +401,7 @@
   const currentWeekly=Math.round(mSav*12/52);
   const rW=0.07/52,nW=yts*52;
   const extraWeeklyNeeded=gap60>0?Math.round(gap60*rW/(Math.pow(1+rW,nW)-1)):0;
+  const gapCloseable = yts >= 5 && extraWeeklyNeeded < 2000;
   const totalWeeklyNeeded=currentWeekly+extraWeeklyNeeded;
   let breakdownHTML='';
   if(age>=60){
@@ -420,12 +421,14 @@
         <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:2px solid var(--border);margin-top:4px;font-size:13px;"><span style="color:var(--soft-grey)">Shortfall at 60</span><span style="font-weight:700;color:#E53935">${fmtM(gap60)}</span></div>
       </div>
       ${sv>1?`<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#2E7D32;line-height:1.6;">🚀 <strong>Super moves your freedom date.</strong> Without super: ${p1y}. With super: <strong>${currentYear+Math.round(tot)}</strong> — roughly <strong>${fmt(sv)} sooner</strong>.</div>`:''}
-      <div style="background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;">
+      ${gapCloseable ? `<div style="background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;">
         <div style="font-weight:700;color:var(--warm-brown);margin-bottom:8px;">💡 One way to close the $${Math.round(gap60/1000)}K gap — though super and the "Less" spending option above may do a lot of the heavy lifting:</div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--soft-grey)">You currently save</span><span style="font-weight:500;">$${currentWeekly}/week</span></div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--soft-grey)">Extra needed on top</span><span style="font-weight:700;color:#E53935;">+$${extraWeeklyNeeded}/week</span></div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:2px solid var(--border);margin-top:4px;"><span style="font-weight:600;color:var(--warm-brown)">Total saving needed</span><span style="font-weight:700;color:var(--fire-orange);">$${totalWeeklyNeeded}/week</span></div>
-      </div>
+      </div>` : `<div style="background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;color:var(--soft-grey);">
+        💡 With super unlocking soon, the most important question worth exploring is how to make your existing savings and super work together from age 60 onward — not how much extra to save now.
+      </div>`}
     </div>`;
   }
   el.style.display='block';
