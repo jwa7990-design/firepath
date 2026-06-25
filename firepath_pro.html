@@ -384,7 +384,7 @@
   fpToken = token;
   fpUserId = userId;
   
-  await loadAssumptions(); await loadSavedInputs(); await checkProStatus();
+  await loadAssumptions(); await loadSavedInputs(); await loadProfile(); await checkProStatus();
   const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('🔥 Welcome to FirePath Pro!');
   const uel=document.getElementById('userStatus');
   if(localStorage.getItem('fp_email')){uel.innerHTML=`Signed in as ${localStorage.getItem('fp_email')} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;}
@@ -507,8 +507,7 @@
     if(!show){el.style.display='none';return;}
     const t=100000,yb=yearsToGoal(t,savings,mSav,FP_ASSUMPTIONS.bankRealReturn),y5=yearsToGoal(t,savings,mSav,0.05),diff=yb&&y5?yb-y5:null,inf=Math.round(t*Math.pow(1.04,y5||3)/1000)*1000;
     el.style.display='block';
-    el.innerHTML=`<div style="background:white;border:2px solid va
-    r(--fire-amber);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
+    el.innerHTML=`<div style="background:white;border:2px solid var(--fire-amber);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
       <div style="font-size:13px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🏡 Saving for a house deposit?</div>
       <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">Based on a $100K deposit target. At 4% property price growth, that'll cost roughly <strong style="color:var(--warm-brown)">$${Math.round(inf/1000)}K</strong> by the time you save it.</div>
       <div style="display:flex;flex-direction:column;gap:0;">
@@ -556,6 +555,74 @@
         <div style="font-size:13px;font-weight:500;color:${r?'#2E7D32':'var(--warm-brown)'};">${ls[i]} — ${fmtM(t)}</div>
         <div style="font-size:12px;color:${r?'#2E7D32':'var(--soft-grey)'};">${r?'✅ Done':yr?yr:'100+ yrs'}</div></div>`;}).join('');
   }
+
+  async function loadProfile() {
+  if (!fpToken || !fpUserId) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, {
+      headers: { 'Authorization': `Bearer ${fpToken}` }
+    });
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return;
+    const p = data[0];
+    if (p.pay_cycle) { selectedCycle = p.pay_cycle; document.querySelectorAll('.cycle-btn').forEach(b => b.classList.toggle('active', b.dataset.cycle === p.pay_cycle)); }
+    if (p.take_home_income) { const ci = p.pay_cycle === 'weekly' ? p.take_home_income*12/52 : p.pay_cycle === 'fortnightly' ? p.take_home_income*12/26 : p.take_home_income; document.getElementById('income').value = Math.round(ci); }
+    if (p.savings_monthly) { const cs = p.pay_cycle === 'weekly' ? p.savings_monthly*12/52 : p.pay_cycle === 'fortnightly' ? p.savings_monthly*12/26 : p.savings_monthly; document.getElementById('savingsAmount').value = Math.round(cs); }
+    if (p.current_savings) document.getElementById('savings').value = p.current_savings;
+    if (p.super_balance) document.getElementById('superBalance').value = p.super_balance;
+    if (p.age) document.getElementById('age').value = p.age;
+    if (p.context) document.getElementById('context').value = p.context;
+    if (p.debt_total) document.getElementById('debtTotal').value = p.debt_total;
+    if (p.mortgage_remaining) document.getElementById('mortgageRemaining').value = p.mortgage_remaining;
+    if (p.dependants) { dependants = p.dependants; document.getElementById('dependantsVal').textContent = p.dependants; }
+    if (p.housing_status) { housingStatus = p.housing_status; document.querySelectorAll('[data-housing]').forEach(b => b.classList.toggle('active', b.dataset.housing === p.housing_status)); }
+    if (p.savings_type) { savingsType = p.savings_type; document.querySelectorAll('[data-savings]').forEach(b => b.classList.toggle('active', b.dataset.savings === p.savings_type)); }
+    if (p.retirement_spend_multiplier) { retirementSpendMultiplier = p.retirement_spend_multiplier; document.querySelectorAll('[data-spend]').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.spend) === p.retirement_spend_multiplier)); }
+    if (p.persona) { persona = p.persona; document.querySelectorAll('.persona-card').forEach(c => { if (c.dataset.persona === p.persona) c.classList.add('selected'); }); document.getElementById('continueBtn').disabled = false; }
+    updateSavingsHint();
+    updateSuperNote();
+  } catch(e) { console.log('Profile load failed', e); }
+}
+
+async function saveProfile() {
+  if (!fpToken || !fpUserId) return;
+  const mI = calcData.mIncome || 0;
+  try {
+    await fetch(`${WORKER_URL}/db/fp_profiles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${fpToken}`,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        id: fpUserId,
+        email: localStorage.getItem('fp_email') || '',
+        persona: persona || 'building',
+        pay_cycle: selectedCycle,
+        take_home_income: Math.round(mI),
+        savings_monthly: Math.round(calcData.mSav || 0),
+        current_savings: calcData.savings || 0,
+        savings_type: savingsType || 'cash',
+        super_balance: calcData.superBal || 0,
+        age: calcData.age || null,
+        housing_status: housingStatus || 'renting',
+        mortgage_remaining: parseFloat(document.getElementById('mortgageRemaining').value) || 0,
+        debt_total: calcData.debt || 0,
+        dependants: dependants || 0,
+        retirement_spend_multiplier: retirementSpendMultiplier || 1.0,
+        partner_income: parseFloat(document.getElementById('partnerIncome').value) || 0,
+        partner_savings: parseFloat(document.getElementById('partnerSavings').value) || 0,
+        partner_age: parseInt(document.getElementById('partnerAge').value) || null,
+        partner_super: parseFloat(document.getElementById('partnerSuper').value) || 0,
+        context: calcData.context || '',
+        freedom_number: Math.round(calcData.fireNum || 0),
+        freedom_years: calcData.mSav > 0 ? Math.round((calcData.fireNum || 0) / (calcData.mSav * 12) * 10) / 10 : null,
+        savings_rate: calcData.sRate || 0
+      })
+    });
+  } catch(e) { console.log('Profile save failed', e); }
+}
 
   async function analyse(){ 
     gtag('event', 'calculate', {
@@ -710,7 +777,7 @@
         recCard.style.display = 'block';
       }
       buildNeedleCard(fireNum,savings,mSav,y07);
-      localStorage.setItem('fp_last_calc', JSON.stringify({fireNum: calcData.fireNum, savings: calcData.savings, mSav: calcData.mSav, sRate: calcData.sRate}));showScreen(3);await checkProStatus();
+      localStorage.setItem('fp_last_calc', JSON.stringify({fireNum: calcData.fireNum, savings: calcData.savings, mSav: calcData.mSav, sRate: calcData.sRate}));await saveProfile(); showScreen(3);await checkProStatus();
     }catch(err){const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');const ab=document.getElementById('analyseBtn');if(ab)ab.style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
   }
 
