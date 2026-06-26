@@ -218,6 +218,7 @@
   <!-- ── Tab nav ── -->
   <div class="tab-nav" id="resultTabNav" style="display:flex;gap:4px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:14px;padding:4px;margin-top:16px;margin-bottom:12px;overflow-x:auto;">
     <button class="rtab-btn active" onclick="switchResultTab('insight', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">🧠 AI Insight</button>
+    <button class="rtab-btn" onclick="switchResultTab('freedom', this)" id="freedomTabBtn" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:none;">💸 Freedom</button>
     <button class="rtab-btn" onclick="switchResultTab('super', this)" id="superTabBtn" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:none;">🦘 Super</button>
     <button class="rtab-btn" onclick="switchResultTab('needle', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;">🎯 My Date</button>
     <button class="rtab-btn" onclick="switchResultTab('next', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;">🔥 What's Next</button>
@@ -233,7 +234,6 @@
     <div id="zeroSavingsCard" style="display:none"></div>
     <div id="debtCard" style="display:none"></div>
     <div id="houseCard" style="display:none"></div>
-    <div id="withdrawalCard" style="display:none"></div>
 
     <!-- AI Insight -->
     <div class="ai-insight-card">
@@ -293,6 +293,12 @@
       <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a>
     </p>
   </div>
+
+  <!-- ── Tab: Freedom Equation ── -->
+<div class="rtab-content" id="rtab-freedom" style="display:none;">
+  <div id="withdrawalCard" style="display:none"></div>
+  <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. Age Pension estimate based on assets test (homeowner, single). Projections assume 7% growth. Always consider your personal circumstances.</p>
+</div>
 
 </div><!-- end screen3 -->
 <script>
@@ -709,7 +715,7 @@ async function saveProfile() {
         updateSuperTabVisibility(age, superBal);
         buildDebtCard(debt,savings,mSav,mI,fireNum);
         buildHouseCard(housingStatus,debt,savings,mSav,fireNum);
-        buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro);
+        updateFreedomTabVisibility(savings, mSav, mI, fireNum, mSp, fy, isPro);
       }
 
       const paf=parseInt(document.getElementById('partnerAge').value)||0,psf=parseFloat(document.getElementById('partnerSuper').value)||0;
@@ -903,6 +909,21 @@ async function saveProfile() {
     btn.classList.add('active');
     document.getElementById('needle-' + tab).classList.add('active');
   }
+function updateFreedomTabVisibility(savings, mSav, mI, fireNum, mSp, fy, isPro) {
+  const btn = document.getElementById('freedomTabBtn');
+  if (!btn) return;
+  const age = calcData.age || 0;
+  const freedomAge = age ? Math.round(age + (fy || 0)) : null;
+  const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
+  if (isLongRoad && savings > 0) {
+    btn.style.display = 'flex';
+    buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro);
+  } else {
+    btn.style.display = 'none';
+    const el = document.getElementById('withdrawalCard');
+    if (el) el.style.display = 'none';
+  }
+}
 
   function updateSuperTabVisibility(age, superBal) {
   const btn = document.getElementById('superTabBtn');
