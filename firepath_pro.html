@@ -947,7 +947,7 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
 
 function calcLongevity(portfolioAtRetirement, annualSpend, freedomAge, pensionAnnual, hoursWorked, hourlyRate) {
   const growthRate = 0.07 / 12;
-  const monthlyWithdrawal = annualSpend / 12;
+  const monthlySpend = annualSpend / 12;
   const monthlyPension = pensionAnnual / 12;
   const monthlyWorkIncome = (hoursWorked * hourlyRate * 52) / 12;
   const pensionStartAge = 67;
@@ -955,16 +955,19 @@ function calcLongevity(portfolioAtRetirement, annualSpend, freedomAge, pensionAn
 
   let portfolio = portfolioAtRetirement;
   let months = 0;
+
   while (portfolio > 0 && months < 1200) {
     const pensionKicksIn = months >= yearsToPension * 12;
-    const effectiveWithdrawal = monthlyWithdrawal
-      - monthlyWorkIncome
-      - (pensionKicksIn ? monthlyPension : 0);
-    if (effectiveWithdrawal <= 0) return 9999; // lasts forever
-    portfolio = portfolio * (1 + growthRate) - effectiveWithdrawal;
+    const totalIncome = monthlyWorkIncome + (pensionKicksIn ? monthlyPension : 0);
+    const drawdown = Math.max(0, monthlySpend - totalIncome);
+
+    // Portfolio grows but is drawn down by the shortfall
+    portfolio = portfolio * (1 + growthRate) - drawdown;
     months++;
   }
-  return months >= 1200 ? 9999 : Math.round(months / 12);
+
+  if (months >= 1200) return 9999; // genuinely lasts forever
+  return Math.round(months / 12);
 }
 
 function renderWithdrawalCardContent(savings, mSav, mI, fireNum, mSp, fy, isPro, targetRetirementAge) {
