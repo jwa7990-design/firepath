@@ -17,6 +17,7 @@
   <script src="js/auth.js"></script>
   <script src="js/calculations.js"></script>
   <script src="js/firepath_onboarding.js"></script>
+  <script src="js/tax-engine.js"></script>
 <style>
   .needle-card { background:white;border:1.5px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden; }
   .needle-tabs { display:flex;border-bottom:1px solid var(--border); }
@@ -936,23 +937,94 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
   const el = document.getElementById('withdrawalCard');
   if (!el) return;
 
-  // Show when freedom age exceeds 65 or FIRE is unreachable — partial freedom framing
+  const age = calcData.age || 0;
   const freedomAge = age ? Math.round(age + (fy || 0)) : null;
   const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
   if (!isLongRoad || savings <= 0) { el.style.display = 'none'; return; }
 
-  // What the portfolio generates at 4%
   const portfolioIncome = Math.round(savings * 0.04);
   const portfolioIncomeWeekly = Math.round(portfolioIncome / 52);
   const annualSpend = Math.round(mSp * 12);
   const gap = Math.max(0, annualSpend - portfolioIncome);
   const gapWeekly = Math.round(gap / 52);
-
-  // Hours/week to fill the gap (based on their hourly rate — estimate from income)
-  const hourlyRate = Math.round((mI * 12) / 52 / 38); // assume 38hr week
+  const hourlyRate = Math.round((mI * 12) / 52 / 38);
   const hoursToFillGap = hourlyRate > 0 ? Math.round(gapWeekly / hourlyRate) : null;
 
-  // What saving extra does — how long to close the gap to full FIRE
+  // Age Pension calculation
+  let pensionHTML = '';
+  let pensionAnnual = 0;
+  if (typeof calculateAgePension === 'function' && savings > 0) {
+    const pension = calculateAgePension(savings, portfolioIncome, true, false);
+    pensionAnnual = pension.annualPension;
+    const pensionWeekly = pension.weeklyPension;
+    const gapAfterPension = Math.max(0, gap - pensionAnnual);
+    const gapAfterPensionWeekly = Math.round(gapAfterPension / 52);
+
+    if (pensionAnnual > 0) {
+      pensionHTML = `
+        <div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;color:#2E7D32;line-height:1.7;">
+          <div style="font-weight:700;margin-bottom:6px;">🏛️ Age Pension at 67</div>
+          <div style="display:flex;flex-direction:column;gap:0;">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(165,214,167,0.4);font-size:12px;">
+              <span>Estimated entitlement</span>
+              <span style="font-weight:700">${fmtM(pensionAnnual)}/yr (~${fmtM(pensionWeekly)}/week)</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;">
+              <span>Gap after pension</span>
+              <span style="font-weight:700">${fmtM(gapAfterPension)}/yr (${fmtM(gapAfterPensionWeekly)}/week)</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#2E7D32;opacity:0.8;margin-top:8px;">Based on assets test (homeowner, single). Your actual entitlement depends on your full financial picture at 67.</div>
+        </div>`;
+    } else {
+      pensionHTML = `<div style="background:var(--warm-cream);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:var(--soft-grey);line-height:1.6;">🏛️ At your asset level, Age Pension entitlement would be minimal or nil at 67. Your portfolio is doing the heavy lifting.</div>`;
+    }
+  }
+
+  // Longevity modelling — how long does portfolio last?
+  let longevityHTML = '';
+  if (savings > 0 && annualSpend > 0) {
+    const withdrawalRate = 0.04;
+    const growthRate = 0.07 / 12;
+    const monthlyWithdrawal = annualSpend / 12;
+    const monthlyPension = pensionAnnual / 12;
+
+    // Phase 1: before pension (freedom age to 67)
+    // Phase 2: after pension (67+)
+    let portfolio = savings;
+    let months = 0;
+    const pensionStartAge = 67;
+    const yearsTopenion = freedomAge ? Math.max(0, pensionStartAge - freedomAge) : 999;
+
+    while (portfolio > 0 && months < 1200) {
+      const pensionKicksIn = months >= yearsTopenion * 12;
+      const effectiveWithdrawal = pensionKicksIn
+        ? Math.max(0, monthlyWithdrawal - monthlyPension)
+        : monthlyWithdrawal;
+      portfolio = portfolio * (1 + growthRate) - effectiveWithdrawal;
+      months++;
+    }
+
+    const portfolioLastsYears = Math.round(months / 12);
+    const portfolioRunsOutAge = freedomAge ? freedomAge + portfolioLastsYears : null;
+    const lastsForever = months >= 1200;
+
+    if (lastsForever) {
+      longevityHTML = `<div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;color:#2E7D32;line-height:1.6;">
+        ✅ <strong>Portfolio longevity:</strong> At this withdrawal rate, your portfolio is projected to last indefinitely — it grows faster than you're drawing it down.
+      </div>`;
+    } else if (portfolioRunsOutAge && portfolioRunsOutAge >= 90) {
+      longevityHTML = `<div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;color:#2E7D32;line-height:1.6;">
+        ✅ <strong>Portfolio longevity:</strong> Your portfolio is projected to last until age <strong>${portfolioRunsOutAge}</strong> — well past the 90-year benchmark.
+      </div>`;
+    } else if (portfolioRunsOutAge) {
+      longevityHTML = `<div style="background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;color:#E65100;line-height:1.6;">
+        ⚠️ <strong>Portfolio longevity:</strong> At this withdrawal rate, your portfolio is projected to run out around age <strong>${portfolioRunsOutAge}</strong>. The Age Pension and building a larger portfolio both help extend this runway.
+      </div>`;
+    }
+  }
+
+  // Extra save to full FIRE
   const extraSave100 = mSav + (100 * 52 / 12);
   const fyExtra = yearsToGoal(fireNum, savings, extraSave100, 0.07);
   const fyExtraYear = fyExtra ? currentYear + Math.round(fyExtra) : null;
@@ -980,11 +1052,13 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
         <span style="font-weight:700;color:#2E7D32">${fyExtraYear}</span>
       </div>` : ''}
     </div>
+    ${pensionHTML}
+    ${longevityHTML}
     <div style="background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--soft-grey);line-height:1.7;">
       💡 This is your <strong style="color:var(--warm-brown)">actual freedom equation</strong> — not a failure. Your portfolio is already working. The question worth exploring is how much work you actually need to do to cover the gap, and whether that changes if you save a little more now.
-    </div>` 
+    </div>`
   : `<div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">
-      Your portfolio would generate <strong>${fmtM(portfolioIncome)}/year</strong> at 4%. That's your starting point — not your ceiling. Upgrade to Pro to see the full breakdown: the gap, the hours, and the path to closing it.
+      Your portfolio would generate <strong>${fmtM(portfolioIncome)}/year</strong> at 4%. At age 67 you may also qualify for the Age Pension — Pro shows how much and what it does to your gap.
     </div>
     <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div>`;
 
@@ -993,7 +1067,7 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
     <div style="font-size:13px;font-weight:700;color:var(--warm-brown);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">💸 Your actual freedom equation</div>
     <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:16px;">Full financial independence isn't the only version of freedom. Right now your portfolio is already generating income — here's what that picture actually looks like.</div>
     ${proDetail}
-    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 4% withdrawal rate.</p>
+    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Age Pension estimate based on assets test (homeowner, single). Longevity projection at 7% growth and 4% withdrawal. Always consider your personal circumstances.</p>
   </div>`;
 }
 
