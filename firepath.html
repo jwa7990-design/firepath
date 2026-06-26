@@ -251,6 +251,14 @@
     <!-- Withdrawal card -->
     <div id="withdrawalCard" style="display:none"></div>
  
+    <!-- Tax & Strategy nudge -->
+    <div id="taxNudgeCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">Tax & Strategy</div>
+      <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3;">Where does your next dollar actually go?</div>
+      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;" id="taxNudgeText"></div>
+      <a href="tax.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:10px 22px;border-radius:50px;font-size:13px;font-weight:500;text-decoration:none;">Open Tax & Strategy — it's free →</a>
+    </div>
+
     <!-- Smart Pro upgrade banner -->
     <div id="proUpgradeBanner"></div>
 
@@ -429,7 +437,7 @@
     }
     buildNeedleCard(fireNum, savings, mSav, y07);
     buildWithdrawalCard(savings, mSav, mI, fireNum, mS, y07, age);
-
+    buildTaxNudge(savings, mSav, sRate, savingsType);
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
     showScreen(3);
   }
@@ -647,6 +655,26 @@
     <div onclick="window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div>
     <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 4% withdrawal rate.</p>
   </div>`;
+}
+
+function buildTaxNudge(savings, mSav, sRate, savingsType) {
+  const el = document.getElementById('taxNudgeCard');
+  const txt = document.getElementById('taxNudgeText');
+  if (!el || !txt) return;
+
+  let message = '';
+  if (savingsType === 'cash') {
+    message = `Your money is sitting in the bank. Our free Tax & Strategy tools show you your real take-home pay, how salary sacrifice could boost your super, and whether your money would work harder invested.`;
+  } else if (savingsType === 'offset') {
+    message = `You're using an offset account — smart. But is it beating investing? Our free offset vs invest tool tells you exactly, based on your mortgage rate and tax rate.`;
+  } else if (sRate < 15) {
+    message = `Your savings rate is ${sRate}%. Our free tax calculator shows your real take-home pay and whether salary sacrifice could free up more — without touching your lifestyle.`;
+  } else {
+    message = `Know what you actually keep from every dollar you earn? Our free tax tools show your take-home, your marginal rate, and where your next dollar should go.`;
+  }
+
+  txt.innerHTML = message;
+  el.style.display = 'block';
 }
 
 </script>
