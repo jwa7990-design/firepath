@@ -942,8 +942,32 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
   const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
   if (!isLongRoad || savings <= 0) { el.style.display = 'none'; return; }
 
-  const portfolioIncome = Math.round(savings * 0.04);
-  const portfolioIncomeWeekly = Math.round(portfolioIncome / 52);
+  renderWithdrawalCardContent(savings, mSav, mI, fireNum, mSp, fy, isPro, null);
+}
+
+function renderWithdrawalCardContent(savings, mSav, mI, fireNum, mSp, fy, isPro, targetRetirementAge) {
+  const el = document.getElementById('withdrawalCard');
+  if (!el) return;
+
+  const age = calcData.age || 0;
+  const freedomAge = age ? Math.round(age + (fy || 0)) : null;
+
+  // If target retirement age set, recalculate portfolio at that age
+  let effectiveSavings = savings;
+  let effectiveFreedomAge = freedomAge;
+
+  if (targetRetirementAge && targetRetirementAge > age) {
+    const yearsToTarget = targetRetirementAge - age;
+    const r = 0.07 / 12;
+    let projectedPortfolio = savings;
+    for (let m = 0; m < yearsToTarget * 12; m++) {
+      projectedPortfolio = projectedPortfolio * (1 + r) + mSav;
+    }
+    effectiveSavings = Math.round(projectedPortfolio);
+    effectiveFreedomAge = targetRetirementAge;
+  }
+
+  const portfolioIncome = Math.round(effectiveSavings * 0.04);
   const annualSpend = Math.round(mSp * 12);
   const gap = Math.max(0, annualSpend - portfolioIncome);
   const gapWeekly = Math.round(gap / 52);
@@ -953,8 +977,8 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
   // Age Pension calculation
   let pensionHTML = '';
   let pensionAnnual = 0;
-  if (typeof calculateAgePension === 'function' && savings > 0) {
-    const pension = calculateAgePension(savings, portfolioIncome, true, false);
+  if (typeof calculateAgePension === 'function' && effectiveSavings > 0) {
+    const pension = calculateAgePension(effectiveSavings, portfolioIncome, true, false);
     pensionAnnual = pension.annualPension;
     const pensionWeekly = pension.weeklyPension;
     const gapAfterPension = Math.max(0, gap - pensionAnnual);
@@ -967,7 +991,7 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
           <div style="display:flex;flex-direction:column;gap:0;">
             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(165,214,167,0.4);font-size:12px;">
               <span>Estimated entitlement</span>
-              <span style="font-weight:700">${fmtM(pensionAnnual)}/yr (~${fmtM(pensionWeekly)}/week)</span>
+              <span style="font-weight:700">${fmtM(pensionAnnual)}/yr (~${fmtM(pension.weeklyPension)}/week)</span>
             </div>
             <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;">
               <span>Gap after pension</span>
@@ -981,23 +1005,19 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
     }
   }
 
-  // Longevity modelling — how long does portfolio last?
+  // Longevity modelling
   let longevityHTML = '';
-  if (savings > 0 && annualSpend > 0) {
-    const withdrawalRate = 0.04;
+  if (effectiveSavings > 0 && annualSpend > 0) {
     const growthRate = 0.07 / 12;
     const monthlyWithdrawal = annualSpend / 12;
     const monthlyPension = pensionAnnual / 12;
-
-    // Phase 1: before pension (freedom age to 67)
-    // Phase 2: after pension (67+)
-    let portfolio = savings;
-    let months = 0;
     const pensionStartAge = 67;
-    const yearsTopenion = freedomAge ? Math.max(0, pensionStartAge - freedomAge) : 999;
+    const yearsToPension = effectiveFreedomAge ? Math.max(0, pensionStartAge - effectiveFreedomAge) : 999;
 
+    let portfolio = effectiveSavings;
+    let months = 0;
     while (portfolio > 0 && months < 1200) {
-      const pensionKicksIn = months >= yearsTopenion * 12;
+      const pensionKicksIn = months >= yearsToPension * 12;
       const effectiveWithdrawal = pensionKicksIn
         ? Math.max(0, monthlyWithdrawal - monthlyPension)
         : monthlyWithdrawal;
@@ -1006,20 +1026,20 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
     }
 
     const portfolioLastsYears = Math.round(months / 12);
-    const portfolioRunsOutAge = freedomAge ? freedomAge + portfolioLastsYears : null;
+    const portfolioRunsOutAge = effectiveFreedomAge ? effectiveFreedomAge + portfolioLastsYears : null;
     const lastsForever = months >= 1200;
 
     if (lastsForever) {
       longevityHTML = `<div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;color:#2E7D32;line-height:1.6;">
-        ✅ <strong>Portfolio longevity:</strong> At this withdrawal rate, your portfolio is projected to last indefinitely — it grows faster than you're drawing it down.
+        ✅ <strong>Portfolio longevity:</strong> At this withdrawal rate, your portfolio is projected to last indefinitely.
       </div>`;
     } else if (portfolioRunsOutAge && portfolioRunsOutAge >= 90) {
       longevityHTML = `<div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;color:#2E7D32;line-height:1.6;">
-        ✅ <strong>Portfolio longevity:</strong> Your portfolio is projected to last until age <strong>${portfolioRunsOutAge}</strong> — well past the 90-year benchmark.
+        ✅ <strong>Portfolio longevity:</strong> Projected to last until age <strong>${portfolioRunsOutAge}</strong> — well past the 90-year benchmark.
       </div>`;
     } else if (portfolioRunsOutAge) {
       longevityHTML = `<div style="background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;color:#E65100;line-height:1.6;">
-        ⚠️ <strong>Portfolio longevity:</strong> At this withdrawal rate, your portfolio is projected to run out around age <strong>${portfolioRunsOutAge}</strong>. The Age Pension and building a larger portfolio both help extend this runway.
+        ⚠️ <strong>Portfolio longevity:</strong> Projected to run out around age <strong>${portfolioRunsOutAge}</strong>. The Age Pension and building a larger portfolio both help extend this runway.
       </div>`;
     }
   }
@@ -1029,10 +1049,36 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
   const fyExtra = yearsToGoal(fireNum, savings, extraSave100, 0.07);
   const fyExtraYear = fyExtra ? currentYear + Math.round(fyExtra) : null;
 
+  // Target retirement age input
+  const targetAgeLabel = targetRetirementAge
+    ? `Showing picture at age <strong>${targetRetirementAge}</strong> — portfolio projected to <strong>${fmtM(effectiveSavings)}</strong> by then.`
+    : '';
+
+  const targetAgeSection = isPro ? `
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:600;color:var(--warm-brown);margin-bottom:6px;">🎯 Want to look at this differently?</div>
+      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;line-height:1.6;">What age would you like to stop working? FirePath will show what your picture looks like at that age — portfolio value, the gap, and how long it lasts.</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="number" id="targetRetirementAgeInput" placeholder="e.g. 55" min="${(age || 30) + 1}" max="75"
+          style="border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--warm-brown);background:white;width:110px;"
+          value="${targetRetirementAge || ''}"
+          onfocus="this.style.borderColor='var(--fire-orange)'"
+          onblur="this.style.borderColor='var(--border)'"
+        />
+        <button onclick="applyTargetRetirementAge()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Show me →</button>
+        ${targetRetirementAge ? `<button onclick="resetTargetRetirementAge()" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--soft-grey);font-family:'DM Sans',sans-serif;cursor:pointer;">Reset</button>` : ''}
+      </div>
+      ${targetRetirementAge ? `<div style="margin-top:10px;font-size:12px;color:var(--soft-grey);line-height:1.6;">${targetAgeLabel}</div>` : ''}
+    </div>` : '';
+
+  const portfolioLabel = targetRetirementAge
+    ? `Portfolio at age ${targetRetirementAge} (4% rule)`
+    : 'Your portfolio generates (4% rule)';
+
   const proDetail = isPro ? `
     <div style="display:flex;flex-direction:column;gap:0;margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
-        <span style="color:var(--soft-grey)">Your portfolio generates (4% rule)</span>
+        <span style="color:var(--soft-grey)">${portfolioLabel}</span>
         <span style="font-weight:700;color:var(--fire-orange)">${fmtM(portfolioIncome)}/yr</span>
       </div>
       <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
@@ -1045,9 +1091,9 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
       </div>
       ${hoursToFillGap !== null ? `<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
         <span style="color:var(--soft-grey)">Hours/week to fill the gap</span>
-        <span style="font-weight:700;color:var(--warm-brown)">~${hoursToFillGap} hrs/week</span>
+        <span style="font-weight:700;color:var(--warm-brown)">~${hoursToFillGap} hrs/week <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">— roughly part-time</span></span>
       </div>` : ''}
-      ${fyExtraYear ? `<div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;">
+      ${fyExtraYear && !targetRetirementAge ? `<div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;">
         <span style="color:var(--soft-grey)">Save $100/week extra → full FIRE</span>
         <span style="font-weight:700;color:#2E7D32">${fyExtraYear}</span>
       </div>` : ''}
@@ -1055,8 +1101,9 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
     ${pensionHTML}
     ${longevityHTML}
     <div style="background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--soft-grey);line-height:1.7;">
-      💡 This is your <strong style="color:var(--warm-brown)">actual freedom equation</strong> — not a failure. Your portfolio is already working. The question worth exploring is how much work you actually need to do to cover the gap, and whether that changes if you save a little more now.
-    </div>`
+      💡 This is your <strong style="color:var(--warm-brown)">actual freedom equation</strong> — not a failure. Your portfolio is already working. The question worth exploring is how much work you actually need to do to cover the gap.
+    </div>
+    ${targetAgeSection}`
   : `<div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">
       Your portfolio would generate <strong>${fmtM(portfolioIncome)}/year</strong> at 4%. At age 67 you may also qualify for the Age Pension — Pro shows how much and what it does to your gap.
     </div>
@@ -1069,6 +1116,24 @@ function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
     ${proDetail}
     <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Age Pension estimate based on assets test (homeowner, single). Longevity projection at 7% growth and 4% withdrawal. Always consider your personal circumstances.</p>
   </div>`;
+}
+
+function applyTargetRetirementAge() {
+  const input = document.getElementById('targetRetirementAgeInput');
+  const targetAge = parseInt(input?.value) || null;
+  const age = calcData.age || 0;
+  if (!targetAge || targetAge <= age || targetAge > 80) {
+    if (input) { input.style.borderColor = '#E53935'; setTimeout(() => input.style.borderColor = 'var(--border)', 2000); }
+    return;
+  }
+  const isPro = localStorage.getItem('fp_is_pro') === 'true';
+  renderWithdrawalCardContent(calcData.savings, calcData.mSav, calcData.mIncome, calcData.fireNum, calcData.mSpend, yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07), isPro, targetAge);
+}
+
+function resetTargetRetirementAge() {
+  const isPro = localStorage.getItem('fp_is_pro') === 'true';
+  const fy = yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07);
+  renderWithdrawalCardContent(calcData.savings, calcData.mSav, calcData.mIncome, calcData.fireNum, calcData.mSpend, fy, isPro, null);
 }
 
 let inflationMode = 'real'; // 'real' or 'nominal'
