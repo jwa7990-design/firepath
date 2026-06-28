@@ -151,7 +151,13 @@
         </div>
         <p class="error-msg" id="errorMsg">Please enter your income first.</p>
       </div>
-      <div class="ai-loading" id="aiLoading"><div class="loading-dots"><span></span><span></span><span></span></div><p class="loading-text" id="loadingText">FirePath AI is reading your situation...</p></div>
+      <div class="ai-loading" id="aiLoading">
+        <div class="fp-loader">
+          <div class="fp-loader-flame">🔥</div>
+          <div class="fp-loader-bar"><div class="fp-loader-bar-fill"></div></div>
+          <p class="fp-loader-msg" id="loadingText">Reading your situation...</p>
+        </div>
+      </div>
       <p style="font-size:12px;color:var(--soft-grey);text-align:center;margin-bottom:12px;font-weight:300;">🔒 Your numbers are saved securely to your account. We never sell your data. <a href="privacy.html" style="color:var(--fire-orange);text-decoration:none;">Privacy Policy</a></p>
       <button class="cta-btn" id="analyseBtn" onclick="analyse()" style="margin-top:20px">Show me my path 🔥</button>
     </div>
@@ -630,7 +636,6 @@ async function saveProfile() {
     }
     document.getElementById('analyseBtn').style.display='none';
     document.getElementById('aiLoading').classList.add('visible');
-    document.getElementById('loadingText').textContent='FirePath AI is reading your situation...';
     try{
       const er=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,system:'You are a financial data extractor. Extract income, spending, savings, super, pay cycle, age and context from the user input. Respond ONLY with valid JSON and nothing else. Format: {"income_monthly": number, "spending_monthly": number, "savings": number, "super_balance": number, "age": number_or_null, "context": "string"}. Convert all amounts to monthly. If savings rate is given, calculate spending as income minus savings. If value not mentioned use 0.',messages:[{role:'user',content:userInput}]})});
       const ed=await er.json();const raw=ed.content[0].text.replace(/```json|```/gi,'').trim();const ext=JSON.parse(raw);
@@ -647,8 +652,7 @@ async function saveProfile() {
 
       buildContextTags(savings,superBal,debt,mortgage,housingStatus,dependants);
 
-      document.getElementById('loadingText').textContent='Running your scenarios...';
-      document.getElementById('loadingText').textContent='Generating your personalised insight...';
+      startLoadingMessages();
       const ag=!age?'unknown':age<40?'young':age<55?'mid':'senior';
       const at=ag==='senior'?'This person is older (55+). Focus on making existing wealth work smarter.':ag==='mid'?'This person is in their 40s-50s. Balance savings encouragement with realistic life context.':'This person is younger. Time and compounding are their superpower.';
       const dc=debt>0?` They have $${debt} in non-mortgage debt.`:'',mc=mortgage>0?` Mortgage remaining: $${mortgage}.`:'',dpc=dependants>0?` They have ${dependants} dependant(s).`:'',hc=`They are ${housingStatus==='renting'?'renting':'a homeowner'}.`;
@@ -728,7 +732,7 @@ async function saveProfile() {
       const y07=yearsToGoal(fireNum,savings,mSav,0.07);
       storedCalc={fireNum,savings,mSav};
       document.getElementById('aiInsightText').innerHTML=insight.replace(/\n/g,'<br/>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
-      document.getElementById('aiLoading').classList.remove('visible');document.getElementById('analyseBtn').style.display='block';
+      document.getElementById('aiLoading').classList.remove('visible');stopLoadingMessages();document.getElementById('analyseBtn').style.display='block';
       const isRenting = housingStatus === 'renting';
       await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||'',savings_type:savingsType||'cash',retirement_spend:retirementSpendMultiplier||1.0,dependants:dependants||0,housing_status:housingStatus||'renting',persona:persona||'building',debt_total:mDebt||0,mortgage_remaining:mMort||0});
            buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt);
@@ -757,7 +761,7 @@ async function saveProfile() {
         isPro: localStorage.getItem('fp_is_pro') === 'true'
       });
       localStorage.setItem('fp_last_calc', JSON.stringify({fireNum: calcData.fireNum, savings: calcData.savings, mSav: calcData.mSav, sRate: calcData.sRate}));await saveProfile(); showScreen(3);await checkProStatus();
-    }catch(err){const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');const ab=document.getElementById('analyseBtn');if(ab)ab.style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
+    }catch(err){const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');stopLoadingMessages();const ab=document.getElementById('analyseBtn');if(ab)ab.style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
   }
 
     function recommendArticlePro(savingsType, persona, sRate, superBal, debt, age) {
@@ -1379,5 +1383,80 @@ function buildWhatsNextTab(params) {
 }
   
 </script>
+<style>
+.ai-loading { display:none; padding:40px 20px; text-align:center; }
+.ai-loading.visible { display:block; }
+.fp-loader { display:flex; flex-direction:column; align-items:center; gap:20px; }
+.fp-loader-flame { font-size:40px; animation:fp-flame-pulse 1.4s ease-in-out infinite; }
+@keyframes fp-flame-pulse {
+  0%,100% { transform:scale(1); opacity:1; }
+  50%     { transform:scale(1.18); opacity:0.75; }
+}
+.fp-loader-bar {
+  width:200px; height:3px;
+  background:rgba(61,43,31,0.1);
+  border-radius:4px; overflow:hidden;
+}
+.fp-loader-bar-fill {
+  height:100%; width:0%;
+  background:linear-gradient(90deg,#F4622A,#F4A24A);
+  border-radius:4px;
+  animation:fp-bar-sweep 2.8s ease-in-out infinite;
+}
+@keyframes fp-bar-sweep {
+  0%   { width:0%;  margin-left:0%; }
+  50%  { width:60%; margin-left:20%; }
+  100% { width:0%;  margin-left:100%; }
+}
+.fp-loader-msg {
+  font-size:15px; font-weight:400;
+  color:#3D2B1F;
+  font-family:'Playfair Display',serif;
+  min-height:28px;
+  opacity:0;
+  transition:opacity 0.5s ease;
+  text-align:center;
+  max-width:260px;
+  line-height:1.5;
+}
+.fp-loader-msg.visible { opacity:1; }
+</style>
+
+<script>
+const FP_LOADING_MESSAGES = [
+  "Reading your situation...",
+  "Crunching your numbers...",
+  "Finding your biggest lever...",
+  "Mapping your two timelines...",
+  "Almost there...",
+];
+
+let _loadingMsgTimer = null;
+let _loadingMsgIndex = 0;
+
+function startLoadingMessages() {
+  _loadingMsgIndex = 0;
+  const el = document.getElementById('loadingText');
+  if (!el) return;
+  el.classList.remove('visible');
+  el.textContent = FP_LOADING_MESSAGES[0];
+  setTimeout(() => el.classList.add('visible'), 30);
+  _loadingMsgTimer = setInterval(() => {
+    el.classList.remove('visible');
+    setTimeout(() => {
+      _loadingMsgIndex = (_loadingMsgIndex + 1) % FP_LOADING_MESSAGES.length;
+      el.textContent = FP_LOADING_MESSAGES[_loadingMsgIndex];
+      el.classList.add('visible');
+    }, 500);
+  }, 2800);
+}
+
+function stopLoadingMessages() {
+  if (_loadingMsgTimer) { clearInterval(_loadingMsgTimer); _loadingMsgTimer = null; }
+  const el = document.getElementById('loadingText');
+  if (el) el.classList.remove('visible');
+}
+</script>
+
 </body>
 </html>
