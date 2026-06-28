@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -41,12 +41,297 @@
   .range-value.optimistic { color:#2E7D32; }
   .range-value.base { color:var(--fire-orange); }
   .range-value.conservative { color:#E65100; }
-</style>
 
+  /* ── Pro Onboarding ── */
+  #pro-onboarding {
+    background: var(--warm-cream);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  #ob-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--warm-cream);
+  }
+  .ob-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s, transform 0.3s;
+  }
+  .ob-dot.active {
+    background: var(--fire-orange);
+    transform: scale(1.3);
+  }
+  #ob-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .ob-block {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease;
+    min-height: calc(100vh - 60px);
+  }
+  .ob-block.active {
+    position: relative;
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+  .ob-inner {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 20px 56px;
+  }
+
+  /* Pro badge strip */
+  .ob-pro-strip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #3D2B1F, #5C3D2E);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+  }
+
+  .ob-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--fire-orange);
+    margin-bottom: 10px;
+  }
+  .ob-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--warm-brown);
+    line-height: 1.25;
+    margin-bottom: 10px;
+  }
+  .ob-sub {
+    font-size: 14px;
+    color: var(--soft-grey);
+    font-weight: 300;
+    line-height: 1.65;
+    margin-bottom: 28px;
+  }
+  .ob-field { margin-bottom: 24px; }
+  .ob-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--warm-brown);
+    margin-bottom: 6px;
+  }
+  .ob-hint {
+    font-size: 12px;
+    color: var(--soft-grey);
+    font-weight: 300;
+    line-height: 1.5;
+    display: block;
+  }
+
+  /* Persona cards — premium feel */
+  .ob-persona-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+  .ob-persona {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 16px;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    position: relative;
+  }
+  .ob-persona:hover {
+    border-color: rgba(244,98,42,0.4);
+    box-shadow: 0 6px 20px rgba(61,43,31,0.08);
+    transform: translateY(-1px);
+  }
+  .ob-persona.selected {
+    border-color: var(--fire-orange);
+    background: #FFF7F3;
+    box-shadow: 0 6px 24px rgba(244,98,42,0.14);
+  }
+  .ob-persona-icon { font-size: 28px; flex-shrink: 0; }
+  .ob-persona-info { flex: 1; }
+  .ob-persona-name { font-size: 15px; font-weight: 600; color: var(--warm-brown); margin-bottom: 3px; }
+  .ob-persona-desc { font-size: 12px; color: var(--soft-grey); font-weight: 300; line-height: 1.5; }
+  .ob-persona-check {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: transparent; flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .ob-persona.selected .ob-persona-check {
+    background: var(--fire-orange);
+    border-color: var(--fire-orange);
+    color: white;
+  }
+
+  /* Premium input style */
+  .ob-input-premium {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px 13px 40px;
+    font-size: 16px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--warm-brown);
+    background: white;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+  }
+  .ob-input-premium:focus {
+    border-color: var(--fire-orange);
+    box-shadow: 0 0 0 3px rgba(244,98,42,0.08);
+  }
+  .ob-input-wrap {
+    position: relative;
+  }
+  .ob-input-prefix {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 15px;
+    color: var(--soft-grey);
+    font-weight: 500;
+    pointer-events: none;
+  }
+  .ob-input-prefix.text {
+    font-size: 12px;
+    color: var(--soft-grey);
+  }
+
+  /* Fade-in fields */
+  .ob-fade-field { transition: opacity 0.4s ease; }
+
+  /* Premium textarea */
+  .ob-textarea {
+    width: 100%;
+    min-height: 100px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--warm-brown);
+    background: white;
+    outline: none;
+    resize: vertical;
+    line-height: 1.6;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    margin-top: 8px;
+  }
+  .ob-textarea:focus {
+    border-color: var(--fire-orange);
+    box-shadow: 0 0 0 3px rgba(244,98,42,0.08);
+  }
+  .ob-textarea::placeholder { color: rgba(61,43,31,0.35); font-weight: 300; }
+
+  /* Buttons */
+  .ob-next {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s, transform 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.01em;
+  }
+  .ob-next:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
+  .ob-next:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .ob-back {
+    background: none; border: none;
+    color: var(--soft-grey); font-size: 13px;
+    cursor: pointer; padding: 0; margin-bottom: 20px;
+    font-weight: 300; font-family: 'DM Sans', sans-serif;
+  }
+  .ob-back:hover { color: var(--warm-brown); }
+
+  /* Divider with label */
+  .ob-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 24px;
+  }
+  .ob-divider::before, .ob-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .ob-divider span {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--soft-grey);
+    white-space: nowrap;
+  }
+
+  /* Super note inline */
+  .ob-super-note {
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 10px;
+    display: none;
+  }
+  .ob-super-note.locked { background: #FFF3E0; color: #E65100; display: block; }
+  .ob-super-note.soon { background: #FFF8E1; color: #F57F17; display: block; }
+  .ob-super-note.accessible { background: #E8F5E9; color: #2E7D32; display: block; }
+
+  /* Loading styles */
+  .ai-loading { display:none; padding:40px 20px; text-align:center; }
+  .ai-loading.visible { display:block; }
+  .fp-loader { display:flex; flex-direction:column; align-items:center; gap:20px; }
+  .fp-loader-flame { font-size:40px; animation:fp-flame-pulse 1.4s ease-in-out infinite; }
+  @keyframes fp-flame-pulse {
+    0%,100% { transform:scale(1); opacity:1; }
+    50%     { transform:scale(1.18); opacity:0.75; }
+  }
+  .fp-loader-bar { width:200px; height:3px; background:rgba(61,43,31,0.1); border-radius:4px; overflow:hidden; }
+  .fp-loader-bar-fill { height:100%; width:0%; background:linear-gradient(90deg,#F4622A,#F4A24A); border-radius:4px; animation:fp-bar-sweep 2.8s ease-in-out infinite; }
+  @keyframes fp-bar-sweep { 0%{width:0%;margin-left:0%;} 50%{width:60%;margin-left:20%;} 100%{width:0%;margin-left:100%;} }
+  .fp-loader-msg { font-size:15px; font-weight:400; color:#3D2B1F; font-family:'Playfair Display',serif; min-height:28px; opacity:0; transition:opacity 0.5s ease; text-align:center; max-width:260px; line-height:1.5; }
+  .fp-loader-msg.visible { opacity:1; }
+</style>
 </head>
 <body>
 
-<!-- Burger Menu -->
+<!-- Burger Menu (unchanged) -->
 <div id="burgerBtn" onclick="toggleMenu()" style="position:fixed;top:16px;right:16px;z-index:100;width:40px;height:40px;background:var(--warm-brown);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;box-shadow:0 2px 12px rgba(61,43,31,0.2);">
   <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
   <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
@@ -56,7 +341,7 @@
 <div id="slideMenu" style="display:none;position:fixed;top:0;right:0;height:100%;width:280px;background:var(--warm-brown);z-index:99;padding:48px 24px 40px;flex-direction:column;gap:8px;box-shadow:-4px 0 40px rgba(0,0,0,0.2);">
   <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:white;margin-bottom:28px;">🔥 FirePath</div>
   <div id="menuUpgradeBtn" onclick="upgradeToPro()" style="margin-bottom:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:14px;padding:16px;cursor:pointer;text-align:center;"><div style="font-size:13px;font-weight:700;color:white;margin-bottom:2px;">🔥 Upgrade to Pro</div><div style="font-size:11px;color:rgba(255,255,255,0.8);font-weight:300;">$6/month — cancel anytime</div></div>
-  <a onclick="toggleMenu();showScreen(2);" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🏠 <span>Recalculate</span></a>
+  <a onclick="toggleMenu();obGoTo(1);document.getElementById('pro-onboarding').style.display='flex';document.getElementById('screen3').style.display='none';" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🏠 <span>Recalculate</span></a>
   <a href="learning_lab.html" onclick="toggleMenu();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🎓 <span>Learning Lab</span></a>
   <a onclick="toggleMenu();saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">🤔 <span>Hear Me Out</span></a>
   <a onclick="toggleMenu();switchTab('accountability');" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">📈 <span>My Progress</span></a>
@@ -73,71 +358,182 @@
     <div id="userStatus" style="margin-top:8px;font-size:12px;color:var(--soft-grey)"></div>
   </div>
 
-  <!-- SCREEN 1 -->
-  <div class="screen active" id="screen1">
-    <div class="card">
-      <div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-radius:14px;padding:16px 18px;margin-bottom:20px;border:1px solid rgba(244,98,42,0.15);">
-        <div style="font-size:22px;margin-bottom:8px">🔥</div>
-        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:6px;">What is FirePath?</div>
-        <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;">FirePath shows you your <strong style="color:var(--warm-brown)">financial freedom number</strong> — the amount you need saved to never have to work again. Enter your income and spending, and we'll tell you exactly when you could be free. No jargon. Just your number and practical education to help you make informed decisions for your future.</div>
-      </div>
-      <h1 class="card-title">Where are you on your journey?</h1>
-      <p class="card-sub">FirePath Pro will tailor everything — your language, your AI insights, your path.</p>
-      <div class="persona-list">
-        <div class="persona-card" data-persona="beginner" onclick="selectPersona(this)"><span class="persona-icon">🌱</span><div class="persona-info"><div class="persona-name">Just getting started</div><div class="persona-desc">I've heard about financial freedom but don't know where to begin</div></div><div class="persona-check"></div></div>
-        <div class="persona-card" data-persona="building" onclick="selectPersona(this)"><span class="persona-icon">📈</span><div class="persona-info"><div class="persona-name">Building towards it</div><div class="persona-desc">I know the basics and I'm working on my plan</div></div><div class="persona-check"></div></div>
-        <div class="persona-card" data-persona="fire" onclick="selectPersona(this)"><span class="persona-icon">🔥</span><div class="persona-info"><div class="persona-name">FIRE community</div><div class="persona-desc">I know my SWR, my FI number, and I'm deep in the journey</div></div><div class="persona-check"></div></div>
-      </div>
-      <div style="margin-top:20px"><button class="cta-btn" id="continueBtn" disabled onclick="showScreen(2)">Continue →</button></div>
-    </div>
-  </div>
+  <!-- ═══════════════════════════════════════════════
+       PRO CONVERSATIONAL ONBOARDING
+       Replaces Screen 1 + Screen 2
+       ═══════════════════════════════════════════════ -->
+  <div id="pro-onboarding">
 
-  <!-- SCREEN 2 -->
-  <div class="screen" id="screen2">
-    <button class="back-btn" onclick="showScreen(1)">← Back</button>
-    <div class="card">
-      <h1 class="card-title" id="s2title">Tell me about your situation</h1>
-      <p class="card-sub" id="s2sub">Type your numbers below, or tap Speak to talk naturally.</p>
-      <div id="typeMode" class="manual-area">
-        <p class="section-label">Your pay cycle</p>
-        <div class="cycle-group">
-          <button class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
-          <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
-          <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
-        </div>
-        <div class="input-group"><label class="input-label" id="incomeLabel">Take-home income</label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint();updateInputHint('income','incomeHint')"/></div><div class="savings-hint" id="incomeHint"></div></div>
-        <div class="input-group"><label class="input-label" id="savingsRateLabel">How much do you save?</label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savingsAmount" placeholder="0" min="0" oninput="updateSavingsHint();updateInputHint('savingsAmount','savingsAmtHint')"/></div><div class="savings-hint" id="savingsHintPct"></div><div class="savings-hint" id="savingsAmtHint"></div></div>
-        <div class="divider"></div>
-        <div class="input-group"><label class="input-label" id="savingsLabel">Current savings &amp; investments</label><div class="input-hint" id="savingsHint">Include everything — savings, shares, ETFs, and your mortgage offset balance. If it's working for you, it counts here.</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savings" placeholder="0" min="0" oninput="updateInputHint('savings','savingsHintFormatted')"/></div><div class="savings-hint" id="savingsHintFormatted"></div></div>
-        <div class="input-group"><label class="input-label">In retirement, how much do you expect to spend?</label><p class="input-hint">This adjusts your freedom number.</p>
-          <div class="cycle-group" style="margin-bottom:0">
-            <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less 📉<div style="font-size:10px;margin-top:2px;opacity:0.7">Mortgage paid, kids grown</div></button>
-            <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same 🙂<div style="font-size:10px;margin-top:2px;opacity:0.7">Similar lifestyle</div></button>
-            <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More 🌏<div style="font-size:10px;margin-top:2px;opacity:0.7">Travel, experiences</div></button>
+    <!-- Progress dots -->
+    <div id="ob-dots">
+      <div class="ob-dot active"></div>
+      <div class="ob-dot"></div>
+      <div class="ob-dot"></div>
+      <div class="ob-dot"></div>
+    </div>
+
+    <div id="ob-wrapper">
+
+      <!-- ── BLOCK 1 — Persona ── -->
+      <div class="ob-block active" id="ob-block-1">
+        <div class="ob-inner">
+          <div class="ob-pro-strip">🔥 FirePath Pro</div>
+          <h1 class="ob-title">Where are you on your journey?</h1>
+          <p class="ob-sub">Your AI insight, your language, your path — all tailored to where you actually are. Pick the one that fits.</p>
+
+          <div class="ob-persona-list">
+            <div class="ob-persona" data-persona="beginner" onclick="obProSelectPersona(this)">
+              <span class="ob-persona-icon">🌱</span>
+              <div class="ob-persona-info">
+                <div class="ob-persona-name">Just getting started</div>
+                <div class="ob-persona-desc">I've heard about financial freedom but don't really know where to begin</div>
+              </div>
+              <div class="ob-persona-check">✓</div>
+            </div>
+            <div class="ob-persona" data-persona="building" onclick="obProSelectPersona(this)">
+              <span class="ob-persona-icon">📈</span>
+              <div class="ob-persona-info">
+                <div class="ob-persona-name">Building towards it</div>
+                <div class="ob-persona-desc">I know the basics and I'm working on a plan — I just want to see the numbers clearly</div>
+              </div>
+              <div class="ob-persona-check">✓</div>
+            </div>
+            <div class="ob-persona" data-persona="fire" onclick="obProSelectPersona(this)">
+              <span class="ob-persona-icon">🔥</span>
+              <div class="ob-persona-info">
+                <div class="ob-persona-name">Deep in the FIRE journey</div>
+                <div class="ob-persona-desc">I know my SWR, my FI number, and I want the full picture — no hand-holding</div>
+              </div>
+              <div class="ob-persona-check">✓</div>
+            </div>
           </div>
         </div>
-        <div class="input-group">
-          <label class="input-label">Where is this money held?</label>
-          <div class="input-hint">This helps FirePath give you a more accurate insight</div>
-          <div class="housing-group">
-            <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)">🏦 Cash / bank</button>
-            <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)">📈 ETFs / shares</button>
-            <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)">🏠 Offset account</button>
-            <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)">🌐 Mix of these</button>
+      </div>
+
+      <!-- ── BLOCK 2 — Money ── -->
+      <div class="ob-block" id="ob-block-2">
+        <div class="ob-inner">
+          <button class="ob-back" onclick="obGoTo(1)">← Back</button>
+          <div class="ob-eyebrow" id="ob-b2-eyebrow">Your money</div>
+          <h1 class="ob-title">What does your money look like right now?</h1>
+          <p class="ob-sub" id="ob-b2-sub">No judgment here — just the numbers we need to find your freedom date.</p>
+
+          <!-- Pay cycle -->
+          <div class="ob-field">
+            <label class="ob-label">How often do you get paid?</label>
+            <div class="cycle-group">
+              <button class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
+              <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
+              <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
+            </div>
           </div>
+
+          <!-- Income -->
+          <div class="ob-field">
+            <label class="ob-label" id="ob-incomeLabel">Take-home income</label>
+            <span class="ob-hint" style="margin-bottom:8px;display:block;">After tax — what actually lands in your account</span>
+            <div class="ob-input-wrap">
+              <span class="ob-input-prefix">$</span>
+              <input class="ob-input-premium" type="number" id="income" placeholder="0" min="0"
+                oninput="updateSavingsHint();obProIncomeHint();updateInputHint('income','incomeHint')"/>
+            </div>
+            <div class="savings-hint" id="incomeHint"></div>
+            <span class="ob-hint" id="ob-incomeHint" style="margin-top:6px;min-height:18px;color:#2E7D32;"></span>
+          </div>
+
+          <!-- Savings per cycle — fades in -->
+          <div class="ob-field ob-fade-field" id="ob-savingsField" style="opacity:0.3;pointer-events:none;">
+            <label class="ob-label" id="savingsRateLabel">How much do you put aside each cycle?</label>
+            <div class="ob-input-wrap">
+              <span class="ob-input-prefix">$</span>
+              <input class="ob-input-premium" type="number" id="savingsAmount" placeholder="0" min="0"
+                oninput="updateSavingsHint();obProSavingsHint();updateInputHint('savingsAmount','savingsAmtHint')"/>
+            </div>
+            <div class="savings-hint" id="savingsHintPct" style="margin-top:6px;"></div>
+            <div class="savings-hint" id="savingsAmtHint"></div>
+          </div>
+
+          <!-- Retirement spend — fades in -->
+          <div class="ob-field ob-fade-field" id="ob-spendField" style="opacity:0.3;pointer-events:none;">
+            <label class="ob-label">In retirement, how much do you expect to spend?</label>
+            <span class="ob-hint" style="margin-bottom:10px;display:block;">This shapes your freedom number — there's no wrong answer.</span>
+            <div class="cycle-group">
+              <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less 📉<div style="font-size:10px;margin-top:2px;opacity:0.7">Mortgage paid, kids grown</div></button>
+              <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same 🙂<div style="font-size:10px;margin-top:2px;opacity:0.7">Similar lifestyle</div></button>
+              <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More 🌏<div style="font-size:10px;margin-top:2px;opacity:0.7">Travel, experiences</div></button>
+            </div>
+          </div>
+
+          <!-- Where held — fades in -->
+          <div class="ob-field ob-fade-field" id="ob-savingsTypeField" style="opacity:0.3;pointer-events:none;">
+            <label class="ob-label">Where is your money sitting right now?</label>
+            <span class="ob-hint" style="margin-bottom:10px;display:block;">This affects your real projected return — it matters more than most people realise.</span>
+            <div class="housing-group">
+              <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)">🏦 Cash / bank</button>
+              <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)">📈 ETFs / shares</button>
+              <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)">🏠 Offset account</button>
+              <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)">🌐 Mix of these</button>
+            </div>
+          </div>
+
+          <button class="ob-next" id="ob-next-2" onclick="obGoTo(3)" disabled>Keep going →</button>
         </div>
-        <div class="super-group"><label class="input-label">Superannuation <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Your super is separate — we'll show you when it comes into play</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="superBalance" placeholder="0" min="0" oninput="updateSuperNote();updateInputHint('superBalance','superHint')"/></div><div class="savings-hint" id="superHint"></div><div class="super-note locked" id="superNote" style="display:none"></div></div>
-        <div class="input-group"><label class="input-label">Your age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="age" placeholder="0" min="16" max="80" style="padding-left:44px" oninput="updateSuperNote();debounceSaveContext()"/></div></div>
-        <div class="section-divider"><span>Debt</span></div>
-        <div class="input-group"><label class="input-label">Total debt <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Credit cards, car loans, personal loans — not your mortgage</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="debtTotal" placeholder="0" min="0" oninput="updateInputHint('debtTotal','debtHint')"/></div><div class="savings-hint" id="debtHint"></div></div>
-        <div class="input-group"><label class="input-label">Mortgage remaining <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-hint">Only if you own</div><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="mortgageRemaining" placeholder="0" min="0" oninput="updateInputHint('mortgageRemaining','mortgageHint')"/></div><div class="savings-hint" id="mortgageHint"></div></div>
-        <div class="section-divider"><span>Your situation</span></div>
-        <div class="input-group"><label class="input-label">Do you rent or own?</label><div class="housing-group"><button class="housing-btn active" data-housing="renting" onclick="setHousing(this)">🏠 Renting</button><button class="housing-btn" data-housing="owning" onclick="setHousing(this)">🔑 Own my home</button></div></div>
-        <div class="counter-row"><div class="counter-label">Dependants (kids, caring responsibilities)</div><div class="counter-controls"><button class="counter-btn" onclick="adjustDependants(-1)">−</button><span class="counter-val" id="dependantsVal">0</span><button class="counter-btn" onclick="adjustDependants(1)">+</button></div></div>
-        <div class="input-group">
-          <div style="margin-bottom:20px;">
-            <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;"><div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div></div><div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);">+</div></div>
-            <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
+      </div>
+
+      <!-- ── BLOCK 3 — About you ── -->
+      <div class="ob-block" id="ob-block-3">
+        <div class="ob-inner">
+          <button class="ob-back" onclick="obGoTo(2)">← Back</button>
+          <div class="ob-eyebrow">About you</div>
+          <h1 class="ob-title">A little about your life</h1>
+          <p class="ob-sub">The more context you give, the more your AI insight will actually speak to your situation — not a generic version of it.</p>
+
+          <!-- Age -->
+          <div class="ob-field">
+            <label class="ob-label">Your age</label>
+            <span class="ob-hint" style="margin-bottom:8px;display:block;">Shapes your super timeline and your two-phase freedom plan</span>
+            <div class="ob-input-wrap">
+              <span class="ob-input-prefix text">age</span>
+              <input class="ob-input-premium" type="number" id="age" placeholder="e.g. 34"
+                min="16" max="80" style="padding-left:52px;"
+                oninput="updateSuperNote();obProAgeHint();debounceSaveContext()"/>
+            </div>
+            <span class="ob-hint" id="ob-ageHint" style="margin-top:6px;min-height:18px;"></span>
+          </div>
+
+          <!-- Housing -->
+          <div class="ob-field">
+            <label class="ob-label">Do you rent or own?</label>
+            <div class="housing-group">
+              <button class="housing-btn active" data-housing="renting" onclick="setHousing(this)">🏠 Renting</button>
+              <button class="housing-btn" data-housing="owning" onclick="setHousing(this)">🔑 Own my home</button>
+            </div>
+          </div>
+
+          <!-- Dependants -->
+          <div class="ob-field">
+            <label class="ob-label">People who depend on you</label>
+            <span class="ob-hint" style="margin-bottom:10px;display:block;">Kids, elderly parents, caring responsibilities — anyone whose costs are part of your picture</span>
+            <div class="counter-row">
+              <div class="counter-label">How many?</div>
+              <div class="counter-controls">
+                <button class="counter-btn" onclick="adjustDependants(-1)">−</button>
+                <span class="counter-val" id="dependantsVal">0</span>
+                <button class="counter-btn" onclick="adjustDependants(1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Partner toggle -->
+          <div class="ob-field">
+            <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:14px;cursor:pointer;">
+              <div>
+                <div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Doing this with a partner?</div>
+                <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:3px;">Combine your numbers for a shared freedom date</div>
+              </div>
+              <div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);">+</div>
+            </div>
+            <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:14px;">
               <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
               <div class="input-group"><label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0" oninput="updateInputHint('partnerIncome','partnerIncomeHint')"/></div><div class="savings-hint" id="partnerIncomeHint"></div></div>
               <div class="input-group"><label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0" oninput="updateInputHint('partnerSavings','partnerSavingsHint')"/></div><div class="savings-hint" id="partnerSavingsHint"></div></div>
@@ -145,175 +541,206 @@
               <div class="input-group" style="margin-bottom:0"><label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0" oninput="updateInputHint('partnerSuper','partnerSuperHint')"/></div><div class="savings-hint" id="partnerSuperHint"></div></div>
             </div>
           </div>
-          <label class="context-label">Tell us honestly about your situation</label>
-          <p class="context-sub">Share as much as you like — family, property, caring responsibilities, goals, worries.</p>
-          <div class="context-wrapper"><textarea class="context-textarea" id="context" oninput="debounceSaveContext()" placeholder="e.g. I have two kids, a mortgage, and I'm looking after my elderly father..."></textarea></div>
-        </div>
-        <p class="error-msg" id="errorMsg">Please enter your income first.</p>
-      </div>
-      <div class="ai-loading" id="aiLoading">
-        <div class="fp-loader">
-          <div class="fp-loader-flame">🔥</div>
-          <div class="fp-loader-bar"><div class="fp-loader-bar-fill"></div></div>
-          <p class="fp-loader-msg" id="loadingText">Reading your situation...</p>
+
+          <button class="ob-next" onclick="obGoTo(4)">Almost there →</button>
         </div>
       </div>
-      <p style="font-size:12px;color:var(--soft-grey);text-align:center;margin-bottom:12px;font-weight:300;">🔒 Your numbers are saved securely to your account. We never sell your data. <a href="privacy.html" style="color:var(--fire-orange);text-decoration:none;">Privacy Policy</a></p>
-      <button class="cta-btn" id="analyseBtn" onclick="analyse()" style="margin-top:20px">Show me my path 🔥</button>
-    </div>
-  </div>
-<!-- ============================================================
-     SCREEN 3 — replace everything from <div class="screen" id="screen3">
-     down to its closing </div> with this block
-     ============================================================ -->
 
-<div class="screen" id="screen3">
-  <button class="back-btn" onclick="showScreen(2)">← Recalculate</button>
+      <!-- ── BLOCK 4 — Full picture ── -->
+      <div class="ob-block" id="ob-block-4">
+        <div class="ob-inner">
+          <button class="ob-back" onclick="obGoTo(3)">← Back</button>
+          <div class="ob-eyebrow">The full picture</div>
+          <h1 class="ob-title">What have you already built?</h1>
+          <p class="ob-sub">Everything counts — even what's locked away in super. The more you share, the sharper your AI insight.</p>
 
-  <!-- Result card — always visible -->
-  <div class="result-card">
-    <p class="result-label">Your FirePath Pro result</p>
-    <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
-    <p class="result-sub" id="resultSub"></p>
-    <div class="result-stats">
-      <div class="stat-box">
-        <span class="stat-value" id="freedomAgeOut">—</span>
-        <span class="stat-name" id="freedomAgeLabel">Your freedom age</span>
+          <!-- Savings & investments -->
+          <div class="ob-field">
+            <label class="ob-label" id="savingsLabel">Current savings &amp; investments</label>
+            <span class="ob-hint" style="margin-bottom:8px;display:block;">Bank savings, shares, ETFs, offset balance — if it's working for you, it counts here.</span>
+            <div class="ob-input-wrap">
+              <span class="ob-input-prefix">$</span>
+              <input class="ob-input-premium" type="number" id="savings" placeholder="0" min="0"
+                oninput="updateInputHint('savings','savingsHintFormatted')"/>
+            </div>
+            <div class="savings-hint" id="savingsHintFormatted"></div>
+            <!-- Hidden savingsHint for JS compatibility -->
+            <div class="input-hint" id="savingsHint" style="display:none;"></div>
+          </div>
+
+          <!-- Super -->
+          <div class="ob-field">
+            <label class="ob-label">Superannuation <span class="optional-badge">optional</span></label>
+            <span class="ob-hint" style="margin-bottom:8px;display:block;">Your super is running a parallel race in the background — we'll show you how the two timelines connect.</span>
+            <div class="ob-input-wrap">
+              <span class="ob-input-prefix">$</span>
+              <input class="ob-input-premium" type="number" id="superBalance" placeholder="0" min="0"
+                oninput="updateSuperNote();updateInputHint('superBalance','superHint')"/>
+            </div>
+            <div class="savings-hint" id="superHint"></div>
+            <div class="ob-super-note" id="superNote"></div>
+          </div>
+
+          <div class="ob-divider"><span>Debt</span></div>
+
+          <!-- Debt -->
+          <div class="ob-field">
+            <label class="ob-label">Total debt <span class="optional-badge">optional</span></label>
+            <span class="ob-hint" style="margin-bottom:8px;display:block;">Credit cards, car loans, personal loans — not your mortgage. Your AI will factor this in.</span>
+            <div class="ob-input-wrap">
+              <span class="ob-input-prefix">$</span>
+              <input class="ob-input-premium" type="number" id="debtTotal" placeholder="0" min="0"
+                oninput="updateInputHint('debtTotal','debtHint')"/>
+            </div>
+            <div class="savings-hint" id="debtHint"></div>
+          </div>
+
+          <!-- Mortgage -->
+          <div class="ob-field">
+            <label class="ob-label">Mortgage remaining <span class="optional-badge">optional</span></label>
+            <span class="ob-hint" style="margin-bottom:8px;display:block;">Only if you own. Helps your AI understand your full net worth picture.</span>
+            <div class="ob-input-wrap">
+              <span class="ob-input-prefix">$</span>
+              <input class="ob-input-premium" type="number" id="mortgageRemaining" placeholder="0" min="0"
+                oninput="updateInputHint('mortgageRemaining','mortgageHint')"/>
+            </div>
+            <div class="savings-hint" id="mortgageHint"></div>
+          </div>
+
+          <div class="ob-divider"><span>Your situation</span></div>
+
+          <!-- Context -->
+          <div class="ob-field">
+            <label class="ob-label">Tell us honestly about your situation</label>
+            <span class="ob-hint">This is where the AI earns its keep. The more real you are, the more useful the insight. Family, property, income variability, goals, worries — anything that shapes your financial life.</span>
+            <textarea class="ob-textarea" id="context"
+              oninput="debounceSaveContext()"
+              placeholder="e.g. I have two kids under 5, a mortgage with 22 years left, and I'm self-employed with variable income. I want to be done working by 55 but I'm not sure if that's realistic..."></textarea>
+          </div>
+
+          <p class="error-msg" id="errorMsg" style="display:none;">Please enter your income to continue.</p>
+
+          <!-- Loading state -->
+          <div class="ai-loading" id="aiLoading">
+            <div class="fp-loader">
+              <div class="fp-loader-flame">🔥</div>
+              <div class="fp-loader-bar"><div class="fp-loader-bar-fill"></div></div>
+              <p class="fp-loader-msg" id="loadingText">Reading your situation...</p>
+            </div>
+          </div>
+
+          <p style="font-size:12px;color:var(--soft-grey);text-align:center;margin-bottom:12px;font-weight:300;">🔒 Your numbers are saved securely to your account. We never sell your data. <a href="privacy.html" style="color:var(--fire-orange);text-decoration:none;">Privacy Policy</a></p>
+          <button class="cta-btn" id="analyseBtn" onclick="analyse()">Show me my path 🔥</button>
+        </div>
       </div>
-      <div class="stat-box">
-        <span class="stat-value" id="fireNumberOut">—</span>
-        <span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span></span>
-        <div id="inflationNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:6px;font-style:italic;line-height:1.5;"></div>
+
+    </div><!-- /ob-wrapper -->
+  </div><!-- /pro-onboarding -->
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN 3 — Results (unchanged from your file)
+       ═══════════════════════════════════════════════ -->
+  <div class="screen" id="screen3" style="display:none;">
+    <button class="back-btn" onclick="obShowScreen(2)">← Recalculate</button>
+
+    <div class="result-card">
+      <p class="result-label">Your FirePath Pro result</p>
+      <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
+      <p class="result-sub" id="resultSub"></p>
+      <div class="result-stats">
+        <div class="stat-box"><span class="stat-value" id="freedomAgeOut">—</span><span class="stat-name" id="freedomAgeLabel">Your freedom age</span></div>
+        <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span></span><div id="inflationNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:6px;font-style:italic;line-height:1.5;"></div></div>
+        <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / week</span><div id="savingsRateNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;"></div></div>
       </div>
-      <div class="stat-box">
-        <span class="stat-value" id="monthlySavingOut">—</span>
-        <span class="stat-name" id="stat3label">Saved / week</span>
-        <div id="savingsRateNote" style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:4px;"></div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;margin-bottom:4px;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:300;">Today's dollars</span>
+        <div id="inflationToggle" onclick="toggleInflation()" style="width:44px;height:24px;background:rgba(255,255,255,0.2);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;"><div id="inflationThumb" style="width:20px;height:20px;background:white;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;"></div></div>
+        <span style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:300;">Future dollars</span>
       </div>
-    </div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;margin-bottom:4px;">
-      <span style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:300;">Today's dollars</span>
-      <div id="inflationToggle" onclick="toggleInflation()" style="width:44px;height:24px;background:rgba(255,255,255,0.2);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;">
-        <div id="inflationThumb" style="width:20px;height:20px;background:white;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;"></div>
-      </div>
-      <span style="font-size:12px;color:rgba(255,255,255,0.7);font-weight:300;">Future dollars</span>
-    </div>
-    <div id="inflationToggleNote" style="font-size:11px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:12px;">Based on RBA's long-run target of 2.5% inflation</div>
-    <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;">🔊 Read my results aloud</button>
-  </div>
-
-  <!-- Projected range — always visible -->
-  <div id="rangeCard" style="display:none;" class="range-card">
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">📊 Your projected range</div>
-    <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Here's your current reality, and what changes if your money works harder.</div>
-    <div id="rangeRows"></div>
-    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
-  </div>
-
-  <!-- Recommended article — always visible -->
-  <div id="recommendedCard" style="display:none;background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:20px;margin-bottom:12px;">
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">📖 Recommended for you</div>
-    <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;" id="recommendedReason"></div>
-    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--warm-brown);margin-bottom:16px;line-height:1.4;" id="recommendedTitle"></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <div id="recommendedBtn" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read this article →</div>
-      <div onclick="window.location.href='learning_lab.html'" style="display:inline-flex;align-items:center;gap:8px;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Browse all topics →</div>
-    </div>
-  </div>
-
-  <!-- ── Tab nav ── -->
-  <div class="tab-nav" id="resultTabNav" style="display:flex;gap:4px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:14px;padding:4px;margin-top:16px;margin-bottom:12px;overflow-x:auto;">
-    <button class="rtab-btn active" onclick="switchResultTab('insight', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">🧠 AI Insight</button>
-    <button class="rtab-btn" onclick="switchResultTab('freedom', this)" id="freedomTabBtn" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:none;">💸 Freedom</button>
-    <button class="rtab-btn" onclick="switchResultTab('super', this)" id="superTabBtn" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:none;">🦘 Super</button>
-    <button class="rtab-btn" onclick="switchResultTab('needle', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;">🎯 My Date</button>
-    <button class="rtab-btn" onclick="switchResultTab('next', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;">🔥 What's Next</button>
-  </div>
-
-  <!-- ── Tab: AI Insight ── -->
-  <div class="rtab-content active" id="rtab-insight">
-
-    <!-- Context summary tags -->
-    <div class="context-summary" id="contextSummary" style="display:none"></div>
-
-    <!-- Situational cards -->
-    <div id="zeroSavingsCard" style="display:none"></div>
-    <div id="debtCard" style="display:none"></div>
-    <div id="houseCard" style="display:none"></div>
-
-    <!-- AI Insight -->
-    <div class="ai-insight-card">
-      <div class="ai-insight-label">🧠 AI Insight — just for you</div>
-      <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
+      <div id="inflationToggleNote" style="font-size:11px;color:rgba(255,255,255,0.5);text-align:center;margin-bottom:12px;">Based on RBA's long-run target of 2.5% inflation</div>
+      <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;">🔊 Read my results aloud</button>
     </div>
 
-    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
-    <p style="text-align:center;font-size:12px;margin-bottom:16px;">
-      <a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · 
-      <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> · 
-      <a href="faq.html" style="color:var(--fire-orange);">FAQ</a> · 
-      <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a>
-    </p>
-  </div>
+    <div id="rangeCard" style="display:none;" class="range-card">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">📊 Your projected range</div>
+      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Here's your current reality, and what changes if your money works harder.</div>
+      <div id="rangeRows"></div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
+    </div>
 
-  <!-- ── Tab: Super Timeline ── -->
-  <div class="rtab-content" id="rtab-super" style="display:none;">
-
-    <!-- Intro explanation -->
-    <div style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7;border-radius:16px;padding:20px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">🦘 How super fits your freedom plan</div>
-      <div style="font-size:14px;color:#2E7D32;line-height:1.75;font-weight:300;">
-        Most Australians have <strong>two separate financial timelines</strong> running at the same time — and most calculators ignore one of them.<br/><br/>
-        <strong>Timeline 1 — Your freedom savings.</strong> Everything outside super. ETFs, cash, offset, shares. You can access this any time. This is what FirePath uses to calculate your freedom date.<br/><br/>
-        <strong>Timeline 2 — Your super.</strong> Compounding quietly in the background, with employer contributions going in every pay cycle. Locked until age 60, but growing the whole time.<br/><br/>
-        The goal isn't just to hit your freedom number with savings alone — it's to understand how these two timelines connect, and what gap (if any) you actually need to close yourself.
+    <div id="recommendedCard" style="display:none;background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:20px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">📖 Recommended for you</div>
+      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;" id="recommendedReason"></div>
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--warm-brown);margin-bottom:16px;line-height:1.4;" id="recommendedTitle"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div id="recommendedBtn" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read this article →</div>
+        <div onclick="window.location.href='learning_lab.html'" style="display:inline-flex;align-items:center;gap:8px;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Browse all topics →</div>
       </div>
     </div>
 
-    <!-- Super timeline card (injected by buildSuperTimelineCard) -->
-    <div id="superTimelineCard" style="display:none"></div>
-
-    <!-- Partner super result -->
-    <div class="super-result-card" id="superResultCard" style="display:none">
-      <div id="superResultText"></div>
+    <div class="tab-nav" id="resultTabNav" style="display:flex;gap:4px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:14px;padding:4px;margin-top:16px;margin-bottom:12px;overflow-x:auto;">
+      <button class="rtab-btn active" onclick="switchResultTab('insight', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">🧠 AI Insight</button>
+      <button class="rtab-btn" onclick="switchResultTab('freedom', this)" id="freedomTabBtn" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:none;">💸 Freedom</button>
+      <button class="rtab-btn" onclick="switchResultTab('super', this)" id="superTabBtn" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:none;">🦘 Super</button>
+      <button class="rtab-btn" onclick="switchResultTab('needle', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;">🎯 My Date</button>
+      <button class="rtab-btn" onclick="switchResultTab('next', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;">🔥 What's Next</button>
     </div>
 
-    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Super projected at 7% annual growth with employer contributions after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
-  </div>
+    <div class="rtab-content active" id="rtab-insight">
+      <div class="context-summary" id="contextSummary" style="display:none"></div>
+      <div id="zeroSavingsCard" style="display:none"></div>
+      <div id="debtCard" style="display:none"></div>
+      <div id="houseCard" style="display:none"></div>
+      <div class="ai-insight-card">
+        <div class="ai-insight-label">🧠 AI Insight — just for you</div>
+        <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
+      </div>
+      <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
+      <p style="text-align:center;font-size:12px;margin-bottom:16px;"><a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> · <a href="faq.html" style="color:var(--fire-orange);">FAQ</a> · <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
+    </div>
 
-  <!-- ── Tab: What Changes My Date (Needle) ── -->
-  <div class="rtab-content" id="rtab-needle" style="display:none;">
-    <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:12px;padding:0 2px;">Small changes compound over time. Here's exactly what each lever does to your freedom date — based on your numbers.</div>
-    <div id="needleCard"></div>
-    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. All projections assume 7% real return unless otherwise stated.</p>
-  </div>
+    <div class="rtab-content" id="rtab-super" style="display:none;">
+      <div style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7;border-radius:16px;padding:20px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">🦘 How super fits your freedom plan</div>
+        <div style="font-size:14px;color:#2E7D32;line-height:1.75;font-weight:300;">Most Australians have <strong>two separate financial timelines</strong> running at the same time — and most calculators ignore one of them.<br/><br/><strong>Timeline 1 — Your freedom savings.</strong> Everything outside super. ETFs, cash, offset, shares. You can access this any time. This is what FirePath uses to calculate your freedom date.<br/><br/><strong>Timeline 2 — Your super.</strong> Compounding quietly in the background, with employer contributions going in every pay cycle. Locked until age 60, but growing the whole time.<br/><br/>The goal isn't just to hit your freedom number with savings alone — it's to understand how these two timelines connect, and what gap (if any) you actually need to close yourself.</div>
+      </div>
+      <div id="superTimelineCard" style="display:none"></div>
+      <div class="super-result-card" id="superResultCard" style="display:none"><div id="superResultText"></div></div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Super projected at 7% annual growth with employer contributions after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
+    </div>
 
-    <!-- ── Tab: What's Next ── -->
-  <div class="rtab-content" id="rtab-next" style="display:none;">
-    <div id="whatsNextContent"></div>
-    <p class="disclaimer" style="margin-top:8px;">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
-    <p style="text-align:center;font-size:12px;margin-bottom:16px;">
-      <a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · 
-      <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> · 
-      <a href="faq.html" style="color:var(--fire-orange);">FAQ</a> · 
-      <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a>
-    </p>
-  </div>
+    <div class="rtab-content" id="rtab-needle" style="display:none;">
+      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:12px;padding:0 2px;">Small changes compound over time. Here's exactly what each lever does to your freedom date — based on your numbers.</div>
+      <div id="needleCard"></div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. All projections assume 7% real return unless otherwise stated.</p>
+    </div>
 
-  <!-- ── Tab: Freedom Equation ── -->
-<div class="rtab-content" id="rtab-freedom" style="display:none;">
-  <div id="withdrawalCard" style="display:none"></div>
-  <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. Age Pension estimate based on assets test (homeowner, single). Projections assume 7% growth. Always consider your personal circumstances.</p>
-</div>
+    <div class="rtab-content" id="rtab-next" style="display:none;">
+      <div id="whatsNextContent"></div>
+      <p class="disclaimer" style="margin-top:8px;">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
+      <p style="text-align:center;font-size:12px;margin-bottom:16px;"><a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> · <a href="faq.html" style="color:var(--fire-orange);">FAQ</a> · <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
+    </div>
 
-</div><!-- end screen3 -->
+    <div class="rtab-content" id="rtab-freedom" style="display:none;">
+      <div id="withdrawalCard" style="display:none"></div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. Age Pension estimate based on assets test (homeowner, single). Projections assume 7% growth. Always consider your personal circumstances.</p>
+    </div>
+
+  </div><!-- /screen3 -->
+
+</div><!-- /container -->
+
+<!-- ═══════════════════════════════════════════════
+     ALL EXISTING JS — completely unchanged
+     (paste your full existing <script> block here)
+     ═══════════════════════════════════════════════ -->
 <script>
   function updateInputHint(inputId, hintId) {
-  const val = parseFloat(document.getElementById(inputId).value) || 0;
-  const hint = document.getElementById(hintId);
-  if (!hint) return;
-  hint.textContent = val >= 1000 ? '$' + val.toLocaleString('en-AU') : '';
-}
+    const val = parseFloat(document.getElementById(inputId).value) || 0;
+    const hint = document.getElementById(hintId);
+    if (!hint) return;
+    hint.textContent = val >= 1000 ? '$' + val.toLocaleString('en-AU') : '';
+  }
 
   let persona=null,selectedCycle='fortnightly',savingsType='cash',inputMode='type',isListening=false,isContextListening=false;
   let recognition=null,retirementSpendMultiplier=1.0,contextRecognition=null,housingStatus='renting',dependants=0;
@@ -331,44 +758,59 @@
   function fmtM(n){if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return'$'+Math.round(n/1000)+'K';return'$'+Math.round(n);}
   function toMonthly(n){if(selectedCycle==='weekly')return n*52/12;if(selectedCycle==='fortnightly')return n*26/12;return n;}
 
-  async function loadSavedInputs(){
-    if(!fpToken||!fpUserId)return;
-    try{const res=await fetch(`${WORKER_URL}/db/calculations?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`,{headers:{'Authorization':`Bearer ${fpToken}`}});
-    const data=await res.json();if(!Array.isArray(data)||data.length===0)return;const last=data[0];
-    if(last.pay_cycle){selectedCycle=last.pay_cycle;document.querySelectorAll('.cycle-btn').forEach(b=>{b.classList.toggle('active',b.dataset.cycle===last.pay_cycle);});}
-    if(last.income_monthly){const ci=last.pay_cycle==='weekly'?last.income_monthly*12/52:last.pay_cycle==='fortnightly'?last.income_monthly*12/26:last.income_monthly;document.getElementById('income').value=Math.round(ci);}
-    if(last.savings_rate&&last.income_monthly){const ci=last.pay_cycle==='weekly'?last.income_monthly*12/52:last.pay_cycle==='fortnightly'?last.income_monthly*12/26:last.income_monthly;document.getElementById('savingsAmount').value=Math.round(ci*last.savings_rate/100);}
-    if(last.current_savings)document.getElementById('savings').value=last.current_savings;
-    if(last.super_balance)document.getElementById('superBalance').value=last.super_balance;
-    if(last.age)document.getElementById('age').value=last.age;
-    if(last.context)document.getElementById('context').value=last.context;
-        if(last.savings_type){savingsType=last.savings_type;document.querySelectorAll('[data-savings]').forEach(b=>{b.classList.toggle('active',b.dataset.savings===last.savings_type);});}
-        if(last.retirement_spend){retirementSpendMultiplier=last.retirement_spend;document.querySelectorAll('[data-spend]').forEach(b=>{b.classList.toggle('active',parseFloat(b.dataset.spend)===last.retirement_spend);});}
-        if(last.dependants){dependants=last.dependants;document.getElementById('dependantsVal').textContent=last.dependants;}
-        if(last.housing_status){housingStatus=last.housing_status;document.querySelectorAll('[data-housing]').forEach(b=>{b.classList.toggle('active',b.dataset.housing===last.housing_status);});}
-        if(last.debt_total)document.getElementById('debtTotal').value=last.debt_total;
-        if(last.mortgage_remaining)document.getElementById('mortgageRemaining').value=last.mortgage_remaining;
-        updateSavingsHint();updateSuperNote();}catch(e){console.log('Load failed',e);}
+  // showScreen override — routes to onboarding
+  function showScreen(n) {
+    if (n === 3) {
+      document.getElementById('pro-onboarding').style.display = 'none';
+      document.getElementById('screen3').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (n === 2) {
+      document.getElementById('screen3').style.display = 'none';
+      document.getElementById('pro-onboarding').style.display = 'flex';
+      obGoTo(4);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (n === 1) {
+      document.getElementById('screen3').style.display = 'none';
+      document.getElementById('pro-onboarding').style.display = 'flex';
+      obGoTo(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
-  async function dbInsert(table,data){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/${table}`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'return=minimal'},body:JSON.stringify({...data,user_id:fpUserId})});}catch(e){}}
-  async function savePersonaToDB(pv){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/users`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({id:fpUserId,email:localStorage.getItem('fp_email')||'',persona:pv})});localStorage.setItem('fp_persona',pv);}catch(e){}}
-  async function loadCheckinHistory(){if(!fpToken||!fpUserId)return;try{const res=await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`,{headers:{'Authorization':`Bearer ${fpToken}`}});const data=await res.json();if(Array.isArray(data)&&data.length>0){checkinHistory=data.map(d=>({month:new Date(d.created_at).toLocaleString('default',{month:'short',year:'numeric'}),savings:d.savings_total,sRate:d.savings_rate,diff:null}));streak=data.length;renderHistory();}}catch(e){}}
-  async function saveUserContext(age,context){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/calculations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({user_id:fpUserId,age:age||null,context:context||''})});}catch(e){}}
+  function obShowScreen(n) { showScreen(n); }
+
+  // Persona labels per persona
+  function applyPersonaLabels() {
+    const labels = {
+      beginner: { eyebrow: 'Just getting started', sub: "No judgment here — just share what you know and we'll handle the rest.", income: 'Money coming in (after tax)', savings: 'Current savings & investments' },
+      building: { eyebrow: 'Building your plan', sub: "Enter your numbers and add context — the AI picks up on what matters most.", income: 'Take-home income', savings: 'Current savings & investments' },
+      fire: { eyebrow: 'Running your numbers', sub: "Give me the full picture — portfolio, goals, timeline, nuance.", income: 'Net income', savings: 'Current portfolio value' }
+    };
+    const l = labels[persona] || labels.building;
+    const ey = document.getElementById('ob-b2-eyebrow');
+    const sub = document.getElementById('ob-b2-sub');
+    const incL = document.getElementById('ob-incomeLabel');
+    const savL = document.getElementById('savingsLabel');
+    const sRateL = document.getElementById('savingsRateLabel');
+    if (ey) ey.textContent = l.eyebrow;
+    if (sub) sub.textContent = l.sub;
+    if (incL) incL.textContent = l.income;
+    if (savL) savL.textContent = l.savings;
+    if (sRateL) sRateL.textContent = persona === 'fire' ? 'Amount saved per cycle' : 'How much do you put aside each cycle?';
+  }
 
   document.addEventListener('DOMContentLoaded', async function(){
-  const token = getToken();
-  const userId = getUserId();
-  if(!token || !userId){ window.location.href='auth.html'; return; }
-  fpToken = token;
-  fpUserId = userId;
-  
-  await loadAssumptions(); await loadSavedInputs(); await loadProfile(); await checkProStatus();
-  const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('🔥 Welcome to FirePath Pro!');
-  const uel=document.getElementById('userStatus');
-  if(localStorage.getItem('fp_email')){uel.innerHTML=`Signed in as ${localStorage.getItem('fp_email')} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;}
-  else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;}
-  if(savedPersona){persona=savedPersona;document.querySelectorAll('.persona-card').forEach(c=>{if(c.dataset.persona===savedPersona)c.classList.add('selected');});document.getElementById('continueBtn').disabled=false;}
-});
+    const token = getToken();
+    const userId = getUserId();
+    if(!token || !userId){ window.location.href='auth.html'; return; }
+    fpToken = token;
+    fpUserId = userId;
+    await loadAssumptions(); await loadSavedInputs(); await loadProfile(); await checkProStatus();
+    const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('🔥 Welcome to FirePath Pro!');
+    const uel=document.getElementById('userStatus');
+    if(localStorage.getItem('fp_email')){uel.innerHTML=`Signed in as ${localStorage.getItem('fp_email')} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;}
+    else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;}
+    if(savedPersona){ persona=savedPersona; document.querySelectorAll('.ob-persona').forEach(c=>{ if(c.dataset.persona===savedPersona){ c.classList.add('selected'); } }); }
+  });
 
   function saveHMOData(){localStorage.setItem('hmo_fireNum',calcData.fireNum||0);localStorage.setItem('hmo_monthlySav',calcData.mSav||0);localStorage.setItem('hmo_propVal',calcData.propVal||0);}
   function saveActionPlanData(scenario){localStorage.setItem('ap_fireNum',calcData.fireNum||0);localStorage.setItem('ap_monthlySav',calcData.mSav||0);localStorage.setItem('ap_income',calcData.mIncome||0);localStorage.setItem('ap_savings',calcData.savings||0);localStorage.setItem('ap_super',calcData.superBal||0);localStorage.setItem('ap_age',calcData.age||0);localStorage.setItem('ap_sRate',calcData.sRate||0);localStorage.setItem('ap_context',calcData.context||'');localStorage.setItem('ap_persona',persona||'building');localStorage.setItem('ap_cycle',selectedCycle||'fortnightly');localStorage.setItem('ap_scenario',scenario||'save_more');localStorage.setItem('ap_freedomYrs',yearsToGoal(calcData.fireNum,calcData.savings,calcData.mSav,0.07)||0);localStorage.removeItem('ap_saved_plan');}
@@ -378,1050 +820,130 @@
   let contextSaveTimer;
   function debounceSaveContext(){clearTimeout(contextSaveTimer);contextSaveTimer=setTimeout(()=>{saveUserContext(document.getElementById('age').value,document.getElementById('context').value);},1500);}
   function updateSavingsHint(){const inc=parseFloat(document.getElementById('income').value)||0,sav=parseFloat(document.getElementById('savingsAmount').value)||0,hint=document.getElementById('savingsHintPct');if(inc>0&&sav>0){hint.textContent=`That's ${Math.round((sav/inc)*100)}% of your income`;}else{hint.textContent='';}}
-  function updateSuperNote(){const sb=parseFloat(document.getElementById('superBalance').value)||0,age=parseInt(document.getElementById('age').value)||0,note=document.getElementById('superNote');if(sb<=0){note.style.display='none';return;}note.style.display='block';if(age===0){note.className='super-note locked';note.textContent='📌 Super is typically locked until age 60. Enter your age to see when it becomes accessible.';}else if(age<55){note.className='super-note locked';note.textContent=`🔒 Your super is locked for another ${60-age} years (until age 60).`;}else if(age<60){note.className='super-note soon';note.textContent=`⏳ You're ${60-age} year${60-age!==1?'s':''} away from accessing your super.`;}else{note.className='super-note accessible';note.textContent='✅ You\'re past preservation age — your super is accessible now.';}}
-  function selectPersona(el){if(!el)return;document.querySelectorAll('.persona-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');persona=el.dataset.persona;document.getElementById('continueBtn').disabled=false;savePersonaToDB(persona);}
-  function showScreen(n){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen'+n).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});if(n===2)applyPersonaLabels();}
-  function applyPersonaLabels(){
-    if(persona==='beginner'){document.getElementById('s2title').textContent='Tell me about your situation';document.getElementById('s2sub').textContent="Type your numbers below, or tap Speak. Plain English is totally fine!";document.getElementById('incomeLabel').textContent='Money coming in (after tax)';document.getElementById('savingsRateLabel').textContent='How much do you save?';document.getElementById('savingsLabel').textContent='Money already saved';document.getElementById('savingsHint').textContent='Include everything — bank savings, shares, ETFs, and your mortgage offset balance. If it\'s working for you, it counts.';}
-    else if(persona==='building'){document.getElementById('s2title').textContent='Tell me about your situation';document.getElementById('s2sub').textContent="Enter your numbers and any context — the AI picks up on what matters.";document.getElementById('incomeLabel').textContent='Take-home income';document.getElementById('savingsRateLabel').textContent='How much do you save?';document.getElementById('savingsLabel').textContent='Current savings & investments';document.getElementById('savingsHint').textContent='Include everything — savings, shares, ETFs, managed funds, and your mortgage offset balance.';}
-    else{document.getElementById('s2title').textContent='Run your numbers';document.getElementById('s2sub').textContent="Give me your numbers and any nuance — portfolio, goals, timeline.";document.getElementById('incomeLabel').textContent='Net income';document.getElementById('savingsRateLabel').textContent='Amount saved per cycle';document.getElementById('savingsLabel').textContent='Current portfolio value';document.getElementById('savingsHint').textContent='Total investable assets — ETFs, index funds, shares, cash, offset balance. Excluding super.';}
+  function updateSuperNote(){
+    const sb=parseFloat(document.getElementById('superBalance').value)||0,age=parseInt(document.getElementById('age').value)||0,note=document.getElementById('superNote');
+    if(!note)return;
+    if(sb<=0){note.className='ob-super-note';note.style.display='none';return;}
+    if(age===0){note.className='ob-super-note locked';note.textContent='📌 Super is typically locked until age 60. Enter your age to see when it becomes accessible.';}
+    else if(age<55){note.className='ob-super-note locked';note.textContent=`🔒 Locked for another ${60-age} years — but compounding the whole time.`;}
+    else if(age<60){note.className='ob-super-note soon';note.textContent=`⏳ ${60-age} year${60-age!==1?'s':''} away from accessing your super.`;}
+    else{note.className='ob-super-note accessible';note.textContent='✅ Past preservation age — your super is accessible now.';}
   }
-  function setInputMode(mode){inputMode=mode;document.getElementById('typeToggle').classList.toggle('active',mode==='type');document.getElementById('voiceToggle').classList.toggle('active',mode==='voice');document.getElementById('typeMode').style.display=mode==='type'?'block':'none';document.getElementById('voiceMode').classList.toggle('visible',mode==='voice');}
-  function setCycle(btn){document.querySelectorAll('.cycle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedCycle=btn.dataset.cycle;updateSavingsHint();const w=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';document.getElementById('partnerCycleLabel').textContent=w;document.getElementById('partnerCycleLabel2').textContent=w;}
-
+  function setCycle(btn){document.querySelectorAll('.cycle-btn[data-cycle]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedCycle=btn.dataset.cycle;updateSavingsHint();const w=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';const pl=document.getElementById('partnerCycleLabel'),pl2=document.getElementById('partnerCycleLabel2');if(pl)pl.textContent=w;if(pl2)pl2.textContent=w;}
   function readResultsAloud(){if(!('speechSynthesis'in window)){alert('Not supported.');return;}window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(`Your FirePath result. You could be free in ${document.getElementById('yearsOut').textContent}. ${document.getElementById('resultSub').textContent}. ${document.getElementById('aiInsightText').textContent.replace(/[🧠🏠💰✂️🏡📈🏦]/g,'')}`);u.lang='en-AU';u.rate=0.95;window.speechSynthesis.speak(u);}
-
-  // ── Pro smart card builders ──
-  function buildContextTags(savings,superBal,debt,mortgage,housing,deps){
-    const nw=savings+superBal-debt-mortgage,tags=[];
-    if(housing==='renting')tags.push({l:'🏠 Renting',h:false});else tags.push({l:'🔑 Homeowner',h:false});
-    if(deps>0)tags.push({l:`👨‍👧 ${deps} dependant${deps>1?'s':''}`,h:true});
-    if(debt>0)tags.push({l:`💳 ${fmtM(debt)} debt`,h:true});
-    if(superBal>0)tags.push({l:`🦘 ${fmtM(superBal)} super`,h:false});
-    if(mortgage>0)tags.push({l:`🏦 ${fmtM(mortgage)} mortgage`,h:false});
-    if(nw!==0)tags.push({l:`Net worth: ${fmtM(nw)}`,h:false});
-    const el=document.getElementById('contextSummary');
-    if(tags.length>0){el.innerHTML=tags.map(t=>`<span class="context-tag${t.h?' highlight':''}">${t.l}</span>`).join('');el.style.display='flex';}else el.style.display='none';
-  }
-
-  function buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum){
-  const el=document.getElementById('superTimelineCard');
-  if(!el||age<=0||superBal<=0){if(el)el.style.display='none';return;}
-  const yts=Math.max(0,60-age),ag=mI*12/0.72,mes=(ag*FP_ASSUMPTIONS.sgRate)/12,r=0.07/12;
-  let s60=superBal;
-  const mesAfterTax=mes*0.85;
-  for(let m=0;m<yts*12;m++){s60=s60*(1+r)+mesAfterTax;}
-  s60=Math.round(s60);
-  let sav60=savings;
-  for(let m=0;m<yts*12;m++){sav60=sav60*(1+r)+mSav;}
-  sav60=Math.round(sav60);
-  const combined60=sav60+s60;
-  const gap60=Math.max(0,fireNum-combined60);
-  const p1=yearsToGoalCapped(fireNum,savings,mSav,0.07);
-  const p1y=currentYear+Math.round(p1);
-  const currentWeekly=Math.round(mSav*12/52);
-  const rW=0.07/52,nW=yts*52;
-  const extraWeeklyNeeded=gap60>0?Math.round(gap60*rW/(Math.pow(1+rW,nW)-1)):0;
-  const gapCloseable = yts >= 5 && extraWeeklyNeeded < 2000;
-  const totalWeeklyNeeded=currentWeekly+extraWeeklyNeeded;
-  let breakdownHTML='';
-  if(age>=60){
-    breakdownHTML=`<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">✅ <strong>Your super is accessible now.</strong> Including it moves your freedom date significantly.</div>`;
-  } else if(combined60>=fireNum){
-    breakdownHTML = `<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:#2E7D32;line-height:1.6;">🎉 <strong>Good news — and we don't say this lightly.</strong> Your current savings rate, combined with super growing in the background, is projected to hit your freedom number by the time you're 60. No extra saving needed. Time is genuinely on your side here.</div>`;
-  } else {
-    const rem=yearsToGoal(fireNum,combined60,mSav,0.07),tot=yts+(rem||0),sv=p1-tot;
-    breakdownHTML=`<div style="margin-top:16px;">
-      <div style="font-size:12px;font-weight:700;color:var(--warm-brown);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">📊 The full picture at age 60</div>
-      <div style="background:var(--warm-cream);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--soft-grey);line-height:1.6;">💡 <strong style="color:var(--warm-brown)">How to read this:</strong> "Savings + contributions" is your current balance <strong style="color:var(--warm-brown)">(${fmtM(savings)})</strong> growing at 7% for ${yts} years, plus your ongoing <strong style="color:var(--warm-brown)">$${currentWeekly}/week</strong> over that time.</div>
-      <div style="display:flex;flex-direction:column;gap:0;margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Savings + contributions at 60</span><span style="font-weight:500">${fmtM(sav60)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Super (with employer contributions)</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(s60)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Combined at 60</span><span style="font-weight:700">${fmtM(combined60)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Freedom number</span><span style="font-weight:700">${fmtM(fireNum)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:2px solid var(--border);margin-top:4px;font-size:13px;"><span style="color:var(--soft-grey)">Shortfall at 60</span><span style="font-weight:700;color:#E53935">${fmtM(gap60)}</span></div>
-      </div>
-      ${sv>1?`<div style="background:#E8F5E9;border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#2E7D32;line-height:1.6;">🚀 <strong>Super moves your freedom date.</strong> Without super: ${p1y}. With super: <strong>${currentYear+Math.round(tot)}</strong> — roughly <strong>${fmt(sv)} sooner</strong>.</div>`:''}
-      ${gapCloseable ? `<div style="background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;">
-        <div style="font-weight:700;color:var(--warm-brown);margin-bottom:8px;">💡 One way to close the $${Math.round(gap60/1000)}K gap — though super and the "Less" spending option above may do a lot of the heavy lifting:</div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--soft-grey)">You currently save</span><span style="font-weight:500;">$${currentWeekly}/week</span></div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--soft-grey)">Extra needed on top</span><span style="font-weight:700;color:#E53935;">+$${extraWeeklyNeeded}/week</span></div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:2px solid var(--border);margin-top:4px;"><span style="font-weight:600;color:var(--warm-brown)">Total saving needed</span><span style="font-weight:700;color:var(--fire-orange);">$${totalWeeklyNeeded}/week</span></div>
-      </div>` : `<div style="background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;color:var(--soft-grey);">
-        💡 With super unlocking soon, the most important question worth exploring is how to make your existing savings and super work together from age 60 onward — not how much extra to save now.
-      </div>`}
-    </div>`;
-  }
-  el.style.display='block';
-  el.innerHTML=`<div style="background:white;border:2px solid #A5D6A7;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-    <div style="font-size:13px;font-weight:700;color:#2E7D32;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🦘 Your super two-phase timeline</div>
-    <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">Your super compounds quietly in the background. At 60 it unlocks — here's the full picture:</div>
-    <div style="display:flex;flex-direction:column;gap:0;">
-      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Projected super at age 60</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(s60)}</span></div>
-      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Employer contributions/month</span><span style="font-weight:500">${fmtM(mes)}/mo</span></div>
-      <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Years until super unlocks</span><span style="font-weight:500">${yts} yrs (age 60)</span></div>
-    </div>
-    ${breakdownHTML}
-    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at 7% annual growth. Employer contributions at ${(FP_ASSUMPTIONS.sgRate*100).toFixed(1)}% of gross income, after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
-  </div>`;
-}
-    function buildDebtCard(debt,savings,mSav,mI,fireNum){
-    const el=document.getElementById('debtCard');if(!el||debt<=0){if(el)el.style.display='none';return;}
-    const em=Math.max(debt*0.03,debt/36),mtp=Math.ceil(debt/em),ytp=(mtp/12).toFixed(1),bm=mSav+em;
-    const by=yearsToGoalCapped(fireNum,savings,mSav,0.07),ay=yearsToGoalCapped(fireNum,savings,bm,0.07),diff=by-ay;
-    el.style.display='block';
-    el.innerHTML=`<div style="background:white;border:2px solid #FFD54F;border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">💳 What if you cleared your debt first?</div>
-      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">You have <strong style="color:var(--warm-brown)">${fmtM(debt)}</strong> in debt. Once it's gone, the money you were putting toward repayments could go straight into building your freedom number instead.</div>
-      <div style="display:flex;flex-direction:column;gap:0;">
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Estimated payoff time</span><span style="font-weight:500">${ytp} yrs</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">Freed-up monthly saving</span><span style="font-weight:500;color:var(--fire-orange)">${fmtM(em)}/month extra</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Freedom date impact</span><span style="font-weight:700;color:var(--fire-orange)">${diff>0.1?fmt(diff)+' sooner':'slight improvement'}</span></div>
-      </div>
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Assumes repayment amount redirected to savings after debt is cleared.</p>
-    </div>`;
-  }
-
-  function buildHouseCard(housing,debt,savings,mSav,fireNum){
-    const el=document.getElementById('houseCard');if(!el)return;
-    const show=housing==='renting'&&debt===0&&savings<100000&&fireNum>savings&&persona!=='fire';
-    if(!show){el.style.display='none';return;}
-    const t=100000,yb=yearsToGoal(t,savings,mSav,FP_ASSUMPTIONS.bankRealReturn),y5=yearsToGoal(t,savings,mSav,0.05),diff=yb&&y5?yb-y5:null,inf=Math.round(t*Math.pow(1.04,y5||3)/1000)*1000;
-    el.style.display='block';
-    el.innerHTML=`<div style="background:white;border:2px solid var(--fire-amber);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:700;color:#E65100;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🏡 Saving for a house deposit?</div>
-      <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;margin-bottom:14px;">Based on a $100K deposit target. At 4% property price growth, that'll cost roughly <strong style="color:var(--warm-brown)">$${Math.round(inf/1000)}K</strong> by the time you save it.</div>
-      <div style="display:flex;flex-direction:column;gap:0;">
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">In a bank (0.75%)</span><span style="font-weight:500">${yb?fmt(yb)+' ('+(currentYear+Math.round(yb))+')':'100+ yrs'}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--soft-grey)">At 5% growth</span><span style="font-weight:700;color:var(--fire-orange)">${y5?fmt(y5)+' ('+(currentYear+Math.round(y5))+')':'100+ yrs'}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--soft-grey)">Time you could save</span><span style="font-weight:700;color:var(--fire-orange)">${diff&&diff>0.1?fmt(diff)+' sooner':'similar timeline'}</span></div>
-      </div>
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice.</p>
-    </div>`;
-  }
-  function buildZeroSavingsCard(mI, fireNum, isPro) {
-    const el = document.getElementById('zeroSavingsCard');
-    if (!el) return;
-    const weeklyIncome = Math.round(mI * 12 / 52);
-    const smallSave = 50;
-    const medSave = Math.round(weeklyIncome * 0.05);
-    const smallYrs = yearsToGoal(fireNum, 0, smallSave * 52 / 12, 0.07);
-    const medYrs = yearsToGoal(fireNum, 0, medSave * 52 / 12, 0.07);
-    const smallDate = smallYrs ? currentYear + Math.round(smallYrs) : null;
-    const medDate = medYrs ? currentYear + Math.round(medYrs) : null;
-    const proNudge = isPro ? '' : `
-      <div style="background:rgba(244,98,42,0.08);border:1.5px solid rgba(244,98,42,0.2);border-radius:12px;padding:14px;margin-top:16px;">
-        <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:4px;">💡 Not sure where to find extra savings?</div>
-        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:10px;">FirePath Pro analyses your situation and gives you personalised ideas based on your income, lifestyle and goals — not generic tips.</div>
-        <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:10px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">Try Pro free for 7 days</div>
-      </div>`;
-    el.style.display = 'block';
-    el.innerHTML = `<div style="background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-      <div style="font-size:13px;font-weight:700;color:var(--fire-orange);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;">🌱 You're not saving yet — but that's exactly why you're here</div>
-      <div style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;margin-bottom:16px;">Right now every dollar is going out the door. That's okay — knowing that is the starting point. Even a small amount saved consistently changes the picture dramatically.</div>
-      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-        ${smallDate ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#FFF7F3;border-radius:10px;border:1.5px solid rgba(244,98,42,0.2);font-size:13px;"><div><span style="font-weight:500;color:var(--warm-brown);">If you saved $${smallSave}/week</span><div style="font-size:11px;color:var(--soft-grey);margin-top:2px;">A coffee a day</div></div><span style="font-weight:700;color:var(--fire-orange);">Free by ${smallDate}</span></div>` : ''}
-        ${medDate && medSave > smallSave ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--warm-cream);border-radius:10px;border:1.5px solid var(--border);font-size:13px;"><div><span style="font-weight:500;color:var(--warm-brown);">If you saved $${medSave}/week</span><div style="font-size:11px;color:var(--soft-grey);margin-top:2px;">5% of your income</div></div><span style="font-weight:700;color:var(--fire-orange);">Free by ${medDate}</span></div>` : ''}
-      </div>
-      <div style="font-size:12px;color:var(--soft-grey);font-style:italic;line-height:1.6;">The best time to start was yesterday. The second best time is now.</div>
-      ${proNudge}
-    </div>`;
-  }
-
-  function renderMilestones(fireNum,savings,mSav){
-    const c=document.getElementById('milestonesRoadmap');if(!c)return;
-    const ms=[0.25,0.5,0.75,1.0],ls=['🌱 25%','💪 50%','🔥 75%','🎉 Freedom!'];
-    c.innerHTML=ms.map((p,i)=>{const t=fireNum*p,y=yearsToGoal(t,savings,mSav,0.07),yr=y?currentYear+Math.round(y):null,r=savings>=t;
-      return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${r?'#F0FFF4':'var(--warm-cream)'};border-radius:10px;border:1px solid ${r?'#A5D6A7':'var(--border)'};">
-        <div style="font-size:13px;font-weight:500;color:${r?'#2E7D32':'var(--warm-brown)'};">${ls[i]} — ${fmtM(t)}</div>
-        <div style="font-size:12px;color:${r?'#2E7D32':'var(--soft-grey)'};">${r?'✅ Done':yr?yr:'100+ yrs'}</div></div>`;}).join('');
-  }
-
-  async function loadProfile() {
-  if (!fpToken || !fpUserId) return;
-  try {
-    const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, {
-      headers: { 'Authorization': `Bearer ${fpToken}` }
-    });
-    const data = await res.json();
-    if (!Array.isArray(data) || data.length === 0) return;
-    const p = data[0];
-    if (p.pay_cycle) { selectedCycle = p.pay_cycle; document.querySelectorAll('.cycle-btn').forEach(b => b.classList.toggle('active', b.dataset.cycle === p.pay_cycle)); }
-    if (p.take_home_income) { const ci = p.pay_cycle === 'weekly' ? p.take_home_income*12/52 : p.pay_cycle === 'fortnightly' ? p.take_home_income*12/26 : p.take_home_income; document.getElementById('income').value = Math.round(ci); }
-    if (p.savings_monthly) { const cs = p.pay_cycle === 'weekly' ? p.savings_monthly*12/52 : p.pay_cycle === 'fortnightly' ? p.savings_monthly*12/26 : p.savings_monthly; document.getElementById('savingsAmount').value = Math.round(cs); }
-    if (p.current_savings) document.getElementById('savings').value = p.current_savings;
-    if (p.super_balance) document.getElementById('superBalance').value = p.super_balance;
-    if (p.age) document.getElementById('age').value = p.age;
-    if (p.context) document.getElementById('context').value = p.context;
-    if (p.debt_total) document.getElementById('debtTotal').value = p.debt_total;
-    if (p.mortgage_remaining) document.getElementById('mortgageRemaining').value = p.mortgage_remaining;
-    if (p.dependants) { dependants = p.dependants; document.getElementById('dependantsVal').textContent = p.dependants; }
-    if (p.housing_status) { housingStatus = p.housing_status; document.querySelectorAll('[data-housing]').forEach(b => b.classList.toggle('active', b.dataset.housing === p.housing_status)); }
-    if (p.savings_type) { savingsType = p.savings_type; document.querySelectorAll('[data-savings]').forEach(b => b.classList.toggle('active', b.dataset.savings === p.savings_type)); }
-    if (p.retirement_spend_multiplier) { retirementSpendMultiplier = p.retirement_spend_multiplier; document.querySelectorAll('[data-spend]').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.spend) === p.retirement_spend_multiplier)); }
-    if (p.persona) { persona = p.persona; document.querySelectorAll('.persona-card').forEach(c => { if (c.dataset.persona === p.persona) c.classList.add('selected'); }); document.getElementById('continueBtn').disabled = false; }
-    updateSavingsHint();
-    updateSuperNote();
-  } catch(e) { console.log('Profile load failed', e); }
-}
-
-async function saveProfile() {
-  if (!fpToken || !fpUserId) return;
-  const mI = calcData.mIncome || 0;
-  try {
-    await fetch(`${WORKER_URL}/db/fp_profiles`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${fpToken}`,
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify({
-        id: fpUserId,
-        email: localStorage.getItem('fp_email') || '',
-        persona: persona || 'building',
-        pay_cycle: selectedCycle,
-        take_home_income: Math.round(mI),
-        savings_monthly: Math.round(calcData.mSav || 0),
-        current_savings: calcData.savings || 0,
-        savings_type: savingsType || 'cash',
-        super_balance: calcData.superBal || 0,
-        age: calcData.age || null,
-        housing_status: housingStatus || 'renting',
-        mortgage_remaining: parseFloat(document.getElementById('mortgageRemaining').value) || 0,
-        debt_total: calcData.debt || 0,
-        dependants: dependants || 0,
-        retirement_spend_multiplier: retirementSpendMultiplier || 1.0,
-        partner_income: parseFloat(document.getElementById('partnerIncome').value) || 0,
-        partner_savings: parseFloat(document.getElementById('partnerSavings').value) || 0,
-        partner_age: parseInt(document.getElementById('partnerAge').value) || null,
-        partner_super: parseFloat(document.getElementById('partnerSuper').value) || 0,
-        context: calcData.context || '',
-        freedom_number: Math.round(calcData.fireNum || 0),
-        freedom_years: calcData.mSav > 0 ? Math.round((calcData.fireNum || 0) / (calcData.mSav * 12) * 10) / 10 : null,
-        savings_rate: calcData.sRate || 0
-      })
-    });
-  } catch(e) { console.log('Profile save failed', e); }
-}
-
-  async function analyse(){ 
-    gtag('event', 'calculate', {
-      'event_category': 'engagement',
-      'event_label': 'show_me_my_path_pro'
-    });
-    inflationMode = 'real';
-    const inflThumb = document.getElementById('inflationThumb');
-    const inflToggle = document.getElementById('inflationToggle');
-    if (inflThumb) inflThumb.style.left = '2px';
-    if (inflToggle) inflToggle.style.background = 'rgba(255,255,255,0.2)';
-    let userInput='',mInc=0,mSavAmt=0,mRate=20,mSavs=0,mSup=0,mAge=0,mCtx='',mDebt=0,mMort=0;
-    if(inputMode==='voice'){if(!transcriptText){alert('Please speak first, or switch to Type mode.');return;}userInput=transcriptText;}
-    else{
-      mInc=parseFloat(document.getElementById('income').value)||0;
-      mSavAmt=parseFloat(document.getElementById('savingsAmount').value)||0;
-      mRate=mInc>0?Math.round((mSavAmt/mInc)*100):20;
-      mSavs=parseFloat(document.getElementById('savings').value)||0;
-      mSup=parseFloat(document.getElementById('superBalance').value)||0;
-      mAge=parseInt(document.getElementById('age').value)||0;
-      mCtx=document.getElementById('context').value;
-      mDebt=parseFloat(document.getElementById('debtTotal').value)||0;
-      mMort=parseFloat(document.getElementById('mortgageRemaining').value)||0;
-      const pI=parseFloat(document.getElementById('partnerIncome').value)||0,pS=parseFloat(document.getElementById('partnerSavings').value)||0,pSup=parseFloat(document.getElementById('partnerSuper').value)||0;
-      if(pI>0){mInc+=pI;mSavAmt+=pS;mSup+=pSup;}
-      if(mInc<=0){document.getElementById('errorMsg').style.display='block';return;}
-      document.getElementById('errorMsg').style.display='none';
-      userInput=`Pay cycle: ${selectedCycle}. Income: $${mInc} per ${selectedCycle}. Savings rate: ${mRate}%. Amount saved per ${selectedCycle}: $${Math.round(mSavAmt)}. Current savings/investments (excluding super): $${mSavs}. Savings held in: ${savingsType}. Super balance: $${mSup}. Age: ${mAge||'not provided'}. Housing: ${housingStatus}. Dependants: ${dependants}. Total debt (excl mortgage): $${mDebt}. Mortgage remaining: $${mMort}.`;
-      if(mCtx)userInput+=` Personal situation: ${mCtx}`;
-    }
-    document.getElementById('analyseBtn').style.display='none';
-    document.getElementById('aiLoading').classList.add('visible');
-    try{
-      const er=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,system:'You are a financial data extractor. Extract income, spending, savings, super, pay cycle, age and context from the user input. Respond ONLY with valid JSON and nothing else. Format: {"income_monthly": number, "spending_monthly": number, "savings": number, "super_balance": number, "age": number_or_null, "context": "string"}. Convert all amounts to monthly. If savings rate is given, calculate spending as income minus savings. If value not mentioned use 0.',messages:[{role:'user',content:userInput}]})});
-      const ed=await er.json();const raw=ed.content[0].text.replace(/```json|```/gi,'').trim();const ext=JSON.parse(raw);
-      const mI=inputMode==='type'?toMonthly(mInc):(ext.income_monthly||0);
-      const mSp=inputMode==='type'?toMonthly(mInc)*(1-mRate/100):(ext.spending_monthly||0);
-      const mSav=mI-mSp,savings=ext.savings||(inputMode==='type'?mSavs:0),superBal=ext.super_balance||(inputMode==='type'?mSup:0);
-      const age=ext.age||(inputMode==='type'?mAge:null),context=ext.context||(inputMode==='type'?mCtx:'');
-      const debt=inputMode==='type'?mDebt:0,mortgage=inputMode==='type'?mMort:0;
-      const fireNum=(mSp*12*retirementSpendMultiplier)*25,sRate=mI>0?Math.round((mSav/mI)*100):0;
-      const isZeroSavings = mSavAmt <= 0;
-      calcData={mIncome:mI,mSpend:mSp,mSav,savings,superBal,fireNum,sRate,age,context,propVal:0,debt,mortgage,housingStatus,dependants};
-      const alreadyFree=savings>=fireNum&&fireNum>0;
-      const fy=alreadyFree?0:yearsToGoal(fireNum,savings,mSav,0.07),fyear=fy!==null?currentYear+Math.round(fy):null;
-
-      buildContextTags(savings,superBal,debt,mortgage,housingStatus,dependants);
-
-      startLoadingMessages();
-      const ag=!age?'unknown':age<40?'young':age<55?'mid':'senior';
-      const at=ag==='senior'?'This person is older (55+). Focus on making existing wealth work smarter.':ag==='mid'?'This person is in their 40s-50s. Balance savings encouragement with realistic life context.':'This person is younger. Time and compounding are their superpower.';
-      const dc=debt>0?` They have $${debt} in non-mortgage debt.`:'',mc=mortgage>0?` Mortgage remaining: $${mortgage}.`:'',dpc=dependants>0?` They have ${dependants} dependant(s).`:'',hc=`They are ${housingStatus==='renting'?'renting':'a homeowner'}.`;
-      const ir=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,system:`You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. User persona: ${persona}. ${at}. ${hc}${dc}${mc}${dpc} Tone: ${persona==='beginner'?'warm, simple, human':persona==='building'?'clear, motivating, practical':'direct, analytical, peer-level'}. Rules: 1. Acknowledge caring/family pressures first with genuine empathy. 2. Identify their single biggest financial lever in plain numbers. 3. Frame as questions worth exploring, never instructions. 4. Never name specific investment products or platforms. 5. Never say "you should" or "I recommend". 6. Max 3 short paragraphs. 7. End with exactly: "This is educational, not financial advice." Use <strong> for bold. 8. If you identify a specific big financial question worth modelling (selling a property, investing a lump sum, redundancy payout), add one sentence after the disclaimer suggesting they run it in the Hear Me Out calculators — e.g. "The Hear Me Out calculators let you model exactly this kind of move."`,messages:[{role:'user',content:`Monthly income: $${Math.round(mI)}, spending: $${Math.round(mSp)}, saving: $${Math.round(mSav)}, savings: $${savings}, super: $${superBal}, freedom number: $${Math.round(fireNum)}, savings rate: ${sRate}%, freedom: ${fyear||'over 50 years away'}. Age: ${age||'unknown'}. Debt: $${debt}. Mortgage: $${mortgage}. Dependants: ${dependants}. Housing: ${housingStatus}. Situation: ${context}`}]})});
-      const id=await ir.json(),insight=id.content[0].text;
-      const cw=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';
-      const csl=selectedCycle==='weekly'?'Saved / week':selectedCycle==='fortnightly'?'Saved / fortnight':'Saved / month';
-      const cs=inputMode==='type'?Math.round(mSavAmt):(selectedCycle==='weekly'?Math.round(mSav*12/52):selectedCycle==='fortnightly'?Math.round(mSav*12/26):Math.round(mSav));
-      const freedomAge=age?Math.round(age+(fy||0)):null;
-      const fy_display = yearsToGoal(fireNum,savings,mSav,0.07);
-      const freedomAge_display = age ? Math.round(age + (fy_display||0)) : null;
-
-      if(freedomAge_display && freedomAge_display > 70 && superBal > 0){
-        document.getElementById('yearsOut').textContent=`${fmt(yearsToGoalCapped(fireNum,savings+superBal,mSav,0.07))} with super`;
-        document.querySelector('.result-label').textContent='Your FirePath Pro result — super included';
-        document.getElementById('freedomAgeOut').textContent=freedomAge||'—';
-        document.getElementById('freedomAgeLabel').textContent='Your freedom age';
-      } else {
-        document.getElementById('yearsOut').textContent=alreadyFree?'Already there! 🎉':fmt(fy_display);
-        document.querySelector('.result-label').textContent='Your FirePath Pro result';
-        document.getElementById('freedomAgeOut').textContent=freedomAge||'—';
-        document.getElementById('freedomAgeLabel').textContent=persona==='fire'&&freedomAge&&freedomAge<60?'Freedom age (pre-super)':'Your freedom age';
-      }
-      if (isZeroSavings) {
-        document.getElementById('yearsOut').textContent = 'not yet calculated';
-        document.querySelector('.result-label').textContent = 'Your FirePath Pro result';
-        document.getElementById('freedomAgeOut').textContent = '—';
-        document.getElementById('resultSub').textContent = `Your freedom number is ${fmtM(fireNum)}. Start saving and watch this change.`;
-        document.getElementById('monthlySavingOut').textContent = '$0';
-      }
-      
-      const fan=document.getElementById('freedomAgeNote');
-      if(fan)fan.textContent=freedomAge?`At age ${freedomAge}`:'';
-      const wsav=(mSav*12/52).toFixed(0),onT=mSav>0&&fy!==null;
-      const inflYrs=Math.round(fy||25);
-      const futureNum=fireNum*Math.pow(1.025,inflYrs);
-
-      document.getElementById('savingsRateNote').textContent=sRate+'% of income';
-      document.getElementById('fireNumberOut').textContent=fmtM(fireNum);
-      const inflationNotes={
-        beginner:`💡 Just so you know — prices rise over time, so in ${inflYrs} years ${fmtM(fireNum)} won't stretch as far as it does today. This is why <em>where</em> you save matters as much as <em>how much</em> you save.`,
-        building:`💡 In today's purchasing power. At 2.5% inflation over ${inflYrs} years, you'd need <strong>${fmtM(futureNum)}</strong> in future dollars — but your portfolio grows in nominal terms too.`,
-        fire:`Nominal: <strong>${fmtM(futureNum)}</strong> · Real (today's $): <strong>${fmtM(fireNum)}</strong> · Assumed inflation: 2.5% · ${inflYrs} yrs`
-     };
-      document.getElementById('inflationNote').innerHTML=inflationNotes[persona]||inflationNotes.building;
- 
-      document.getElementById('monthlySavingOut').textContent=fmtM(cs);
-      document.getElementById('stat3label').textContent=csl;
-      document.getElementById('resultSub').textContent = isZeroSavings
-        ? `Your freedom number is ${fmtM(fireNum)}. Start saving and watch this change.`
-        : freedomAge_display && freedomAge_display > 70 && superBal > 0
-          ? `Your freedom number is ${fmtM(fireNum)}. Super at 60 could significantly shorten your timeline.`
-          : `Saving ${fmtM(cs)} per ${cw} toward your ${persona==='fire'?'FI':'freedom'} number of ${fmtM(fireNum)}.`;
-
-      const isPro = localStorage.getItem('fp_is_pro') === 'true';
-      if (isZeroSavings) {
-        buildZeroSavingsCard(mI, fireNum, isPro);
-        document.getElementById('superTimelineCard').style.display='none';
-        document.getElementById('debtCard').style.display='none';
-        document.getElementById('houseCard').style.display='none';
-      } else {
-        document.getElementById('zeroSavingsCard').style.display='none';
-        buildSuperTimelineCard(age,superBal,mI,savings,mSav,fireNum);
-        updateSuperTabVisibility(age, superBal);
-        buildDebtCard(debt,savings,mSav,mI,fireNum);
-        buildHouseCard(housingStatus,debt,savings,mSav,fireNum);
-        updateFreedomTabVisibility(savings, mSav, mI, fireNum, mSp, fy, isPro);
-      }
-
-      const paf=parseInt(document.getElementById('partnerAge').value)||0,psf=parseFloat(document.getElementById('partnerSuper').value)||0;
-      if((superBal>0&&age)||(psf>0&&paf)){
-        const sc=document.getElementById('superResultCard'),st=document.getElementById('superResultText');sc.classList.add('visible');let sh='';
-        if(superBal>0&&age){const eg=mI*12/0.72,ac=eg*FP_ASSUMPTIONS.sgRate/12;if(age>=60){sh+=`<p><strong>Your super:</strong> ${fmtM(superBal)} is accessible now.</p>`;}else{const yt=60-age;let sw=superBal;const mr=0.07/12;for(let m=0;m<yt*12;m++){sw=sw*(1+mr)+ac;}sh+=`<p><strong>Your super:</strong> ${fmtM(superBal)} locked until age 60 — ${yt} year${yt!==1?'s':''} away.<br/>With employer contributions: ~<strong>${fmtM(sw)}</strong> at 60</p>`;}}
-        if(psf>0&&paf){const pac=mI*12/0.72*FP_ASSUMPTIONS.sgRate/12;if(paf>=60){sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} is accessible now.</p>`;}else{const pyt=60-paf;let pw=psf;const mr=0.07/12;for(let m=0;m<pyt*12;m++){pw=pw*(1+mr)+pac;}sh+=`<p style="margin-top:12px"><strong>Partner's super:</strong> ${fmtM(psf)} locked — ${pyt} year${pyt!==1?'s':''} away.<br/>With employer contributions: ~<strong>${fmtM(pw)}</strong> at 60</p>`;}}
-        sh+=`<br/><span style="font-size:11px;font-style:italic;opacity:0.7">Educational only — not financial advice.</span>`;st.innerHTML=sh;
-      }
-      const y07=yearsToGoal(fireNum,savings,mSav,0.07);
-      storedCalc={fireNum,savings,mSav};
-      document.getElementById('aiInsightText').innerHTML=insight.replace(/\n/g,'<br/>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
-      document.getElementById('aiLoading').classList.remove('visible');stopLoadingMessages();document.getElementById('analyseBtn').style.display='block';
-      const isRenting = housingStatus === 'renting';
-      await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||'',savings_type:savingsType||'cash',retirement_spend:retirementSpendMultiplier||1.0,dependants:dependants||0,housing_status:housingStatus||'renting',persona:persona||'building',debt_total:mDebt||0,mortgage_remaining:mMort||0});
-           buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt);
-
-      const rec = recommendArticlePro(savingsType, persona, sRate, superBal, debt, age);
-      const recCard = document.getElementById('recommendedCard');
-      const recTitle = document.getElementById('recommendedTitle');
-      const recReason = document.getElementById('recommendedReason');
-      const recBtn = document.getElementById('recommendedBtn');
-      if (recCard && recTitle && recReason && recBtn) {
-        recTitle.textContent = rec.title;
-        recReason.textContent = rec.reason;
-        const labUrl = `learning_lab.html?topic=${rec.topic}&track=${rec.track}&title=${encodeURIComponent(rec.title)}`;
-        recBtn.onclick = () => {
-          localStorage.setItem('ap_persona', persona);
-          localStorage.setItem('ap_sRate', sRate);
-          window.location.href = labUrl;
-        };
-        recCard.style.display = 'block';
-      }
-      buildNeedleCard(fireNum,savings,mSav,y07);
-      buildWhatsNextTab({
-        fireNum, savings, mSav, fy, fyear, freedomAge,
-        sRate, superBal, debt, mortgage, age,
-        isZeroSavings, alreadyFree,
-        isPro: localStorage.getItem('fp_is_pro') === 'true'
-      });
-      localStorage.setItem('fp_last_calc', JSON.stringify({fireNum: calcData.fireNum, savings: calcData.savings, mSav: calcData.mSav, sRate: calcData.sRate}));await saveProfile(); showScreen(3);await checkProStatus();
-    }catch(err){const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');stopLoadingMessages();const ab=document.getElementById('analyseBtn');if(ab)ab.style.display='block';alert('Something went wrong connecting to the AI. Please try again.');console.error(err);}
-  }
-
-    function recommendArticlePro(savingsType, persona, sRate, superBal, debt, age) {
-    if (sRate === 0) return { topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', reason: 'You\'re not saving yet — this is worth understanding before anything else.' };
-    if (persona === 'fire') return { topic: 'four-percent', track: '7', title: 'The 4% rule — where it comes from', reason: 'Worth exploring the maths behind the number that drives your whole strategy.' };
-    if (debt > 0 && superBal > 0) return { topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', reason: `With ${fmtM(debt)} in debt and ${fmtM(superBal)} in super, understanding how compounding works on both sides is worth exploring.` };
-    if (superBal > 0 && age && age < 45) return { topic: 'two-phase', track: 'foundation', title: 'Your two-phase freedom timeline', reason: `With super locked until 60, understanding how your two timelines interact is worth exploring.` };
-    if (savingsType === 'cash') return { topic: 'index-funds', track: '7', title: 'What is an index fund and why it works', reason: 'Your savings are in cash — this article explores what the alternative looks like and the questions worth thinking through.' };
-    if (savingsType === 'etfs') return { topic: 'compounding-numbers', track: '7', title: 'Compounding with your actual numbers', reason: 'You\'re already investing — this explores what happens as your portfolio grows.' };
-    if (savingsType === 'offset') return { topic: 'saving-vs-investing', track: 'foundation', title: 'The difference between saving and investing', reason: 'Your offset is working hard — worth understanding how it compares to other approaches.' };
-    if (savingsType === 'mix') return { topic: 'diversification', track: '5', title: 'What diversification actually means', reason: 'With a mix of savings types, this explores how to think about what you\'re holding and why.' };
-    return { topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', reason: 'The single most important concept behind your freedom number — worth really understanding.' };
-  }
-
-  function buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt) {
-    const el = document.getElementById('rangeCard');
-    const rows = document.getElementById('rangeRows');
-    if (!el || !rows) return;
-    if (!FP_ASSUMPTIONS || !FP_ASSUMPTIONS.bankRealReturn) return;
-    const cy = new Date().getFullYear();
-
-    const rateMap = { cash: FP_ASSUMPTIONS.bankRealReturn, etfs: 0.07, offset: 0.05, mix: 0.04 };
-    const labelMap = { cash: 'Your money in the bank', etfs: 'Your money in ETFs/shares', offset: 'Your money in offset', mix: 'Your current mix' };
-    const noteMap = {
-      cash: `(${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(1)}% real return)`,
-      etfs: '(7% real return — already invested)',
-      offset: '(~5% — saving on mortgage interest)',
-      mix: '(~4% blended estimate)'
-    };
-    const currentRate = rateMap[savingsType] || FP_ASSUMPTIONS.bankRealReturn;
-    const yReality = yearsToGoal(fireNum, savings, mSav, currentRate);
-    const fmtReality = yReality ? cy + Math.round(yReality) : '100+ yrs';
-    const fmt7 = y07 ? cy + Math.round(y07) : '100+ yrs';
-    const diffReality = yReality && y07 ? Math.round(yReality - y07) : null;
-
-    // Row 3 — Pro: spending reduction (double effect)
-    const spendReductionMonthly = 50 * 52 / 12;
-    const newFireNum = fireNum * (1 - spendReductionMonthly / (calcData.mSpend * 12));
-    const mSavPlus = mSav + spendReductionMonthly;
-    const yPlus = yearsToGoal(newFireNum, savings, mSavPlus, 0.07);
-    const fmtPlus = yPlus ? cy + Math.round(yPlus) : '100+ yrs';
-    const diffPlus = y07 && yPlus ? Math.round(y07 - yPlus) : null;
-
-    const alreadyInvested = savingsType === 'etfs';
-
-    rows.innerHTML = !alreadyInvested ? `
-      <div class="range-row">
-        <span class="range-label">😴 <strong>${labelMap[savingsType]}</strong><br/><span style="font-size:11px">${noteMap[savingsType]}</span></span>
-        <span class="range-value conservative">${fmtReality}</span>
-      </div>
-      <div class="range-row base">
-        <span class="range-label">📈 <strong>If your money was invested</strong><br/><span style="font-size:11px">(7% real return)</span></span>
-        <span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffReality}yr sooner)</span>` : ''}</span>
-      </div>
-      <div class="range-row">
-        <span class="range-label">🚀 <strong>Invested + spend $50/week less</strong><br/><span style="font-size:11px">(lowers your number AND boosts savings)</span></span>
-        <span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span>
-      </div>` : `
-      <div class="range-row base">
-        <span class="range-label">✅ <strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span>
-        <span class="range-value base">${fmt7}</span>
-      </div>
-      <div class="range-row">
-        <span class="range-label">🚀 <strong>Invested + spend $50/week less</strong><br/><span style="font-size:11px">(lowers your number AND boosts savings)</span></span>
-        <span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span>
-      </div>`;
-
-    const subtitle = el.querySelector('div:nth-child(2)');
-    if (subtitle) subtitle.textContent = alreadyInvested
-      ? "You're already investing — here's what one more lever could do."
-      : "Here's your current reality, and what changes if your money works harder.";
-
-    el.style.display = 'block';
-  }
-  
-    function buildNeedleCard(fireNum, savings, mSav, y07) {
-    const el = document.getElementById('needleCard');
-    if (!el || !y07) return;
-    const cy = new Date().getFullYear();
-    const base = cy + Math.round(y07);
-    const mI = calcData.mIncome || 0;
-
-    // Tab 1 — full levers for Pro
-    const levers = [
-      { label: 'Save an extra $50/week', mSavNew: mSav + (50 * 52 / 12) },
-      { label: 'Save an extra $100/week', mSavNew: mSav + (100 * 52 / 12) },
-      { label: 'Save an extra $200/week', mSavNew: mSav + (200 * 52 / 12) },
-      { label: 'Income up $10K/year', mSavNew: mSav + (10000 / 12) },
-      { label: 'Reduce spending by $50/week', mSavNew: mSav + (50 * 52 / 12), spendReduction: true },
-    ];
-    const leverRows = levers.map(l => {
-      const adjustedFireNum = l.spendReduction ? fireNum * (1 - (50 * 52 / 12) / (calcData.mSpend * 12)) : fireNum;
-      const y = yearsToGoal(adjustedFireNum, savings, l.mSavNew, 0.07);
-      const yr = y ? cy + Math.round(y) : null;
-      const diff = y && y07 ? Math.round(y07 - y) : 0;
-      return `<div class="needle-row">
-        <span class="needle-label">${l.label}</span>
-        <span class="needle-result better">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : '') : '100+ yrs'}</span>
-      </div>`;
-    }).join('');
-
-    // Tab 2 — full headwinds for Pro
-    const headwinds = [
-      { label: 'Spending up 15%', mult: 1.15 },
-      { label: 'Spending up 30%', mult: 1.30 },
-      { label: 'Spending up 50%', mult: 1.50 },
-            { label: 'Stop saving for 2 years', fn: () => {
-        const bal2 = savings * Math.pow(1 + 0.07/12, 24);
-        return yearsToGoal(fireNum, bal2, mSav, 0.07);
-      }},
-
-      { label: 'Returns drop to 5%', multFn: true, rate: 0.05 },
-    ];
-    const headwindRows = headwinds.map(h => {
-      let y, diff;
-      if (h.fn) {
-        y = h.fn();
-        diff = y && y07 ? Math.round(y - y07) : 0;
-      } else if (h.rate) {
-        y = yearsToGoal(fireNum, savings, mSav, h.rate);
-        diff = y && y07 ? Math.round(y - y07) : 0;
-      } else {
-        const newFireNum = fireNum * h.mult;
-        y = yearsToGoal(newFireNum, savings, mSav, 0.07);
-        diff = y && y07 ? Math.round(y - y07) : 0;
-      }
-      const yr = y ? cy + Math.round(y) : null;
-      return `<div class="needle-row">
-        <span class="needle-label">${h.label}</span>
-        <span class="needle-result worse">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : '') : '100+ yrs'}</span>
-      </div>`;
-    }).join('');
-
-    el.innerHTML = `<div class="needle-card">
-      <div style="padding:16px 16px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);">🎯 What changes your freedom date?</div>
-      <div style="padding:4px 16px 12px;font-size:13px;color:var(--soft-grey);font-weight:300;">Your base: <strong style="color:var(--warm-brown)">${base}</strong></div>
-      <div class="needle-tabs">
-        <div class="needle-tab active" onclick="switchNeedleTab('forward', this)">🚀 What moves it forward</div>
-        <div class="needle-tab" onclick="switchNeedleTab('back', this)">📉 What pushes it back</div>
-      </div>
-      <div class="needle-panel active" id="needle-forward">${leverRows}</div>
-      <div class="needle-panel" id="needle-back">${headwindRows}</div>
-    </div>`;
-  }
-
-  function switchNeedleTab(tab, btn) {
-    document.querySelectorAll('.needle-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.needle-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('needle-' + tab).classList.add('active');
-  }
-function updateFreedomTabVisibility(savings, mSav, mI, fireNum, mSp, fy, isPro) {
-  const btn = document.getElementById('freedomTabBtn');
-  if (!btn) return;
-  const age = calcData.age || 0;
-  const freedomAge = age ? Math.round(age + (fy || 0)) : null;
-  const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
-  if (isLongRoad && savings > 0) {
-    btn.style.display = 'flex';
-    buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro);
-  } else {
-    btn.style.display = 'none';
-    const el = document.getElementById('withdrawalCard');
-    if (el) el.style.display = 'none';
-  }
-}
-
-  function updateSuperTabVisibility(age, superBal) {
-  const btn = document.getElementById('superTabBtn');
-  if (!btn) return;
-  if (age > 0 && superBal > 0) {
-    btn.style.display = 'flex';
-  } else {
-    btn.style.display = 'none';
-  }
-}
   function toggleTooltip(el){el.classList.toggle('active');}
-
-function switchResultTab(tab, btn) {
-  document.querySelectorAll('.rtab-btn').forEach(b => {
-    b.style.background = 'transparent';
-    b.style.color = 'var(--soft-grey)';
-    b.style.fontWeight = '500';
-  });
-  btn.style.background = 'linear-gradient(135deg,var(--fire-orange),var(--fire-amber))';
-  btn.style.color = 'white';
-  btn.style.fontWeight = '600';
-  document.querySelectorAll('.rtab-content').forEach(p => p.style.display = 'none');
-  document.getElementById('rtab-' + tab).style.display = 'block';
-}
-
-function switchTab(tab) {
-  if (tab === 'accountability') {
-    window.location.href = 'progress.html';
+  function switchResultTab(tab, btn) {
+    document.querySelectorAll('.rtab-btn').forEach(b => { b.style.background='transparent'; b.style.color='var(--soft-grey)'; b.style.fontWeight='500'; });
+    btn.style.background='linear-gradient(135deg,var(--fire-orange),var(--fire-amber))'; btn.style.color='white'; btn.style.fontWeight='600';
+    document.querySelectorAll('.rtab-content').forEach(p => p.style.display='none');
+    document.getElementById('rtab-'+tab).style.display='block';
   }
-}
-function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {
-  const el = document.getElementById('withdrawalCard');
-  if (!el) return;
-
-  const age = calcData.age || 0;
-  const freedomAge = age ? Math.round(age + (fy || 0)) : null;
-  const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
-  if (!isLongRoad || savings <= 0) { el.style.display = 'none'; return; }
-
-  renderWithdrawalCardContent(savings, mSav, mI, fireNum, mSp, fy, isPro, null);
-}
-
-function calcLongevity(portfolioAtRetirement, annualSpend, freedomAge, pensionAnnual, hoursWorked, hourlyRate) {
-  const growthRate = 0.07 / 12;
-  const monthlySpend = annualSpend / 12;
-  const monthlyPension = pensionAnnual / 12;
-  const monthlyWorkIncome = (hoursWorked * hourlyRate * 52) / 12;
-  const pensionStartAge = 67;
-  const yearsToPension = freedomAge ? Math.max(0, pensionStartAge - freedomAge) : 999;
-
-  let portfolio = portfolioAtRetirement;
-  let months = 0;
-
-  while (portfolio > 0 && months < 1200) {
-    const pensionKicksIn = months >= yearsToPension * 12;
-    const totalIncome = monthlyWorkIncome + (pensionKicksIn ? monthlyPension : 0);
-    const drawdown = Math.max(0, monthlySpend - totalIncome);
-
-    // Portfolio grows but is drawn down by the shortfall
-    portfolio = portfolio * (1 + growthRate) - drawdown;
-    months++;
-  }
-
-  if (months >= 1200) return 9999; // genuinely lasts forever
-  return Math.round(months / 12);
-}
-
-function renderWithdrawalCardContent(savings, mSav, mI, fireNum, mSp, fy, isPro, targetRetirementAge) {
-  const el = document.getElementById('withdrawalCard');
-  if (!el) return;
-
-  const age = calcData.age || 0;
-  const freedomAge = age ? Math.round(age + (fy || 0)) : null;
-
-  // Project portfolio to target retirement age if set
-  let effectiveSavings = savings;
-  let effectiveFreedomAge = freedomAge;
-
-  if (targetRetirementAge && targetRetirementAge > age) {
-    const yearsToTarget = targetRetirementAge - age;
-    const r = 0.07 / 12;
-    let proj = savings;
-    for (let m = 0; m < yearsToTarget * 12; m++) {
-      proj = proj * (1 + r) + mSav;
-    }
-    effectiveSavings = Math.round(proj);
-    effectiveFreedomAge = targetRetirementAge;
-  }
-
-  const portfolioIncome = Math.round(effectiveSavings * 0.04);
-  const annualSpend = Math.round(mSp * 12);
-  const gap = Math.max(0, annualSpend - portfolioIncome);
-  const gapWeekly = Math.round(gap / 52);
-  const hourlyRate = Math.round((mI * 12) / 52 / 38);
-  const hoursToFillGap = hourlyRate > 0 ? Math.ceil(gapWeekly / hourlyRate) : null;
-
-  // Age Pension
-  let pensionAnnual = 0;
-  let pensionHTML = '';
-  if (typeof calculateAgePension === 'function' && effectiveSavings > 0) {
-    const pension = calculateAgePension(effectiveSavings, portfolioIncome, true, false);
-    pensionAnnual = pension.annualPension;
-    const gapAfterPension = Math.max(0, gap - pensionAnnual);
-    const gapAfterPensionWeekly = Math.round(gapAfterPension / 52);
-
-    if (pensionAnnual > 0) {
-      pensionHTML = `<div style="background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;color:#2E7D32;line-height:1.7;">
-        <div style="font-weight:700;margin-bottom:6px;">🏛️ Age Pension at 67</div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(165,214,167,0.4);font-size:12px;">
-          <span>Estimated entitlement</span>
-          <span style="font-weight:700">${fmtM(pensionAnnual)}/yr (~${fmtM(pension.weeklyPension)}/week)</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;">
-          <span>Gap after pension</span>
-          <span style="font-weight:700">${fmtM(gapAfterPension)}/yr (${fmtM(gapAfterPensionWeekly)}/week)</span>
-        </div>
-        <div style="font-size:11px;color:#2E7D32;opacity:0.8;margin-top:8px;">Based on assets test (homeowner, single). Your actual entitlement depends on your full financial picture at 67.</div>
-      </div>`;
-    } else {
-      pensionHTML = `<div style="background:var(--warm-cream);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:var(--soft-grey);line-height:1.6;">🏛️ At your asset level, Age Pension entitlement at 67 would be minimal or nil. Your portfolio is doing the heavy lifting.</div>`;
-    }
-  }
-
-  // Plain English story
-  const portfolioLabel = targetRetirementAge ? `at age ${targetRetirementAge}` : 'right now';
-  const plainEnglish = `Your savings ${portfolioLabel} would generate about <strong>${fmtM(portfolioIncome)}/year</strong> — enough to cover part of your <strong>${fmtM(annualSpend)}/year</strong> spending. That leaves a gap of <strong>${fmtM(gap)}/year</strong> to find from somewhere else.${hoursToFillGap ? ` To cover the full gap, you'd need to work roughly <strong>${hoursToFillGap} hours a week</strong> — but that might be more than you want. Use the slider below to find your number.` : ''} At 67, the Age Pension steps in and closes most of the gap automatically.`;
-
-  // Hours slider section
-  const sliderSection = isPro && hoursToFillGap ? `
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-      <div style="font-size:13px;font-weight:700;color:var(--warm-brown);margin-bottom:4px;">⏱️ How many hours a week do you want to work?</div>
-      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Drag to find the point where your money lasts.</div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <input type="range" id="hoursSlider" min="0" max="${Math.max(hoursToFillGap + 10, 40)}" value="${Math.min(16, hoursToFillGap)}" step="1"
-          style="flex:1;accent-color:var(--fire-orange);"
-          oninput="updateHoursSlider(${effectiveSavings}, ${annualSpend}, ${effectiveFreedomAge || 0}, ${pensionAnnual}, ${hourlyRate}, ${gap})"/>
-        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--fire-orange);min-width:60px;text-align:right;" id="hoursSliderVal">${Math.min(16, hoursToFillGap)} hrs</div>
-      </div>
-      <div id="hoursSliderResult" style="background:var(--warm-cream);border-radius:12px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.8;"></div>
-    </div>` : '';
-
-  // Target retirement age input
-  const targetAgeSection = isPro ? `
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-      <div style="font-size:13px;font-weight:600;color:var(--warm-brown);margin-bottom:6px;">🎯 Want to look at this differently?</div>
-      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;line-height:1.6;">What age would you like to stop working? FirePath will project your portfolio to that point and recalculate everything.</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <input type="number" id="targetRetirementAgeInput" placeholder="e.g. 55" min="${(age || 30) + 1}" max="75"
-          style="border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--warm-brown);background:white;width:110px;"
-          value="${targetRetirementAge || ''}"
-          onfocus="this.style.borderColor='var(--fire-orange)'"
-          onblur="this.style.borderColor='var(--border)'"
-        />
-        <button onclick="applyTargetRetirementAge()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Show me →</button>
-        ${targetRetirementAge ? `<button onclick="resetTargetRetirementAge()" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--soft-grey);font-family:'DM Sans',sans-serif;cursor:pointer;">Reset</button>` : ''}
-      </div>
-      ${targetRetirementAge ? `<div style="margin-top:10px;font-size:12px;color:var(--soft-grey);line-height:1.6;">Showing picture at age <strong>${targetRetirementAge}</strong> — portfolio projected to <strong>${fmtM(effectiveSavings)}</strong> by then.</div>` : ''}
-    </div>` : '';
-
-  const proDetail = isPro ? `
-    <div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px;color:var(--warm-brown);line-height:1.8;font-weight:300;">
-      ${plainEnglish}
-    </div>
-    <div style="display:flex;flex-direction:column;gap:0;margin-bottom:16px;">
-      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
-        <span style="color:var(--soft-grey)">Portfolio income (4% rule)</span>
-        <span style="font-weight:700;color:var(--fire-orange)">${fmtM(portfolioIncome)}/yr</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
-        <span style="color:var(--soft-grey)">Annual spending</span>
-        <span style="font-weight:500">${fmtM(annualSpend)}/yr</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;">
-        <span style="color:var(--soft-grey)">The gap</span>
-        <span style="font-weight:700;color:var(--warm-brown)">${fmtM(gap)}/yr (${fmtM(gapWeekly)}/week)</span>
-      </div>
-      ${hoursToFillGap !== null ? `<div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;">
-        <span style="color:var(--soft-grey)">Hours to cover full gap</span>
-        <span style="font-weight:700;color:var(--warm-brown)">~${hoursToFillGap} hrs/week</span>
-      </div>` : ''}
-    </div>
-    ${pensionHTML}
-    ${sliderSection}
-    ${targetAgeSection}`
-  : `<div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">
-      Your savings would generate <strong>${fmtM(portfolioIncome)}/year</strong>. That covers part of your spending — Pro shows the gap, how many hours you'd need to work, and when the Age Pension closes most of it.
-    </div>
-    <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div>`;
-
-  el.style.display = 'block';
-  el.innerHTML = `<div style="background:white;border:2px solid var(--warm-brown);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-    <div style="font-size:13px;font-weight:700;color:var(--warm-brown);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">💸 Your partial freedom picture</div>
-    <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:16px;">Full financial independence isn't the only version of freedom. Here's what your money is already doing — and how little you might actually need to work.</div>
-    ${proDetail}
-    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Age Pension estimate based on assets test (homeowner, single). Projections assume 7% growth. Always consider your personal circumstances.</p>
-  </div>`;
-
-  // Initialise slider result
-  if (isPro && hoursToFillGap) {
-    updateHoursSlider(effectiveSavings, annualSpend, effectiveFreedomAge || 0, pensionAnnual, hourlyRate, gap);
-  }
-}
-
-function updateHoursSlider(portfolio, annualSpend, freedomAge, pensionAnnual, hourlyRate, gap) {
-  const slider = document.getElementById('hoursSlider');
-  const valEl = document.getElementById('hoursSliderVal');
-  const resultEl = document.getElementById('hoursSliderResult');
-  if (!slider || !valEl || !resultEl) return;
-
-  const hours = parseInt(slider.value);
-  valEl.textContent = hours + ' hrs/week';
-
-  const weeklyWorkIncome = hours * hourlyRate;
-  const annualWorkIncome = weeklyWorkIncome * 52;
-  const remainingGap = Math.max(0, gap - annualWorkIncome);
-  const remainingGapWeekly = Math.round(remainingGap / 52);
-  const longevityYears = calcLongevity(portfolio, annualSpend, freedomAge, pensionAnnual, hours, hourlyRate);
-  const runsOutAge = freedomAge ? freedomAge + longevityYears : null;
-  const lastsForever = longevityYears >= 9999;
-
-  let longevityMsg = '';
-  if (lastsForever) {
-    longevityMsg = `<div style="color:#2E7D32;font-weight:500;">✅ Your portfolio never runs out at this level of work.</div>`;
-  } else if (runsOutAge && runsOutAge >= 90) {
-    longevityMsg = `<div style="color:#2E7D32;font-weight:500;">✅ Your portfolio lasts until age ${runsOutAge} — well past the 90-year benchmark.</div>`;
-  } else if (runsOutAge) {
-    longevityMsg = `<div style="color:#E65100;font-weight:500;">⚠️ Your portfolio runs out around age ${runsOutAge}. Consider working a few more hours or saving a bit more now.</div>`;
-  }
-
-  let workMsg = '';
-  if (hours === 0) {
-    workMsg = `Not working at all — your portfolio and Age Pension cover what they can.`;
-  } else if (remainingGap <= 0) {
-    workMsg = `<strong>${hours} hrs/week</strong> at ~$${hourlyRate}/hr covers the full gap. <strong>You don't need to touch your portfolio for living expenses.</strong>`;
-  } else {
-    workMsg = `<strong>${hours} hrs/week</strong> covers $${Math.round(annualWorkIncome/1000)}K/yr, leaving a gap of <strong>${fmtM(remainingGap)}/yr (${fmtM(remainingGapWeekly)}/week)</strong> still to cover.`;
-  }
-
-  resultEl.innerHTML = `
-    <div style="margin-bottom:8px;">${workMsg}</div>
-    ${longevityMsg}
-  `;
-}
-
-function applyTargetRetirementAge() {
-  const input = document.getElementById('targetRetirementAgeInput');
-  const targetAge = parseInt(input?.value) || null;
-  const age = calcData.age || 0;
-  if (!targetAge || targetAge <= age || targetAge > 80) {
-    if (input) { input.style.borderColor = '#E53935'; setTimeout(() => input.style.borderColor = 'var(--border)', 2000); }
-    return;
-  }
-  const isPro = localStorage.getItem('fp_is_pro') === 'true';
-  const fy = yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07);
-  renderWithdrawalCardContent(calcData.savings, calcData.mSav, calcData.mIncome, calcData.fireNum, calcData.mSpend, fy, isPro, targetAge);
-}
-
-function resetTargetRetirementAge() {
-  const isPro = localStorage.getItem('fp_is_pro') === 'true';
-  const fy = yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07);
-  renderWithdrawalCardContent(calcData.savings, calcData.mSav, calcData.mIncome, calcData.fireNum, calcData.mSpend, fy, isPro, null);
-}
-
-let inflationMode = 'real'; // 'real' or 'nominal'
-
-function toggleInflation() {
-  inflationMode = inflationMode === 'real' ? 'nominal' : 'real';
-  const thumb = document.getElementById('inflationThumb');
-  const toggle = document.getElementById('inflationToggle');
-  if (inflationMode === 'nominal') {
-    thumb.style.left = '22px';
-    toggle.style.background = 'rgba(255,255,255,0.5)';
-  } else {
-    thumb.style.left = '2px';
-    toggle.style.background = 'rgba(255,255,255,0.2)';
-  }
-  redrawWithInflation();
-}
-
-function redrawWithInflation() {
-  if (!calcData || !calcData.fireNum) return;
-  const { fireNum, savings, mSav, mSpend, sRate, age } = calcData;
-  const INFLATION = 0.025;
-  const NOMINAL_RATE = 0.07 + INFLATION; // 9.5%
-
-  const cy = new Date().getFullYear();
-
-  if (inflationMode === 'nominal') {
-    // Recalculate with nominal rate
-    const fy = yearsToGoal(fireNum, savings, mSav, 0.07);
-    const futureFireNum = fireNum * Math.pow(1 + INFLATION, fy || 25);
-    const freedomAge = age ? Math.round(age + (fy || 0)) : null;
-
-    document.getElementById('fireNumberOut').textContent = fmtM(futureFireNum);
-    document.getElementById('yearsOut').textContent = fy ? fmt(fy) : '100+ yrs';
-    document.getElementById('freedomAgeOut').textContent = freedomAge || '—';
-    document.getElementById('inflationNote').innerHTML = `Future dollars at 2.5% inflation. In today's purchasing power that's <strong>${fmtM(fireNum)}</strong>. <a href="assumptions.html" style="color:rgba(255,255,255,0.6);">How we calculate →</a>`;
-    document.getElementById('stat2label').innerHTML = `Freedom number <span style="font-size:10px;font-weight:300;opacity:0.7">(future $)</span>`;
-  } else {
-    // Real — restore original values
-    const fy = yearsToGoal(fireNum, savings, mSav, 0.07);
-    const freedomAge = age ? Math.round(age + (fy || 0)) : null;
-    const inflYrs = Math.round(fy || 25);
-    const futureNum = fireNum * Math.pow(1.03, inflYrs);
-
-    document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
-    document.getElementById('yearsOut').textContent = fy ? fmt(fy) : '100+ yrs';
-    document.getElementById('freedomAgeOut').textContent = freedomAge || '—';
-
-    const inflationNotes = {
-      beginner: `💡 Just so you know — prices rise over time, so in ${inflYrs} years ${fmtM(fireNum)} won't stretch as far as it does today. This is why <em>where</em> you save matters as much as <em>how much</em> you save.`,
-      building: `💡 In today's purchasing power. At 2.5% inflation over ${inflYrs} years, you'd need <strong>${fmtM(futureNum)}</strong> in future dollars — but your portfolio grows in nominal terms too.`,
-      fire: `Nominal: <strong>${fmtM(futureNum)}</strong> · Real (today's $): <strong>${fmtM(fireNum)}</strong> · Assumed inflation: 2.5% · ${inflYrs} yrs`
-    };
-    document.getElementById('inflationNote').innerHTML = inflationNotes[persona] || inflationNotes.building;
-    document.getElementById('stat2label').innerHTML = `Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span>`;
-  }
-}
-
-function buildWhatsNextTab(params) {
-  const { fireNum, savings, mSav, fy, fyear, freedomAge, sRate, superBal, debt, mortgage, age, isZeroSavings, alreadyFree, isPro } = params;
-  const el = document.getElementById('whatsNextContent');
-  if (!el) return;
-
-  const isPartner = (parseFloat(document.getElementById('partnerIncome').value) || 0) > 0;
-  const you = isPartner ? 'you two' : 'you';
-  const your = isPartner ? 'your combined' : 'your';
-  const cy = new Date().getFullYear();
-  const blocks = [];
-
-  // ── Hero status block ──
-  if (alreadyFree) {
-    blocks.push(`<div style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:2px solid #A5D6A7;border-radius:20px;padding:24px;margin-bottom:16px;">
-      <div style="font-size:28px;margin-bottom:10px;">🎉</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#2E7D32;margin-bottom:8px;line-height:1.3;">You're already there.</div>
-      <div style="font-size:14px;color:#2E7D32;font-weight:300;line-height:1.7;">Your savings already cover ${your} freedom number. The focus now shifts from building to protecting — making sure ${your} money lasts and works as hard as you did to earn it.</div>
-    </div>`);
-  } else if (isZeroSavings) {
-    blocks.push(`<div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;">
-      <div style="font-size:28px;margin-bottom:10px;">🌱</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3;">Every journey starts somewhere.</div>
-      <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;">${isPartner ? 'You two have' : 'You have'} the number now. The next step is finding even a small amount to put to work — because the earlier it starts, the harder it compounds.</div>
-    </div>`);
-  } else if (fy !== null && fy <= 10) {
-    blocks.push(`<div style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:2px solid #A5D6A7;border-radius:20px;padding:24px;margin-bottom:16px;">
-      <div style="font-size:28px;margin-bottom:10px;">🔥</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#2E7D32;margin-bottom:8px;line-height:1.3;">${fyear ? fyear + ' is close.' : 'Freedom is close.'}</div>
-      <div style="font-size:14px;color:#2E7D32;font-weight:300;line-height:1.7;">${isPartner ? 'You two are' : 'You\'re'} ${fmt(fy)} away${freedomAge ? ' — freedom age ' + freedomAge : ''}. At this stage, staying the course matters more than finding new levers. The compounding is doing the work.</div>
-    </div>`);
-  } else if (fy !== null && fy <= 20) {
-    blocks.push(`<div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;">
-      <div style="font-size:28px;margin-bottom:10px;">📈</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3;">${isPartner ? 'You two are' : 'You\'re'} building something real.</div>
-      <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;">${fmt(fy)} to freedom${freedomAge ? ' at age ' + freedomAge : ''}. ${your.charAt(0).toUpperCase() + your.slice(1)} savings rate of ${sRate}% is ${sRate >= 20 ? 'strong' : 'a solid start'} — the levers below show what moves the date.</div>
-    </div>`);
-  } else {
-    blocks.push(`<div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;">
-      <div style="font-size:28px;margin-bottom:10px;">🧭</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3;">The path is long — but it's visible now.</div>
-      <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;">${isPartner ? 'You two have' : 'You have'} ${your} number. ${fy ? fmt(fy) + ' is a long road' : 'The timeline is long'}, but knowing where ${you} stand is the thing most people never bother to find out. That's already further ahead than most.</div>
-    </div>`);
-  }
-
-  // ── Your single biggest lever ──
-  if (!alreadyFree && !isZeroSavings && fy) {
-    const extraWeekly = 50;
-    const newMSav = mSav + (extraWeekly * 52 / 12);
-    const newFy = yearsToGoal(fireNum, savings, newMSav, 0.07);
-    const diff = newFy && fy ? Math.round(fy - newFy) : null;
-
-    let leverMsg = '';
-    if (savingsType === 'cash' && savings > 0) {
-      leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} savings are in cash. The single biggest question worth exploring: what happens if that money is invested instead? The My Date tab shows the exact difference.`;
-    } else if (debt > 0) {
-      leverMsg = `${isPartner ? 'You two have' : 'You have'} ${fmtM(debt)} in debt. Once that's gone, the repayments become savings — and that changes the date.`;
-    } else if (sRate < 15) {
-      leverMsg = diff && diff > 0 ? `Saving an extra $${extraWeekly}/week could move ${your} freedom date by ${diff} year${diff !== 1 ? 's' : ''}. Small, but compounding turns small into significant.` : `${your.charAt(0).toUpperCase() + your.slice(1)} savings rate has room to grow. Even small increases compound into years of difference.`;
-    } else if (superBal > 0 && age && age < 55) {
-      leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} super is quietly compounding in the background. The Super tab shows how it connects to ${your} freedom date at 60.`;
-    } else {
-      leverMsg = diff && diff > 0 ? `An extra $${extraWeekly}/week could bring ${your} freedom date forward by ${diff} year${diff !== 1 ? 's' : ''}. The My Date tab has the full picture.` : `${your.charAt(0).toUpperCase() + your.slice(1)} plan is solid. The My Date tab shows what would move it further.`;
-    }
-
-    blocks.push(`<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:10px;">💡 Your biggest lever right now</div>
-      <div style="font-size:14px;color:var(--warm-brown);font-weight:300;line-height:1.7;">${leverMsg}</div>
-    </div>`);
-  }
-
-  // ── Action steps ──
-  const steps = [];
-
-  steps.push(`<div style="display:flex;align-items:center;gap:14px;padding:12px;background:#F0FFF4;border-radius:12px;border:1px solid #A5D6A7;">
-    <div style="font-size:20px">✅</div>
-    <div>
-      <div style="font-size:14px;font-weight:500;color:#2E7D32;">Know ${your} number</div>
-      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">${your.charAt(0).toUpperCase() + your.slice(1)} freedom number is ${fmtM(fireNum)}. That's the foundation everything else builds on.</div>
-    </div>
-  </div>`);
-
-  if (!alreadyFree) {
-    steps.push(`<div onclick="switchResultTab('needle', document.querySelector('.rtab-btn:nth-child(3)'))" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
-      <div style="font-size:20px">🎯</div>
-      <div>
-        <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">See what moves ${your} date</div>
-        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">The My Date tab shows exactly what each lever does to ${your} freedom year — in real numbers.</div>
-      </div>
-    </div>`);
-  }
-
-  if (persona === 'beginner' || persona === 'building') {
-    steps.push(`<div onclick="window.location.href='learning_lab.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
-      <div style="font-size:20px">🎓</div>
-      <div>
-        <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">${persona === 'beginner' ? 'Understand the basics' : 'Go deeper on the concepts'}</div>
-        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">${persona === 'beginner' ? 'The Learning Lab explains how this all works — in plain language, no jargon.' : 'The Learning Lab covers compounding, ETFs, super, and the 4% rule — in your language.'}</div>
-      </div>
-    </div>`);
-  }
-
-  steps.push(`<div onclick="saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;">
-    <div style="font-size:20px">🤔</div>
-    <div>
-      <div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if"</div>
-      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if ${you} sold the house? Got a lump sum? Hear Me Out lets ${you} model the big moves.</div>
-    </div>
-  </div>`);
-
-  blocks.push(`<div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;">
-    <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:14px;">${isPartner ? 'Your next steps together' : 'Your next steps'} 🔥</div>
-    <div style="display:flex;flex-direction:column;gap:10px;">${steps.join('')}</div>
-  </div>`);
-
-  // ── Super nudge if relevant ──
-  if (superBal > 0 && age && age < 60 && !alreadyFree) {
-    blocks.push(`<div onclick="switchResultTab('super', document.getElementById('superTabBtn'))"style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7;border-radius:16px;padding:20px;margin-bottom:16px;cursor:pointer;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#2E7D32;margin-bottom:8px;">🦘 Don't forget your super</div>
-      <div style="font-size:14px;color:#2E7D32;font-weight:300;line-height:1.6;">${isPartner ? 'You two have' : 'You have'} ${fmtM(superBal)} compounding in the background. The Super tab shows how it fits ${your} freedom plan at 60. →</div>
-    </div>`);
-  }
-
-  // ── Upgrade nudge for free users ──
-  if (!isPro) {
-    blocks.push(`<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;margin-bottom:16px;text-align:center;color:white;">
-      <div style="font-size:20px;margin-bottom:8px;">🔥</div>
-      <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:6px;">You're on the free plan</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.7);font-weight:300;margin-bottom:16px;line-height:1.6;">Unlock AI insights, Hear Me Out scenarios, the full My Date tab, and more.</div>
-      <div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:14px;font-weight:500;display:inline-block;">Try Pro free for 7 days</div>
-    </div>`);
-  }
-
-  el.innerHTML = blocks.join('');
-}
-  
+  function switchTab(tab) { if(tab==='accountability'){ window.location.href='progress.html'; } }
+  function switchNeedleTab(tab,btn){document.querySelectorAll('.needle-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.needle-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('needle-'+tab).classList.add('active');}
 </script>
-<style>
-.ai-loading { display:none; padding:40px 20px; text-align:center; }
-.ai-loading.visible { display:block; }
-.fp-loader { display:flex; flex-direction:column; align-items:center; gap:20px; }
-.fp-loader-flame { font-size:40px; animation:fp-flame-pulse 1.4s ease-in-out infinite; }
-@keyframes fp-flame-pulse {
-  0%,100% { transform:scale(1); opacity:1; }
-  50%     { transform:scale(1.18); opacity:0.75; }
-}
-.fp-loader-bar {
-  width:200px; height:3px;
-  background:rgba(61,43,31,0.1);
-  border-radius:4px; overflow:hidden;
-}
-.fp-loader-bar-fill {
-  height:100%; width:0%;
-  background:linear-gradient(90deg,#F4622A,#F4A24A);
-  border-radius:4px;
-  animation:fp-bar-sweep 2.8s ease-in-out infinite;
-}
-@keyframes fp-bar-sweep {
-  0%   { width:0%;  margin-left:0%; }
-  50%  { width:60%; margin-left:20%; }
-  100% { width:0%;  margin-left:100%; }
-}
-.fp-loader-msg {
-  font-size:15px; font-weight:400;
-  color:#3D2B1F;
-  font-family:'Playfair Display',serif;
-  min-height:28px;
-  opacity:0;
-  transition:opacity 0.5s ease;
-  text-align:center;
-  max-width:260px;
-  line-height:1.5;
-}
-.fp-loader-msg.visible { opacity:1; }
-</style>
 
+<!-- ── PRO ONBOARDING JS ── -->
+<script>
+let obCurrentBlock = 1;
+
+function obGoTo(n) {
+  const current = document.getElementById('ob-block-' + obCurrentBlock);
+  const next = document.getElementById('ob-block-' + n);
+  if (!current || !next) return;
+  const goingForward = n > obCurrentBlock;
+
+  current.classList.remove('active');
+  current.style.transition = 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease';
+  current.style.transform = goingForward ? 'translateX(-100%)' : 'translateX(100%)';
+  current.style.opacity = '0';
+  current.style.position = 'absolute';
+  current.style.pointerEvents = 'none';
+
+  next.style.transition = 'none';
+  next.style.transform = goingForward ? 'translateX(100%)' : 'translateX(-100%)';
+  next.style.opacity = '0';
+  next.style.position = 'absolute';
+  next.style.pointerEvents = 'none';
+
+  next.getBoundingClientRect();
+  next.style.transition = 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease';
+  next.style.transform = 'translateX(0)';
+  next.style.opacity = '1';
+  next.style.pointerEvents = 'all';
+  next.classList.add('active');
+
+  setTimeout(() => {
+    next.style.position = 'relative';
+    next.style.transition = '';
+    current.style.transform = '';
+    current.style.opacity = '';
+    current.style.position = 'absolute';
+    current.style.transition = '';
+  }, 420);
+
+  obCurrentBlock = n;
+
+  document.querySelectorAll('.ob-dot').forEach((d, i) => {
+    d.classList.toggle('active', i + 1 === n);
+  });
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function obProSelectPersona(el) {
+  document.querySelectorAll('.ob-persona').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  persona = el.dataset.persona;
+  savePersonaToDB(persona);
+  applyPersonaLabels();
+  setTimeout(() => obGoTo(2), 320);
+}
+
+function obProIncomeHint() {
+  const income = parseFloat(document.getElementById('income').value) || 0;
+  const hint = document.getElementById('ob-incomeHint');
+  const savField = document.getElementById('ob-savingsField');
+  if (income > 0) {
+    if (hint) { hint.textContent = '✓ Got it.'; hint.style.color = '#2E7D32'; }
+    if (savField) { savField.style.opacity = '1'; savField.style.pointerEvents = 'all'; }
+  } else {
+    if (hint) hint.textContent = '';
+    if (savField) { savField.style.opacity = '0.3'; savField.style.pointerEvents = 'none'; }
+    const spF = document.getElementById('ob-spendField');
+    const stF = document.getElementById('ob-savingsTypeField');
+    if (spF) { spF.style.opacity = '0.3'; spF.style.pointerEvents = 'none'; }
+    if (stF) { stF.style.opacity = '0.3'; stF.style.pointerEvents = 'none'; }
+    const nb = document.getElementById('ob-next-2');
+    if (nb) nb.disabled = true;
+  }
+}
+
+function obProSavingsHint() {
+  const spF = document.getElementById('ob-spendField');
+  const stF = document.getElementById('ob-savingsTypeField');
+  const nb = document.getElementById('ob-next-2');
+  if (spF) { spF.style.opacity = '1'; spF.style.pointerEvents = 'all'; }
+  if (stF) { stF.style.opacity = '1'; stF.style.pointerEvents = 'all'; }
+  if (nb) nb.disabled = false;
+}
+
+function obProAgeHint() {
+  const age = parseInt(document.getElementById('age').value) || 0;
+  const hint = document.getElementById('ob-ageHint');
+  if (!hint) return;
+  if (age >= 16 && age < 60) {
+    hint.textContent = `Super unlocks in ${60 - age} years — we'll build that into your plan.`;
+    hint.style.color = 'var(--fire-orange)';
+  } else if (age >= 60) {
+    hint.textContent = 'Super is already accessible for you — great position to be in.';
+    hint.style.color = '#2E7D32';
+  } else {
+    hint.textContent = '';
+  }
+}
+</script>
+
+<!-- ── LOADING MESSAGES JS ── -->
 <script>
 const FP_LOADING_MESSAGES = [
   "Reading your situation...",
@@ -1430,10 +952,7 @@ const FP_LOADING_MESSAGES = [
   "Mapping your two timelines...",
   "Almost there...",
 ];
-
-let _loadingMsgTimer = null;
-let _loadingMsgIndex = 0;
-
+let _loadingMsgTimer = null, _loadingMsgIndex = 0;
 function startLoadingMessages() {
   _loadingMsgIndex = 0;
   const el = document.getElementById('loadingText');
@@ -1450,13 +969,24 @@ function startLoadingMessages() {
     }, 500);
   }, 2800);
 }
-
 function stopLoadingMessages() {
   if (_loadingMsgTimer) { clearInterval(_loadingMsgTimer); _loadingMsgTimer = null; }
   const el = document.getElementById('loadingText');
   if (el) el.classList.remove('visible');
 }
 </script>
+
+<!-- PASTE YOUR REMAINING JS FUNCTIONS HERE:
+     loadSavedInputs, dbInsert, savePersonaToDB, loadCheckinHistory,
+     saveUserContext, loadProfile, saveProfile, analyse,
+     recommendArticlePro, buildRangeCard, buildNeedleCard,
+     updateFreedomTabVisibility, updateSuperTabVisibility,
+     buildWithdrawalCard, calcLongevity, renderWithdrawalCardContent,
+     updateHoursSlider, applyTargetRetirementAge, resetTargetRetirementAge,
+     toggleInflation, redrawWithInflation, buildWhatsNextTab,
+     buildContextTags, buildSuperTimelineCard, buildDebtCard,
+     buildHouseCard, buildZeroSavingsCard, renderMilestones
+     — all unchanged from your existing file -->
 
 </body>
 </html>
