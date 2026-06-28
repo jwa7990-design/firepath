@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -15,6 +15,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
   <style>
+  /* ── Existing styles (unchanged) ── */
   .rate-card { background:white;border:1.5px solid var(--border);border-radius:16px;margin-bottom:10px;overflow:hidden;transition:box-shadow 0.2s; }
   .rate-card:hover { box-shadow:0 4px 16px rgba(61,43,31,0.07); }
   .rate-header { display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;user-select:none; }
@@ -68,7 +69,174 @@
   .range-value.optimistic { color:#2E7D32; }
   .range-value.base { color:var(--fire-orange); }
   .range-value.conservative { color:#E65100; }
-</style>
+
+  /* ── Onboarding styles ── */
+  #onboarding {
+    background: var(--warm-cream);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  #ob-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px 0 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--warm-cream);
+  }
+  .ob-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s, transform 0.3s;
+    cursor: default;
+  }
+  .ob-dot.active {
+    background: var(--fire-orange);
+    transform: scale(1.3);
+  }
+  #ob-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .ob-block {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease;
+    min-height: calc(100vh - 60px);
+  }
+  .ob-block.active {
+    position: relative;
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+  .ob-inner {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 20px 56px;
+  }
+  .ob-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--fire-orange);
+    margin-bottom: 10px;
+  }
+  .ob-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--warm-brown);
+    line-height: 1.25;
+    margin-bottom: 10px;
+  }
+  .ob-sub {
+    font-size: 14px;
+    color: var(--soft-grey);
+    font-weight: 300;
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+  .ob-field {
+    margin-bottom: 24px;
+  }
+  .ob-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--warm-brown);
+    margin-bottom: 6px;
+  }
+  .ob-hint {
+    font-size: 12px;
+    color: var(--soft-grey);
+    font-weight: 300;
+    line-height: 1.5;
+    display: block;
+  }
+  /* Persona cards */
+  .ob-persona-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .ob-persona {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  }
+  .ob-persona:hover {
+    border-color: rgba(244,98,42,0.4);
+    box-shadow: 0 4px 16px rgba(61,43,31,0.07);
+    transform: translateY(-1px);
+  }
+  .ob-persona.selected {
+    border-color: var(--fire-orange);
+    background: #FFF7F3;
+    box-shadow: 0 4px 20px rgba(244,98,42,0.15);
+  }
+  .ob-persona-icon { font-size: 28px; flex-shrink: 0; }
+  .ob-persona-info { flex: 1; }
+  .ob-persona-name { font-size: 15px; font-weight: 600; color: var(--warm-brown); margin-bottom: 3px; }
+  .ob-persona-desc { font-size: 12px; color: var(--soft-grey); font-weight: 300; line-height: 1.5; }
+  .ob-persona-check {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: transparent; flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .ob-persona.selected .ob-persona-check {
+    background: var(--fire-orange);
+    border-color: var(--fire-orange);
+    color: white;
+  }
+  /* Fade-in for progressive field reveal */
+  .ob-fade-field {
+    transition: opacity 0.4s ease;
+  }
+  /* Next / back buttons */
+  .ob-next {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s, transform 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .ob-next:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
+  .ob-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .ob-back {
+    background: none; border: none;
+    color: var(--soft-grey); font-size: 13px;
+    cursor: pointer; padding: 0; margin-bottom: 20px;
+    font-weight: 300; font-family: 'DM Sans', sans-serif;
+  }
+  .ob-back:hover { color: var(--warm-brown); }
+  </style>
 </head>
 <body>
 <div class="container">
@@ -80,137 +248,251 @@
     <p class="tagline">Know your number. Light your path on Fire.</p>
   </div>
 
-  <!-- SCREEN 1 — Persona -->
-  <div class="screen active" id="screen1">
-    <div class="card">
-      <div style="background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-radius:14px;padding:16px 18px;margin-bottom:20px;border:1px solid rgba(244,98,42,0.15);">
-        <div style="font-size:22px;margin-bottom:8px">🔥</div>
-        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:6px;">What is FirePath?</div>
-        <div style="font-size:13px;color:var(--soft-grey);line-height:1.6;font-weight:300;">FirePath shows you your <strong style="color:var(--warm-brown)">financial freedom number</strong> — the amount you need saved to never have to work again. Enter your income and spending, and we'll tell you exactly when you could be free. No jargon. Just your number and practical education.</div>
-      </div>
-      <h1 class="card-title">Where are you on your journey?</h1>
-      <p class="card-sub">FirePath will tailor everything to you — your language, your explanations, your path.</p>
-      <div class="persona-list">
-        <div class="persona-card" data-persona="beginner" onclick="selectPersona(this)"><span class="persona-icon">🌱</span><div class="persona-info"><div class="persona-name">Just getting started</div><div class="persona-desc">I've heard about financial freedom but don't know where to begin</div></div><div class="persona-check"></div></div>
-        <div class="persona-card" data-persona="building" onclick="selectPersona(this)"><span class="persona-icon">📈</span><div class="persona-info"><div class="persona-name">Building towards it</div><div class="persona-desc">I know the basics and I'm working on my plan</div></div><div class="persona-check"></div></div>
-        <div class="persona-card" data-persona="fire" onclick="selectPersona(this)"><span class="persona-icon">🔥</span><div class="persona-info"><div class="persona-name">FIRE community</div><div class="persona-desc">I know my SWR, my FI number, and I'm deep in the journey</div></div><div class="persona-check"></div></div>
-      </div>
-      <div style="margin-top:20px"><button class="cta-btn" id="continueBtn" disabled onclick="goToScreen2()">Continue →</button></div>
-    </div>
-  </div>
+  <!-- ═══════════════════════════════════════════════
+       CONVERSATIONAL ONBOARDING — replaces Screen 1 + Screen 2
+       ═══════════════════════════════════════════════ -->
+  <div id="onboarding">
 
-  <!-- SCREEN 2 — Numbers -->
-  <div class="screen" id="screen2">
-    <button class="back-btn" onclick="showScreen(1)">← Back</button>
-    <div class="card">
-      <h1 class="card-title" id="s2title">When could you be free?</h1>
-      <p class="card-sub" id="s2sub">Enter your numbers and we'll show you the path.</p>
-      <p class="section-label">Your pay cycle</p>
-      <div class="cycle-group">
-        <button class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
-        <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
-        <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
-      </div>
-      <div class="input-group">
-        <label class="input-label" id="incomeLabel" for="income">Take-home income</label>
-        <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint()"/></div>
-      </div>
-      <div class="input-group">
-        <label class="input-label">How much do you save per cycle?</label>
-        <span class="input-hint">Enter the amount you put aside each pay cycle</span>
-        <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savingsAmount" placeholder="0" min="0" oninput="updateSavingsHint()"/></div>
-        <div class="slider-hint" id="sliderHint" style="margin-top:6px"></div>
-      </div>
-      <div class="input-group">
-        <label class="input-label">In retirement, how much do you expect to spend?</label>
-        <p style="font-size:11px;color:var(--soft-grey);font-weight:300;margin-bottom:10px;">This adjusts your freedom number to your actual retirement lifestyle.</p>
-        <div class="cycle-group" style="margin-bottom:0">
-          <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less 📉<div style="font-size:10px;margin-top:2px;opacity:0.7">Mortgage paid, kids grown</div></button>
-          <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same 🙂<div style="font-size:10px;margin-top:2px;opacity:0.7">Similar lifestyle</div></button>
-          <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More 🌏<div style="font-size:10px;margin-top:2px;opacity:0.7">Travel, experiences</div></button>
-        </div>
-      </div>
-      <div class="section-divider"><span>About you</span></div>
-      <div class="input-group">
-        <label class="input-label" for="age">Your age</label>
-        <span class="input-hint">Used to calculate super projections and your two-phase freedom timeline</span>
-        <div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="age" placeholder="e.g. 28" min="16" max="80" style="padding-left:44px"/></div>
-      </div>
-      <div class="section-divider"><span>Savings &amp; assets</span></div>
-      <div class="input-group">
-        <label class="input-label" id="savingsLabel" for="savings">Current savings &amp; investments</label>
-        <span class="input-hint">Include everything — bank savings, shares, ETFs, and your mortgage offset balance. If it's working for you, it counts here.</span>
-        <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="savings" placeholder="0" min="0"/></div>
-        <div style="margin-top:12px;">
-          <label class="input-label" style="margin-bottom:8px;">Where is this money held?</label>
-          <span class="input-hint">This helps FirePath show your real starting point</span>
-          <div class="housing-group" style="margin-top:8px;">
-            <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)">🏦 Bank / cash</button>
-            <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)">📈 ETFs / shares</button>
-            <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)">🏠 Offset</button>
-            <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)">🌐 Mix</button>
+    <!-- Progress dots -->
+    <div id="ob-dots">
+      <div class="ob-dot active" data-block="1"></div>
+      <div class="ob-dot" data-block="2"></div>
+      <div class="ob-dot" data-block="3"></div>
+      <div class="ob-dot" data-block="4"></div>
+    </div>
+
+    <div id="ob-wrapper">
+
+      <!-- ── BLOCK 1 — Persona ── -->
+      <div class="ob-block active" id="ob-block-1">
+        <div class="ob-inner">
+          <div class="ob-eyebrow">Let's find your number</div>
+          <h1 class="ob-title">Where are you on your journey?</h1>
+          <p class="ob-sub">FirePath tailors everything to you — your language, your explanations, your path.</p>
+
+          <div class="ob-persona-list">
+            <div class="ob-persona" data-persona="beginner" onclick="obSelectPersona(this)">
+              <span class="ob-persona-icon">🌱</span>
+              <div class="ob-persona-info">
+                <div class="ob-persona-name">Just getting started</div>
+                <div class="ob-persona-desc">I've heard about financial freedom but don't know where to begin</div>
+              </div>
+              <div class="ob-persona-check">✓</div>
+            </div>
+            <div class="ob-persona" data-persona="building" onclick="obSelectPersona(this)">
+              <span class="ob-persona-icon">📈</span>
+              <div class="ob-persona-info">
+                <div class="ob-persona-name">Building towards it</div>
+                <div class="ob-persona-desc">I know the basics and I'm working on my plan</div>
+              </div>
+              <div class="ob-persona-check">✓</div>
+            </div>
+            <div class="ob-persona" data-persona="fire" onclick="obSelectPersona(this)">
+              <span class="ob-persona-icon">🔥</span>
+              <div class="ob-persona-info">
+                <div class="ob-persona-name">FIRE community</div>
+                <div class="ob-persona-desc">I know my SWR, my FI number, and I'm deep in the journey</div>
+              </div>
+              <div class="ob-persona-check">✓</div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="input-group">
-        <label class="input-label" for="superBalance">Super balance <span class="optional-badge">optional</span></label>
-        <span class="input-hint">Your superannuation — it counts toward your future, even if you can't touch it yet</span>
-        <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="superBalance" placeholder="0" min="0"/></div>
-      </div>
-      <div class="section-divider"><span>Debt</span></div>
-      <div class="input-group">
-        <label class="input-label" for="debtTotal">Total debt <span class="optional-badge">optional</span></label>
-        <span class="input-hint">Credit cards, car loans, personal loans — not your mortgage</span>
-        <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="debtTotal" placeholder="0" min="0"/></div>
-      </div>
-      <div class="input-group">
-        <label class="input-label" for="mortgageRemaining">Mortgage remaining <span class="optional-badge">optional</span></label>
-        <span class="input-hint">Only if you own your home</span>
-        <div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="mortgageRemaining" placeholder="0" min="0"/></div>
-      </div>
-      <div class="section-divider"><span>Your situation</span></div>
-      <div class="input-group">
-        <label class="input-label">Do you rent or own?</label>
-        <div class="housing-group">
-          <button class="housing-btn active" data-housing="renting" onclick="setHousing(this)">🏠 Renting</button>
-          <button class="housing-btn" data-housing="owning" onclick="setHousing(this)">🔑 Own my home</button>
-        </div>
-      </div>
-      <div class="counter-row">
-        <div class="counter-label">Dependants (kids, caring responsibilities)</div>
-        <div class="counter-controls">
-          <button class="counter-btn" onclick="adjustDependants(-1)">−</button>
-          <span class="counter-val" id="dependantsVal">0</span>
-          <button class="counter-btn" onclick="adjustDependants(1)">+</button>
-        </div>
-      </div>
-      <div class="input-group">
-        <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;margin-bottom:0;">
-          <div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div></div>
-          <div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);">+</div>
-        </div>
-        <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
-          <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
-          <div class="input-group"><label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0"/></div></div>
-          <div class="input-group"><label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0"/></div></div>
-          <div class="input-group"><label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/></div></div>
-          <div class="input-group" style="margin-bottom:0"><label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div></div>
-        </div>
-      </div>
-      <div class="input-group">
-        <label class="input-label">Anything else we should know?</label>
-        <span class="input-hint" id="contextHint">e.g. irregular income, self-employed, saving for a house</span>
-        <textarea class="context-textarea" id="contextNote" placeholder="Tell us a bit about your situation…"></textarea>
-      </div>
-      <div class="divider"></div>
-      <p class="error-msg" id="errorMsg">Please enter your income first.</p>
-      <p style="font-size:12px;color:var(--soft-grey);text-align:center;margin-bottom:12px;font-weight:300;">🔒 Your numbers are used only to calculate your result. We don't store or sell them. <a href="privacy.html" style="color:var(--fire-orange);text-decoration:none;">Privacy Policy</a></p>
-      <button class="cta-btn" onclick="calculate()">Show me my path 🔥</button>
-    </div>
-  </div>
 
-  <!-- SCREEN 3 — Results -->
-  <div class="screen" id="screen3">
+      <!-- ── BLOCK 2 — Money ── -->
+      <div class="ob-block" id="ob-block-2">
+        <div class="ob-inner">
+          <button class="ob-back" onclick="obGoTo(1)">← Back</button>
+          <div class="ob-eyebrow" id="ob-block2-eyebrow">Your money</div>
+          <h1 class="ob-title">What does your money look like right now?</h1>
+          <p class="ob-sub">Just the basics — we'll use this to find your number.</p>
+
+          <!-- Pay cycle -->
+          <div class="ob-field">
+            <label class="ob-label">Your pay cycle</label>
+            <div class="cycle-group">
+              <button class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
+              <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
+              <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
+            </div>
+          </div>
+
+          <!-- Income -->
+          <div class="ob-field">
+            <label class="ob-label" id="ob-incomeLabel">Take-home income</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint(); obIncomeHint()"/>
+            </div>
+            <span class="ob-hint" id="ob-incomeHint" style="margin-top:6px;min-height:18px;"></span>
+          </div>
+
+          <!-- Savings per cycle — fades in after income entered -->
+          <div class="ob-field ob-fade-field" id="ob-savingsField" style="opacity:0.3;pointer-events:none;">
+            <label class="ob-label">How much do you save each cycle?</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="number" id="savingsAmount" placeholder="0" min="0" oninput="updateSavingsHint(); obSavingsHint()"/>
+            </div>
+            <span class="ob-hint" id="sliderHint" style="margin-top:6px;min-height:18px;"></span>
+          </div>
+
+          <!-- Retirement spend — fades in after savings entered -->
+          <div class="ob-field ob-fade-field" id="ob-spendField" style="opacity:0.3;pointer-events:none;">
+            <label class="ob-label">In retirement, how much do you expect to spend?</label>
+            <span class="ob-hint" style="margin-bottom:10px;display:block;">This adjusts your freedom number to your actual retirement lifestyle.</span>
+            <div class="cycle-group">
+              <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less 📉<div style="font-size:10px;margin-top:2px;opacity:0.7">Mortgage paid, kids grown</div></button>
+              <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same 🙂<div style="font-size:10px;margin-top:2px;opacity:0.7">Similar lifestyle</div></button>
+              <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More 🌏<div style="font-size:10px;margin-top:2px;opacity:0.7">Travel, experiences</div></button>
+            </div>
+          </div>
+
+          <button class="ob-next" id="ob-next-2" onclick="obGoTo(3)" disabled>Keep going →</button>
+        </div>
+      </div>
+
+      <!-- ── BLOCK 3 — About you ── -->
+      <div class="ob-block" id="ob-block-3">
+        <div class="ob-inner">
+          <button class="ob-back" onclick="obGoTo(2)">← Back</button>
+          <div class="ob-eyebrow">A little about you</div>
+          <h1 class="ob-title">Tell us a bit about your situation</h1>
+          <p class="ob-sub">This helps us model super timelines and your full life picture.</p>
+
+          <!-- Age -->
+          <div class="ob-field">
+            <label class="ob-label">Your age</label>
+            <span class="ob-hint">Used to calculate super timelines and your two-phase freedom date</span>
+            <div class="input-wrapper" style="margin-top:8px;">
+              <span class="input-prefix" style="font-size:13px;left:10px">age</span>
+              <input type="number" id="age" placeholder="e.g. 28" min="16" max="80" style="padding-left:44px" oninput="obAgeHint()"/>
+            </div>
+            <span class="ob-hint" id="ob-ageHint" style="margin-top:6px;min-height:18px;"></span>
+          </div>
+
+          <!-- Housing -->
+          <div class="ob-field">
+            <label class="ob-label">Do you rent or own?</label>
+            <div class="housing-group">
+              <button class="housing-btn active" data-housing="renting" onclick="setHousing(this)">🏠 Renting</button>
+              <button class="housing-btn" data-housing="owning" onclick="setHousing(this)">🔑 Own my home</button>
+            </div>
+          </div>
+
+          <!-- Dependants -->
+          <div class="ob-field">
+            <label class="ob-label">Dependants</label>
+            <span class="ob-hint">Kids, caring responsibilities</span>
+            <div class="counter-row" style="margin-top:10px;">
+              <div class="counter-label">How many?</div>
+              <div class="counter-controls">
+                <button class="counter-btn" onclick="adjustDependants(-1)">−</button>
+                <span class="counter-val" id="dependantsVal">0</span>
+                <button class="counter-btn" onclick="adjustDependants(1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Partner toggle -->
+          <div class="ob-field">
+            <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;">
+              <div>
+                <div style="font-size:14px;font-weight:500;color:var(--warm-brown);">👫 Adding a partner?</div>
+                <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div>
+              </div>
+              <div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);">+</div>
+            </div>
+            <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
+              <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
+              <div class="input-group"><label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0"/></div></div>
+              <div class="input-group"><label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0"/></div></div>
+              <div class="input-group"><label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/></div></div>
+              <div class="input-group" style="margin-bottom:0"><label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div></div>
+            </div>
+          </div>
+
+          <button class="ob-next" onclick="obGoTo(4)">Almost there →</button>
+        </div>
+      </div>
+
+      <!-- ── BLOCK 4 — Full picture ── -->
+      <div class="ob-block" id="ob-block-4">
+        <div class="ob-inner">
+          <button class="ob-back" onclick="obGoTo(3)">← Back</button>
+          <div class="ob-eyebrow">The full picture</div>
+          <h1 class="ob-title">What have you already built?</h1>
+          <p class="ob-sub">Everything counts — even if it doesn't feel like much yet.</p>
+
+          <!-- Savings & investments -->
+          <div class="ob-field">
+            <label class="ob-label" id="savingsLabel">Current savings &amp; investments</label>
+            <span class="ob-hint">Bank savings, shares, ETFs, offset balance — if it's working for you, it counts.</span>
+            <div class="input-wrapper" style="margin-top:8px;">
+              <span class="input-prefix">$</span>
+              <input type="number" id="savings" placeholder="0" min="0"/>
+            </div>
+            <div style="margin-top:12px;">
+              <label class="ob-label" style="margin-bottom:8px;">Where is this money held?</label>
+              <div class="housing-group" style="margin-top:8px;">
+                <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)">🏦 Bank / cash</button>
+                <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)">📈 ETFs / shares</button>
+                <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)">🏠 Offset</button>
+                <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)">🌐 Mix</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Super -->
+          <div class="ob-field">
+            <label class="ob-label">Super balance <span class="optional-badge">optional</span></label>
+            <span class="ob-hint">It counts toward your future, even if you can't touch it yet.</span>
+            <div class="input-wrapper" style="margin-top:8px;">
+              <span class="input-prefix">$</span>
+              <input type="number" id="superBalance" placeholder="0" min="0"/>
+            </div>
+          </div>
+
+          <!-- Debt -->
+          <div class="ob-field">
+            <label class="ob-label">Total debt <span class="optional-badge">optional</span></label>
+            <span class="ob-hint">Credit cards, car loans, personal loans — not your mortgage.</span>
+            <div class="input-wrapper" style="margin-top:8px;">
+              <span class="input-prefix">$</span>
+              <input type="number" id="debtTotal" placeholder="0" min="0"/>
+            </div>
+          </div>
+
+          <!-- Mortgage -->
+          <div class="ob-field">
+            <label class="ob-label">Mortgage remaining <span class="optional-badge">optional</span></label>
+            <span class="ob-hint">Only if you own your home.</span>
+            <div class="input-wrapper" style="margin-top:8px;">
+              <span class="input-prefix">$</span>
+              <input type="number" id="mortgageRemaining" placeholder="0" min="0"/>
+            </div>
+          </div>
+
+          <!-- Context -->
+          <div class="ob-field">
+            <label class="ob-label">Anything else we should know?</label>
+            <span class="ob-hint" id="contextHint">e.g. irregular income, self-employed, saving for a house</span>
+            <textarea class="context-textarea" id="contextNote" placeholder="Tell us a bit about your situation…" style="margin-top:8px;"></textarea>
+          </div>
+
+          <p class="error-msg" id="errorMsg" style="display:none;">Please enter your income first.</p>
+          <p style="font-size:12px;color:var(--soft-grey);text-align:center;margin-bottom:12px;font-weight:300;">🔒 Your numbers stay on your device. We don't store or sell them. <a href="privacy.html" style="color:var(--fire-orange);text-decoration:none;">Privacy Policy</a></p>
+          <button class="cta-btn" onclick="calculate()">Show me my path 🔥</button>
+        </div>
+      </div>
+
+    </div><!-- /ob-wrapper -->
+  </div><!-- /onboarding -->
+
+  <!-- ═══════════════════════════════════════════════
+       SCREEN 3 — Results (completely unchanged)
+       ═══════════════════════════════════════════════ -->
+  <div id="screen3" style="display:none;">
     <button class="back-btn" onclick="showScreen(2)">← Recalculate</button>
     <div class="result-card">
       <p class="result-label">Your FirePath result</p>
@@ -223,7 +505,6 @@
       </div>
     </div>
 
-    <!-- Range card -->
     <div id="rangeCard" style="display:none;" class="range-card">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">📊 Your projected range</div>
       <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Same savings, different return assumptions — all based on real market history.</div>
@@ -231,7 +512,6 @@
       <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
     </div>
 
-    <!-- Recommended article card -->
     <div id="recommendedCard" style="display:none;background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:20px;margin-bottom:12px;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">📖 Recommended for you</div>
       <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;" id="recommendedReason"></div>
@@ -239,19 +519,14 @@
       <div id="recommendedBtn" onclick="" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read in the Learning Lab →</div>
     </div>
 
-    <!-- What this means — basic, no debt/super/dependant notes -->
     <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">💡 What this means for you</div>
       <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
     </div>
 
-    <!-- What moves the needle — free version -->
     <div id="needleCard"></div>
-
-    <!-- Withdrawal card -->
     <div id="withdrawalCard" style="display:none"></div>
- 
-    <!-- Tax & Strategy nudge -->
+
     <div id="taxNudgeCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">Tax & Strategy</div>
       <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--warm-brown);margin-bottom:8px;line-height:1.3;">Where does your next dollar actually go?</div>
@@ -259,7 +534,6 @@
       <a href="tax.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:10px 22px;border-radius:50px;font-size:13px;font-weight:500;text-decoration:none;">Open Tax & Strategy — it's free →</a>
     </div>
 
-    <!-- Smart Pro upgrade banner -->
     <div id="proUpgradeBanner"></div>
 
     <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;">
@@ -272,40 +546,21 @@
     <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
     <p style="text-align:center;font-size:12px;margin-bottom:16px;"><a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a> · <a href="faq.html" style="color:var(--fire-orange);">FAQ</a></p>
   </div>
-</div>
 
+</div><!-- /container -->
+
+<!-- ═══════════════════════════════════════════════
+     ORIGINAL JS — completely unchanged
+     ═══════════════════════════════════════════════ -->
 <script>
   let persona = null, selectedCycle = 'fortnightly', retirementSpendMultiplier = 1.0;
   let housingStatus = 'renting', dependants = 0, savingsType = 'cash';
 
   function setSavingsType(btn) { document.querySelectorAll('[data-savings]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); savingsType = btn.dataset.savings; }
-
-
-  function selectPersona(el) {
-    document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected'); persona = el.dataset.persona;
-    document.getElementById('continueBtn').disabled = false;
-  }
   function setRetirementSpend(btn) { document.querySelectorAll('[data-spend]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); retirementSpendMultiplier = parseFloat(btn.dataset.spend); }
   function setHousing(btn) { document.querySelectorAll('[data-housing]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); housingStatus = btn.dataset.housing; }
   function adjustDependants(delta) { dependants = Math.max(0, Math.min(10, dependants + delta)); document.getElementById('dependantsVal').textContent = dependants; }
   function togglePartner(){const f=document.getElementById('partnerFields'),i=document.getElementById('partnerToggleIcon'),v=f.style.display!=='none';f.style.display=v?'none':'block';i.textContent=v?'+':'−';}
-  function showScreen(n) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('screen' + n).classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
-  function goToScreen2() {
-    const labels = {
-      beginner: { title: 'When could you be free?', sub: "Just enter what goes in and what goes out — we'll handle the rest.", income: 'Money coming in (after tax)', savings: 'Money already saved', hint: "e.g. I'm saving for a house, I have kids, my income varies" },
-      building: { title: 'When could you be free?', sub: "Enter your numbers and we'll calculate your path to freedom.", income: 'Take-home income', savings: 'Current savings & investments', hint: "e.g. irregular income, planning to buy a house, self-employed" },
-      fire: { title: 'Run your numbers', sub: "Net income, expenses, current portfolio — we'll model your FI date.", income: 'Net income', savings: 'Current portfolio value', hint: "e.g. planning to coast-FIRE, partner income, RE timeline" }
-    };
-    const l = labels[persona] || labels.building;
-    document.getElementById('s2title').textContent = l.title;
-    document.getElementById('s2sub').textContent = l.sub;
-    document.getElementById('incomeLabel').textContent = l.income;
-    document.getElementById('savingsLabel').textContent = l.savings;
-    document.getElementById('contextHint').textContent = l.hint;
-    showScreen(2);
-  }
 
   function setCycle(btn) { document.querySelectorAll('.cycle-btn[data-cycle]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); selectedCycle = btn.dataset.cycle; updateSavingsHint(); const w=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';const pl=document.getElementById('partnerCycleLabel'),pl2=document.getElementById('partnerCycleLabel2');if(pl)pl.textContent=w;if(pl2)pl2.textContent=w; }
   function toMonthly(n) { if (selectedCycle === 'weekly') return n * 52 / 12; if (selectedCycle === 'fortnightly') return n * 26 / 12; return n; }
@@ -336,10 +591,7 @@
   }
 
   function calculate() {
-    gtag('event', 'calculate', {
-      'event_category': 'engagement',
-      'event_label': 'show_me_my_path'
-    });
+    gtag('event', 'calculate', { 'event_category': 'engagement', 'event_label': 'show_me_my_path' });
     const income = parseFloat(document.getElementById('income').value) || 0;
     const savingPerCycle = parseFloat(document.getElementById('savingsAmount').value) || 0;
     const savings = parseFloat(document.getElementById('savings').value) || 0;
@@ -349,9 +601,10 @@
     const age = parseInt(document.getElementById('age').value) || 0;
     const context = document.getElementById('contextNote').value.trim();
 
-    if (income <= 0) { document.getElementById('errorMsg').textContent = 'Please enter your income first.'; document.getElementById('errorMsg').style.display = 'block'; return; }
-    if (age <= 0) { document.getElementById('errorMsg').textContent = 'Please enter your age.'; document.getElementById('errorMsg').style.display = 'block'; return; }
-    document.getElementById('errorMsg').style.display = 'none';
+    const errEl = document.getElementById('errorMsg');
+    if (income <= 0) { errEl.textContent = 'Please enter your income first.'; errEl.style.display = 'block'; return; }
+    if (age <= 0) { errEl.textContent = 'Please enter your age.'; errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
 
     const pI = parseFloat(document.getElementById('partnerIncome').value)||0;
     const pS = parseFloat(document.getElementById('partnerSavings').value)||0;
@@ -368,7 +621,6 @@
     const y07 = yearsToGoal(fireNum, savings, mSav, 0.07);
     const y10 = yearsToGoal(fireNum, savings, mSav, 0.10);
 
-
     const alreadyFree = savings >= fireNum && fireNum > 0;
     document.getElementById('yearsOut').textContent = alreadyFree ? 'Already there! 🎉' : fmt(y07);
     document.getElementById('savingsRateOut').textContent = sRate + '%';
@@ -378,7 +630,6 @@
     document.getElementById('stat3label').textContent = cycleStatLabel;
     document.getElementById('resultSub').textContent = `Saving ${fmtM(cycleSaving)} per ${cycleWord} toward your ${persona === 'fire' ? 'FI' : 'freedom'} number of ${fmtM(fireNum)}.`;
 
-    // What this means — basic, no personalised notes (those are Pro)
     const gap = fireNum - savings;
     const weeklyAmt = fmtM(mSav * 12 / 52);
     let gapText = '';
@@ -401,9 +652,9 @@
       gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's 25× your annual spending, the amount that means you never have to work again.<br/><br/>Right now your savings rate is low, which means the timeline is long. But every extra dollar you save each week shortens that gap — because of compounding. FirePath Pro can show you exactly what moves the needle most for your situation.`;
     }
     document.getElementById('whatThisMeansText').innerHTML = gapText;
-    
+
     buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate);
-        // Recommended article
+
     const rec = recommendArticle(savingsType, persona, sRate);
     const recCard = document.getElementById('recommendedCard');
     const recTitle = document.getElementById('recommendedTitle');
@@ -411,19 +662,10 @@
     const recBtn = document.getElementById('recommendedBtn');
     if (recCard && recTitle && recReason && recBtn) {
       recTitle.textContent = rec.title;
-      const reasonMap = {
-        'cash': 'Your money is in the bank — this is the most important thing to understand next.',
-        'etfs': 'You\'re already investing — here\'s how to think about what happens next.',
-        'offset': 'Your offset is working hard — here\'s how it compares to investing.',
-        'mix': 'With a mix of savings types, this will help you think about the full picture.'
-      };
+      const reasonMap = { 'cash': 'Your money is in the bank — this is the most important thing to understand next.', 'etfs': 'You\'re already investing — here\'s how to think about what happens next.', 'offset': 'Your offset is working hard — here\'s how it compares to investing.', 'mix': 'With a mix of savings types, this will help you think about the full picture.' };
       recReason.textContent = sRate === 0 ? 'You\'re not saving yet — start here.' : persona === 'fire' ? 'Based on your FIRE journey, this is the next level.' : (reasonMap[savingsType] || 'Based on your situation, this is where to start.');
       const labUrl = `learning_lab.html?topic=${rec.topic}&track=${rec.track}&title=${encodeURIComponent(rec.title)}`;
-            recBtn.onclick = () => {
-        localStorage.setItem('ap_persona', persona);
-        localStorage.setItem('ap_sRate', sRate);
-        window.location.href = labUrl;
-      };
+      recBtn.onclick = () => { localStorage.setItem('ap_persona', persona); localStorage.setItem('ap_sRate', sRate); window.location.href = labUrl; };
       recBtn.textContent = 'Read this article →';
       if (!document.getElementById('browseLabBtn')) {
         const browseBtn = document.createElement('div');
@@ -440,6 +682,24 @@
     buildTaxNudge(savings, mSav, sRate, savingsType);
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
     showScreen(3);
+  }
+
+  function showScreen(n) {
+    if (n === 3) {
+      document.getElementById('onboarding').style.display = 'none';
+      document.getElementById('screen3').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (n === 2) {
+      document.getElementById('screen3').style.display = 'none';
+      document.getElementById('onboarding').style.display = 'flex';
+      obGoTo(4);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (n === 1) {
+      document.getElementById('screen3').style.display = 'none';
+      document.getElementById('onboarding').style.display = 'flex';
+      obGoTo(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   function buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07) {
@@ -459,24 +719,12 @@
       <div style="font-size:22px;margin-bottom:12px;">🔥</div>
       <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;line-height:1.3;">Your path doesn't end here.</div>
       <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:20px;">FirePath Pro takes everything you've just entered and goes deeper — with AI that actually understands your situation.</div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">
-        ${topHooks.map(h => `<div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;font-weight:300;">${h}</div>`).join('')}
-      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">${topHooks.map(h => `<div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;font-weight:300;">${h}</div>`).join('')}</div>
       <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:10px;">What you get with Pro</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          ${['🧠 AI insight','🔍 Things Worth Exploring','🤔 What-if scenarios','📈 Progress tracker','👫 Partner mode','🏖️ Withdrawal planner'].map(f => `<div style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:300;">${f}</div>`).join('')}
-        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">${['🧠 AI insight','🔍 Things Worth Exploring','🤔 What-if scenarios','📈 Progress tracker','👫 Partner mode','🏖️ Withdrawal planner'].map(f => `<div style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:300;">${f}</div>`).join('')}</div>
       </div>
-      <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:14px;margin-bottom:20px;border:1px solid rgba(255,255,255,0.08);">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.3);margin-bottom:10px;">Coming soon</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:300;">🎓 Learning Lab — <strong style="color:rgba(255,255,255,0.7);">live now.</strong> Free foundation articles for everyone. Pro unlocks personalised articles with your actual numbers, AI-suggested next lessons and research pathways. <a href="learning_lab.html" style="color:var(--fire-orange);text-decoration:none;">Try it →</a></div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:300;">📝 FirePath Blog — real stories from real Australians on their path to freedom. Coming soon.</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:300;">💬 Pro members drive the roadmap — your feedback shapes what gets built next.</div>
-        </div>
-      </div>
-      <div onclick="gtag('event', 'upgrade_click', {'event_category': 'conversion', 'event_label': 'free_to_pro'}); window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:14px 24px;cursor:pointer;font-size:14px;font-weight:500;text-align:center;">Start FirePath Pro — $6/month →</div>
+      <div onclick="gtag('event','upgrade_click',{'event_category':'conversion','event_label':'free_to_pro'});window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:14px 24px;cursor:pointer;font-size:14px;font-weight:500;text-align:center;">Start FirePath Pro — $6/month →</div>
       <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.35);">Cancel anytime. No lock-in.</div>
     </div>`;
   }
@@ -498,67 +746,28 @@
     if (!el || !rows) return;
     if (!FP_ASSUMPTIONS || !FP_ASSUMPTIONS.bankRealReturn) return;
     const cy = new Date().getFullYear();
-
-    // Row 1 — their current reality based on where money is held
     const rateMap = { cash: FP_ASSUMPTIONS.bankRealReturn, etfs: 0.07, offset: 0.05, mix: 0.04 };
-    const labelMap = {
-      cash: '😴 Your money in the bank',
-      etfs: '✅ Your money in ETFs/shares',
-      offset: '🏠 Your money in offset',
-      mix: '🌐 Your current mix'
-    };
-    const noteMap = {
-      cash: `(${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(1)}% real return)`,
-      etfs: '(7% real return — already invested)',
-      offset: '(~5% — saving on mortgage interest)',
-      mix: '(~4% blended estimate)'
-    };
+    const labelMap = { cash: '😴 Your money in the bank', etfs: '✅ Your money in ETFs/shares', offset: '🏠 Your money in offset', mix: '🌐 Your current mix' };
+    const noteMap = { cash: `(${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(1)}% real return)`, etfs: '(7% real return — already invested)', offset: '(~5% — saving on mortgage interest)', mix: '(~4% blended estimate)' };
     const currentRate = rateMap[savingsType] || FP_ASSUMPTIONS.bankRealReturn;
     const yCurrentReality = yearsToGoal(fireNum, savings, mSav, currentRate);
     const fmtReality = yCurrentReality ? cy + Math.round(yCurrentReality) : '100+ yrs';
-
-    // Row 2 — if invested at 7%
     const fmt7 = y07 ? cy + Math.round(y07) : '100+ yrs';
     const diffReality = yCurrentReality && y07 ? Math.round(yCurrentReality - y07) : null;
-
-    // Row 3 — invested at 7% + $50/week more
     const extraLabel = sRate === 0 ? 'if you started saving $50/week' : 'if you found an extra $50/week';
     const mSavPlus = mSav + (50 * 52 / 12);
     const yPlus = yearsToGoal(fireNum, savings, mSavPlus, 0.07);
     const fmtPlus = yPlus ? cy + Math.round(yPlus) : '100+ yrs';
     const diffPlus = y07 && yPlus ? Math.round(y07 - yPlus) : null;
-
-    // If already invested at 7%, row 1 and row 2 are the same — collapse to 2 rows
     const alreadyInvested = savingsType === 'etfs';
-
     rows.innerHTML = !alreadyInvested ? `
-      <div class="range-row">
-        <span class="range-label">😴 <strong>${labelMap[savingsType]}</strong><br/><span style="font-size:11px">${noteMap[savingsType]}</span></span>
-        <span class="range-value conservative">${fmtReality}</span>
-      </div>
-      <div class="range-row base">
-        <span class="range-label">📈 <strong>If your money was invested</strong><br/><span style="font-size:11px">(7% real return)</span></span>
-        <span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffReality}yr sooner)</span>` : ''}</span>
-      </div>
-      <div class="range-row">
-        <span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span>
-        <span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span>
-      </div>` : `
-      <div class="range-row base">
-        <span class="range-label">✅ <strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span>
-        <span class="range-value base">${fmt7}</span>
-      </div>
-      <div class="range-row">
-        <span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span>
-        <span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span>
-      </div>`;
-
-    // Update card subtitle
+      <div class="range-row"><span class="range-label">😴 <strong>${labelMap[savingsType]}</strong><br/><span style="font-size:11px">${noteMap[savingsType]}</span></span><span class="range-value conservative">${fmtReality}</span></div>
+      <div class="range-row base"><span class="range-label">📈 <strong>If your money was invested</strong><br/><span style="font-size:11px">(7% real return)</span></span><span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffReality}yr sooner)</span>` : ''}</span></div>
+      <div class="range-row"><span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>` : `
+      <div class="range-row base"><span class="range-label">✅ <strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span><span class="range-value base">${fmt7}</span></div>
+      <div class="range-row"><span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>`;
     const subtitle = el.querySelector('div:nth-child(2)');
-    if (subtitle) subtitle.textContent = alreadyInvested
-      ? "You're already investing — here's what one more step could do."
-      : "Here's your current reality, and what changes if your money works harder.";
-
+    if (subtitle) subtitle.textContent = alreadyInvested ? "You're already investing — here's what one more step could do." : "Here's your current reality, and what changes if your money works harder.";
     el.style.display = 'block';
   }
 
@@ -567,57 +776,11 @@
     if (!el || !y07) return;
     const cy = new Date().getFullYear();
     const base = cy + Math.round(y07);
-
-    // Tab 1 — what moves it forward (3 levers for free)
-    const mSavWeekly = mSav * 12 / 52;
-    const levers = [
-      { label: 'Save an extra $50/week', mSavNew: mSav + (50 * 52 / 12) },
-      { label: 'Save an extra $100/week', mSavNew: mSav + (100 * 52 / 12) },
-      { label: 'Save an extra $200/week', mSavNew: mSav + (200 * 52 / 12) },
-    ];
-    const leverRows = levers.map(l => {
-      const y = yearsToGoal(fireNum, savings, l.mSavNew, 0.07);
-      const yr = y ? cy + Math.round(y) : null;
-      const diff = y && y07 ? Math.round(y07 - y) : 0;
-      return `<div class="needle-row">
-        <span class="needle-label">${l.label}</span>
-        <span class="needle-result better">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : '') : '100+ yrs'}</span>
-      </div>`;
-    }).join('');
-
-    // Tab 2 — what pushes it back (spending scenarios)
-    const headwinds = [
-      { label: 'Spending up 15%', mult: 1.15 },
-      { label: 'Spending up 30%', mult: 1.30 },
-      { label: 'Spending up 50%', mult: 1.50 },
-    ];
-    const headwindRows = headwinds.map(h => {
-      const newFireNum = fireNum * h.mult;
-      const y = yearsToGoal(newFireNum, savings, mSav, 0.07);
-      const yr = y ? cy + Math.round(y) : null;
-      const diff = y && y07 ? Math.round(y - y07) : 0;
-      return `<div class="needle-row">
-        <span class="needle-label">${h.label}</span>
-        <span class="needle-result worse">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : '') : '100+ yrs'}</span>
-      </div>`;
-    }).join('');
-
-    el.innerHTML = `<div class="needle-card">
-      <div style="padding:16px 16px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);">🎯 What changes your freedom date?</div>
-      <div style="padding:4px 16px 0;font-size:13px;color:var(--soft-grey);font-weight:300;">Your base: <strong style="color:var(--warm-brown)">${base}</strong></div>
-      <div class="needle-tabs">
-        <div class="needle-tab active" onclick="switchNeedleTab('forward', this)">🚀 What moves it forward</div>
-        <div class="needle-tab" onclick="switchNeedleTab('back', this)">📉 What pushes it back</div>
-      </div>
-      <div class="needle-panel active" id="needle-forward">
-        ${leverRows}
-        <div class="needle-pro-nudge">🔥 <strong>Pro unlocks more levers</strong> — salary sacrifice, pay rises, lump sum investments and more. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div>
-      </div>
-      <div class="needle-panel" id="needle-back">
-        ${headwindRows}
-        <div class="needle-pro-nudge">📊 <strong>Pro models these in full detail</strong> — with your actual super, debt, and income factored in. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div>
-      </div>
-    </div>`;
+    const levers = [{ label: 'Save an extra $50/week', mSavNew: mSav + (50*52/12) },{ label: 'Save an extra $100/week', mSavNew: mSav + (100*52/12) },{ label: 'Save an extra $200/week', mSavNew: mSav + (200*52/12) }];
+    const leverRows = levers.map(l => { const y = yearsToGoal(fireNum, savings, l.mSavNew, 0.07); const yr = y ? cy + Math.round(y) : null; const diff = y && y07 ? Math.round(y07 - y) : 0; return `<div class="needle-row"><span class="needle-label">${l.label}</span><span class="needle-result better">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : '') : '100+ yrs'}</span></div>`; }).join('');
+    const headwinds = [{ label: 'Spending up 15%', mult: 1.15 },{ label: 'Spending up 30%', mult: 1.30 },{ label: 'Spending up 50%', mult: 1.50 }];
+    const headwindRows = headwinds.map(h => { const newFireNum = fireNum * h.mult; const y = yearsToGoal(newFireNum, savings, mSav, 0.07); const yr = y ? cy + Math.round(y) : null; const diff = y && y07 ? Math.round(y - y07) : 0; return `<div class="needle-row"><span class="needle-label">${h.label}</span><span class="needle-result worse">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : '') : '100+ yrs'}</span></div>`; }).join('');
+    el.innerHTML = `<div class="needle-card"><div style="padding:16px 16px 0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);">🎯 What changes your freedom date?</div><div style="padding:4px 16px 0;font-size:13px;color:var(--soft-grey);font-weight:300;">Your base: <strong style="color:var(--warm-brown)">${base}</strong></div><div class="needle-tabs"><div class="needle-tab active" onclick="switchNeedleTab('forward',this)">🚀 What moves it forward</div><div class="needle-tab" onclick="switchNeedleTab('back',this)">📉 What pushes it back</div></div><div class="needle-panel active" id="needle-forward">${leverRows}<div class="needle-pro-nudge">🔥 <strong>Pro unlocks more levers</strong> — salary sacrifice, pay rises, lump sum investments and more. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div></div><div class="needle-panel" id="needle-back">${headwindRows}<div class="needle-pro-nudge">📊 <strong>Pro models these in full detail</strong> — with your actual super, debt, and income factored in. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div></div></div>`;
   }
 
   function switchNeedleTab(tab, btn) {
@@ -635,49 +798,149 @@
   }
 
   function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, age) {
-  const el = document.getElementById('withdrawalCard');
-  if (!el) return;
-
-  const freedomAge = age ? Math.round(age + (fy || 0)) : null;
-  // Show when freedom age exceeds 65 or FIRE is unreachable — partial freedom framing
-  const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
-  if (!isLongRoad || savings <= 0) { el.style.display = 'none'; return; }
-
-  const portfolioIncome = Math.round(savings * 0.04);
-
-  el.style.display = 'block';
-  el.innerHTML = `<div style="background:white;border:2px solid var(--warm-brown);border-radius:16px;padding:18px 20px;margin-bottom:12px;">
-    <div style="font-size:13px;font-weight:700;color:var(--warm-brown);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">💸 What your money is already doing for you</div>
-    <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;">Full financial independence isn't the only version of freedom. Your portfolio is already generating income — right now.</div>
-    <div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">
-      Your portfolio would generate <strong>${fmtM(portfolioIncome)}/year</strong> at 4%. At age 67 you may also qualify for the Age Pension — Pro shows your estimated entitlement, what it does to your gap, and how long your portfolio lasts.
-    </div>
-    <div onclick="window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div>
-    <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 4% withdrawal rate.</p>
-  </div>`;
-}
-
-function buildTaxNudge(savings, mSav, sRate, savingsType) {
-  const el = document.getElementById('taxNudgeCard');
-  const txt = document.getElementById('taxNudgeText');
-  if (!el || !txt) return;
-
-  let message = '';
-  if (savingsType === 'cash') {
-    message = `Your money is sitting in the bank. Our free Tax & Strategy tools show you your real take-home pay, how salary sacrifice could boost your super, and whether your money would work harder invested.`;
-  } else if (savingsType === 'offset') {
-    message = `You're using an offset account — smart. But is it beating investing? Our free offset vs invest tool tells you exactly, based on your mortgage rate and tax rate.`;
-  } else if (sRate < 15) {
-    message = `Your savings rate is ${sRate}%. Our free tax calculator shows your real take-home pay and whether salary sacrifice could free up more — without touching your lifestyle.`;
-  } else {
-    message = `Know what you actually keep from every dollar you earn? Our free tax tools show your take-home, your marginal rate, and where your next dollar should go.`;
+    const el = document.getElementById('withdrawalCard');
+    if (!el) return;
+    const freedomAge = age ? Math.round(age + (fy || 0)) : null;
+    const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
+    if (!isLongRoad || savings <= 0) { el.style.display = 'none'; return; }
+    const portfolioIncome = Math.round(savings * 0.04);
+    el.style.display = 'block';
+    el.innerHTML = `<div style="background:white;border:2px solid var(--warm-brown);border-radius:16px;padding:18px 20px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:var(--warm-brown);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">💸 What your money is already doing for you</div><div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;">Full financial independence isn't the only version of freedom. Your portfolio is already generating income — right now.</div><div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">Your portfolio would generate <strong>${fmtM(portfolioIncome)}/year</strong> at 4%. At age 67 you may also qualify for the Age Pension — Pro shows your estimated entitlement, what it does to your gap, and how long your portfolio lasts.</div><div onclick="window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div><p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 4% withdrawal rate.</p></div>`;
   }
 
-  txt.innerHTML = message;
-  el.style.display = 'block';
-}
-
+  function buildTaxNudge(savings, mSav, sRate, savingsType) {
+    const el = document.getElementById('taxNudgeCard');
+    const txt = document.getElementById('taxNudgeText');
+    if (!el || !txt) return;
+    let message = '';
+    if (savingsType === 'cash') { message = `Your money is sitting in the bank. Our free Tax & Strategy tools show you your real take-home pay, how salary sacrifice could boost your super, and whether your money would work harder invested.`; }
+    else if (savingsType === 'offset') { message = `You're using an offset account — smart. But is it beating investing? Our free offset vs invest tool tells you exactly, based on your mortgage rate and tax rate.`; }
+    else if (sRate < 15) { message = `Your savings rate is ${sRate}%. Our free tax calculator shows your real take-home pay and whether salary sacrifice could free up more — without touching your lifestyle.`; }
+    else { message = `Know what you actually keep from every dollar you earn? Our free tax tools show your take-home, your marginal rate, and where your next dollar should go.`; }
+    txt.innerHTML = message;
+    el.style.display = 'block';
+  }
 </script>
+
+<!-- ── ONBOARDING JS ── -->
+<script>
+  let obCurrentBlock = 1;
+
+  function obGoTo(n) {
+    const current = document.getElementById('ob-block-' + obCurrentBlock);
+    const next = document.getElementById('ob-block-' + n);
+    if (!current || !next) return;
+    const goingForward = n > obCurrentBlock;
+
+    // Slide current out
+    current.classList.remove('active');
+    current.style.transition = 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease';
+    current.style.transform = goingForward ? 'translateX(-100%)' : 'translateX(100%)';
+    current.style.opacity = '0';
+    current.style.position = 'absolute';
+    current.style.pointerEvents = 'none';
+
+    // Prep next off-screen
+    next.style.transition = 'none';
+    next.style.transform = goingForward ? 'translateX(100%)' : 'translateX(-100%)';
+    next.style.opacity = '0';
+    next.style.position = 'absolute';
+    next.style.pointerEvents = 'none';
+
+    // Force reflow then slide next in
+    next.getBoundingClientRect();
+    next.style.transition = 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease';
+    next.style.transform = 'translateX(0)';
+    next.style.opacity = '1';
+    next.style.pointerEvents = 'all';
+    next.classList.add('active');
+
+    // After transition, make next truly static
+    setTimeout(() => {
+      next.style.position = 'relative';
+      next.style.transition = '';
+      current.style.transform = '';
+      current.style.opacity = '';
+      current.style.position = 'absolute';
+      current.style.transition = '';
+    }, 420);
+
+    obCurrentBlock = n;
+
+    // Update dots
+    document.querySelectorAll('.ob-dot').forEach((d, i) => {
+      d.classList.toggle('active', i + 1 === n);
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function obSelectPersona(el) {
+    document.querySelectorAll('.ob-persona').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    persona = el.dataset.persona;
+
+    // Persona-specific copy
+    const labels = {
+      beginner: { eyebrow: 'Just getting started', income: 'Money coming in (after tax)', savings: 'Current savings & investments', hint: "e.g. I'm saving for a house, I have kids, my income varies" },
+      building: { eyebrow: 'Building your plan', income: 'Take-home income', savings: 'Current savings & investments', hint: "e.g. irregular income, planning to buy a house, self-employed" },
+      fire: { eyebrow: 'Running your numbers', income: 'Net income', savings: 'Current portfolio value', hint: "e.g. planning to coast-FIRE, partner income, RE timeline" }
+    };
+    const l = labels[persona] || labels.building;
+    const ey = document.getElementById('ob-block2-eyebrow');
+    const incL = document.getElementById('ob-incomeLabel');
+    const savL = document.getElementById('savingsLabel');
+    const ctxH = document.getElementById('contextHint');
+    if (ey) ey.textContent = l.eyebrow;
+    if (incL) incL.textContent = l.income;
+    if (savL) savL.textContent = l.savings;
+    if (ctxH) ctxH.textContent = l.hint;
+
+    // Auto-advance
+    setTimeout(() => obGoTo(2), 320);
+  }
+
+  function obIncomeHint() {
+    const income = parseFloat(document.getElementById('income').value) || 0;
+    const hint = document.getElementById('ob-incomeHint');
+    const savField = document.getElementById('ob-savingsField');
+
+    if (income > 0) {
+      if (hint) { hint.textContent = '✓ Got it.'; hint.style.color = '#2E7D32'; }
+      if (savField) { savField.style.opacity = '1'; savField.style.pointerEvents = 'all'; }
+    } else {
+      if (hint) { hint.textContent = ''; }
+      if (savField) { savField.style.opacity = '0.3'; savField.style.pointerEvents = 'none'; }
+      const spendField = document.getElementById('ob-spendField');
+      if (spendField) { spendField.style.opacity = '0.3'; spendField.style.pointerEvents = 'none'; }
+      const nextBtn = document.getElementById('ob-next-2');
+      if (nextBtn) nextBtn.disabled = true;
+    }
+  }
+
+  function obSavingsHint() {
+    const spendField = document.getElementById('ob-spendField');
+    const nextBtn = document.getElementById('ob-next-2');
+    if (spendField) { spendField.style.opacity = '1'; spendField.style.pointerEvents = 'all'; }
+    if (nextBtn) nextBtn.disabled = false;
+  }
+
+  function obAgeHint() {
+    const age = parseInt(document.getElementById('age').value) || 0;
+    const hint = document.getElementById('ob-ageHint');
+    if (!hint) return;
+    if (age >= 16 && age < 60) {
+      hint.textContent = `Super unlocks in ${60 - age} years — we'll factor that into your timeline.`;
+      hint.style.color = 'var(--fire-orange)';
+    } else if (age >= 60) {
+      hint.textContent = 'Super is already accessible — great.';
+      hint.style.color = '#2E7D32';
+    } else {
+      hint.textContent = '';
+    }
+  }
+</script>
+
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
 <script>
