@@ -390,6 +390,9 @@
               </div>
               <div class="ob-persona-check">✓</div>
             </div>
+            <button class="ob-next" id="ob-persona-btn" onclick="obGoTo(2)" disabled style="margin-top:20px;">
+              Let's find your number →
+              </button>
             <div class="ob-persona" data-persona="building" onclick="obProSelectPersona(this)">
               <span class="ob-persona-icon">📈</span>
               <div class="ob-persona-info">
@@ -896,7 +899,8 @@ function obProSelectPersona(el) {
   persona = el.dataset.persona;
   savePersonaToDB(persona);
   applyPersonaLabels();
-  setTimeout(() => obGoTo(2), 320);
+  const btn = document.getElementById('ob-persona-btn');
+  if (btn) btn.disabled = false;
 }
 
 function obProIncomeHint() {
@@ -1016,6 +1020,15 @@ function stopLoadingMessages() {
     const p = data[0];
     if (p.pay_cycle) { selectedCycle = p.pay_cycle; document.querySelectorAll('.cycle-btn').forEach(b => b.classList.toggle('active', b.dataset.cycle === p.pay_cycle)); }
     if (p.take_home_income) { const ci = p.pay_cycle === 'weekly' ? p.take_home_income*12/52 : p.pay_cycle === 'fortnightly' ? p.take_home_income*12/26 : p.take_home_income; document.getElementById('income').value = Math.round(ci); }
+    // Unlock Block 2 fields — data already populated
+    const savF = document.getElementById('ob-savingsField');
+    const spF = document.getElementById('ob-spendField');
+    const stF = document.getElementById('ob-savingsTypeField');
+    const nb = document.getElementById('ob-next-2');
+    if (savF) { savF.style.opacity = '1'; savF.style.pointerEvents = 'all'; }
+    if (spF) { spF.style.opacity = '1'; spF.style.pointerEvents = 'all'; }
+    if (stF) { stF.style.opacity = '1'; stF.style.pointerEvents = 'all'; }
+    if (nb) nb.disabled = false;
     if (p.savings_monthly) { const cs = p.pay_cycle === 'weekly' ? p.savings_monthly*12/52 : p.pay_cycle === 'fortnightly' ? p.savings_monthly*12/26 : p.savings_monthly; document.getElementById('savingsAmount').value = Math.round(cs); }
     if (p.current_savings) document.getElementById('savings').value = p.current_savings;
     if (p.super_balance) document.getElementById('superBalance').value = p.super_balance;
