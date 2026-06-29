@@ -215,27 +215,33 @@
     .hero-social strong { color: var(--soft-grey); font-weight: 500; }
 
     /* ── BRIDGE (the honest middle) ── */
-    .bridge {
+        .bridge {
       max-width: 640px;
       margin: 0 auto;
       padding: var(--space-10) var(--space-5);
       text-align: center;
     }
-    .bridge-quote {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(22px, 4vw, 34px);
-      font-weight: 400;
-      font-style: normal;
-      line-height: 1.5;
-      color: var(--warm-brown);
+    .bridge-line1 {
+      font-size: clamp(18px, 3vw, 24px);
+      font-weight: 300;
+      color: var(--soft-grey);
+      line-height: 1.6;
+      margin-bottom: 4px;
+    }
+    .bridge-line2 {
+      font-size: clamp(18px, 3vw, 24px);
+      font-weight: 300;
+      color: var(--soft-grey);
+      line-height: 1.6;
       margin-bottom: var(--space-6);
     }
-    .bridge-quote span { color: inherit; font-style: normal; font-weight: 700; }
-      .bridge-body {
-      font-size: var(--text-md);
-      font-weight: 300;
-      color: var(--fire-orange);
-      line-height: 1.85;
+    .bridge-you {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 6vw, 52px);
+      font-weight: 400;
+      color: var(--warm-brown);
+      line-height: 1.2;
+      min-height: 60px;
     }
 
     /* ── WHAT FIREPATH DOES ── */
@@ -705,68 +711,49 @@
     </p>
   </section>
 
-  <!-- ── BRIDGE ── -->
-    <div class="bridge">
-  <p class="bridge-quote" id="bridgeQuote" style="font-style:normal;">
-    <span id="bridgeLine1"></span><br/>
-    <span id="bridgeLine2"></span>
-  </p>
-  <p class="bridge-body" id="bridgeBody" style="opacity:0;transition:opacity 0.8s ease;">
-    Most people have. But so many do nothing about it. <span id="bridgeYouShould"></span>
-  </p>
-</div>
+   <!-- ── BRIDGE ── -->
+  <div class="bridge">
+    <p class="bridge-line1">Most people never stop to think about</p>
+    <p class="bridge-line2">when they could stop working.</p>
+    <p class="bridge-you" id="bridgeYou"></p>
+  </div>
 
-<script>
-  function typeText(el, text, speed, callback) {
-    let i = 0;
-    const timer = setInterval(() => {
-      el.textContent += text[i];
-      i++;
-      if (i >= text.length) {
-        clearInterval(timer);
-        if (callback) callback();
-      }
-    }, speed);
-  }
+  <script>
+    function typeText(el, text, speed, callback) {
+      let i = 0;
+      const timer = setInterval(() => {
+        el.textContent += text[i];
+        i++;
+        if (i >= text.length) {
+          clearInterval(timer);
+          if (callback) callback();
+        }
+      }, speed);
+    }
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        observer.disconnect();
-        const line1 = document.getElementById('bridgeLine1');
-        const line2 = document.getElementById('bridgeLine2');
-        const body = document.getElementById('bridgeBody');
-        const youShould = document.getElementById('bridgeYouShould');
-
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          observer.disconnect();
+          const el = document.getElementById('bridgeYou');
+          setTimeout(() => {
+            typeText(el, 'You should.', 120, () => {
+              setTimeout(() => {
+                el.style.transition = 'all 0.4s ease';
+                el.style.fontWeight = '700';
                 setTimeout(() => {
-          typeText(line1, 'Have you actually thought about slowing down?', 90, () => {
-            setTimeout(() => {
-              typeText(line2, 'Working on your terms — not your bills.', 90, () => {
-                setTimeout(() => {
-                  body.style.opacity = '1';
-                  setTimeout(() => {
-                    typeText(youShould, 'You should.', 140, () => {
-                      setTimeout(() => {
-                        youShould.style.transition = 'all 0.4s ease';
-                        youShould.style.fontWeight = '700';
-                        setTimeout(() => {
-                          youShould.style.textDecoration = 'underline';
-                          youShould.style.textUnderlineOffset = '4px';
-                        }, 400);
-                      }, 200);
-                    });
-                  }, 300);
+                  el.style.textDecoration = 'underline';
+                  el.style.textUnderlineOffset = '5px';
                 }, 400);
-              });
-            }, 300);
-          });
-        }, 200);
-      }
-    });
-  }, { threshold: 0.4 });
+              }, 300);
+            });
+          }, 600);
+        }
+      });
+    }, { threshold: 0.6 });
 
-  observer.observe(document.querySelector('.bridge'));
-</script>
+    observer.observe(document.querySelector('.bridge'));
+  </script>
 
   <!-- ── WHAT FIREPATH DOES ── -->
   <section class="what-section">
