@@ -702,18 +702,18 @@
     overflow: hidden;
   }
 
-  #fp-intro-glow {
+   #fp-intro-glow {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    width: 600px; height: 600px;
+    width: 500px; height: 500px;
     background: radial-gradient(circle, rgba(244,98,42,0) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
     transition: background 1.5s ease;
   }
   #fp-intro-glow.warm {
-    background: radial-gradient(circle, rgba(244,98,42,0.1) 0%, rgba(249,168,37,0.05) 40%, transparent 70%);
+    background: radial-gradient(circle, rgba(244,98,42,0.12) 0%, rgba(249,168,37,0.06) 40%, transparent 70%);
     animation: fireFlicker 2.4s ease-in-out infinite;
   }
   @keyframes fireFlicker {
@@ -735,13 +735,33 @@
     transition: opacity 0.4s ease;
     position: relative;
     z-index: 1;
-    margin-bottom: 24px;
-    margin-top: -40px;
+    margin-bottom: 32px;
+      margin-top: -60px;
   }
 
-  #fp-line1 {
+  #fp-title {
+      #fp-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 400;
+    color: var(--warm-brown);
+    line-height: 1.6;
+    max-width: 520px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 16px;
+  }
+  #fp-title.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  #fp-sub {
     font-family: 'DM Sans', sans-serif;
-    font-size: clamp(14px, 2vw, 17px);
+    font-size: clamp(13px, 2vw, 15px);
     font-weight: 300;
     color: var(--soft-grey);
     letter-spacing: 0.04em;
@@ -749,42 +769,15 @@
     transition: opacity 0.6s ease;
     position: relative;
     z-index: 1;
-    margin-bottom: 8px;
   }
-
-  #fp-line2 {
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(14px, 2vw, 17px);
-    font-weight: 300;
-    color: var(--soft-grey);
-    letter-spacing: 0.04em;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 8px;
-  }
-
-  #fp-line3 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(32px, 6vw, 56px);
-    font-weight: 700;
-    font-style: italic;
-    color: var(--fire-orange);
-    opacity: 0;
-    transition: opacity 0.8s ease;
-    position: relative;
-    z-index: 1;
-    margin-top: 8px;
-  }
+  #fp-sub.visible { opacity: 1; }
 </style>
 
 <div id="fp-intro">
   <div id="fp-intro-glow"></div>
   <div id="fp-year">2055</div>
-  <div id="fp-line1">We all have a year.</div>
-  <div id="fp-line2">Most Australians don't know theirs.</div>
-  <div id="fp-line3">Do you?</div>
+  <div id="fp-title">You have a year.<br/>Most Australians just don't know it yet.</div>
+  <div id="fp-sub">First, you need to understand your journey.</div>
 </div>
 
 <script>
@@ -799,7 +792,6 @@
 
   const intro = document.getElementById('fp-intro');
   const hero = document.getElementById('hero');
-
   function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   async function crossfadeYear(el, text) {
@@ -810,7 +802,7 @@
     await wait(650);
   }
 
-  async function runIntro() {
+    async function runIntro() {
     const yearEl = document.getElementById('fp-year');
     const line1 = document.getElementById('fp-line1');
     const line2 = document.getElementById('fp-line2');
@@ -818,12 +810,9 @@
     const glow = document.getElementById('fp-intro-glow');
 
     await wait(300);
-
-    // Year appears with line 1
     yearEl.style.opacity = '1';
     line1.style.opacity = '1';
 
-    // Count down
     const years = ['2055', '2048', '2043', '2039', '2037'];
     for (let y of years) {
       await crossfadeYear(yearEl, y);
@@ -831,30 +820,26 @@
 
     // Glow blooms on 2037
     glow.classList.add('warm');
-    await wait(500);
+    await wait(400);
 
     // Line 1 fades out, line 2 fades in
     line1.style.opacity = '0';
     await wait(400);
     line2.style.opacity = '1';
-    await wait(900);
+    await wait(1000);
 
     // Do you? appears
     line3.style.opacity = '1';
-    await wait(2200);
+    await wait(2000);
 
-    // Dissolve to hero
+    // Dissolve
     intro.style.transition = 'opacity 1.2s ease';
     intro.style.opacity = '0';
-    if (hero) {
-      hero.style.opacity = '1';
-      hero.style.visibility = 'visible';
-    }
+    if (hero) { hero.style.opacity = '1'; hero.style.visibility = 'visible'; }
     await wait(1200);
     intro.style.display = 'none';
   }
 
-  // Scroll to skip
   window.addEventListener('scroll', () => {
     intro.style.transition = 'opacity 0.3s ease';
     intro.style.opacity = '0';
@@ -882,7 +867,7 @@
   </nav>
 
   <!-- ── HERO ── -->
-  <section class="hero" id="hero" style="opacity:0;visibility:hidden;transition:opacity 1.2s ease;">
+  <section class="hero">
     <div class="hero-glow-1"></div>
     <div class="hero-glow-2"></div>
 
