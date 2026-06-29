@@ -688,7 +688,7 @@
 
 <!-- ── CINEMATIC INTRO ── -->
 <style>
-   #fp-intro {
+  #fp-intro {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: var(--warm-cream);
@@ -697,88 +697,53 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    padding: 0 24px;
     overflow: hidden;
   }
 
-  /* Horizon glow */
-  #fp-horizon {
+  #fp-intro-glow {
     position: absolute;
-    bottom: 28%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 70vw;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(244,98,42,0.15), rgba(249,168,37,0.2), rgba(244,98,42,0.15), transparent);
-    filter: blur(1px);
-    transition: opacity 1s ease;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(244,98,42,0) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: background 1.5s ease;
+  }
+  #fp-intro-glow.warm {
+    background: radial-gradient(circle, rgba(244,98,42,0.12) 0%, rgba(249,168,37,0.06) 40%, transparent 70%);
   }
 
-  #fp-horizon-glow {
-    position: absolute;
-    bottom: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60vw;
-    height: 200px;
-    background: radial-gradient(ellipse at center bottom, rgba(244,98,42,0.08) 0%, transparent 70%);
-    transition: opacity 2s ease, background 2s ease;
-  }
-
-  #fp-horizon-glow.warm {
-    background: radial-gradient(ellipse at center bottom, rgba(249,168,37,0.18) 0%, rgba(244,98,42,0.08) 40%, transparent 70%);
-  }
-
-  /* Silhouette */
-  #fp-silhouette {
-    position: absolute;
-    bottom: 28%;
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: 0.85;
-  }
-
-  /* Year on horizon */
   #fp-year {
-    position: absolute;
-    bottom: 31%;
-    left: 50%;
-    transform: translateX(-50%);
     font-family: 'Playfair Display', serif;
-    font-size: clamp(13px, 2vw, 17px);
-    font-weight: 400;
-    letter-spacing: 0.3em;
+    font-size: clamp(64px, 14vw, 120px);
+    font-weight: 700;
     color: var(--fire-orange);
+    letter-spacing: -0.02em;
+    line-height: 1;
     opacity: 0;
-    transition: opacity 0.5s ease;
-    white-space: nowrap;
-  }
-
-  /* Content */
-  #fp-content {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0 24px;
-    text-align: center;
+    transition: opacity 0.4s ease;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 40px;
   }
 
   #fp-title {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(18px, 3.5vw, 26px);
+    font-size: clamp(18px, 3vw, 26px);
     font-weight: 400;
     color: var(--warm-brown);
-    line-height: 1.55;
-    max-width: 560px;
-    margin-bottom: 20px;
+    line-height: 1.6;
+    max-width: 520px;
     opacity: 0;
     transform: translateY(10px);
     transition: opacity 0.8s ease, transform 0.8s ease;
-    margin-top: -120px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 16px;
   }
-
   #fp-title.visible {
     opacity: 1;
     transform: translateY(0);
@@ -789,46 +754,20 @@
     font-size: clamp(13px, 2vw, 15px);
     font-weight: 300;
     color: var(--soft-grey);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     opacity: 0;
     transition: opacity 0.6s ease;
+    position: relative;
+    z-index: 1;
   }
-
-  #fp-sub.visible {
-    opacity: 1;
-  }
+  #fp-sub.visible { opacity: 1; }
 </style>
 
 <div id="fp-intro">
-  <div id="fp-horizon-glow"></div>
-  <div id="fp-horizon"></div>
-
-  <!-- Silhouette SVG -->
-  <div id="fp-silhouette">
-    <svg width="60" height="120" viewBox="0 0 60 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Head -->
-      <circle cx="30" cy="12" r="10" fill="#1A0F0A"/>
-      <!-- Body -->
-      <path d="M20 22 Q15 50 12 80 L25 80 L28 55 L32 55 L35 80 L48 80 Q45 50 40 22 Z" fill="#1A0F0A"/>
-      <!-- Left arm raised slightly — looking into distance -->
-      <path d="M20 30 Q10 40 6 48" stroke="#1A0F0A" stroke-width="6" stroke-linecap="round"/>
-      <!-- Right arm down -->
-      <path d="M40 30 Q46 42 48 52" stroke="#1A0F0A" stroke-width="6" stroke-linecap="round"/>
-      <!-- Left leg -->
-      <path d="M25 80 Q22 100 20 120" stroke="#1A0F0A" stroke-width="7" stroke-linecap="round"/>
-      <!-- Right leg -->
-      <path d="M35 80 Q38 100 40 120" stroke="#1A0F0A" stroke-width="7" stroke-linecap="round"/>
-    </svg>
-  </div>
-
-  <!-- Year on horizon -->
+  <div id="fp-intro-glow"></div>
   <div id="fp-year">2055</div>
-
-  <!-- Title and sub -->
-  <div id="fp-content">
-    <div id="fp-title">Every Australian has a year they could stop relying on a pay cheque.<br/>Most just don't know what it is.</div>
-    <div id="fp-sub">First, you need to understand your journey.</div>
-  </div>
+  <div id="fp-title">Every Australian has a year they could stop relying on a pay cheque.<br/>Most just don't know what it is.</div>
+  <div id="fp-sub">First, you need to understand your journey.</div>
 </div>
 
 <script>
@@ -843,60 +782,47 @@
 
   const intro = document.getElementById('fp-intro');
   const hero = document.getElementById('hero');
-
   function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   async function crossfadeYear(el, text) {
     el.style.opacity = '0';
-    await wait(300);
+    await wait(250);
     el.textContent = text;
     el.style.opacity = '1';
-    await wait(600);
+    await wait(650);
   }
 
   async function runIntro() {
     const yearEl = document.getElementById('fp-year');
     const title = document.getElementById('fp-title');
     const sub = document.getElementById('fp-sub');
-    const glow = document.getElementById('fp-horizon-glow');
+    const glow = document.getElementById('fp-intro-glow');
 
-    await wait(400);
-
-    // Years count down on horizon
-    const years = ['2055', '2048', '2043', '2039', '2037'];
+    await wait(300);
     yearEl.style.opacity = '1';
-    for (let i = 0; i < years.length; i++) {
-      await crossfadeYear(yearEl, years[i]);
+
+    const years = ['2055', '2048', '2043', '2039', '2037'];
+    for (let y of years) {
+      await crossfadeYear(yearEl, y);
     }
 
-    // Warm the glow on 2037
     glow.classList.add('warm');
-    await wait(600);
-
-    // Fade year out
+    await wait(500);
     yearEl.style.opacity = '0';
     await wait(400);
 
-    // Title appears
     title.classList.add('visible');
     await wait(1000);
-
-    // Sub appears
     sub.classList.add('visible');
-    await wait(900);
+    await wait(1000);
 
-    // Dissolve
     intro.style.transition = 'opacity 1.2s ease';
     intro.style.opacity = '0';
-    if (hero) {
-      hero.style.opacity = '1';
-      hero.style.visibility = 'visible';
-    }
+    if (hero) { hero.style.opacity = '1'; hero.style.visibility = 'visible'; }
     await wait(1200);
     intro.style.display = 'none';
   }
 
-  // Scroll to skip
   window.addEventListener('scroll', () => {
     intro.style.transition = 'opacity 0.3s ease';
     intro.style.opacity = '0';
