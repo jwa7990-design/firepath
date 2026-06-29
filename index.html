@@ -707,14 +707,66 @@
 
   <!-- ── BRIDGE ── -->
     <div class="bridge">
-        <p class="bridge-quote">
-      Have you actually thought about slowing down?<br/>
-      Working on your <span>terms</span> — not your bills.
-    </p>
-    <p class="bridge-body">
-      Most people have. But so many do nothing about it. You should.
-    </p>
-  </div>
+  <p class="bridge-quote" id="bridgeQuote" style="font-style:normal;">
+    <span id="bridgeLine1"></span><br/>
+    <span id="bridgeLine2"></span>
+  </p>
+  <p class="bridge-body" id="bridgeBody" style="opacity:0;transition:opacity 0.8s ease;">
+    Most people have. But so many do nothing about it. <span id="bridgeYouShould"></span>
+  </p>
+</div>
+
+<script>
+  function typeText(el, text, speed, callback) {
+    let i = 0;
+    const timer = setInterval(() => {
+      el.textContent += text[i];
+      i++;
+      if (i >= text.length) {
+        clearInterval(timer);
+        if (callback) callback();
+      }
+    }, speed);
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        observer.disconnect();
+        const line1 = document.getElementById('bridgeLine1');
+        const line2 = document.getElementById('bridgeLine2');
+        const body = document.getElementById('bridgeBody');
+        const youShould = document.getElementById('bridgeYouShould');
+
+        setTimeout(() => {
+          typeText(line1, 'Have you actually thought about slowing down?', 45, () => {
+            setTimeout(() => {
+              typeText(line2, 'Working on your terms — not your bills.', 45, () => {
+                setTimeout(() => {
+                  body.style.opacity = '1';
+                  setTimeout(() => {
+                    typeText(youShould, 'You should.', 80, () => {
+                      setTimeout(() => {
+                        youShould.style.transition = 'all 0.4s ease';
+                        youShould.style.fontWeight = '700';
+                        setTimeout(() => {
+                          youShould.style.textDecoration = 'underline';
+                          youShould.style.textUnderlineOffset = '4px';
+                        }, 400);
+                      }, 200);
+                    });
+                  }, 300);
+                }, 400);
+              });
+            }, 300);
+          });
+        }, 200);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  observer.observe(document.querySelector('.bridge'));
+</script>
 
   <!-- ── WHAT FIREPATH DOES ── -->
   <section class="what-section">
