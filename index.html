@@ -235,13 +235,16 @@
       line-height: 1.6;
       margin-bottom: var(--space-6);
     }
-    .bridge-you {
+     .bridge-you {
       font-family: 'Playfair Display', serif;
       font-size: clamp(32px, 6vw, 52px);
-      font-weight: 400;
+      font-weight: 700;
       color: var(--warm-brown);
       line-height: 1.2;
       min-height: 60px;
+      opacity: 0;
+      text-decoration: underline;
+      text-underline-offset: 5px;
     }
 
     /* ── WHAT FIREPATH DOES ── */
@@ -718,42 +721,24 @@
     <p class="bridge-you" id="bridgeYou"></p>
   </div>
 
-  <script>
-    function typeText(el, text, speed, callback) {
-      let i = 0;
-      const timer = setInterval(() => {
-        el.textContent += text[i];
-        i++;
-        if (i >= text.length) {
-          clearInterval(timer);
-          if (callback) callback();
-        }
-      }, speed);
-    }
-
+    <script>
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           observer.disconnect();
           const el = document.getElementById('bridgeYou');
           setTimeout(() => {
-            typeText(el, 'You should.', 120, () => {
-              setTimeout(() => {
-                el.style.transition = 'all 0.4s ease';
-                el.style.fontWeight = '700';
-                setTimeout(() => {
-                  el.style.textDecoration = 'underline';
-                  el.style.textUnderlineOffset = '5px';
-                }, 400);
-              }, 300);
-            });
-          }, 600);
+            el.textContent = 'You should.';
+            el.style.transition = 'opacity 1.2s ease';
+            el.style.opacity = '1';
+          }, 800);
         }
       });
     }, { threshold: 0.6 });
 
     observer.observe(document.querySelector('.bridge'));
   </script>
+
 
   <!-- ── WHAT FIREPATH DOES ── -->
   <section class="what-section">
