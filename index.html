@@ -685,6 +685,119 @@
   </style>
 </head>
 <body>
+  <!-- ── CINEMATIC INTRO ── -->
+<div id="fp-intro" style="
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:#2A1E15;
+  z-index:999;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:40px 24px;
+">
+  <div id="fp-intro-inner" style="max-width:480px;width:100%;text-align:center;">
+
+    <!-- Inputs -->
+    <div id="fp-inputs" style="margin-bottom:40px;text-align:left;display:inline-block;">
+      <div id="fp-i1" style="font-family:'DM Sans',sans-serif;font-size:16px;color:rgba(255,255,255,0.4);margin-bottom:12px;opacity:0;transition:opacity 0.4s ease;">Income: <span style="color:white;">$95,000</span> <span style="color:#7CB97E;">✓</span></div>
+      <div id="fp-i2" style="font-family:'DM Sans',sans-serif;font-size:16px;color:rgba(255,255,255,0.4);margin-bottom:12px;opacity:0;transition:opacity 0.4s ease;">Savings: <span style="color:white;">$45,000</span> <span style="color:#7CB97E;">✓</span></div>
+      <div id="fp-i3" style="font-family:'DM Sans',sans-serif;font-size:16px;color:rgba(255,255,255,0.4);margin-bottom:12px;opacity:0;transition:opacity 0.4s ease;">Investments: <span style="color:white;">$120,000</span> <span style="color:#7CB97E;">✓</span></div>
+    </div>
+
+    <!-- Progress line -->
+    <div id="fp-bar-wrap" style="width:100%;height:2px;background:rgba(255,255,255,0.1);border-radius:2px;margin-bottom:40px;opacity:0;transition:opacity 0.4s ease;">
+      <div id="fp-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#F4622A,#F9A825);border-radius:2px;transition:width 1.2s ease;"></div>
+    </div>
+
+    <!-- Year countdown -->
+    <div id="fp-year" style="
+      font-family:'Playfair Display',serif;
+      font-size:clamp(56px,12vw,100px);
+      font-weight:700;
+      color:rgba(255,255,255,0.15);
+      line-height:1;
+      margin-bottom:24px;
+      opacity:0;
+      transition:opacity 0.4s ease;
+    ">2048</div>
+
+    <!-- Result -->
+    <div id="fp-result" style="opacity:0;transition:opacity 1s ease;text-align:center;">
+      <div style="font-size:40px;margin-bottom:16px;">🔥</div>
+      <div style="font-family:'Playfair Display',serif;font-size:clamp(20px,4vw,28px);font-weight:700;color:white;margin-bottom:8px;">Financial Freedom</div>
+      <div style="font-family:'Playfair Display',serif;font-size:clamp(56px,12vw,100px);font-weight:700;color:#F9A825;line-height:1;">2037</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  // Skip if already seen this session
+  if (sessionStorage.getItem('fp_intro_seen')) {
+    document.getElementById('fp-intro').style.display = 'none';
+    return;
+  }
+
+  sessionStorage.setItem('fp_intro_seen', 'true');
+
+  const intro = document.getElementById('fp-intro');
+
+  function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  async function runIntro() {
+    await wait(400);
+
+    // Inputs appear
+    document.getElementById('fp-i1').style.opacity = '1';
+    await wait(800);
+    document.getElementById('fp-i2').style.opacity = '1';
+    await wait(800);
+    document.getElementById('fp-i3').style.opacity = '1';
+    await wait(800);
+
+    // Progress bar
+    const barWrap = document.getElementById('fp-bar-wrap');
+    barWrap.style.opacity = '1';
+    await wait(100);
+    document.getElementById('fp-bar').style.width = '100%';
+    await wait(1400);
+
+    // Year countdown
+    const yearEl = document.getElementById('fp-year');
+    yearEl.style.opacity = '1';
+    const years = ['2048', '2044', '2041', '2039', '2037'];
+    for (let y of years) {
+      yearEl.textContent = y;
+      yearEl.style.color = y === '2037' ? '#F9A825' : 'rgba(255,255,255,0.15)';
+      await wait(320);
+    }
+    await wait(600);
+
+    // Hide year, show result
+    yearEl.style.opacity = '0';
+    await wait(500);
+    document.getElementById('fp-result').style.opacity = '1';
+    await wait(1800);
+
+    // Dissolve intro, reveal hero
+    intro.style.transition = 'opacity 1.2s ease';
+    intro.style.opacity = '0';
+    await wait(1200);
+    intro.style.display = 'none';
+  }
+
+  // Allow scroll to skip
+  window.addEventListener('scroll', () => {
+    intro.style.transition = 'opacity 0.4s ease';
+    intro.style.opacity = '0';
+    setTimeout(() => intro.style.display = 'none', 400);
+  }, { once: true });
+
+  runIntro();
+})();
+</script>
 
   <!-- Nav -->
   <nav>
