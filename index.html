@@ -685,114 +685,236 @@
   </style>
 </head>
 <body>
-  <!-- ── CINEMATIC INTRO ── -->
-<div id="fp-intro" style="
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  background:#2A1E15;
-  z-index:999;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:40px 24px;
-">
-  <div id="fp-intro-inner" style="max-width:480px;width:100%;text-align:center;">
+  
+<!-- ── CINEMATIC INTRO ── -->
+<style>
+  #fp-intro {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #1A0F0A;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    overflow: hidden;
+  }
+
+  /* Grain texture */
+  #fp-intro::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  /* Ambient glow */
+  #fp-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(244,98,42,0) 0%, transparent 70%);
+    pointer-events: none;
+    transition: background 1.5s ease;
+    border-radius: 50%;
+  }
+
+  #fp-glow.lit {
+    background: radial-gradient(circle, rgba(244,98,42,0.15) 0%, rgba(249,168,37,0.05) 40%, transparent 70%);
+  }
+
+  /* Inputs */
+  .fp-input-line {
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(15px, 2.5vw, 18px);
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 16px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    letter-spacing: 0.02em;
+  }
+  .fp-input-line.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .fp-input-line strong {
+    color: rgba(255,255,255,0.9);
+    font-weight: 500;
+  }
+  .fp-input-line .check {
+    color: #7CB97E;
+    margin-left: 6px;
+  }
+
+  /* Progress bar */
+  #fp-bar-wrap {
+    width: min(320px, 80vw);
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin: 32px 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  #fp-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #F4622A, #F9A825);
+    border-radius: 2px;
+    transition: width 1.4s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 8px rgba(244,98,42,0.4);
+  }
+
+  /* Year */
+  #fp-year {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(80px, 18vw, 160px);
+    font-weight: 700;
+    color: rgba(255,255,255,0.08);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    opacity: 0;
+    transition: opacity 0.4s ease, color 0.3s ease, transform 0.3s ease;
+    transform: scale(0.95);
+  }
+  #fp-year.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+  #fp-year.final {
+    color: #F9A825;
+    text-shadow: 0 0 60px rgba(249,168,37,0.3), 0 0 120px rgba(244,98,42,0.15);
+  }
+
+  /* Result label */
+  #fp-freedom {
+    font-family: 'DM Sans', sans-serif;
+    font-size: clamp(11px, 1.5vw, 13px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 16px;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  #fp-freedom.visible {
+    opacity: 1;
+  }
+
+  /* Flame */
+  #fp-flame {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    animation: fp-flame-flicker 2s ease-in-out infinite;
+  }
+  #fp-flame.visible { opacity: 1; }
+  @keyframes fp-flame-flicker {
+    0%, 100% { transform: scale(1) rotate(-1deg); }
+    50% { transform: scale(1.08) rotate(1deg); }
+  }
+</style>
+
+<div id="fp-intro">
+  <div id="fp-glow"></div>
+
+  <div id="fp-intro-inner" style="position:relative;z-index:1;text-align:center;width:100%;max-width:560px;">
 
     <!-- Inputs -->
-    <div id="fp-inputs" style="margin-bottom:40px;text-align:left;display:inline-block;">
-      <div id="fp-i1" style="font-family:'DM Sans',sans-serif;font-size:16px;color:rgba(255,255,255,0.4);margin-bottom:12px;opacity:0;transition:opacity 0.4s ease;">Income: <span style="color:white;">$95,000</span> <span style="color:#7CB97E;">✓</span></div>
-      <div id="fp-i2" style="font-family:'DM Sans',sans-serif;font-size:16px;color:rgba(255,255,255,0.4);margin-bottom:12px;opacity:0;transition:opacity 0.4s ease;">Savings: <span style="color:white;">$45,000</span> <span style="color:#7CB97E;">✓</span></div>
-      <div id="fp-i3" style="font-family:'DM Sans',sans-serif;font-size:16px;color:rgba(255,255,255,0.4);margin-bottom:12px;opacity:0;transition:opacity 0.4s ease;">Investments: <span style="color:white;">$120,000</span> <span style="color:#7CB97E;">✓</span></div>
+    <div id="fp-inputs" style="margin-bottom:8px;display:inline-block;text-align:left;">
+      <div class="fp-input-line" id="fp-i1">Income: <strong>$95,000</strong><span class="check">✓</span></div>
+      <div class="fp-input-line" id="fp-i2">Savings: <strong>$45,000</strong><span class="check">✓</span></div>
+      <div class="fp-input-line" id="fp-i3">Investments: <strong>$120,000</strong><span class="check">✓</span></div>
     </div>
 
-    <!-- Progress line -->
-    <div id="fp-bar-wrap" style="width:100%;height:2px;background:rgba(255,255,255,0.1);border-radius:2px;margin-bottom:40px;opacity:0;transition:opacity 0.4s ease;">
-      <div id="fp-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#F4622A,#F9A825);border-radius:2px;transition:width 1.2s ease;"></div>
+    <!-- Bar -->
+    <div id="fp-bar-wrap">
+      <div id="fp-bar"></div>
     </div>
 
-    <!-- Year countdown -->
-    <div id="fp-year" style="
-      font-family:'Playfair Display',serif;
-      font-size:clamp(56px,12vw,100px);
-      font-weight:700;
-      color:rgba(255,255,255,0.15);
-      line-height:1;
-      margin-bottom:24px;
-      opacity:0;
-      transition:opacity 0.4s ease;
-    ">2048</div>
-
-    <!-- Result -->
-    <div id="fp-result" style="opacity:0;transition:opacity 1s ease;text-align:center;">
-      <div style="font-size:40px;margin-bottom:16px;">🔥</div>
-      <div style="font-family:'Playfair Display',serif;font-size:clamp(20px,4vw,28px);font-weight:700;color:white;margin-bottom:8px;">Financial Freedom</div>
-      <div style="font-family:'Playfair Display',serif;font-size:clamp(56px,12vw,100px);font-weight:700;color:#F9A825;line-height:1;">2037</div>
-    </div>
+    <!-- Year -->
+    <div id="fp-flame">🔥</div>
+    <div id="fp-freedom">Financial Freedom</div>
+    <div id="fp-year">2048</div>
 
   </div>
 </div>
 
 <script>
 (function() {
-  // Skip if already seen this session
   if (sessionStorage.getItem('fp_intro_seen')) {
     document.getElementById('fp-intro').style.display = 'none';
+    document.getElementById('hero').style.opacity = '1';
     return;
   }
-
   sessionStorage.setItem('fp_intro_seen', 'true');
 
   const intro = document.getElementById('fp-intro');
+  const hero = document.getElementById('hero');
 
   function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   async function runIntro() {
-    await wait(400);
+    await wait(500);
 
-    // Inputs appear
-    document.getElementById('fp-i1').style.opacity = '1';
-    await wait(800);
-    document.getElementById('fp-i2').style.opacity = '1';
-    await wait(800);
-    document.getElementById('fp-i3').style.opacity = '1';
-    await wait(800);
+    // Inputs fade in
+    document.getElementById('fp-i1').classList.add('visible');
+    await wait(700);
+    document.getElementById('fp-i2').classList.add('visible');
+    await wait(700);
+    document.getElementById('fp-i3').classList.add('visible');
+    await wait(900);
 
     // Progress bar
     const barWrap = document.getElementById('fp-bar-wrap');
     barWrap.style.opacity = '1';
     await wait(100);
     document.getElementById('fp-bar').style.width = '100%';
-    await wait(1400);
+    await wait(1600);
 
-    // Year countdown
+    // Year appears
     const yearEl = document.getElementById('fp-year');
-    yearEl.style.opacity = '1';
+    yearEl.classList.add('visible');
+    await wait(400);
+
+    // Count down
     const years = ['2048', '2044', '2041', '2039', '2037'];
-    for (let y of years) {
-      yearEl.textContent = y;
-      yearEl.style.color = y === '2037' ? '#F9A825' : 'rgba(255,255,255,0.15)';
-      await wait(320);
+    for (let i = 0; i < years.length; i++) {
+      yearEl.textContent = years[i];
+      yearEl.style.transform = 'scale(1.04)';
+      await wait(80);
+      yearEl.style.transform = 'scale(1)';
+      await wait(i < years.length - 1 ? 380 : 0);
     }
-    await wait(600);
 
-    // Hide year, show result
-    yearEl.style.opacity = '0';
-    await wait(500);
-    document.getElementById('fp-result').style.opacity = '1';
-    await wait(1800);
+    // Final reveal
+    yearEl.classList.add('final');
+    document.getElementById('fp-glow').classList.add('lit');
+    document.getElementById('fp-flame').classList.add('visible');
+    document.getElementById('fp-freedom').classList.add('visible');
+    await wait(2400);
 
-    // Dissolve intro, reveal hero
-    intro.style.transition = 'opacity 1.2s ease';
+    // Dissolve
+    intro.style.transition = 'opacity 1.4s ease';
     intro.style.opacity = '0';
-    await wait(1200);
+    hero.style.opacity = '1';
+    await wait(1400);
     intro.style.display = 'none';
   }
 
-  // Allow scroll to skip
+  // Scroll to skip
   window.addEventListener('scroll', () => {
-    intro.style.transition = 'opacity 0.4s ease';
+    intro.style.transition = 'opacity 0.3s ease';
     intro.style.opacity = '0';
-    setTimeout(() => intro.style.display = 'none', 400);
+    hero.style.opacity = '1';
+    setTimeout(() => intro.style.display = 'none', 300);
   }, { once: true });
 
   runIntro();
