@@ -802,30 +802,37 @@
     await wait(650);
   }
 
-  async function runIntro() {
+    async function runIntro() {
     const yearEl = document.getElementById('fp-year');
-    const title = document.getElementById('fp-title');
-    const sub = document.getElementById('fp-sub');
+    const line1 = document.getElementById('fp-line1');
+    const line2 = document.getElementById('fp-line2');
+    const line3 = document.getElementById('fp-line3');
     const glow = document.getElementById('fp-intro-glow');
 
     await wait(300);
     yearEl.style.opacity = '1';
+    line1.style.opacity = '1';
 
     const years = ['2055', '2048', '2043', '2039', '2037'];
     for (let y of years) {
       await crossfadeYear(yearEl, y);
     }
 
+    // Glow blooms on 2037
     glow.classList.add('warm');
-    await wait(500);
-    yearEl.style.opacity = '0';
     await wait(400);
 
-    title.classList.add('visible');
+    // Line 1 fades out, line 2 fades in
+    line1.style.opacity = '0';
+    await wait(400);
+    line2.style.opacity = '1';
     await wait(1000);
-    sub.classList.add('visible');
-    await wait(3000);
 
+    // Do you? appears
+    line3.style.opacity = '1';
+    await wait(2000);
+
+    // Dissolve
     intro.style.transition = 'opacity 1.2s ease';
     intro.style.opacity = '0';
     if (hero) { hero.style.opacity = '1'; hero.style.visibility = 'visible'; }
