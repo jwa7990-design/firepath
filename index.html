@@ -688,166 +688,228 @@
 
 <!-- ── CINEMATIC INTRO ── -->
 <style>
-  #fp-intro {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--warm-cream);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0 24px;
-    overflow: hidden;
-  }
+ #fp-intro {
+   position: fixed;
+   top: 0; left: 0; right: 0; bottom: 0;
+   background: var(--warm-cream);
+   z-index: 9999;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   text-align: center;
+   padding: 0 24px;
+   overflow: hidden;
+ }
 
-   #fp-intro-glow {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(244,98,42,0) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-    transition: background 1.5s ease;
-  }
-  #fp-intro-glow.warm {
-    background: radial-gradient(circle, rgba(244,98,42,0.12) 0%, rgba(249,168,37,0.06) 40%, transparent 70%);
-    animation: fireFlicker 2.4s ease-in-out infinite;
-  }
-  @keyframes fireFlicker {
-    0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    25%  { opacity: 0.85; transform: translate(-50%, -50%) scale(1.04); }
-    50%  { opacity: 1; transform: translate(-50%, -50%) scale(0.97); }
-    75%  { opacity: 0.9; transform: translate(-50%, -50%) scale(1.06); }
-    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  }
+ #fp-intro-glow {
+   position: absolute;
+   top: 50%; left: 50%;
+   transform: translate(-50%, -50%);
+   width: 600px; height: 600px;
+   background: radial-gradient(circle, rgba(244,98,42,0) 0%, transparent 70%);
+   border-radius: 50%;
+   pointer-events: none;
+   transition: background 1.5s ease;
+ }
+ #fp-intro-glow.warm {
+   background: radial-gradient(circle, rgba(244,98,42,0.1) 0%, rgba(249,168,37,0.05) 40%, transparent 70%);
+   animation: fireFlicker 2.4s ease-in-out infinite;
+ }
+ @keyframes fireFlicker {
+   0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+   25%  { opacity: 0.85; transform: translate(-50%, -50%) scale(1.04); }
+   50%  { opacity: 1; transform: translate(-50%, -50%) scale(0.97); }
+   75%  { opacity: 0.9; transform: translate(-50%, -50%) scale(1.06); }
+   100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+ }
 
-  #fp-year {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(64px, 14vw, 120px);
-    font-weight: 700;
-    color: var(--fire-orange);
-    letter-spacing: -0.02em;
-    line-height: 1;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 32px;
-      margin-top: -60px;
-  }
+ #fp-qmarks {
+   position: absolute;
+   top: 0; left: 0; right: 0; bottom: 0;
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   justify-content: center;
+   gap: 24px;
+   padding: 40px;
+   opacity: 0;
+   transition: opacity 0.8s ease;
+   pointer-events: none;
+   z-index: 0;
+   overflow: hidden;
+ }
+ .fp-qmark {
+   font-family: 'Playfair Display', serif;
+   font-size: clamp(32px, 5vw, 52px);
+   font-weight: 700;
+   color: var(--fire-orange);
+   opacity: 0.12;
+   user-select: none;
+   animation: qDrift 4s ease-in-out infinite;
+   animation-delay: calc(var(--i) * 0.3s);
+ }
+ @keyframes qDrift {
+   0%, 100% { transform: translateY(0); }
+   50% { transform: translateY(-8px); }
+ }
 
-  #fp-title {
-      #fp-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(28px, 5vw, 48px);
-    font-weight: 400;
-    color: var(--warm-brown);
-    line-height: 1.6;
-    max-width: 520px;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 16px;
-  }
-  #fp-title.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+ #fp-year {
+   font-family: 'Playfair Display', serif;
+   font-size: clamp(64px, 14vw, 120px);
+   font-weight: 700;
+   color: var(--fire-orange);
+   letter-spacing: -0.02em;
+   line-height: 1;
+   opacity: 0;
+   transition: opacity 0.4s ease;
+   position: relative;
+   z-index: 1;
+   margin-bottom: 24px;
+   margin-top: -40px;
+ }
 
-  #fp-sub {
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(13px, 2vw, 15px);
-    font-weight: 300;
-    color: var(--soft-grey);
-    letter-spacing: 0.04em;
-    opacity: 0;
-    transition: opacity 0.6s ease;
-    position: relative;
-    z-index: 1;
-  }
-  #fp-sub.visible { opacity: 1; }
+ #fp-line1 {
+   font-family: 'DM Sans', sans-serif;
+   font-size: clamp(18px, 3vw, 24px);
+   font-weight: 300;
+   color: var(--soft-grey);
+   letter-spacing: 0.04em;
+   opacity: 0;
+   transition: opacity 0.6s ease;
+   position: relative;
+   z-index: 1;
+   margin-bottom: 8px;
+ }
+
+ #fp-line2 {
+   font-family: 'DM Sans', sans-serif;
+   font-size: clamp(18px, 3vw, 24px);
+   font-weight: 300;
+   color: var(--soft-grey);
+   letter-spacing: 0.04em;
+   opacity: 0;
+   transition: opacity 0.8s ease;
+   position: relative;
+   z-index: 1;
+   margin-bottom: 8px;
+ }
+
+ #fp-line3 {
+   font-family: 'Playfair Display', serif;
+   font-size: clamp(32px, 6vw, 56px);
+   font-weight: 700;
+   font-style: italic;
+   color: var(--fire-orange);
+   opacity: 0;
+   transition: opacity 0.8s ease;
+   position: relative;
+   z-index: 1;
+   margin-top: 12px;
+ }
 </style>
 
 <div id="fp-intro">
-  <div id="fp-intro-glow"></div>
-  <div id="fp-year">2055</div>
-  <div id="fp-title">You have a year.<br/>Most Australians just don't know it yet.</div>
-  <div id="fp-sub">First, you need to understand your journey.</div>
+ <div id="fp-intro-glow"></div>
+ <div id="fp-qmarks"></div>
+ <div id="fp-year">2055</div>
+ <div id="fp-line1">We all have a year.</div>
+ <div id="fp-line2">Most Australians don't know theirs.</div>
+ <div id="fp-line3">Do you?</div>
 </div>
 
 <script>
 (function() {
-  if (sessionStorage.getItem('fp_intro_seen')) {
-    document.getElementById('fp-intro').style.display = 'none';
-    const hero = document.getElementById('hero');
-    if (hero) { hero.style.opacity = '1'; hero.style.visibility = 'visible'; }
-    return;
-  }
-  sessionStorage.setItem('fp_intro_seen', 'true');
+ if (sessionStorage.getItem('fp_intro_seen')) {
+   document.getElementById('fp-intro').style.display = 'none';
+   const hero = document.getElementById('hero');
+   if (hero) {
+     hero.style.opacity = '1';
+     hero.style.visibility = 'visible';
+   }
+   return;
+ }
+ sessionStorage.setItem('fp_intro_seen', 'true');
 
-  const intro = document.getElementById('fp-intro');
-  const hero = document.getElementById('hero');
-  function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+ const intro = document.getElementById('fp-intro');
+ const hero = document.getElementById('hero');
 
-  async function crossfadeYear(el, text) {
-    el.style.opacity = '0';
-    await wait(250);
-    el.textContent = text;
-    el.style.opacity = '1';
-    await wait(650);
-  }
+ function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    async function runIntro() {
-    const yearEl = document.getElementById('fp-year');
-    const line1 = document.getElementById('fp-line1');
-    const line2 = document.getElementById('fp-line2');
-    const line3 = document.getElementById('fp-line3');
-    const glow = document.getElementById('fp-intro-glow');
+ async function crossfadeYear(el, text) {
+   el.style.opacity = '0';
+   await wait(250);
+   el.textContent = text;
+   el.style.opacity = '1';
+   await wait(650);
+ }
 
-    await wait(300);
-    yearEl.style.opacity = '1';
-    line1.style.opacity = '1';
+ async function runIntro() {
+   const yearEl = document.getElementById('fp-year');
+   const line1 = document.getElementById('fp-line1');
+   const line2 = document.getElementById('fp-line2');
+   const line3 = document.getElementById('fp-line3');
+   const glow = document.getElementById('fp-intro-glow');
+   const qmarks = document.getElementById('fp-qmarks');
 
-    const years = ['2055', '2048', '2043', '2039', '2037'];
-    for (let y of years) {
-      await crossfadeYear(yearEl, y);
-    }
+   await wait(300);
 
-    // Glow blooms on 2037
-    glow.classList.add('warm');
-    await wait(400);
+   // Year and line 1 appear together
+   yearEl.style.opacity = '1';
+   line1.style.opacity = '1';
 
-    // Line 1 fades out, line 2 fades in
-    line1.style.opacity = '0';
-    await wait(400);
-    line2.style.opacity = '1';
-    await wait(1000);
+   // Count down through years
+   const years = ['2055', '2048', '2043', '2039', '2037'];
+   for (let y of years) {
+     await crossfadeYear(yearEl, y);
+   }
 
-    // Do you? appears
-    line3.style.opacity = '1';
-    await wait(2000);
+   // Glow blooms on 2037
+   glow.classList.add('warm');
+   await wait(500);
 
-    // Dissolve
-    intro.style.transition = 'opacity 1.2s ease';
-    intro.style.opacity = '0';
-    if (hero) { hero.style.opacity = '1'; hero.style.visibility = 'visible'; }
-    await wait(1200);
-    intro.style.display = 'none';
-  }
+   // Year and line 1 fade out
+   yearEl.style.opacity = '0';
+   line1.style.opacity = '0';
+   await wait(400);
 
-  window.addEventListener('scroll', () => {
-    intro.style.transition = 'opacity 0.3s ease';
-    intro.style.opacity = '0';
-    if (hero) { hero.style.opacity = '1'; hero.style.visibility = 'visible'; }
-    setTimeout(() => intro.style.display = 'none', 300);
-  }, { once: true });
+   // Question marks fill screen
+   qmarks.innerHTML = Array(40).fill(0).map((_, i) =>
+     `<span class="fp-qmark" style="--i:${i}">?</span>`
+   ).join('');
+   qmarks.style.opacity = '1';
 
-  runIntro();
+   // Line 2 fades in
+   line2.style.opacity = '1';
+   await wait(1900);
+
+   // Do you? appears after extra pause
+   line3.style.opacity = '1';
+   await wait(2200);
+
+   // Dissolve to hero
+   intro.style.transition = 'opacity 1.2s ease';
+   intro.style.opacity = '0';
+   if (hero) {
+     hero.style.opacity = '1';
+     hero.style.visibility = 'visible';
+   }
+   await wait(1200);
+   intro.style.display = 'none';
+ }
+
+ // Scroll to skip
+ window.addEventListener('scroll', () => {
+   intro.style.transition = 'opacity 0.3s ease';
+   intro.style.opacity = '0';
+   if (hero) {
+     hero.style.opacity = '1';
+     hero.style.visibility = 'visible';
+   }
+   setTimeout(() => intro.style.display = 'none', 300);
+ }, { once: true });
+
+ runIntro();
 })();
 </script>
 
