@@ -868,11 +868,33 @@
    line1.style.opacity = '0';
    await wait(400);
 
-   // Question marks fill screen
-   qmarks.innerHTML = Array(40).fill(0).map((_, i) =>
-     `<span class="fp-qmark" style="--i:${i}">?</span>`
-   ).join('');
-   qmarks.style.opacity = '1';
+       // Question marks scattered randomly with rotation
+    qmarks.innerHTML = Array(50).fill(0).map((_, i) => {
+      const top = Math.random() * 95;
+      const left = Math.random() * 95;
+      const size = 16 + Math.random() * 52;
+      const rotate = -40 + Math.random() * 80;
+      const delay = Math.random() * 4;
+      const dur = 3 + Math.random() * 3;
+      const opacity = 0.08 + Math.random() * 0.18;
+      return `<span style="
+        position:absolute;
+        top:${top}%;
+        left:${left}%;
+        font-family:'Playfair Display',serif;
+        font-size:${size}px;
+        font-weight:700;
+        font-style:italic;
+        color:var(--fire-orange);
+        opacity:${opacity};
+        transform:rotate(${rotate}deg);
+        user-select:none;
+        animation:qDrift ${dur}s ease-in-out ${delay}s infinite;
+        pointer-events:none;
+        line-height:1;
+      ">?</span>`;
+    }).join('');
+    qmarks.style.opacity = '1';
 
    // Line 2 fades in
    line2.style.opacity = '1';
