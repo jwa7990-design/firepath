@@ -710,7 +710,7 @@
     background: radial-gradient(circle, rgba(244,98,42,0) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
-    transition: background 3s ease;
+    transition: background 2s ease;
   }
   #fp-intro-glow.warm {
     background: radial-gradient(circle, rgba(244,98,42,0.18) 0%, rgba(249,168,37,0.08) 35%, transparent 65%);
@@ -798,39 +798,17 @@
 
   function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  async function showFrame(year, tagline, glow) {
-    const yearEl = document.getElementById('fp-year');
-    const tagEl = document.getElementById('fp-tagline');
-    const glowEl = document.getElementById('fp-intro-glow');
-
-    // Fade out current
-    yearEl.style.opacity = '0';
-    tagEl.style.opacity = '0';
-    await wait(700);
-
-    // Update content
-    yearEl.textContent = year;
-    tagEl.textContent = tagline;
-    if (glow) glowEl.classList.add('warm');
-
-    // Fade in
-    yearEl.style.opacity = '1';
-    await wait(300);
-    tagEl.style.opacity = '1';
-
-    // Hold
-    await wait(2200);
-  }
-
   async function runIntro() {
     const yearEl = document.getElementById('fp-year');
     const tagEl = document.getElementById('fp-tagline');
     const finalEl = document.getElementById('fp-final');
+    const glow = document.getElementById('fp-intro-glow');
     const qmarks = document.getElementById('fp-qmarks');
 
     await wait(600);
 
-    // Frame 1
+    // Frame 1 — glow starts faint
+    glow.style.background = 'radial-gradient(circle, rgba(244,98,42,0.04) 0%, transparent 60%)';
     yearEl.textContent = '2055';
     tagEl.textContent = 'We all have a year.';
     yearEl.style.opacity = '1';
@@ -838,16 +816,40 @@
     tagEl.style.opacity = '1';
     await wait(2400);
 
-    // Frame 2
-    await showFrame('2050', "It isn't retirement.");
+    // Frame 2 — glow grows
+    yearEl.style.opacity = '0';
+    tagEl.style.opacity = '0';
+    await wait(700);
+    glow.style.background = 'radial-gradient(circle, rgba(244,98,42,0.07) 0%, transparent 62%)';
+    yearEl.textContent = '2050';
+    tagEl.textContent = "It isn't retirement.";
+    yearEl.style.opacity = '1';
+    await wait(300);
+    tagEl.style.opacity = '1';
+    await wait(2400);
 
-    // Frame 3
-    await showFrame('2045', "It's the year work becomes optional.");
+    // Frame 3 — glow grows more
+    yearEl.style.opacity = '0';
+    tagEl.style.opacity = '0';
+    await wait(700);
+    glow.style.background = 'radial-gradient(circle, rgba(244,98,42,0.11) 0%, rgba(249,168,37,0.04) 40%, transparent 64%)';
+    yearEl.textContent = '2045';
+    tagEl.textContent = "It's the year work becomes optional.";
+    yearEl.style.opacity = '1';
+    await wait(300);
+    tagEl.style.opacity = '1';
+    await wait(2400);
 
-    // Frame 4 — final reveal with glow
-    await showFrame('2037', '', true);
+    // Frame 4 — glow at full warmth, flicker kicks in
+    yearEl.style.opacity = '0';
+    tagEl.style.opacity = '0';
+    await wait(700);
+    glow.classList.add('warm');
+    yearEl.textContent = '2037';
+    yearEl.style.opacity = '1';
+    await wait(600);
 
-    // Scatter question marks
+    // Question marks scatter
     qmarks.innerHTML = Array(16).fill(0).map((_, i) => {
       const top = 5 + Math.random() * 88;
       const left = 5 + Math.random() * 88;
@@ -879,12 +881,13 @@
     }).join('');
     qmarks.style.opacity = '1';
 
-    await wait(600);
-
-    // Final question
+    // Do you know yours — arrives after short pause
+    await wait(800);
     finalEl.textContent = 'Do you know yours?';
     finalEl.style.opacity = '1';
-    await wait(3200);
+
+    // Hold with glow at peak
+    await wait(3500);
 
     // Slow dissolve to hero
     intro.style.transition = 'opacity 2s ease';
