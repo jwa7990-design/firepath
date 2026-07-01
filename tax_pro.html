@@ -246,6 +246,21 @@
   function fmtYrs(y){if(y===null)return'100+ yrs';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo';}
 
   let proProfile = null, fpToken = null, fpUserId = null;
+  let grossSaveTimer;
+  function debounceSaveGrossIncome(annualGross) {
+    if (!fpToken || !fpUserId || localStorage.getItem('fp_is_pro') !== 'true') return;
+    clearTimeout(grossSaveTimer);
+    grossSaveTimer = setTimeout(async () => {
+      try {
+        await fetch(`${WORKER_URL}/db/fp_profiles`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({ id: fpUserId, gross_income: Math.round(annualGross) })
+        });
+        if (proProfile) proProfile.gross_income = Math.round(annualGross);
+      } catch(e) { console.log('Gross income save failed', e); }
+    }, 1200);
+  }
   let taxCycle = 'annually';
   const TAX_CYCLE_MULT = { weekly: 52, fortnightly: 26, monthly: 12, annually: 1 };
   const TAX_CYCLE_LABELS = {
@@ -309,11 +324,12 @@
 
   function prefillFromProfile() {
     if (!proProfile) return;
-    // take_home_income is stored net, per the user's saved pay cycle — back out an approximate gross
     if (proProfile.take_home_income) {
       const savedCycle = ['weekly','fortnightly','monthly'].includes(proProfile.pay_cycle) ? proProfile.pay_cycle : 'annually';
       const annualTakeHome = proProfile.take_home_income * (savedCycle === 'annually' ? 1 : TAX_CYCLE_MULT[savedCycle]);
-      const approxAnnualGross = Math.round(annualTakeHome / 0.78);
+      // Prefer the real gross income if we've saved it before; otherwise back it out
+      // exactly against the actual tax brackets rather than a flat estimate.
+      const approxAnnualGross = proProfile.gross_income || estimateGrossFromNet(annualTakeHome);
       taxCycle = savedCycle;
       document.querySelectorAll('.cycle-btn[data-taxcycle]').forEach(b => b.classList.toggle('active', b.dataset.taxcycle === savedCycle));
       document.getElementById('t1GrossLabel').textContent = TAX_CYCLE_LABELS[savedCycle][0];
@@ -333,6 +349,7 @@
     const entered = parseFloat(document.getElementById('t1Gross').value) || 0;
     const gross = Math.round(entered * TAX_CYCLE_MULT[taxCycle]);
     if (gross < 1000) { document.getElementById('t1Results').style.display = 'none'; return; }
+    debounceSaveGrossIncome(gross);
     const r = calculateTax(gross);
     const marginal = calculateMarginalRate(gross);
     const persona = proProfile ? proProfile.persona : (localStorage.getItem('fp_persona') || 'building');
