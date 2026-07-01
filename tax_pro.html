@@ -11,10 +11,8 @@
   </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Tax & Strategy — FirePath</title>
-  <meta name="description" content="Free Australian tax calculator. See your take-home pay, model salary sacrifice, and find out whether your offset or investing wins — all connected to your freedom date."/>
-  <meta property="og:title" content="FirePath Tax & Strategy — Australian salary sacrifice and offset calculator"/>
-  <meta property="og:description" content="Know your tax picture, model salary sacrifice, and see whether your offset or investing wins. Free for Australians."/>
+  <title>Tax & Strategy Pro — FirePath</title>
+  <meta name="description" content="Your Australian tax picture, salary sacrifice, and offset vs invest — connected to your actual freedom date."/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
   <script src="js/tax-engine.js"></script>
@@ -32,15 +30,10 @@
     .result-value.red { color:#E53935; }
     .input-row { display:flex;flex-direction:column;gap:6px;margin-bottom:16px; }
     .input-row label { font-size:13px;font-weight:500;color:var(--warm-brown); }
-    .input-row input { border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--warm-brown);background:white;width:100%; }
+    .input-row input { border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--warm-brown);background:white;width:100%;box-sizing:border-box; }
     .input-row input:focus { outline:none;border-color:var(--fire-orange); }
     .input-hint { font-size:12px;color:var(--soft-grey);font-weight:300; }
-    .calc-btn { background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;margin-top:8px; }
     .results-box { background:var(--warm-cream);border-radius:14px;padding:18px;margin-top:16px;display:none; }
-    .pro-lock { background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:12px;padding:16px;margin-top:16px;text-align:center; }
-    .pro-lock-text { font-size:13px;color:var(--warm-brown);font-weight:300;line-height:1.6;margin-bottom:12px; }
-    .pro-lock-btn { background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:50px;padding:10px 24px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer; }
-    .bracket-bar { height:8px;border-radius:4px;margin:4px 0; }
     .warning-box { background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:12px 14px;font-size:13px;color:#E65100;line-height:1.6;margin-top:12px; }
     .comparison-box { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px; }
     .comparison-item { background:var(--warm-cream);border-radius:12px;padding:16px;text-align:center; }
@@ -49,33 +42,56 @@
     .comparison-rate.green { color:#2E7D32; }
     .comparison-rate.orange { color:var(--fire-orange); }
     .comparison-label { font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:4px; }
+
+    /* Pro insight — live, not locked */
+    .pro-insight { background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:1.5px solid rgba(244,98,42,0.25);border-radius:14px;padding:16px 18px;margin-top:16px; }
+    .pro-insight-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px; }
+    .pro-insight-text { font-size:14px;color:var(--warm-brown);font-weight:300;line-height:1.75; }
+    .pro-insight-text strong { font-weight:600; }
+    .pro-insight-link { display:inline-block;margin-top:10px;font-size:12px;font-weight:500;color:var(--fire-orange);text-decoration:none; }
+
+    .profile-banner { display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);color:white;border-radius:14px;padding:14px 18px;margin-bottom:24px;font-size:13px;font-weight:300;line-height:1.6; }
+    .profile-banner strong { font-weight:600; }
+
+    .ai-loading { display:none;padding:30px 20px;text-align:center; }
+    .ai-loading.visible { display:block; }
+    .fp-loader-flame { font-size:32px;animation:fp-flame-pulse 1.4s ease-in-out infinite;display:inline-block; }
+    @keyframes fp-flame-pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.18);opacity:0.75;} }
+
+    .ai-insight-card { background:white;border:2px solid var(--warm-brown);border-radius:18px;padding:22px;margin-bottom:20px; }
+    .ai-insight-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--warm-brown);margin-bottom:12px; }
+    .ai-insight-text { font-size:14px;color:var(--warm-brown);font-weight:300;line-height:1.8; }
+    .ai-insight-text strong { font-weight:600;color:var(--fire-orange); }
   </style>
 </head>
 <body>
 
 <nav>
-  <a href="/index.html" class="nav-logo">🔥 Fire<span>Path</span></a>
+  <a href="/index.html" class="nav-logo">🔥 Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
   <div class="nav-links">
-    <a href="features.html" class="nav-link">Features</a>
-    <a href="auth.html" class="nav-link">Sign in</a>
-    <a href="firepath.html" class="nav-cta">Find my path →</a>
+    <div id="userStatus" style="font-size:12px;color:var(--soft-grey);"></div>
+    <a href="firepath_pro.html" class="nav-link">Dashboard</a>
+    <a href="#" onclick="signOut()" class="nav-link">Sign out</a>
   </div>
 </nav>
 
 <div class="container" style="max-width:600px;padding-top:80px;padding-left:16px;padding-right:16px;padding-bottom:24px;">
 
   <!-- Page header -->
-  <div style="margin-bottom:28px;">
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;"> Tax & Strategy</div>
-    <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1.2;margin-bottom:8px;">Three tools. One question — where does your next dollar go?</h1>
-    <p style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;">Free to use. No signup required. Pro users see how each tool connects to their freedom date.</p>
+  <div style="margin-bottom:20px;">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">🔥 Tax & Strategy — Pro</div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1.2;margin-bottom:8px;">Every dollar, connected to your freedom date.</h1>
+    <p style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;">These tools use your saved profile — savings, super, age, and freedom number — to show real impact, not generic ranges.</p>
   </div>
+
+  <!-- Profile banner -->
+  <div class="profile-banner" id="profileBanner" style="display:none;"></div>
 
   <!-- ── Tool 1: Tax Picture ── -->
   <div class="tool-card">
     <div class="tool-label">Tool 1</div>
     <div class="tool-title">Your tax picture</div>
-    <div class="tool-sub">See exactly what you keep from every dollar you earn — and whether you're entering the right number into FirePath.</div>
+    <div class="tool-sub">See exactly what you keep from every dollar you earn.</div>
 
     <div class="input-row">
       <label>Your gross income (before tax)</label>
@@ -84,20 +100,12 @@
     </div>
 
     <div class="results-box" id="t1Results">
-
-    <!-- Plain English card -->
-    <div id="t1PlainEnglish" style="display:none;background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px;color:var(--warm-brown);line-height:1.8;font-weight:300;">
+      <div id="t1PlainEnglish" style="display:none;background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px;color:var(--warm-brown);line-height:1.8;font-weight:300;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--fire-orange);margin-bottom:10px;">💡 In plain English</div>
         <div id="t1PlainText"></div>
-    </div>
+      </div>
 
-    <!-- Toggle for beginners -->
-    <div id="t1Toggle" style="display:none;text-align:center;margin-bottom:12px;">
-        <button id="t1ToggleBtn" onclick="toggleT1Breakdown()" style="background:none;border:1.5px solid var(--border);border-radius:50px;padding:8px 20px;font-size:13px;font-weight:500;color:var(--soft-grey);cursor:pointer;font-family:'DM Sans',sans-serif;">Show me the detail →</button>
-    </div>
-
-    <!-- Breakdown table -->
-    <div id="t1Breakdown">
+      <div id="t1Breakdown">
         <div class="result-row"><span class="result-label">Gross income</span><span class="result-value" id="t1GrossOut">—</span></div>
         <div class="result-row"><span class="result-label">Income tax</span><span class="result-value red" id="t1TaxOut">—</span></div>
         <div class="result-row"><span class="result-label">Low income tax offset (LITO)</span><span class="result-value green" id="t1LitoOut">—</span></div>
@@ -106,22 +114,22 @@
         <div class="result-row"><span class="result-label">Effective tax rate</span><span class="result-value" id="t1EffectiveOut">—</span></div>
         <div class="result-row"><span class="result-label">Marginal tax rate</span><span class="result-value" id="t1MarginalOut">—</span></div>
         <div class="result-row"><span class="result-label">You keep per $100 earned</span><span class="result-value green" id="t1KeepOut">—</span></div>
-    </div>
-
-    <div style="margin-top:12px;font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;" id="t1FirePathNote"></div>
-
-    <div class="pro-lock" id="t1ProLock" style="display:none;">
-        <div class="pro-lock-text">🔒 <strong>Pro insight:</strong> your take-home funds <strong id="t1ProPct">—</strong> of your freedom number each year. See how that changes with salary sacrifice.</div>
-        <button class="pro-lock-btn" onclick="window.location.href='auth.html'">Unlock with Pro →</button>
-    </div>
-    </div>
       </div>
+
+      <div style="margin-top:12px;font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;" id="t1FirePathNote"></div>
+
+      <div class="pro-insight" id="t1ProInsight" style="display:none;">
+        <div class="pro-insight-label">🔥 Your freedom picture</div>
+        <div class="pro-insight-text" id="t1ProInsightText"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- ── Tool 2: Salary Sacrifice ── -->
   <div class="tool-card">
     <div class="tool-label">Tool 2</div>
     <div class="tool-title">Salary sacrifice</div>
-    <div class="tool-sub">Sacrifice pre-tax dollars into super and pay less income tax. The government effectively subsidises your retirement savings.</div>
+    <div class="tool-sub">Sacrifice pre-tax dollars into super and pay less income tax.</div>
 
     <div class="input-row">
       <label>Your gross income</label>
@@ -139,12 +147,12 @@
       <div class="result-row"><span class="result-label">Net super gain</span><span class="result-value green" id="t2NetSuper">—</span></div>
       <div class="result-row"><span class="result-label">Real cost to your take-home</span><span class="result-value" id="t2TakeHomeCost">—</span></div>
       <div class="result-row"><span class="result-label">Concessional cap remaining</span><span class="result-value" id="t2CapRemaining">—</span></div>
-      <div id="t2CapWarning" class="warning-box" style="display:none;" id="t2CapWarning">⚠️ You're approaching the concessional cap. Contributions above the cap are taxed at your marginal rate.</div>
+      <div id="t2CapWarning" class="warning-box" style="display:none;">⚠️ You're approaching the concessional cap. Contributions above the cap are taxed at your marginal rate.</div>
 
-      <!-- Pro lock -->
-      <div class="pro-lock">
-        <div class="pro-lock-text">🔒 <strong>Pro insight:</strong> sacrificing this amount could move your freedom date by <strong id="t2ProYears">X years</strong>. See the exact impact on your timeline.</div>
-        <button class="pro-lock-btn" onclick="window.location.href='auth.html'">Unlock with Pro →</button>
+      <div class="pro-insight" id="t2ProInsight" style="display:none;">
+        <div class="pro-insight-label">🔥 Impact on your super at 60</div>
+        <div class="pro-insight-text" id="t2ProInsightText"></div>
+        <a href="firepath_pro.html" class="pro-insight-link">See your full super timeline →</a>
       </div>
     </div>
   </div>
@@ -153,12 +161,11 @@
   <div class="tool-card">
     <div class="tool-label">Tool 3</div>
     <div class="tool-title">Offset vs invest</div>
-    <div class="tool-sub">Your offset account saves you mortgage interest — but is that better than investing the same money? It depends on your mortgage rate and tax rate.</div>
+    <div class="tool-sub">Is your offset beating what investing the same money would do?</div>
 
     <div class="input-row">
       <label>Your mortgage interest rate (%)</label>
       <input type="number" id="t3MortgageRate" placeholder="e.g. 6.5" step="0.1" oninput="runTool3()"/>
-      <span class="input-hint">Current variable or fixed rate</span>
     </div>
     <div class="input-row">
       <label>Your offset balance</label>
@@ -167,7 +174,6 @@
     <div class="input-row">
       <label>Your gross income (for tax rate)</label>
       <input type="number" id="t3Gross" placeholder="e.g. 85000" oninput="runTool3()"/>
-      <span class="input-hint">Used to calculate your marginal tax rate</span>
     </div>
 
     <div class="results-box" id="t3Results">
@@ -186,10 +192,27 @@
       <div class="result-row"><span class="result-label">Annual gain from investing</span><span class="result-value" id="t3AnnualInvest">—</span></div>
       <div class="result-row"><span class="result-label">Annual difference</span><span class="result-value highlight" id="t3Difference">—</span></div>
 
-      <!-- Pro lock -->
-      <div class="pro-lock">
-        <div class="pro-lock-text">🔒 <strong>Pro insight:</strong> redirecting your offset to investing could move your freedom date by <strong id="t3ProYears">X years</strong> — or keep it there X years sooner. See the crossover point.</div>
-        <button class="pro-lock-btn" onclick="window.location.href='auth.html'">Unlock with Pro →</button>
+      <div class="pro-insight" id="t3ProInsight" style="display:none;">
+        <div class="pro-insight-label">🔥 Impact on your freedom date</div>
+        <div class="pro-insight-text" id="t3ProInsightText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── AI Tax Insight ── -->
+  <div class="tool-card">
+    <div class="tool-label">Your AI insight</div>
+    <div class="tool-title">What this means for you</div>
+    <div class="tool-sub">Pulls together your tax picture, your profile, and your freedom number into one plain-English read.</div>
+    <button class="calc-btn" id="aiInsightBtn" onclick="getAiTaxInsight()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;">Get my tax insight 🔥</button>
+    <div class="ai-loading" id="aiTaxLoading">
+      <div class="fp-loader-flame">🔥</div>
+      <div style="font-size:13px;color:var(--soft-grey);margin-top:10px;">Reading your numbers...</div>
+    </div>
+    <div id="aiTaxInsightCard" style="display:none;margin-top:16px;">
+      <div class="ai-insight-card">
+        <div class="ai-insight-label">🧠 AI Insight — just for you</div>
+        <div class="ai-insight-text" id="aiTaxInsightText"></div>
       </div>
     </div>
   </div>
@@ -203,90 +226,116 @@
 <script>
   function fmtM(n){if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return'$'+Math.round(n/1000)+'K';return'$'+Math.round(n);}
   function fmtPct(r){return(r*100).toFixed(1)+'%';}
+  function yearsToGoal(goal,cur,ms,rate){if(ms<=0)return null;if(cur>=goal)return 0;const r=rate/12;let b=cur,m=0;while(b<goal&&m<1200){b=b*(1+r)+ms;m++;}return m<1200?m/12:null;}
+  function fmtYrs(y){if(y===null)return'100+ yrs';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo';}
 
-  function runTool1() {
-  const gross = parseFloat(document.getElementById('t1Gross').value) || 0;
-  if (gross < 1000) { document.getElementById('t1Results').style.display = 'none'; return; }
-  const r = calculateTax(gross);
-  const marginal = calculateMarginalRate(gross);
-  const persona = localStorage.getItem('fp_persona') || 'building';
-  const fortnightly = Math.round(r.takeHome / 26);
-  const weekly = Math.round(r.takeHome / 52);
+  let proProfile = null, fpToken = null, fpUserId = null;
 
-  document.getElementById('t1Results').style.display = 'block';
+  // ── Load Pro profile — page requires Pro access ──
+  async function loadProContext() {
+    fpToken = typeof getToken === 'function' ? getToken() : null;
+    fpUserId = typeof getUserId === 'function' ? getUserId() : null;
+    if (!fpToken || !fpUserId) { window.location.href = 'auth.html'; return; }
 
-  // ── Plain English card ──
-  const plainEnglish = document.getElementById('t1PlainEnglish');
-  const plainText = document.getElementById('t1PlainText');
+    const uel = document.getElementById('userStatus');
+    if (localStorage.getItem('fp_email') && uel) uel.textContent = 'Signed in as ' + localStorage.getItem('fp_email');
 
-  if (persona === 'fire') {
-    plainEnglish.style.display = 'none';
-  } else {
-    plainEnglish.style.display = 'block';
-    if (persona === 'beginner') {
-      plainText.innerHTML = `
-        You earn <strong>${fmtM(gross)}</strong> a year before tax.<br/><br/>
-        The government takes <strong>${fmtM(r.total)}</strong> — that covers your income tax and Medicare levy.<br/><br/>
-        You keep <strong>${fmtM(r.takeHome)}</strong>. That's about <strong>${fmtM(fortnightly)} per fortnight</strong> or <strong>${fmtM(weekly)} per week</strong> in your pocket.<br/><br/>
-        Your highest tax rate is <strong>${(marginal * 100).toFixed(0)}%</strong> — but you don't pay that on everything. Your first $18,200 is completely tax-free. Only the dollars at the top get taxed at the highest rate.
-      `;
-    } else {
-      plainText.innerHTML = `
-        On <strong>${fmtM(gross)}</strong> gross you take home <strong>${fmtM(r.takeHome)}/yr</strong> — <strong>${fmtM(fortnightly)}/fn</strong> or <strong>${fmtM(weekly)}/week</strong> after tax and Medicare.<br/><br/>
-        Your marginal rate is <strong>${(marginal * 100).toFixed(0)}%</strong> — every extra dollar you earn (or sacrifice into super) is worth ${(marginal * 100).toFixed(0)} cents in tax difference.
-      `;
+    if (typeof checkProStatus === 'function') { try { await checkProStatus(); } catch(e) {} }
+    if (localStorage.getItem('fp_is_pro') !== 'true') {
+      window.location.href = 'firepath_pro.html?upgrade=true';
+      return;
     }
-  }
 
-  // ── Breakdown table ──
-  const breakdown = document.getElementById('t1Breakdown');
-  const toggle = document.getElementById('t1Toggle');
-
-  if (persona === 'beginner') {
-    breakdown.style.display = 'none';
-    toggle.style.display = 'block';
-  } else {
-    breakdown.style.display = 'block';
-    toggle.style.display = 'none';
-  }
-
-  document.getElementById('t1GrossOut').textContent = fmtM(gross);
-  document.getElementById('t1TaxOut').textContent = '-' + fmtM(r.tax);
-  document.getElementById('t1LitoOut').textContent = '+' + fmtM(r.lito);
-  document.getElementById('t1MedicareOut').textContent = '-' + fmtM(r.medicare);
-  document.getElementById('t1TakeHomeOut').textContent = fmtM(r.takeHome) + '/yr (' + fmtM(fortnightly) + '/fn)';
-  document.getElementById('t1EffectiveOut').textContent = fmtPct(r.effectiveRate);
-  document.getElementById('t1MarginalOut').textContent = fmtPct(marginal);
-  document.getElementById('t1KeepOut').textContent = '$' + Math.round((1 - r.effectiveRate) * 100);
-
-  const fpNote = document.getElementById('t1FirePathNote');
-  fpNote.innerHTML = `💡 <strong>FirePath tip:</strong> Enter <strong>${fmtM(fortnightly)}/fortnight</strong> as your income in FirePath — that's your actual take-home after tax.`;
-
-  const lastCalc = localStorage.getItem('fp_last_calc');
-  if (lastCalc) {
     try {
-      const calc = JSON.parse(lastCalc);
-      if (calc.fireNum) {
-        const pct = Math.round((r.takeHome / calc.fireNum) * 100);
-        document.getElementById('t1ProPct').textContent = pct + '%';
-        document.getElementById('t1ProLock').style.display = 'block';
-      }
-    } catch(e) {}
+      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) proProfile = data[0];
+    } catch(e) { console.log('Profile load failed', e); }
+
+    renderProfileBanner();
+    prefillFromProfile();
   }
 
-  document.getElementById('t2Gross').value = gross;
-  document.getElementById('t3Gross').value = gross;
-  runTool2(); runTool3();
-}
+  function renderProfileBanner() {
+    const el = document.getElementById('profileBanner');
+    if (!el || !proProfile) return;
+    const parts = [];
+    if (proProfile.freedom_number) parts.push(`freedom number of <strong>${fmtM(proProfile.freedom_number)}</strong>`);
+    if (proProfile.age) parts.push(`age <strong>${proProfile.age}</strong>`);
+    if (proProfile.savings_rate) parts.push(`saving <strong>${proProfile.savings_rate}%</strong> of income`);
+    if (parts.length === 0) return;
+    el.innerHTML = `🔥 Using your saved profile — ${parts.join(', ')}. <a href="firepath_pro.html" style="color:#F4A24A;">Update this →</a>`;
+    el.style.display = 'flex';
+  }
 
-function toggleT1Breakdown() {
-  const breakdown = document.getElementById('t1Breakdown');
-  const btn = document.getElementById('t1ToggleBtn');
-  const visible = breakdown.style.display !== 'none';
-  breakdown.style.display = visible ? 'none' : 'block';
-  btn.textContent = visible ? 'Show me the detail →' : 'Hide detail ←';
-}
+  function prefillFromProfile() {
+    if (!proProfile) return;
+    // take_home_income is stored net — back out an approximate gross so the tools have a starting point
+    if (proProfile.take_home_income) {
+      const approxGross = Math.round(proProfile.take_home_income / 0.78);
+      ['t1Gross','t2Gross','t3Gross'].forEach(id => { document.getElementById(id).value = approxGross; });
+    }
+    if (proProfile.current_savings && proProfile.savings_type === 'offset') {
+      document.getElementById('t3OffsetBalance').value = proProfile.current_savings;
+    }
+    runTool1(); runTool2(); runTool3();
+  }
 
+  // ── Tool 1 ──
+  function runTool1() {
+    const gross = parseFloat(document.getElementById('t1Gross').value) || 0;
+    if (gross < 1000) { document.getElementById('t1Results').style.display = 'none'; return; }
+    const r = calculateTax(gross);
+    const marginal = calculateMarginalRate(gross);
+    const persona = proProfile ? proProfile.persona : (localStorage.getItem('fp_persona') || 'building');
+    const fortnightly = Math.round(r.takeHome / 26);
+    const weekly = Math.round(r.takeHome / 52);
+
+    document.getElementById('t1Results').style.display = 'block';
+
+    const plainEnglish = document.getElementById('t1PlainEnglish');
+    const plainText = document.getElementById('t1PlainText');
+    if (persona === 'fire') {
+      plainEnglish.style.display = 'none';
+    } else {
+      plainEnglish.style.display = 'block';
+      if (persona === 'beginner') {
+        plainText.innerHTML = `You earn <strong>${fmtM(gross)}</strong> a year before tax.<br/><br/>The government takes <strong>${fmtM(r.total)}</strong> — income tax and Medicare.<br/><br/>You keep <strong>${fmtM(r.takeHome)}</strong>. That's <strong>${fmtM(fortnightly)} per fortnight</strong> or <strong>${fmtM(weekly)} per week</strong>.<br/><br/>Your highest tax rate is <strong>${(marginal*100).toFixed(0)}%</strong> — but only on the dollars at the top. Your first $18,200 is tax-free.`;
+      } else {
+        plainText.innerHTML = `On <strong>${fmtM(gross)}</strong> gross you take home <strong>${fmtM(r.takeHome)}/yr</strong> — <strong>${fmtM(fortnightly)}/fn</strong> after tax and Medicare.<br/><br/>Your marginal rate is <strong>${(marginal*100).toFixed(0)}%</strong> — every extra dollar earned or sacrificed is worth ${(marginal*100).toFixed(0)} cents in tax difference.`;
+      }
+    }
+
+    document.getElementById('t1GrossOut').textContent = fmtM(gross);
+    document.getElementById('t1TaxOut').textContent = '-' + fmtM(r.tax);
+    document.getElementById('t1LitoOut').textContent = '+' + fmtM(r.lito);
+    document.getElementById('t1MedicareOut').textContent = '-' + fmtM(r.medicare);
+    document.getElementById('t1TakeHomeOut').textContent = fmtM(r.takeHome) + '/yr (' + fmtM(fortnightly) + '/fn)';
+    document.getElementById('t1EffectiveOut').textContent = fmtPct(r.effectiveRate);
+    document.getElementById('t1MarginalOut').textContent = fmtPct(marginal);
+    document.getElementById('t1KeepOut').textContent = '$' + Math.round((1 - r.effectiveRate) * 100);
+
+    document.getElementById('t1FirePathNote').innerHTML = `💡 <strong>FirePath tip:</strong> Enter <strong>${fmtM(fortnightly)}/fortnight</strong> as your income in FirePath — that's your actual take-home after tax.`;
+
+    // Live pro insight — real numbers, no lock
+    const t1Insight = document.getElementById('t1ProInsight');
+    const t1Text = document.getElementById('t1ProInsightText');
+    if (proProfile && proProfile.freedom_number) {
+      const pct = Math.round((r.takeHome / proProfile.freedom_number) * 100);
+      const sRate = proProfile.savings_rate || 0;
+      const towardFreedom = Math.round(r.takeHome * sRate / 100 / 52);
+      t1Text.innerHTML = `Your take-home covers <strong>${pct}%</strong> of your freedom number (${fmtM(proProfile.freedom_number)}). At your current savings rate of ${sRate}%, that's <strong>${fmtM(towardFreedom)}/week</strong> actually moving toward freedom — the rest funds today.`;
+      t1Insight.style.display = 'block';
+    } else {
+      t1Insight.style.display = 'none';
+    }
+
+    document.getElementById('t2Gross').value = gross;
+    document.getElementById('t3Gross').value = gross;
+    runTool2(); runTool3();
+  }
+
+  // ── Tool 2 ──
   function runTool2() {
     const gross = parseFloat(document.getElementById('t2Gross').value) || 0;
     const sacrifice = parseFloat(document.getElementById('t2Sacrifice').value) || 0;
@@ -302,8 +351,30 @@ function toggleT1Breakdown() {
     const capRemaining = Math.max(0, TAX_CONFIG.concessionalCap - sacrifice - sgContrib);
     document.getElementById('t2CapRemaining').textContent = fmtM(capRemaining);
     document.getElementById('t2CapWarning').style.display = r.atCapWarning ? 'block' : 'none';
+
+    const t2Insight = document.getElementById('t2ProInsight');
+    const t2Text = document.getElementById('t2ProInsightText');
+    if (proProfile && proProfile.age && proProfile.age < 60) {
+      const yearsTo60 = Math.max(0, 60 - proProfile.age);
+      const monthlyNet = (r.netSuperGain / 12);
+      const mr = 0.07 / 12;
+      let withExtra = proProfile.super_balance || 0, withoutExtra = proProfile.super_balance || 0;
+      for (let m = 0; m < yearsTo60 * 12; m++) {
+        withExtra = withExtra * (1 + mr) + monthlyNet;
+        withoutExtra = withoutExtra * (1 + mr);
+      }
+      const extra = Math.round(withExtra - withoutExtra);
+      t2Text.innerHTML = `Sacrificing ${fmtM(sacrifice)}/yr from age ${proProfile.age} to 60 adds roughly <strong>${fmtM(extra)}</strong> to your super by 60 — on top of its current trajectory. Costs you ${fmtM(Math.round(r.takehomeCost/52))}/week in take-home now.`;
+      t2Insight.style.display = 'block';
+    } else if (proProfile && proProfile.age >= 60) {
+      t2Text.innerHTML = `You're past preservation age — sacrificing now still saves tax, but the super is already accessible rather than compounding toward a future unlock date.`;
+      t2Insight.style.display = 'block';
+    } else {
+      t2Insight.style.display = 'none';
+    }
   }
 
+  // ── Tool 3 ──
   function runTool3() {
     const mortgageRate = (parseFloat(document.getElementById('t3MortgageRate').value) || 0) / 100;
     const offsetBalance = parseFloat(document.getElementById('t3OffsetBalance').value) || 0;
@@ -324,27 +395,98 @@ function toggleT1Breakdown() {
 
     if (r.offsetBetter) {
       offsetBox.classList.add('winner'); investBox.classList.remove('winner');
-      verdict.innerHTML = `✅ <strong>Based on these numbers, your offset is winning</strong> — returning ${fmtPct(r.offsetReturn)} tax-free vs ${fmtPct(r.investReturnAfterTax)} after tax from investing. At your marginal rate of ${fmtPct(marginal)}, the offset has the edge right now. This changes as your mortgage balance falls.`;
+      verdict.innerHTML = `✅ <strong>Your offset is winning</strong> — ${fmtPct(r.offsetReturn)} tax-free vs ${fmtPct(r.investReturnAfterTax)} after tax from investing.`;
     } else {
       investBox.classList.add('winner'); offsetBox.classList.remove('winner');
-      verdict.innerHTML = `📈 <strong>Based on these numbers, investing has the edge</strong> — returning ${fmtPct(r.investReturnAfterTax)} after tax vs ${fmtPct(r.offsetReturn)} from the offset. At your marginal rate of ${fmtPct(marginal)}, the math favours investing your surplus. The offset still reduces risk though.`;
+      verdict.innerHTML = `📈 <strong>Investing has the edge</strong> — ${fmtPct(r.investReturnAfterTax)} after tax vs ${fmtPct(r.offsetReturn)} from the offset. The offset still reduces risk though.`;
+    }
+
+    const t3Insight = document.getElementById('t3ProInsight');
+    const t3Text = document.getElementById('t3ProInsightText');
+    if (proProfile && proProfile.freedom_number && proProfile.savings_monthly != null) {
+      const monthlyDiff = r.difference / 12;
+      const baseY = yearsToGoal(proProfile.freedom_number, proProfile.current_savings || 0, proProfile.savings_monthly, 0.07);
+      const shiftedMonthly = r.offsetBetter ? proProfile.savings_monthly - monthlyDiff : proProfile.savings_monthly + monthlyDiff;
+      const newY = yearsToGoal(proProfile.freedom_number, proProfile.current_savings || 0, shiftedMonthly, 0.07);
+      const diffYrs = (baseY !== null && newY !== null) ? baseY - newY : null;
+      if (r.offsetBetter) {
+        t3Text.innerHTML = diffYrs !== null
+          ? `Switching your ${fmtM(offsetBalance)} offset to investing would push your freedom date back by roughly <strong>${fmtYrs(Math.abs(diffYrs))}</strong> at today's rates. Your offset is doing the right job for now.`
+          : `Your offset is currently the stronger move — keep it as is for now.`;
+      } else {
+        t3Text.innerHTML = diffYrs !== null
+          ? `Redirecting your ${fmtM(offsetBalance)} offset into investing could bring your freedom date forward by roughly <strong>${fmtYrs(diffYrs)}</strong>.`
+          : `Investing this balance looks like the stronger long-term move based on your numbers.`;
+      }
+      t3Insight.style.display = 'block';
+    } else {
+      t3Insight.style.display = 'none';
     }
   }
 
-  // Check if logged in to show Pro features
-  document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('taxYearLabel').textContent = TAX_CONFIG.year;
-  if (typeof getToken === 'function' && getToken()) {
-    // Pro user — could pre-fill from profile
-  }
-});
+  // ── AI Tax Insight ──
+  async function getAiTaxInsight() {
+    const btn = document.getElementById('aiInsightBtn');
+    const loading = document.getElementById('aiTaxLoading');
+    const card = document.getElementById('aiTaxInsightCard');
+    const gross = parseFloat(document.getElementById('t1Gross').value) || 0;
+    if (gross < 1000) { alert('Enter your gross income in Tool 1 first.'); return; }
 
+    btn.style.display = 'none';
+    loading.classList.add('visible');
+    card.style.display = 'none';
+
+    const r = calculateTax(gross);
+    const marginal = calculateMarginalRate(gross);
+    const sacrifice = parseFloat(document.getElementById('t2Sacrifice').value) || 0;
+    const offsetBalance = parseFloat(document.getElementById('t3OffsetBalance').value) || 0;
+    const mortgageRate = parseFloat(document.getElementById('t3MortgageRate').value) || 0;
+
+    const profileSummary = proProfile ? `Age: ${proProfile.age || 'unknown'}. Freedom number: ${fmtM(proProfile.freedom_number || 0)}. Current savings: ${fmtM(proProfile.current_savings || 0)}. Super balance: ${fmtM(proProfile.super_balance || 0)}. Savings rate: ${proProfile.savings_rate || 0}%. Savings type: ${proProfile.savings_type || 'unknown'}. Persona: ${proProfile.persona || 'building'}.` : 'No saved profile available.';
+
+    const userInput = `Gross income: ${fmtM(gross)}/yr. Take-home: ${fmtM(r.takeHome)}/yr. Marginal tax rate: ${(marginal*100).toFixed(0)}%. Effective tax rate: ${(r.effectiveRate*100).toFixed(1)}%. Salary sacrifice considered: ${fmtM(sacrifice)}/yr. Offset balance: ${fmtM(offsetBalance)}, mortgage rate: ${mortgageRate}%. User profile — ${profileSummary}`;
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 400,
+          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. Given someone's tax picture and freedom profile, identify the single most useful question worth exploring about their tax setup — salary sacrifice headroom, offset vs invest, or something else specific to their numbers. Rules: 1. Reference their actual numbers. 2. Frame as questions worth exploring, never instructions. 3. Never say "you should" or "I recommend". 4. Max 3 short paragraphs. 5. End with exactly: "This is educational, not financial advice." Use <strong> for bold.`,
+          messages: [{ role: 'user', content: userInput }]
+        })
+      });
+      const data = await res.json();
+      const insight = data.content[0].text;
+      document.getElementById('aiTaxInsightText').innerHTML = insight.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      card.style.display = 'block';
+    } catch(e) {
+      document.getElementById('aiTaxInsightText').innerHTML = 'Something went wrong connecting to the AI. Please try again.';
+      card.style.display = 'block';
+      console.error(e);
+    } finally {
+      loading.classList.remove('visible');
+      btn.style.display = 'block';
+    }
+  }
+
+  function toggleT1Breakdown() {
+    const breakdown = document.getElementById('t1Breakdown');
+    const visible = breakdown.style.display !== 'none';
+    breakdown.style.display = visible ? 'none' : 'block';
+  }
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    document.getElementById('taxYearLabel').textContent = TAX_CONFIG.year;
+    await loadProContext();
+  });
 </script>
+
 <footer style="border-top:1px solid var(--border);padding:24px;text-align:center;margin-top:20px;">
   <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:8px;">🔥 Fire<span style="color:var(--fire-orange)">Path</span></div>
   <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
-    <a href="index.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Home</a>
-    <a href="firepath.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Free Calculator</a>
+    <a href="firepath_pro.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Dashboard</a>
     <a href="learn/index.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Learning Lab</a>
     <a href="assumptions.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">How We Calculate</a>
     <a href="privacy.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Privacy</a>
@@ -354,4 +496,3 @@ function toggleT1Breakdown() {
 
 </body>
 </html>
-
