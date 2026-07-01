@@ -679,6 +679,20 @@
       <div id="zeroSavingsCard" style="display:none"></div>
       <div id="debtCard" style="display:none"></div>
       <div id="houseCard" style="display:none"></div>
+      <div id="insightMetaBar" style="display:none;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);margin-bottom:4px;">Your saved insight</div>
+          <div style="font-size:12px;color:var(--soft-grey);font-weight:300;" id="insightMetaDate"></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="personaDropdown" onchange="onPersonaDropdownChange(this)" style="border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--warm-brown);background:white;">
+            <option value="beginner">🌱 Just getting started</option>
+            <option value="building">📈 Building towards it</option>
+            <option value="fire">🔥 Deep in the FIRE journey</option>
+          </select>
+          <button onclick="analyse()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;">Run my numbers again 🔥</button>
+        </div>
+      </div>
       <div class="ai-insight-card">
         <div class="ai-insight-label">🧠 AI Insight — just for you</div>
         <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
@@ -733,6 +747,7 @@
   let persona=null,selectedCycle='fortnightly',savingsType='cash',inputMode='type',isListening=false,isContextListening=false;
   let recognition=null,retirementSpendMultiplier=1.0,contextRecognition=null,housingStatus='renting',dependants=0;
   let transcriptText='',calcData={},storedCalc={};
+  let cachedInsight=null,cachedInsightAt=null,lastInsightText='',savedProfileData=null;
   const currentYear=new Date().getFullYear();
   let fpToken=null,fpUserId=null;
   const fpGuest=localStorage.getItem('fp_guest'),savedPersona=localStorage.getItem('fp_persona');
@@ -798,6 +813,11 @@
     if(localStorage.getItem('fp_email')){uel.innerHTML=`Signed in as ${localStorage.getItem('fp_email')} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;}
     else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;}
     if(savedPersona){ persona=savedPersona; document.querySelectorAll('.ob-persona').forEach(c=>{ if(c.dataset.persona===savedPersona){ c.classList.add('selected'); } }); }
+
+    // If we have a cached insight and a completed profile, skip onboarding and hydrate straight to results
+    if (savedProfileData && cachedInsight && savedProfileData.freedom_number) {
+      hydrateFromSavedProfile(savedProfileData);
+    }
   });
 
   function saveHMOData(){localStorage.setItem('hmo_fireNum',calcData.fireNum||0);localStorage.setItem('hmo_monthlySav',calcData.mSav||0);localStorage.setItem('hmo_propVal',calcData.propVal||0);}
@@ -828,6 +848,127 @@
   }
   function switchTab(tab) { if(tab==='accountability'){ window.location.href='progress.html'; } }
   function switchNeedleTab(tab,btn){document.querySelectorAll('.needle-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.needle-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('needle-'+tab).classList.add('active');}
+
+  // ── Cached-insight home screen support ──
+  function renderInsightMeta() {
+    const bar = document.getElementById('insightMetaBar');
+    if (!bar) return;
+    bar.style.display = 'flex';
+    const dateEl = document.getElementById('insightMetaDate');
+    if (dateEl) {
+      dateEl.style.color = 'var(--soft-grey)';
+      if (cachedInsightAt) {
+        const d = new Date(cachedInsightAt);
+        dateEl.textContent = 'Last updated ' + d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+      } else {
+        dateEl.textContent = '';
+      }
+    }
+    const dd = document.getElementById('personaDropdown');
+    if (dd) dd.value = persona || 'building';
+  }
+
+  function onPersonaDropdownChange(sel) {
+    const newPersona = sel.value;
+    const changed = newPersona !== persona;
+    persona = newPersona;
+    savePersonaToDB(persona);
+    document.querySelectorAll('.ob-persona').forEach(c => c.classList.toggle('selected', c.dataset.persona === persona));
+    applyPersonaLabels();
+    if (changed) {
+      const dateEl = document.getElementById('insightMetaDate');
+      if (dateEl) dateEl.innerHTML = 'Voice changed — your insight below is still in the old voice. <strong style="color:var(--fire-orange);cursor:pointer;" onclick="analyse()">Refresh it →</strong>';
+    }
+  }
+
+  function hydrateFromSavedProfile(p) {
+    if (!p || !p.freedom_number || !p.take_home_income) return false;
+
+    housingStatus = p.housing_status || 'renting';
+    dependants = p.dependants || 0;
+    persona = p.persona || persona || 'building';
+    selectedCycle = p.pay_cycle || selectedCycle;
+    savingsType = p.savings_type || savingsType;
+
+    const mI = p.take_home_income; // stored as a monthly figure by saveProfile()
+    const mSav = p.savings_monthly || 0; // also stored monthly
+    const mSp = mI - mSav;
+    const savings = p.current_savings || 0;
+    const superBal = p.super_balance || 0;
+    const age = p.age || null;
+    const debt = p.debt_total || 0;
+    const mortgage = p.mortgage_remaining || 0;
+    const fireNum = p.freedom_number;
+    const sRate = p.savings_rate || (mI > 0 ? Math.round((mSav / mI) * 100) : 0);
+    const context = p.context || '';
+
+    const isZeroSavings = mSav <= 0;
+    calcData = { mIncome: mI, mSpend: mSp, mSav, savings, superBal, fireNum, sRate, age, context, propVal: 0, debt, mortgage, housingStatus, dependants };
+    const alreadyFree = savings >= fireNum && fireNum > 0;
+    const fy = alreadyFree ? 0 : yearsToGoal(fireNum, savings, mSav, 0.07);
+    const fyear = fy !== null ? currentYear + Math.round(fy) : null;
+    const freedomAge = age ? Math.round(age + (fy || 0)) : null;
+
+    buildContextTags(savings, superBal, debt, mortgage, housingStatus, dependants);
+
+    const cw = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
+    const csl = selectedCycle === 'weekly' ? 'Saved / week' : selectedCycle === 'fortnightly' ? 'Saved / fortnight' : 'Saved / month';
+    const cs = selectedCycle === 'weekly' ? Math.round(mSav * 12 / 52) : selectedCycle === 'fortnightly' ? Math.round(mSav * 12 / 26) : Math.round(mSav);
+
+    if (isZeroSavings) {
+      document.getElementById('yearsOut').textContent = 'not yet calculated';
+      document.getElementById('freedomAgeOut').textContent = '—';
+      document.getElementById('resultSub').textContent = `Your freedom number is ${fmtM(fireNum)}. Start saving and watch this change.`;
+      document.getElementById('monthlySavingOut').textContent = '$0';
+    } else {
+      document.getElementById('yearsOut').textContent = alreadyFree ? 'Already there! 🎉' : fmt(fy);
+      document.getElementById('freedomAgeOut').textContent = freedomAge || '—';
+      document.getElementById('resultSub').textContent = `Saving ${fmtM(cs)} per ${cw} toward your ${persona === 'fire' ? 'FI' : 'freedom'} number of ${fmtM(fireNum)}.`;
+      document.getElementById('monthlySavingOut').textContent = fmtM(cs);
+    }
+    const rl = document.querySelector('.result-label');
+    if (rl) rl.textContent = 'Your FirePath Pro result';
+    document.getElementById('freedomAgeLabel').textContent = persona === 'fire' && freedomAge && freedomAge < 60 ? 'Freedom age (pre-super)' : 'Your freedom age';
+    document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
+    document.getElementById('savingsRateNote').textContent = sRate + '% of income';
+    document.getElementById('stat3label').textContent = csl;
+
+    const inflYrs = Math.round(fy || 25);
+    const futureNum = fireNum * Math.pow(1.025, inflYrs);
+    const inflationNotes = {
+      beginner: `💡 Just so you know — prices rise over time, so in ${inflYrs} years ${fmtM(fireNum)} won't stretch as far as it does today. This is why <em>where</em> you save matters as much as <em>how much</em> you save.`,
+      building: `💡 In today's purchasing power. At 2.5% inflation over ${inflYrs} years, you'd need <strong>${fmtM(futureNum)}</strong> in future dollars — but your portfolio grows in nominal terms too.`,
+      fire: `Nominal: <strong>${fmtM(futureNum)}</strong> · Real (today's $): <strong>${fmtM(fireNum)}</strong> · Assumed inflation: 2.5% · ${inflYrs} yrs`
+    };
+    document.getElementById('inflationNote').innerHTML = inflationNotes[persona] || inflationNotes.building;
+
+    const isPro = localStorage.getItem('fp_is_pro') === 'true';
+    if (isZeroSavings) {
+      buildZeroSavingsCard(mI, fireNum, isPro);
+      document.getElementById('superTimelineCard').style.display = 'none';
+      document.getElementById('debtCard').style.display = 'none';
+      document.getElementById('houseCard').style.display = 'none';
+    } else {
+      document.getElementById('zeroSavingsCard').style.display = 'none';
+      buildSuperTimelineCard(age, superBal, mI, savings, mSav, fireNum);
+      updateSuperTabVisibility(age, superBal);
+      buildDebtCard(debt, savings, mSav, mI, fireNum);
+      buildHouseCard(housingStatus, debt, savings, mSav, fireNum);
+      updateFreedomTabVisibility(savings, mSav, mI, fireNum, mSp, fy, isPro);
+    }
+
+    const y07 = yearsToGoal(fireNum, savings, mSav, 0.07);
+    storedCalc = { fireNum, savings, mSav };
+    buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt);
+    buildNeedleCard(fireNum, savings, mSav, y07);
+    buildWhatsNextTab({ fireNum, savings, mSav, fy, fyear, freedomAge, sRate, superBal, debt, mortgage, age, isZeroSavings, alreadyFree, isPro });
+
+    document.getElementById('aiInsightText').innerHTML = cachedInsight;
+    renderInsightMeta();
+
+    showScreen(3);
+    return true;
+  }
 </script>
 
 <!-- ── PRO ONBOARDING JS ── -->
@@ -1003,6 +1144,8 @@ function stopLoadingMessages() {
     const data = await res.json();
     if (!Array.isArray(data) || data.length === 0) return;
     const p = data[0];
+    savedProfileData = p;
+    if (p.ai_insight_text) { cachedInsight = p.ai_insight_text; cachedInsightAt = p.ai_insight_generated_at || null; }
     if (p.pay_cycle) { selectedCycle = p.pay_cycle; document.querySelectorAll('.cycle-btn').forEach(b => b.classList.toggle('active', b.dataset.cycle === p.pay_cycle)); }
     if (p.take_home_income) { const ci = p.pay_cycle === 'weekly' ? p.take_home_income*12/52 : p.pay_cycle === 'fortnightly' ? p.take_home_income*12/26 : p.take_home_income; document.getElementById('income').value = Math.round(ci); }
     // Unlock Block 2 fields — data already populated
@@ -1065,7 +1208,9 @@ async function saveProfile() {
         context: calcData.context || '',
         freedom_number: Math.round(calcData.fireNum || 0),
         freedom_years: calcData.mSav > 0 ? Math.round((calcData.fireNum || 0) / (calcData.mSav * 12) * 10) / 10 : null,
-        savings_rate: calcData.sRate || 0
+        savings_rate: calcData.sRate || 0,
+        ai_insight_text: lastInsightText || '',
+        ai_insight_generated_at: cachedInsightAt || new Date().toISOString()
       })
     });
   } catch(e) { console.log('Profile save failed', e); }
@@ -1124,6 +1269,9 @@ async function saveProfile() {
       const dc=debt>0?` They have $${debt} in non-mortgage debt.`:'',mc=mortgage>0?` Mortgage remaining: $${mortgage}.`:'',dpc=dependants>0?` They have ${dependants} dependant(s).`:'',hc=`They are ${housingStatus==='renting'?'renting':'a homeowner'}.`;
       const ir=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:`You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. User persona: ${persona}. ${at}. ${hc}${dc}${mc}${dpc} Tone: ${persona==='beginner'?'warm, simple, human':persona==='building'?'clear, motivating, practical':'direct, analytical, peer-level'}. Rules: 1. Acknowledge caring/family pressures first with genuine empathy. 2. Identify their single biggest financial lever in plain numbers. 3. Frame as questions worth exploring, never instructions. 4. Never name specific investment products or platforms. 5. Never say "you should" or "I recommend". 6. Max 3 short paragraphs. 7. End with exactly: "This is educational, not financial advice." Use <strong> for bold. 8. If you identify a specific big financial question worth modelling (selling a property, investing a lump sum, redundancy payout), add one sentence after the disclaimer suggesting they run it in the Hear Me Out calculators — e.g. "The Hear Me Out calculators let you model exactly this kind of move."`,messages:[{role:'user',content:`Monthly income: $${Math.round(mI)}, spending: $${Math.round(mSp)}, saving: $${Math.round(mSav)}, savings: $${savings}, super: $${superBal}, freedom number: $${Math.round(fireNum)}, savings rate: ${sRate}%, freedom: ${fyear||'over 50 years away'}. Age: ${age||'unknown'}. Debt: $${debt}. Mortgage: $${mortgage}. Dependants: ${dependants}. Housing: ${housingStatus}. Situation: ${context}`}]})});
       const id=await ir.json(),insight=id.content[0].text;
+      lastInsightText = insight;
+      cachedInsight = insight;
+      cachedInsightAt = new Date().toISOString();
       const cw=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';
       const csl=selectedCycle==='weekly'?'Saved / week':selectedCycle==='fortnightly'?'Saved / fortnight':'Saved / month';
       const cs=inputMode==='type'?Math.round(mSavAmt):(selectedCycle==='weekly'?Math.round(mSav*12/52):selectedCycle==='fortnightly'?Math.round(mSav*12/26):Math.round(mSav));
@@ -1223,6 +1371,7 @@ async function saveProfile() {
       localStorage.setItem('fp_last_calc', JSON.stringify({fireNum: calcData.fireNum, savings: calcData.savings, mSav: calcData.mSav, sRate: calcData.sRate}));
       await saveProfile();
       showScreen(3);
+      renderInsightMeta();
       await checkProStatus();
     }catch(err){
       const al=document.getElementById('aiLoading');if(al)al.classList.remove('visible');
