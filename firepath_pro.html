@@ -835,13 +835,15 @@
     const el = document.getElementById('superTimelineCard');
     if (!el || !calcData.age || calcData.age >= 60) return;
     const yearsTo60 = Math.max(0, 60 - calcData.age);
+    const annualGrossApprox = (calcData.mIncome * 12) / 0.78; // rough back-out from take-home — only net income is stored here
+    const sgMonthly = (annualGrossApprox * (FP_ASSUMPTIONS.sgRate || 0.115) / 12) * 0.85; // employer contributions, after 15% contributions tax — happens regardless of sacrifice
     const netSuperGain = annualSacrifice * 0.85 * 0.7; // rough net-of-tax-saved contribution, mirrors tax-engine's salary sacrifice math at a typical marginal rate
     const monthlyNet = netSuperGain / 12;
     const mr = 0.07 / 12;
     let withExtra = calcData.superBal || 0, withoutExtra = calcData.superBal || 0;
     for (let m = 0; m < yearsTo60 * 12; m++) {
-      withExtra = withExtra * (1 + mr) + monthlyNet;
-      withoutExtra = withoutExtra * (1 + mr);
+      withoutExtra = withoutExtra * (1 + mr) + sgMonthly;
+      withExtra = withExtra * (1 + mr) + sgMonthly + monthlyNet;
     }
     const extra = Math.round(withExtra - withoutExtra);
     const card = document.createElement('div');
