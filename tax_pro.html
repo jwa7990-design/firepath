@@ -228,6 +228,7 @@
       <div class="ai-insight-card">
         <div class="ai-insight-label">🧠 AI Insight — just for you</div>
         <div class="ai-insight-text" id="aiTaxInsightText"></div>
+        <div id="aiTaxLearnMore" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"></div>
       </div>
     </div>
   </div>
@@ -512,32 +513,54 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 600,
+          max_tokens: 700,
           system: `You are FirePath, a warm and genuinely useful Australian tax education tool. You are NOT a financial advisor.
 
 The person has ALREADY seen on this page: their exact take-home breakdown, marginal and effective tax rates, a specific salary sacrifice calculation with real dollar figures, and an offset-vs-invest comparison. Do NOT repeat, re-explain, or re-derive any of those numbers — that information is already visible to them. Repeating it is a failure condition for this response.
 
-Your job is to surface ONE Australian tax angle they have not yet seen on this page, chosen ONLY if it's genuinely relevant to their actual numbers:
-- Catch-up (carry-forward) concessional contributions — if their super balance is relatively low for their age, they may be able to contribute well above the standard $30k cap in one year using unused prior-year cap.
-- The government super co-contribution — if their income is under roughly $60,400 and they could make a personal after-tax contribution.
-- Spousal contribution tax offset — only if a partner or spouse is mentioned in their situation.
-- The 50% CGT discount — if they're investing in ETFs/shares outside super and holding for over 12 months.
-- Franking credits — if they mention Australian shares specifically (not just ETFs generally).
-- First Home Super Saver Scheme — only if their situation clearly mentions saving for a first home.
-- Division 293 — only if their income is near or above $250k.
+Your job is to surface ONE Australian tax angle they have not yet seen on this page, chosen ONLY if it's genuinely relevant to their actual numbers. Each angle has a short tag in brackets — you MUST use one of these exact tags at the very end of your response:
+- Catch-up (carry-forward) concessional contributions [catch-up] — if their super balance is relatively low for their age, they may be able to contribute well above the standard $30k cap in one year using unused prior-year cap.
+- The government super co-contribution [co-contribution] — if their income is under roughly $60,400 and they could make a personal after-tax contribution.
+- Spousal contribution tax offset [spouse] — only if a partner or spouse is mentioned in their situation.
+- The 50% CGT discount [cgt] — if they're investing in ETFs/shares outside super and holding for over 12 months.
+- Franking credits [franking] — if they mention Australian shares specifically (not just ETFs generally).
+- First Home Super Saver Scheme [fhsss] — only if their situation clearly mentions saving for a first home.
+- Division 293 [division293] — only if their income is near or above $250k.
 
-Pick the single most relevant angle to their actual numbers and explain it in plain English, with a rough indicative figure where you can. If genuinely none of these fit their situation, say so plainly rather than forcing an irrelevant one — never invent generic advice to fill space.
+Pick the single most relevant angle to their actual numbers and explain it in plain English, with a rough indicative figure where you can. If genuinely none of these fit their situation, pick the closest one that still applies to most working Australians (catch-up contributions or the CGT discount are usually safe defaults) rather than leaving it blank.
 
 You have web search available. Use it when you need a current threshold, cap, or rate to give an accurate figure (e.g. this financial year's concessional cap, co-contribution income threshold, Division 293 threshold) — search the ATO website specifically rather than relying on memory for numbers that change each financial year. Don't search for concepts you already know well; only search to confirm a specific current figure.
 
-Rules: 1. Never say "you should" or "I recommend" — frame as a question worth exploring. 2. Never name specific super funds, brokers, or platforms. 3. Max 3 short paragraphs. 4. Never quote or paste text from search results — always explain figures and rules in your own words. 5. End with exactly: "This is educational, not financial advice." 6. Use <strong> for bold.`,
+Rules: 1. Never say "you should" or "I recommend" — frame as a question worth exploring. 2. Never name specific super funds, brokers, or platforms. 3. Keep your explanation to 2 short paragraphs maximum — you have a strict length budget and MUST finish with a complete final sentence, so stay concise from the start rather than running out of room. 4. Never quote or paste text from search results — always explain figures and rules in your own words. 5. End with exactly this sentence, then the tag on its own line: "This is educational, not financial advice." 6. Use <strong> for bold. 7. The very last line of your response must be only the tag in brackets, e.g. [catch-up] — nothing else on that line.`,
           messages: [{ role: 'user', content: userInput }],
           tools: [{ type: 'web_search_20250305', name: 'web_search' }]
         })
       });
       const data = await res.json();
-      const insight = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      let insight = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      const tagMatch = insight.match(/\[(catch-up|co-contribution|spouse|cgt|franking|fhsss|division293)\]\s*$/);
+      const topicTag = tagMatch ? tagMatch[1] : null;
+      insight = insight.replace(/\[(catch-up|co-contribution|spouse|cgt|franking|fhsss|division293)\]\s*$/, '').trim();
       document.getElementById('aiTaxInsightText').innerHTML = insight.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      const learnMoreEl = document.getElementById('aiTaxLearnMore');
+      const topicMap = {
+        'catch-up': { topic: 'catch-up-contributions', track: 'tax', title: 'Catch-up concessional contributions — how they work' },
+        'co-contribution': { topic: 'super-co-contribution', track: 'tax', title: 'The government super co-contribution' },
+        'spouse': { topic: 'spouse-contribution-offset', track: 'tax', title: 'Spouse contribution tax offset' },
+        'cgt': { topic: 'cgt-discount', track: 'tax', title: 'The 50% CGT discount, explained' },
+        'franking': { topic: 'franking-credits', track: 'tax', title: 'Franking credits on Australian shares' },
+        'fhsss': { topic: 'first-home-super-saver', track: 'tax', title: 'First Home Super Saver Scheme' },
+        'division293': { topic: 'division-293', track: 'tax', title: 'Division 293 tax, explained' }
+      };
+      if (learnMoreEl && topicTag && topicMap[topicTag]) {
+        const t = topicMap[topicTag];
+        const labUrl = `learning_lab.html?topic=${t.topic}&track=${t.track}&title=${encodeURIComponent(t.title)}`;
+        learnMoreEl.innerHTML = `<a href="${labUrl}" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:10px 18px;border-radius:50px;font-size:13px;font-weight:500;text-decoration:none;">📖 Go deeper — ${t.title} →</a>`;
+        learnMoreEl.style.display = 'block';
+      } else if (learnMoreEl) {
+        learnMoreEl.style.display = 'none';
+      }
       card.style.display = 'block';
     } catch(e) {
       document.getElementById('aiTaxInsightText').innerHTML = 'Something went wrong connecting to the AI. Please try again.';
