@@ -75,7 +75,7 @@
   <a href="/index.html" class="nav-logo">🔥 Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
   <div class="nav-links">
     <div id="userStatus" style="font-size:12px;color:var(--soft-grey);"></div>
-    <a href="firepath_pro.html" class="nav-link">Dashboard</a>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
     <a href="#" onclick="signOut()" class="nav-link">Sign out</a>
   </div>
 </nav>
@@ -151,7 +151,7 @@
     </div>
     <div class="input-row">
       <label>Amount to sacrifice per year</label>
-      <input type="number" id="t2Sacrifice" placeholder="e.g. 10000" oninput="runTool2()"/>
+      <input type="number" id="t2Sacrifice" placeholder="e.g. 10000" oninput="runTool2();debounceSaveTaxField('last_sacrifice_amount', this.value)"/>
       <span class="input-hint">This reduces your taxable income and goes into super at 15% tax instead of your marginal rate</span>
     </div>
 
@@ -180,11 +180,11 @@
 
     <div class="input-row">
       <label>Your mortgage interest rate (%)</label>
-      <input type="number" id="t3MortgageRate" placeholder="e.g. 6.5" step="0.1" oninput="runTool3()"/>
+      <input type="number" id="t3MortgageRate" placeholder="e.g. 6.5" step="0.1" oninput="runTool3();debounceSaveTaxField('last_mortgage_rate', this.value)"/>
     </div>
     <div class="input-row">
       <label>Your offset balance</label>
-      <input type="number" id="t3OffsetBalance" placeholder="e.g. 50000" oninput="runTool3()"/>
+      <input type="number" id="t3OffsetBalance" placeholder="e.g. 50000" oninput="runTool3();debounceSaveTaxField('last_offset_balance', this.value)"/>
     </div>
     <div class="input-row">
       <label>Your gross income (for tax rate)</label>
@@ -219,6 +219,7 @@
     <div class="tool-label">Your AI insight</div>
     <div class="tool-title">What this means for you</div>
     <div class="tool-sub">Pulls together your tax picture, your profile, and your freedom number into one plain-English read.</div>
+    <div id="taxInsightMetaBar" style="display:none;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:12px;font-size:12px;color:var(--soft-grey);"></div>
     <button class="calc-btn" id="aiInsightBtn" onclick="getAiTaxInsight()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;">Get my tax insight 🔥</button>
     <div class="ai-loading" id="aiTaxLoading">
       <div class="fp-loader-flame">🔥</div>
@@ -246,6 +247,7 @@
   function fmtYrs(y){if(y===null)return'100+ yrs';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo';}
 
   let proProfile = null, fpToken = null, fpUserId = null;
+  let cachedTaxInsight = null, cachedTaxInsightAt = null;
   let grossSaveTimer;
   function debounceSaveGrossIncome(annualGross) {
     if (!fpToken || !fpUserId || localStorage.getItem('fp_is_pro') !== 'true') return;
@@ -261,6 +263,39 @@
       } catch(e) { console.log('Gross income save failed', e); }
     }, 1200);
   }
+
+  const miscSaveTimers = {};
+  function debounceSaveTaxField(field, rawValue) {
+    if (!fpToken || !fpUserId || localStorage.getItem('fp_is_pro') !== 'true') return;
+    const value = parseFloat(rawValue) || 0;
+    clearTimeout(miscSaveTimers[field]);
+    miscSaveTimers[field] = setTimeout(async () => {
+      try {
+        await fetch(`${WORKER_URL}/db/fp_profiles`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({ id: fpUserId, [field]: value })
+        });
+        if (proProfile) proProfile[field] = value;
+      } catch(e) { console.log('Field save failed', field, e); }
+    }, 1200);
+  }
+
+  function renderTaxInsightMeta() {
+    const bar = document.getElementById('taxInsightMetaBar');
+    const btn = document.getElementById('aiInsightBtn');
+    if (!bar) return;
+    if (cachedTaxInsight && cachedTaxInsightAt) {
+      const d = new Date(cachedTaxInsightAt);
+      bar.innerHTML = `Last updated ${d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })} — numbers below may not reflect changes since then.`;
+      bar.style.display = 'block';
+      if (btn) btn.textContent = 'Run my tax insight again 🔥';
+    } else {
+      bar.style.display = 'none';
+      if (btn) btn.textContent = 'Get my tax insight 🔥';
+    }
+  }
+
   let taxCycle = 'annually';
   const TAX_CYCLE_MULT = { weekly: 52, fortnightly: 26, monthly: 12, annually: 1 };
   const TAX_CYCLE_LABELS = {
@@ -338,8 +373,23 @@
       document.getElementById('t2Gross').value = approxAnnualGross;
       document.getElementById('t3Gross').value = approxAnnualGross;
     }
-    if (proProfile.current_savings && proProfile.savings_type === 'offset') {
+    if (proProfile.last_sacrifice_amount) {
+      document.getElementById('t2Sacrifice').value = proProfile.last_sacrifice_amount;
+    }
+    if (proProfile.last_mortgage_rate) {
+      document.getElementById('t3MortgageRate').value = proProfile.last_mortgage_rate;
+    }
+    if (proProfile.last_offset_balance) {
+      document.getElementById('t3OffsetBalance').value = proProfile.last_offset_balance;
+    } else if (proProfile.current_savings && proProfile.savings_type === 'offset') {
       document.getElementById('t3OffsetBalance').value = proProfile.current_savings;
+    }
+    if (proProfile.tax_insight_text) {
+      cachedTaxInsight = proProfile.tax_insight_text;
+      cachedTaxInsightAt = proProfile.tax_insight_generated_at || null;
+      document.getElementById('aiTaxInsightText').innerHTML = cachedTaxInsight.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      document.getElementById('aiTaxInsightCard').style.display = 'block';
+      renderTaxInsightMeta();
     }
     runTool1(); runTool2(); runTool3();
   }
@@ -579,6 +629,20 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
         learnMoreEl.style.display = 'none';
       }
       card.style.display = 'block';
+
+      cachedTaxInsight = insight;
+      cachedTaxInsightAt = new Date().toISOString();
+      renderTaxInsightMeta();
+      if (fpToken && fpUserId && localStorage.getItem('fp_is_pro') === 'true') {
+        try {
+          await fetch(`${WORKER_URL}/db/fp_profiles`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
+            body: JSON.stringify({ id: fpUserId, tax_insight_text: cachedTaxInsight, tax_insight_generated_at: cachedTaxInsightAt })
+          });
+          if (proProfile) { proProfile.tax_insight_text = cachedTaxInsight; proProfile.tax_insight_generated_at = cachedTaxInsightAt; }
+        } catch(e) { console.log('Tax insight save failed', e); }
+      }
     } catch(e) {
       document.getElementById('aiTaxInsightText').innerHTML = 'Something went wrong connecting to the AI. Please try again.';
       card.style.display = 'block';
@@ -604,7 +668,7 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
 <footer style="border-top:1px solid var(--border);padding:24px;text-align:center;margin-top:20px;">
   <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:8px;">🔥 Fire<span style="color:var(--fire-orange)">Path</span></div>
   <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
-    <a href="firepath_pro.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Dashboard</a>
+    <a href="dashboard.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Dashboard</a>
     <a href="learn/index.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Learning Lab</a>
     <a href="assumptions.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">How We Calculate</a>
     <a href="privacy.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Privacy</a>
