@@ -59,6 +59,24 @@
   .rate-growth.danger { color:#E53935; }
   .portfolio-card { background:white;border:1.5px solid #A5D6A7;border-radius:16px;padding:20px;margin-bottom:16px; }
   .portfolio-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#2E7D32;margin-bottom:12px; }
+
+  /* ── Longevity + AI outlook ── */
+  .longevity-card { background:white;border:2px solid var(--warm-brown);border-radius:16px;padding:20px;margin-bottom:16px; }
+  .longevity-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--warm-brown);margin-bottom:12px; }
+  .longevity-sub { font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px; }
+  .longevity-compare { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px; }
+  .longevity-item { background:var(--warm-cream);border-radius:12px;padding:16px;text-align:center; }
+  .longevity-item.good { background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7; }
+  .longevity-years { font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--warm-brown); }
+  .longevity-item.good .longevity-years { color:#2E7D32; }
+  .longevity-item-label { font-size:11px;color:var(--soft-grey);font-weight:300;margin-top:6px;line-height:1.5; }
+  .ai-outlook-btn { background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%; }
+  .ai-outlook-loading { display:none;text-align:center;padding:24px 0; }
+  .ai-outlook-loading.visible { display:block; }
+  .ai-outlook-flame { font-size:32px;animation:aiFlamePulse 1.4s ease-in-out infinite;display:inline-block; }
+  @keyframes aiFlamePulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.18);opacity:0.75;} }
+  .ai-outlook-text { font-size:14px;color:var(--warm-brown);line-height:1.8;font-weight:300;margin-top:16px;padding-top:16px;border-top:1px solid var(--border); }
+  .ai-outlook-text strong { font-weight:600;color:var(--fire-orange); }
 </style>
 </head>
 <body>
@@ -169,6 +187,28 @@
       </div>
     </div>
 
+    <!-- ── Longevity + AI Outlook ── -->
+    <div class="longevity-card">
+      <div class="longevity-label">🔮 Your longevity outlook</div>
+      <div class="longevity-sub">This models a fixed real withdrawal — the amount you'd take out today, adjusted upward for inflation every year to keep the same buying power. This is the actual mechanism the 4% rule describes, and it's a different (usually harder) test than the percentage-of-portfolio numbers above.</div>
+      <div class="longevity-compare">
+        <div class="longevity-item" id="w-longevityBase">
+          <div class="longevity-years" id="w-longevityBaseYears">—</div>
+          <div class="longevity-item-label">On your current settings</div>
+        </div>
+        <div class="longevity-item good" id="w-longevityGood">
+          <div class="longevity-years" id="w-longevityGoodYears">—</div>
+          <div class="longevity-item-label" id="w-longevityGoodLabel">With 2% stronger returns</div>
+        </div>
+      </div>
+      <button class="ai-outlook-btn" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook 🔮</button>
+      <div class="ai-outlook-loading" id="aiOutlookLoading">
+        <div class="ai-outlook-flame">🔥</div>
+        <div style="font-size:13px;color:var(--soft-grey);margin-top:10px;">Reading your numbers...</div>
+      </div>
+      <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
+    </div>
+
     <div class="glass-card">
       <div class="card-label">📊 Compare withdrawal rates</div>
       <p style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;line-height:1.6;">Same portfolio. Different withdrawal rates. See the trade-off between income and growth.</p>
@@ -187,6 +227,24 @@
     if (n >= 1000)    return '$' + Math.round(n/1000) + 'K';
     return '$' + Math.round(n);
   }
+
+  // Simulates a classic fixed-real-withdrawal strategy (the actual mechanism the
+  // 4% rule describes): withdraw a fixed dollar amount in year 1, then increase
+  // that withdrawal each year with inflation to preserve purchasing power, while
+  // the portfolio grows at the assumed return. Returns years until depletion,
+  // or null if the portfolio survives the full simulated horizon.
+  function simulateSWR(portfolio, returnRate, withdrawRate, inflation, maxYears = 60) {
+    let balance = portfolio;
+    let withdrawal = portfolio * withdrawRate;
+    for (let year = 1; year <= maxYears; year++) {
+      balance = balance * (1 + returnRate) - withdrawal;
+      if (balance <= 0) return { yearsLasted: year, depleted: true, endingBalance: 0 };
+      withdrawal *= (1 + inflation);
+    }
+    return { yearsLasted: maxYears, depleted: false, endingBalance: Math.round(balance) };
+  }
+
+  let lastLongevity = null;
 
   function calcWithdrawal() {
     const portfolio    = parseFloat(document.getElementById('w-portfolio').value) || 0;
@@ -294,12 +352,76 @@
           </div>
         </div>`;
     }).join('');
+
+    // ── Longevity simulation (fixed real withdrawal, inflation-adjusted) ──
+    const base = simulateSWR(portfolio, returnRate, withdrawRate, inflation);
+    const good = simulateSWR(portfolio, returnRate + 0.02, withdrawRate, inflation);
+    lastLongevity = { portfolio, returnRate, withdrawRate, inflation, base, good };
+
+    const baseYearsEl = document.getElementById('w-longevityBaseYears');
+    const goodYearsEl = document.getElementById('w-longevityGoodYears');
+    baseYearsEl.textContent = base.depleted ? `~${base.yearsLasted} yrs` : `60+ yrs`;
+    goodYearsEl.textContent = good.depleted ? `~${good.yearsLasted} yrs` : `60+ yrs`;
+    document.getElementById('w-longevityGoodLabel').textContent = `With ${((returnRate + 0.02) * 100).toFixed(0)}% returns instead of ${(returnRate * 100).toFixed(0)}%`;
+
+    // Reset AI outlook when inputs change — the cached narrative no longer matches
+    document.getElementById('aiOutlookText').style.display = 'none';
+    document.getElementById('aiOutlookBtn').style.display = 'block';
+    document.getElementById('aiOutlookBtn').textContent = 'Get my AI outlook 🔮';
   }
 
-  // Auto-fill from compound calculator if available
+  async function getAiOutlook() {
+    if (!lastLongevity) return;
+    const btn = document.getElementById('aiOutlookBtn');
+    const loading = document.getElementById('aiOutlookLoading');
+    const textEl = document.getElementById('aiOutlookText');
+    btn.style.display = 'none';
+    loading.classList.add('visible');
+    textEl.style.display = 'none';
+
+    const { portfolio, returnRate, withdrawRate, inflation, base, good } = lastLongevity;
+    const baseDesc = base.depleted ? `runs out around year ${base.yearsLasted}` : `never depletes across a 60-year simulation, ending with roughly ${fmtM(base.endingBalance)} still invested`;
+    const goodDesc = good.depleted ? `runs out around year ${good.yearsLasted}` : `never depletes, ending with roughly ${fmtM(good.endingBalance)} still invested`;
+
+    const userInput = `Portfolio: ${fmtM(portfolio)}. Assumed return: ${(returnRate*100).toFixed(1)}%. Withdrawal rate: ${(withdrawRate*100).toFixed(1)}% (${fmtM(portfolio*withdrawRate)}/yr in year one, then increased with inflation each year to preserve purchasing power). Inflation assumption: ${(inflation*100).toFixed(1)}%. Simulation result on current settings: ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.`;
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 500,
+          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. You have been given the exact results of a real portfolio-longevity simulation — do not recalculate or second-guess these numbers, just narrate what they mean for the person in plain English.
+
+Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what "runs out around year X" or "never depletes" practically means for someone's retirement, in warm and human terms — not clinical. 3. Briefly describe what the stronger-returns scenario shows and why even a small return difference compounds into a meaningful gap over decades. 4. Never say "you should" or "I recommend" — frame as something worth understanding, not advice. 5. Never name specific investment products or platforms. 6. Max 2 short paragraphs. 7. End with exactly: "This is educational, not financial advice." Use <strong> for bold.`,
+          messages: [{ role: 'user', content: userInput }]
+        })
+      });
+      const data = await res.json();
+      const insight = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      textEl.innerHTML = insight.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      textEl.style.display = 'block';
+    } catch(e) {
+      textEl.innerHTML = 'Something went wrong connecting to the AI. Please try again.';
+      textEl.style.display = 'block';
+      console.error(e);
+    } finally {
+      loading.classList.remove('visible');
+      btn.style.display = 'block';
+      btn.textContent = 'Refresh my AI outlook 🔮';
+    }
+  }
+
+  // Auto-fill from compound calculator, or from a portfolio value passed via URL
+  // (e.g. the Pro dashboard linking here with a person's actual saved savings)
   document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const urlPortfolio = params.get('portfolio');
     const savedPortfolio = localStorage.getItem('fp_compound_portfolio');
-    if (savedPortfolio) {
+    if (urlPortfolio) {
+      document.getElementById('w-portfolio').value = urlPortfolio;
+    } else if (savedPortfolio) {
       document.getElementById('w-portfolio').value = savedPortfolio;
     }
     calcWithdrawal();

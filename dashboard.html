@@ -89,11 +89,19 @@
       </div>
       <div class="dash-card-arrow">→</div>
     </a>
+    <a href="withdrawal.html" class="dash-card" id="withdrawalCardLink">
+      <div class="dash-card-icon">🏖️</div>
+      <div class="dash-card-body">
+        <div class="dash-card-title">Withdrawal Modeling</div>
+        <div class="dash-card-desc">Model your income in retirement, see how long your portfolio actually lasts, and get an AI outlook on it.</div>
+      </div>
+      <div class="dash-card-arrow">→</div>
+    </a>
     <a href="firepath_pro.html?tab=freedom" class="dash-card">
       <div class="dash-card-icon">💸</div>
       <div class="dash-card-body">
-        <div class="dash-card-title">Withdrawal Modeling</div>
-        <div class="dash-card-desc">What your portfolio actually generates, the gap to your spending, and how many hours would close it.</div>
+        <div class="dash-card-title">Freedom Gap</div>
+        <div class="dash-card-desc">Using your actual saved numbers — what your portfolio generates, the gap to your spending, and how many hours would close it, including Age Pension.</div>
       </div>
       <div class="dash-card-arrow">→</div>
     </a>
@@ -171,6 +179,10 @@
         if (stats.length > 0) {
           document.getElementById('profileBannerStats').innerHTML = stats.map(s => `<div class="profile-stat"><div class="profile-stat-value">${s.v}</div><div class="profile-stat-label">${s.l}</div></div>`).join('');
           document.getElementById('profileBanner').style.display = 'block';
+        }
+        if (p.current_savings) {
+          const link = document.getElementById('withdrawalCardLink');
+          if (link) link.href = `withdrawal.html?portfolio=${Math.round(p.current_savings)}`;
         }
       }
     } catch(e) { console.log('Profile load failed', e); }
