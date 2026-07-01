@@ -105,6 +105,32 @@ function calculateMarginalRate(grossIncome) {
   return 0;
 }
 
+// Inverse of calculateTax — finds the annual gross income that produces a given
+// annual take-home, via binary search. calculateTax() is monotonic (more gross
+// always means more take-home), so this converges reliably and exactly against
+// the real tax brackets, rather than approximating with a flat divisor.
+function estimateGrossFromNet(targetTakeHome, maxIterations = 60) {
+  if (!targetTakeHome || targetTakeHome <= 0) return 0;
+  let low = 0;
+  let high = targetTakeHome * 2.5; // safe upper bound — effective tax rate never exceeds ~47%
+  let guard = 0;
+  while (calculateTax(high).takeHome < targetTakeHome && guard < 30) {
+    high *= 2;
+    guard++;
+  }
+  for (let i = 0; i < maxIterations; i++) {
+    const mid = (low + high) / 2;
+    const result = calculateTax(mid);
+    if (Math.abs(result.takeHome - targetTakeHome) < 1) return Math.round(mid);
+    if (result.takeHome < targetTakeHome) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  return Math.round((low + high) / 2);
+}
+
 function calculateSalarySacrifice(grossIncome, sacrificeAmount) {
   if (!sacrificeAmount || sacrificeAmount <= 0) return null;
   const cappedSacrifice = Math.min(sacrificeAmount, TAX_CONFIG.concessionalCap);
