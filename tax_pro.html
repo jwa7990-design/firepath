@@ -405,12 +405,13 @@
     const t2Link = document.getElementById('t2SuperLink');
     if (proProfile && proProfile.age && proProfile.age < 60) {
       const yearsTo60 = Math.max(0, 60 - proProfile.age);
-      const monthlyNet = (r.netSuperGain / 12);
+      const sgMonthly = (gross * TAX_CONFIG.sgRate / 12) * 0.85; // employer contributions, after 15% contributions tax — happens regardless of sacrifice
+      const monthlyNet = (r.netSuperGain / 12); // additional net-of-tax contribution from sacrificing
       const mr = 0.07 / 12;
       let withExtra = proProfile.super_balance || 0, withoutExtra = proProfile.super_balance || 0;
       for (let m = 0; m < yearsTo60 * 12; m++) {
-        withExtra = withExtra * (1 + mr) + monthlyNet;
-        withoutExtra = withoutExtra * (1 + mr);
+        withoutExtra = withoutExtra * (1 + mr) + sgMonthly;
+        withExtra = withExtra * (1 + mr) + sgMonthly + monthlyNet;
       }
       const extra = Math.round(withExtra - withoutExtra);
       if (t2Compare) {
