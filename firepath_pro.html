@@ -336,6 +336,7 @@
   <a href="/index.html" class="nav-logo">🔥 Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
   <div class="nav-links">
     <div id="userStatus" style="font-size:12px;color:var(--soft-grey);"></div>
+    <a href="dashboard.html" class="nav-link">Dashboard</a>
     <a href="tax_pro.html" class="nav-link">Tax Tools</a>
     <a href="#" onclick="signOut()" class="nav-link">Sign out</a>
   </div>
@@ -829,6 +830,17 @@
       if (superBtn && superBtn.style.display !== 'none') {
         switchResultTab('super', superBtn);
         buildSacrificeWhatIf(sacrificeAmount);
+      }
+    }
+
+    // Generic deep link — e.g. dashboard cards linking straight to a specific result tab
+    const requestedTab = up.get('tab');
+    if (requestedTab && document.getElementById('screen3').style.display !== 'none') {
+      const tabBtnMap = { super: 'superTabBtn', freedom: 'freedomTabBtn', needle: null, next: null, insight: null };
+      if (requestedTab in tabBtnMap) {
+        const btnId = tabBtnMap[requestedTab];
+        const btn = btnId ? document.getElementById(btnId) : document.querySelector(`.rtab-btn[onclick*="'${requestedTab}'"]`);
+        if (btn && btn.style.display !== 'none') switchResultTab(requestedTab, btn);
       }
     }
   });
