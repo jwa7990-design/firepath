@@ -69,6 +69,36 @@
     </div>
   </div>
 
+  <!-- No commitment yet -->
+  <a href="progress.html" id="commitCtaCard" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:22px 24px;color:white;margin-bottom:28px;text-decoration:none;">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="font-size:28px;flex-shrink:0;">🔥</div>
+      <div style="flex:1;">
+        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:4px;">Commit to your future self</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;">Promise yourself an extra amount to save, then earn a 🔥 every time you hit it.</div>
+      </div>
+      <div style="font-size:14px;color:var(--fire-amber);flex-shrink:0;">→</div>
+    </div>
+  </a>
+
+  <!-- Has commitment -->
+  <a href="progress.html" id="commitProgressCard" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:22px 24px;color:white;margin-bottom:28px;text-decoration:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);margin-bottom:4px;">Your commitment</div>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--fire-amber);" id="commitCardAmount">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;" id="commitCardPct">—</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);">flames earned</div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,0.1);border-radius:8px;height:8px;overflow:hidden;margin-bottom:12px;">
+      <div id="commitCardBar" style="background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));height:100%;width:0%;border-radius:8px;"></div>
+    </div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.6);">Log today's check-in →</div>
+  </a>
+
   <div id="dashCtaHero" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:28px 24px;color:white;text-align:center;margin-bottom:28px;">
     <div style="font-size:28px;margin-bottom:10px;">🔥</div>
     <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;">You haven't run your numbers yet</div>
@@ -183,6 +213,23 @@
 
     function fmtM(n) { if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + Math.round(n); }
 
+    function renderCommitmentCard() {
+      let commitment = null;
+      try { commitment = JSON.parse(localStorage.getItem('fp_commitment')); } catch(e) {}
+      if (!commitment || !commitment.amount) {
+        document.getElementById('commitCtaCard').style.display = 'block';
+        return;
+      }
+      const cycleLabel = commitment.cycle === 'weekly' ? 'week' : commitment.cycle === 'fortnightly' ? 'fortnight' : 'month';
+      const totalPossible = commitment.cycle === 'weekly' ? 52 : commitment.cycle === 'fortnightly' ? 26 : 12;
+      const hits = (commitment.hits || []).length;
+      const pct = Math.min(Math.round((hits / totalPossible) * 100), 100);
+      document.getElementById('commitCardAmount').textContent = `Extra $${commitment.amount.toLocaleString()} / ${cycleLabel}`;
+      document.getElementById('commitCardPct').textContent = `${hits}/${totalPossible}`;
+      document.getElementById('commitCardBar').style.width = pct + '%';
+      document.getElementById('commitProgressCard').style.display = 'block';
+    }
+
     try {
       const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       const data = await res.json();
@@ -198,6 +245,7 @@
           const link = document.getElementById('withdrawalCardLink');
           if (link) link.href = `withdrawal.html?portfolio=${Math.round(p.current_savings)}`;
         }
+        renderCommitmentCard();
       } else {
         document.getElementById('dashCtaHero').style.display = 'block';
       }
