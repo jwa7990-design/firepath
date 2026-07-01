@@ -688,231 +688,150 @@
 
 <!-- ── CINEMATIC INTRO ── -->
 <style>
-  #fp-intro {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--warm-cream);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0 24px;
-    overflow: hidden;
-  }
+ #fp-intro {
+   position: fixed;
+   top: 0; left: 0; right: 0; bottom: 0;
+   background: var(--warm-cream);
+   z-index: 9999;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   text-align: center;
+   padding: 0 24px;
+   overflow: hidden;
+ }
 
-  #fp-intro-glow {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 800px; height: 800px;
-    background: radial-gradient(circle, rgba(244,98,42,0) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-    transition: background 2s ease;
-  }
-  #fp-intro-glow.warm {
-    background: radial-gradient(circle, rgba(244,98,42,0.18) 0%, rgba(249,168,37,0.08) 35%, transparent 65%);
-    animation: fireFlicker 3s ease-in-out infinite;
-  }
-  @keyframes fireFlicker {
-    0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    30%  { opacity: 0.82; transform: translate(-50%, -50%) scale(1.06); }
-    55%  { opacity: 1; transform: translate(-50%, -50%) scale(0.96); }
-    80%  { opacity: 0.88; transform: translate(-50%, -50%) scale(1.08); }
-    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  }
+ #fp-intro-glow {
+   position: absolute;
+   top: 50%; left: 50%;
+   transform: translate(-50%, -50%);
+   width: 700px; height: 700px;
+   background: radial-gradient(circle, rgba(244,98,42,0.04) 0%, transparent 65%);
+   border-radius: 50%;
+   pointer-events: none;
+   transition: background 4.5s ease;
+ }
+ #fp-intro-glow.warm {
+   background: radial-gradient(circle, rgba(244,98,42,0.18) 0%, rgba(249,168,37,0.08) 35%, transparent 65%);
+ }
 
-  #fp-qmarks {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    opacity: 0;
-    transition: opacity 2s ease;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-  }
+ #fp-stage {
+   position: relative;
+   z-index: 1;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   min-height: 200px;
+ }
 
-  @keyframes qDrift {
-    0%, 100% { transform: translateY(0) rotate(var(--r)); opacity: var(--o); }
-    50% { transform: translateY(-14px) rotate(var(--r)); opacity: calc(var(--o) * 0.6); }
-  }
+ #fp-year {
+   font-family: 'Playfair Display', serif;
+   font-size: clamp(72px, 16vw, 130px);
+   font-weight: 700;
+   color: var(--fire-orange);
+   letter-spacing: -0.02em;
+   line-height: 1;
+   margin-bottom: 20px;
+   font-variant-numeric: tabular-nums;
+ }
 
-  #fp-year {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(72px, 16vw, 130px);
-    font-weight: 700;
-    color: var(--fire-orange);
-    letter-spacing: -0.02em;
-    line-height: 1;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 20px;
-    margin-top: -40px;
-  }
+ #fp-tagline {
+   font-family: 'DM Sans', sans-serif;
+   font-size: clamp(16px, 2.5vw, 22px);
+   font-weight: 300;
+   color: var(--soft-grey);
+   letter-spacing: 0.04em;
+   opacity: 0;
+   transition: opacity 0.5s ease;
+   min-height: 28px;
+ }
+ #fp-tagline.visible { opacity: 1; }
 
-  #fp-tagline {
-    font-family: 'DM Sans', sans-serif;
-    font-size: clamp(16px, 2.5vw, 22px);
-    font-weight: 300;
-    color: var(--soft-grey);
-    letter-spacing: 0.04em;
-    opacity: 0;
-    transition: opacity 1s ease;
-    position: relative;
-    z-index: 1;
-    min-height: 32px;
-  }
-
-  #fp-final {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(28px, 5vw, 48px);
-    font-weight: 700;
-    font-style: italic;
-    color: var(--fire-orange);
-    opacity: 0;
-    transition: opacity 1.6s ease;
-    position: relative;
-    z-index: 1;
-    margin-top: 16px;
-  }
+ #fp-tagline.final {
+   font-family: 'Playfair Display', serif;
+   font-size: clamp(24px, 4vw, 38px);
+   font-weight: 700;
+   font-style: italic;
+   color: var(--fire-orange);
+ }
 </style>
 
 <div id="fp-intro">
-  <div id="fp-intro-glow"></div>
-  <div id="fp-qmarks"></div>
-  <div id="fp-stage" style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;">
-    <div id="fp-year"></div>
-    <div id="fp-tagline"></div>
-    <div id="fp-final"></div>
-  </div>
+ <div id="fp-intro-glow"></div>
+ <div id="fp-stage">
+   <div id="fp-year">2055</div>
+   <div id="fp-tagline">We all have a year.</div>
+ </div>
 </div>
 
 <script>
 (function() {
-  sessionStorage.removeItem('fp_intro_seen');
+ sessionStorage.removeItem('fp_intro_seen');
 
-  const intro = document.getElementById('fp-intro');
-  const hero = document.getElementById('hero');
+ const intro = document.getElementById('fp-intro');
+ const hero = document.getElementById('hero');
+ const yearEl = document.getElementById('fp-year');
+ const tagEl = document.getElementById('fp-tagline');
+ const glow = document.getElementById('fp-intro-glow');
 
-  function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+ function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  async function runIntro() {
-    const yearEl = document.getElementById('fp-year');
-    const tagEl = document.getElementById('fp-tagline');
-    const finalEl = document.getElementById('fp-final');
-    const glow = document.getElementById('fp-intro-glow');
-    const qmarks = document.getElementById('fp-qmarks');
+ async function runIntro() {
+   await wait(400);
+   tagEl.classList.add('visible');
 
-    await wait(500);
+   const steps = [
+     { year: 2055, tag: 'We all have a year.', delay: 700 },
+     { year: 2050, tag: "It's not your retirement year.", delay: 700 },
+     { year: 2045, tag: "It's the year work becomes your choice.", delay: 900 },
+     { year: 2040, tag: "It's the year work becomes your choice.", delay: 500 },
+     { year: 2037, tag: '', delay: 600 }
+   ];
 
-    // Frame 1
-    glow.style.background = 'radial-gradient(circle, rgba(244,98,42,0.04) 0%, transparent 60%)';
-    yearEl.textContent = '2055';
-    tagEl.textContent = 'We all have a year.';
-    yearEl.style.opacity = '1';
-    await wait(350);
-    tagEl.style.opacity = '1';
-    await wait(1500);
+   for (const step of steps) {
+     tagEl.classList.remove('visible');
+     await wait(200);
+     yearEl.textContent = step.year;
+     if (step.tag) tagEl.textContent = step.tag;
+     tagEl.classList.add('visible');
+     await wait(step.delay);
+   }
 
-    // Frame 2
-    yearEl.style.opacity = '0';
-    tagEl.style.opacity = '0';
-    await wait(450);
-    glow.style.background = 'radial-gradient(circle, rgba(244,98,42,0.07) 0%, transparent 62%)';
-    yearEl.textContent = '2050';
-    tagEl.textContent = "It isn't retirement.";
-    yearEl.style.opacity = '1';
-    await wait(250);
-    tagEl.style.opacity = '1';
-    await wait(1500);
+   // 2037 lands — glow warms
+   glow.classList.add('warm');
+   tagEl.classList.remove('visible');
+   await wait(400);
 
-    // Frame 3
-    yearEl.style.opacity = '0';
-    tagEl.style.opacity = '0';
-    await wait(450);
-    glow.style.background = 'radial-gradient(circle, rgba(244,98,42,0.11) 0%, rgba(249,168,37,0.04) 40%, transparent 64%)';
-    yearEl.textContent = '2045';
-    tagEl.textContent = "It's the year work becomes optional.";
-    yearEl.style.opacity = '1';
-    await wait(250);
-    tagEl.style.opacity = '1';
-    await wait(1500);
+   // Final line
+   tagEl.textContent = 'Do you know yours?';
+   tagEl.classList.add('final', 'visible');
+   await wait(2800);
 
-    // Frame 4 — final year, glow at full warmth
-    yearEl.style.opacity = '0';
-    tagEl.style.opacity = '0';
-    await wait(450);
-    glow.classList.add('warm');
-    yearEl.textContent = '2037';
-    yearEl.style.opacity = '1';
-    await wait(500);
+   // Dissolve to hero
+   intro.style.transition = 'opacity 1.6s ease';
+   intro.style.opacity = '0';
+   if (hero) {
+     hero.style.opacity = '1';
+     hero.style.visibility = 'visible';
+   }
+   await wait(1600);
+   intro.style.display = 'none';
+ }
 
-    // Question marks scatter
-    qmarks.innerHTML = Array(16).fill(0).map((_, i) => {
-      const top = 5 + Math.random() * 88;
-      const left = 5 + Math.random() * 88;
-      const size = 28 + Math.random() * 48;
-      const rotate = -50 + Math.random() * 100;
-      const dur = 5 + Math.random() * 4;
-      const delay = Math.random() * 3;
-      const opacity = 0.12 + Math.random() * 0.2;
-      const blur = Math.random() > 0.5 ? `filter:blur(${Math.random() * 2}px);` : '';
-      return `<span style="
-        position:absolute;
-        top:${top}%;
-        left:${left}%;
-        font-family:'Playfair Display',serif;
-        font-size:${size}px;
-        font-weight:700;
-        font-style:italic;
-        color:var(--fire-orange);
-        opacity:${opacity};
-        --r:${rotate}deg;
-        --o:${opacity};
-        transform:rotate(${rotate}deg);
-        user-select:none;
-        animation:qDrift ${dur}s ease-in-out ${delay}s infinite;
-        pointer-events:none;
-        line-height:1;
-        ${blur}
-      ">?</span>`;
-    }).join('');
-    qmarks.style.opacity = '1';
+ // Scroll to skip
+ window.addEventListener('scroll', () => {
+   intro.style.transition = 'opacity 0.5s ease';
+   intro.style.opacity = '0';
+   if (hero) {
+     hero.style.opacity = '1';
+     hero.style.visibility = 'visible';
+   }
+   setTimeout(() => intro.style.display = 'none', 500);
+ }, { once: true });
 
-    // Do you know yours
-    await wait(700);
-    finalEl.textContent = 'Do you know yours?';
-    finalEl.style.opacity = '1';
-
-    await wait(3200);
-
-    // Dissolve to hero
-    intro.style.transition = 'opacity 2s ease';
-    intro.style.opacity = '0';
-    if (hero) {
-      hero.style.opacity = '1';
-      hero.style.visibility = 'visible';
-    }
-    await wait(2000);
-    intro.style.display = 'none';
-  }
-
-  // Scroll to skip
-  window.addEventListener('scroll', () => {
-    intro.style.transition = 'opacity 0.6s ease';
-    intro.style.opacity = '0';
-    if (hero) {
-      hero.style.opacity = '1';
-      hero.style.visibility = 'visible';
-    }
-    setTimeout(() => intro.style.display = 'none', 600);
-  }, { once: true });
-
-  runIntro();
+ runIntro();
 })();
 </script>
 
