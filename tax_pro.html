@@ -165,8 +165,9 @@
 
       <div class="pro-insight" id="t2ProInsight" style="display:none;">
         <div class="pro-insight-label">🔥 Impact on your super at 60</div>
+        <div id="t2SuperCompare" class="comparison-box" style="margin-top:0;margin-bottom:12px;"></div>
         <div class="pro-insight-text" id="t2ProInsightText"></div>
-        <a href="firepath_pro.html" class="pro-insight-link">See your full super timeline →</a>
+        <a href="#" id="t2SuperLink" class="pro-insight-link">See it on your super timeline →</a>
       </div>
     </div>
   </div>
@@ -400,6 +401,8 @@
 
     const t2Insight = document.getElementById('t2ProInsight');
     const t2Text = document.getElementById('t2ProInsightText');
+    const t2Compare = document.getElementById('t2SuperCompare');
+    const t2Link = document.getElementById('t2SuperLink');
     if (proProfile && proProfile.age && proProfile.age < 60) {
       const yearsTo60 = Math.max(0, 60 - proProfile.age);
       const monthlyNet = (r.netSuperGain / 12);
@@ -410,10 +413,19 @@
         withoutExtra = withoutExtra * (1 + mr);
       }
       const extra = Math.round(withExtra - withoutExtra);
-      t2Text.innerHTML = `Sacrificing ${fmtM(sacrifice)}/yr from age ${proProfile.age} to 60 adds roughly <strong>${fmtM(extra)}</strong> to your super by 60 — on top of its current trajectory. Costs you ${fmtM(Math.round(r.takehomeCost/52))}/week in take-home now.`;
+      if (t2Compare) {
+        t2Compare.innerHTML = `
+          <div class="comparison-item"><div class="comparison-rate orange">${fmtM(Math.round(withoutExtra))}</div><div class="comparison-label">Super at 60<br/>without this sacrifice</div></div>
+          <div class="comparison-item winner"><div class="comparison-rate green">${fmtM(Math.round(withExtra))}</div><div class="comparison-label">Super at 60<br/>with ${fmtM(sacrifice)}/yr sacrificed</div></div>
+        `;
+      }
+      t2Text.innerHTML = `That's <strong>${fmtM(extra)} extra</strong> in your super by 60, for a real cost of <strong>${fmtM(Math.round(r.takehomeCost/52))}/week</strong> in take-home pay now.`;
+      if (t2Link) t2Link.href = `firepath_pro.html?scenario=sacrifice&amount=${Math.round(sacrifice)}`;
       t2Insight.style.display = 'block';
     } else if (proProfile && proProfile.age >= 60) {
+      if (t2Compare) t2Compare.innerHTML = '';
       t2Text.innerHTML = `You're past preservation age — sacrificing now still saves tax, but the super is already accessible rather than compounding toward a future unlock date.`;
+      if (t2Link) t2Link.style.display = 'none';
       t2Insight.style.display = 'block';
     } else {
       t2Insight.style.display = 'none';
@@ -475,7 +487,8 @@
     const btn = document.getElementById('aiInsightBtn');
     const loading = document.getElementById('aiTaxLoading');
     const card = document.getElementById('aiTaxInsightCard');
-    const gross = parseFloat(document.getElementById('t1Gross').value) || 0;
+    const entered = parseFloat(document.getElementById('t1Gross').value) || 0;
+    const gross = Math.round(entered * TAX_CYCLE_MULT[taxCycle]);
     if (gross < 1000) { alert('Enter your gross income in Tool 1 first.'); return; }
 
     btn.style.display = 'none';
