@@ -50,8 +50,13 @@
     .pro-insight-text strong { font-weight:600; }
     .pro-insight-link { display:inline-block;margin-top:10px;font-size:12px;font-weight:500;color:var(--fire-orange);text-decoration:none; }
 
-    .profile-banner { display:block;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);color:white;border-radius:14px;padding:14px 18px;margin-bottom:24px;font-size:13px;font-weight:300;line-height:1.6; }
-    .profile-banner strong { font-weight:600; }
+    .profile-banner { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);color:white;border-radius:14px;padding:16px 18px;margin-bottom:24px; }
+    .profile-banner-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#F4A24A;margin-bottom:12px; }
+    .profile-banner-stats { display:flex;flex-wrap:wrap;gap:10px; }
+    .profile-stat { background:rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;min-width:90px; }
+    .profile-stat-value { font-size:16px;font-weight:700;font-family:'Playfair Display',serif; }
+    .profile-stat-label { font-size:11px;color:rgba(255,255,255,0.65);font-weight:300;margin-top:2px; }
+    .profile-banner-link { display:inline-block;margin-top:12px;font-size:12px;font-weight:500;color:#F4A24A;text-decoration:none; }
 
     .ai-loading { display:none;padding:30px 20px;text-align:center; }
     .ai-loading.visible { display:block; }
@@ -94,9 +99,18 @@
     <div class="tool-sub">See exactly what you keep from every dollar you earn.</div>
 
     <div class="input-row">
-      <label>Your gross income (before tax)</label>
+      <label>How often do you get paid?</label>
+      <div class="cycle-group">
+        <button class="cycle-btn" data-taxcycle="weekly" onclick="setTaxCycle(this)">Weekly</button>
+        <button class="cycle-btn" data-taxcycle="fortnightly" onclick="setTaxCycle(this)">Fortnightly</button>
+        <button class="cycle-btn" data-taxcycle="monthly" onclick="setTaxCycle(this)">Monthly</button>
+        <button class="cycle-btn active" data-taxcycle="annually" onclick="setTaxCycle(this)">Annually</button>
+      </div>
+    </div>
+    <div class="input-row">
+      <label id="t1GrossLabel">Your gross income (before tax)</label>
       <input type="number" id="t1Gross" placeholder="e.g. 85000" oninput="runTool1()"/>
-      <span class="input-hint">Annual salary before any deductions</span>
+      <span class="input-hint" id="t1GrossHint">Annual salary before any deductions</span>
     </div>
 
     <div class="results-box" id="t1Results">
@@ -230,6 +244,23 @@
   function fmtYrs(y){if(y===null)return'100+ yrs';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo';}
 
   let proProfile = null, fpToken = null, fpUserId = null;
+  let taxCycle = 'annually';
+  const TAX_CYCLE_MULT = { weekly: 52, fortnightly: 26, monthly: 12, annually: 1 };
+  const TAX_CYCLE_LABELS = {
+    weekly: ['Your weekly income (before tax)', 'Amount you earn per week before tax'],
+    fortnightly: ['Your fortnightly income (before tax)', 'Amount you earn per fortnight before tax'],
+    monthly: ['Your monthly income (before tax)', 'Amount you earn per month before tax'],
+    annually: ['Your gross income (before tax)', 'Annual salary before any deductions']
+  };
+
+  function setTaxCycle(btn) {
+    document.querySelectorAll('.cycle-btn[data-taxcycle]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    taxCycle = btn.dataset.taxcycle;
+    document.getElementById('t1GrossLabel').textContent = TAX_CYCLE_LABELS[taxCycle][0];
+    document.getElementById('t1GrossHint').textContent = TAX_CYCLE_LABELS[taxCycle][1];
+    runTool1();
+  }
 
   // ── Load Pro profile — page requires Pro access ──
   async function loadProContext() {
@@ -259,21 +290,35 @@
   function renderProfileBanner() {
     const el = document.getElementById('profileBanner');
     if (!el || !proProfile) return;
-    const parts = [];
-    if (proProfile.freedom_number) parts.push(`freedom number of <strong>${fmtM(proProfile.freedom_number)}</strong>`);
-    if (proProfile.age) parts.push(`age <strong>${proProfile.age}</strong>`);
-    if (proProfile.savings_rate) parts.push(`saving <strong>${proProfile.savings_rate}%</strong> of income`);
-    if (parts.length === 0) return;
-    el.innerHTML = `🔥 Using your saved profile — ${parts.join(', ')}. <a href="firepath_pro.html" style="color:#F4A24A;">Update this →</a>`;
-    el.style.display = 'flex';
+    const stats = [];
+    if (proProfile.freedom_number) stats.push({ v: fmtM(proProfile.freedom_number), l: 'Freedom number' });
+    if (proProfile.age) stats.push({ v: proProfile.age, l: 'Age' });
+    if (proProfile.savings_rate) stats.push({ v: proProfile.savings_rate + '%', l: 'Savings rate' });
+    if (stats.length === 0) return;
+    el.innerHTML = `
+      <div class="profile-banner-title">🔥 Using your saved profile</div>
+      <div class="profile-banner-stats">
+        ${stats.map(s => `<div class="profile-stat"><div class="profile-stat-value">${s.v}</div><div class="profile-stat-label">${s.l}</div></div>`).join('')}
+      </div>
+      <a href="firepath_pro.html" class="profile-banner-link">Update this →</a>
+    `;
+    el.style.display = 'block';
   }
 
   function prefillFromProfile() {
     if (!proProfile) return;
-    // take_home_income is stored net — back out an approximate gross so the tools have a starting point
+    // take_home_income is stored net, per the user's saved pay cycle — back out an approximate gross
     if (proProfile.take_home_income) {
-      const approxGross = Math.round(proProfile.take_home_income / 0.78);
-      ['t1Gross','t2Gross','t3Gross'].forEach(id => { document.getElementById(id).value = approxGross; });
+      const savedCycle = ['weekly','fortnightly','monthly'].includes(proProfile.pay_cycle) ? proProfile.pay_cycle : 'annually';
+      const annualTakeHome = proProfile.take_home_income * (savedCycle === 'annually' ? 1 : TAX_CYCLE_MULT[savedCycle]);
+      const approxAnnualGross = Math.round(annualTakeHome / 0.78);
+      taxCycle = savedCycle;
+      document.querySelectorAll('.cycle-btn[data-taxcycle]').forEach(b => b.classList.toggle('active', b.dataset.taxcycle === savedCycle));
+      document.getElementById('t1GrossLabel').textContent = TAX_CYCLE_LABELS[savedCycle][0];
+      document.getElementById('t1GrossHint').textContent = TAX_CYCLE_LABELS[savedCycle][1];
+      document.getElementById('t1Gross').value = Math.round(approxAnnualGross / TAX_CYCLE_MULT[savedCycle]);
+      document.getElementById('t2Gross').value = approxAnnualGross;
+      document.getElementById('t3Gross').value = approxAnnualGross;
     }
     if (proProfile.current_savings && proProfile.savings_type === 'offset') {
       document.getElementById('t3OffsetBalance').value = proProfile.current_savings;
@@ -283,7 +328,8 @@
 
   // ── Tool 1 ──
   function runTool1() {
-    const gross = parseFloat(document.getElementById('t1Gross').value) || 0;
+    const entered = parseFloat(document.getElementById('t1Gross').value) || 0;
+    const gross = Math.round(entered * TAX_CYCLE_MULT[taxCycle]);
     if (gross < 1000) { document.getElementById('t1Results').style.display = 'none'; return; }
     const r = calculateTax(gross);
     const marginal = calculateMarginalRate(gross);
