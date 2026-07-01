@@ -70,13 +70,29 @@
       <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:20px;margin-bottom:20px;text-align:left;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:14px;">My commitment</div>
 
+        <!-- Suggested amounts -->
+        <div style="margin-bottom:18px;">
+          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Not sure? Try one of these — you can still change it below:</div>
+          <div style="display:flex;gap:8px;" id="commitSuggestChips">
+            <button type="button" onclick="pickSuggestedAmount(25, this)" class="commit-suggest-chip" style="flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
+              +$25<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;">a week</span>
+            </button>
+            <button type="button" onclick="pickSuggestedAmount(50, this)" class="commit-suggest-chip" style="flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
+              +$50<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;">a week</span>
+            </button>
+            <button type="button" onclick="pickSuggestedAmount(100, this)" class="commit-suggest-chip" style="flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
+              +$100<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;">a week</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Frequency selector -->
         <div style="margin-bottom:16px;">
           <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">I'll save this extra amount every:</div>
           <div style="display:flex;gap:8px;">
-            <button onclick="setCommitCycle(this,'weekly')" data-cycle="weekly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Weekly</button>
+            <button onclick="setCommitCycle(this,'weekly')" data-cycle="weekly" class="commit-cycle-btn active-cycle" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid var(--fire-orange);background:rgba(244,98,42,0.2);color:white;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Weekly</button>
             <button onclick="setCommitCycle(this,'fortnightly')" data-cycle="fortnightly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Fortnightly</button>
-            <button onclick="setCommitCycle(this,'monthly')" data-cycle="monthly" class="commit-cycle-btn active-cycle" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid var(--fire-orange);background:rgba(244,98,42,0.2);color:white;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Monthly</button>
+            <button onclick="setCommitCycle(this,'monthly')" data-cycle="monthly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Monthly</button>
           </div>
         </div>
 
@@ -87,7 +103,7 @@
             <span style="padding:12px 14px;color:rgba(255,255,255,0.5);font-size:16px;">$</span>
             <input type="number" id="commitAmount" placeholder="0" min="0"
               style="flex:1;background:transparent;border:none;outline:none;color:white;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;padding:12px 8px 12px 0;"
-              oninput="updateCommitPreview()"/>
+              oninput="clearChipSelection();updateCommitPreview()"/>
           </div>
         </div>
 
@@ -190,7 +206,7 @@
   // ── Auth & init ──
   const currentYear = new Date().getFullYear();
   let fpToken = null, fpUserId = null;
-  let commitCycle = 'monthly';
+  let commitCycle = 'weekly';
   let commitmentData = null;
   let checkinHistory = [];
   let calcData = {};
@@ -275,6 +291,29 @@
     btn.style.color = 'white';
     commitCycle = cycle;
     updateCommitPreview();
+  }
+
+  function pickSuggestedAmount(weeklyAmount, chipEl) {
+    // Suggestions are always framed as a weekly amount — switch the cycle to match
+    const weeklyBtn = document.querySelector('.commit-cycle-btn[data-cycle="weekly"]');
+    if (weeklyBtn) setCommitCycle(weeklyBtn, 'weekly');
+    document.getElementById('commitAmount').value = weeklyAmount;
+    document.querySelectorAll('.commit-suggest-chip').forEach(c => {
+      c.style.borderColor = 'rgba(255,255,255,0.2)';
+      c.style.background = 'transparent';
+    });
+    if (chipEl) {
+      chipEl.style.borderColor = 'var(--fire-orange)';
+      chipEl.style.background = 'rgba(244,98,42,0.2)';
+    }
+    updateCommitPreview();
+  }
+
+  function clearChipSelection() {
+    document.querySelectorAll('.commit-suggest-chip').forEach(c => {
+      c.style.borderColor = 'rgba(255,255,255,0.2)';
+      c.style.background = 'transparent';
+    });
   }
 
   function updateCommitPreview() {
