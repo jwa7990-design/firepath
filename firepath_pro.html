@@ -453,16 +453,6 @@
           </div>
 
           <!-- Where held — fades in -->
-          <div class="ob-field ob-fade-field" id="ob-savingsTypeField" style="opacity:0.3;pointer-events:none;">
-            <label class="ob-label">Where is your money sitting right now?</label>
-            <span class="ob-hint" style="margin-bottom:10px;display:block;">This affects your real projected return — it matters more than most people realise.</span>
-            <div class="housing-group">
-              <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)">🏦 Cash / bank</button>
-              <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)">📈 ETFs / shares</button>
-              <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)">🏠 Offset account</button>
-              <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)">🌐 Mix of these</button>
-            </div>
-          </div>
 
           <button class="ob-next" id="ob-next-2" onclick="obGoTo(3)" disabled>Keep going →</button>
         </div>
@@ -554,6 +544,18 @@
             <div class="savings-hint" id="savingsHintFormatted"></div>
             <!-- Hidden savingsHint for JS compatibility -->
             <div class="input-hint" id="savingsHint" style="display:none;"></div>
+          </div>
+
+          <!-- Where held -->
+          <div class="ob-field" id="ob-savingsTypeField">
+            <label class="ob-label">Where is that money sitting right now?</label>
+            <span class="ob-hint" style="margin-bottom:10px;display:block;">This affects your real projected return — it matters more than most people realise.</span>
+            <div class="housing-group">
+              <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)">🏦 Cash / bank</button>
+              <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)">📈 ETFs / shares</button>
+              <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)">🏠 Offset account</button>
+              <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)">🌐 Mix of these</button>
+            </div>
           </div>
 
           <!-- Super -->
@@ -1072,9 +1074,7 @@ function obProIncomeHint() {
     if (hint) hint.textContent = '';
     if (savField) { savField.style.opacity = '0.3'; savField.style.pointerEvents = 'none'; }
     const spF = document.getElementById('ob-spendField');
-    const stF = document.getElementById('ob-savingsTypeField');
     if (spF) { spF.style.opacity = '0.3'; spF.style.pointerEvents = 'none'; }
-    if (stF) { stF.style.opacity = '0.3'; stF.style.pointerEvents = 'none'; }
     const nb = document.getElementById('ob-next-2');
     if (nb) nb.disabled = true;
   }
@@ -1082,10 +1082,8 @@ function obProIncomeHint() {
 
 function obProSavingsHint() {
   const spF = document.getElementById('ob-spendField');
-  const stF = document.getElementById('ob-savingsTypeField');
   const nb = document.getElementById('ob-next-2');
   if (spF) { spF.style.opacity = '1'; spF.style.pointerEvents = 'all'; }
-  if (stF) { stF.style.opacity = '1'; stF.style.pointerEvents = 'all'; }
   if (nb) nb.disabled = false;
 }
 
@@ -1183,11 +1181,9 @@ function stopLoadingMessages() {
     // Unlock Block 2 fields — data already populated
     const savF = document.getElementById('ob-savingsField');
     const spF = document.getElementById('ob-spendField');
-    const stF = document.getElementById('ob-savingsTypeField');
     const nb = document.getElementById('ob-next-2');
     if (savF) { savF.style.opacity = '1'; savF.style.pointerEvents = 'all'; }
     if (spF) { spF.style.opacity = '1'; spF.style.pointerEvents = 'all'; }
-    if (stF) { stF.style.opacity = '1'; stF.style.pointerEvents = 'all'; }
     if (nb) nb.disabled = false;
     if (p.savings_monthly) { const cs = p.pay_cycle === 'weekly' ? p.savings_monthly*12/52 : p.pay_cycle === 'fortnightly' ? p.savings_monthly*12/26 : p.savings_monthly; document.getElementById('savingsAmount').value = Math.round(cs); }
     if (p.current_savings) document.getElementById('savings').value = p.current_savings;
