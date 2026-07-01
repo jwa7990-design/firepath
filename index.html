@@ -803,32 +803,37 @@
     if (isFinal) textEl.classList.remove('final');
   }
 
-  async function rollYears() {
-    const years = ['2055', '2050', '2048', '2045', '2040', '2037'];
-    const interval = 6000 / years.length;
+   async function rollYears() {
+    const years = ['2055', '2050', '2048', '2045', '2040'];
 
     for (let i = 0; i < years.length; i++) {
-      bgYear.style.opacity = '0.04';
-      await wait(80);
+      bgYear.style.opacity = '0.03';
+      await wait(200);
       bgYear.textContent = years[i];
       bgYear.style.opacity = '0.07';
-      if (i < years.length - 1) await wait(interval - 80);
+      if (i < years.length - 1) await wait(1600);
     }
   }
-
+  
   async function runIntro() {
     await wait(400);
 
-    // Start year roll in background — runs independently
+    // Statements in foreground — roll years in sync
     rollYears();
 
-    // Statements in foreground
     await showStatement('We all have a year.', 2000);
     await wait(200);
     await showStatement("It's not just retirement.", 2000);
     await wait(200);
     await showStatement("It's where life becomes a choice.", 2000);
     await wait(200);
+
+    // Land 2037 in background exactly as final statement appears
+    bgYear.style.opacity = '0.03';
+    await wait(200);
+    bgYear.textContent = '2037';
+    bgYear.style.opacity = '0.07';
+
     await showStatement('Do you know yours?', 3000, true);
 
     // Dissolve to hero
