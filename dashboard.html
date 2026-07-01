@@ -63,6 +63,13 @@
     <div class="profile-banner-stats" id="profileBannerStats"></div>
   </div>
 
+  <div id="dashCtaHero" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:28px 24px;color:white;text-align:center;margin-bottom:28px;">
+    <div style="font-size:28px;margin-bottom:10px;">🔥</div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;">You haven't run your numbers yet</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:20px;">Find your freedom number first — takes about 3 minutes. Everything else on this dashboard is built from those numbers.</div>
+    <a href="firepath_pro.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 26px;border-radius:50px;font-size:14px;font-weight:500;text-decoration:none;">Run my numbers 🔥</a>
+  </div>
+
   <div class="section-label">Your freedom plan</div>
   <div class="card-grid">
     <a href="firepath_pro.html" class="dash-card">
@@ -159,6 +166,9 @@
     const uel = document.getElementById('userStatus');
     if (localStorage.getItem('fp_email')) uel.textContent = 'Signed in as ' + localStorage.getItem('fp_email');
 
+    const upParams = new URLSearchParams(window.location.search);
+    if (upParams.get('upgraded') === 'true') alert('🔥 Welcome to FirePath Pro!');
+
     if (typeof checkProStatus === 'function') { try { await checkProStatus(); } catch(e) {} }
     if (localStorage.getItem('fp_is_pro') !== 'true') {
       window.location.href = 'firepath_pro.html?upgrade=true';
@@ -170,22 +180,25 @@
     try {
       const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        const p = data[0];
+      const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
+      if (p && p.freedom_number) {
         const stats = [];
-        if (p.freedom_number) stats.push({ v: fmtM(p.freedom_number), l: 'Freedom number' });
+        stats.push({ v: fmtM(p.freedom_number), l: 'Freedom number' });
         if (p.age) stats.push({ v: p.age, l: 'Age' });
         if (p.savings_rate) stats.push({ v: p.savings_rate + '%', l: 'Savings rate' });
-        if (stats.length > 0) {
-          document.getElementById('profileBannerStats').innerHTML = stats.map(s => `<div class="profile-stat"><div class="profile-stat-value">${s.v}</div><div class="profile-stat-label">${s.l}</div></div>`).join('');
-          document.getElementById('profileBanner').style.display = 'block';
-        }
+        document.getElementById('profileBannerStats').innerHTML = stats.map(s => `<div class="profile-stat"><div class="profile-stat-value">${s.v}</div><div class="profile-stat-label">${s.l}</div></div>`).join('');
+        document.getElementById('profileBanner').style.display = 'block';
         if (p.current_savings) {
           const link = document.getElementById('withdrawalCardLink');
           if (link) link.href = `withdrawal.html?portfolio=${Math.round(p.current_savings)}`;
         }
+      } else {
+        document.getElementById('dashCtaHero').style.display = 'block';
       }
-    } catch(e) { console.log('Profile load failed', e); }
+    } catch(e) {
+      console.log('Profile load failed', e);
+      document.getElementById('dashCtaHero').style.display = 'block';
+    }
   });
 </script>
 
