@@ -125,7 +125,9 @@
         <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--fire-amber);" id="commitDisplay">—</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px;" id="commitStreakLine">—</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:8px;font-style:italic;" id="commitImpactLine"></div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px;" id="commitPerFlameLine"></div>
         <div id="streakFlames" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:16px;min-height:28px;"></div>
+        <div style="font-size:13px;color:var(--fire-amber);margin-top:10px;font-weight:500;" id="commitCumulativeLine"></div>
         <button onclick="resetCommitment()" style="margin-top:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;">
           Change commitment
         </button>
@@ -253,6 +255,20 @@
   function fmt(y) { if(y===null)return'100+ yrs';if(y===0)return'Already there!';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo'; }
   function yearsToGoal(goal,cur,ms,rate) { if(ms<=0)return null;if(cur>=goal)return 0;const r=rate/12;let b=cur,m=0;while(b<goal&&m<1200){b=b*(1+r)+ms;m++;}return m<1200?m/12:null; }
 
+  // Converts a fractional-years duration into the most readable unit —
+  // days for very short spans, weeks for typical ones, months once it's substantial.
+  function fmtFlameImpact(years) {
+    if (!years || years <= 0) return null;
+    const days = years * 365.25;
+    if (days < 1) return 'a few hours';
+    if (days < 14) { const d = Math.round(days); return d + (d === 1 ? ' day' : ' days'); }
+    const weeks = days / 7;
+    if (weeks < 8) { const w = Math.round(weeks); return w + (w === 1 ? ' week' : ' weeks'); }
+    const months = days / 30.44;
+    const m = Math.round(months);
+    return m + (m === 1 ? ' month' : ' months');
+  }
+
   function toggleMenu() {
     const menu = document.getElementById('slideMenu'), overlay = document.getElementById('menuOverlay');
     const isOpen = menu.style.display === 'flex';
@@ -355,6 +371,7 @@
       startDate: new Date().toISOString(),
       streak: 0, hits: [],
       impactText: diff && diff > 0.1 ? `Moves freedom date to ${newDate} — ${fmt(diff)} sooner` : '',
+      totalDiffYears: diff || 0,
     };
     localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
     renderCommitmentView();
@@ -389,6 +406,26 @@
     document.getElementById('commitStreakLine').textContent = `${streak} of ${totalPossible} check-ins completed · ${hits.length} 🔥 earned`;
     const impactEl = document.getElementById('commitImpactLine');
     if (impactEl) impactEl.textContent = impactText || '';
+
+    // Per-flame math: the total sustained impact (computed once at commit time),
+    // spread evenly across every possible check-in this cycle — an honest average,
+    // not a claim about any single flame's exact contribution.
+    const totalDiffYears = commitmentData.totalDiffYears || 0;
+    const perFlameYears = totalPossible > 0 ? totalDiffYears / totalPossible : 0;
+    const perFlameLabel = fmtFlameImpact(perFlameYears);
+    const perFlameEl = document.getElementById('commitPerFlameLine');
+    if (perFlameEl) {
+      perFlameEl.textContent = perFlameLabel ? `🔥 Each flame you earn is worth roughly ${perFlameLabel} closer to your freedom date` : '';
+    }
+    const cumulativeEl = document.getElementById('commitCumulativeLine');
+    if (cumulativeEl) {
+      if (hits.length > 0 && perFlameLabel) {
+        const cumulativeLabel = fmtFlameImpact(perFlameYears * hits.length);
+        cumulativeEl.textContent = `So far: ${hits.length} 🔥 = roughly ${cumulativeLabel} off your freedom date`;
+      } else {
+        cumulativeEl.textContent = '';
+      }
+    }
     const flamesEl = document.getElementById('streakFlames');
     flamesEl.innerHTML = '';
     for (let i = 0; i < totalPossible; i++) {
@@ -428,9 +465,14 @@
       renderHistory();
     }
 
+    const totalDiffYears = commitmentData.totalDiffYears || 0;
+    const totalPossible = commitmentData.cycle === 'weekly' ? 52 : commitmentData.cycle === 'fortnightly' ? 26 : 12;
+    const perFlameYears = totalPossible > 0 ? totalDiffYears / totalPossible : 0;
+    const perFlameLabel = hit ? fmtFlameImpact(perFlameYears) : null;
+
     const feedbackEl = document.createElement('div');
     feedbackEl.innerHTML = hit
-      ? '<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame! Keep going.</div>'
+      ? `<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame!${perFlameLabel ? ` That's roughly <strong>${perFlameLabel}</strong> closer to your freedom date.` : ' Keep going.'}</div>`
       : '<div style="background:#FFF7F3;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:var(--warm-brown);font-weight:500;margin-bottom:12px;">No worries — next one is yours.</div>';
     const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
     if (checkinCard) checkinCard.insertAdjacentElement('afterend', feedbackEl);
