@@ -99,6 +99,7 @@
     .glossary-deep-btn { display:inline-flex; align-items:center; gap:6px; background:white; border:1.5px solid var(--fire-orange); color:var(--fire-orange); padding:8px 16px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; }
     .glossary-deep-result { margin-top:12px; font-size:13px; color:var(--warm-brown); line-height:1.7; font-weight:300; background:var(--warm-cream); border-radius:10px; padding:14px; }
     .glossary-loading { font-size:12px; color:var(--soft-grey); font-style:italic; }
+    .icon { width:20px; height:20px; flex-shrink:0; vertical-align:-4px; }
   </style>
 </head>
 <body>
@@ -124,11 +125,11 @@
 
     <!-- Saved articles section -->
     <div id="savedSection" style="display:none;" class="saved-section">
-      <div class="saved-section-title">🔖 Saved articles</div>
+      <div class="saved-section-title" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved articles</div>
       <div id="savedList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
     <div id="liveRatesBar" style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--warm-brown);line-height:1.6;display:none;">
-      📡 <strong>Live data:</strong> RBA cash rate <strong id="llCashRate">—</strong> · CPI <strong id="llCpi">—</strong> · Bank real return <strong id="llBank">—</strong> · Super guarantee <strong id="llSg">—</strong>
+      <svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-live"/></svg> <strong>Live data:</strong> RBA cash rate <strong id="llCashRate">—</strong> · CPI <strong id="llCpi">—</strong> · Bank real return <strong id="llBank">—</strong> · Super guarantee <strong id="llSg">—</strong>
     </div>
 
     <div class="foundation-section">
@@ -137,7 +138,7 @@
     </div>
 
     <div class="foundation-section">
-      <div class="section-label">🧾 Tax & Strategy</div>
+      <div class="section-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-money"/></svg> Tax & Strategy</div>
       <div class="topics-list" id="taxTopicsList"></div>
     </div>
 
@@ -186,13 +187,13 @@
       <div class="article-body" id="articleBody"></div>
       <div id="proSection"></div>
       <div class="action-buttons">
-        <button id="markReadBtn" class="btn-mark-read"
+        <button id="markReadBtn" class="btn-mark-read" style="display:flex;align-items:center;gap:6px;"
           onclick="isPro ? markAsRead(currentTopic.id, currentTopic.title, currentTopic.track) : showProGateMarkAsRead()">
-          🔍 Explore this topic further
+          <svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Explore this topic further
         </button>
-        <button id="saveBtn" class="btn-save"
+        <button id="saveBtn" class="btn-save" style="display:flex;align-items:center;gap:6px;"
           onclick="isPro ? toggleSave(currentTopic.id, currentTopic.title, currentTopic.track) : showProGateSave()">
-          🔖 Save article
+          <svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Save article
         </button>
       </div>
       <div id="whatsNextSection" style="display:none;"></div>
@@ -297,12 +298,14 @@
     const grid = document.getElementById('glossaryGrid');
     const categories = Object.keys(glossaryData);
 
-    filterBar.innerHTML = categories.map(cat => `
+    filterBar.innerHTML = categories.map(cat => {
+      const iconId = cat === 'FIRE Basics' ? 'icon-momentum' : cat === 'Investing' ? 'icon-insight' : cat === 'Australian' ? 'icon-super' : 'icon-chat';
+      return `
       <button class="glossary-filter-btn ${cat === currentGlossaryCategory ? 'active' : ''}"
-        onclick="setGlossaryCategory('${cat}')">
-        ${cat === 'FIRE Basics' ? '🔥' : cat === 'Investing' ? '📈' : cat === 'Australian' ? '🦘' : '💬'} ${cat}
+        onclick="setGlossaryCategory('${cat}')" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#${iconId}"/></svg> ${cat}
       </button>
-    `).join('');
+    `;}).join('');
 
     const terms = glossaryData[currentGlossaryCategory];
     grid.innerHTML = terms.map((t, i) => {
@@ -319,9 +322,9 @@
           <div class="glossary-body" id="gbody-${i}">
             <p class="glossary-plain">${t.plain}</p>
             <p class="glossary-context">${t.context}</p>
-            ${personalNote ? `<div class="glossary-personal">💡 <strong>For you:</strong> ${personalNote}</div>` : ''}
+            ${personalNote ? `<div class="glossary-personal" style="display:flex;align-items:flex-start;gap:8px;"><svg class="icon" style="width:14px;height:14px;flex-shrink:0;margin-top:2px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-insight"/></svg> <span><strong>For you:</strong> ${personalNote}</span></div>` : ''}
             <button class="glossary-deep-btn" onclick="goDeeper('${t.term}', '${t.full}', ${i})">
-              🤔 Explain this more deeply →
+              <svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Explain this more deeply →
             </button>
             <div id="gdeep-${i}"></div>
           </div>
@@ -407,7 +410,7 @@
       saveLabProgress(topicId, title, track, false);
     }
     const btn = document.getElementById('markReadBtn');
-    if (btn) { btn.textContent = '✅ Explored'; btn.style.background = '#E8F5E9'; btn.style.borderColor = '#A5D6A7'; btn.style.color = '#2E7D32'; }
+    if (btn) { btn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Explored'; btn.style.background = '#E8F5E9'; btn.style.borderColor = '#A5D6A7'; btn.style.color = '#2E7D32'; }
     showWhatsNext(topicId, title, track);
   }
 
@@ -417,12 +420,12 @@
       savedTopics = savedTopics.filter(s => s.id !== topicId);
       await saveLabProgress(topicId, title, track, false);
       const btn = document.getElementById('saveBtn');
-      if (btn) { btn.textContent = '🔖 Save article'; btn.className = 'btn-save'; }
+      if (btn) { btn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Save article'; btn.className = 'btn-save'; }
     } else {
       savedTopics.push({ id: topicId, title, track });
       await saveLabProgress(topicId, title, track, true);
       const btn = document.getElementById('saveBtn');
-      if (btn) { btn.textContent = '🔖 Saved!'; btn.className = 'btn-saved'; }
+      if (btn) { btn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved!'; btn.className = 'btn-saved'; }
     }
     localStorage.setItem('fp_lab_saved', JSON.stringify(savedTopics));
     renderSavedArticles();
@@ -431,7 +434,7 @@
   function showProGateSave() {
     const nextEl = document.getElementById('whatsNextSection');
     nextEl.style.display = 'block';
-    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;"><div style="font-size:20px;margin-bottom:8px;">🔖</div><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Save articles with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members can save articles to read again, track progress across devices, and get AI-suggested next lessons.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
+    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;"><div style="margin-bottom:8px;color:var(--fire-amber);"><svg class="icon" style="width:20px;height:20px;"><use href="/icons.svg#icon-bookmark"/></svg></div><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Save articles with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members can save articles to read again, track progress across devices, and get AI-suggested next lessons.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
   }
 
   function renderSavedArticles() {
@@ -441,7 +444,7 @@
     section.style.display = 'block';
     list.innerHTML = savedTopics.map(s => `
       <div class="topic-item saved" onclick="openArticle('${s.id}', '${s.track}', '${s.title}')">
-        <div class="topic-left"><span class="topic-icon">🔖</span><div><div class="topic-title">${s.title}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track + '% track'}</div></div></div>
+        <div class="topic-left"><span class="topic-icon"><svg class="icon" style="width:18px;height:18px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-bookmark"/></svg></span><div><div class="topic-title">${s.title}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track + '% track'}</div></div></div>
         <span class="saved-badge">Saved</span>
       </div>`).join('');
   }
@@ -450,10 +453,10 @@
     const el = document.getElementById('userContext');
     if (!userData.income && !userData.savings) { el.style.display = 'none'; return; }
     const parts = [];
-    if (userData.income) parts.push(`💰 Earning ${fmtM(userData.income)}/month`);
-    if (weeklyAmt) parts.push(`📈 Saving $${weeklyAmt}/week`);
-    if (userData.savings) parts.push(`🏦 ${fmtM(userData.savings)} saved`);
-    if (freedomYear) parts.push(`🔥 Freedom target: ${freedomYear}`);
+    if (userData.income) parts.push(`<svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-money"/></svg> Earning ${fmtM(userData.income)}/month`);
+    if (weeklyAmt) parts.push(`<svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-insight"/></svg> Saving $${weeklyAmt}/week`);
+    if (userData.savings) parts.push(`<svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-secure"/></svg> ${fmtM(userData.savings)} saved`);
+    if (freedomYear) parts.push(`<svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-momentum"/></svg> Freedom target: ${freedomYear}`);
     el.innerHTML = `<strong>Based on what you told us:</strong> ${parts.join(' · ')}`;
     el.style.display = 'block';
   }
@@ -521,7 +524,7 @@
             <span class="topic-icon">${t.icon}</span>
             <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
           </div>
-          ${isRead ? '<span class="read-badge">✅ Explored</span>' : isSaved ? '<span class="saved-badge">🔖 Saved</span>' : '<span class="topic-arrow">→</span>'}
+          ${isRead ? '<span class="read-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-result"/></svg> Explored</span>' : isSaved ? '<span class="saved-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved</span>' : '<span class="topic-arrow">→</span>'}
         </div>`;
     }).join('');
   }
@@ -538,7 +541,7 @@
             <span class="topic-icon">${t.icon}</span>
             <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
           </div>
-          ${isRead ? '<span class="read-badge">✅ Explored</span>' : isSaved ? '<span class="saved-badge">🔖 Saved</span>' : '<span class="topic-arrow">→</span>'}
+          ${isRead ? '<span class="read-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-result"/></svg> Explored</span>' : isSaved ? '<span class="saved-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved</span>' : '<span class="topic-arrow">→</span>'}
         </div>`;
     }).join('');
   }
@@ -571,7 +574,7 @@
             <span class="topic-icon">${t.icon}</span>
             <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
           </div>
-          ${locked ? '<span class="pro-lock">Pro</span>' : isRead ? '<span class="read-badge">✅ Read</span>' : isSaved ? '<span class="saved-badge">🔖 Saved</span>' : '<span class="topic-arrow">→</span>'}
+          ${locked ? '<span class="pro-lock">Pro</span>' : isRead ? '<span class="read-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-result"/></svg> Read</span>' : isSaved ? '<span class="saved-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved</span>' : '<span class="topic-arrow">→</span>'}
         </div>`;
     }).join('');
     showTopicView();
@@ -640,12 +643,12 @@
     const markBtn = document.getElementById('markReadBtn');
     const saveBtn = document.getElementById('saveBtn');
     if (markBtn) {
-      if (isRead) { markBtn.textContent = '✅ Explored'; markBtn.style.background = '#E8F5E9'; markBtn.style.borderColor = '#A5D6A7'; markBtn.style.color = '#2E7D32'; }
-      else { markBtn.textContent = '🔍 Explore this topic further'; markBtn.style.background = 'white'; markBtn.style.borderColor = 'var(--fire-orange)'; markBtn.style.color = 'var(--fire-orange)'; }
+      if (isRead) { markBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Explored'; markBtn.style.background = '#E8F5E9'; markBtn.style.borderColor = '#A5D6A7'; markBtn.style.color = '#2E7D32'; }
+      else { markBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Explore this topic further'; markBtn.style.background = 'white'; markBtn.style.borderColor = 'var(--fire-orange)'; markBtn.style.color = 'var(--fire-orange)'; }
     }
     if (saveBtn) {
-      if (isSaved) { saveBtn.textContent = '🔖 Saved!'; saveBtn.className = 'btn-saved'; }
-      else { saveBtn.textContent = '🔖 Save article'; saveBtn.className = 'btn-save'; }
+      if (isSaved) { saveBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved!'; saveBtn.className = 'btn-saved'; }
+      else { saveBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Save article'; saveBtn.className = 'btn-save'; }
     }
 
     try {
@@ -713,7 +716,7 @@ Never say "you should" or "I recommend". Never name specific brokers or platform
   async function showWhatsNext(topicId, title, track) {
     const nextEl = document.getElementById('whatsNextSection');
     if (!nextEl) return;
-    nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">✅ Marked as read</div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:16px;">Building your research pathway...</div><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
+    nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:16px;">Building your research pathway...</div><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
     nextEl.style.display = 'block';
     try {
       const persona = userData.persona || 'building';
@@ -744,7 +747,7 @@ Respond ONLY with valid JSON:
       const next = result.next;
       nextEl.innerHTML = `
         <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;margin-bottom:12px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;">✅ Marked as read</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div>
           <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--warm-brown);margin-bottom:6px;line-height:1.4;">${r.headline}</div>
           <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:20px;font-style:italic;">${r.disclaimer}</div>
           <div style="display:flex;flex-direction:column;gap:12px;">
@@ -752,7 +755,7 @@ Respond ONLY with valid JSON:
           </div>
         </div>
         <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-bottom:12px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">📚 Continue learning</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-learn"/></svg> Continue learning</div>
           <div style="font-size:15px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">${next.title}</div>
           <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px;">${next.why}</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -761,7 +764,7 @@ Respond ONLY with valid JSON:
           </div>
         </div>`;
     } catch(e) {
-      nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;">✅ Marked as read</div><div onclick="showTopicView()" style="font-size:13px;color:var(--fire-orange);cursor:pointer;">← Back to all topics</div></div>`;
+      nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div><div onclick="showTopicView()" style="font-size:13px;color:var(--fire-orange);cursor:pointer;">← Back to all topics</div></div>`;
     }
   }
 
