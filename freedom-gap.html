@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Freedom Gap — FirePath</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <script src="js/tax-engine.js"></script>
+  <style>
+  body { display:block; padding:0; }
+  .hero { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);padding:48px 24px 40px;text-align:center;color:white;position:relative;overflow:hidden; }
+  .hero::before { content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(244,98,42,0.2) 0%,transparent 65%);pointer-events:none; }
+  .back-link { display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,0.5);font-size:13px;text-decoration:none;margin-bottom:28px; }
+  .back-link:hover { color:white; }
+  .hero-badge { display:inline-block;background:rgba(244,98,42,0.2);border:1px solid rgba(244,98,42,0.4);color:var(--fire-amber);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:20px; }
+  .hero-title { font-family:'Playfair Display',serif;font-size:clamp(28px,7vw,44px);font-weight:900;line-height:1.1;margin-bottom:12px; }
+  .hero-sub { font-size:15px;color:rgba(255,255,255,0.6);font-weight:300;line-height:1.7;max-width:480px;margin:0 auto; }
+  .content { padding:24px 20px 80px;max-width:580px;margin:0 auto; }
+  .glass-card { background:white;border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;box-shadow:0 2px 20px rgba(61,43,31,0.05); }
+  .card-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:16px;display:flex;align-items:center;gap:6px; }
+  .input-row { display:flex;flex-direction:column;gap:6px;margin-bottom:16px; }
+  .input-row:last-child { margin-bottom:0; }
+  .input-label-text { font-size:13px;color:var(--soft-grey);font-weight:400; }
+  .input-wrap { position:relative; }
+  .input-prefix-dark { position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--soft-grey); }
+  .dark-input { width:100%;padding:13px 14px 13px 30px;background:white;border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;color:var(--warm-brown);outline:none;transition:border-color 0.2s;-moz-appearance:textfield; }
+  .dark-input::-webkit-inner-spin-button,.dark-input::-webkit-outer-spin-button { -webkit-appearance:none; }
+  .dark-input:focus { border-color:var(--fire-orange); }
+  .dark-input::placeholder { color:#CCC5BF; }
+  .toggle-group { display:flex;gap:8px; }
+  .toggle-btn { flex:1;padding:12px 8px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;text-align:center; }
+  .toggle-btn.active { border-color:var(--fire-orange);background:#FFF7F3;color:var(--fire-orange); }
+  .gap-hero { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;color:white;margin-bottom:16px;text-align:center; }
+  .gap-label { font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;opacity:0.55;margin-bottom:8px; }
+  .gap-annual { font-family:'Playfair Display',serif;font-size:44px;font-weight:700;color:var(--fire-amber);line-height:1;margin-bottom:6px; }
+  .gap-sub { font-size:13px;opacity:0.6;margin-bottom:20px; }
+  .gap-breakdown { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
+  .gap-tile { background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 8px; }
+  .gap-tile-label { font-size:10px;opacity:0.55;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px; }
+  .gap-tile-value { font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--fire-amber); }
+  .data-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
+  .data-row:last-child { border-bottom:none; }
+  .data-label { color:var(--soft-grey); }
+  .pension-box { background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:12px;padding:16px;margin-top:16px;font-size:13px;color:#2E7D32;line-height:1.7; }
+  .pension-box.nil { background:var(--warm-cream);border-color:var(--border);color:var(--soft-grey); }
+  .slider-card { background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px; }
+  .slider-row { display:flex;align-items:center;gap:14px;margin-top:14px; }
+  input[type="range"].dark-slider { flex:1;-webkit-appearance:none;height:6px;border-radius:6px;background:var(--border);outline:none;cursor:pointer; }
+  input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--fire-orange);box-shadow:0 2px 8px rgba(244,98,42,0.4);cursor:pointer; }
+  .slider-val { font-weight:700;color:var(--fire-orange);min-width:64px;text-align:right;font-size:15px; }
+  .slider-result { background:var(--warm-cream);border-radius:12px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-top:14px; }
+  .ai-outlook-btn { background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%; }
+  .ai-outlook-loading { display:none;text-align:center;padding:24px 0; }
+  .ai-outlook-loading.visible { display:block; }
+  .ai-outlook-flame { animation:aiFlamePulse 1.4s ease-in-out infinite;display:inline-block;color:var(--fire-orange); }
+  @keyframes aiFlamePulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.18);opacity:0.75;} }
+  .ai-outlook-text { font-size:14px;color:var(--warm-brown);line-height:1.8;font-weight:300;margin-top:16px;padding-top:16px;border-top:1px solid var(--border); }
+  .ai-outlook-text strong { font-weight:600;color:var(--fire-orange); }
+  .icon { width:20px; height:20px; flex-shrink:0; vertical-align:-4px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div><a href="dashboard.html" class="back-link">← Back to Dashboard</a></div>
+  <div class="hero-badge">Beyond full FIRE</div>
+  <h1 class="hero-title">Freedom Gap</h1>
+  <p class="hero-sub">Full financial independence isn't the only version of freedom. See what your portfolio already generates, what the Age Pension adds, and how much of the gap is actually left to close.</p>
+</div>
+
+<div class="content">
+
+  <div class="glass-card">
+    <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-money"/></svg> Your numbers</div>
+    <div class="input-row">
+      <div class="input-label-text">Total portfolio value</div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-portfolio" placeholder="500000" oninput="calcGap()"/></div>
+    </div>
+    <div class="input-row">
+      <div class="input-label-text">What you expect to spend per year</div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-spend" placeholder="60000" oninput="calcGap()"/></div>
+    </div>
+    <div class="input-row">
+      <div class="input-label-text">Your age</div>
+      <div class="input-wrap"><span class="input-prefix-dark">age</span><input type="number" class="dark-input" id="g-age" placeholder="45" style="padding-left:46px;" oninput="calcGap()"/></div>
+    </div>
+    <div class="input-row">
+      <div class="input-label-text">What you could earn per hour, working part-time</div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-rate" placeholder="40" oninput="calcGap()"/></div>
+    </div>
+    <div class="input-row">
+      <div class="input-label-text">Do you own your home?</div>
+      <div class="toggle-group">
+        <button type="button" class="toggle-btn active" id="g-homeowner-yes" onclick="setHomeowner(true)">Yes</button>
+        <button type="button" class="toggle-btn" id="g-homeowner-no" onclick="setHomeowner(false)">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="results" style="display:none">
+
+    <div class="gap-hero">
+      <div class="gap-label">Your portfolio generates</div>
+      <div class="gap-annual" id="g-portfolioIncome">—</div>
+      <div class="gap-sub" id="g-sub">a year, at a 4% withdrawal rate</div>
+      <div class="gap-breakdown">
+        <div class="gap-tile">
+          <div class="gap-tile-label">Annual spending</div>
+          <div class="gap-tile-value" id="g-annualSpend">—</div>
+        </div>
+        <div class="gap-tile">
+          <div class="gap-tile-label">The gap</div>
+          <div class="gap-tile-value" id="g-gapAmount">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-secure"/></svg> Age Pension at 67</div>
+      <div id="g-pensionBox" class="pension-box">—</div>
+      <div class="data-row" style="margin-top:12px;">
+        <span class="data-label">Gap after pension</span>
+        <span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="g-gapAfterPension">—</span>
+      </div>
+    </div>
+
+    <div class="slider-card">
+      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> How many hours do you want to work?</div>
+      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">Drag to find the point where your income fully covers your spending.</div>
+      <div class="slider-row">
+        <input type="range" class="dark-slider" id="g-hours" min="0" max="40" value="10" oninput="updateHoursSlider()"/>
+        <div class="slider-val" id="g-hoursVal">10 hrs</div>
+      </div>
+      <div class="slider-result" id="g-hoursResult"></div>
+    </div>
+
+    <div class="slider-card">
+      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your AI outlook</div>
+      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">A plain-English read on what this gap actually means for your life.</div>
+      <button class="ai-outlook-btn" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook</button>
+      <div class="ai-outlook-loading" id="aiOutlookLoading">
+        <div class="ai-outlook-flame"><svg class="icon" style="width:28px;height:28px;"><use href="/icons.svg#icon-momentum"/></svg></div>
+        <div style="font-size:13px;color:var(--soft-grey);margin-top:10px;">Reading your numbers...</div>
+      </div>
+      <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
+    </div>
+
+    <p class="disclaimer">Portfolio income based on a 4% withdrawal rate. Age Pension estimate based on the assets test (single, using your homeowner status) — your actual entitlement depends on your full financial picture at 67. Educational only — not financial advice.</p>
+  </div>
+
+</div>
+
+<script>
+  function fmtM(n) {
+    if (n == null || isNaN(n)) return '—';
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000)    return '$' + Math.round(n/1000) + 'K';
+    return '$' + Math.round(n);
+  }
+
+  let isHomeowner = true;
+  let lastGapCalc = null;
+
+  function setHomeowner(val) {
+    isHomeowner = val;
+    document.getElementById('g-homeowner-yes').classList.toggle('active', val);
+    document.getElementById('g-homeowner-no').classList.toggle('active', !val);
+    calcGap();
+  }
+
+  function calcGap() {
+    const portfolio = parseFloat(document.getElementById('g-portfolio').value) || 0;
+    const annualSpend = parseFloat(document.getElementById('g-spend').value) || 0;
+    const hourlyRate = parseFloat(document.getElementById('g-rate').value) || 40;
+
+    if (portfolio <= 0 || annualSpend <= 0) {
+      document.getElementById('results').style.display = 'none';
+      return;
+    }
+    document.getElementById('results').style.display = 'block';
+
+    const portfolioIncome = Math.round(portfolio * 0.04);
+    const gap = Math.max(0, annualSpend - portfolioIncome);
+    const gapWeekly = Math.round(gap / 52);
+
+    document.getElementById('g-portfolioIncome').textContent = fmtM(portfolioIncome);
+    document.getElementById('g-annualSpend').textContent = fmtM(annualSpend);
+    document.getElementById('g-gapAmount').textContent = fmtM(gap) + '/yr';
+
+    let pensionAnnual = 0;
+    const pensionBox = document.getElementById('g-pensionBox');
+    if (typeof calculateAgePension === 'function') {
+      const pension = calculateAgePension(portfolio, portfolioIncome, isHomeowner, false);
+      pensionAnnual = pension.annualPension;
+      if (pensionAnnual > 0) {
+        pensionBox.className = 'pension-box';
+        pensionBox.innerHTML = `Estimated entitlement: <strong>${fmtM(pensionAnnual)}/yr</strong> (~${fmtM(pension.weeklyPension)}/week), based on the assets test.`;
+      } else {
+        pensionBox.className = 'pension-box nil';
+        pensionBox.innerHTML = `At your asset level, Age Pension entitlement at 67 would be minimal or nil. Your portfolio is doing the heavy lifting.`;
+      }
+    }
+    const gapAfterPension = Math.max(0, gap - pensionAnnual);
+    document.getElementById('g-gapAfterPension').textContent = fmtM(gapAfterPension) + '/yr';
+
+    lastGapCalc = { portfolio, annualSpend, portfolioIncome, gap, pensionAnnual, gapAfterPension, hourlyRate };
+
+    // Reset AI outlook on any input change — cached narrative no longer matches
+    document.getElementById('aiOutlookText').style.display = 'none';
+    document.getElementById('aiOutlookBtn').style.display = 'block';
+    document.getElementById('aiOutlookBtn').textContent = 'Get my AI outlook';
+
+    updateHoursSlider();
+  }
+
+  function updateHoursSlider() {
+    if (!lastGapCalc) return;
+    const hours = parseInt(document.getElementById('g-hours').value);
+    document.getElementById('g-hoursVal').textContent = hours + ' hrs/wk';
+    const { gap, hourlyRate } = lastGapCalc;
+    const weeklyWorkIncome = hours * hourlyRate;
+    const annualWorkIncome = weeklyWorkIncome * 52;
+    const remainingGap = Math.max(0, gap - annualWorkIncome);
+    const resultEl = document.getElementById('g-hoursResult');
+    if (hours === 0) {
+      resultEl.innerHTML = `Not working at all — your portfolio and Age Pension cover what they can.`;
+    } else if (remainingGap <= 0) {
+      resultEl.innerHTML = `<strong>${hours} hrs/week</strong> at ~$${hourlyRate}/hr fully covers the gap. You don't need to touch your portfolio beyond the 4% withdrawal.`;
+    } else {
+      resultEl.innerHTML = `<strong>${hours} hrs/week</strong> covers ${fmtM(annualWorkIncome)}/yr, leaving <strong>${fmtM(remainingGap)}/yr (${fmtM(Math.round(remainingGap/52))}/week)</strong> still to cover.`;
+    }
+  }
+
+  async function getAiOutlook() {
+    if (!lastGapCalc) return;
+    const btn = document.getElementById('aiOutlookBtn');
+    const loading = document.getElementById('aiOutlookLoading');
+    const textEl = document.getElementById('aiOutlookText');
+    btn.style.display = 'none';
+    loading.classList.add('visible');
+    textEl.style.display = 'none';
+
+    const { portfolio, annualSpend, portfolioIncome, gap, pensionAnnual, gapAfterPension } = lastGapCalc;
+    const hours = parseInt(document.getElementById('g-hours').value);
+    const age = parseFloat(document.getElementById('g-age').value) || null;
+
+    const userInput = `Portfolio: ${fmtM(portfolio)}. Annual spending target: ${fmtM(annualSpend)}. Portfolio generates: ${fmtM(portfolioIncome)}/yr at a 4% withdrawal rate. The gap: ${fmtM(gap)}/yr. Estimated Age Pension at 67: ${fmtM(pensionAnnual)}/yr. Gap after pension: ${fmtM(gapAfterPension)}/yr. Currently exploring working ${hours} hours/week to help cover it. Age: ${age || 'not provided'}.`;
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 500,
+          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. You have been given someone's real "partial freedom" numbers — their portfolio income, spending gap, and Age Pension estimate. Do not recalculate these — just narrate what they mean.
+
+Rules: 1. Reference the actual numbers given to you. 2. Explain that full financial independence isn't the only version of freedom — a portfolio that covers most of your spending, topped up by some part-time work and eventually the Age Pension, is a legitimate and often much closer form of freedom. 3. Be warm and human about what working a small number of hours by choice (not necessity) actually feels like, versus a full-time job. 4. Never say "you should" or "I recommend" — frame as something worth exploring. 5. Never name specific jobs, employers, or investment products. 6. Max 2 short paragraphs. 7. End with exactly: "This is educational, not financial advice." Use <strong> for bold.`,
+          messages: [{ role: 'user', content: userInput }]
+        })
+      });
+      const data = await res.json();
+      const insight = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      textEl.innerHTML = insight.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      textEl.style.display = 'block';
+    } catch(e) {
+      textEl.innerHTML = 'Something went wrong connecting to the AI. Please try again.';
+      textEl.style.display = 'block';
+      console.error(e);
+    } finally {
+      loading.classList.remove('visible');
+      btn.style.display = 'block';
+      btn.textContent = 'Refresh my AI outlook';
+    }
+  }
+
+  // Prefill from URL params (dashboard link) or saved Supabase profile
+  document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    const urlPortfolio = params.get('portfolio');
+    if (urlPortfolio) document.getElementById('g-portfolio').value = urlPortfolio;
+
+    try {
+      const token = typeof getToken === 'function' ? getToken() : null;
+      const userId = typeof getUserId === 'function' ? getUserId() : null;
+      if (token && userId) {
+        const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const p = data[0];
+          if (!urlPortfolio && p.current_savings) document.getElementById('g-portfolio').value = p.current_savings;
+          if (p.age) document.getElementById('g-age').value = p.age;
+          if (p.take_home_income) document.getElementById('g-spend').value = Math.round(p.take_home_income * 12);
+          if (p.take_home_income) document.getElementById('g-rate').value = Math.round((p.take_home_income * 12) / 52 / 38);
+          if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
+        }
+      }
+    } catch(e) { console.log('Profile prefill failed', e); }
+
+    calcGap();
+  });
+</script>
+<script src="js/auth.js"></script>
+<script src="js/calculations.js"></script>
+</body>
+</html>
