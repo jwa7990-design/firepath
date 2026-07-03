@@ -303,7 +303,7 @@
       if (!el) return;
       const years = yearsSavedFromWeekly(amount);
       const days = daysOff(years);
-      el.textContent = days ? `≈${days} days off` : 'a week';
+      el.textContent = days ? `≈${days} days closer` : 'a week';
     });
   }
 
@@ -403,7 +403,7 @@
     preview.style.display = 'block';
     preview.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">
       <div>💰 <strong style="color:white;">Extra $${amount.toLocaleString()}/${cycleLabel}</strong> on top of what you already save</div>
-      ${days ? `<div>🗓️ That's roughly <strong style="color:var(--fire-amber);">${days} days</strong> you don't have to work — on your terms.</div>` : ''}
+      ${days ? `<div>🗓️ That's roughly <strong style="color:var(--fire-amber);">${days} days</strong> closer to freedom.</div>` : ''}
       ${diff && diff > 0.1 ? `<div>🔥 Moves your freedom date to <strong style="color:var(--fire-amber);">${newDate}</strong> — <strong style="color:var(--fire-amber);">${fmt(diff)} sooner</strong></div>` : newDate ? `<div>📅 Freedom date stays around <strong style="color:var(--fire-amber);">${newDate}</strong></div>` : ''}
       <div style="opacity:0.6;font-size:12px;">${totalCheckins} check-ins to earn your 🔥 flames this year</div>
     </div>`;
@@ -475,14 +475,14 @@
     const perFlameDays = totalPossible > 0 ? Math.round(totalDaysOff / totalPossible) : 0;
     const perFlameEl = document.getElementById('commitPerFlameLine');
     if (perFlameEl) {
-      perFlameEl.textContent = perFlameDays > 0 ? `🔥 Each flame you earn is worth roughly ${perFlameDays} day${perFlameDays === 1 ? '' : 's'} you don't have to work` : '';
+      perFlameEl.textContent = perFlameDays > 0 ? `🔥 Each flame you earn is worth roughly ${perFlameDays} day${perFlameDays === 1 ? '' : 's'} closer to freedom` : '';
     }
     const cumulativeEl = document.getElementById('commitCumulativeLine');
     if (cumulativeEl) {
       if (hitsDisplay > 0 && perFlameDays > 0) {
         // Cap cumulative at the total sustained impact — can't exceed what the commitment is actually worth
         const cumulativeDays = Math.min(perFlameDays * hitsDisplay, totalDaysOff);
-        cumulativeEl.textContent = `So far: ${hitsDisplay} 🔥 = roughly ${cumulativeDays} days you don't have to work — on your terms`;
+        cumulativeEl.textContent = `So far: ${hitsDisplay} 🔥 = roughly ${cumulativeDays} days closer to freedom`;
       } else {
         cumulativeEl.textContent = '';
       }
@@ -536,7 +536,7 @@
 
     const feedbackEl = document.createElement('div');
     feedbackEl.innerHTML = hit
-      ? `<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame!${perFlameDays > 0 ? ` That's roughly <strong>${perFlameDays} day${perFlameDays === 1 ? '' : 's'}</strong> you don't have to work — on your terms.` : ' Keep going.'}</div>`
+      ? `<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame!${perFlameDays > 0 ? ` That's roughly <strong>${perFlameDays} day${perFlameDays === 1 ? '' : 's'}</strong> closer to freedom.` : ' Keep going.'}</div>`
       : '<div style="background:#FFF7F3;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:var(--warm-brown);font-weight:500;margin-bottom:12px;">No worries — next one is yours.</div>';
     const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
     if (checkinCard) checkinCard.insertAdjacentElement('afterend', feedbackEl);
