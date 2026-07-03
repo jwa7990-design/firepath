@@ -355,7 +355,8 @@
 
     <!-- Profile load failure — shown if the saved profile fetch fails, instead of silently defaulting to onboarding -->
     <div id="profileLoadError" style="display:none;background:#FFF3E0;border-bottom:1.5px solid #FFB74D;padding:14px 20px;text-align:center;">
-      <div style="font-size:13px;color:#E65100;font-weight:500;margin-bottom:8px;">Couldn't load your saved profile — showing setup instead.</div>
+      <div style="font-size:13px;color:#E65100;font-weight:500;margin-bottom:6px;">Couldn't load your saved profile — showing setup instead.</div>
+      <div id="profileLoadErrorDetail" style="font-size:11px;color:#B34700;font-family:monospace;margin-bottom:10px;word-break:break-word;"></div>
       <button onclick="window.location.reload()" style="background:var(--fire-orange);color:white;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Try again</button>
     </div>
 
@@ -1201,6 +1202,8 @@ function stopLoadingMessages() {
     }
     if (!res.ok) {
       const errBanner = document.getElementById('profileLoadError');
+      const errDetail = document.getElementById('profileLoadErrorDetail');
+      if (errDetail) errDetail.textContent = `HTTP ${res.status} ${res.statusText || ''}`.trim();
       if (errBanner) errBanner.style.display = 'block';
       return;
     }
@@ -1235,6 +1238,8 @@ function stopLoadingMessages() {
   } catch(e) {
     console.log('Profile load failed', e);
     const errBanner = document.getElementById('profileLoadError');
+    const errDetail = document.getElementById('profileLoadErrorDetail');
+    if (errDetail) errDetail.textContent = (e && e.message) ? e.message : String(e);
     if (errBanner) errBanner.style.display = 'block';
   }
 }

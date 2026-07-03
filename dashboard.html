@@ -66,6 +66,12 @@
     <p class="dash-sub">Your results, your super timeline, your tax tools, and everything in between — pick where you want to go.</p>
   </div>
 
+  <div id="profileLoadErrorDash" style="display:none;background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:14px;padding:16px 18px;margin-bottom:20px;text-align:center;">
+    <div style="font-size:13px;color:#E65100;font-weight:500;margin-bottom:6px;">Couldn't load your saved profile.</div>
+    <div id="profileLoadErrorDashDetail" style="font-size:11px;color:#B34700;font-family:monospace;margin-bottom:10px;word-break:break-word;"></div>
+    <button onclick="window.location.reload()" style="background:var(--fire-orange);color:white;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Try again</button>
+  </div>
+
   <div class="profile-banner" id="profileBanner">
     <div class="profile-banner-title"><svg class="icon" style="width:14px;height:14px;vertical-align:-2px;color:#F4A24A;"><use href="/icons.svg#icon-profile"/></svg> Your saved profile</div>
     <div class="profile-banner-row">
@@ -237,6 +243,12 @@
 
     try {
       const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.status === 401 || res.status === 403) { window.location.href = 'auth.html'; return; }
+      if (!res.ok) {
+        document.getElementById('profileLoadErrorDashDetail').textContent = `HTTP ${res.status} ${res.statusText || ''}`.trim();
+        document.getElementById('profileLoadErrorDash').style.display = 'block';
+        return;
+      }
       const data = await res.json();
       const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
       if (p && p.freedom_number) {
@@ -256,7 +268,8 @@
       }
     } catch(e) {
       console.log('Profile load failed', e);
-      document.getElementById('dashCtaHero').style.display = 'block';
+      document.getElementById('profileLoadErrorDashDetail').textContent = (e && e.message) ? e.message : String(e);
+      document.getElementById('profileLoadErrorDash').style.display = 'block';
     }
   });
 </script>
