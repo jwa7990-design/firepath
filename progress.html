@@ -345,7 +345,7 @@
       const res = await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`, { headers:{'Authorization':`Bearer ${fpToken}`} });
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        checkinHistory = data.map(d => ({ month: new Date(d.created_at).toLocaleString('default',{month:'short',year:'numeric'}), savings: d.savings_total, sRate: d.savings_rate, hit: true }));
+        checkinHistory = data.map(d => ({ month: new Date(d.created_at).toLocaleString('default',{day:'numeric',month:'short',year:'numeric'}), savings: d.savings_total, sRate: d.savings_rate, hit: true }));
         renderHistory();
       }
     } catch(e) {}
@@ -510,6 +510,12 @@
       alert(`You've completed all ${totalPossible} check-ins for this commitment! Hit "Change commitment" to start a fresh one.`);
       return;
     }
+    const today = new Date().toDateString();
+    if (commitmentData.lastCheckinDate === today) {
+      alert("You've already logged a check-in today — come back tomorrow to log the next one.");
+      return;
+    }
+    commitmentData.lastCheckinDate = today;
     commitmentData.streak = (commitmentData.streak || 0) + 1;
     if (hit) commitmentData.hits.push(new Date().toISOString());
     localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
@@ -531,7 +537,8 @@
       renderMilestones(fireNum, newSavings, mSav);
       if (hit && oy && ny) showMilestone(oy - ny, pct);
       dbInsert('checkins', { savings_total: newSavings, savings_rate: calcData.sRate || 0, freedom_years: ny ? Math.round(ny*10)/10 : null, streak: commitmentData.streak });
-      checkinHistory.unshift({ month: new Date().toLocaleString('default',{month:'short',year:'numeric'}), savings: newSavings, hit });
+      checkinHistory.unshift({ month: new Date().toLocaleString('default',{day:'numeric',month:'short',year:'numeric'}), savings: newSavings, hit });
+      checkinHistory = checkinHistory.slice(0, 20); // cap the session list so it can't grow unbounded
       renderHistory();
     }
 
