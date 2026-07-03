@@ -75,13 +75,13 @@
           <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Not sure? Try one of these — you can still change it below:</div>
           <div style="display:flex;gap:8px;" id="commitSuggestChips">
             <button type="button" onclick="pickSuggestedAmount(25, this)" class="commit-suggest-chip" style="flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
-              +$25<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;">a week</span>
+              +$25<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;" id="chipDaysLabel-25">a week</span>
             </button>
             <button type="button" onclick="pickSuggestedAmount(50, this)" class="commit-suggest-chip" style="flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
-              +$50<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;">a week</span>
+              +$50<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;" id="chipDaysLabel-50">a week</span>
             </button>
             <button type="button" onclick="pickSuggestedAmount(100, this)" class="commit-suggest-chip" style="flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
-              +$100<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;">a week</span>
+              +$100<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;" id="chipDaysLabel-100">a week</span>
             </button>
           </div>
         </div>
@@ -265,6 +265,7 @@
       document.getElementById('accFreedomDate').textContent = fy ? currentYear + Math.round(fy) : '100+ yrs';
       document.getElementById('ci-savings').value = calcData.savings || 0;
       renderMilestones(calcData.fireNum, calcData.savings || 0, calcData.mSav || 0);
+      renderSuggestChipLabels();
     }
 
     await loadCheckinHistory();
@@ -275,6 +276,36 @@
   function fmtM(n) { if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return'$'+Math.round(n/1000)+'K';return'$'+Math.round(n); }
   function fmt(y) { if(y===null)return'100+ yrs';if(y===0)return'Already there!';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo'; }
   function yearsToGoal(goal,cur,ms,rate) { if(ms<=0)return null;if(cur>=goal)return 0;const r=rate/12;let b=cur,m=0;while(b<goal&&m<1200){b=b*(1+r)+ms;m++;}return m<1200?m/12:null; }
+
+  // How many freedom-date years a given weekly amount is worth, sustained from now.
+  function yearsSavedFromWeekly(weeklyAmount) {
+    const commitMonthly = weeklyAmount * 52 / 12;
+    const currentMonthly = calcData.mSav || 0;
+    const newTotalMonthly = currentMonthly + commitMonthly;
+    const fireNum = calcData.fireNum || 0;
+    const savings = calcData.savings || 0;
+    if (!fireNum) return null;
+    const currentYrs = yearsToGoal(fireNum, savings, currentMonthly, 0.07);
+    const newYrs = yearsToGoal(fireNum, savings, newTotalMonthly, 0.07);
+    if (currentYrs == null || newYrs == null) return null;
+    const diff = currentYrs - newYrs;
+    return diff > 0 ? diff : null;
+  }
+
+  function daysOff(years) {
+    if (!years || years <= 0) return null;
+    return Math.round(years * 365.25);
+  }
+
+  function renderSuggestChipLabels() {
+    [25, 50, 100].forEach(amount => {
+      const el = document.getElementById(`chipDaysLabel-${amount}`);
+      if (!el) return;
+      const years = yearsSavedFromWeekly(amount);
+      const days = daysOff(years);
+      el.textContent = days ? `≈${days} days off` : 'a week';
+    });
+  }
 
   // Converts a fractional-years duration into the most readable unit —
   // days for very short spans, weeks for typical ones, months once it's substantial.
@@ -368,9 +399,11 @@
     const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
     const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
     const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
+    const days = daysOff(diff);
     preview.style.display = 'block';
     preview.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">
       <div>💰 <strong style="color:white;">Extra $${amount.toLocaleString()}/${cycleLabel}</strong> on top of what you already save</div>
+      ${days ? `<div>🗓️ That's roughly <strong style="color:var(--fire-amber);">${days} days</strong> you don't have to work — on your terms.</div>` : ''}
       ${diff && diff > 0.1 ? `<div>🔥 Moves your freedom date to <strong style="color:var(--fire-amber);">${newDate}</strong> — <strong style="color:var(--fire-amber);">${fmt(diff)} sooner</strong></div>` : newDate ? `<div>📅 Freedom date stays around <strong style="color:var(--fire-amber);">${newDate}</strong></div>` : ''}
       <div style="opacity:0.6;font-size:12px;">${totalCheckins} check-ins to earn your 🔥 flames this year</div>
     </div>`;
@@ -387,12 +420,14 @@
     const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
     const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
     const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
+    const days = daysOff(diff);
     commitmentData = {
       amount, cycle: commitCycle,
       startDate: new Date().toISOString(),
       streak: 0, hits: [],
       impactText: diff && diff > 0.1 ? `Moves freedom date to ${newDate} — ${fmt(diff)} sooner` : '',
       totalDiffYears: diff || 0,
+      totalDaysOff: days || 0,
     };
     localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
     renderCommitmentView();
@@ -423,26 +458,31 @@
     const { amount, cycle, streak, hits, impactText } = commitmentData;
     const cycleLabel = cycle === 'weekly' ? 'week' : cycle === 'fortnightly' ? 'fortnight' : 'month';
     const totalPossible = cycle === 'weekly' ? 52 : cycle === 'fortnightly' ? 26 : 12;
+    // Clamp display to the real total — a full year of check-ins is the max that makes sense
+    const streakDisplay = Math.min(streak, totalPossible);
+    const hitsDisplay = Math.min(hits.length, totalPossible);
     document.getElementById('commitDisplay').textContent = `Extra $${amount.toLocaleString()} / ${cycleLabel}`;
-    document.getElementById('commitStreakLine').textContent = `${streak} of ${totalPossible} check-ins completed · ${hits.length} 🔥 earned`;
+    document.getElementById('commitStreakLine').textContent = streak >= totalPossible
+      ? `🎉 Full year complete — ${hitsDisplay} of ${totalPossible} 🔥 earned`
+      : `${streakDisplay} of ${totalPossible} check-ins completed · ${hitsDisplay} 🔥 earned`;
     const impactEl = document.getElementById('commitImpactLine');
     if (impactEl) impactEl.textContent = impactText || '';
 
     // Per-flame math: the total sustained impact (computed once at commit time),
     // spread evenly across every possible check-in this cycle — an honest average,
     // not a claim about any single flame's exact contribution.
-    const totalDiffYears = commitmentData.totalDiffYears || 0;
-    const perFlameYears = totalPossible > 0 ? totalDiffYears / totalPossible : 0;
-    const perFlameLabel = fmtFlameImpact(perFlameYears);
+    const totalDaysOff = commitmentData.totalDaysOff || 0;
+    const perFlameDays = totalPossible > 0 ? Math.round(totalDaysOff / totalPossible) : 0;
     const perFlameEl = document.getElementById('commitPerFlameLine');
     if (perFlameEl) {
-      perFlameEl.textContent = perFlameLabel ? `🔥 Each flame you earn is worth roughly ${perFlameLabel} closer to your freedom date` : '';
+      perFlameEl.textContent = perFlameDays > 0 ? `🔥 Each flame you earn is worth roughly ${perFlameDays} day${perFlameDays === 1 ? '' : 's'} you don't have to work` : '';
     }
     const cumulativeEl = document.getElementById('commitCumulativeLine');
     if (cumulativeEl) {
-      if (hits.length > 0 && perFlameLabel) {
-        const cumulativeLabel = fmtFlameImpact(perFlameYears * hits.length);
-        cumulativeEl.textContent = `So far: ${hits.length} 🔥 = roughly ${cumulativeLabel} off your freedom date`;
+      if (hitsDisplay > 0 && perFlameDays > 0) {
+        // Cap cumulative at the total sustained impact — can't exceed what the commitment is actually worth
+        const cumulativeDays = Math.min(perFlameDays * hitsDisplay, totalDaysOff);
+        cumulativeEl.textContent = `So far: ${hitsDisplay} 🔥 = roughly ${cumulativeDays} days you don't have to work — on your terms`;
       } else {
         cumulativeEl.textContent = '';
       }
@@ -461,6 +501,11 @@
 
   function logCheckin(hit) {
     if (!commitmentData) return;
+    const totalPossible = commitmentData.cycle === 'weekly' ? 52 : commitmentData.cycle === 'fortnightly' ? 26 : 12;
+    if ((commitmentData.streak || 0) >= totalPossible) {
+      alert(`You've completed all ${totalPossible} check-ins for this commitment! Hit "Change commitment" to start a fresh one.`);
+      return;
+    }
     commitmentData.streak = (commitmentData.streak || 0) + 1;
     if (hit) commitmentData.hits.push(new Date().toISOString());
     localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
@@ -486,14 +531,12 @@
       renderHistory();
     }
 
-    const totalDiffYears = commitmentData.totalDiffYears || 0;
-    const totalPossible = commitmentData.cycle === 'weekly' ? 52 : commitmentData.cycle === 'fortnightly' ? 26 : 12;
-    const perFlameYears = totalPossible > 0 ? totalDiffYears / totalPossible : 0;
-    const perFlameLabel = hit ? fmtFlameImpact(perFlameYears) : null;
+    const totalDaysOff = commitmentData.totalDaysOff || 0;
+    const perFlameDays = hit && totalPossible > 0 ? Math.round(totalDaysOff / totalPossible) : 0;
 
     const feedbackEl = document.createElement('div');
     feedbackEl.innerHTML = hit
-      ? `<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame!${perFlameLabel ? ` That's roughly <strong>${perFlameLabel}</strong> closer to your freedom date.` : ' Keep going.'}</div>`
+      ? `<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame!${perFlameDays > 0 ? ` That's roughly <strong>${perFlameDays} day${perFlameDays === 1 ? '' : 's'}</strong> you don't have to work — on your terms.` : ' Keep going.'}</div>`
       : '<div style="background:#FFF7F3;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:var(--warm-brown);font-weight:500;margin-bottom:12px;">No worries — next one is yours.</div>';
     const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
     if (checkinCard) checkinCard.insertAdjacentElement('afterend', feedbackEl);
