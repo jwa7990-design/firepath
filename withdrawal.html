@@ -77,6 +77,7 @@
   @keyframes aiFlamePulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.18);opacity:0.75;} }
   .ai-outlook-text { font-size:14px;color:var(--warm-brown);line-height:1.8;font-weight:300;margin-top:16px;padding-top:16px;border-top:1px solid var(--border); }
   .ai-outlook-text strong { font-weight:600;color:var(--fire-orange); }
+  .icon { width:20px; height:20px; flex-shrink:0; vertical-align:-4px; }
 </style>
 </head>
 <body>
@@ -84,7 +85,7 @@
 <div class="hero">
   <div><a href="compound.html" class="back-link">← Back to Compounding</a></div>
   <div class="hero-badge">The 4% Rule — explained</div>
-  <h1 class="hero-title">Withdrawal Mode 🏖️</h1>
+  <h1 class="hero-title">Withdrawal Mode</h1>
   <p class="hero-sub">You've built the wealth. Now here's how to live off it forever — without ever touching the principal.</p>
 </div>
 
@@ -155,12 +156,12 @@
     </div>
 
     <div class="magic-card">
-      <div class="magic-title" id="w-magicTitle">✨ The magic of this</div>
+      <div class="magic-title" id="w-magicTitle"><svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-featured"/></svg> The magic of this</div>
       <div class="magic-text" id="w-magicText">—</div>
     </div>
 
     <div class="portfolio-card">
-      <div class="portfolio-label">📈 Your portfolio over time</div>
+      <div class="portfolio-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your portfolio over time</div>
       <div class="data-row">
         <span class="data-label">Portfolio today</span>
         <span style="font-weight:600;font-size:15px;" id="w-portfolioNow">—</span>
@@ -189,7 +190,7 @@
 
     <!-- ── Longevity + AI Outlook ── -->
     <div class="longevity-card">
-      <div class="longevity-label">🔮 Your longevity outlook</div>
+      <div class="longevity-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your longevity outlook</div>
       <div class="longevity-sub">This models a fixed real withdrawal — the amount you'd take out today, adjusted upward for inflation every year to keep the same buying power. This is the actual mechanism the 4% rule describes, and it's a different (usually harder) test than the percentage-of-portfolio numbers above.</div>
       <div class="longevity-compare">
         <div class="longevity-item" id="w-longevityBase">
@@ -201,16 +202,16 @@
           <div class="longevity-item-label" id="w-longevityGoodLabel">With 2% stronger returns</div>
         </div>
       </div>
-      <button class="ai-outlook-btn" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook 🔮</button>
+      <button class="ai-outlook-btn" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook</button>
       <div class="ai-outlook-loading" id="aiOutlookLoading">
-        <div class="ai-outlook-flame">🔥</div>
+        <div class="ai-outlook-flame" style="color:var(--fire-orange);"><svg class="icon" style="width:28px;height:28px;"><use href="/icons.svg#icon-momentum"/></svg></div>
         <div style="font-size:13px;color:var(--soft-grey);margin-top:10px;">Reading your numbers...</div>
       </div>
       <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
     </div>
 
     <div class="glass-card">
-      <div class="card-label">📊 Compare withdrawal rates</div>
+      <div class="card-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Compare withdrawal rates</div>
       <p style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;line-height:1.6;">Same portfolio. Different withdrawal rates. See the trade-off between income and growth.</p>
       <div id="w-rateComparison"></div>
     </div>
@@ -320,13 +321,13 @@
     const magicTitle = document.getElementById('w-magicTitle');
     const magicText  = document.getElementById('w-magicText');
     if (withdrawRate < returnRate) {
-      magicTitle.textContent = '✨ The magic moment';
+      magicTitle.innerHTML = '<svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-featured"/></svg> The magic moment';
       magicText.innerHTML = `Your portfolio earns <strong>${fmtM(annualReturn)}</strong> this year. You withdraw <strong>${fmtM(annualIncome)}</strong> to live on. The remaining <strong>${fmtM(netGrowth)}</strong> stays invested and keeps growing. You haven't touched the principal — and your wealth is still increasing.`;
     } else if (withdrawRate === returnRate) {
-      magicTitle.textContent = '⚖️ Breaking even';
+      magicTitle.innerHTML = '<svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-balance"/></svg> Breaking even';
       magicText.innerHTML = `Your portfolio earns exactly what you withdraw — <strong>${fmtM(annualIncome)}</strong> per year. Your principal stays the same forever. You could theoretically do this indefinitely, but there's no buffer if returns dip.`;
     } else {
-      magicTitle.textContent = '⚠️ Drawing down principal';
+      magicTitle.innerHTML = '<svg class="icon" style="width:16px;height:16px;color:#E65100;"><use href="/icons.svg#icon-alert"/></svg> Drawing down principal';
       magicText.innerHTML = `You're withdrawing more than your portfolio earns. You'll be slowly spending the principal — your portfolio will shrink over time. At this rate, consider whether a lower withdrawal rate or a larger portfolio would give you more security.`;
     }
 
@@ -367,7 +368,7 @@
     // Reset AI outlook when inputs change — the cached narrative no longer matches
     document.getElementById('aiOutlookText').style.display = 'none';
     document.getElementById('aiOutlookBtn').style.display = 'block';
-    document.getElementById('aiOutlookBtn').textContent = 'Get my AI outlook 🔮';
+    document.getElementById('aiOutlookBtn').textContent = 'Get my AI outlook';
   }
 
   async function getAiOutlook() {
@@ -409,7 +410,7 @@ Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what 
     } finally {
       loading.classList.remove('visible');
       btn.style.display = 'block';
-      btn.textContent = 'Refresh my AI outlook 🔮';
+      btn.textContent = 'Refresh my AI outlook';
     }
   }
 
