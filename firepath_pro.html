@@ -1196,7 +1196,10 @@ function stopLoadingMessages() {
     });
     if (res.status === 401 || res.status === 403) {
       // Session expired or invalid — this is why it silently looked like "no profile" before.
-      // Send back to sign-in for a fresh token instead of falling through to onboarding.
+      // Clear the stale token first, or auth.html will see what looks like a valid session
+      // and immediately bounce straight back here, creating a redirect loop.
+      localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_user_id'); localStorage.removeItem('fp_email'); localStorage.removeItem('fp_persona');
+      sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
       window.location.href = 'auth.html';
       return;
     }
