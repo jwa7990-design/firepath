@@ -231,6 +231,27 @@
       try { calcData = JSON.parse(stored); } catch(e) { calcData = {}; }
     }
 
+    // localStorage is device-local — if this browser has never run analyse() here,
+    // fall back to the synced profile in Supabase so progress still works cross-device.
+    if (!calcData.fireNum) {
+      try {
+        const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0 && data[0].freedom_number) {
+          const p = data[0];
+          calcData = {
+            fireNum: p.freedom_number,
+            savings: p.current_savings || 0,
+            mSav: p.savings_monthly || 0,
+            sRate: p.savings_rate || 0,
+            superBal: p.super_balance || 0,
+            age: p.age || null,
+          };
+          localStorage.setItem('fp_last_calc', JSON.stringify(calcData));
+        }
+      } catch(e) { console.log('Profile fallback failed', e); }
+    }
+
     if (!calcData.fireNum) {
       document.getElementById('noCalcWarning').style.display = 'block';
     } else {
