@@ -19,9 +19,30 @@
     .nav-cta { background:var(--warm-brown);color:white;padding:9px 20px;border-radius:10px;font-size:13px;font-weight:500;text-decoration:none; }
     .nav-links { display:flex;align-items:center;gap:24px; }
     .container { padding-top:80px; }
-    .assumptions-hero { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:32px 24px;color:white;margin-bottom:20px; }
-    .assumptions-hero h1 { font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:10px;line-height:1.3; }
-    .assumptions-hero p { font-size:14px;color:rgba(255,255,255,0.7);font-weight:300;line-height:1.7; }
+
+    /* ── Signature: the personalized equation chain ── */
+    .ynh { background:linear-gradient(160deg,#3D2B1F 0%,#4A3324 55%,#5C3D2E 100%); border-radius:22px; padding:34px 26px 30px; margin-bottom:22px; color:white; position:relative; overflow:hidden; }
+    .ynh::before { content:''; position:absolute; top:-60%; right:-20%; width:70%; height:220%; background:radial-gradient(circle, rgba(244,98,42,0.16) 0%, transparent 65%); pointer-events:none; }
+    .ynh-eyebrow { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.14em; color:var(--fire-amber); margin-bottom:6px; position:relative; }
+    .ynh-title { font-family:'Playfair Display',serif; font-size:21px; font-weight:700; line-height:1.35; margin-bottom:24px; position:relative; max-width:420px; }
+    .ynh-title strong { color:var(--fire-amber); }
+    .ynh-chain { display:flex; flex-direction:column; gap:0; position:relative; }
+    .ynh-step { display:flex; align-items:center; gap:14px; padding:14px 0; opacity:0; transform:translateX(-10px); transition:opacity 0.5s ease, transform 0.5s ease; }
+    .ynh-step.in { opacity:1; transform:translateX(0); }
+    .ynh-step-num { width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; font-size:12px; color:rgba(255,255,255,0.5); flex-shrink:0; }
+    .ynh-step-body { flex:1; display:flex; align-items:baseline; justify-content:space-between; gap:12px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:14px; }
+    .ynh-step:last-child .ynh-step-body { border-bottom:none; }
+    .ynh-step-label { font-size:13px; color:rgba(255,255,255,0.6); font-weight:300; }
+    .ynh-step-value { font-family:'Playfair Display',serif; font-size:19px; font-weight:700; color:white; white-space:nowrap; }
+    .ynh-step.result .ynh-step-value { color:var(--fire-amber); font-size:26px; }
+    .ynh-step.result .ynh-step-num { background:var(--fire-orange); border-color:var(--fire-orange); color:white; }
+    .ynh-arrow { padding-left:15px; font-size:13px; color:rgba(255,255,255,0.25); }
+    .ynh-note { margin-top:18px; font-size:12px; color:rgba(255,255,255,0.45); font-weight:300; line-height:1.6; position:relative; }
+    .ynh-note a { color:var(--fire-amber); text-decoration:none; }
+
+    .reveal { opacity:0; transform:translateY(16px); transition:opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.in { opacity:1; transform:translateY(0); }
+
     .section-card { background:white;border:1.5px solid var(--border);border-radius:16px;padding:22px;margin-bottom:14px; }
     .section-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:16px; }
     .live-grid { display:flex;flex-direction:column;gap:10px; }
@@ -32,13 +53,22 @@
     .live-source a { color:var(--fire-orange);text-decoration:none; }
     .live-value { font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--fire-orange); }
     .live-badge { display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;background:#E8F5E9;color:#2E7D32;border-radius:20px;padding:3px 8px;margin-top:4px; }
-    .live-badge::before { content:'●';font-size:8px; }
+    .live-badge::before { content:'●';font-size:8px;animation:pulseDot 2s infinite; }
+    @keyframes pulseDot { 0%,100%{opacity:1;} 50%{opacity:0.35;} }
     .fixed-list { display:flex;flex-direction:column;gap:0; }
     .fixed-row { display:flex;justify-content:space-between;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border); }
     .fixed-row:last-child { border-bottom:none;padding-bottom:0; }
     .fixed-label { font-size:13px;color:var(--soft-grey);font-weight:300;max-width:65%; }
     .fixed-label strong { color:var(--warm-brown);font-weight:500; }
     .fixed-val { font-size:13px;font-weight:700;color:var(--warm-brown);text-align:right; }
+
+    /* ── Roadmap as a real progress story, not a flat list ── */
+    .roadmap-progress { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+    .roadmap-ring { position:relative; width:56px; height:56px; flex-shrink:0; }
+    .roadmap-ring svg { transform:rotate(-90deg); }
+    .roadmap-ring-pct { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:13px; font-weight:700; color:var(--warm-brown); }
+    .roadmap-progress-text { font-size:13px; color:var(--soft-grey); font-weight:300; line-height:1.6; }
+    .roadmap-progress-text strong { color:var(--warm-brown); font-weight:500; }
     .roadmap-list { display:flex;flex-direction:column;gap:8px; }
     .roadmap-row { display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--warm-cream);border-radius:12px;border:1px solid var(--border); }
     .roadmap-label { font-size:13px;color:var(--warm-brown);font-weight:400;flex:1; }
@@ -52,6 +82,11 @@
     @keyframes dot{0%,80%,100%{opacity:0.2}40%{opacity:1}}
     .back-link { display:inline-flex;align-items:center;gap:6px;color:var(--warm-brown);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:16px;opacity:0.7; }
     .back-link:hover { opacity:1; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal, .ynh-step { transition:none !important; opacity:1 !important; transform:none !important; }
+      .live-badge::before { animation:none; }
+    }
   </style>
 </head>
 <body>
@@ -69,16 +104,23 @@
 
   <a href="javascript:history.back()" class="back-link">← Back</a>
 
+  <!-- Signature: personalized (or illustrative) equation chain -->
+  <div class="ynh" id="ynh">
+    <div class="ynh-eyebrow" id="ynhEyebrow">HOW A FREEDOM NUMBER GETS BUILT</div>
+    <div class="ynh-title" id="ynhTitle">An example — <strong>sign in to see this built from your own numbers</strong>.</div>
+    <div class="ynh-chain" id="ynhChain"></div>
+    <div class="ynh-note" id="ynhNote"></div>
+  </div>
 
   <!-- Hero -->
-  <div class="assumptions-hero">
+  <div class="assumptions-hero reveal" style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:32px 24px;color:white;margin-bottom:20px;">
     <div style="font-size:28px;margin-bottom:12px;">📊</div>
-    <h1>How FirePath calculates your number</h1>
-    <p>FirePath uses real Australian data to build your projections. This page shows you exactly what we use, where it comes from, and what we're still working on. No hidden assumptions.</p>
+    <h1 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;margin-bottom:10px;line-height:1.3;">How FirePath calculates your number</h1>
+    <p style="font-size:14px;color:rgba(255,255,255,0.7);font-weight:300;line-height:1.7;">FirePath uses real Australian data to build your projections. This page shows you exactly what we use, where it comes from, and what we're still working on. No hidden assumptions.</p>
   </div>
 
   <!-- Live data -->
-  <div class="section-card">
+  <div class="section-card reveal">
     <div class="section-title">📡 Live data — updated daily from official sources</div>
     <div class="live-grid" id="liveGrid">
       <div style="text-align:center;padding:20px;color:var(--soft-grey);font-size:13px;">
@@ -89,7 +131,7 @@
   </div>
 
   <!-- Fixed assumptions -->
-  <div class="section-card">
+  <div class="section-card reveal">
     <div class="section-title">📌 Fixed assumptions</div>
     <div class="fixed-list">
       <div class="fixed-row">
@@ -120,7 +162,7 @@
   </div>
 
   <!-- Tax engine -->
-  <div class="section-card">
+  <div class="section-card reveal">
     <div class="section-title">🧮 Tax engine — 2025-26 / 2026-27</div>
     <div style="font-size:13px;color:var(--soft-grey);line-height:1.8;font-weight:300;margin-bottom:14px;">FirePath's tax engine auto-switches between financial years on 1 July. All figures sourced directly from the ATO.</div>
     <div class="fixed-list">
@@ -172,10 +214,21 @@
   </div>
 
   <!-- What we model -->
-  <div class="section-card">
+  <div class="section-card reveal">
     <div class="section-title">🔧 What FirePath models — and what's coming</div>
     <div class="honest-note">
       <strong>FirePath is honest about its limits.</strong> We'd rather tell you what we're working on than pretend it's already done.
+    </div>
+    <div class="roadmap-progress">
+      <div class="roadmap-ring">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="24" fill="none" stroke="var(--border)" stroke-width="5"/>
+          <circle cx="28" cy="28" r="24" fill="none" stroke="var(--fire-orange)" stroke-width="5" stroke-linecap="round"
+            stroke-dasharray="150.8" stroke-dashoffset="25.6" id="roadmapRingFill"/>
+        </svg>
+        <div class="roadmap-ring-pct" id="roadmapPct">83%</div>
+      </div>
+      <div class="roadmap-progress-text"><strong>10 of 12</strong> planned modelling features are live. The rest are being built in the open — see below.</div>
     </div>
     <div class="roadmap-list">
       <div class="roadmap-row"><span class="roadmap-label">Tax inside super (15% contributions tax)</span><span class="roadmap-tag done">✅ Done</span></div>
@@ -186,15 +239,15 @@
       <div class="roadmap-row"><span class="roadmap-label">Partial FIRE / withdrawal rate modelling</span><span class="roadmap-tag done">✅ Done</span></div>
       <div class="roadmap-row"><span class="roadmap-label">Range-based projections (conservative / base / optimistic)</span><span class="roadmap-tag done">✅ Done</span></div>
       <div class="roadmap-row"><span class="roadmap-label">Real vs nominal inflation toggle (2.5% RBA target)</span><span class="roadmap-tag done">✅ Done</span></div>
-      <div class="roadmap-row"><span class="roadmap-label">Age Pension means test and income interactions</span><span class="roadmap-tag">🔧 Coming soon</span></div>
+      <div class="roadmap-row"><span class="roadmap-label">Age Pension means test and income interactions</span><span class="roadmap-tag done">✅ Done</span></div>
+      <div class="roadmap-row"><span class="roadmap-label">Longevity modelling — portfolio runway to age 90+</span><span class="roadmap-tag done">✅ Done</span></div>
       <div class="roadmap-row"><span class="roadmap-label">Super fees and insurance premiums</span><span class="roadmap-tag">🔧 Coming soon</span></div>
       <div class="roadmap-row"><span class="roadmap-label">Sequence of returns risk</span><span class="roadmap-tag">🔧 Coming soon</span></div>
-      <div class="roadmap-row"><span class="roadmap-label">Longevity modelling — portfolio runway to age 90+</span><span class="roadmap-tag">🔧 Coming soon</span></div>
     </div>
   </div>
 
   <!-- Why 7% -->
-  <div class="section-card">
+  <div class="section-card reveal">
     <div class="section-title">📚 Why we use 7% as the investment return</div>
     <div style="font-size:13px;color:var(--soft-grey);line-height:1.8;font-weight:300;">
       <p style="margin-bottom:14px;">The 7% real return (after inflation) is the most widely used assumption in financial independence planning — grounded in over a century of market data.</p>
@@ -209,7 +262,7 @@
   </div>
 
   <!-- Official data sources -->
-  <div class="section-card">
+  <div class="section-card reveal">
     <div class="section-title">🏛️ Official data sources</div>
     <div class="fixed-list">
       <div class="fixed-row">
@@ -243,6 +296,61 @@
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
 <script>
+function fmtM(n) { if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + Math.round(n); }
+
+// ── Signature hero: build the chain from the real profile if signed in, else an illustrative example ──
+async function renderYourNumberHero() {
+  let profile = null;
+  try {
+    const token = typeof getToken === 'function' ? getToken() : null;
+    const userId = typeof getUserId === 'function' ? getUserId() : null;
+    if (token && userId) {
+      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0 && data[0].freedom_number) profile = data[0];
+    }
+  } catch(e) { console.log('Profile fetch failed', e); }
+
+  const isReal = !!profile;
+  const savingsRate = isReal ? (profile.savings_rate || 20) : 20;
+  const annualSpend = isReal && profile.take_home_income
+    ? Math.round(profile.take_home_income * 12 * (1 - savingsRate / 100))
+    : 56000;
+  const fireNum = isReal ? profile.freedom_number : Math.round(annualSpend * 25);
+
+  document.getElementById('ynhEyebrow').textContent = isReal ? 'HOW YOUR NUMBER WAS BUILT' : 'HOW A FREEDOM NUMBER GETS BUILT';
+  document.getElementById('ynhTitle').innerHTML = isReal
+    ? `Four numbers. That's all it takes to reach <strong>${fmtM(fireNum)}</strong>.`
+    : `An example — <strong>sign in to see this built from your own numbers</strong>.`;
+
+  const steps = [
+    { label: 'Your savings rate', value: `${savingsRate}%` },
+    { label: 'Your annual spending', value: fmtM(annualSpend) },
+    { label: '× 25 (the 4% rule)', value: `25×` },
+    { label: isReal ? 'Your freedom number' : 'A freedom number', value: fmtM(fireNum), result: true },
+  ];
+
+  const chainEl = document.getElementById('ynhChain');
+  chainEl.innerHTML = steps.map((s, i) => `
+    <div class="ynh-step${s.result ? ' result' : ''}" data-idx="${i}">
+      <div class="ynh-step-num">${s.result ? '🔥' : i + 1}</div>
+      <div class="ynh-step-body">
+        <span class="ynh-step-label">${s.label}</span>
+        <span class="ynh-step-value">${s.value}</span>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('ynhNote').innerHTML = isReal
+    ? `Every assumption behind this number is on this page — nothing hidden. <a href="firepath_pro.html">See your full result →</a>`
+    : `Sign in to see this exact chain built from your own income, spending, and freedom number.`;
+
+  // Staggered reveal
+  document.querySelectorAll('.ynh-step').forEach((el, i) => {
+    setTimeout(() => el.classList.add('in'), 120 + i * 140);
+  });
+}
+
 async function renderLiveData() {
   await loadAssumptions();
   const a = FP_ASSUMPTIONS;
@@ -265,7 +373,22 @@ async function renderLiveData() {
     </div>
   `).join('');
 }
+
+// ── Scroll reveal for section cards ──
+function initScrollReveal() {
+  const items = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) { items.forEach(el => el.classList.add('in')); return; }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { entry.target.classList.add('in'); observer.unobserve(entry.target); }
+    });
+  }, { threshold: 0.12 });
+  items.forEach(el => observer.observe(el));
+}
+
+renderYourNumberHero();
 renderLiveData();
+initScrollReveal();
 </script>
 </body>
 </html>
