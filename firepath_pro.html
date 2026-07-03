@@ -353,6 +353,12 @@
        ═══════════════════════════════════════════════ -->
   <div id="pro-onboarding">
 
+    <!-- Profile load failure — shown if the saved profile fetch fails, instead of silently defaulting to onboarding -->
+    <div id="profileLoadError" style="display:none;background:#FFF3E0;border-bottom:1.5px solid #FFB74D;padding:14px 20px;text-align:center;">
+      <div style="font-size:13px;color:#E65100;font-weight:500;margin-bottom:8px;">Couldn't load your saved profile — showing setup instead.</div>
+      <button onclick="window.location.reload()" style="background:var(--fire-orange);color:white;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Try again</button>
+    </div>
+
     <!-- Progress dots -->
     <div id="ob-dots">
       <div class="ob-dot active"></div>
@@ -1187,6 +1193,17 @@ function stopLoadingMessages() {
     const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, {
       headers: { 'Authorization': `Bearer ${fpToken}` }
     });
+    if (res.status === 401 || res.status === 403) {
+      // Session expired or invalid — this is why it silently looked like "no profile" before.
+      // Send back to sign-in for a fresh token instead of falling through to onboarding.
+      window.location.href = 'auth.html';
+      return;
+    }
+    if (!res.ok) {
+      const errBanner = document.getElementById('profileLoadError');
+      if (errBanner) errBanner.style.display = 'block';
+      return;
+    }
     const data = await res.json();
     if (!Array.isArray(data) || data.length === 0) return;
     const p = data[0];
@@ -1215,7 +1232,11 @@ function stopLoadingMessages() {
     if (p.persona) { persona = p.persona; document.querySelectorAll('.ob-persona').forEach(c => { if (c.dataset.persona === p.persona) c.classList.add('selected'); }); const pb = document.getElementById('ob-persona-btn'); if (pb) pb.disabled = false; }
     updateSavingsHint();
     updateSuperNote();
-  } catch(e) { console.log('Profile load failed', e); }
+  } catch(e) {
+    console.log('Profile load failed', e);
+    const errBanner = document.getElementById('profileLoadError');
+    if (errBanner) errBanner.style.display = 'block';
+  }
 }
 
 async function saveProfile() {
