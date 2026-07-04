@@ -62,6 +62,12 @@
     .nav-tab svg{ width:15px; height:15px; }
     .nav-tab[aria-selected="true"]{ color:white; background:var(--fire-orange); border-color:var(--fire-orange); }
 
+    .plan-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .plan-grid .dash-card{ flex-direction:column; align-items:flex-start; text-align:left; padding:16px; }
+    .plan-grid .dash-card-icon{ margin-bottom:8px; }
+    .plan-grid .dash-card-arrow{ display:none; }
+    @media (max-width:420px){ .plan-grid{ grid-template-columns:1fr; } }
+
     .panel{ display:none; padding-top:22px; }
     .panel.active{ display:block; }
     .section-block{ margin-bottom:30px; }
@@ -143,8 +149,8 @@
       <a href="#" class="desktop-tab active-tab" data-panel="overview" onclick="switchPanel('overview');return false;">Overview</a>
       <a href="#" class="desktop-tab" data-panel="plan" onclick="switchPanel('plan');return false;">Plan</a>
       <a href="#" class="desktop-tab" data-panel="tools" onclick="switchPanel('tools');return false;">Tools</a>
-      <a href="#" class="desktop-tab" data-panel="learn" onclick="switchPanel('learn');return false;">Learn</a>
-      <a href="#" class="desktop-tab" data-panel="profile" onclick="switchPanel('profile');return false;">Profile</a>
+      <a href="learning_lab.html" class="desktop-tab">Learn</a>
+      <a href="firepath_pro.html" class="desktop-tab">Profile</a>
       <a href="account.html" class="desktop-tab">Settings</a>
     </div>
     <div id="userStatus" class="nav-desktop-extra" style="font-size:12px;color:var(--soft-grey);"></div>
@@ -164,8 +170,8 @@
   <a href="#" data-panel="overview" class="section-menu-link" onclick="switchPanel('overview');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Overview</a>
   <a href="#" data-panel="plan" class="section-menu-link" onclick="switchPanel('plan');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Plan</a>
   <a href="#" data-panel="tools" class="section-menu-link" onclick="switchPanel('tools');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Tools</a>
-  <a href="#" data-panel="learn" class="section-menu-link" onclick="switchPanel('learn');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Learn</a>
-  <a href="#" data-panel="profile" class="section-menu-link" onclick="switchPanel('profile');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Profile</a>
+  <a href="learning_lab.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Learn</a>
+  <a href="firepath_pro.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Profile</a>
   <a href="account.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Settings</a>
   <div style="flex:1"></div>
   <a onclick="signOut();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;cursor:pointer;">Sign Out</a>
@@ -267,7 +273,7 @@
       </section>
 
       <section class="panel" id="panel-plan">
-        <div class="card-grid">
+        <div class="plan-grid">
           <a href="firepath_pro.html" class="dash-card">
             <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-insight"/></svg></div>
             <div class="dash-card-body">
@@ -338,23 +344,6 @@
             <div class="dash-card-arrow">→</div>
           </a>
         </div>
-      </section>
-
-      <section class="panel" id="panel-learn">
-        <div class="card-grid">
-          <a href="learning_lab.html" class="dash-card">
-            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-learn"/></svg></div>
-            <div class="dash-card-body">
-              <div class="dash-card-title">Learning Lab</div>
-              <div class="dash-card-desc">Everything from FIRE basics to superannuation and tax, explained with your actual numbers.</div>
-            </div>
-            <div class="dash-card-arrow">→</div>
-          </a>
-        </div>
-      </section>
-
-      <section class="panel" id="panel-profile">
-        <div class="card-grid" id="profileGrid"></div>
       </section>
 
     </main>
@@ -557,25 +546,6 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (withdrawalLink) withdrawalLink.href = `withdrawal.html?portfolio=${Math.round(savings)}`;
     }
 
-    // Financial Profile tab — real fp_profiles fields.
-    const liabilities = (p.debt_total || 0) + (p.mortgage_remaining || 0);
-    const profileCards = [];
-    if (p.age) profileCards.push({ title:'Age', value:p.age, icon:'icon-profile' });
-    profileCards.push({ title:'Current savings', value:fmtM(savings) + (p.savings_type ? ` (${p.savings_type})` : ''), icon:'icon-money' });
-    if (p.super_balance !== undefined && p.super_balance !== null) profileCards.push({ title:'Super', value:fmtM(p.super_balance), icon:'icon-money' });
-    if (p.savings_rate) profileCards.push({ title:'Savings rate', value:p.savings_rate+'%', icon:'icon-insight' });
-    if (p.savings_monthly) profileCards.push({ title:'Saving per month', value:fmtM(p.savings_monthly), icon:'icon-insight' });
-    profileCards.push({ title:'Liabilities', value: liabilities > 0 ? fmtM(liabilities) : '$0', icon:'icon-target' });
-    if (p.housing_status) profileCards.push({ title:'Housing', value: p.housing_status.charAt(0).toUpperCase()+p.housing_status.slice(1), icon:'icon-profile' });
-    if (p.dependants !== undefined && p.dependants !== null) profileCards.push({ title:'Dependants', value:p.dependants, icon:'icon-profile' });
-    profileCards.push({ title:'Freedom number', value:fmtM(freedomNumber), icon:'icon-target' });
-    if (p.freedom_years !== undefined && p.freedom_years !== null) profileCards.push({ title:'Years to freedom', value:Math.round(p.freedom_years)+' yrs', icon:'icon-date' });
-    document.getElementById('profileGrid').innerHTML = profileCards.map(c => `
-      <div class="dash-card static">
-        <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#${c.icon}"/></svg></div>
-        <div class="dash-card-body"><div class="dash-card-title">${c.title}</div><div class="dash-card-desc">${c.value}</div></div>
-      </div>`).join('') + `<div class="coming-soon-card">Income breakdown (gross/take-home/pay cycle) and partner numbers are captured but not shown here yet — say the word and I'll add them.</div>`;
-
     document.getElementById('journeyContent').style.display = 'block';
 
   } catch(e) {
@@ -593,9 +563,7 @@ function toggleSectionMenu() {
 const PANEL_LABELS = {
   overview: 'Overview',
   plan: 'Plan — Results, Super, My Date, Withdrawal, Freedom Gap, What\'s Next',
-  tools: 'Tools — Tax Tools, Calculators',
-  learn: 'Learn — Learning Lab',
-  profile: 'Profile — your saved numbers'
+  tools: 'Tools — Tax Tools, Calculators'
 };
 
 function switchPanel(panelName) {
