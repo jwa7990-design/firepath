@@ -212,7 +212,7 @@
         <div class="section-block">
           <div class="section-label">Achievements</div>
           <div class="achv-strip" id="achvStrip"></div>
-          <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;">Based on current savings vs. your freedom number — a rough guide, not the full Coast/Lean FIRE calc yet.</div>
+          <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;" id="achvNote"></div>
         </div>
         <div class="section-block">
           <div class="section-label">Journey Timeline</div>
@@ -409,18 +409,44 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('commitProgressCard').style.display = 'block';
   }
 
-  function renderAchievementsAndTimeline(savings, freedomNumber){
+  // Persona-aware copy. Confirmed real value: 'beginner'. Other persona strings
+  // (learning / pre-fire / enthusiast, or whatever they actually are) fall through
+  // to 'default' until confirmed — safer than guessing wrong and silently mismatching.
+  const PERSONA_COPY = {
+    beginner: {
+      badgeCoast: 'Halfway cushion',
+      badgeLean:  'Covers the basics',
+      badgeFI:    'Work becomes optional',
+      tlCoast: 'Saved enough that growth alone could carry you one day (rough estimate)',
+      tlLean:  'Close to covering your basic living costs without working (rough estimate)',
+      tlFI:    'Reached full financial independence',
+      note: 'A rough guide based on your savings vs. your freedom number — not an exact calculation yet.'
+    },
+    default: {
+      badgeCoast: 'Coast FIRE',
+      badgeLean:  'Lean FIRE',
+      badgeFI:    'Financial Independence',
+      tlCoast: 'Reached Coast FIRE (rough estimate)',
+      tlLean:  'Hit Lean FIRE (rough estimate)',
+      tlFI:    'Reached FIRE',
+      note: 'Based on current savings vs. your freedom number — a rough guide, not the full Coast/Lean FIRE calc yet.'
+    }
+  };
+
+  function renderAchievementsAndTimeline(savings, freedomNumber, persona){
+    const copy = PERSONA_COPY[persona] || PERSONA_COPY.default;
     const ratio = freedomNumber > 0 ? savings / freedomNumber : 0;
     // v1 heuristics only — real Coast/Lean/Fat FIRE thresholds need proper
     // definitions (deferred step). Flags true/false per badge.
     const badges = [
       { label: 'First $10k',    unlocked: savings >= 10000 },
       { label: 'First $100k',   unlocked: savings >= 100000 },
-      { label: 'Coast FIRE',    unlocked: ratio >= 0.4 },
-      { label: 'Lean FIRE',     unlocked: ratio >= 0.7 },
+      { label: copy.badgeCoast, unlocked: ratio >= 0.4 },
+      { label: copy.badgeLean,  unlocked: ratio >= 0.7 },
       { label: 'Millionaire',   unlocked: savings >= 1000000 },
-      { label: 'Financial Independence', unlocked: ratio >= 1.0 }
+      { label: copy.badgeFI,    unlocked: ratio >= 1.0 }
     ];
+    document.getElementById('achvNote').textContent = copy.note;
     document.getElementById('achvStrip').innerHTML = badges.map(b => `
       <div class="achv-badge ${b.unlocked?'unlocked':''}">
         <div class="achv-icon-wrap"><svg><use href="#${b.unlocked?'icon-flame-badge':'icon-lock'}"/></svg></div>
@@ -428,17 +454,17 @@ document.addEventListener('DOMContentLoaded', async function() {
       </div>`).join('');
 
     const timeline = [
-      { label: 'Started FirePath', done: true, note:'' },
-      { label: 'Saved first $100k', done: savings >= 100000, note:'' },
-      { label: 'Reached Coast FIRE', done: ratio >= 0.4, note:'rough estimate' },
-      { label: 'Hit Lean FIRE', done: ratio >= 0.7, note:'rough estimate' },
-      { label: 'Reached FIRE', done: ratio >= 1.0, note:'' },
-      { label: 'Reached Fat FIRE', done: ratio >= 1.5, note:'' }
+      { label: 'Started FirePath', done: true },
+      { label: 'Saved first $100k', done: savings >= 100000 },
+      { label: copy.tlCoast, done: ratio >= 0.4 },
+      { label: copy.tlLean, done: ratio >= 0.7 },
+      { label: copy.tlFI, done: ratio >= 1.0 },
+      { label: 'Reached Fat FIRE', done: ratio >= 1.5 }
     ];
     document.getElementById('timeline').innerHTML = timeline.map(t => `
       <div class="tl-item ${t.done?'done':''}">
         <div class="tl-dot"></div>
-        <div class="tl-label">${t.label}${t.note ? ` <span class="tl-note">(${t.note})</span>` : ''}</div>
+        <div class="tl-label">${t.label}</div>
       </div>`).join('');
   }
 
@@ -466,8 +492,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('greetTitle').textContent = `${greetWord}${displayName ? ', ' + displayName : ''}.`;
 
     if (!p || !p.freedom_number) {
-      document.getElementById('heroSub').textContent = 'Run your numbers to start your journey.';
-      document.getElementById('noProfileHero').style.display = 'block';
+      // First-time flow: don't wait for a click — send them straight to
+      // firepath_pro.html to run their numbers so Journey has something
+      // to populate. No numbers yet = nothing here to show.
+      window.location.href = 'firepath_pro.html';
       return;
     }
 
@@ -486,7 +514,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('deltasWrap').innerHTML = `
       <div class="deltas-empty">We'll start showing your month-over-month progress here once you've used FirePath for a full month.</div>`;
 
-    renderAchievementsAndTimeline(savings, freedomNumber);
+    renderAchievementsAndTimeline(savings, freedomNumber, p.persona);
     renderCommitmentCard();
 
     if (savings) {
