@@ -126,12 +126,33 @@
   </div>
 </nav>
 
+<!-- Section menu — same hamburger/slide pattern as progress.html, so it's a
+     familiar, proven interaction instead of a horizontal tab row fighting for space. -->
+<div id="sectionBurgerBtn" onclick="toggleSectionMenu()" style="position:fixed;top:16px;right:16px;z-index:100;width:40px;height:40px;background:var(--warm-brown);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;box-shadow:0 2px 12px rgba(61,43,31,0.2);">
+  <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
+  <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
+  <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
+</div>
+<div id="sectionMenuOverlay" onclick="toggleSectionMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:98;"></div>
+<div id="sectionSlideMenu" style="display:none;position:fixed;top:0;right:0;height:100%;width:280px;background:var(--warm-brown);z-index:99;padding:48px 24px 40px;flex-direction:column;gap:8px;box-shadow:-4px 0 40px rgba(0,0,0,0.2);">
+  <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:white;margin-bottom:28px;">🔥 My Journey</div>
+  <a href="#" data-panel="overview" class="section-menu-link" onclick="switchPanel('overview');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Overview</a>
+  <a href="#" data-panel="plan" class="section-menu-link" onclick="switchPanel('plan');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Plan</a>
+  <a href="#" data-panel="tools" class="section-menu-link" onclick="switchPanel('tools');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Tools</a>
+  <a href="#" data-panel="learn" class="section-menu-link" onclick="switchPanel('learn');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Learn</a>
+  <a href="#" data-panel="profile" class="section-menu-link" onclick="switchPanel('profile');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Profile</a>
+  <a href="#" data-panel="settings" class="section-menu-link" onclick="switchPanel('settings');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Settings</a>
+  <div style="flex:1"></div>
+  <a onclick="signOut();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;cursor:pointer;">Sign Out</a>
+</div>
+
 <div class="container" style="max-width:600px;padding-top:80px;padding-left:16px;padding-right:16px;padding-bottom:24px;">
 
   <div class="dash-hero">
     <div class="dash-eyebrow"><span style="font-size:14px;vertical-align:-2px;">🔥</span> My Journey</div>
     <h1 class="dash-title" id="greetTitle">Good morning.</h1>
     <p class="dash-sub" id="heroSub">Loading your numbers…</p>
+    <div id="currentPanelLabel" style="margin-top:10px;font-size:12px;font-weight:600;color:var(--fire-orange);text-transform:uppercase;letter-spacing:0.06em;">Viewing: Overview — tap ☰ to jump to Plan, Tools, Learn, Profile, or Settings</div>
   </div>
 
   <div id="profileLoadError" style="display:none;background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:14px;padding:16px 18px;margin-bottom:20px;text-align:center;">
@@ -198,15 +219,6 @@
       </div>
       <div style="font-size:12px;color:rgba(255,255,255,0.6);">Log today's check-in →</div>
     </a>
-
-    <nav class="journey-nav" role="tablist" aria-label="Journey sections">
-      <button class="nav-tab" role="tab" aria-selected="true" data-panel="overview"><svg><use href="/icons.svg#icon-insight"/></svg>Overview</button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-panel="plan"><svg><use href="/icons.svg#icon-target"/></svg>Plan</button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-panel="tools"><svg><use href="/icons.svg#icon-money"/></svg>Tools</button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-panel="learn"><svg><use href="/icons.svg#icon-learn"/></svg>Learn</button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-panel="profile"><svg><use href="/icons.svg#icon-profile"/></svg>Profile</button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-panel="settings"><svg><use href="#icon-gear"/></svg>Settings</button>
-    </nav>
 
     <main>
       <section class="panel active" id="panel-overview">
@@ -551,15 +563,33 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 });
 
-// Nav / tab switching
-document.querySelectorAll('.nav-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-tab').forEach(b => b.setAttribute('aria-selected','false'));
-    btn.setAttribute('aria-selected','true');
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+function toggleSectionMenu() {
+  const menu = document.getElementById('sectionSlideMenu'), overlay = document.getElementById('sectionMenuOverlay');
+  const isOpen = menu.style.display === 'flex';
+  menu.style.display = isOpen ? 'none' : 'flex';
+  overlay.style.display = isOpen ? 'none' : 'block';
+}
+
+const PANEL_LABELS = {
+  overview: 'Overview — tap ☰ to jump to Plan, Tools, Learn, Profile, or Settings',
+  plan: 'Plan — Results, Super, My Date, Withdrawal, Freedom Gap, What\'s Next',
+  tools: 'Tools — Tax Tools, Calculators',
+  learn: 'Learn — Learning Lab',
+  profile: 'Profile — your saved numbers',
+  settings: 'Settings — Account'
+};
+
+function switchPanel(panelName) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + panelName).classList.add('active');
+  document.querySelectorAll('.section-menu-link').forEach(l => {
+    l.style.background = l.dataset.panel === panelName ? 'rgba(255,255,255,0.1)' : 'transparent';
   });
-});
+  const label = document.getElementById('currentPanelLabel');
+  if (label) label.textContent = 'Viewing: ' + (PANEL_LABELS[panelName] || panelName);
+  toggleSectionMenu();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 </script>
 
 </body>
