@@ -83,7 +83,7 @@
 <body>
 
 <div class="hero">
-  <div><a href="compound.html" class="back-link">← Back to Compounding</a></div>
+  <div><a href="dashboard.html" class="back-link">← Back to Dashboard</a></div>
   <div class="hero-badge">The 4% Rule — explained</div>
   <h1 class="hero-title">Withdrawal Mode</h1>
   <p class="hero-sub">You've built the wealth. Now here's how to live off it forever — without ever touching the principal.</p>
@@ -176,23 +176,7 @@
     </div>
 
     <div class="portfolio-card">
-      <div class="portfolio-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your portfolio over time</div>
-      <div class="data-row">
-        <span class="data-label">Portfolio today</span>
-        <span style="font-weight:600;font-size:15px;" id="w-portfolioNow">—</span>
-      </div>
-      <div class="data-row">
-        <span class="data-label">Annual return earned</span>
-        <span style="font-weight:600;font-size:15px;color:#2E7D32" id="w-earned">—</span>
-      </div>
-      <div class="data-row">
-        <span class="data-label">Annual withdrawal</span>
-        <span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="w-withdrawn">—</span>
-      </div>
-      <div class="data-row">
-        <span class="data-label">Net portfolio growth per year</span>
-        <span style="font-weight:600;font-size:15px;" id="w-netGrowth">—</span>
-      </div>
+      <div class="portfolio-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Looking further ahead</div>
       <div class="data-row">
         <span class="data-label">Portfolio in 10 years</span>
         <span style="font-weight:600;font-size:15px;color:var(--fire-amber)" id="w-10yr">—</span>
@@ -335,23 +319,6 @@
     document.getElementById('w-yearReturn').textContent = '+' + fmtM(annualReturn);
     document.getElementById('w-yearPaid').textContent   = '-' + fmtM(annualIncome);
     document.getElementById('w-yearEnd').textContent    = fmtM(portfolio + netGrowth);
-
-    // Portfolio stats
-    document.getElementById('w-portfolioNow').textContent = fmtM(portfolio);
-    document.getElementById('w-earned').textContent       = '+' + fmtM(annualReturn);
-    document.getElementById('w-withdrawn').textContent    = '-' + fmtM(annualIncome);
-
-    const netEl = document.getElementById('w-netGrowth');
-    if (netGrowth > 0) {
-      netEl.textContent = '+' + fmtM(netGrowth) + '/yr';
-      netEl.style.color = '#2E7D32';
-    } else if (netGrowth < 0) {
-      netEl.textContent = fmtM(netGrowth) + '/yr';
-      netEl.style.color = '#E53935';
-    } else {
-      netEl.textContent = 'Breaking even';
-      netEl.style.color = 'var(--soft-grey)';
-    }
 
     // Portfolio in 10/20 years
     const p10 = portfolio * Math.pow(1 + growthRate, 10);
