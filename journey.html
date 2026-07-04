@@ -118,23 +118,48 @@
   </defs>
 </svg>
 
+<style>
+  /* Desktop: orange tabs live in the header. Mobile: hamburger only. */
+  .desktop-tabs{ display:flex; gap:20px; align-items:center; }
+  .desktop-tab{
+    color:var(--fire-orange); font-weight:600; font-size:14px; text-decoration:none;
+    font-family:'DM Sans',sans-serif; opacity:0.55; padding-bottom:4px; border-bottom:2px solid transparent;
+    white-space:nowrap;
+  }
+  .desktop-tab.active-tab{ opacity:1; border-bottom-color:var(--fire-orange); }
+  #sectionBurgerBtn, #sectionMenuOverlay, #sectionSlideMenu{ display:none !important; }
+  @media (max-width:768px){
+    .desktop-tabs{ display:none !important; }
+    #sectionBurgerBtn{ display:flex !important; }
+    #sectionMenuOverlay.is-open{ display:block !important; }
+    #sectionSlideMenu.is-open{ display:flex !important; }
+  }
+</style>
+
 <nav>
   <a href="/index.html" class="nav-logo">🔥 Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
   <div class="nav-links">
+    <div class="desktop-tabs" id="desktopTabs">
+      <a href="#" class="desktop-tab active-tab" data-panel="overview" onclick="switchPanel('overview');return false;">Overview</a>
+      <a href="#" class="desktop-tab" data-panel="plan" onclick="switchPanel('plan');return false;">Plan</a>
+      <a href="#" class="desktop-tab" data-panel="tools" onclick="switchPanel('tools');return false;">Tools</a>
+      <a href="#" class="desktop-tab" data-panel="learn" onclick="switchPanel('learn');return false;">Learn</a>
+      <a href="#" class="desktop-tab" data-panel="profile" onclick="switchPanel('profile');return false;">Profile</a>
+      <a href="#" class="desktop-tab" data-panel="settings" onclick="switchPanel('settings');return false;">Settings</a>
+    </div>
     <div id="userStatus" class="nav-desktop-extra" style="font-size:12px;color:var(--soft-grey);"></div>
     <a href="#" onclick="signOut()" class="nav-link">Sign out</a>
   </div>
 </nav>
 
-<!-- Section menu — same hamburger/slide pattern as progress.html, so it's a
-     familiar, proven interaction instead of a horizontal tab row fighting for space. -->
-<div id="sectionBurgerBtn" onclick="toggleSectionMenu()" style="position:fixed;top:16px;right:16px;z-index:100;width:40px;height:40px;background:var(--warm-brown);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;box-shadow:0 2px 12px rgba(61,43,31,0.2);">
+<!-- Mobile-only hamburger + slide menu (hidden entirely on desktop via the media query above) -->
+<div id="sectionBurgerBtn" onclick="toggleSectionMenu()" style="position:fixed;top:16px;right:16px;z-index:100;width:40px;height:40px;background:var(--warm-brown);border-radius:10px;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;box-shadow:0 2px 12px rgba(61,43,31,0.2);">
   <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
   <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
   <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
 </div>
-<div id="sectionMenuOverlay" onclick="toggleSectionMenu()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:98;"></div>
-<div id="sectionSlideMenu" style="display:none;position:fixed;top:0;right:0;height:100%;width:280px;background:var(--warm-brown);z-index:99;padding:48px 24px 40px;flex-direction:column;gap:8px;box-shadow:-4px 0 40px rgba(0,0,0,0.2);">
+<div id="sectionMenuOverlay" onclick="toggleSectionMenu()" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:98;"></div>
+<div id="sectionSlideMenu" style="position:fixed;top:0;right:0;height:100%;width:280px;background:var(--warm-brown);z-index:99;padding:48px 24px 40px;flex-direction:column;gap:8px;box-shadow:-4px 0 40px rgba(0,0,0,0.2);">
   <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:white;margin-bottom:28px;">🔥 My Journey</div>
   <a href="#" data-panel="overview" class="section-menu-link" onclick="switchPanel('overview');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Overview</a>
   <a href="#" data-panel="plan" class="section-menu-link" onclick="switchPanel('plan');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Plan</a>
@@ -152,7 +177,7 @@
     <div class="dash-eyebrow"><span style="font-size:14px;vertical-align:-2px;">🔥</span> My Journey</div>
     <h1 class="dash-title" id="greetTitle">Good morning.</h1>
     <p class="dash-sub" id="heroSub">Loading your numbers…</p>
-    <div id="currentPanelLabel" style="margin-top:10px;font-size:12px;font-weight:600;color:var(--fire-orange);text-transform:uppercase;letter-spacing:0.06em;">Viewing: Overview — tap ☰ to jump to Plan, Tools, Learn, Profile, or Settings</div>
+    <div id="currentPanelLabel" style="margin-top:10px;font-size:12px;font-weight:600;color:var(--fire-orange);text-transform:uppercase;letter-spacing:0.06em;">Viewing: Overview</div>
   </div>
 
   <div id="profileLoadError" style="display:none;background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:14px;padding:16px 18px;margin-bottom:20px;text-align:center;">
@@ -564,14 +589,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function toggleSectionMenu() {
-  const menu = document.getElementById('sectionSlideMenu'), overlay = document.getElementById('sectionMenuOverlay');
-  const isOpen = menu.style.display === 'flex';
-  menu.style.display = isOpen ? 'none' : 'flex';
-  overlay.style.display = isOpen ? 'none' : 'block';
+  document.getElementById('sectionSlideMenu').classList.toggle('is-open');
+  document.getElementById('sectionMenuOverlay').classList.toggle('is-open');
 }
 
 const PANEL_LABELS = {
-  overview: 'Overview — tap ☰ to jump to Plan, Tools, Learn, Profile, or Settings',
+  overview: 'Overview',
   plan: 'Plan — Results, Super, My Date, Withdrawal, Freedom Gap, What\'s Next',
   tools: 'Tools — Tax Tools, Calculators',
   learn: 'Learn — Learning Lab',
@@ -585,9 +608,14 @@ function switchPanel(panelName) {
   document.querySelectorAll('.section-menu-link').forEach(l => {
     l.style.background = l.dataset.panel === panelName ? 'rgba(255,255,255,0.1)' : 'transparent';
   });
+  document.querySelectorAll('.desktop-tab').forEach(t => {
+    t.classList.toggle('active-tab', t.dataset.panel === panelName);
+  });
   const label = document.getElementById('currentPanelLabel');
   if (label) label.textContent = 'Viewing: ' + (PANEL_LABELS[panelName] || panelName);
-  toggleSectionMenu();
+  // Only relevant on mobile — closes the slide menu if it's open. Harmless no-op on desktop.
+  document.getElementById('sectionSlideMenu').classList.remove('is-open');
+  document.getElementById('sectionMenuOverlay').classList.remove('is-open');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
