@@ -121,7 +121,6 @@
   <a href="/index.html" class="nav-logo">🔥 Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
   <div class="nav-links">
     <div id="userStatus" class="nav-desktop-extra" style="font-size:12px;color:var(--soft-grey);"></div>
-    <a href="dashboard.html" class="nav-link nav-desktop-extra">Dashboard</a>
     <a href="#" onclick="signOut()" class="nav-link">Sign out</a>
   </div>
 </nav>
@@ -170,12 +169,41 @@
 
     <div id="deltasWrap"></div>
 
+    <!-- Ported from dashboard.html: commitment/check-in card, tied to progress.html -->
+    <a href="progress.html" id="commitCtaCard" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:22px 24px;color:white;margin-bottom:28px;text-decoration:none;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="flex-shrink:0;color:var(--fire-amber);"><svg class="icon" style="width:28px;height:28px;"><use href="/icons.svg#icon-momentum"/></svg></div>
+        <div style="flex:1;">
+          <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:4px;">Commit to your future self</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;">Promise yourself an extra amount to save, then earn a 🔥 every time you hit it.</div>
+        </div>
+        <div style="font-size:14px;color:var(--fire-amber);flex-shrink:0;">→</div>
+      </div>
+    </a>
+
+    <a href="progress.html" id="commitProgressCard" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:22px 24px;color:white;margin-bottom:28px;text-decoration:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);margin-bottom:4px;">Your commitment</div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--fire-amber);" id="commitCardAmount">—</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;" id="commitCardPct">—</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);">flames earned</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.1);border-radius:8px;height:8px;overflow:hidden;margin-bottom:12px;">
+        <div id="commitCardBar" style="background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));height:100%;width:0%;border-radius:8px;"></div>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.6);">Log today's check-in →</div>
+    </a>
+
     <nav class="journey-nav" role="tablist" aria-label="Journey sections">
       <button class="nav-tab" role="tab" aria-selected="true" data-panel="overview"><svg><use href="/icons.svg#icon-insight"/></svg>Overview</button>
+      <button class="nav-tab" role="tab" aria-selected="false" data-panel="plan"><svg><use href="/icons.svg#icon-target"/></svg>Plan</button>
+      <button class="nav-tab" role="tab" aria-selected="false" data-panel="tools"><svg><use href="/icons.svg#icon-money"/></svg>Tools</button>
+      <button class="nav-tab" role="tab" aria-selected="false" data-panel="learn"><svg><use href="/icons.svg#icon-learn"/></svg>Learn</button>
       <button class="nav-tab" role="tab" aria-selected="false" data-panel="profile"><svg><use href="/icons.svg#icon-profile"/></svg>Profile</button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-panel="goals"><svg><use href="/icons.svg#icon-target"/></svg>Goals</button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-panel="learning"><svg><use href="/icons.svg#icon-learn"/></svg>Learning</button>
-      <button class="nav-tab" role="tab" aria-selected="false" data-panel="history"><svg><use href="/icons.svg#icon-date"/></svg>History</button>
       <button class="nav-tab" role="tab" aria-selected="false" data-panel="settings"><svg><use href="#icon-gear"/></svg>Settings</button>
     </nav>
 
@@ -200,18 +228,97 @@
         </div>
       </section>
 
+      <section class="panel" id="panel-plan">
+        <div class="card-grid">
+          <a href="firepath_pro.html" class="dash-card">
+            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-insight"/></svg></div>
+            <div class="dash-card-body">
+              <div class="dash-card-title">Results & AI Insight</div>
+              <div class="dash-card-desc">Your freedom number, freedom date, and what your AI insight is telling you right now.</div>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </a>
+          <a href="firepath_pro.html?tab=super" class="dash-card">
+            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-super"/></svg></div>
+            <div class="dash-card-body">
+              <div class="dash-card-title">Super</div>
+              <div class="dash-card-desc">Your two-phase timeline — how your super and your savings connect by age 60.</div>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </a>
+          <a href="firepath_pro.html?tab=needle" class="dash-card">
+            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-target"/></svg></div>
+            <div class="dash-card-body">
+              <div class="dash-card-title">My Date</div>
+              <div class="dash-card-desc">Exactly what moves your freedom date forward or back — in real numbers.</div>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </a>
+          <a href="withdrawal.html" class="dash-card" id="withdrawalCardLink">
+            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-date"/></svg></div>
+            <div class="dash-card-body">
+              <div class="dash-card-title">Withdrawal Modeling</div>
+              <div class="dash-card-desc">Model your income in retirement, see how long your portfolio actually lasts, and get an AI outlook on it.</div>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </a>
+          <a href="freedom-gap.html" class="dash-card" id="freedomGapCardLink">
+            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-money"/></svg></div>
+            <div class="dash-card-body">
+              <div class="dash-card-title">Freedom Gap</div>
+              <div class="dash-card-desc">Using your actual saved numbers — what your portfolio generates, the gap to your spending, and how many hours would close it, including Age Pension.</div>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </a>
+          <a href="firepath_pro.html?tab=next" class="dash-card">
+            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-momentum"/></svg></div>
+            <div class="dash-card-body">
+              <div class="dash-card-title">What's Next</div>
+              <div class="dash-card-desc">Your next steps, tailored to exactly where you are on the path right now.</div>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </a>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-tools">
+        <div class="card-grid">
+          <a href="tax_pro.html" class="dash-card">
+            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-money"/></svg></div>
+            <div class="dash-card-body">
+              <div class="dash-card-title">Tax Tools</div>
+              <div class="dash-card-desc">Your tax picture, salary sacrifice modelling, and offset vs invest — connected to your freedom date.</div>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </a>
+          <a href="hearmeout.html" class="dash-card">
+            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-insight"/></svg></div>
+            <div class="dash-card-body">
+              <div class="dash-card-title">Calculators</div>
+              <div class="dash-card-desc">Model the big "what ifs" — selling a property, a lump sum, a redundancy payout.</div>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </a>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-learn">
+        <div class="card-grid">
+          <a href="learning_lab.html" class="dash-card">
+            <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-learn"/></svg></div>
+            <div class="dash-card-body">
+              <div class="dash-card-title">Learning Lab</div>
+              <div class="dash-card-desc">Everything from FIRE basics to superannuation and tax, explained with your actual numbers.</div>
+            </div>
+            <div class="dash-card-arrow">→</div>
+          </a>
+        </div>
+      </section>
+
       <section class="panel" id="panel-profile">
         <div class="card-grid" id="profileGrid"></div>
       </section>
-      <section class="panel" id="panel-goals">
-        <div class="card-grid"><div class="coming-soon-card"><b>Coming soon.</b> Target FIRE age, lifestyle, withdrawal strategy — pulling from your saved preferences once those fields exist.</div></div>
-      </section>
-      <section class="panel" id="panel-learning">
-        <div class="card-grid"><a href="learning_lab.html" class="dash-card"><div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-learn"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Open Learning Lab</div><div class="dash-card-desc">Your lesson history lives there for now.</div></div><div class="dash-card-arrow">→</div></a></div>
-      </section>
-      <section class="panel" id="panel-history">
-        <div class="card-grid"><div class="coming-soon-card"><b>Coming soon.</b> Net worth history needs a monthly snapshot table — not built yet.</div></div>
-      </section>
+
       <section class="panel" id="panel-settings">
         <div class="card-grid"><a href="account.html" class="dash-card"><div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-edit"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Account settings</div><div class="dash-card-desc">Manage your email, password, and subscription.</div></div><div class="dash-card-arrow">→</div></a></div>
       </section>
@@ -229,6 +336,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   const uel = document.getElementById('userStatus');
   if (localStorage.getItem('fp_email')) uel.textContent = 'Signed in as ' + localStorage.getItem('fp_email');
+
+  const upParams = new URLSearchParams(window.location.search);
+  if (upParams.get('upgraded') === 'true') alert('🔥 Welcome to FirePath Pro!');
 
   // ASSUMPTION: gating this page to Pro same as dashboard.html.
   // Remove this block if My Journey should be available on the free tier.
@@ -280,6 +390,23 @@ document.addEventListener('DOMContentLoaded', async function() {
       emberLayer.appendChild(c);
     });
     document.querySelector('#progressPct').textContent = Math.round(pct) + '%';
+  }
+
+  function renderCommitmentCard() {
+    let commitment = null;
+    try { commitment = JSON.parse(localStorage.getItem('fp_commitment')); } catch(e) {}
+    if (!commitment || !commitment.amount) {
+      document.getElementById('commitCtaCard').style.display = 'block';
+      return;
+    }
+    const cycleLabel = commitment.cycle === 'weekly' ? 'week' : commitment.cycle === 'fortnightly' ? 'fortnight' : 'month';
+    const totalPossible = commitment.cycle === 'weekly' ? 52 : commitment.cycle === 'fortnightly' ? 26 : 12;
+    const hits = (commitment.hits || []).length;
+    const pct = Math.min(Math.round((hits / totalPossible) * 100), 100);
+    document.getElementById('commitCardAmount').textContent = `Extra $${commitment.amount.toLocaleString()} / ${cycleLabel}`;
+    document.getElementById('commitCardPct').textContent = `${hits}/${totalPossible}`;
+    document.getElementById('commitCardBar').style.width = pct + '%';
+    document.getElementById('commitProgressCard').style.display = 'block';
   }
 
   function renderAchievementsAndTimeline(savings, freedomNumber){
@@ -360,6 +487,12 @@ document.addEventListener('DOMContentLoaded', async function() {
       <div class="deltas-empty">We'll start showing your month-over-month progress here once you've used FirePath for a full month.</div>`;
 
     renderAchievementsAndTimeline(savings, freedomNumber);
+    renderCommitmentCard();
+
+    if (savings) {
+      const withdrawalLink = document.getElementById('withdrawalCardLink');
+      if (withdrawalLink) withdrawalLink.href = `withdrawal.html?portfolio=${Math.round(savings)}`;
+    }
 
     // Financial Profile tab — real fp_profiles fields.
     const liabilities = (p.debt_total || 0) + (p.mortgage_remaining || 0);
