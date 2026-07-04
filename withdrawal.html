@@ -153,11 +153,26 @@
           <div class="income-tile-value" id="w-weekly">—</div>
         </div>
       </div>
+      <div id="w-growthNote" style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.12);font-size:13px;color:#81C784;display:flex;align-items:center;justify-content:center;gap:8px;"></div>
     </div>
 
     <div class="magic-card">
-      <div class="magic-title" id="w-magicTitle"><svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-featured"/></svg> The magic of this</div>
-      <div class="magic-text" id="w-magicText">—</div>
+      <div class="magic-title" id="w-magicTitle"><svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-featured"/></svg> <span id="w-magicTitleText">The magic of this</span></div>
+      <div id="w-magicFlow" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+        <div class="magic-step" id="w-step1" style="opacity:0;transition:opacity 0.4s ease;font-size:14px;color:var(--warm-brown);">This year, your portfolio earns <strong id="w-stepEarn" style="color:#2E7D32;">—</strong></div>
+        <div class="magic-step" id="w-step2" style="opacity:0;transition:opacity 0.4s ease;font-size:14px;color:var(--warm-brown);">You withdraw <strong id="w-stepWithdraw" style="color:var(--fire-orange);">—</strong> to live on</div>
+        <div class="magic-step" id="w-step3" style="opacity:0;transition:opacity 0.4s ease;font-size:14px;color:var(--warm-brown);"><strong id="w-stepNet" style="color:#2E7D32;">—</strong> stays invested and keeps growing</div>
+      </div>
+      <div class="magic-text" id="w-magicText" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- One-year story — a single readable flow instead of scanning a table -->
+    <div class="portfolio-card" style="background:white;border:1.5px solid #A5D6A7;">
+      <div class="portfolio-label" style="color:#2E7D32;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> This year, step by step</div>
+      <div class="data-row"><span class="data-label">Start of year</span><span style="font-weight:600;font-size:15px;" id="w-yearStart">—</span></div>
+      <div class="data-row"><span class="data-label">↓ Investment returns</span><span style="font-weight:600;font-size:15px;color:#2E7D32" id="w-yearReturn">—</span></div>
+      <div class="data-row"><span class="data-label">↓ Income paid to you</span><span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="w-yearPaid">—</span></div>
+      <div class="data-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:12px;"><span class="data-label" style="font-weight:500;color:var(--warm-brown);">End of year</span><span style="font-weight:700;font-size:16px;color:#2E7D32" id="w-yearEnd">—</span></div>
     </div>
 
     <div class="portfolio-card">
@@ -188,10 +203,30 @@
       </div>
     </div>
 
+    <!-- Portfolio journey chart — the highest-impact addition -->
+    <div class="portfolio-card">
+      <div class="portfolio-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your portfolio journey</div>
+      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;">Green line = portfolio value through retirement, on your current settings.</div>
+      <div id="w-chartContainer"></div>
+    </div>
+
     <!-- ── Longevity + AI Outlook ── -->
     <div class="longevity-card">
-      <div class="longevity-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your longevity outlook</div>
-      <div class="longevity-sub">This models a fixed real withdrawal over a <strong>30-year retirement</strong> — the standard test behind the 4% rule. The amount you'd take out today grows with inflation each year to keep the same buying power. This is a different (usually harder) test than the percentage-of-portfolio numbers above.</div>
+      <div class="longevity-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Will your money last?</div>
+      <div class="longevity-sub">This first grows your portfolio for the years you said you'll keep working, then models a fixed real withdrawal over a <strong>30-year retirement</strong> from that point — the standard test behind the 4% rule. The withdrawal grows with inflation each year to keep the same buying power. This is a different (usually harder) test than the percentage-of-portfolio numbers above.</div>
+      <div id="w-confidenceBadge" style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--warm-cream);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="w-confidenceDot" style="width:12px;height:12px;border-radius:50%;background:#9E8E85;flex-shrink:0;transition:background 0.4s ease;"></div>
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);">Confidence</div>
+            <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--warm-brown);" id="w-confidenceLabel">—</div>
+          </div>
+        </div>
+        <div id="w-endingBalanceWrap" style="text-align:right;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);">After 30 years</div>
+          <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#2E7D32;" id="w-endingBalance">—</div>
+        </div>
+      </div>
       <div class="longevity-compare">
         <div class="longevity-item" id="w-longevityBase">
           <div class="longevity-years" id="w-longevityBaseYears">—</div>
@@ -202,18 +237,27 @@
           <div class="longevity-item-label" id="w-longevityGoodLabel">With 2% stronger returns</div>
         </div>
       </div>
+      <div id="w-bufferNote" style="font-size:13px;color:var(--warm-brown);font-weight:300;line-height:1.7;margin-top:14px;"></div>
+      <div style="margin-top:16px;">
       <button class="ai-outlook-btn" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook</button>
       <div class="ai-outlook-loading" id="aiOutlookLoading">
         <div class="ai-outlook-flame" style="color:var(--fire-orange);"><svg class="icon" style="width:28px;height:28px;"><use href="/icons.svg#icon-momentum"/></svg></div>
         <div style="font-size:13px;color:var(--soft-grey);margin-top:10px;">Reading your numbers...</div>
       </div>
       <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
+      </div>
     </div>
 
     <div class="glass-card">
-      <div class="card-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Compare withdrawal rates</div>
+      <div class="card-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> <span id="w-compareTitle">What if I spend more?</span></div>
       <p style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;line-height:1.6;">Same portfolio. Different withdrawal rates. See the trade-off between income and growth.</p>
       <div id="w-rateComparison"></div>
+    </div>
+
+    <!-- Deterministic takeaway — computed from the numbers, not the AI, so it's always available instantly -->
+    <div class="glass-card" style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);color:white;border:none;">
+      <div class="card-label" style="color:var(--fire-amber);"><svg class="icon" style="width:14px;height:14px;color:var(--fire-amber);"><use href="/icons.svg#icon-featured"/></svg> Your takeaway</div>
+      <div id="w-takeaway" style="font-size:14px;font-weight:300;line-height:1.8;color:rgba(255,255,255,0.85);"></div>
     </div>
 
     <p class="disclaimer">These numbers assume your portfolio grows at the rate you've chosen — capital gains, dividends, everything combined. Real returns vary and depend on what you're invested in. Educational only — not financial advice.</p>
@@ -237,12 +281,14 @@
   function simulateSWR(portfolio, returnRate, withdrawRate, inflation, maxYears = 30) {
     let balance = portfolio;
     let withdrawal = portfolio * withdrawRate;
+    const series = [Math.round(balance)];
     for (let year = 1; year <= maxYears; year++) {
       balance = balance * (1 + returnRate) - withdrawal;
-      if (balance <= 0) return { yearsLasted: year, depleted: true, endingBalance: 0 };
+      if (balance <= 0) { series.push(0); return { yearsLasted: year, depleted: true, endingBalance: 0, series }; }
+      series.push(Math.round(balance));
       withdrawal *= (1 + inflation);
     }
-    return { yearsLasted: maxYears, depleted: false, endingBalance: Math.round(balance) };
+    return { yearsLasted: maxYears, depleted: false, endingBalance: Math.round(balance), series };
   }
 
   let lastLongevity = null;
@@ -274,6 +320,21 @@
     document.getElementById('w-monthly').textContent     = fmtM(annualIncome / 12);
     document.getElementById('w-fortnightly').textContent = fmtM(annualIncome / 26);
     document.getElementById('w-weekly').textContent      = fmtM(annualIncome / 52);
+
+    const growthNoteEl = document.getElementById('w-growthNote');
+    if (annualReturn > annualIncome) {
+      growthNoteEl.innerHTML = `<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Your portfolio is expected to keep growing while paying you this income.`;
+      growthNoteEl.style.color = '#81C784';
+    } else {
+      growthNoteEl.innerHTML = `<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-alert"/></svg> This draws down your principal over time — see the rate comparison below.`;
+      growthNoteEl.style.color = '#FFB74D';
+    }
+
+    // One-year story
+    document.getElementById('w-yearStart').textContent  = fmtM(portfolio);
+    document.getElementById('w-yearReturn').textContent = '+' + fmtM(annualReturn);
+    document.getElementById('w-yearPaid').textContent   = '-' + fmtM(annualIncome);
+    document.getElementById('w-yearEnd').textContent    = fmtM(portfolio + netGrowth);
 
     // Portfolio stats
     document.getElementById('w-portfolioNow').textContent = fmtM(portfolio);
@@ -317,19 +378,33 @@
     const rateKey = parseFloat(document.getElementById('w-withdrawRate').value);
     document.getElementById('w-rateExplainer').textContent = explainers[rateKey] || explainers[4];
 
-    // Magic moment
-    const magicTitle = document.getElementById('w-magicTitle');
+    // Magic moment — animated staggered reveal instead of a static paragraph
+    const magicTitleText = document.getElementById('w-magicTitleText');
+    const magicIconWrap = document.getElementById('w-magicTitle').querySelector('svg use');
     const magicText  = document.getElementById('w-magicText');
+    document.getElementById('w-stepEarn').textContent = fmtM(annualReturn);
+    document.getElementById('w-stepWithdraw').textContent = fmtM(annualIncome);
+    document.getElementById('w-stepNet').textContent = fmtM(netGrowth);
+
     if (withdrawRate < returnRate) {
-      magicTitle.innerHTML = '<svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-featured"/></svg> The magic moment';
-      magicText.innerHTML = `Your portfolio earns <strong>${fmtM(annualReturn)}</strong> this year. You withdraw <strong>${fmtM(annualIncome)}</strong> to live on. The remaining <strong>${fmtM(netGrowth)}</strong> stays invested and keeps growing. You haven't touched the principal — and your wealth is still increasing.`;
+      magicIconWrap.setAttribute('href', '/icons.svg#icon-featured');
+      magicTitleText.textContent = 'The magic moment';
+      magicText.innerHTML = `You haven't touched the principal — and your wealth is still increasing.`;
     } else if (withdrawRate === returnRate) {
-      magicTitle.innerHTML = '<svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-balance"/></svg> Breaking even';
-      magicText.innerHTML = `Your portfolio earns exactly what you withdraw — <strong>${fmtM(annualIncome)}</strong> per year. Your principal stays the same forever. You could theoretically do this indefinitely, but there's no buffer if returns dip.`;
+      magicIconWrap.setAttribute('href', '/icons.svg#icon-balance');
+      magicTitleText.textContent = 'Breaking even';
+      magicText.innerHTML = `Your principal stays the same forever. You could theoretically do this indefinitely, but there's no buffer if returns dip.`;
     } else {
-      magicTitle.innerHTML = '<svg class="icon" style="width:16px;height:16px;color:#E65100;"><use href="/icons.svg#icon-alert"/></svg> Drawing down principal';
-      magicText.innerHTML = `You're withdrawing more than your portfolio earns. You'll be slowly spending the principal — your portfolio will shrink over time. At this rate, consider whether a lower withdrawal rate or a larger portfolio would give you more security.`;
+      magicIconWrap.setAttribute('href', '/icons.svg#icon-alert');
+      magicTitleText.textContent = 'Drawing down principal';
+      magicText.innerHTML = `You're withdrawing more than your portfolio earns — your portfolio will shrink over time. Consider whether a lower withdrawal rate or a larger portfolio would give you more security.`;
     }
+    // Stagger the three steps in, re-triggering on every recalculation
+    ['w-step1','w-step2','w-step3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.style.opacity = '0';
+      setTimeout(() => { el.style.opacity = '1'; }, 120 + i * 220);
+    });
 
     // Rate comparison
     const rates = [3, 4, 5, 6];
@@ -355,9 +430,12 @@
     }).join('');
 
     // ── Longevity simulation (fixed real withdrawal, inflation-adjusted) ──
-    const base = simulateSWR(portfolio, returnRate, withdrawRate, inflation);
-    const good = simulateSWR(portfolio, returnRate + 0.02, withdrawRate, inflation);
-    lastLongevity = { portfolio, returnRate, withdrawRate, inflation, base, good };
+    // Grow the portfolio through the deferral years first — the longevity test needs to
+    // reflect the balance at the point withdrawals actually start, not today's balance.
+    const portfolioAtStart = portfolio * Math.pow(1 + returnRate, years);
+    const base = simulateSWR(portfolioAtStart, returnRate, withdrawRate, inflation);
+    const good = simulateSWR(portfolioAtStart, returnRate + 0.02, withdrawRate, inflation);
+    lastLongevity = { portfolio: portfolioAtStart, portfolioToday: portfolio, yearsToRetirement: years, returnRate, withdrawRate, inflation, base, good };
 
     const baseYearsEl = document.getElementById('w-longevityBaseYears');
     const goodYearsEl = document.getElementById('w-longevityGoodYears');
@@ -365,10 +443,75 @@
     goodYearsEl.textContent = good.depleted ? `~${good.yearsLasted} yrs` : `Lasts 30+ yrs`;
     document.getElementById('w-longevityGoodLabel').textContent = `With ${((returnRate + 0.02) * 100).toFixed(0)}% returns instead of ${(returnRate * 100).toFixed(0)}%`;
 
+    // Confidence badge + ending balance. Now that this runs on a realistic 30-year
+    // horizon (not the old unbounded simulation), the ending balance is a plausible,
+    // useful number — legacy, flexibility to spend more now and taper later, a buffer
+    // for unexpected costs. Worth showing, as long as the underlying test is realistic.
+    const confDot = document.getElementById('w-confidenceDot');
+    const confLabel = document.getElementById('w-confidenceLabel');
+    const bufferNote = document.getElementById('w-bufferNote');
+    const endingBalanceEl = document.getElementById('w-endingBalance');
+    const endingBalanceWrap = document.getElementById('w-endingBalanceWrap');
+    if (base.depleted) {
+      confDot.style.background = '#E53935';
+      confLabel.textContent = 'Tight';
+      endingBalanceWrap.style.display = 'none';
+      bufferNote.innerHTML = `On these settings, the money runs out before the 30-year test finishes. A lower withdrawal rate or a longer accumulation phase would close this gap — see the rate comparison below.`;
+    } else {
+      endingBalanceWrap.style.display = 'block';
+      endingBalanceEl.textContent = fmtM(base.endingBalance);
+      // Compare the balance trajectory to gauge how comfortable the margin is
+      const midPoint = base.series[Math.floor(base.series.length / 2)];
+      const comfortable = midPoint > portfolioAtStart * 0.9;
+      confDot.style.background = comfortable ? '#2E7D32' : '#F9A825';
+      confLabel.textContent = comfortable ? 'High' : 'Comfortable';
+      bufferNote.innerHTML = comfortable
+        ? `Your portfolio isn't just surviving the 30 years — it holds a growing buffer throughout, ending with roughly <strong>${fmtM(base.endingBalance)}</strong> still there. That's real flexibility: room to spend more now and taper later, a buffer for the unexpected, or something to leave behind.`
+        : `Your portfolio makes it through the full 30 years, ending with roughly <strong>${fmtM(base.endingBalance)}</strong> — though the buffer thins for a stretch before growth catches back up.`;
+    }
+
+    // Portfolio journey chart — real SVG line from the actual year-by-year simulation
+    renderJourneyChart(base.series, years);
+
+    // Deterministic takeaway — computed from the numbers, always available instantly
+    const takeawayEl = document.getElementById('w-takeaway');
+    if (base.depleted) {
+      takeawayEl.innerHTML = `Based on today's assumptions, this withdrawal rate doesn't quite make it through a full 30-year retirement. Small adjustments — a slightly lower withdrawal rate, or a few more years of growth first — tend to make an outsized difference over decades of compounding.`;
+    } else {
+      takeawayEl.innerHTML = `Based on today's assumptions, your investments don't just support your retirement — they keep working the entire time, growing faster than you're drawing them down. That's the power of disciplined investing paired with a sustainable withdrawal rate.`;
+    }
+
     // Reset AI outlook when inputs change — the cached narrative no longer matches
     document.getElementById('aiOutlookText').style.display = 'none';
     document.getElementById('aiOutlookBtn').style.display = 'block';
     document.getElementById('aiOutlookBtn').textContent = 'Get my AI outlook';
+  }
+
+  // Builds a simple inline SVG line chart from the year-by-year balance series,
+  // with a subtle draw-in animation via stroke-dashoffset.
+  function renderJourneyChart(series, deferralYears) {
+    const container = document.getElementById('w-chartContainer');
+    if (!container || !series || series.length < 2) return;
+    const w = 320, h = 140, pad = 8;
+    const max = Math.max(...series, 1);
+    const stepX = (w - pad * 2) / (series.length - 1);
+    const points = series.map((v, i) => {
+      const x = pad + i * stepX;
+      const y = h - pad - (v / max) * (h - pad * 2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(' ');
+    const pathLen = series.length * stepX * 1.4; // rough estimate, good enough for the draw animation
+    container.innerHTML = `
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;overflow:visible;">
+        <polyline points="${points}" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          style="stroke-dasharray:${pathLen};stroke-dashoffset:${pathLen};animation:fp-chart-draw 1.1s ease forwards;"/>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--soft-grey);margin-top:4px;">
+        <span>Retirement starts</span>
+        <span>${series.length - 1} yrs</span>
+      </div>
+      <style>@keyframes fp-chart-draw { to { stroke-dashoffset: 0; } }</style>
+    `;
   }
 
   async function getAiOutlook() {
@@ -380,11 +523,11 @@
     loading.classList.add('visible');
     textEl.style.display = 'none';
 
-    const { portfolio, returnRate, withdrawRate, inflation, base, good } = lastLongevity;
-    const baseDesc = base.depleted ? `runs out around year ${base.yearsLasted} of a 30-year retirement` : `comfortably lasts the full 30-year retirement test, with a growing buffer rather than cutting it close`;
-    const goodDesc = good.depleted ? `runs out around year ${good.yearsLasted}` : `also lasts the full 30 years, with an even larger buffer`;
+    const { portfolio, portfolioToday, yearsToRetirement, returnRate, withdrawRate, inflation, base, good } = lastLongevity;
+    const baseDesc = base.depleted ? `runs out around year ${base.yearsLasted} of a 30-year retirement` : `comfortably lasts the full 30-year retirement test, ending with roughly ${fmtM(base.endingBalance)} still invested`;
+    const goodDesc = good.depleted ? `runs out around year ${good.yearsLasted}` : `also lasts the full 30 years, ending with roughly ${fmtM(good.endingBalance)} — an even larger buffer`;
 
-    const userInput = `Portfolio: ${fmtM(portfolio)}. Assumed return: ${(returnRate*100).toFixed(1)}%. Withdrawal rate: ${(withdrawRate*100).toFixed(1)}% (${fmtM(portfolio*withdrawRate)}/yr in year one, then increased with inflation each year to preserve purchasing power). Inflation assumption: ${(inflation*100).toFixed(1)}%. Simulation result on current settings (30-year retirement horizon — the standard Trinity Study test): ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.`;
+    const userInput = `Portfolio today: ${fmtM(portfolioToday)}. This person plans to keep working and growing it for ${yearsToRetirement} more years before retiring, at which point the portfolio is projected to be roughly ${fmtM(portfolio)}. Assumed return: ${(returnRate*100).toFixed(1)}%. Withdrawal rate at retirement: ${(withdrawRate*100).toFixed(1)}% (${fmtM(portfolio*withdrawRate)}/yr in the first year of retirement, then increased with inflation each year to preserve purchasing power). Inflation assumption: ${(inflation*100).toFixed(1)}%. Simulation result on current settings (30-year retirement horizon starting from the projected retirement balance — the standard Trinity Study test): ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.`;
 
     try {
       const res = await fetch(WORKER_URL, {
@@ -393,9 +536,9 @@
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 500,
-          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. You have been given the exact results of a real portfolio-longevity simulation over a realistic 30-year retirement horizon — do not recalculate or second-guess these numbers, just narrate what they mean for the person in plain English.
+          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. You have been given the exact results of a real portfolio-longevity simulation with two phases: the portfolio growing until retirement, then a realistic 30-year retirement withdrawal test starting from that projected balance — do not recalculate or second-guess these numbers, just narrate what they mean for the person in plain English.
 
-Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what surviving (or not surviving) the 30-year test practically means for someone's retirement, in warm and human terms — not clinical. 3. Do NOT dwell on or headline any leftover/ending dollar balance — a large sum left over decades from now isn't a meaningful outcome for someone to picture; focus instead on whether the money lasted comfortably or cut it close, and by how much margin. 4. Briefly describe what the stronger-returns scenario shows and why even a small return difference compounds into a meaningful gap over decades. 5. Never say "you should" or "I recommend" — frame as something worth understanding, not advice. 6. Never name specific investment products or platforms. 7. Max 2 short paragraphs. 8. End with exactly: "This is educational, not financial advice." Use <strong> for bold.`,
+Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what surviving (or not surviving) the 30-year test practically means for someone's retirement, in warm and human terms — not clinical. 3. If the portfolio survives with a comfortable buffer, it's fine to mention the ending balance — but frame it as what it actually enables (flexibility to spend more now and taper later, a cushion for the unexpected, something to leave behind) rather than just a number sitting there. 4. Briefly describe what the stronger-returns scenario shows and why even a small return difference compounds into a meaningful gap over decades. 5. Never say "you should" or "I recommend" — frame as something worth understanding, not advice. 6. Never name specific investment products or platforms. 7. Max 2 short paragraphs. 8. End with exactly: "This is educational, not financial advice." Use <strong> for bold.`,
           messages: [{ role: 'user', content: userInput }]
         })
       });
