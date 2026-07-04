@@ -438,7 +438,7 @@
       // nobody would actually experience in practice. Flag it plainly rather than
       // presenting an outlier figure as if it were an ordinary result.
       const multiple = portfolio > 0 ? base.endingBalance / portfolio : 0;
-      const totalHorizon = yearsToRetirement + 30;
+      const totalHorizon = years + 30;
       const isOutlier = multiple > 15 && totalHorizon > 40;
 
       const buffLine = comfortable
@@ -446,7 +446,7 @@
         : `Your portfolio makes it through the full 30 years, ending with roughly <strong>${fmtM(base.endingBalance)}</strong> — though the buffer thins for a stretch before growth catches back up.`;
 
       bufferNote.innerHTML = isOutlier
-        ? `${buffLine}<br/><br/><em style="color:var(--soft-grey);font-size:12px;">Worth knowing: this assumes ${(returnRate*100).toFixed(0)}% returns sustained for ${totalHorizon} years straight — ${yearsToRetirement} years growing before retirement, then 30 more years in retirement. Real markets don't compound smoothly for six decades; treat this as what the assumption implies, not a forecast.</em>`
+        ? `${buffLine}<br/><br/><em style="color:var(--soft-grey);font-size:12px;">Worth knowing: this assumes ${(returnRate*100).toFixed(0)}% returns sustained for ${totalHorizon} years straight — ${years} years growing before retirement, then 30 more years in retirement. Real markets don't compound smoothly for six decades; treat this as what the assumption implies, not a forecast.</em>`
         : buffLine;
     }
 
