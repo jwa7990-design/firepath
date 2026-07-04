@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-Q2QZ662MJ9');
+  </script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Journey — FirePath Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <style>
+    .dash-hero { padding: 8px 0 24px; }
+    .dash-eyebrow { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px; }
+    .dash-title { font-family:'Playfair Display',serif;font-size:clamp(24px,5vw,32px);font-weight:700;line-height:1.25;margin-bottom:8px; }
+    .dash-sub { font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.65; }
+    .section-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;margin-top:8px; }
+    .icon { width:20px; height:20px; flex-shrink:0; }
+
+    /* ---------- Horizon hero card ----------
+       Same dark-accent gradient your profile-banner / commit cards already use
+       (#3D2B1F -> #5C3D2E), blending toward fire-orange/amber as progress rises.
+       Colours are read live from your CSS variables at render time, not hardcoded,
+       so this stays in sync if main.css changes. */
+    .horizon-card{ position:relative; border-radius:16px; overflow:hidden; margin-bottom:16px; }
+    .horizon-sky{ display:block; width:100%; height:auto; }
+    .horizon-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(255,255,255,0.12); }
+    .h-stat{ background:#3D2B1F; padding:16px 10px; text-align:center; }
+    .h-stat .label{ font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:rgba(255,255,255,0.55); }
+    .h-stat .value{ font-family:'Playfair Display',serif; font-weight:700; font-size:19px; margin-top:4px; color:#fff; }
+    .h-stat.accent .value{ color:var(--fire-amber); }
+    .continue-cta{
+      display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+      padding:15px; border:none; cursor:pointer; background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));
+      color:#fff; font-family:'DM Sans'; font-weight:500; font-size:14px;
+    }
+    .continue-cta:hover{ opacity:0.92; }
+
+    .deltas-empty{
+      background:var(--warm-cream); border:1.5px dashed var(--border); border-radius:14px;
+      padding:14px 16px; font-size:12.5px; color:var(--soft-grey); text-align:center; margin-bottom:24px;
+    }
+    .delta-chip{
+      display:inline-flex; align-items:center; gap:6px; background:white; border:1.5px solid var(--border);
+      border-radius:999px; padding:7px 12px; font-size:12.5px; color:var(--soft-grey); margin:0 6px 6px 0;
+    }
+    .delta-chip strong{ color:var(--fire-orange); font-weight:600; }
+
+    /* ---------- Journey nav (replaces tabs/sidebar) ---------- */
+    .journey-nav{ display:flex; gap:4px; margin:26px 0 4px; overflow-x:auto; scrollbar-width:none; border-bottom:1.5px solid var(--border); }
+    .journey-nav::-webkit-scrollbar{ display:none; }
+    .nav-tab{
+      display:flex; align-items:center; gap:6px; flex-shrink:0; padding:10px 12px; border:none; background:none;
+      cursor:pointer; color:var(--soft-grey); font-family:'DM Sans'; font-weight:500; font-size:13px;
+      border-bottom:2px solid transparent; white-space:nowrap;
+    }
+    .nav-tab svg{ width:15px; height:15px; }
+    .nav-tab[aria-selected="true"]{ color:var(--warm-brown); border-bottom-color:var(--fire-orange); }
+
+    .panel{ display:none; padding-top:22px; }
+    .panel.active{ display:block; }
+    .section-block{ margin-bottom:30px; }
+
+    /* ---------- Reuses your existing .dash-card look for consistency ---------- */
+    .card-grid{ display:flex; flex-direction:column; gap:12px; }
+    .dash-card.static{ cursor:default; }
+    .dash-card.locked{ opacity:0.55; }
+    .dash-card.locked .dash-card-icon{ background:var(--border); }
+
+    /* ---------- Achievements ---------- */
+    .achv-strip{ display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; }
+    .achv-badge{ flex-shrink:0; width:76px; text-align:center; }
+    .achv-icon-wrap{
+      width:54px; height:54px; margin:0 auto 6px; border-radius:50%; display:flex;
+      align-items:center; justify-content:center; background:var(--warm-cream); border:1.5px solid var(--border);
+    }
+    .achv-badge.unlocked .achv-icon-wrap{ background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber)); border-color:transparent; }
+    .achv-icon-wrap svg{ width:20px; height:20px; color:var(--soft-grey); }
+    .achv-badge.unlocked .achv-icon-wrap svg{ color:#fff; }
+    .achv-label{ font-size:10.5px; color:var(--soft-grey); line-height:1.3; }
+    .achv-badge.unlocked .achv-label{ color:var(--warm-brown); font-weight:500; }
+
+    /* ---------- Timeline ---------- */
+    .timeline{ position:relative; padding-left:22px; }
+    .timeline::before{ content:''; position:absolute; left:5px; top:6px; bottom:6px; width:1.5px; background:var(--border); }
+    .tl-item{ position:relative; padding-bottom:20px; }
+    .tl-item:last-child{ padding-bottom:0; }
+    .tl-dot{ position:absolute; left:-22px; top:2px; width:11px; height:11px; border-radius:50%; background:white; border:2px solid var(--border); }
+    .tl-item.done .tl-dot{ background:var(--fire-orange); border-color:var(--fire-orange); }
+    .tl-note{ font-size:11px; color:var(--soft-grey); }
+    .tl-label{ font-size:14px; margin-top:2px; }
+    .tl-item.done .tl-label{ color:var(--warm-brown); font-weight:500; }
+    .tl-item:not(.done) .tl-label{ color:var(--soft-grey); }
+
+    .coming-soon-card{
+      background:var(--warm-cream); border:1.5px dashed var(--border); border-radius:14px;
+      padding:16px 18px; font-size:13px; color:var(--soft-grey); line-height:1.6;
+    }
+    .coming-soon-card b{ color:var(--warm-brown); }
+
+    @media (max-width:600px){ .nav-desktop-extra{ display:none; } }
+  </style>
+</head>
+<body>
+
+<!-- New symbols not yet in /icons.svg — TODO: move these into the shared sprite,
+     same as the other pages' "move into css/main.css once rolled out" TODOs -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <symbol id="icon-flame-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7.5-3 7.5-6.8 0-3-1.8-4.9-3-6.3.2 1.6-.5 2.7-1.3 3.3.3-2.7-1-5.4-3.4-7.2-.4 2.2-1.4 3.6-2.9 5C7.2 11.6 6 12.9 6 15.2 6 19 7.5 22 12 22z"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></symbol>
+    <symbol id="icon-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3.5a2 2 0 010-4h.09A1.65 1.65 0 005 9a1.65 1.65 0 00-.33-1.82l-.06-.06A2 2 0 017.44 4.3l.06.06A1.65 1.65 0 009.5 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019 9a1.65 1.65 0 001.51 1h.09a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></symbol>
+  </defs>
+</svg>
+
+<nav>
+  <a href="/index.html" class="nav-logo">🔥 Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
+  <div class="nav-links">
+    <div id="userStatus" class="nav-desktop-extra" style="font-size:12px;color:var(--soft-grey);"></div>
+    <a href="dashboard.html" class="nav-link nav-desktop-extra">Dashboard</a>
+    <a href="#" onclick="signOut()" class="nav-link">Sign out</a>
+  </div>
+</nav>
+
+<div class="container" style="max-width:600px;padding-top:80px;padding-left:16px;padding-right:16px;padding-bottom:24px;">
+
+  <div class="dash-hero">
+    <div class="dash-eyebrow"><svg class="icon" style="width:14px;height:14px;vertical-align:-2px;"><use href="/icons.svg#icon-momentum"/></svg> My Journey</div>
+    <h1 class="dash-title" id="greetTitle">Good morning.</h1>
+    <p class="dash-sub" id="heroSub">Loading your numbers…</p>
+  </div>
+
+  <div id="profileLoadError" style="display:none;background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:14px;padding:16px 18px;margin-bottom:20px;text-align:center;">
+    <div style="font-size:13px;color:#E65100;font-weight:500;margin-bottom:6px;">Couldn't load your saved profile.</div>
+    <div id="profileLoadErrorDetail" style="font-size:11px;color:#B34700;font-family:monospace;margin-bottom:10px;word-break:break-word;"></div>
+    <button onclick="window.location.reload()" style="background:var(--fire-orange);color:white;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Try again</button>
+  </div>
+
+  <!-- No profile yet — same pattern as dashboard's dashCtaHero -->
+  <div id="noProfileHero" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:28px 24px;color:white;text-align:center;margin-bottom:28px;">
+    <div style="margin-bottom:10px;color:var(--fire-amber);"><svg class="icon" style="width:28px;height:28px;"><use href="/icons.svg#icon-momentum"/></svg></div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;">Your journey starts with your numbers</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:20px;">Run your freedom number first — everything on this page is built from it.</div>
+    <a href="firepath_pro.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 26px;border-radius:50px;font-size:14px;font-weight:500;text-decoration:none;">Run my numbers 🔥</a>
+  </div>
+
+  <div id="journeyContent" style="display:none;">
+
+    <div class="horizon-card">
+      <svg class="horizon-sky" id="horizonSky" viewBox="0 0 400 130" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Progress toward freedom number">
+        <defs><linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1"></linearGradient></defs>
+        <rect x="0" y="0" width="400" height="110" fill="url(#skyGrad)"/>
+        <g id="emberLayer"></g>
+        <circle id="sunDisc" cx="60" cy="100" r="15" fill="#5C3D2E"/>
+        <rect x="0" y="110" width="400" height="20" fill="#3D2B1F"/>
+        <text id="progressPct" x="200" y="66" text-anchor="middle" font-family="Playfair Display, serif" font-weight="700" font-size="30" fill="#fff">0%</text>
+        <text x="200" y="88" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="11" fill="rgba(255,255,255,0.65)" letter-spacing="1">TO YOUR FREEDOM NUMBER</text>
+      </svg>
+      <div class="horizon-stats">
+        <div class="h-stat"><div class="label">Current savings</div><div class="value" id="statSavings">—</div></div>
+        <div class="h-stat accent"><div class="label">Freedom number</div><div class="value" id="statFreedom">—</div></div>
+        <div class="h-stat"><div class="label">Savings rate</div><div class="value" id="statRate">—</div></div>
+      </div>
+      <a class="continue-cta" href="firepath_pro.html" id="continueBtn">Continue Journey →</a>
+    </div>
+
+    <div id="deltasWrap"></div>
+
+    <nav class="journey-nav" role="tablist" aria-label="Journey sections">
+      <button class="nav-tab" role="tab" aria-selected="true" data-panel="overview"><svg><use href="/icons.svg#icon-insight"/></svg>Overview</button>
+      <button class="nav-tab" role="tab" aria-selected="false" data-panel="profile"><svg><use href="/icons.svg#icon-profile"/></svg>Profile</button>
+      <button class="nav-tab" role="tab" aria-selected="false" data-panel="goals"><svg><use href="/icons.svg#icon-target"/></svg>Goals</button>
+      <button class="nav-tab" role="tab" aria-selected="false" data-panel="learning"><svg><use href="/icons.svg#icon-learn"/></svg>Learning</button>
+      <button class="nav-tab" role="tab" aria-selected="false" data-panel="history"><svg><use href="/icons.svg#icon-date"/></svg>History</button>
+      <button class="nav-tab" role="tab" aria-selected="false" data-panel="settings"><svg><use href="#icon-gear"/></svg>Settings</button>
+    </nav>
+
+    <main>
+      <section class="panel active" id="panel-overview">
+        <div class="section-block">
+          <div class="section-label">Achievements</div>
+          <div class="achv-strip" id="achvStrip"></div>
+          <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;">Based on current savings vs. your freedom number — a rough guide, not the full Coast/Lean FIRE calc yet.</div>
+        </div>
+        <div class="section-block">
+          <div class="section-label">Journey Timeline</div>
+          <div class="timeline" id="timeline"></div>
+        </div>
+        <div class="section-block">
+          <div class="section-label">Financial DNA</div>
+          <div class="coming-soon-card"><b>Coming soon.</b> This will score your saver/investor/risk profile from your full numbers — needs the scoring model defined first.</div>
+        </div>
+        <div class="section-block">
+          <div class="section-label">AI Coach</div>
+          <div class="coming-soon-card"><b>Coming soon.</b> Will pull a live insight from your FirePath Worker, same as the Results tab.</div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-profile">
+        <div class="card-grid" id="profileGrid"></div>
+      </section>
+      <section class="panel" id="panel-goals">
+        <div class="card-grid"><div class="coming-soon-card"><b>Coming soon.</b> Target FIRE age, lifestyle, withdrawal strategy — pulling from your saved preferences once those fields exist.</div></div>
+      </section>
+      <section class="panel" id="panel-learning">
+        <div class="card-grid"><a href="learning_lab.html" class="dash-card"><div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-learn"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Open Learning Lab</div><div class="dash-card-desc">Your lesson history lives there for now.</div></div><div class="dash-card-arrow">→</div></a></div>
+      </section>
+      <section class="panel" id="panel-history">
+        <div class="card-grid"><div class="coming-soon-card"><b>Coming soon.</b> Net worth history needs a monthly snapshot table — not built yet.</div></div>
+      </section>
+      <section class="panel" id="panel-settings">
+        <div class="card-grid"><a href="account.html" class="dash-card"><div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-edit"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Account settings</div><div class="dash-card-desc">Manage your email, password, and subscription.</div></div><div class="dash-card-arrow">→</div></a></div>
+      </section>
+    </main>
+  </div>
+
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+  const token = getToken();
+  const userId = getUserId();
+  if (!token || !userId) { window.location.href = 'auth.html'; return; }
+
+  const uel = document.getElementById('userStatus');
+  if (localStorage.getItem('fp_email')) uel.textContent = 'Signed in as ' + localStorage.getItem('fp_email');
+
+  // ASSUMPTION: gating this page to Pro same as dashboard.html.
+  // Remove this block if My Journey should be available on the free tier.
+  if (typeof checkProStatus === 'function') { try { await checkProStatus(); } catch(e) {} }
+  if (localStorage.getItem('fp_is_pro') !== 'true') {
+    window.location.href = 'firepath_pro.html?upgrade=true';
+    return;
+  }
+
+  function fmtM(n) {
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
+    return '$' + Math.round(n);
+  }
+  function cssVar(name, fallback){
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+  function hexToRgb(h){ h=h.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join(''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+  function rgbToHex(r,g,b){ return '#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join(''); }
+  function blend(hexA,hexB,t){ const a=hexToRgb(hexA), b=hexToRgb(hexB); return rgbToHex(lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)); }
+
+  function renderHorizon(pct){
+    const t = Math.max(0, Math.min(100, pct)) / 100;
+    const fireOrange = cssVar('--fire-orange', '#E25D29');
+    const fireAmber  = cssVar('--fire-amber', '#F4A24A');
+    const hearthTop = '#3D2B1F', hearthBot = '#5C3D2E';
+    const topColor = blend(hearthTop, fireOrange, t);
+    const botColor = blend(hearthBot, fireAmber, t);
+    document.querySelector('#skyGrad').innerHTML = `<stop offset="0%" stop-color="${topColor}"/><stop offset="100%" stop-color="${botColor}"/>`;
+
+    const angleDeg = lerp(165, 15, t);
+    const rad = angleDeg * Math.PI/180;
+    const cx = 200, cy = 100, r = 100;
+    const sunX = cx - r*Math.cos(rad);
+    const sunY = Math.max(20, cy - r*Math.sin(rad)*0.75);
+    const sun = document.querySelector('#sunDisc');
+    sun.setAttribute('cx', sunX); sun.setAttribute('cy', sunY);
+    sun.setAttribute('fill', blend('#5C3D2E', fireAmber, t));
+
+    const emberLayer = document.querySelector('#emberLayer');
+    emberLayer.innerHTML = '';
+    emberLayer.setAttribute('opacity', Math.min(1, t*1.3));
+    [[30,90],[70,60],[340,85],[300,55],[20,50],[370,70]].forEach(([x,y])=>{
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',2); c.setAttribute('fill',fireAmber);
+      emberLayer.appendChild(c);
+    });
+    document.querySelector('#progressPct').textContent = Math.round(pct) + '%';
+  }
+
+  function renderAchievementsAndTimeline(savings, freedomNumber){
+    const ratio = freedomNumber > 0 ? savings / freedomNumber : 0;
+    // v1 heuristics only — real Coast/Lean/Fat FIRE thresholds need proper
+    // definitions (deferred step). Flags true/false per badge.
+    const badges = [
+      { label: 'First $10k',    unlocked: savings >= 10000 },
+      { label: 'First $100k',   unlocked: savings >= 100000 },
+      { label: 'Coast FIRE',    unlocked: ratio >= 0.4 },
+      { label: 'Lean FIRE',     unlocked: ratio >= 0.7 },
+      { label: 'Millionaire',   unlocked: savings >= 1000000 },
+      { label: 'Financial Independence', unlocked: ratio >= 1.0 }
+    ];
+    document.getElementById('achvStrip').innerHTML = badges.map(b => `
+      <div class="achv-badge ${b.unlocked?'unlocked':''}">
+        <div class="achv-icon-wrap"><svg><use href="#${b.unlocked?'icon-flame-badge':'icon-lock'}"/></svg></div>
+        <div class="achv-label">${b.label}</div>
+      </div>`).join('');
+
+    const timeline = [
+      { label: 'Started FirePath', done: true, note:'' },
+      { label: 'Saved first $100k', done: savings >= 100000, note:'' },
+      { label: 'Reached Coast FIRE', done: ratio >= 0.4, note:'rough estimate' },
+      { label: 'Hit Lean FIRE', done: ratio >= 0.7, note:'rough estimate' },
+      { label: 'Reached FIRE', done: ratio >= 1.0, note:'' },
+      { label: 'Reached Fat FIRE', done: ratio >= 1.5, note:'' }
+    ];
+    document.getElementById('timeline').innerHTML = timeline.map(t => `
+      <div class="tl-item ${t.done?'done':''}">
+        <div class="tl-dot"></div>
+        <div class="tl-label">${t.label}${t.note ? ` <span class="tl-note">(${t.note})</span>` : ''}</div>
+      </div>`).join('');
+  }
+
+  try {
+    const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_user_id'); localStorage.removeItem('fp_email'); localStorage.removeItem('fp_persona');
+      sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
+      window.location.href = 'auth.html';
+      return;
+    }
+    if (!res.ok) {
+      document.getElementById('profileLoadErrorDetail').textContent = `HTTP ${res.status} ${res.statusText || ''}`.trim();
+      document.getElementById('profileLoadError').style.display = 'block';
+      return;
+    }
+
+    const data = await res.json();
+    const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
+
+    const hour = new Date().getHours();
+    const greetWord = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const displayName = localStorage.getItem('fp_email') ? localStorage.getItem('fp_email').split('@')[0] : '';
+    document.getElementById('greetTitle').textContent = `${greetWord}${displayName ? ', ' + displayName : ''}.`;
+
+    if (!p || !p.freedom_number) {
+      document.getElementById('heroSub').textContent = 'Run your numbers to start your journey.';
+      document.getElementById('noProfileHero').style.display = 'block';
+      return;
+    }
+
+    const savings = p.current_savings || 0;
+    const freedomNumber = p.freedom_number;
+    const pct = freedomNumber > 0 ? Math.min(100, Math.round((savings / freedomNumber) * 100)) : 0;
+
+    document.getElementById('heroSub').textContent = `You're ${pct}% of the way to your freedom number.`;
+    document.getElementById('statSavings').textContent = fmtM(savings);
+    document.getElementById('statFreedom').textContent = fmtM(freedomNumber);
+    document.getElementById('statRate').textContent = p.savings_rate ? p.savings_rate + '%' : '—';
+    renderHorizon(pct);
+
+    // Deltas need a monthly snapshot table (fp_snapshots) that doesn't exist yet —
+    // showing an honest empty state instead of fabricated numbers.
+    document.getElementById('deltasWrap').innerHTML = `
+      <div class="deltas-empty">We'll start showing your month-over-month progress here once you've used FirePath for a full month.</div>`;
+
+    renderAchievementsAndTimeline(savings, freedomNumber);
+
+    // Financial Profile tab — real fp_profiles fields.
+    const liabilities = (p.debt_total || 0) + (p.mortgage_remaining || 0);
+    const profileCards = [];
+    if (p.age) profileCards.push({ title:'Age', value:p.age, icon:'icon-profile' });
+    profileCards.push({ title:'Current savings', value:fmtM(savings) + (p.savings_type ? ` (${p.savings_type})` : ''), icon:'icon-money' });
+    if (p.super_balance !== undefined && p.super_balance !== null) profileCards.push({ title:'Super', value:fmtM(p.super_balance), icon:'icon-money' });
+    if (p.savings_rate) profileCards.push({ title:'Savings rate', value:p.savings_rate+'%', icon:'icon-insight' });
+    if (p.savings_monthly) profileCards.push({ title:'Saving per month', value:fmtM(p.savings_monthly), icon:'icon-insight' });
+    profileCards.push({ title:'Liabilities', value: liabilities > 0 ? fmtM(liabilities) : '$0', icon:'icon-target' });
+    if (p.housing_status) profileCards.push({ title:'Housing', value: p.housing_status.charAt(0).toUpperCase()+p.housing_status.slice(1), icon:'icon-profile' });
+    if (p.dependants !== undefined && p.dependants !== null) profileCards.push({ title:'Dependants', value:p.dependants, icon:'icon-profile' });
+    profileCards.push({ title:'Freedom number', value:fmtM(freedomNumber), icon:'icon-target' });
+    if (p.freedom_years !== undefined && p.freedom_years !== null) profileCards.push({ title:'Years to freedom', value:Math.round(p.freedom_years)+' yrs', icon:'icon-date' });
+    document.getElementById('profileGrid').innerHTML = profileCards.map(c => `
+      <div class="dash-card static">
+        <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#${c.icon}"/></svg></div>
+        <div class="dash-card-body"><div class="dash-card-title">${c.title}</div><div class="dash-card-desc">${c.value}</div></div>
+      </div>`).join('') + `<div class="coming-soon-card">Income breakdown (gross/take-home/pay cycle) and partner numbers are captured but not shown here yet — say the word and I'll add them.</div>`;
+
+    document.getElementById('journeyContent').style.display = 'block';
+
+  } catch(e) {
+    console.log('Journey profile load failed', e);
+    document.getElementById('profileLoadErrorDetail').textContent = (e && e.message) ? e.message : String(e);
+    document.getElementById('profileLoadError').style.display = 'block';
+  }
+});
+
+// Nav / tab switching
+document.querySelectorAll('.nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-tab').forEach(b => b.setAttribute('aria-selected','false'));
+    btn.setAttribute('aria-selected','true');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>
