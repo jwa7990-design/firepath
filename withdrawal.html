@@ -465,9 +465,22 @@
       const comfortable = midPoint > portfolioAtStart * 0.9;
       confDot.style.background = comfortable ? '#2E7D32' : '#F9A825';
       confLabel.textContent = comfortable ? 'High' : 'Comfortable';
-      bufferNote.innerHTML = comfortable
+
+      // Sanity check: a long deferral compounding at a high return, then another 30
+      // years compounding in retirement, can multiply today's portfolio by an amount
+      // nobody would actually experience in practice. Flag it plainly rather than
+      // presenting an outlier figure as if it were an ordinary result.
+      const multiple = portfolioToday > 0 ? base.endingBalance / portfolioToday : 0;
+      const totalHorizon = yearsToRetirement + 30;
+      const isOutlier = multiple > 15 && totalHorizon > 40;
+
+      const buffLine = comfortable
         ? `Your portfolio isn't just surviving the 30 years — it holds a growing buffer throughout, ending with roughly <strong>${fmtM(base.endingBalance)}</strong> still there. That's real flexibility: room to spend more now and taper later, a buffer for the unexpected, or something to leave behind.`
         : `Your portfolio makes it through the full 30 years, ending with roughly <strong>${fmtM(base.endingBalance)}</strong> — though the buffer thins for a stretch before growth catches back up.`;
+
+      bufferNote.innerHTML = isOutlier
+        ? `${buffLine}<br/><br/><em style="color:var(--soft-grey);font-size:12px;">Worth knowing: this assumes ${(returnRate*100).toFixed(0)}% returns sustained for ${totalHorizon} years straight — ${yearsToRetirement} years growing before retirement, then 30 more years in retirement. Real markets don't compound smoothly for six decades; treat this as what the assumption implies, not a forecast.</em>`
+        : buffLine;
     }
 
     // Portfolio journey chart — real SVG line from the actual year-by-year simulation
@@ -500,7 +513,15 @@
       const y = h - pad - (v / max) * (h - pad * 2);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
-    const pathLen = series.length * stepX * 1.4; // rough estimate, good enough for the draw animation
+    const pathLen = points.length ? (() => {
+      const coords = points.split(' ').map(p => p.split(',').map(Number));
+      let total = 0;
+      for (let i = 1; i < coords.length; i++) {
+        const [x1, y1] = coords[i - 1], [x2, y2] = coords[i];
+        total += Math.hypot(x2 - x1, y2 - y1);
+      }
+      return total;
+    })() : 0;
     container.innerHTML = `
       <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;overflow:visible;">
         <polyline points="${points}" fill="none" stroke="#2E7D32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
@@ -527,7 +548,12 @@
     const baseDesc = base.depleted ? `runs out around year ${base.yearsLasted} of a 30-year retirement` : `comfortably lasts the full 30-year retirement test, ending with roughly ${fmtM(base.endingBalance)} still invested`;
     const goodDesc = good.depleted ? `runs out around year ${good.yearsLasted}` : `also lasts the full 30 years, ending with roughly ${fmtM(good.endingBalance)} — an even larger buffer`;
 
-    const userInput = `Portfolio today: ${fmtM(portfolioToday)}. This person plans to keep working and growing it for ${yearsToRetirement} more years before retiring, at which point the portfolio is projected to be roughly ${fmtM(portfolio)}. Assumed return: ${(returnRate*100).toFixed(1)}%. Withdrawal rate at retirement: ${(withdrawRate*100).toFixed(1)}% (${fmtM(portfolio*withdrawRate)}/yr in the first year of retirement, then increased with inflation each year to preserve purchasing power). Inflation assumption: ${(inflation*100).toFixed(1)}%. Simulation result on current settings (30-year retirement horizon starting from the projected retirement balance — the standard Trinity Study test): ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.`;
+    const totalHorizonForAI = yearsToRetirement + 30;
+    const multipleForAI = portfolioToday > 0 ? base.endingBalance / portfolioToday : 0;
+    const outlierNote = (multipleForAI > 15 && totalHorizonForAI > 40)
+      ? ` Note: this assumes ${(returnRate*100).toFixed(0)}% returns sustained for ${totalHorizonForAI} straight years (${yearsToRetirement} to retirement plus 30 in retirement) — flag this clearly as an aggressive assumption over an unusually long horizon, not a realistic forecast.`
+      : '';
+    const userInput = `Portfolio today: ${fmtM(portfolioToday)}. This person plans to keep working and growing it for ${yearsToRetirement} more years before retiring, at which point the portfolio is projected to be roughly ${fmtM(portfolio)}. Assumed return: ${(returnRate*100).toFixed(1)}%. Withdrawal rate at retirement: ${(withdrawRate*100).toFixed(1)}% (${fmtM(portfolio*withdrawRate)}/yr in the first year of retirement, then increased with inflation each year to preserve purchasing power). Inflation assumption: ${(inflation*100).toFixed(1)}%. Simulation result on current settings (30-year retirement horizon starting from the projected retirement balance — the standard Trinity Study test): ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.${outlierNote}`;
 
     try {
       const res = await fetch(WORKER_URL, {
