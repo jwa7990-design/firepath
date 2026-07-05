@@ -119,6 +119,24 @@
     }
     .coming-soon-card b{ color:var(--warm-brown); }
 
+    /* ---------- Financial DNA ---------- */
+    .dna-row{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+    .dna-label{ width:100px; flex-shrink:0; font-size:13px; color:var(--soft-grey); }
+    .dna-track{ flex:1; height:7px; border-radius:999px; background:var(--border); overflow:hidden; }
+    .dna-fill{ height:100%; border-radius:999px; background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber)); }
+
+    /* ---------- AI Coach ---------- */
+    .coach-card{ background:white; border:1.5px solid var(--border); border-radius:16px; padding:16px 18px; cursor:pointer; }
+    .coach-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .coach-head-left{ display:flex; align-items:center; gap:10px; }
+    .coach-title{ font-weight:600; font-size:14px; color:var(--warm-brown); }
+    .coach-chevron{ font-size:12px; color:var(--soft-grey); transition:transform 0.2s; }
+    .coach-card[aria-expanded="true"] .coach-chevron{ transform:rotate(180deg); }
+    .coach-summary{ font-size:13.5px; color:var(--soft-grey); margin-top:8px; line-height:1.5; }
+    .coach-detail{ display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:13.5px; color:var(--soft-grey); line-height:1.6; }
+    .coach-card[aria-expanded="true"] .coach-detail{ display:block; }
+    .coach-meta{ font-size:11px; color:var(--soft-grey); margin-top:10px; }
+
     @media (max-width:600px){ .nav-desktop-extra{ display:none; } }
   </style>
 </head>
@@ -275,11 +293,12 @@
         </div>
         <div class="section-block">
           <div class="section-label">Financial DNA</div>
-          <div class="coming-soon-card"><b>Coming soon.</b> This will score your saver/investor/risk profile from your full numbers — needs the scoring model defined first.</div>
+          <div id="dnaRows"></div>
+          <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;" id="dnaNote"></div>
         </div>
         <div class="section-block">
           <div class="section-label">AI Coach</div>
-          <div class="coming-soon-card"><b>Coming soon.</b> Will pull a live insight from your FirePath Worker, same as the Results tab.</div>
+          <div id="coachWrap"></div>
         </div>
       </section>
 
@@ -475,6 +494,76 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   };
 
+  // ---------------------------------------------------------------
+  // Financial DNA — v1 scoring model, 4 of 5 dimensions from real data.
+  // "Income growth" is deliberately omitted: it needs income tracked over
+  // time (a snapshot table), which doesn't exist yet — same gap as the
+  // month-over-month deltas above. Thresholds here are a first pass;
+  // revisit weights once real users have run through it.
+  // ---------------------------------------------------------------
+  function scoreSaver(savingsRate) {
+    if (!savingsRate) return 1;
+    return Math.max(1, Math.min(10, Math.round(savingsRate / 5)));
+  }
+  function scoreInvestor(savingsType) {
+    const map = { etfs: 9, shares: 9, super: 6, mixed: 6, cash: 2 };
+    return map[(savingsType || '').toLowerCase()] || 4;
+  }
+  function scoreRisk(debtTotal, mortgageRemaining, grossIncome) {
+    const leverage = debtTotal + mortgageRemaining;
+    if (!grossIncome || grossIncome <= 0) return leverage > 0 ? 6 : 2;
+    const ratio = leverage / grossIncome;
+    return Math.max(1, Math.min(10, Math.round(ratio * 2)));
+  }
+  function scoreSpending(retirementSpendMultiplier) {
+    const m = retirementSpendMultiplier || 0.8;
+    return Math.max(1, Math.min(10, Math.round(m * 10)));
+  }
+
+  function renderFinancialDNA(p) {
+    const rows = [
+      { label: 'Saver', score: scoreSaver(p.savings_rate) },
+      { label: 'Investor', score: scoreInvestor(p.savings_type) },
+      { label: 'Risk taken', score: scoreRisk(p.debt_total || 0, p.mortgage_remaining || 0, p.gross_income || 0) },
+      { label: 'Spending', score: scoreSpending(p.retirement_spend) }
+    ];
+    document.getElementById('dnaRows').innerHTML = rows.map(r => `
+      <div class="dna-row">
+        <div class="dna-label">${r.label}</div>
+        <div class="dna-track"><div class="dna-fill" style="width:${r.score*10}%"></div></div>
+      </div>`).join('');
+    document.getElementById('dnaNote').textContent = "A first-pass score from your saved numbers — not a full financial personality model yet, and doesn't include income growth (needs history we don't track yet).";
+  }
+
+  // ---------------------------------------------------------------
+  // AI Coach — no new AI call needed. firepath_pro.html already saves
+  // the generated insight to fp_profiles.ai_insight_text every time
+  // someone runs their numbers; this just displays that same text.
+  // ---------------------------------------------------------------
+  function renderAICoach(p) {
+    const wrap = document.getElementById('coachWrap');
+    if (!p.ai_insight_text) {
+      wrap.innerHTML = `<div class="coming-soon-card">Run your numbers on the Results tab first — your AI Coach insight will show up here once it's been generated.</div>`;
+      return;
+    }
+    const shortText = p.ai_insight_text.length > 140 ? p.ai_insight_text.slice(0, 140).trim() + '…' : p.ai_insight_text;
+    const genDate = p.ai_insight_generated_at ? new Date(p.ai_insight_generated_at).toLocaleDateString('en-AU', { day:'numeric', month:'short' }) : null;
+    wrap.innerHTML = `
+      <div class="coach-card" id="coachCard" role="button" tabindex="0" aria-expanded="false">
+        <div class="coach-head">
+          <div class="coach-head-left"><span style="font-size:16px;">🔥</span><span class="coach-title">Today's Insight</span></div>
+          <span class="coach-chevron">▾</span>
+        </div>
+        <div class="coach-summary">${shortText}</div>
+        <div class="coach-detail">${p.ai_insight_text}</div>
+        ${genDate ? `<div class="coach-meta">Generated ${genDate} — same insight as your Results tab</div>` : ''}
+      </div>`;
+    const card = document.getElementById('coachCard');
+    function toggleCoach() { card.setAttribute('aria-expanded', card.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'); }
+    card.addEventListener('click', toggleCoach);
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCoach(); } });
+  }
+
   function renderAchievementsAndTimeline(savings, freedomNumber, persona){
     const copy = PERSONA_COPY[persona] || PERSONA_COPY.default;
     const ratio = freedomNumber > 0 ? savings / freedomNumber : 0;
@@ -557,6 +646,8 @@ document.addEventListener('DOMContentLoaded', async function() {
       <div class="deltas-empty">We'll start showing your month-over-month progress here once you've used FirePath for a full month.</div>`;
 
     renderAchievementsAndTimeline(savings, freedomNumber, p.persona);
+    renderFinancialDNA(p);
+    renderAICoach(p);
     renderCommitmentCard();
 
     if (savings) {
