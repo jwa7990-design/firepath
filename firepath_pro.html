@@ -647,7 +647,7 @@
   <div class="screen" id="screen3" style="display:none;">
     <button class="back-btn" onclick="obShowScreen(2)">← Recalculate</button>
 
-    <div class="result-card">
+    <div class="result-card" style="position:sticky;top:64px;z-index:15;">
       <p class="result-label">Your FirePath Pro result</p>
       <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
       <p class="result-sub" id="resultSub"></p>
@@ -683,10 +683,9 @@
     </div>
 
     <div class="tab-nav" id="resultTabNav" style="display:flex;gap:4px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:14px;padding:4px;margin-top:16px;margin-bottom:12px;overflow-x:auto;">
-      <button class="rtab-btn active" onclick="switchResultTab('insight', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="/icons.svg#icon-insight"/></svg> AI Insight</button>
+      <button class="rtab-btn active" onclick="switchResultTab('insight', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="/icons.svg#icon-insight"/></svg> AI Coach</button>
       <button class="rtab-btn" onclick="switchResultTab('freedom', this)" id="freedomTabBtn" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:none;align-items:center;justify-content:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="/icons.svg#icon-money"/></svg> Freedom</button>
       <button class="rtab-btn" onclick="switchResultTab('super', this)" id="superTabBtn" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:none;align-items:center;justify-content:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="/icons.svg#icon-super"/></svg> Super</button>
-      <button class="rtab-btn" onclick="switchResultTab('needle', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="/icons.svg#icon-target"/></svg> My Date</button>
       <button class="rtab-btn" onclick="switchResultTab('next', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:rgba(0,0,0,0.04);color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="/icons.svg#icon-momentum"/></svg> What's Next</button>
     </div>
 
@@ -727,14 +726,14 @@
       <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Super projected at 7% annual growth with employer contributions after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
     </div>
 
-    <div class="rtab-content" id="rtab-needle" style="display:none;">
-      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:12px;padding:0 2px;">Small changes compound over time. Here's exactly what each lever does to your freedom date — based on your numbers.</div>
-      <div id="needleCard"></div>
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. All projections assume 7% real return unless otherwise stated.</p>
-    </div>
-
     <div class="rtab-content" id="rtab-next" style="display:none;">
       <div id="whatsNextContent"></div>
+      <div style="margin-top:8px;padding-top:16px;border-top:1.5px solid var(--border);">
+        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:6px;">🎯 What moves your date</div>
+        <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:12px;padding:0 2px;">Small changes compound over time. Here's exactly what each lever does to your freedom date — based on your numbers.</div>
+        <div id="needleCard"></div>
+        <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. All projections assume 7% real return unless otherwise stated.</p>
+      </div>
       <p class="disclaimer" style="margin-top:8px;">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
       <p style="text-align:center;font-size:12px;margin-bottom:16px;"><a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> · <a href="faq.html" style="color:var(--fire-orange);">FAQ</a> · <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
     </div>
@@ -848,9 +847,10 @@
     }
 
     // Generic deep link — e.g. dashboard cards linking straight to a specific result tab
-    const requestedTab = up.get('tab');
+    let requestedTab = up.get('tab');
+    if (requestedTab === 'needle') requestedTab = 'next'; // My Date merged into What's Next
     if (requestedTab && document.getElementById('screen3').style.display !== 'none') {
-      const tabBtnMap = { super: 'superTabBtn', freedom: 'freedomTabBtn', needle: null, next: null, insight: null };
+      const tabBtnMap = { super: 'superTabBtn', freedom: 'freedomTabBtn', next: null, insight: null };
       if (requestedTab in tabBtnMap) {
         const btnId = tabBtnMap[requestedTab];
         const btn = btnId ? document.getElementById(btnId) : document.querySelector(`.rtab-btn[onclick*="'${requestedTab}'"]`);
@@ -1778,7 +1778,7 @@ async function saveProfile() {
     }
     const steps = [];
     steps.push(`<div style="display:flex;align-items:center;gap:14px;padding:12px;background:#F0FFF4;border-radius:12px;border:1px solid #A5D6A7;"><div style="font-size:20px">✅</div><div><div style="font-size:14px;font-weight:500;color:#2E7D32;">Know ${your} number</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">${your.charAt(0).toUpperCase() + your.slice(1)} freedom number is ${fmtM(fireNum)}. That's the foundation everything else builds on.</div></div></div>`);
-    if (!alreadyFree) { steps.push(`<div onclick="switchResultTab('needle', document.querySelector('.rtab-btn:nth-child(4)'))" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px">🎯</div><div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">See what moves ${your} date</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">The My Date tab shows exactly what each lever does to ${your} freedom year — in real numbers.</div></div></div>`); }
+    if (!alreadyFree) { steps.push(`<div onclick="document.getElementById('needleCard').scrollIntoView({behavior:'smooth',block:'start'})" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px">🎯</div><div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">See what moves ${your} date</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">Scroll down — exactly what each lever does to ${your} freedom year, in real numbers.</div></div></div>`); }
     if (persona === 'beginner' || persona === 'building') { steps.push(`<div onclick="window.location.href='learning_lab.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px">🎓</div><div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">${persona === 'beginner' ? 'Understand the basics' : 'Go deeper on the concepts'}</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">${persona === 'beginner' ? 'The Learning Lab explains how this all works — in plain language, no jargon.' : 'The Learning Lab covers compounding, ETFs, super, and the 4% rule — in your language.'}</div></div></div>`); }
     steps.push(`<div onclick="saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:#FFF7F3;border-radius:12px;border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px">🤔</div><div><div style="font-size:14px;font-weight:500;color:var(--fire-orange);">Run a "what if"</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;">What if ${you} sold the house? Got a lump sum? Hear Me Out lets ${you} model the big moves.</div></div></div>`);
     blocks.push(`<div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:20px;margin-bottom:16px;"><div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:14px;">${isPartner ? 'Your next steps together' : 'Your next steps'} 🔥</div><div style="display:flex;flex-direction:column;gap:10px;">${steps.join('')}</div></div>`);
