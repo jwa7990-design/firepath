@@ -345,7 +345,7 @@
       const res = await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`, { headers:{'Authorization':`Bearer ${fpToken}`} });
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        checkinHistory = data.map(d => ({ month: new Date(d.created_at).toLocaleString('default',{day:'numeric',month:'short',year:'numeric'}), savings: d.savings_total, sRate: d.savings_rate, hit: true }));
+        checkinHistory = data.map(d => ({ month: new Date(d.created_at).toLocaleString('default',{day:'numeric',month:'short',year:'numeric'}), savings: d.savings_total, sRate: d.savings_rate, hit: d.hit !== false }));
         renderHistory();
       }
     } catch(e) {}
@@ -521,12 +521,17 @@
     localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
     renderCommitmentView();
 
-    const newSavings = parseFloat(document.getElementById('ci-savings').value) || 0;
-    if (newSavings > 0 && calcData.fireNum) {
+    // Balance input is optional — fall back to the last known savings figure
+    // if it's left blank, rather than skipping everything below.
+    const enteredSavings = parseFloat(document.getElementById('ci-savings').value);
+    const newSavings = (!isNaN(enteredSavings) && enteredSavings > 0) ? enteredSavings : (calcData.savings || 0);
+
+    let ny = null, pct = null;
+    if (calcData.fireNum) {
       const mSav = calcData.mSav || 0;
       const fireNum = calcData.fireNum;
-      const ny = yearsToGoal(fireNum, newSavings, mSav, 0.07);
-      const pct = Math.min(Math.round((newSavings / fireNum) * 100), 100);
+      ny = yearsToGoal(fireNum, newSavings, mSav, 0.07);
+      pct = Math.min(Math.round((newSavings / fireNum) * 100), 100);
       document.getElementById('pathFill').style.width = pct + '%';
       document.getElementById('progressPct').textContent = pct + '%';
       document.getElementById('accPortfolio').textContent = fmtM(newSavings);
@@ -534,13 +539,16 @@
       document.getElementById('accFreedomDate').textContent = ny ? currentYear + Math.round(ny) : '100+ yrs';
       const oy = yearsToGoal(fireNum, calcData.savings, mSav, 0.07);
       calcData.savings = newSavings;
+      localStorage.setItem('fp_last_calc', JSON.stringify(calcData));
       renderMilestones(fireNum, newSavings, mSav);
-      if (hit && oy && ny) showMilestone(oy - ny, pct);
-      dbInsert('checkins', { savings_total: newSavings, savings_rate: calcData.sRate || 0, freedom_years: ny ? Math.round(ny*10)/10 : null, streak: commitmentData.streak });
-      checkinHistory.unshift({ month: new Date().toLocaleString('default',{day:'numeric',month:'short',year:'numeric'}), savings: newSavings, hit });
-      checkinHistory = checkinHistory.slice(0, 20); // cap the session list so it can't grow unbounded
-      renderHistory();
+      if (hit && oy != null && ny != null) showMilestone(oy - ny, pct);
     }
+
+    // The check-in itself always gets logged — whether or not a balance was entered.
+    dbInsert('checkins', { savings_total: newSavings, savings_rate: calcData.sRate || 0, freedom_years: ny ? Math.round(ny*10)/10 : null, streak: commitmentData.streak, hit: hit });
+    checkinHistory.unshift({ month: new Date().toLocaleString('default',{day:'numeric',month:'short',year:'numeric'}), savings: newSavings, hit });
+    checkinHistory = checkinHistory.slice(0, 20); // cap the session list so it can't grow unbounded
+    renderHistory();
 
     const totalDaysOff = commitmentData.totalDaysOff || 0;
     const perFlameDays = hit && totalPossible > 0 ? Math.round(totalDaysOff / totalPossible) : 0;
