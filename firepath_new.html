@@ -629,7 +629,7 @@
             <span class="bento-num">1</span>
             <div class="bento-head-text">
               <div class="bento-title">📊 Your projected range</div>
-              <div class="bento-teaser">Same savings, different return assumptions — tap to see your 3 scenarios.</div>
+              <div class="bento-teaser" id="rangeTeaser">Same savings, different return assumptions — tap to see your 3 scenarios.</div>
             </div>
             <span class="bento-chevron">⌄</span>
           </div>
@@ -1134,7 +1134,7 @@
       <div class="range-row"><span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>` : `
       <div class="range-row base"><span class="range-label">✅ <strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span><span class="range-value base">${fmt7}</span></div>
       <div class="range-row"><span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>`;
-    const subtitle = el.querySelector('div:nth-child(2)');
+    const subtitle = document.getElementById('rangeTeaser');
     if (subtitle) subtitle.textContent = alreadyInvested ? "You're already investing — here's what one more step could do." : "Here's your current reality, and what changes if your money works harder.";
     el.style.display = 'block';
   }
@@ -1465,16 +1465,20 @@ function runCinematicReveal(yearsText, subText) {
   const shockWrap = document.getElementById('cin-shock-wrap');
   const cta = document.getElementById('cin-cta');
 
-  // Reset
+  // Reset — everything stays in normal flow now; no display:none toggling,
+  // which was the source of the earlier flash/swap feeling.
+  mondays.style.transition = 'none';
   mondays.style.opacity = '0';
   mondays.style.display = _cinMondaysText ? 'block' : 'none';
+  mondays.style.marginBottom = _cinMondaysText ? '32px' : '0';
+  mondaysText.style.fontSize = '';
+  mondays.getBoundingClientRect(); // force reflow before re-enabling transition
+  mondays.style.transition = 'opacity 0.9s ease, margin-bottom 0.9s ease';
+
   eyebrow.style.opacity = '0';
-  eyebrow.style.display = 'block';
   number.style.opacity = '0';
   number.style.transform = 'translateY(12px)';
-  number.style.display = 'block';
   sub.style.opacity = '0';
-  sub.style.display = 'block';
   freedomAge.style.opacity = '0';
   unless.style.opacity = '0';
   cta.style.opacity = '0';
@@ -1493,28 +1497,21 @@ function runCinematicReveal(yearsText, subText) {
   document.body.style.overflow = 'hidden';
 
   if (_cinMondaysText) {
-    // ACT 1 — Mondays alone, the emotional gut-punch, held for a beat then cleared
-    // so the eyebrow/number that follow aren't fighting it for attention.
-    eyebrow.style.display = 'none';
-    number.style.display = 'none';
-    sub.style.display = 'none';
-
+    // Mondays fades in, holds, then SETTLES into a smaller persistent line —
+    // it never disappears, the rest just builds in underneath it.
     setTimeout(() => { mondays.style.opacity = '1'; }, 300);
-    setTimeout(() => { mondays.style.opacity = '0'; }, 2600);
     setTimeout(() => {
-      mondays.style.display = 'none';
-      eyebrow.style.display = 'block';
-      number.style.display = 'block';
-      sub.style.display = 'block';
-    }, 3500);
-
-    // ACT 2 — the existing sequence, shifted later to follow Act 1
-    setTimeout(() => { eyebrow.style.opacity = '1'; }, 3600);
-    setTimeout(() => { number.style.opacity = '1'; number.style.transform = 'translateY(0)'; }, 4050);
-    setTimeout(() => { sub.style.opacity = '1'; }, 4650);
-    setTimeout(() => { if (_cinFreedomAgeText) freedomAge.style.opacity = '1'; }, 5300);
-    setTimeout(() => { if (showUnless) unless.style.opacity = '1'; }, 6200);
-    setTimeout(() => { cta.style.opacity = '1'; }, showUnless ? 7100 : 5800);
+      mondaysText.style.transition = 'font-size 0.7s ease';
+      mondaysText.style.fontSize = '15px';
+      mondays.style.opacity = '0.55';
+      mondays.style.marginBottom = '18px';
+    }, 2600);
+    setTimeout(() => { eyebrow.style.opacity = '1'; }, 3100);
+    setTimeout(() => { number.style.opacity = '1'; number.style.transform = 'translateY(0)'; }, 3550);
+    setTimeout(() => { sub.style.opacity = '1'; }, 4150);
+    setTimeout(() => { if (_cinFreedomAgeText) freedomAge.style.opacity = '1'; }, 4800);
+    setTimeout(() => { if (showUnless) unless.style.opacity = '1'; }, 5700);
+    setTimeout(() => { cta.style.opacity = '1'; }, showUnless ? 6600 : 5200);
   } else {
     // No Mondays beat (e.g. already free) — original timing, unchanged
     setTimeout(() => { eyebrow.style.opacity = '1'; }, 300);
