@@ -622,63 +622,76 @@
         <div id="lifeUnlockedGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
       </div>
 
-      <div class="bento-grid">
-      <div id="rangeCard" style="display:none;" class="cin-card bento-full">
-        <div id="bento-tile-range" class="bento-tile">
-          <div class="bento-head" onclick="toggleBento('bento-tile-range')">
-            <span class="bento-num">1</span>
-            <div class="bento-head-text">
-              <div class="bento-title">📊 Your projected range</div>
-              <div class="bento-teaser" id="rangeTeaser">Same savings, different return assumptions — tap to see your 3 scenarios.</div>
-            </div>
-            <span class="bento-chevron">⌄</span>
+      <div class="bento-squares cin-card">
+        <div class="bsq" id="sq-range" style="display:none;" onclick="openBentoModal('range')">
+          <div class="bsq-top">
+            <span class="bsq-icon" style="background:rgba(124,185,126,0.15);color:#4a9a4d;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/></svg></span>
+            <span class="bsq-num">1</span>
           </div>
-          <div class="bento-body-wrap">
-            <div class="bento-body">
-              <div id="rangeRows"></div>
-              <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
-            </div>
+          <div class="bsq-title">Your projected range</div>
+          <div class="bsq-stat" id="sqRangeStat">—</div>
+        </div>
+
+        <div class="bsq" id="sq-meaning" style="display:none;" onclick="openBentoModal('meaning')">
+          <div class="bsq-top">
+            <span class="bsq-icon" style="background:rgba(244,98,42,0.12);color:var(--fire-orange);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 2a7 7 0 0 0-4 12.7c.5.4.8 1 .8 1.6V17h6.4v-.7c0-.6.3-1.2.8-1.6A7 7 0 0 0 12 2z"/><path d="M9.5 20h5"/></svg></span>
+            <span class="bsq-num">2</span>
           </div>
+          <div class="bsq-title">What this means</div>
+          <div class="bsq-stat" id="sqMeaningStat">—</div>
+        </div>
+
+        <div class="bsq" id="sq-needle" style="display:none;" onclick="openBentoModal('needle')">
+          <div class="bsq-top">
+            <span class="bsq-icon" style="background:rgba(232,185,74,0.18);color:#B8860B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
+            <span class="bsq-num">3</span>
+          </div>
+          <div class="bsq-title">What changes your date</div>
+          <div class="bsq-stat" id="sqNeedleStat">—</div>
+        </div>
+
+        <div class="bsq" id="sq-withdrawal" style="display:none;" onclick="openBentoModal('withdrawal')">
+          <div class="bsq-top">
+            <span class="bsq-icon" style="background:rgba(92,61,46,0.12);color:var(--warm-brown);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 10h18"/><circle cx="17" cy="14" r="1.3" fill="currentColor" stroke="none"/></svg></span>
+            <span class="bsq-num">4</span>
+          </div>
+          <div class="bsq-title">Already working for you</div>
+          <div class="bsq-stat" id="sqWithdrawalStat">—</div>
+        </div>
+
+        <div class="bsq bsq-wide" id="sq-tax" style="display:none;" onclick="openBentoModal('tax')">
+          <div class="bsq-top">
+            <span class="bsq-icon" style="background:rgba(61,43,31,0.1);color:var(--warm-brown);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 2h12v18l-3-2-3 2-3-2-3 2V2z"/><path d="M9 7h6"/><path d="M9 11h6"/></svg></span>
+            <span class="bsq-num">5</span>
+          </div>
+          <div class="bsq-title">Where your next dollar goes</div>
+          <div class="bsq-stat" id="sqTaxStat">—</div>
         </div>
       </div>
 
-      <div id="meaningCard" style="display:none;" class="cin-card bento-full">
-        <div id="bento-tile-meaning" class="bento-tile">
-          <div class="bento-head" onclick="toggleBento('bento-tile-meaning')">
-            <span class="bento-num">2</span>
-            <div class="bento-head-text">
-              <div class="bento-title">💡 What this means for you</div>
-              <div class="bento-teaser" id="meaningTeaser">Tap for the full picture.</div>
-            </div>
-            <span class="bento-chevron">⌄</span>
-          </div>
-          <div class="bento-body-wrap">
-            <div class="bento-body">
-              <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
-            </div>
-          </div>
+      <!-- Hidden data sources — populated by the existing build functions, unchanged.
+           Never shown directly; their content is copied into the floating modal on tap. -->
+      <div style="display:none;">
+        <div id="rangeCard">
+          <div id="rangeRows"></div>
+          <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
+        </div>
+        <div id="meaningCard">
+          <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
+        </div>
+        <div id="needleCard"></div>
+        <div id="withdrawalCard"></div>
+        <div id="taxNudgeCard">
+          <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;" id="taxNudgeText"></div>
+          <a href="tax.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:10px 22px;border-radius:50px;font-size:13px;font-weight:500;text-decoration:none;">Open Tax & Strategy — it's free →</a>
         </div>
       </div>
 
-      <div id="needleCard" class="cin-card bento-full"></div>
-      <div id="withdrawalCard" style="display:none" class="cin-card bento-full"></div>
-
-      <div id="taxNudgeCard" style="display:none;" class="cin-card bento-full">
-        <div id="bento-tile-tax" class="bento-tile">
-          <div class="bento-head" onclick="toggleBento('bento-tile-tax')">
-            <span class="bento-num">5</span>
-            <div class="bento-head-text">
-              <div class="bento-title">Where does your next dollar actually go?</div>
-              <div class="bento-teaser">Tax & Strategy — free tools, tap for details.</div>
-            </div>
-            <span class="bento-chevron">⌄</span>
-          </div>
-          <div class="bento-body-wrap">
-            <div class="bento-body">
-              <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;" id="taxNudgeText"></div>
-              <a href="tax.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:10px 22px;border-radius:50px;font-size:13px;font-weight:500;text-decoration:none;">Open Tax & Strategy — it's free →</a>
-            </div>
-          </div>
+      <!-- Floating modal — shared by all five squares -->
+      <div id="bentoModalOverlay" class="bento-modal-overlay" onclick="if(event.target===this) closeBentoModal()">
+        <div class="bento-modal">
+          <button class="bento-modal-close" onclick="closeBentoModal()">✕</button>
+          <div id="bentoModalContent"></div>
         </div>
       </div>
 
@@ -696,8 +709,6 @@
             <div id="recommendedBtn" onclick="" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read in the Learning Lab →</div>
           </div>
         </div>
-      </div>
-
       </div>
 
       <div id="proUpgradeBanner" class="cin-card"></div>
@@ -820,12 +831,13 @@
       gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's 25× your annual spending, the amount that means you never have to work again.<br/><br/>Right now your savings rate is low, which means the timeline is long. But every extra dollar you save each week shortens that gap — because of compounding. FirePath Pro can show you exactly what moves the needle most for your situation.`;
     }
     document.getElementById('whatThisMeansText').innerHTML = gapText;
-    document.getElementById('meaningCard').style.display = 'block';
-    const meaningTeaserEl = document.getElementById('meaningTeaser');
-    if (meaningTeaserEl) {
-      meaningTeaserEl.textContent = alreadyFree
-        ? `You've already hit your number — tap to see what that means.`
-        : `Your gap is ${fmtM(gap)} — tap for the full breakdown.`;
+    const sqMeaning = document.getElementById('sq-meaning');
+    const sqMeaningStat = document.getElementById('sqMeaningStat');
+    if (sqMeaning) sqMeaning.style.display = 'flex';
+    if (sqMeaningStat) {
+      sqMeaningStat.textContent = alreadyFree
+        ? `You've already hit your number`
+        : `Gap: ${fmtM(gap)}`;
     }
 
     buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate);
@@ -1134,9 +1146,11 @@
       <div class="range-row"><span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>` : `
       <div class="range-row base"><span class="range-label">✅ <strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span><span class="range-value base">${fmt7}</span></div>
       <div class="range-row"><span class="range-label">🚀 <strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>`;
-    const subtitle = document.getElementById('rangeTeaser');
-    if (subtitle) subtitle.textContent = alreadyInvested ? "You're already investing — here's what one more step could do." : "Here's your current reality, and what changes if your money works harder.";
     el.style.display = 'block';
+    const sqRange = document.getElementById('sq-range');
+    const sqRangeStat = document.getElementById('sqRangeStat');
+    if (sqRange) sqRange.style.display = 'flex';
+    if (sqRangeStat) sqRangeStat.textContent = diffPlus && diffPlus > 0 ? `Up to ${diffPlus}yr sooner` : `See your 3 scenarios`;
   }
 
   function buildNeedleCard(fireNum, savings, mSav, y07) {
@@ -1148,26 +1162,17 @@
     const leverRows = levers.map(l => { const y = yearsToGoal(fireNum, savings, l.mSavNew, 0.07); const yr = y ? cy + Math.round(y) : null; const diff = y && y07 ? Math.round(y07 - y) : 0; return `<div class="needle-row"><span class="needle-label">${l.label}</span><span class="needle-result better">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : '') : '100+ yrs'}</span></div>`; }).join('');
     const headwinds = [{ label: 'Spending up 15%', mult: 1.15 },{ label: 'Spending up 30%', mult: 1.30 },{ label: 'Spending up 50%', mult: 1.50 }];
     const headwindRows = headwinds.map(h => { const newFireNum = fireNum * h.mult; const y = yearsToGoal(newFireNum, savings, mSav, 0.07); const yr = y ? cy + Math.round(y) : null; const diff = y && y07 ? Math.round(y - y07) : 0; return `<div class="needle-row"><span class="needle-label">${h.label}</span><span class="needle-result worse">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : '') : '100+ yrs'}</span></div>`; }).join('');
-    el.innerHTML = `<div class="bento-tile" id="bento-tile-needle">
-      <div class="bento-head" onclick="toggleBento('bento-tile-needle')">
-        <span class="bento-num">3</span>
-        <div class="bento-head-text">
-          <div class="bento-title">🎯 What changes your freedom date?</div>
-          <div class="bento-teaser">Your base: <strong style="color:var(--warm-brown)">${base}</strong> — tap to see what moves it.</div>
-        </div>
-        <span class="bento-chevron">⌄</span>
+    el.innerHTML = `<div class="needle-tabs">
+        <div class="needle-tab active" onclick="switchNeedleTab('forward',this)">🚀 What moves it forward</div>
+        <div class="needle-tab" onclick="switchNeedleTab('back',this)">📉 What pushes it back</div>
       </div>
-      <div class="bento-body-wrap">
-        <div class="bento-body" style="padding-top:0;">
-          <div class="needle-tabs">
-            <div class="needle-tab active" onclick="switchNeedleTab('forward',this)">🚀 What moves it forward</div>
-            <div class="needle-tab" onclick="switchNeedleTab('back',this)">📉 What pushes it back</div>
-          </div>
-          <div class="needle-panel active" id="needle-forward">${leverRows}<div class="needle-pro-nudge">🔥 <strong>Pro unlocks more levers</strong> — salary sacrifice, pay rises, lump sum investments and more. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div></div>
-          <div class="needle-panel" id="needle-back">${headwindRows}<div class="needle-pro-nudge">📊 <strong>Pro models these in full detail</strong> — with your actual super, debt, and income factored in. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div></div>
-        </div>
-      </div>
-    </div>`;
+      <div class="needle-panel active" id="needle-forward">${leverRows}<div class="needle-pro-nudge">🔥 <strong>Pro unlocks more levers</strong> — salary sacrifice, pay rises, lump sum investments and more. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div></div>
+      <div class="needle-panel" id="needle-back">${headwindRows}<div class="needle-pro-nudge">📊 <strong>Pro models these in full detail</strong> — with your actual super, debt, and income factored in. <span onclick="window.location.href='firepath_pro.html'" style="color:var(--fire-orange);cursor:pointer;font-weight:500;">Try Pro →</span></div></div>`;
+
+    const sqNeedle = document.getElementById('sq-needle');
+    const sqNeedleStat = document.getElementById('sqNeedleStat');
+    if (sqNeedle) sqNeedle.style.display = 'flex';
+    if (sqNeedleStat) sqNeedleStat.textContent = `Base year: ${base}`;
   }
 
   function switchNeedleTab(tab, btn) {
@@ -1186,30 +1191,23 @@
 
   function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, age) {
     const el = document.getElementById('withdrawalCard');
+    const sqWithdrawal = document.getElementById('sq-withdrawal');
     if (!el) return;
     const freedomAge = age ? Math.round(age + (fy || 0)) : null;
     const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
-    if (!isLongRoad || savings <= 0) { el.style.display = 'none'; return; }
+    if (!isLongRoad || savings <= 0) {
+      if (sqWithdrawal) sqWithdrawal.style.display = 'none';
+      return;
+    }
     const portfolioIncome = Math.round(savings * 0.04);
-    el.style.display = 'block';
-    el.innerHTML = `<div class="bento-tile" id="bento-tile-withdrawal">
-      <div class="bento-head" onclick="toggleBento('bento-tile-withdrawal')">
-        <span class="bento-num">4</span>
-        <div class="bento-head-text">
-          <div class="bento-title">💸 What your money is already doing for you</div>
-          <div class="bento-teaser">Already generating <strong style="color:var(--warm-brown)">${fmtM(portfolioIncome)}/year</strong> — tap for the full picture.</div>
-        </div>
-        <span class="bento-chevron">⌄</span>
-      </div>
-      <div class="bento-body-wrap">
-        <div class="bento-body" style="padding-top:0;">
-          <div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;">Full financial independence isn't the only version of freedom. Your portfolio is already generating income — right now.</div>
-          <div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">Your portfolio would generate <strong>${fmtM(portfolioIncome)}/year</strong> at 4%. At age 67 you may also qualify for the Age Pension — Pro shows your estimated entitlement, what it does to your gap, and how long your portfolio lasts.</div>
-          <div onclick="window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div>
-          <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 4% withdrawal rate.</p>
-        </div>
-      </div>
-    </div>`;
+    el.innerHTML = `<div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;">Full financial independence isn't the only version of freedom. Your portfolio is already generating income — right now.</div>
+      <div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">Your portfolio would generate <strong>${fmtM(portfolioIncome)}/year</strong> at 4%. At age 67 you may also qualify for the Age Pension — Pro shows your estimated entitlement, what it does to your gap, and how long your portfolio lasts.</div>
+      <div onclick="window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Based on 4% withdrawal rate.</p>`;
+
+    if (sqWithdrawal) sqWithdrawal.style.display = 'flex';
+    const sqWithdrawalStat = document.getElementById('sqWithdrawalStat');
+    if (sqWithdrawalStat) sqWithdrawalStat.textContent = `${fmtM(portfolioIncome)}/year already`;
   }
 
   function buildTaxNudge(savings, mSav, sRate, savingsType) {
@@ -1222,7 +1220,10 @@
     else if (sRate < 15) { message = `Your savings rate is ${sRate}%. Our free tax calculator shows your real take-home pay and whether salary sacrifice could free up more — without touching your lifestyle.`; }
     else { message = `Know what you actually keep from every dollar you earn? Our free tax tools show your take-home, your marginal rate, and where your next dollar should go.`; }
     txt.innerHTML = message;
-    el.style.display = 'block';
+    const sqTax = document.getElementById('sq-tax');
+    const sqTaxStat = document.getElementById('sqTaxStat');
+    if (sqTax) sqTax.style.display = 'flex';
+    if (sqTaxStat) sqTaxStat.textContent = `Your savings rate: ${sRate}%`;
   }
 </script>
 
@@ -1441,12 +1442,158 @@
 .bento-body {
   padding: 0 18px 18px;
 }
+
+/* ── Square tile grid — designed, eye-catching, opens a floating modal ── */
+.bento-squares {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bsq {
+  background: white;
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  cursor: pointer;
+  aspect-ratio: 1 / 0.95;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.bsq:active {
+  transform: scale(0.97);
+}
+.bsq:hover {
+  box-shadow: 0 8px 24px rgba(61,43,31,0.1);
+  border-color: rgba(244,98,42,0.3);
+}
+.bsq-wide {
+  grid-column: 1 / -1;
+  aspect-ratio: auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+}
+.bsq-wide .bsq-top { flex-direction: column; }
+.bsq-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.bsq-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bsq-icon svg { width: 20px; height: 20px; }
+.bsq-num {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--soft-grey);
+}
+.bsq-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  color: var(--warm-brown);
+  line-height: 1.25;
+  margin-top: 10px;
+}
+.bsq-stat {
+  font-size: 12px;
+  color: var(--fire-orange);
+  font-weight: 500;
+  margin-top: 6px;
+}
+
+/* ── Floating modal ── */
+.bento-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(36,28,22,0.55);
+  backdrop-filter: blur(3px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.bento-modal-overlay.open {
+  display: flex;
+  opacity: 1;
+}
+.bento-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 26px 22px 22px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 82vh;
+  overflow-y: auto;
+  position: relative;
+  transform: scale(0.92) translateY(8px);
+  opacity: 0;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+}
+.bento-modal-overlay.open .bento-modal {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+.bento-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: var(--warm-cream);
+  color: var(--warm-brown);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>
 
 <script>
 function toggleBento(tileId) {
   const tile = document.getElementById(tileId);
   if (tile) tile.classList.toggle('open');
+}
+
+const BENTO_MODAL_TITLES = {
+  range: '📊 Your projected range',
+  meaning: '💡 What this means for you',
+  needle: '🎯 What changes your freedom date?',
+  withdrawal: '💸 What your money is already doing for you',
+  tax: 'Where does your next dollar actually go?'
+};
+
+function openBentoModal(sourceId) {
+  const source = document.getElementById(sourceId + 'Card');
+  const overlay = document.getElementById('bentoModalOverlay');
+  const content = document.getElementById('bentoModalContent');
+  if (!source || !overlay || !content) return;
+  const title = BENTO_MODAL_TITLES[sourceId] || '';
+  content.innerHTML = `<div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--warm-brown);margin-bottom:14px;padding-right:24px;line-height:1.35;">${title}</div>` + source.innerHTML;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBentoModal() {
+  const overlay = document.getElementById('bentoModalOverlay');
+  if (!overlay) return;
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
 }
 </script>
 
