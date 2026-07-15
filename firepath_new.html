@@ -776,6 +776,7 @@
     _cinLever.savings = savings;
     _cinLever.mSav = mSav;
     _cinLever.y07 = y07;
+    _cinLever.age = age;
     _cinLever.used = false;
 
     showScreen(3);
@@ -785,7 +786,7 @@
   let _cinYearsText = '—';
   let _cinSubText = '';
   let _cinFreedomAgeText = '';
-  let _cinLever = { fireNum: 0, savings: 0, mSav: 0, y07: null, used: false };
+  let _cinLever = { fireNum: 0, savings: 0, mSav: 0, y07: null, age: 0, used: false };
 
   // Persona vocabulary — reuses the SAME persona value set at onboarding Block 1
   // (beginner / building / fire). No separate toggle — set once, used everywhere.
@@ -867,6 +868,7 @@
     const numberEl = document.getElementById('cin-number');
     const resultEl = document.getElementById('cin-lever-result');
     const btn = document.getElementById('cin-lever-btn');
+    const freedomAgeEl = document.getElementById('cin-freedomage');
     const diffYears = Math.round((_cinLever.y07 - yPlus) * 10) / 10;
 
     numberEl.style.transition = 'opacity 0.3s ease';
@@ -875,6 +877,17 @@
       numberEl.textContent = fmt(yPlus);
       numberEl.style.opacity = '1';
     }, 300);
+
+    // Freedom Age must move with the number, not stay frozen at the old figure
+    if (freedomAgeEl && _cinLever.age > 0) {
+      const newFreedomAge = Math.round(_cinLever.age + yPlus);
+      freedomAgeEl.style.transition = 'opacity 0.3s ease';
+      freedomAgeEl.style.opacity = '0.3';
+      setTimeout(() => {
+        freedomAgeEl.textContent = `${getPersonaCopy().freedomAgeLabel}: ${newFreedomAge} — ${fmt(yPlus)} to go`;
+        freedomAgeEl.style.opacity = '1';
+      }, 300);
+    }
 
     if (resultEl) {
       resultEl.textContent = diffYears > 0
