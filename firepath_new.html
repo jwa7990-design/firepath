@@ -515,6 +515,15 @@
       padding:40px 24px;
       text-align:center;
     ">
+      <div id="cin-mondays" style="
+        max-width:320px;
+        margin-bottom:0;
+        opacity:0;
+        transition:opacity 0.9s ease;
+      ">
+        <div id="cin-mondays-text" style="font-family:'Playfair Display',serif;font-size:clamp(24px,6vw,32px);color:#F5EEE3;line-height:1.35;"></div>
+      </div>
+
       <div id="cin-eyebrow" style="
         font-size:12px;font-weight:700;text-transform:uppercase;
         letter-spacing:0.16em;color:rgba(255,255,255,0.35);
@@ -549,6 +558,34 @@
           cursor:pointer;font-family:'DM Sans',sans-serif;
         ">Save an extra $50/week</button>
         <div id="cin-lever-result" style="margin-top:12px;font-size:12px;color:#7CB97E;min-height:16px;"></div>
+
+        <!-- Earned share card — hidden until the lever is used, not shown as a duplicate section -->
+        <div id="cin-shock-wrap" style="
+          margin-top:24px;
+          opacity:0;
+          max-height:0;
+          overflow:hidden;
+          transition:opacity 0.6s ease, max-height 0.6s ease;
+        ">
+          <div style="
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.12);
+            border-radius:16px;
+            padding:22px 20px;
+            max-width:280px;
+            margin:0 auto;
+            text-align:left;
+          ">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#7CB97E;margin-bottom:10px;">Milestone reached</div>
+            <div style="font-family:'Playfair Display',serif;font-size:19px;color:#F5EEE3;line-height:1.35;margin-bottom:16px;">
+              You just reclaimed <em id="cin-shock-days" style="color:#F4A24A;font-style:italic;">— days</em>.
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:rgba(255,255,255,0.4);">
+              <span style="font-family:'Playfair Display',serif;font-style:italic;color:rgba(255,255,255,0.7);">🔥 FirePath</span>
+              <span onclick="cinematicShareResult()" id="cin-share-btn" style="cursor:pointer;color:#F4A24A;">Share this →</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="cin-cta" style="opacity:0;transition:opacity 0.8s ease;">
@@ -771,6 +808,13 @@
     _cinFreedomAgeText = (age > 0 && y07 !== null && !alreadyFree)
       ? `${getPersonaCopy().freedomAgeLabel}: ${Math.round(age + y07)} — ${fmt(y07)} to go`
       : '';
+    // Mondays-left opening beat — skipped entirely if already free (nothing to count down)
+    _cinMondaysText = (y07 !== null && !alreadyFree)
+      ? (() => {
+          const mondaysLeft = Math.round((y07 * 365.25) / 7);
+          return `You have <strong style="color:#F4A24A">${mondaysLeft.toLocaleString()}</strong> Mondays left until you're free.`;
+        })()
+      : '';
     // Snapshot for the "Unless…" lever recalculation
     _cinLever.fireNum = fireNum;
     _cinLever.savings = savings;
@@ -786,6 +830,7 @@
   let _cinYearsText = '—';
   let _cinSubText = '';
   let _cinFreedomAgeText = '';
+  let _cinMondaysText = '';
   let _cinLever = { fireNum: 0, savings: 0, mSav: 0, y07: null, age: 0, used: false };
 
   // Persona vocabulary — reuses the SAME persona value set at onboarding Block 1
@@ -837,17 +882,26 @@
       ? `You've already hit your number — this is what that actually means.`
       : `Not "will you hit your number." What you actually get back, and when.`;
 
+    // Shared outline icon set — same visual family for every item, no emoji
+    const ICONS = {
+      beach: '<path d="M4 20c3-1 13-1 16 0"/><path d="M12 20V9"/><path d="M4 9c0-4.4 3.6-8 8-8s8 3.6 8 8H4z"/>',
+      heart: '<path d="M12 20.5S3 14.8 3 8.9C3 5.6 5.5 3 8.6 3c1.8 0 3.4.9 4.4 2.3C14 3.9 15.6 3 17.4 3 20.5 3 23 5.6 23 8.9c0 5.9-9 11.6-9 11.6z"/>',
+      family: '<circle cx="8.5" cy="7.5" r="3"/><path d="M2.5 20c0-3.6 2.7-6.5 6-6.5s6 2.9 6 6.5"/><circle cx="17" cy="9" r="2.2"/><path d="M15 20c.2-2.6 1.9-4.6 4-4.6"/>',
+      guitar: '<path d="M9 17a3 3 0 1 1-3-3"/><path d="M6 14V4l11-2v11"/><path d="M17 15a3 3 0 1 1-3-3"/>',
+      globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.8 2.6 4.3 5.7 4.3 9s-1.5 6.4-4.3 9c-2.8-2.6-4.3-5.7-4.3-9s1.5-6.4 4.3-9z"/>'
+    };
+
     const items = [
-      { icon: '🏖️', label: 'Beach mornings', unlocked: coastReached, sub: coastReached ? `at ${pc.coastTerm}` : `unlocks at ${pc.coastTerm}` },
-      { icon: '❤️', label: 'Stress reduction', unlocked: coastReached, sub: coastReached ? `at ${pc.coastTerm}` : `unlocks at ${pc.coastTerm}` },
-      { icon: '👨‍👧', label: 'Time with family', unlocked: true, sub: coastReached ? `growing since ${pc.coastTerm}` : 'growing as you save' },
-      { icon: '🎸', label: 'Passion projects', unlocked: alreadyFree, sub: alreadyFree ? `at ${pc.freedomTerm}` : (yearsAwayText ? `${yearsAwayText} away — unlocks at ${pc.freedomTerm}` : `unlocks at ${pc.freedomTerm}`) },
-      { icon: '🌍', label: 'Travel flexibility', unlocked: alreadyFree, sub: alreadyFree ? `at ${pc.freedomTerm}` : (yearsAwayText ? `${yearsAwayText} away — unlocks at ${pc.freedomTerm}` : `unlocks at ${pc.freedomTerm}`) }
+      { icon: ICONS.beach, label: 'Beach mornings', unlocked: coastReached, sub: coastReached ? `at ${pc.coastTerm}` : `unlocks at ${pc.coastTerm}` },
+      { icon: ICONS.heart, label: 'Stress reduction', unlocked: coastReached, sub: coastReached ? `at ${pc.coastTerm}` : `unlocks at ${pc.coastTerm}` },
+      { icon: ICONS.family, label: 'Time with family', unlocked: true, sub: coastReached ? `growing since ${pc.coastTerm}` : 'growing as you save' },
+      { icon: ICONS.guitar, label: 'Passion projects', unlocked: alreadyFree, sub: alreadyFree ? `at ${pc.freedomTerm}` : (yearsAwayText ? `${yearsAwayText} away — unlocks at ${pc.freedomTerm}` : `unlocks at ${pc.freedomTerm}`) },
+      { icon: ICONS.globe, label: 'Travel flexibility', unlocked: alreadyFree, sub: alreadyFree ? `at ${pc.freedomTerm}` : (yearsAwayText ? `${yearsAwayText} away — unlocks at ${pc.freedomTerm}` : `unlocks at ${pc.freedomTerm}`) }
     ];
 
     grid.innerHTML = items.map(it => `
       <div style="background:${it.unlocked ? '#FFF7F3' : 'var(--warm-cream)'};border:1px solid ${it.unlocked ? 'rgba(244,98,42,0.25)' : 'var(--border)'};border-radius:12px;padding:14px;opacity:${it.unlocked ? '1' : '0.6'};">
-        <div style="font-size:20px;margin-bottom:8px;">${it.icon}</div>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${it.unlocked ? 'var(--fire-orange)' : 'var(--soft-grey)'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;display:block;">${it.icon}</svg>
         <div style="font-family:'Playfair Display',serif;font-size:14px;color:var(--warm-brown);margin-bottom:4px;line-height:1.3;">${it.label}</div>
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:${it.unlocked ? '#2E7D32' : 'var(--soft-grey)'};">${it.unlocked ? 'Unlocked' : ''}</div>
         <div style="font-size:11px;color:var(--soft-grey);font-weight:300;margin-top:2px;">${it.sub}</div>
@@ -901,6 +955,40 @@
       btn.style.cursor = 'default';
     }
     _cinLever.used = true;
+
+    // Earned share card — only if the change was actually meaningful
+    if (diffYears > 0.1) {
+      const diffDays = Math.round(diffYears * 365.25);
+      _cinShockDaysText = `${diffDays.toLocaleString()} days`;
+      const shockWrap = document.getElementById('cin-shock-wrap');
+      const shockDaysEl = document.getElementById('cin-shock-days');
+      if (shockDaysEl) shockDaysEl.textContent = _cinShockDaysText;
+      if (shockWrap) {
+        setTimeout(() => {
+          shockWrap.style.opacity = '1';
+          shockWrap.style.maxHeight = '200px';
+        }, 700);
+      }
+    }
+  }
+
+  // Stored so the share action can read the current earned figure
+  let _cinShockDaysText = '';
+
+  function cinematicShareResult() {
+    const text = `I just found out I could reclaim ${_cinShockDaysText} of my life by adjusting my savings — check your own number at firepath.pro 🔥`;
+    if (navigator.share) {
+      navigator.share({ text, url: 'https://www.firepath.pro' }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('cin-share-btn');
+        if (btn) {
+          const original = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = original; }, 1800);
+        }
+      });
+    }
   }
 
   function showScreen(n) {
@@ -1187,6 +1275,8 @@
 <script>
 function runCinematicReveal(yearsText, subText) {
   const stage = document.getElementById('cinematic-stage');
+  const mondays = document.getElementById('cin-mondays');
+  const mondaysText = document.getElementById('cin-mondays-text');
   const eyebrow = document.getElementById('cin-eyebrow');
   const number = document.getElementById('cin-number');
   const sub = document.getElementById('cin-sub');
@@ -1194,19 +1284,27 @@ function runCinematicReveal(yearsText, subText) {
   const unless = document.getElementById('cin-unless');
   const leverBtn = document.getElementById('cin-lever-btn');
   const leverResult = document.getElementById('cin-lever-result');
+  const shockWrap = document.getElementById('cin-shock-wrap');
   const cta = document.getElementById('cin-cta');
 
   // Reset
+  mondays.style.opacity = '0';
+  mondays.style.display = _cinMondaysText ? 'block' : 'none';
   eyebrow.style.opacity = '0';
+  eyebrow.style.display = 'block';
   number.style.opacity = '0';
   number.style.transform = 'translateY(12px)';
+  number.style.display = 'block';
   sub.style.opacity = '0';
+  sub.style.display = 'block';
   freedomAge.style.opacity = '0';
   unless.style.opacity = '0';
   cta.style.opacity = '0';
   if (leverBtn) { leverBtn.disabled = false; leverBtn.textContent = 'Save an extra $50/week'; leverBtn.style.opacity = '1'; leverBtn.style.cursor = 'pointer'; }
   if (leverResult) leverResult.textContent = '';
+  if (shockWrap) { shockWrap.style.opacity = '0'; shockWrap.style.maxHeight = '0'; }
 
+  mondaysText.innerHTML = _cinMondaysText;
   number.textContent = yearsText;
   sub.textContent = subText;
   freedomAge.textContent = _cinFreedomAgeText;
@@ -1216,12 +1314,38 @@ function runCinematicReveal(yearsText, subText) {
   stage.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
-  setTimeout(() => { eyebrow.style.opacity = '1'; }, 300);
-  setTimeout(() => { number.style.opacity = '1'; number.style.transform = 'translateY(0)'; }, 750);
-  setTimeout(() => { sub.style.opacity = '1'; }, 1350);
-  setTimeout(() => { if (_cinFreedomAgeText) freedomAge.style.opacity = '1'; }, 2000);
-  setTimeout(() => { if (showUnless) unless.style.opacity = '1'; }, 2900);
-  setTimeout(() => { cta.style.opacity = '1'; }, showUnless ? 3800 : 2500);
+  if (_cinMondaysText) {
+    // ACT 1 — Mondays alone, the emotional gut-punch, held for a beat then cleared
+    // so the eyebrow/number that follow aren't fighting it for attention.
+    eyebrow.style.display = 'none';
+    number.style.display = 'none';
+    sub.style.display = 'none';
+
+    setTimeout(() => { mondays.style.opacity = '1'; }, 300);
+    setTimeout(() => { mondays.style.opacity = '0'; }, 2600);
+    setTimeout(() => {
+      mondays.style.display = 'none';
+      eyebrow.style.display = 'block';
+      number.style.display = 'block';
+      sub.style.display = 'block';
+    }, 3500);
+
+    // ACT 2 — the existing sequence, shifted later to follow Act 1
+    setTimeout(() => { eyebrow.style.opacity = '1'; }, 3600);
+    setTimeout(() => { number.style.opacity = '1'; number.style.transform = 'translateY(0)'; }, 4050);
+    setTimeout(() => { sub.style.opacity = '1'; }, 4650);
+    setTimeout(() => { if (_cinFreedomAgeText) freedomAge.style.opacity = '1'; }, 5300);
+    setTimeout(() => { if (showUnless) unless.style.opacity = '1'; }, 6200);
+    setTimeout(() => { cta.style.opacity = '1'; }, showUnless ? 7100 : 5800);
+  } else {
+    // No Mondays beat (e.g. already free) — original timing, unchanged
+    setTimeout(() => { eyebrow.style.opacity = '1'; }, 300);
+    setTimeout(() => { number.style.opacity = '1'; number.style.transform = 'translateY(0)'; }, 750);
+    setTimeout(() => { sub.style.opacity = '1'; }, 1350);
+    setTimeout(() => { if (_cinFreedomAgeText) freedomAge.style.opacity = '1'; }, 2000);
+    setTimeout(() => { if (showUnless) unless.style.opacity = '1'; }, 2900);
+    setTimeout(() => { cta.style.opacity = '1'; }, showUnless ? 3800 : 2500);
+  }
 }
 
 function cinematicRevealCards() {
