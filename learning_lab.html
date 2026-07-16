@@ -149,14 +149,18 @@
       <div class="topics-list" id="taxTopicsList"></div>
     </div>
 
-    <div class="section-label">Choose your learning track</div>
+    <div class="track-card" onclick="selectTrack('life')" style="border-color:var(--fire-orange);border-width:2px;background:linear-gradient(135deg,#FFF7F3,#FFFBF7);position:relative;margin-bottom:24px;">
+      <div style="position:absolute;top:-9px;left:16px;background:var(--fire-orange);color:white;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 10px;border-radius:10px;">Start here</div>
+      <div class="track-header"><span class="track-badge tlife">You</span><span class="track-name">Real Questions</span></div>
+      <div class="track-desc">The questions people actually type into Google, answered honestly — using your real numbers, no jargon, no judgement.</div>
+      <div class="track-risk life">⬤ Straight answers, with your numbers</div>
+    </div>
+
+    <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Or, follow a structured curriculum</span>
+    </div>
+    <p style="font-size:12px;color:var(--soft-grey);font-weight:300;margin:-8px 0 12px;line-height:1.5;">These go deeper on investing itself, organised by return expectation rather than by question.</p>
     <div class="track-selector">
-      <div class="track-card" onclick="selectTrack('life')" style="border-color:var(--fire-orange);background:linear-gradient(135deg,#FFF7F3,#FFFBF7);position:relative;">
-        <div style="position:absolute;top:-9px;left:16px;background:var(--fire-orange);color:white;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 10px;border-radius:10px;">Start here</div>
-        <div class="track-header"><span class="track-badge tlife">You</span><span class="track-name">Real Questions</span></div>
-        <div class="track-desc">The questions people actually type into Google, answered honestly — using your real numbers, no jargon, no judgement.</div>
-        <div class="track-risk life">⬤ Straight answers, with your numbers</div>
-      </div>
       <div class="track-card" onclick="selectTrack('5')">
         <div class="track-header"><span class="track-badge t5">Steady</span><span class="track-name">Build Wealth Slowly</span></div>
         <div class="track-desc">Conservative growth with lower risk — around a 5% target return. Great if you want your money working harder without big swings.</div>
@@ -194,7 +198,7 @@
     </div>
     <div id="loadingState" class="loading-state">
       <div class="loading-dots"><span></span><span></span><span></span></div>
-      <p>Generating your personalised article...</p>
+      <p id="loadingStageText">Drafting your article...</p>
     </div>
     <div id="articleContent" style="display:none;">
       <div class="article-body" id="articleBody"></div>
@@ -591,6 +595,13 @@
       '10': { name: 'Grow Faster', badge: 't10', label: 'Growth', desc: 'Higher potential returns — 10%+ target — require understanding higher risk. These articles explain the growth-focused approaches.', risk: 'Higher risk · Requires long timelines and strong risk tolerance', noPercent: true },
     };
     const info = trackInfo[track];
+    const topics = trackTopics[track];
+    const realTopics = topics.filter(t => !t.header && !(t.pro && !isPro));
+    const completedCount = realTopics.filter(t => readTopics.includes(t.id)).length;
+    const totalCount = realTopics.length;
+    const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
+    const minsLeft = (totalCount - completedCount) * 4;
+    const timeLeftText = minsLeft <= 0 ? 'All done — nice work' : minsLeft < 60 ? `~${minsLeft} min left` : `~${Math.round(minsLeft/60*10)/10} hrs left`;
     document.getElementById('trackHero').innerHTML = `
       <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
@@ -598,9 +609,15 @@
           <span style="font-size:16px;font-weight:500;">${info.name}</span>
         </div>
         <p style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:8px;">${info.desc}</p>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);">${info.risk}</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);margin-bottom:14px;">${info.risk}</div>
+        <div style="height:6px;background:var(--warm-cream);border-radius:4px;overflow:hidden;margin-bottom:8px;">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));border-radius:4px;transition:width 0.3s;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--soft-grey);font-weight:300;">
+          <span>${completedCount} of ${totalCount} completed</span>
+          <span>${timeLeftText}</span>
+        </div>
       </div>`;
-    const topics = trackTopics[track];
     document.getElementById('topicsList').innerHTML = topics.map(t => {
       if (t.header) {
         return `<div class="topic-section-divider">${t.header}</div>`;
@@ -673,6 +690,7 @@
 
     document.getElementById('glossaryContent').style.display = 'none';
     document.getElementById('loadingState').style.display = 'block';
+    setLoadingStage('Drafting your article...');
     document.getElementById('articleContent').style.display = 'none';
 
     const isRead = readTopics.includes(topicId);
@@ -689,7 +707,32 @@
     }
 
     try {
-      const article = await generateArticle(topicId, track, title, isPro);
+      let article;
+      const staticSlug = STATIC_TOPIC_MAP[topicId];
+      if (staticSlug) {
+        setLoadingStage('Loading article...');
+        let baseBody;
+        try {
+          baseBody = await fetchArticleFromDB(topicId);
+        } catch (dbErr) {
+          console.log('DB fetch failed, falling back to static file:', dbErr.message);
+          baseBody = await fetchStaticArticleBody(staticSlug);
+        }
+
+        if (isPro && userData.income) {
+          try {
+            setLoadingStage('Personalising your example...');
+            article = await personaliseExample(baseBody);
+          } catch (personaliseErr) {
+            console.log('Personalisation failed, using generic snapshot instead:', personaliseErr.message);
+            article = buildPersonalizationSnapshot() + baseBody;
+          }
+        } else {
+          article = baseBody;
+        }
+      } else {
+        article = await generateArticle(topicId, track, title, isPro);
+      }
       document.getElementById('articleBody').innerHTML = article;
       document.getElementById('proSection').innerHTML = '';
       document.getElementById('loadingState').style.display = 'none';
@@ -698,6 +741,101 @@
       console.error(e);
       document.getElementById('loadingState').innerHTML = '<p style="color:#E53935;">Something went wrong generating this article. Please try again.</p>';
     }
+  }
+
+  // ── Static article map: topics with an already-written, reviewed article in /learn/ ──
+  // These serve with ZERO AI calls instead of regenerating the same explanation every time.
+  const STATIC_TOPIC_MAP = {
+    'what-is-fire': 'what-is-fire-australia', 'compounding': 'how-compound-interest-works',
+    'saving-vs-investing': 'difference-saving-investing', 'two-phase': 'two-phase-freedom-timeline',
+    'catch-up-contributions': 'catch-up-contributions', 'super-co-contribution': 'super-co-contribution',
+    'spouse-contribution-offset': 'spouse-contribution-offset', 'cgt-discount': 'cgt-discount',
+    'first-home-super-saver': 'first-home-super-saver', 'division-293': 'division-293',
+    'bonds': 'what-is-a-bond', 'hisa': 'high-interest-savings-vs-term-deposits',
+    'balanced-funds': 'balanced-funds-explained', 'diversification': 'what-diversification-means',
+    'inflation': 'why-inflation-is-your-enemy', 'index-funds': 'what-is-an-index-fund',
+    'etf-how': 'etfs-how-to-buy', 'compounding-numbers': 'compounding-with-your-numbers',
+    'dca': 'dollar-cost-averaging', 'aus-vs-global': 'australian-vs-global-shares',
+    'four-percent': 'four-percent-rule-australia', 'tax-basics': 'tax-and-investing-australia',
+    'individual-shares': 'individual-shares-how-they-work', 'property': 'property-investing-explained',
+    'dividends': 'dividends-vs-capital-growth', 'franking': 'franking-credits-australia',
+    'am-i-behind-financially': 'am-i-behind-financially', 'savings-by-age': 'savings-by-age',
+    'am-i-on-track': 'am-i-on-track-retirement', 'how-long-do-i-have-to-work': 'how-long-do-i-have-to-work',
+    'what-is-coast-fire': 'what-is-coast-fire', 'can-i-work-less': 'can-i-work-less',
+    'why-do-i-feel-behind': 'why-do-i-feel-behind', 'no-savings-in-30s': 'no-savings-in-your-30s',
+    'money-anxiety': 'money-anxiety', 'too-late-at-40': 'too-late-to-invest-at-40',
+    'retire-average-income': 'retire-early-average-income', 'kids-and-retirement': 'kids-and-retirement-timeline',
+    'rent-or-buy': 'rent-or-buy', 'renting-forever': 'renting-forever-retirement',
+    'pay-rise-impact': 'pay-rise-retirement-impact', 'extra-50-a-week': 'extra-50-a-week-impact',
+    'redundancy-okay': 'redundancy-would-i-be-okay',
+  };
+
+  async function fetchArticleFromDB(topicId) {
+    const res = await fetch(`${WORKER_URL}/db/learning_articles?topic_id=eq.${topicId}&select=body_html`);
+    if (!res.ok) throw new Error(`DB fetch failed for topic: ${topicId}`);
+    const rows = await res.json();
+    if (!Array.isArray(rows) || !rows.length) throw new Error(`No article in DB for topic: ${topicId}`);
+    return rows[0].body_html;
+  }
+
+  async function personaliseExample(baseBody) {
+    // One small, cheap AI call — NOT the full writer/editor/reviser pipeline.
+    // Takes the reviewed evergreen article and rewrites ONLY the worked example
+    // to use the reader's real numbers. Everything else stays untouched.
+    const system = `You are lightly editing one section of an already-reviewed FirePath Learning Lab article. Do NOT rewrite the whole article. Do NOT change any heading, the misconception box, or the closer line.
+
+Find the existing <div class="example-box">...</div> block in the HTML below and replace ONLY its inner content with a new worked example using the reader's real numbers. Keep the exact same <div class="example-box"><span class="example-label">A quick example</span><p>...</p></div> structure. Refer to "you" and "your numbers" directly, not a fictional name.
+
+Reader's real numbers:
+- Monthly income: ${fmtM(userData.income)}
+- Weekly savings: $${weeklyAmt}
+- Current savings/investments: ${fmtM(userData.savings)}
+- Super balance: ${fmtM(userData.superBal)}
+- Age: ${userData.age || 'not provided'}
+- Savings rate: ${userData.sRate}%
+- Freedom number: ${fmtM(userData.fireNum)}
+- Projected freedom year: ${freedomYear || 'not calculated'}
+
+Output the COMPLETE article HTML back, unchanged except for that one example-box's inner content. If there is no example-box in the HTML, output it unchanged.`;
+    const result = await callClaude(system, baseBody, 1200);
+    return result;
+  }
+
+  async function fetchStaticArticleBody(slug) {
+    const res = await fetch(`/learn/${slug}.html`);
+    if (!res.ok) throw new Error(`Static article not found: ${slug}`);
+    const html = await res.text();
+    const match = html.match(/<div class="article-body">([\s\S]*?)<\/div>\s*<div class="cta-box">/);
+    if (!match) throw new Error(`Could not parse article body for: ${slug}`);
+    return match[1].trim();
+  }
+
+  function buildPersonalizationSnapshot() {
+    if (!userData.income) return '';
+    const parts = [];
+    parts.push(`earning ${fmtM(userData.income)}/month`);
+    if (weeklyAmt) parts.push(`saving $${weeklyAmt}/week`);
+    if (userData.sRate) parts.push(`a ${userData.sRate}% savings rate`);
+    if (freedomYear) parts.push(`on track for ${freedomYear}`);
+    return `<div class="example-box" style="margin-bottom:20px;">
+      <span class="example-label">Your numbers</span>
+      <p>You're currently ${parts.join(', ')}. Keep this in mind as you read — the maths below applies directly to your own situation, not a hypothetical.</p>
+    </div>`;
+  }
+
+  async function callClaude(system, userMessage, maxTokens) {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: maxTokens, system, messages: [{ role: 'user', content: userMessage }] })
+    });
+    const data = await res.json();
+    return data.content[0].text;
+  }
+
+  function setLoadingStage(text) {
+    const el = document.getElementById('loadingStageText');
+    if (el) el.textContent = text;
   }
 
   async function generateArticle(topicId, track, title, isPro) {
@@ -724,7 +862,9 @@ The "quick example" section MUST use these exact numbers, run through real maths
 - Super preservation age: ${FP_ASSUMPTIONS.preservationAge}`;
     const riskNote = track === '10' ? 'IMPORTANT: Clearly explain that higher returns come with higher risk and volatility. Never downplay risk.' : track === '5' ? 'Emphasise the lower-risk nature and suitability for cautious investors.' : track === 'tax' ? 'This is about tax rules, contribution caps, and government schemes — not investment risk. Focus on eligibility criteria, how the mechanism actually works, and where to check the current figures (e.g. myGov / ATO online services), since caps and thresholds change each financial year.' : track === 'life' ? 'This is a personal, emotionally-aware question, not a technical investing topic. Answer with genuine warmth and honesty. Validate the feeling behind the question before getting into numbers. Never be preachy, clinical, or judgmental. This is not about investment risk — it is about giving someone clarity and reassurance grounded in real maths.' : 'Present a balanced view of risk and return.';
     const trackLabel = track === 'foundation' ? 'Foundation' : track === 'tax' ? 'Tax & Strategy' : track === 'life' ? 'Real, Personal Questions' : track + '% return target';
-    const system = `You are the FirePath Learning Lab — a financial education tool for everyday Australians. You are NOT a financial advisor.
+
+    // ── PASS 1: WRITER ──
+    const writerSystem = `You are the FirePath Learning Lab — a financial education tool for everyday Australians. You are NOT a financial advisor.
 Write an in-depth educational article about: "${title}"
 Learning track: ${trackLabel}
 Reader persona: ${persona}
@@ -747,13 +887,39 @@ Vary your language deliberately. Do NOT overuse "actually", "genuinely", "honest
 Treat the 4%-rule / 25x-spending figure as a widely used starting point with real assumptions behind it, not a universal law.
 End with exactly this disclaimer on its own line after the closer: <p style="font-size:11px;color:var(--soft-grey);font-style:italic;">Educational only — not financial advice. Always consider your personal circumstances.</p>
 Never say "you should" or "I recommend". Never name specific brokers or platforms. Frame everything as education, not advice.`;
-    const res = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1600, system, messages: [{ role: 'user', content: `Write the Learning Lab article about: ${title}` }] })
-    });
-    const data = await res.json();
-    return data.content[0].text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>');
+
+    setLoadingStage('Drafting your article...');
+    const draft = await callClaude(writerSystem, `Write the Learning Lab article about: ${title}`, 1600);
+
+    // ── PASS 2: EDITOR ──
+    setLoadingStage('Reviewing for accuracy...');
+    const editorSystem = `You are a meticulous, senior editor for the FirePath Learning Lab — an Australian financial education platform. You will be shown a draft article. Critique it honestly and specifically against this checklist:
+1. Accuracy — any claim about Australian tax, super, or investing rules that is wrong, outdated, or overstated (e.g. treating the 4% rule as a universal guarantee rather than a starting assumption)
+2. Repetition — overused words or phrases (especially "actually", "genuinely", "honest answer", "real numbers"), or sections that all follow the same validate-then-explain rhythm
+3. The hook — is the opening genuinely engaging, or generic throat-clearing ("This is a common question...")?
+4. Does it sound templated/AI-generated — hedge-y, robotic, safe to the point of saying nothing specific?
+5. Unsupported claims — anything stated as fact that should be framed as a rule of thumb or typical range
+6. Required structure present: exactly one misconception-box, one example-box (using the reader's real numbers if provided), one highlight-box, one closer-line
+
+Respond with a short, specific, actionable list of fixes — quote the exact phrase or sentence that needs to change where possible. If the draft is already excellent and needs no changes, respond with exactly: "NO_CHANGES_NEEDED" and nothing else.`;
+
+    const critique = await callClaude(editorSystem, `Critique this draft article about "${title}":\n\n${draft}`, 500);
+
+    if (critique.trim().startsWith('NO_CHANGES_NEEDED')) {
+      return draft.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>');
+    }
+
+    // ── PASS 3: WRITER REVISES ──
+    setLoadingStage('Polishing the final version...');
+    const revisionSystem = writerSystem + `\n\nYou previously wrote a draft of this article. A senior editor has reviewed it and found specific issues below. Produce a complete, improved final version that actually fixes every point raised — do not just acknowledge the feedback, resolve it. Output only the final article, not a summary of what changed.`;
+
+    const finalText = await callClaude(
+      revisionSystem,
+      `Your original draft:\n\n${draft}\n\nEditor's feedback:\n\n${critique}\n\nWrite the complete, revised final article addressing all of this feedback.`,
+      1600
+    );
+
+    return finalText.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>');
   }
 
   async function showWhatsNext(topicId, title, track) {
