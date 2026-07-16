@@ -1,911 +1,381 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-Q2QZ662MJ9');
-  </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Money shouldn't feel confusing. FirePath shows you what your income is capable of — and exactly when you could stop having to work so hard."/>
-  <meta property="og:title" content="FirePath — Know where you're heading"/>
-  <meta property="og:description" content="Money shouldn't feel confusing. FirePath helps everyday Australians understand where they are today, where they're heading tomorrow, and what they can do to build a better future."/>
-  <meta property="og:url" content="https://firepath.pro"/>
-  <meta property="og:type" content="website"/>
-  <title>FirePath — Know where you're heading</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <title>FirePath Learning Lab — Australian FIRE & Investing Education</title>
+  <meta name="description" content="Free Australian financial independence education. Learn how FIRE works, how to invest, how super fits in, and how to calculate your freedom number."/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --fire-orange: #F4622A;
-      --fire-amber:  #F9A825;
-      --warm-cream:  #FDF6EE;
-      --warm-brown:  #3D2B1F;
-      --soft-grey:   #9E8E85;
-      --mid-grey:    #C4B8B0;
-      --border:      #EDE3DA;
-      --card-bg:     #FFFFFF;
-      --dark-bg:     #2A1E15;
-
-      /* Type scale */
-      --text-xs:   11px;
-      --text-sm:   13px;
-      --text-base: 15px;
-      --text-md:   17px;
-      --text-lg:   20px;
-      --text-xl:   24px;
-      --text-2xl:  32px;
-      --text-3xl:  44px;
-      --text-hero: clamp(42px, 8vw, 80px);
-
-      /* Spacing */
-      --space-1:  4px;
-      --space-2:  8px;
-      --space-3:  12px;
-      --space-4:  16px;
-      --space-5:  24px;
-      --space-6:  32px;
-      --space-7:  48px;
-      --space-8:  64px;
-      --space-9:  96px;
-      --space-10: 128px;
-
-      /* Shadows */
-      --shadow-sm:  0 2px 8px rgba(61,43,31,0.06);
-      --shadow-md:  0 4px 24px rgba(61,43,31,0.09);
-      --shadow-lg:  0 8px 48px rgba(61,43,31,0.12);
-      --shadow-glow: 0 4px 32px rgba(244,98,42,0.25);
-    }
-
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--warm-cream);
-      color: var(--warm-brown);
-      -webkit-font-smoothing: antialiased;
-    }
-
-    /* ── NAV ── */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0;
-      background: rgba(253,246,238,0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(237,227,218,0.6);
-      padding: 0 24px;
-      height: 64px;
-      display: flex; align-items: center; justify-content: space-between;
-      z-index: 100;
-    }
-    .nav-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px; font-weight: 700;
-      color: var(--warm-brown); text-decoration: none;
-      word-spacing: 0;
-    }
-    .nav-logo span { color: var(--fire-orange); letter-spacing: -0.5px; word-spacing: 0; }
-    .nav-links { display: flex; align-items: center; gap: 24px; }
-    .nav-link {
-      font-size: var(--text-sm); color: var(--soft-grey);
-      text-decoration: none; font-weight: 400;
-      transition: color 0.2s;
-    }
-    .nav-link:hover { color: var(--warm-brown); }
-    .nav-cta {
-      background: var(--warm-brown); color: white;
-      padding: 9px 20px; border-radius: 10px;
-      font-size: var(--text-sm); font-weight: 500;
-      text-decoration: none; transition: all 0.2s;
-      letter-spacing: 0.01em;
-    }
-    .nav-cta:hover { background: var(--fire-orange); transform: translateY(-1px); }
-    .hamburger {
-      display: none; flex-direction: column; gap: 5px;
-      cursor: pointer; padding: 4px; background: none; border: none;
-    }
-    .hamburger span {
-      display: block; width: 22px; height: 2px;
-      background: var(--warm-brown); border-radius: 2px; transition: all 0.3s;
-    }
-    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-    .hamburger.open span:nth-child(2) { opacity: 0; }
-    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
-    /* ── HERO ── */
-    .hero {
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center;
-      padding: 120px 24px 80px;
-      position: relative; overflow: hidden;
-    }
-    .hero-glow-1 {
-      position: absolute; top: -80px; right: -80px;
-      width: 480px; height: 480px;
-      background: radial-gradient(circle, rgba(244,98,42,0.09) 0%, transparent 68%);
-      pointer-events: none;
-    }
-    .hero-glow-2 {
-      position: absolute; bottom: -60px; left: -60px;
-      width: 360px; height: 360px;
-      background: radial-gradient(circle, rgba(249,168,37,0.07) 0%, transparent 68%);
-      pointer-events: none;
-    }
-
-    .hero-eyebrow {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--soft-grey);
-      margin-bottom: var(--space-6);
-      animation: fadeUp 0.6s ease both;
-    }
-
-    .hero-headline {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-hero);
-      font-weight: 700;
-      line-height: 1.05;
-      letter-spacing: -0.02em;
-      color: var(--warm-brown);
-      max-width: 760px;
-      margin-bottom: var(--space-6);
-      animation: fadeUp 0.6s ease 0.1s both;
-    }
-    .hero-headline em {
-      font-style: italic;
-      color: var(--fire-orange);
-    }
-
-    .hero-sub {
-      font-size: var(--text-md);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.8;
-      max-width: 480px;
-      margin-bottom: var(--space-8);
-      animation: fadeUp 0.6s ease 0.2s both;
-    }
-
-    .hero-cta {
-      animation: fadeUp 0.6s ease 0.3s both;
-      display: flex; flex-direction: column; align-items: center; gap: var(--space-4);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-      color: white;
-      padding: 18px 40px;
-      border-radius: 14px;
-      font-size: var(--text-md);
-      font-weight: 500;
-      text-decoration: none;
-      transition: all 0.25s;
-      box-shadow: var(--shadow-glow);
-      letter-spacing: 0.01em;
-      display: inline-block;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 40px rgba(244,98,42,0.35);
-    }
-    .hero-cta-note {
-      font-size: var(--text-sm);
-      color: var(--mid-grey);
-      font-weight: 300;
-    }
-    .hero-cta-note a {
-      color: var(--soft-grey);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
-
-    .hero-social {
-      margin-top: var(--space-9);
-      font-size: var(--text-sm);
-      color: var(--mid-grey);
-      font-weight: 300;
-      animation: fadeUp 0.6s ease 0.4s both;
-    }
-    .hero-social strong { color: var(--soft-grey); font-weight: 500; }
-
-    /* ── BRIDGE (the honest middle) ── */
-        .bridge {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: var(--space-10) var(--space-5);
-      text-align: center;
-    }
-    .bridge-line1 {
-      font-size: clamp(18px, 3vw, 24px);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.6;
-      margin-bottom: 4px;
-    }
-    .bridge-line2 {
-      font-size: clamp(18px, 3vw, 24px);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.6;
-      margin-bottom: var(--space-6);
-    }
-    .bridge-you {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(32px, 6vw, 52px);
-      font-weight: 700;
-      font-style: italic;
-      color: var(--fire-orange);
-      line-height: 1.2;
-      min-height: 60px;
-      opacity: 0;
-    }
-    @keyframes pulsate {
-      0%, 100% { color: var(--border); }
-      50% { color: var(--fire-orange); opacity: 0.6; }
-    }
-    .step-num {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-2xl);
-      font-weight: 700;
-      color: var(--border);
-      line-height: 1;
-      padding-top: 4px;
-      animation: pulsate 3s ease-in-out infinite;
-    }
-    .step:nth-child(2) .step-num { animation-delay: 1s; }
-    .step:nth-child(3) .step-num { animation-delay: 2s; }
-
-    /* ── WHAT FIREPATH DOES ── */
-    .what-section {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: var(--space-9) var(--space-5);
-    }
-    .section-eyebrow {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--fire-orange);
-      margin-bottom: var(--space-4);
-      display: block;
-    }
-    .section-headline {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(26px, 4.5vw, 40px);
-      font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: var(--space-5);
-      max-width: 600px;
-    }
-    .section-sub {
-      font-size: var(--text-md);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.8;
-      max-width: 560px;
-      margin-bottom: var(--space-8);
-    }
-
-    .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .step {
-      display: grid;
-      grid-template-columns: 48px 1fr;
-      gap: var(--space-5);
-      padding: var(--space-6) 0;
-      border-bottom: 1px solid var(--border);
-      align-items: start;
-    }
-    .step:last-child { border-bottom: none; }
-    .step-num {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-2xl);
-      font-weight: 700;
-      color: var(--border);
-      line-height: 1;
-      padding-top: 4px;
-    }
-    .step-content {}
-    .step-title {
-      font-size: var(--text-lg);
-      font-weight: 500;
-      margin-bottom: var(--space-2);
-      color: var(--warm-brown);
-    }
-    .step-body {
-      font-size: var(--text-base);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.75;
-    }
-
-    /* ── THE DARK MOMENT (result preview) ── */
-    .reveal-section {
-      background: var(--dark-bg);
-      margin: 0 20px;
-      border-radius: 28px;
-      padding: var(--space-10) var(--space-5);
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .reveal-glow {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(244,98,42,0.12) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .reveal-label {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: rgba(255,255,255,0.3);
-      margin-bottom: var(--space-6);
-      display: block;
-    }
-    .reveal-pre {
-      font-size: var(--text-base);
-      color: rgba(255,255,255,0.4);
-      font-weight: 300;
-      margin-bottom: var(--space-4);
-    }
-    .reveal-date {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(56px, 12vw, 100px);
-      font-weight: 700;
-      color: var(--fire-amber);
-      line-height: 1;
-      margin-bottom: var(--space-4);
-      letter-spacing: -0.02em;
-    }
-    .reveal-post {
-      font-size: var(--text-base);
-      color: rgba(255,255,255,0.35);
-      font-weight: 300;
-      margin-bottom: var(--space-8);
-      font-style: italic;
-    }
-    .reveal-divider {
-      width: 40px; height: 1px;
-      background: rgba(255,255,255,0.15);
-      margin: 0 auto var(--space-7);
-    }
-    .reveal-insight {
-      font-size: var(--text-md);
-      color: rgba(255,255,255,0.6);
-      font-weight: 300;
-      line-height: 1.8;
-      max-width: 480px;
-      margin: 0 auto var(--space-7);
-    }
-    .reveal-insight strong {
-      color: rgba(255,255,255,0.85);
-      font-weight: 500;
-    }
-    .reveal-cta {
-      background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-      color: white;
-      padding: 16px 36px;
-      border-radius: 12px;
-      font-size: var(--text-base);
-      font-weight: 500;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.2s;
-      box-shadow: 0 4px 24px rgba(244,98,42,0.3);
-    }
-    .reveal-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(244,98,42,0.4); }
-
-    /* ── FREE VS PRO ── */
-    .compare-section {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: var(--space-10) var(--space-5);
-    }
-    .compare-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-4);
-      margin-top: var(--space-7);
-    }
-    .compare-card {
-      border-radius: 20px;
-      padding: var(--space-7) var(--space-6);
-    }
-    .compare-card.free {
-      background: white;
-      border: 1.5px solid var(--border);
-      box-shadow: var(--shadow-sm);
-    }
-    .compare-card.pro {
-      background: linear-gradient(145deg, #3D2B1F, #5C3D2E);
-      color: white;
-      box-shadow: var(--shadow-lg);
-    }
-    .compare-badge {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: var(--space-5);
-      display: block;
-    }
-    .compare-card.free .compare-badge { color: var(--soft-grey); }
-    .compare-card.pro .compare-badge { color: var(--fire-amber); }
-    .compare-title {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-xl);
-      font-weight: 700;
-      margin-bottom: var(--space-5);
-    }
-    .compare-card.pro .compare-title { color: white; }
-    .compare-features {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-3);
-      margin-bottom: var(--space-6);
-    }
-    .compare-features li {
-      font-size: var(--text-sm);
-      font-weight: 300;
-      line-height: 1.5;
-      display: flex;
-      align-items: flex-start;
-      gap: var(--space-3);
-    }
-    .compare-card.free .compare-features li { color: var(--soft-grey); }
-    .compare-card.pro .compare-features li { color: rgba(255,255,255,0.7); }
-    .compare-features li::before {
-      content: '✓';
-      font-size: var(--text-xs);
-      font-weight: 700;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .compare-card.free .compare-features li::before { color: var(--fire-orange); }
-    .compare-card.pro .compare-features li::before { color: var(--fire-amber); }
-    .compare-link {
-      font-size: var(--text-sm);
-      font-weight: 500;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.2s;
-    }
-    .compare-card.free .compare-link {
-      color: var(--warm-brown);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 2px;
-    }
-    .compare-card.free .compare-link:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
-    .compare-card.pro .compare-link {
-      background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-      color: white;
-      padding: 12px 24px;
-      border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(244,98,42,0.3);
-    }
-    .compare-card.pro .compare-link:hover { transform: translateY(-1px); }
-    .compare-price {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-2xl);
-      font-weight: 700;
-      color: var(--fire-amber);
-      margin-bottom: var(--space-2);
-    }
-    .compare-price-note {
-      font-size: var(--text-xs);
-      color: rgba(255,255,255,0.4);
-      font-weight: 300;
-      margin-bottom: var(--space-5);
-    }
-
-    /* ── JAY'S LETTER ── */
-    .letter-section {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: var(--space-9) var(--space-5);
-    }
-    .letter-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: var(--space-8) var(--space-7);
-      box-shadow: var(--shadow-md);
-      position: relative;
-      overflow: hidden;
-    }
-    .letter-mark {
-      font-family: 'Playfair Display', serif;
-      font-size: 180px;
-      color: rgba(244,98,42,0.05);
-      position: absolute;
-      top: -24px; left: 8px;
-      line-height: 1;
-      pointer-events: none;
-      user-select: none;
-    }
-    .letter-eyebrow {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--fire-orange);
-      margin-bottom: var(--space-5);
-      display: block;
-    }
-    .letter-opener {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(18px, 3vw, 24px);
-      font-weight: 700;
-      line-height: 1.4;
-      color: var(--warm-brown);
-      margin-bottom: var(--space-6);
-    }
-    .letter-body {
-      font-size: var(--text-base);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.95;
-    }
-    .letter-body p { margin-bottom: var(--space-5); }
-    .letter-body p:last-child { margin-bottom: 0; }
-    .letter-body strong { color: var(--warm-brown); font-weight: 500; }
-    .letter-sig {
-      margin-top: var(--space-7);
-      padding-top: var(--space-6);
-      border-top: 1px solid var(--border);
-    }
-    .letter-sig-name {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-lg);
-      font-weight: 700;
-      color: var(--warm-brown);
-      display: block;
-      margin-bottom: var(--space-1);
-    }
-    .letter-sig-role {
-      font-size: var(--text-sm);
-      color: var(--soft-grey);
-      font-weight: 300;
-    }
-
-    /* ── FINAL CTA ── */
-    .final-cta {
-      padding: var(--space-9) var(--space-5) var(--space-10);
-      text-align: center;
-    }
-    .final-cta-inner {
-      max-width: 560px;
-      margin: 0 auto;
-    }
-    .final-cta-headline {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(28px, 5vw, 44px);
-      font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: var(--space-5);
-    }
-    .final-cta-sub {
-      font-size: var(--text-md);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.7;
-      margin-bottom: var(--space-7);
-    }
-    .final-cta-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--space-3);
-    }
-    .btn-ghost {
-      font-size: var(--text-sm);
-      color: var(--soft-grey);
-      text-decoration: none;
-      font-weight: 400;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 2px;
-      transition: all 0.2s;
-    }
-    .btn-ghost:hover { color: var(--fire-orange); border-color: var(--fire-orange); }
-
-    /* ── FOOTER ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: var(--space-7) var(--space-5);
-      text-align: center;
-    }
-    .footer-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-lg);
-      font-weight: 700;
-      margin-bottom: var(--space-4);
-      color: var(--warm-brown);
-    }
-    .footer-logo span { color: var(--fire-orange); }
-    .footer-links {
-      display: flex; justify-content: center;
-      gap: var(--space-5); flex-wrap: wrap;
-      margin-bottom: var(--space-5);
-    }
-    .footer-link {
-      font-size: var(--text-sm);
-      color: var(--soft-grey);
-      text-decoration: none;
-      font-weight: 300;
-      transition: color 0.2s;
-    }
-    .footer-link:hover { color: var(--fire-orange); }
-    .footer-legal {
-      font-size: var(--text-xs);
-      color: var(--mid-grey);
-      font-weight: 300;
-      line-height: 1.7;
-      max-width: 480px;
-      margin: 0 auto;
-    }
-
-    /* ── ANIMATIONS ── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── MOBILE ── */
-    @media (max-width: 640px) {
-      .nav-links {
-        display: none; flex-direction: column;
-        position: fixed; top: 64px; left: 0; right: 0;
-        background: rgba(253,246,238,0.98);
-        border-bottom: 1px solid var(--border);
-        padding: var(--space-5) var(--space-5);
-        gap: var(--space-5); z-index: 99;
-      }
-      .nav-links.open { display: flex; }
-      .nav-links .nav-cta { text-align: center; }
-      .hamburger { display: flex; }
-      .compare-grid { grid-template-columns: 1fr; }
-      .letter-card { padding: var(--space-6) var(--space-5); }
-      .reveal-section { margin: 0 12px; padding: var(--space-8) var(--space-4); }
-    }
+    :root { --fire-orange: #F4622A; --fire-amber: #F9A825; --warm-cream: #FDF6EE; --warm-brown: #3D2B1F; --soft-grey: #9E8E85; --border: #EDE3DA; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); }
+    .header { background: white; border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--warm-brown); text-decoration: none; }
+    .logo span { color: var(--fire-orange); }
+    .header-cta { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 500; text-decoration: none; }
+    .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+    .intro { font-size: 16px; color: var(--soft-grey); font-weight: 300; margin-bottom: 40px; line-height: 1.7; }
+    .track-section { margin-bottom: 40px; }
+    .track-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fire-orange); margin-bottom: 16px; }
+    .article-list { display: flex; flex-direction: column; gap: 10px; }
+    .article-link { background: white; border: 1.5px solid var(--border); border-radius: 14px; padding: 18px 20px; text-decoration: none; transition: border-color 0.2s; }
+    .article-link:hover { border-color: var(--fire-orange); }
+    .article-title { font-size: 15px; font-weight: 600; color: var(--warm-brown); margin-bottom: 4px; }
+    .article-desc { font-size: 12px; color: var(--soft-grey); font-weight: 300; line-height: 1.5; }
+    footer { background: white; border-top: 1px solid var(--border); padding: 24px; text-align: center; font-size: 12px; color: var(--soft-grey); }
+    footer a { color: var(--fire-orange); text-decoration: none; margin: 0 8px; }
   </style>
 </head>
 <body>
-
-  <!-- Nav -->
-  <nav>
-    <a href="/index.html" class="nav-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg><span style="color:var(--warm-brown)">Fire<span style="color:var(--fire-orange)">Path</span></span></a>
-    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-    <div class="nav-links" id="navLinks">
-      <a href="features.html" class="nav-link" onclick="closeMenu()">Features</a>
-      <a href="#why" class="nav-link" onclick="closeMenu()">Why</a>
-      <a href="auth.html" class="nav-link" onclick="closeMenu()">Sign in</a>
-      <a href="firepath.html" class="nav-cta" onclick="closeMenu()">Find my path →</a>
-    </div>
-
-  </nav>
-
-  <!-- ── HERO ── -->
-  <section class="hero">
-    <div class="hero-glow-1"></div>
-    <div class="hero-glow-2"></div>
-
-    <p class="hero-eyebrow">Built for everyday Australians</p>
-
-    <h1 class="hero-headline">
-      Know where<br/>
-      you're <em>heading.</em>
-    </h1>
-
-    <p class="hero-sub">
-      Money shouldn't feel confusing. FirePath shows you what your income is capable of — and exactly when you could stop having to work so hard.
-    </p>
-
-    <div class="hero-cta">
-      <a href="firepath.html" class="btn-primary"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Find my path</a>
-      <p class="hero-cta-note">
-        Free. Takes 2 minutes. No signup needed. &nbsp;·&nbsp;
-        <a href="auth.html">Try Pro →</a>
-      </p>
-    </div>
-
-    <p class="hero-social">
-      Read by <strong>98,000+ Australians</strong> on r/AusFinance
-    </p>
-  </section>
-
-   <!-- ── BRIDGE ── -->
-  <div class="bridge">
-    <p class="bridge-line1">Most people never stop to think about</p>
-    <p class="bridge-line2">when they could stop working.</p>
-    <p class="bridge-you" id="bridgeYou"></p>
-  </div>
-
-    <script>
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          observer.disconnect();
-          const el = document.getElementById('bridgeYou');
-          setTimeout(() => {
-            el.textContent = 'You should.';
-            el.style.transition = 'opacity 1.2s ease';
-            el.style.opacity = '1';
-          }, 800);
-        }
-      });
-    }, { threshold: 0.6 });
-
-    observer.observe(document.querySelector('.bridge'));
-  </script>
-
-
-  <!-- ── WHAT FIREPATH DOES ── -->
-  <section class="what-section">
-    <span class="section-eyebrow">How it works</span>
-    <h2 class="section-headline">Three things FirePath does differently.</h2>
-    <p class="section-sub">It shows you. It educates you. It empowers you.</p>
-
-    <div class="steps">
-            <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          <div class="step-title">Shows you where you actually stand</div>
-          <div class="step-body">Most of us have a rough idea of our finances. But rough ideas don't give you a plan. FirePath turns your income and savings into a real date — the day you could choose to stop.<br/><br/>And if that date doesn't fit your life? FirePath helps you understand what you can do about it — in plain English, no judgment.</div>
-        </div>
-      </div>
-           <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          <div class="step-title">Tells you what actually moves the needle</div>
-          <div class="step-body">Not generic tips. Your numbers. What happens to your date if you save $50 more a week? If your money was invested instead of sitting in a bank? FirePath shows you the exact difference — in years.<br/><br/>The Learning Lab reads your inputs and recommends education built around your situation — so you can figure out what to do next and why it matters.</div>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          <div class="step-title">Sits beside you as your situation changes</div>
-          <div class="step-body">Life changes. Your numbers should too. Every time you come back, FirePath updates your picture. Over time you'll watch the most important number in your life get smaller — and that feeling is what we want you to experience.</div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ── THE REVEAL ── -->
-  <div class="reveal-section">
-    <div class="reveal-glow"></div>
-    <span class="reveal-label">What you'll see</span>
-    <p class="reveal-pre">Based on your numbers, you could be financially free in</p>
-    <div class="reveal-date">11 yrs</div>
-    <p class="reveal-post">That's an actual date. Not a guess.</p>
-    <div class="reveal-divider"></div>
-    <p class="reveal-insight">
-      Your savings are sitting in a bank account earning almost nothing. <strong>If that money was invested, your date moves 4 years closer.</strong> The Hear Me Out tool lets you model exactly what that looks like.
-    </p>
-    <a href="firepath.html" class="reveal-cta">Find my number →</a>
-  </div>
-
-  <!-- ── FREE VS PRO ── -->
-  <section class="compare-section">
-  <span class="section-eyebrow">Free vs Pro</span>
-    <h2 class="section-headline">Start free. Get really clever with Pro when you're ready.</h2>
-
-    <div class="compare-grid">
-      <div class="compare-card free">
-        <span class="compare-badge">Free forever</span>
-        <div class="compare-title">Your number</div>
-        <ul class="compare-features">
-          <li>Your financial freedom date</li>
-          <li>What moves it forward or back</li>
-          <li>Your projected range</li>
-          <li>Personalised article recommendations</li>
-          <li>No signup required</li>
-        </ul>
-        <a href="firepath.html" class="compare-link">Start for free →</a>
-      </div>
-
-      <div class="compare-card pro">
-        <span class="compare-badge">FirePath Pro (the really clever one)</span>
-        <div class="compare-title">The full picture</div>
-        <div class="compare-price">$6<span style="font-size:14px;font-weight:300;opacity:0.6">/month</span></div>
-        <div class="compare-price-note">Cancel anytime. No lock-in.</div>
-                <ul class="compare-features">
-          <li>AI that actually understands your situation</li>
-          <li>See exactly what moves your freedom date</li>
-          <li>Your super mapped to your timeline</li>
-          <li>If your date can't be hit — we find realistic paths you might never have thought of</li>
-          <li>Model the big what-ifs in your life</li>
-          <li>Watch your progress change over time</li>
-          <li>Tax tools that show you where your money really goes</li>
-        </ul>
-        <a href="auth.html" class="compare-link">Try Pro free for 7 days →</a>
+<div class="header">
+  <a href="/index.html" class="logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span></a>
+  <a href="/firepath.html" class="header-cta">Calculate my number →</a>
+</div>
+<div class="container">
+  <h1>FirePath Learning Lab</h1>
+  <p class="intro">Free Australian financial independence education — from the basics of FIRE to superannuation, investing, and tax. All written for everyday Australians. No jargon, no sales pitch.</p>
+  
+        <div class="track-section">
+      <div class="track-label">Real Questions — Where You Stand</div>
+      <div class="article-list">
+        <a href="/learn/am-i-behind-financially.html" class="article-link">
+          <div class="article-title">Am I Behind Financially for My Age?</div>
+          <div class="article-desc">A judgement-free way to actually check whether you're behind — using real benchmarks, not comparison anxiety.</div>
+        </a>
+        <a href="/learn/savings-by-age.html" class="article-link">
+          <div class="article-title">How Much Should I Have Saved by 30, 40, 50?</div>
+          <div class="article-desc">Realistic Australian savings benchmarks by age — not scare tactics, and not inflated US figures.</div>
+        </a>
+        <a href="/learn/am-i-on-track-retirement.html" class="article-link">
+          <div class="article-title">How Do I Know If I'm On Track for Retirement?</div>
+          <div class="article-desc">On track isn't a single number — here's how to actually check, using your own savings rate and spending.</div>
+        </a>
+        <a href="/learn/how-much-to-retire-australia.html" class="article-link">
+          <div class="article-title">How Much Money Do I Actually Need to Retire in Australia?</div>
+          <div class="article-desc">The real number — not a rule of thumb — for how much you need, and why it depends on your spending.</div>
+        </a>
+        <a href="/learn/how-much-is-enough.html" class="article-link">
+          <div class="article-title">How Much Money Is Actually "Enough"?</div>
+          <div class="article-desc">Enough has an actual answer once you define your lifestyle — here's how to find your own number.</div>
+        </a>
+        <a href="/learn/good-savings-rate.html" class="article-link">
+          <div class="article-title">What's a Good Savings Rate for My Income?</div>
+          <div class="article-desc">There's no universal 'good' savings rate — here's how to think about what's realistic for you.</div>
+        </a>
       </div>
     </div>
-  </section>
-
-  <!-- ── JAY'S LETTER ── -->
-    <section class="letter-section" id="why">
-    <div class="letter-card">
-      <span class="letter-mark">"</span>
-      <span class="letter-eyebrow">Why I built this</span>
-    <div class="letter-opener">
-        "I'm a support worker, and I created FirePath because I wish I had this knowledge in simple terms in my early 20s."
-      </div>
-      <div class="letter-body">
-        <p>Over the years, I've chatted with heaps of people about life, stress and how to make ends meet. One thing that always pops up is that most people don't quite get how money works. It's not because they're not smart — it's just that nobody ever explained it to them.</p>
-        <p>My wife and I decided to take some calculated risks to help our family move forward. Those risks felt a bit uncomfortable at the time. But if we hadn't made them, we wouldn't have reached where we are today. <strong>And I wish we'd made them a decade earlier</strong> — because the more time you have, the easier it is to get ahead.</p>
-        <p>I wanted to create something that shows people what's actually achievable based on their situation. Built for everyone — no matter where you're starting from. It becomes about you, your numbers, your timeline and building your knowledge to understand what it all means.</p>
-        <p>FirePath has real costs to run, but we're aiming to keep it as affordable as possible. $6 a month felt right. Less than a coffee (which I know is still a big ask). I truly hope it gives you value well above this price tag — and if it doesn't, we always welcome your feedback.</p>
-      </div>
-
-      <div class="letter-sig">
-        <span class="letter-sig-role" style="display:block;margin-bottom:12px;">Thanks for stopping by. Your life changes from here.</span>
-        <span class="letter-sig-name">— Jay</span>
-        <span class="letter-sig-role" style="margin-top:6px;display:block;">Founder, FirePath 🇦🇺 · Support worker, Mid North Coast NSW</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── FINAL CTA ── -->
-  <div class="final-cta">
-    <div class="final-cta-inner">
-      <h2 class="final-cta-headline">
-        You're not lost anymore.
-      </h2>
-      <p class="final-cta-sub">
-        Find out where you actually stand. Free, in 2 minutes, no signup needed.
-      </p>
-      <div class="final-cta-actions">
-        <a href="firepath.html" class="btn-primary"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Find my path</a>
-        <a href="auth.html" class="btn-ghost">Try Pro free for 7 days</a>
+    <div class="track-section">
+      <div class="track-label">Real Questions — Time & Freedom</div>
+      <div class="article-list">
+        <a href="/learn/how-long-do-i-have-to-work.html" class="article-link">
+          <div class="article-title">How Long Do I Actually Have to Work For?</div>
+          <div class="article-desc">Most people never calculate this — here's the real maths behind how many years actually stand between you and freedom.</div>
+        </a>
+        <a href="/learn/what-is-coast-fire.html" class="article-link">
+          <div class="article-title">What Is Coast FIRE — and Could I Already Be There?</div>
+          <div class="article-desc">Coast FIRE means you might not need to save another dollar for retirement. Here's what it actually means.</div>
+        </a>
+        <a href="/learn/can-i-work-less.html" class="article-link">
+          <div class="article-title">Can I Afford to Work Less?</div>
+          <div class="article-desc">How to model whether you can afford reduced hours, a career break, or a lower-paying but better job.</div>
+        </a>
+        <a href="/learn/when-can-i-actually-retire.html" class="article-link">
+          <div class="article-title">When Can I Actually Retire (Not Just the Official Age)?</div>
+          <div class="article-desc">Your real retirement date is a calculation, not the pension eligibility age.</div>
+        </a>
+        <a href="/learn/calculate-retirement-age.html" class="article-link">
+          <div class="article-title">How Do I Calculate My Own Retirement Age?</div>
+          <div class="article-desc">A step-by-step walkthrough of the actual maths behind calculating your personal retirement age.</div>
+        </a>
       </div>
     </div>
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    <div class="footer-logo"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:3px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span></div>
-    <div class="footer-links">
-      <a href="features.html" class="footer-link">Features</a>
-      <a href="learn/index.html" class="footer-link">Learning Lab</a>
-      <a href="auth.html" class="footer-link">Sign in</a>
-      <a href="privacy.html" class="footer-link">Privacy Policy</a>
-      <a href="terms.html" class="footer-link">Terms</a>
-      <a href="faq.html" class="footer-link">FAQ</a>
+    <div class="track-section">
+      <div class="track-label">Real Questions — Money & Mindset</div>
+      <div class="article-list">
+        <a href="/learn/why-do-i-feel-behind.html" class="article-link">
+          <div class="article-title">Why Do I Feel So Behind Financially?</div>
+          <div class="article-desc">You're probably not as far behind as it feels. Here's why financial anxiety often disconnects from reality.</div>
+        </a>
+        <a href="/learn/no-savings-in-your-30s.html" class="article-link">
+          <div class="article-title">Is It Normal to Have No Savings in Your 30s?</div>
+          <div class="article-desc">The honest, data-informed answer — plus what matters more than your current balance at this stage.</div>
+        </a>
+        <a href="/learn/money-anxiety.html" class="article-link">
+          <div class="article-title">How Do I Stop Feeling Anxious About Money?</div>
+          <div class="article-desc">Clarity helps more than willpower. A practical, non-preachy way to reduce financial anxiety.</div>
+        </a>
+        <a href="/learn/bad-with-money-or-underpaid.html" class="article-link">
+          <div class="article-title">Am I Bad With Money or Just Underpaid?</div>
+          <div class="article-desc">A useful way to separate a spending problem from an income problem — the fix is completely different.</div>
+        </a>
+        <a href="/learn/everyone-else-figured-out.html" class="article-link">
+          <div class="article-title">Why Does Everyone Else Seem to Have Their Finances Figured Out?</div>
+          <div class="article-desc">They probably don't. The honest truth about financial comparison and social media.</div>
+        </a>
+      </div>
     </div>
-    <p class="footer-legal">
-      FirePath is an educational tool. We don't provide financial advice.<br/>
-      Projections are illustrative only. Always consider your personal circumstances.
-    </p>
-  </footer>
+    <div class="track-section">
+      <div class="track-label">Real Questions — Getting Started</div>
+      <div class="article-list">
+        <a href="/learn/start-investing-no-experience.html" class="article-link">
+          <div class="article-title">How Do I Start Investing With No Experience?</div>
+          <div class="article-desc">A beginner-friendly starting point for investing in Australia — no jargon, no assumed knowledge.</div>
+        </a>
+        <a href="/learn/how-much-to-start-investing.html" class="article-link">
+          <div class="article-title">How Much Do I Need to Start Investing in Australia?</div>
+          <div class="article-desc">The real minimum to start investing today — it's lower than most people assume.</div>
+        </a>
+        <a href="/learn/debt-vs-invest.html" class="article-link">
+          <div class="article-title">Should I Pay Off Debt or Invest First?</div>
+          <div class="article-desc">The honest, maths-based answer depends on the interest rate on your debt.</div>
+        </a>
+      </div>
+    </div>
+    <div class="track-section">
+      <div class="track-label">Real Questions — Your Life Stage</div>
+      <div class="article-list">
+        <a href="/learn/retire-early-single-parent.html" class="article-link">
+          <div class="article-title">How Do I Retire Early as a Single Parent?</div>
+          <div class="article-desc">Financial independence looks different as a single parent — here's how to realistically model your timeline.</div>
+        </a>
+        <a href="/learn/retire-early-bought-house-late.html" class="article-link">
+          <div class="article-title">Can I Retire Early If I Bought a House Late?</div>
+          <div class="article-desc">A later start on the property ladder does not rule out financial independence.</div>
+        </a>
+        <a href="/learn/too-late-to-invest-at-40.html" class="article-link">
+          <div class="article-title">Is It Too Late to Start Investing at 40?</div>
+          <div class="article-desc">What the maths actually says about starting to invest at 40 — and why it's very much not too late.</div>
+        </a>
+        <a href="/learn/kids-and-retirement-timeline.html" class="article-link">
+          <div class="article-title">How Does Having Kids Change Your Retirement Timeline?</div>
+          <div class="article-desc">The honest impact of kids on your FIRE timeline — real numbers, not guilt.</div>
+        </a>
+        <a href="/learn/retire-early-average-income.html" class="article-link">
+          <div class="article-title">Can I Retire Early on an Average Australian Income?</div>
+          <div class="article-desc">Yes — here's exactly how, using real Australian median income figures.</div>
+        </a>
+      </div>
+    </div>
+    <div class="track-section">
+      <div class="track-label">Real Questions — Renting vs Buying</div>
+      <div class="article-list">
+        <a href="/learn/rent-or-buy.html" class="article-link">
+          <div class="article-title">Should I Keep Renting or Buy a House?</div>
+          <div class="article-desc">The FIRE-specific angle on rent vs buy that most articles miss.</div>
+        </a>
+        <a href="/learn/renting-forever-retirement.html" class="article-link">
+          <div class="article-title">Does Renting Forever Ruin Your Retirement?</div>
+          <div class="article-desc">No — but it does change the shape of your plan.</div>
+        </a>
+        <a href="/learn/renting-cheaper-than-owning.html" class="article-link">
+          <div class="article-title">Is Renting Actually Cheaper Than Owning Long-Term?</div>
+          <div class="article-desc">A genuine numbers-based comparison of renting vs owning over the long term.</div>
+        </a>
+        <a href="/learn/house-delays-fi.html" class="article-link">
+          <div class="article-title">How Does Buying a House Delay Financial Independence?</div>
+          <div class="article-desc">Buying a house often extends your FIRE timeline — here's exactly why.</div>
+        </a>
+      </div>
+    </div>
+    <div class="track-section">
+      <div class="track-label">Real Questions — Super Specifics</div>
+      <div class="article-list">
+        <a href="/learn/super-balance-at-60.html" class="article-link">
+          <div class="article-title">How Much Super Will I Have at 60?</div>
+          <div class="article-desc">How to estimate your super balance using your current balance, contributions, and growth assumptions.</div>
+        </a>
+        <a href="/learn/is-my-super-enough.html" class="article-link">
+          <div class="article-title">Is My Super Enough to Retire On?</div>
+          <div class="article-desc">How to actually check whether your super alone will be enough.</div>
+        </a>
+        <a href="/learn/super-vs-outside-investing.html" class="article-link">
+          <div class="article-title">Should I Put Extra Into Super or Invest Outside It?</div>
+          <div class="article-desc">The genuine trade-off between extra super contributions and investing outside super.</div>
+        </a>
+        <a href="/learn/before-super-access.html" class="article-link">
+          <div class="article-title">What Happens to Your Money Before You Can Access Super?</div>
+          <div class="article-desc">The often-overlooked gap between stopping work and accessing super.</div>
+        </a>
+        <a href="/learn/salary-sacrifice-explained.html" class="article-link">
+          <div class="article-title">How Does Salary Sacrifice Actually Work?</div>
+          <div class="article-desc">A plain-English explanation of salary sacrifice into super.</div>
+        </a>
+      </div>
+    </div>
+    <div class="track-section">
+      <div class="track-label">Real Questions — What If...</div>
+      <div class="article-list">
+        <a href="/learn/what-if-sold-house.html" class="article-link">
+          <div class="article-title">What If I Sold My House — Could I Retire?</div>
+          <div class="article-desc">How to model whether selling your house could fund early retirement.</div>
+        </a>
+        <a href="/learn/pay-rise-retirement-impact.html" class="article-link">
+          <div class="article-title">What Happens If I Get a Pay Rise?</div>
+          <div class="article-desc">The surprising, non-linear way a pay rise can move your retirement date forward.</div>
+        </a>
+        <a href="/learn/pay-cut-happier-job.html" class="article-link">
+          <div class="article-title">What If I Took a Pay Cut for a Job I Liked?</div>
+          <div class="article-desc">How to model the real financial cost of a pay cut for better work.</div>
+        </a>
+        <a href="/learn/extra-50-a-week-impact.html" class="article-link">
+          <div class="article-title">How Much Does an Extra $50 a Week Change Things?</div>
+          <div class="article-desc">The surprisingly large effect of an extra $50 a week, modelled honestly.</div>
+        </a>
+        <a href="/learn/redundancy-would-i-be-okay.html" class="article-link">
+          <div class="article-title">What If I Got Made Redundant — Would I Be Okay?</div>
+          <div class="article-desc">How to stress-test your finances against redundancy.</div>
+        </a>
+      </div>
+    </div>
+<div class="track-section">
+      <div class="track-label">Foundation</div>
+      <div class="article-list">
+        
+        <a href="/learn/what-is-fire-australia.html" class="article-link">
+          <div class="article-title">What is FIRE and is it realistic for Australians?</div>
+          <div class="article-desc">FIRE stands for Financial Independence, Retire Early. Find out what it means, whether it's realistic...</div>
+        </a>
+        <a href="/learn/how-compound-interest-works.html" class="article-link">
+          <div class="article-title">How compound interest actually works — with real numbers</div>
+          <div class="article-desc">Compound interest is the most powerful force in personal finance. Here's exactly how it works, with ...</div>
+        </a>
+        <a href="/learn/difference-saving-investing.html" class="article-link">
+          <div class="article-title">The difference between saving and investing — why it matters for your timeline</div>
+          <div class="article-desc">Saving and investing are not the same thing. Here's the real difference, when to do each, and why wh...</div>
+        </a>
+        <a href="/learn/two-phase-freedom-timeline.html" class="article-link">
+          <div class="article-title">Your two-phase freedom timeline — savings now, super at 60</div>
+          <div class="article-desc">Most Australian FIRE calculators ignore superannuation. Here's how your two separate financial timel...</div>
+        </a>
+        <a href="/learn/fire-glossary-australia.html" class="article-link">
+          <div class="article-title">The FIRE glossary — every acronym and term explained</div>
+          <div class="article-desc">PPOR, DINK, ETF, SWR, FI number, Coast FIRE — every term you'll see in Australian FIRE forums and co...</div>
+        </a>
+      </div>
+    </div>
+    <div class="track-section">
+      <div class="track-label">Tax & Strategy</div>
+      <div class="article-list">
 
-  <script>
-    function toggleMenu() {
-      document.getElementById('navLinks').classList.toggle('open');
-      document.getElementById('hamburger').classList.toggle('open');
-    }
-    function closeMenu() {
-      document.getElementById('navLinks').classList.remove('open');
-      document.getElementById('hamburger').classList.remove('open');
-    }
-  </script>
-
+        <a href="/learn/catch-up-contributions.html" class="article-link">
+          <div class="article-title">Catch-up concessional contributions — how they actually work</div>
+          <div class="article-desc">If your super balance is under $500K, unused cap from the last 5 years can be used in a single big c...</div>
+        </a>
+        <a href="/learn/super-co-contribution.html" class="article-link">
+          <div class="article-title">The government super co-contribution</div>
+          <div class="article-desc">The government matches 50c for every $1 you contribute after-tax, up to $500 a year, if your income ...</div>
+        </a>
+        <a href="/learn/spouse-contribution-offset.html" class="article-link">
+          <div class="article-title">Spouse contribution tax offset</div>
+          <div class="article-desc">Contribute to a lower-earning partner's super and claim a tax offset of up to $540. Here's exactly h...</div>
+        </a>
+        <a href="/learn/cgt-discount.html" class="article-link">
+          <div class="article-title">The 50% CGT discount, explained</div>
+          <div class="article-desc">Hold an investment over 12 months before selling and only half the gain is taxable. Here's how much ...</div>
+        </a>
+        <a href="/learn/first-home-super-saver.html" class="article-link">
+          <div class="article-title">First Home Super Saver Scheme</div>
+          <div class="article-desc">Save up to $15,000 a year (max $50,000) inside super's lower tax environment, then withdraw it for y...</div>
+        </a>
+        <a href="/learn/division-293.html" class="article-link">
+          <div class="article-title">Division 293 tax, explained</div>
+          <div class="article-desc">An extra 15% tax on super contributions above $250K income — and why salary sacrifice is usually sti...</div>
+        </a>
+      </div>
+    </div>
+    <div class="track-section">
+      <div class="track-label">Steady & Safe</div>
+      <div class="article-list">
+        
+        <a href="/learn/what-is-a-bond.html" class="article-link">
+          <div class="article-title">What is a bond and why it matters for your portfolio</div>
+          <div class="article-desc">Bonds are the conservative building block of investing. Here's what they are, how they work, why the...</div>
+        </a>
+        <a href="/learn/high-interest-savings-vs-term-deposits.html" class="article-link">
+          <div class="article-title">High interest savings accounts vs term deposits — which is better?</div>
+          <div class="article-desc">High interest savings accounts and term deposits both beat a standard bank account — but which one i...</div>
+        </a>
+        <a href="/learn/balanced-funds-explained.html" class="article-link">
+          <div class="article-title">Balanced funds explained — a bit of everything, less risk</div>
+          <div class="article-desc">Balanced funds hold a mix of shares and bonds to smooth out the ride. Here's what they are, how they...</div>
+        </a>
+        <a href="/learn/what-diversification-means.html" class="article-link">
+          <div class="article-title">What diversification actually means — don't put all your eggs in one basket</div>
+          <div class="article-desc">Diversification is one of the most important concepts in investing — and one of the most misundersto...</div>
+        </a>
+        <a href="/learn/why-inflation-is-your-enemy.html" class="article-link">
+          <div class="article-title">Why inflation is your silent enemy — and what to do about it</div>
+          <div class="article-desc">Inflation quietly erodes the value of your money every year. Here's how it works, what it means for ...</div>
+        </a>
+      </div>
+    </div>
+    <div class="track-section">
+      <div class="track-label">FIRE Standard</div>
+      <div class="article-list">
+        
+        <a href="/learn/what-is-an-index-fund.html" class="article-link">
+          <div class="article-title">What is an index fund and why the FIRE community loves it</div>
+          <div class="article-desc">Index funds are the most popular investment in the FIRE community — and for good reason. Here's exac...</div>
+        </a>
+        <a href="/learn/etfs-how-to-buy.html" class="article-link">
+          <div class="article-title">ETFs — what they are, how to buy them, and what they cost</div>
+          <div class="article-desc">ETFs (Exchange Traded Funds) are how most Australian FIRE investors get started. Here's what they ar...</div>
+        </a>
+        <a href="/learn/compounding-with-your-numbers.html" class="article-link">
+          <div class="article-title">Compounding with your actual numbers — seeing it in real terms</div>
+          <div class="article-desc">Compounding is most powerful when you see it with your own numbers. Here's how compound growth works...</div>
+        </a>
+        <a href="/learn/dollar-cost-averaging.html" class="article-link">
+          <div class="article-title">Dollar cost averaging — what it is and why it works</div>
+          <div class="article-desc">Dollar cost averaging means investing a fixed amount regularly regardless of market conditions. Here...</div>
+        </a>
+        <a href="/learn/australian-vs-global-shares.html" class="article-link">
+          <div class="article-title">Australian shares vs global shares — where should your money live?</div>
+          <div class="article-desc">Should you invest in Australian or global shares? Here's the honest comparison — home bias, franking...</div>
+        </a>
+        <a href="/learn/four-percent-rule-australia.html" class="article-link">
+          <div class="article-title">The 4% rule — where it comes from and does it work in Australia?</div>
+          <div class="article-desc">The 4% rule is the foundation of FIRE planning worldwide — but it was designed for Americans. Here's...</div>
+        </a>
+        <a href="/learn/tax-and-investing-australia.html" class="article-link">
+          <div class="article-title">Tax and investing basics in Australia — what every investor needs to know</div>
+          <div class="article-desc">Understanding tax is essential for Australian investors. Here's how capital gains tax, dividend tax,...</div>
+        </a>
+      </div>
+    </div>
+    <div class="track-section">
+      <div class="track-label">Growth Focused</div>
+      <div class="article-list">
+        
+        <a href="/learn/individual-shares-how-they-work.html" class="article-link">
+          <div class="article-title">Individual shares — how they work and what you're actually buying</div>
+          <div class="article-desc">When you buy a share you become part-owner of a company. Here's how individual shares work, what dri...</div>
+        </a>
+        <a href="/learn/property-investing-explained.html" class="article-link">
+          <div class="article-title">Property investing explained — leverage, equity, and cash flow</div>
+          <div class="article-desc">Property is Australia's most popular investment — but how does it actually work? Here's a plain Engl...</div>
+        </a>
+        <a href="/learn/dividends-vs-capital-growth.html" class="article-link">
+          <div class="article-title">Dividends vs capital growth — income now or wealth later?</div>
+          <div class="article-desc">Should you invest for dividends (income now) or capital growth (wealth later)? Here's the honest com...</div>
+        </a>
+        <a href="/learn/franking-credits-australia.html" class="article-link">
+          <div class="article-title">Franking credits in Australia — a uniquely Australian tax advantage</div>
+          <div class="article-desc">Franking credits are a uniquely Australian tax benefit that can significantly boost your investment ...</div>
+        </a>
+      </div>
+    </div>
+</div>
+<footer>
+  <a href="/index.html">Home</a>
+  <a href="/firepath.html">Free Calculator</a>
+  <a href="/tax.html">Tax & Strategy</a>
+  <a href="/assumptions.html">How We Calculate</a>
+  <a href="/privacy.html">Privacy</a>
+  <br/><br/>
+  © 2026 FirePath · Educational tool · Not financial advice · Built for Australians
+</footer>
 </body>
 </html>
