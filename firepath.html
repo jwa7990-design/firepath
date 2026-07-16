@@ -248,7 +248,7 @@
 <body>
 <div class="container">
  <nav>
-  <a href="/index.html" class="nav-logo">Fire<span>Path</span></a>
+  <a href="/index.html" class="nav-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span></a>
   <div class="nav-links">
     <a href="features.html" class="nav-link">Features</a>
     <a href="auth.html" class="nav-link">Sign in</a>
@@ -490,7 +490,7 @@
 
           <p class="error-msg" id="errorMsg" style="display:none;">Please enter your income first.</p>
           <p style="font-size:12px;color:var(--soft-grey);text-align:center;margin-bottom:12px;font-weight:300;"><svg class="icon" style="width:12px;height:12px;vertical-align:-2px;"><use href="/icons.svg#icon-secure"/></svg> Your numbers stay on your device. We don't store or sell them. <a href="privacy.html" style="color:var(--fire-orange);text-decoration:none;">Privacy Policy</a></p>
-          <button class="cta-btn" onclick="calculate()">Show me my path →</button>
+          <button class="cta-btn" onclick="calculate()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Show me my path</button>
         </div>
       </div>
 
@@ -1095,9 +1095,23 @@
       <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;line-height:1.3;">Your path doesn't end here.</div>
       <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:20px;">FirePath Pro takes everything you've just entered and goes deeper — with AI that actually understands your situation.</div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">${topHooks.map(h => `<div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;font-weight:300;">${h}</div>`).join('')}</div>
-      <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:14px;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:10px;">What you get with Pro</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">${['AI insight','Things Worth Exploring','What-if scenarios','Progress tracker','Partner mode','Withdrawal planner'].map(f => `<div style="font-size:12px;color:rgba(255,255,255,0.6);font-weight:300;">${f}</div>`).join('')}</div>
+      <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:12px;">What you get with Pro</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">${[
+          ['icon-insight', 'AI Insight', 'Built from your real numbers'],
+          ['icon-learn', 'Learning Lab+', 'Tracked, saved, goes deeper'],
+          ['icon-money', 'Tax & Strategy', 'Salary sacrifice vs invest'],
+          ['flame', 'Savings Streak', 'Build the habit, not just the plan'],
+          ['icon-momentum', 'Progress Tracker', 'See your trajectory over time'],
+          ['icon-target', 'Hear Me Out', 'Model the big "what ifs" properly'],
+        ].map(([iconId, title, desc]) => `<div style="display:flex;align-items:flex-start;gap:8px;">
+          <div style="flex-shrink:0;width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;margin-top:1px;">${
+            iconId === 'flame'
+              ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--fire-amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>'
+              : `<svg width="14" height="14" style="color:var(--fire-amber);"><use href="/icons.svg#${iconId}"/></svg>`
+          }</div>
+          <div><div style="font-size:12.5px;font-weight:500;color:rgba(255,255,255,0.9);line-height:1.3;">${title}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:300;line-height:1.4;margin-top:1px;">${desc}</div></div>
+        </div>`).join('')}</div>
       </div>
       <div onclick="gtag('event','upgrade_click',{'event_category':'conversion','event_label':'free_to_pro'});window.location.href='firepath_pro.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:14px 24px;cursor:pointer;font-size:14px;font-weight:500;text-align:center;">Start FirePath Pro — $6/month →</div>
       <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.35);">Cancel anytime. No lock-in.</div>
@@ -1735,7 +1749,7 @@ function cinematicRevealCards() {
 </script>
 
 <footer style="border-top:1px solid var(--border);padding:24px;text-align:center;margin-top:20px;">
-  <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:8px;">Fire<span style="color:var(--fire-orange)">Path</span></div>
+  <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:8px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:3px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span style="color:var(--fire-orange)">Path</span></div>
   <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
     <a href="index.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Home</a>
     <a href="firepath.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Free Calculator</a>
