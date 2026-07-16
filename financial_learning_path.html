@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Financial Learning Path — Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --fire-orange: #F4622A;
+    --fire-amber: #F9A825;
+    --warm-cream: #FDF6EE;
+    --warm-brown: #3D2B1F;
+    --soft-grey: #9E8E85;
+    --border: #EDE3DA;
+    --green: #4CA771;
+    --amber: #E5A028;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); min-height: 100vh; }
+  .container { max-width: 480px; margin: 0 auto; padding: 32px 20px 60px; }
+  .mockup-tag { text-align: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--soft-grey); margin-bottom: 20px; }
+  h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; text-align: center; margin-bottom: 10px; line-height: 1.25; }
+  .subtitle { font-size: 14px; color: var(--soft-grey); font-weight: 300; text-align: center; margin-bottom: 32px; line-height: 1.6; }
+  .progress-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 28px; flex-wrap: wrap; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: background 0.2s; }
+  .dot.active { background: var(--fire-orange); }
+  .dot.done { background: var(--fire-amber); }
+  .question-card { background: white; border: 1.5px solid var(--border); border-radius: 18px; padding: 28px 22px; }
+  .question-text { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; margin-bottom: 20px; line-height: 1.35; }
+  .option-btn { display: block; width: 100%; text-align: left; background: var(--warm-cream); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--warm-brown); cursor: pointer; transition: all 0.15s; }
+  .option-btn:hover { border-color: var(--fire-orange); background: #FFF7F3; }
+  .back-link { display: inline-block; margin-top: 16px; font-size: 13px; color: var(--soft-grey); text-decoration: none; cursor: pointer; }
+  .back-link:hover { color: var(--fire-orange); }
+
+  .results-header { text-align: center; margin-bottom: 24px; }
+  .results-header .eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fire-orange); margin-bottom: 8px; }
+  .results-header h2 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
+  .results-header p { font-size: 13px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; }
+
+  .confidence-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px; }
+  .confidence-badge.high { background: rgba(76,167,113,0.12); color: var(--green); }
+  .confidence-badge.review { background: rgba(66,133,180,0.14); color: #4285B4; }
+  .confidence-badge.maybe { background: rgba(229,160,40,0.14); color: var(--amber); }
+  .confidence-badge.low { background: var(--warm-cream); color: var(--soft-grey); }
+
+  .result-item { background: white; border: 1.5px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; }
+  .category-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fire-orange); margin: 20px 0 10px; }
+  .category-label:first-of-type { margin-top: 0; }
+  .result-item.dimmed { opacity: 0.55; }
+  .result-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .result-section { margin-bottom: 12px; }
+  .result-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--soft-grey); margin-bottom: 3px; }
+  .result-text { font-size: 13px; color: var(--warm-brown); font-weight: 300; line-height: 1.6; }
+  .trigger-list { margin-top: 8px; }
+  .trigger-item { font-size: 12px; color: var(--green); font-weight: 500; margin-bottom: 3px; }
+  .outcome-list { margin: 4px 0 0 16px; padding: 0; }
+  .outcome-list li { font-size: 13px; color: var(--warm-brown); font-weight: 300; line-height: 1.6; margin-bottom: 2px; }
+  .result-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: var(--fire-orange); text-decoration: none; margin-top: 4px; }
+
+  .roadmap-tier-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin: 12px 0 6px; }
+  .roadmap-tier-label:first-of-type { margin-top: 0; }
+  .roadmap-arrow { text-align: center; font-size: 14px; opacity: 0.6; margin: 4px 0; }
+
+  .roadmap-box { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); border-radius: 18px; padding: 24px; color: white; margin: 28px 0 16px; }
+  .roadmap-box h3 { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+  .roadmap-box .roadmap-sub { font-size: 12.5px; opacity: 0.85; margin-bottom: 16px; }
+  .roadmap-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; }
+  .roadmap-num { width: 20px; height: 20px; border-radius: 50%; background: white; color: var(--fire-orange); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .roadmap-time { margin-left: auto; font-size: 11px; opacity: 0.75; }
+  .roadmap-progress { font-size: 12px; margin-top: 12px; opacity: 0.85; }
+
+  .caveat { font-size: 11.5px; color: var(--soft-grey); font-style: italic; text-align: center; line-height: 1.7; margin: 20px 0 8px; padding: 16px; background: white; border-radius: 12px; border: 1px solid var(--border); }
+  .restart-btn { display: block; width: 100%; text-align: center; background: white; border: 2px solid var(--fire-orange); color: var(--fire-orange); padding: 13px; border-radius: 50px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="mockup-tag">Mockup — Financial Learning Path</div>
+  <div id="quizView">
+    <h1>What's worth exploring?</h1>
+    <p class="subtitle">A few quick questions to see which topics are worth learning about. No numbers calculated, no advice given — just relevant education pointed your way.</p>
+    <div class="progress-dots" id="progressDots"></div>
+    <div class="question-card" id="questionCard"></div>
+  </div>
+
+  <div id="resultsView" style="display:none;"></div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    key: 'employment',
+    text: "Do you work for someone else, or for yourself?",
+    options: [
+      { label: 'I work for an employer', value: 'employee' },
+      { label: "I'm self-employed / a business owner", value: 'self' },
+    ],
+  },
+  {
+    key: 'shares',
+    text: "Do you own shares or ETFs outside super?",
+    options: [
+      { label: 'Yes', value: 'yes' },
+      { label: 'No', value: 'no' },
+      { label: "I'm not sure", value: 'not_sure' },
+    ],
+  },
+  {
+    key: 'property',
+    text: "Do you own an investment property?",
+    options: [
+      { label: 'Yes', value: 'yes' },
+      { label: 'No', value: 'no' },
+    ],
+  },
+  {
+    key: 'salarySacrifice',
+    text: "Do you currently salary sacrifice into super?",
+    options: [
+      { label: 'Yes', value: 'yes' },
+      { label: 'No', value: 'no' },
+      { label: "I'm not sure", value: 'not_sure' },
+    ],
+  },
+  {
+    key: 'partner',
+    text: "Do you have a partner or spouse?",
+    options: [
+      { label: 'Yes', value: 'yes' },
+      { label: 'No', value: 'no' },
+    ],
+  },
+  {
+    key: 'privateHealth',
+    text: "Do you have private hospital cover?",
+    options: [
+      { label: 'Yes', value: 'yes' },
+      { label: 'No', value: 'no' },
+    ],
+  },
+  {
+    key: 'super',
+    text: "Roughly, what's your super balance?",
+    options: [
+      { label: 'Under $500,000', value: 'under500k' },
+      { label: '$500,000 or more', value: 'over500k' },
+      { label: "I'm not sure", value: 'not_sure' },
+    ],
+  },
+  {
+    key: 'income',
+    text: "Last one — roughly, what's your income bracket?",
+    options: [
+      { label: 'Under $60,000', value: 'under60k' },
+      { label: '$60,000 – $100,000', value: '60to100k' },
+      { label: '$100,000+', value: 'over100k' },
+      { label: "I'm not sure", value: 'not_sure' },
+    ],
+  },
+  {
+    key: 'advisor',
+    text: "Have you spoken with a financial adviser or accountant about this before?",
+    options: [
+      { label: 'Yes', value: 'yes' },
+      { label: 'No', value: 'no' },
+    ],
+  },
+];
+
+let currentQ = 0;
+const answers = {};
+const completedTopics = new Set();
+
+function toggleRoadmapItem(title) {
+  if (completedTopics.has(title)) {
+    completedTopics.delete(title);
+  } else {
+    completedTopics.add(title);
+  }
+  showResults();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  document.getElementById('progressDots').innerHTML = QUESTIONS.map((_, i) =>
+    `<div class="dot ${i === currentQ ? 'active' : i < currentQ ? 'done' : ''}"></div>`
+  ).join('');
+
+  document.getElementById('questionCard').innerHTML = `
+    <div class="question-text">${q.text}</div>
+    ${q.options.map(opt => `<button class="option-btn" onclick="selectAnswer('${q.key}','${opt.value}')">${opt.label}</button>`).join('')}
+    ${currentQ > 0 ? '<a class="back-link" onclick="goBack()">← Back</a>' : ''}
+  `;
+}
+
+function selectAnswer(key, value) {
+  answers[key] = value;
+  if (currentQ < QUESTIONS.length - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function goBack() {
+  if (currentQ > 0) {
+    currentQ--;
+    renderQuestion();
+  }
+}
+
+function confidenceBadge(level) {
+  if (level === 'new') return `<span class="confidence-badge high">🟢 New opportunity — you may not be using this yet</span>`;
+  if (level === 'review') return `<span class="confidence-badge review">🔵 Worth reviewing — you may already be using this</span>`;
+  if (level === 'maybe') return `<span class="confidence-badge maybe">🟡 May be worth exploring</span>`;
+  return `<span class="confidence-badge low">⚪ Unlikely to apply</span>`;
+}
+
+function showResults() {
+  document.getElementById('quizView').style.display = 'none';
+  const resultsView = document.getElementById('resultsView');
+  resultsView.style.display = 'block';
+
+  const cards = [];
+
+  // ── Salary sacrifice ──
+  const ssLevel = answers.salarySacrifice === 'no' ? 'new' : answers.salarySacrifice === 'not_sure' ? 'maybe' : 'review';
+  cards.push({
+    title: 'Salary sacrifice explained',
+    proHref: 'tax.html?highlight=tool2',
+    atoUrl: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/how-to-save-more-in-your-super/salary-sacrificing-super',
+    category: 'Super',
+    tier: 'Foundations',
+    level: ssLevel,
+    triggers: answers.salarySacrifice === 'yes' ? [] : [
+      answers.salarySacrifice === 'no' ? "You said you don't currently salary sacrifice" : "You weren't sure if you salary sacrifice",
+    ],
+    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    afterReading: ['how salary sacrifice actually works', 'who is generally eligible', 'where the trade-offs against accessibility are'],
+    whyMatters: 'This concept can affect how much tax some Australians pay and how quickly their super grows.',
+    readingMin: 8,
+    link: '/learn/salary-sacrifice-explained.html',
+  });
+
+  // ── Catch-up concessional contributions ──
+  const cuLevel = answers.super === 'under500k' ? 'new' : answers.super === 'not_sure' ? 'maybe' : 'low';
+  cards.push({
+    title: 'Catch-up concessional contributions',
+    atoUrl: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/caps-limits-and-tax-on-super-contributions/concessional-contributions-cap',
+    category: 'Super',
+    tier: 'Super',
+    level: cuLevel,
+    triggers: answers.super === 'under500k' ? ['Your super balance is under $500,000']
+      : answers.super === 'not_sure' ? ["You weren't sure of your super balance"] : [],
+    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    afterReading: ['how unused concessional cap from recent years can be used', 'who is generally eligible', 'why the $500,000 threshold matters'],
+    whyMatters: 'This can let some people contribute well above the standard cap in a single year, meaningfully boosting super at a lower tax rate.',
+    readingMin: 10,
+    prereq: 'Salary sacrifice explained',
+    link: '/learn/catch-up-contributions.html',
+  });
+
+  // ── Spouse contribution offset ──
+  const spLevel = answers.partner === 'yes' ? 'new' : 'low';
+  cards.push({
+    title: 'Spouse contribution offset',
+    atoUrl: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/how-to-save-more-in-your-super/spouse-super-contributions',
+    category: 'Family',
+    tier: 'Super',
+    level: spLevel,
+    triggers: answers.partner === 'yes' ? ['You have a partner or spouse'] : [],
+    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    afterReading: ['how contributing to a partner\'s super can generate a tax offset', 'the income thresholds involved', 'why this only applies to couples'],
+    whyMatters: 'This can reduce your own tax while directly building your partner\'s retirement savings.',
+    readingMin: 6,
+    link: '/learn/spouse-contribution-offset.html',
+  });
+
+  // ── Franking credits ──
+  const frLevel = answers.shares === 'yes' ? 'review' : answers.shares === 'not_sure' ? 'maybe' : 'low';
+  cards.push({
+    title: 'Franking credits on Australian shares',
+    atoUrl: 'https://www.ato.gov.au/individuals-and-families/investments-and-assets/shares-funds-and-trusts/investing-in-shares/refund-of-franking-credits-for-individuals',
+    category: 'Investing',
+    tier: 'Investing',
+    level: frLevel,
+    triggers: answers.shares === 'yes' ? ['You own shares or ETFs outside super']
+      : answers.shares === 'not_sure' ? ["You weren't sure if you own shares outside super"] : [],
+    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    afterReading: ['how Australia\'s imputation tax system works', 'why franked dividends can beat the headline yield', 'how this differs from international shares'],
+    whyMatters: 'This can meaningfully change the real, after-tax return on Australian share investments.',
+    readingMin: 7,
+    link: '/learn/franking-credits-australia.html',
+  });
+
+  // ── Government co-contribution ──
+  const coLevel = answers.income === 'under60k' ? 'new' : answers.income === 'not_sure' ? 'maybe' : 'low';
+  cards.push({
+    title: 'Government super co-contribution',
+    atoUrl: 'https://www.ato.gov.au/individuals-and-families/super-for-individuals-and-families/super/growing-and-keeping-track-of-your-super/how-to-save-more-in-your-super/government-super-contributions/super-co-contribution',
+    category: 'Super',
+    tier: 'Super',
+    level: coLevel,
+    triggers: answers.income === 'under60k' ? ['Your income bracket is under $60,000']
+      : answers.income === 'not_sure' ? ["You weren't sure of your income bracket"] : [],
+    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    afterReading: ['how the government matches personal super contributions', 'who is generally eligible by income', 'how much the match is worth'],
+    whyMatters: 'This is effectively free money added to super for eligible lower and middle income earners.',
+    readingMin: 6,
+    link: '/learn/super-co-contribution.html',
+  });
+
+  // ── Medicare Levy Surcharge ──
+  const mlsLevel = answers.privateHealth === 'no' && answers.income === 'over100k' ? 'new' : answers.privateHealth === 'no' ? 'maybe' : 'low';
+  cards.push({
+    title: 'Medicare Levy Surcharge',
+    atoUrl: 'https://www.ato.gov.au/individuals-and-families/medicare-and-private-health-insurance/medicare-levy-surcharge',
+    category: 'Tax',
+    tier: 'Advanced',
+    level: mlsLevel,
+    triggers: answers.privateHealth === 'no' ? ["You don't currently have private hospital cover",
+      ...(answers.income === 'over100k' ? ['Your income bracket is $100,000+'] : [])] : [],
+    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    afterReading: ['how the surcharge works', 'the income thresholds involved', 'how private hospital cover interacts with it'],
+    whyMatters: 'This can be an avoidable extra cost each year depending on income and private hospital cover decisions.',
+    readingMin: 9,
+    link: '/learn/tax-and-investing-australia.html',
+  });
+
+  const order = { new: 0, review: 1, maybe: 2, low: 3 };
+  const CATEGORY_ORDER = ['Super', 'Investing', 'Family', 'Tax'];
+  const grouped = {};
+  cards.forEach(c => {
+    if (!grouped[c.category]) grouped[c.category] = [];
+    grouped[c.category].push(c);
+  });
+  Object.keys(grouped).forEach(cat => grouped[cat].sort((a, b) => order[a.level] - order[b.level]));
+
+  let roadmapItems = cards.filter(c => c.level !== 'low').sort((a, b) => order[a.level] - order[b.level]);
+  // Respect prerequisites: an item with a prereq must come after the item it builds on, within the same tier
+  roadmapItems.sort((a, b) => {
+    if (a.prereq === b.title) return 1;
+    if (b.prereq === a.title) return -1;
+    return 0;
+  });
+  const TIER_ORDER = ['Foundations', 'Super', 'Investing', 'Advanced'];
+  const completedCount = roadmapItems.filter(item => completedTopics.has(item.title)).length;
+
+  resultsView.innerHTML = `
+    <div class="results-header">
+      <div class="eyebrow">Nothing here is a recommendation</div>
+      <h2>${roadmapItems.length} financial topics worth exploring</h2>
+      <p>Based on your answers, FirePath matched your profile against our library of educational topics and highlighted the concepts that may be relevant to learn about. Some may apply to you, some may not. Each article explains how the concept works, who it's generally designed for, and where to find official guidance.</p>
+    </div>
+    ${CATEGORY_ORDER.filter(cat => grouped[cat]).map(cat => `
+      <div class="category-label">${cat}</div>
+      ${grouped[cat].map(c => `
+        <div class="result-item ${c.level === 'low' ? 'dimmed' : ''}">
+          ${confidenceBadge(c.level)}
+          <div class="result-title">${c.title}</div>
+          <div class="result-section">
+            <div class="result-label">Why FirePath suggested this topic</div>
+            <div class="result-text">${c.suggestedBecause}</div>
+            ${c.triggers.length ? `<div class="trigger-list">${c.triggers.map(t => `<div class="trigger-item">✓ ${t}</div>`).join('')}</div>` : ''}
+          </div>
+          <div class="result-section">
+            <div class="result-label">After reading this you'll understand</div>
+            <ul class="outcome-list">${c.afterReading.map(o => `<li>${o}</li>`).join('')}</ul>
+          </div>
+          ${c.whyMatters ? `<div class="result-section"><div class="result-label">Why this matters</div><div class="result-text">${c.whyMatters}</div></div>` : ''}
+          ${c.prereq ? `<div style="font-size:11.5px;color:var(--soft-grey);font-style:italic;margin-bottom:10px;">Builds on: ${c.prereq}</div>` : ''}
+          <a class="result-link" href="${c.link}">Read in Learning Lab →</a>
+          ${c.proHref ? `<br/><a class="result-link" href="${c.proHref}" style="margin-top:6px;">Already understand this? Model it using your own numbers →</a>` : ''}
+          ${c.atoUrl ? `<br/><a class="result-link" href="${c.atoUrl}" target="_blank" rel="noopener" style="margin-top:6px;color:var(--soft-grey);">Official source: Australian Taxation Office →</a>` : ''}
+        </div>
+      `).join('')}
+    `).join('')}
+
+    ${roadmapItems.length ? `
+    <div class="roadmap-box">
+      <h3>Your learning roadmap</h3>
+      <div class="roadmap-sub">Structured like a course, from foundational to more advanced — tap an item to mark it done</div>
+      ${TIER_ORDER.filter(tier => roadmapItems.some(item => item.tier === tier)).map((tier, tIdx, tiers) => `
+        <div class="roadmap-tier-label">${tier.toUpperCase()}</div>
+        ${roadmapItems.filter(item => item.tier === tier).map(item => {
+          const done = completedTopics.has(item.title);
+          return `
+          <div class="roadmap-item" onclick="toggleRoadmapItem('${item.title.replace(/'/g, "\\'")}')" style="cursor:pointer;${done ? 'opacity:0.6;' : ''}">
+            <span>${done ? '✓' : '○'}</span>
+            <span style="${done ? 'text-decoration:line-through;' : ''}">${item.title}${item.prereq ? ` <span style="opacity:0.7;font-size:11px;">(builds on ${item.prereq})</span>` : ''}</span>
+            <span class="roadmap-time">${item.readingMin} min</span>
+          </div>`;
+        }).join('')}
+        ${tIdx < tiers.length - 1 ? '<div class="roadmap-arrow">↓</div>' : ''}
+      `).join('')}
+      <div class="roadmap-progress">Progress: ${completedCount} of ${roadmapItems.length} completed</div>
+    </div>
+    ` : ''}
+
+    <div class="caveat">Based on the information you've provided, these are educational topics that may be relevant to explore. FirePath has not assessed whether any strategy is suitable or available to you. ${answers.advisor === 'no' ? 'For decisions specific to your situation, a registered tax agent or financial adviser can confirm what genuinely applies to you.' : ''}</div>
+    <button class="restart-btn" onclick="location.reload()">Start over</button>
+  `;
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
