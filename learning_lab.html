@@ -28,12 +28,14 @@
     .track-badge.t7 { background:var(--fire-orange); }
     .track-badge.t10 { background:#C0392B; }
     .track-badge.ttax { background:#2E5E4E; }
+    .track-badge.tlife { background:#B5657A; }
     .track-name { font-size:15px; font-weight:500; }
     .track-desc { font-size:13px; color:var(--soft-grey); font-weight:300; line-height:1.6; }
     .track-risk { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin-top:8px; }
     .track-risk.low { color:#7CB97E; }
     .track-risk.mid { color:var(--fire-orange); }
     .track-risk.high { color:#C0392B; }
+    .track-risk.life { color:#B5657A; }
     .section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--fire-orange); margin-bottom:12px; }
     .topics-list { display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
     .topic-item { background:white; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.2s; }
@@ -48,6 +50,8 @@
     .pro-lock { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber)); color:white; padding:2px 8px; border-radius:10px; }
     .read-badge { font-size:10px; font-weight:700; color:#2E7D32; background:#E8F5E9; padding:2px 8px; border-radius:10px; }
     .saved-badge { font-size:10px; font-weight:700; color:#E65100; background:#FFF3E0; padding:2px 8px; border-radius:10px; }
+    .topic-section-divider { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--soft-grey); margin:16px 0 2px; padding-top:6px; }
+    .topic-section-divider:first-child { margin-top:0; padding-top:0; }
     .foundation-section { margin-bottom:28px; }
     .article-view { display:none; }
     .article-header { margin-bottom:20px; }
@@ -57,6 +61,7 @@
     .article-track-badge.t10 { background:#C0392B; }
     .article-track-badge.foundation { background:var(--warm-brown); }
     .article-track-badge.ttax { background:#2E5E4E; }
+    .article-track-badge.tlife { background:#B5657A; }
     .article-title { font-family:'Playfair Display',serif; font-size:clamp(20px,4vw,28px); font-weight:700; margin-bottom:8px; line-height:1.3; }
     .article-meta { font-size:12px; color:var(--soft-grey); font-weight:300; }
     .article-body { background:white; border:1.5px solid var(--border); border-radius:16px; padding:24px; margin-bottom:16px; font-size:14px; color:var(--warm-brown); line-height:1.8; font-weight:300; }
@@ -78,8 +83,6 @@
     .btn-saved { background:#FFF3E0; border:2px solid var(--fire-amber); color:#E65100; padding:12px 24px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; }
     .saved-section { background:white; border:1.5px solid var(--fire-amber); border-radius:16px; padding:20px; margin-bottom:20px; }
     .saved-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#E65100; margin-bottom:12px; }
-
-    /* ── Glossary styles ── */
     .glossary-filter-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
     .glossary-filter-btn { padding:8px 16px; border-radius:50px; border:1.5px solid var(--border); background:white; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--soft-grey); cursor:pointer; transition:all 0.2s; }
     .glossary-filter-btn.active { border-color:var(--fire-orange); background:#FFF7F3; color:var(--warm-brown); }
@@ -105,7 +108,7 @@
 <body>
 
 <nav>
-  <a href="/index.html" class="nav-logo">🔥 Fire<span>Path</span></a>
+  <a href="/index.html" class="nav-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span></a>
   <div class="nav-links">
     <a href="journey.html" class="nav-link">My Journey</a>
   </div>
@@ -142,6 +145,11 @@
 
     <div class="section-label">Choose your learning track</div>
     <div class="track-selector">
+      <div class="track-card" onclick="selectTrack('life')">
+        <div class="track-header"><span class="track-badge tlife">You</span><span class="track-name">Real Questions</span></div>
+        <div class="track-desc">The questions people actually type into Google, answered honestly — using your real numbers, no jargon, no judgement.</div>
+        <div class="track-risk life">⬤ Straight answers, with your numbers</div>
+      </div>
       <div class="track-card" onclick="selectTrack('5')">
         <div class="track-header"><span class="track-badge t5">5%</span><span class="track-name">Steady & Safe</span></div>
         <div class="track-desc">Conservative growth with lower risk. Great if you want your money working harder without big swings.</div>
@@ -236,7 +244,6 @@
   let readTopics = [];
   let savedTopics = [];
 
-  // ── Glossary data ──
   const glossaryData = {
     'FIRE Basics': [
       { term: 'FIRE', full: 'Financial Independence, Retire Early', plain: 'The goal of building enough wealth that work becomes optional — and you can choose to stop at any age, not just 65.', context: 'Used in: "I\'m on the FIRE path" or "when do I hit FIRE?"', personal: () => userData.fireNum ? `Your FIRE number — the amount you need saved — is ${fmtM(userData.fireNum)}.` : null },
@@ -263,7 +270,7 @@
       { term: 'SG', full: 'Super Guarantee', plain: `Your employer is legally required to pay ${(FP_ASSUMPTIONS.sgRate*100).toFixed(1)}% of your gross income into your super fund. This is on top of your salary.`, context: 'The SG rate is currently 12% (as of July 2025). It\'s one of the best forced-savings mechanisms in the world.', personal: () => userData.income ? `Based on your income, your employer is contributing approximately ${fmtM(userData.income * 12 * FP_ASSUMPTIONS.sgRate / 0.72)} per year into your super.` : null },
       { term: 'CC', full: 'Concessional Contributions', plain: 'Before-tax super contributions — includes your employer SG payments and any salary sacrifice. Taxed at 15% inside super (instead of your marginal rate).', context: 'The annual CC cap is $30,000. Going over it triggers extra tax.', personal: () => null },
       { term: 'NCC', full: 'Non-Concessional Contributions', plain: 'After-tax money you put into super yourself. No tax deduction but grows tax-free inside super.', context: 'The annual NCC cap is $120,000. A powerful strategy for high earners or those with a lump sum to invest.', personal: () => null },
-      { term: 'TTR', full: 'Transition to Retirement', plain: 'A strategy that lets you access some of your super as an income stream once you reach preservation age, while still working.', context: `Available once you reach ${FP_ASSUMPTIONS.preservationAge}. Can be used to reduce hours while maintaining income.`, personal: () => userData.age && userData.age >= FP_ASSUMPTIONS.preservationAge ? '✅ You\'ve reached preservation age — TTR is available to you.' : userData.age ? `You\'ll be eligible for TTR in ${FP_ASSUMPTIONS.preservationAge - userData.age} years.` : null },
+      { term: 'TTR', full: 'Transition to Retirement', plain: 'A strategy that lets you access some of your super as an income stream once you reach preservation age, while still working.', context: `Available once you reach ${FP_ASSUMPTIONS.preservationAge}. Can be used to reduce hours while maintaining income.`, personal: () => userData.age && userData.age >= FP_ASSUMPTIONS.preservationAge ? 'You\'ve reached preservation age — TTR is available to you.' : userData.age ? `You\'ll be eligible for TTR in ${FP_ASSUMPTIONS.preservationAge - userData.age} years.` : null },
       { term: 'SMSF', full: 'Self Managed Super Fund', plain: 'A private super fund you run yourself. Full control over investments — but you\'re responsible for compliance and administration.', context: 'Generally only worth it above $200-300K in super. Significant admin burden. Popular with property investors.', personal: () => null },
       { term: 'CGT', full: 'Capital Gains Tax', plain: 'Tax on the profit when you sell an asset for more than you paid. In Australia, assets held over 12 months get a 50% CGT discount.', context: 'Used in: "I\'ll trigger a CGT event if I sell those shares." Doesn\'t apply inside super (different tax rules there).', personal: () => null },
       { term: 'FY', full: 'Financial Year', plain: 'Australia\'s tax year runs from 1 July to 30 June — not the calendar year. Important for contribution caps, tax returns, and EOFY strategies.', context: 'Used in: "I\'m maxing my CC cap before FY end." EOFY = End of Financial Year.', personal: () => null },
@@ -368,7 +375,6 @@
     }
   }
 
-  // ── Lab progress state ──
   async function loadLabProgress() {
     readTopics = JSON.parse(localStorage.getItem('fp_lab_read') || '[]');
     savedTopics = JSON.parse(localStorage.getItem('fp_lab_saved') || '[]');
@@ -442,7 +448,7 @@
     section.style.display = 'block';
     list.innerHTML = savedTopics.map(s => `
       <div class="topic-item saved" onclick="openArticle('${s.id}', '${s.track}', '${s.title}')">
-        <div class="topic-left"><span class="topic-icon"><svg class="icon" style="width:18px;height:18px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-bookmark"/></svg></span><div><div class="topic-title">${s.title}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track + '% track'}</div></div></div>
+        <div class="topic-left"><span class="topic-icon"><svg class="icon" style="width:18px;height:18px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-bookmark"/></svg></span><div><div class="topic-title">${s.title}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track === 'life' ? 'Real Questions' : s.track + '% track'}</div></div></div>
         <span class="saved-badge">Saved</span>
       </div>`).join('');
   }
@@ -478,6 +484,31 @@
   ];
 
   const trackTopics = {
+    'life': [
+      { header: 'Where you stand' },
+      { id: 'am-i-behind-financially', icon: '📍', title: 'Am I behind financially for my age?', sub: 'A judgment-free way to check' },
+      { id: 'savings-by-age', icon: '📊', title: 'How much should I have saved by 30, 40, 50?', sub: 'Realistic benchmarks, not scare tactics' },
+      { id: 'am-i-on-track', icon: '🧭', title: 'How do I know if I\'m on track for retirement?', sub: 'What "on track" actually means' },
+      { header: 'Time & freedom' },
+      { id: 'how-long-do-i-have-to-work', icon: '⏳', title: 'How long do I actually have to work for?', sub: 'It\'s not a fixed number' },
+      { id: 'what-is-coast-fire', icon: '🛶', title: 'What is Coast FIRE — and could I already be there?', sub: 'You might be closer than you think' },
+      { id: 'can-i-work-less', icon: '🌤️', title: 'Can I afford to work less?', sub: 'Modelling reduced hours' },
+      { header: 'Money & mindset' },
+      { id: 'why-do-i-feel-behind', icon: '💭', title: 'Why do I feel so behind financially?', sub: 'You\'re probably not as far behind as it feels' },
+      { id: 'no-savings-in-30s', icon: '🌱', title: 'Is it normal to have no savings in your 30s?', sub: 'The honest answer, with data' },
+      { id: 'money-anxiety', icon: '🫶', title: 'How do I stop feeling anxious about money?', sub: 'Clarity helps more than willpower' },
+      { header: 'Your life stage' },
+      { id: 'too-late-at-40', icon: '🕰️', title: 'Is it too late to start investing at 40?', sub: 'What the maths actually says' },
+      { id: 'retire-average-income', icon: '💼', title: 'Can I retire early on an average income?', sub: 'Yes — here\'s how' },
+      { id: 'kids-and-retirement', icon: '👨‍👧', title: 'How does having kids change your retirement timeline?', sub: 'Real numbers, not guilt' },
+      { header: 'Renting vs buying' },
+      { id: 'rent-or-buy', icon: '🏡', title: 'Should I keep renting or buy a house?', sub: 'The FIRE-specific angle' },
+      { id: 'renting-forever', icon: '🔑', title: 'Does renting forever ruin your retirement?', sub: 'Modelling both paths honestly' },
+      { header: 'What if...' },
+      { id: 'pay-rise-impact', icon: '📈', title: 'What happens if I get a pay rise?', sub: 'How much sooner could you retire' },
+      { id: 'extra-50-a-week', icon: '➕', title: 'How much does an extra $50 a week actually change?', sub: 'Small changes, modelled honestly' },
+      { id: 'redundancy-okay', icon: '🛡️', title: 'What if I got made redundant — would I be okay?', sub: 'Stress-testing your safety net' },
+    ],
     '5': [
       { id: 'bonds', icon: '📜', title: 'What is a bond and why it matters', sub: 'The conservative building block' },
       { id: 'hisa', icon: '🏦', title: 'High interest savings vs term deposits', sub: 'Making your cash work harder' },
@@ -547,6 +578,7 @@
   function selectTrack(track) {
     currentTrack = track;
     const trackInfo = {
+      'life': { name: 'Real Questions', badge: 'tlife', label: 'You', desc: 'The questions people actually ask — not textbook theory. Personal, honest, and grounded in your real numbers.', risk: 'Straight answers, with your numbers', noPercent: true },
       '5': { name: 'Steady & Safe', badge: 't5', label: '5%', desc: 'Conservative growth with lower risk. These articles explain the building blocks of safer investing.', risk: 'Lower risk · Suitable for cautious investors or shorter timelines' },
       '7': { name: 'The FIRE Standard', badge: 't7', label: '7%', desc: 'The benchmark used by the FIRE community. Index investing, compounding, and the maths behind financial independence.', risk: 'Moderate risk · The most commonly used FIRE assumption' },
       '10': { name: 'Growth Focused', badge: 't10', label: '10%+', desc: 'Higher potential returns require understanding higher risk. These articles explain the growth-focused approaches.', risk: 'Higher risk · Requires long timelines and strong risk tolerance' },
@@ -555,7 +587,7 @@
     document.getElementById('trackHero').innerHTML = `
       <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <span class="track-badge ${info.badge}" style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:white;border-radius:8px;padding:4px 12px;">${info.label}%</span>
+          <span class="track-badge ${info.badge}" style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:white;border-radius:8px;padding:4px 12px;">${info.label}${info.noPercent ? '' : '%'}</span>
           <span style="font-size:16px;font-weight:500;">${info.name}</span>
         </div>
         <p style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:8px;">${info.desc}</p>
@@ -563,6 +595,9 @@
       </div>`;
     const topics = trackTopics[track];
     document.getElementById('topicsList').innerHTML = topics.map(t => {
+      if (t.header) {
+        return `<div class="topic-section-divider">${t.header}</div>`;
+      }
       const isRead = readTopics.includes(t.id);
       const isSaved = savedTopics.some(s => s.id === t.id);
       const locked = t.pro && !isPro;
@@ -597,7 +632,7 @@
   function showProGateMarkAsRead() {
     const nextEl = document.getElementById('whatsNextSection');
     nextEl.style.display = 'block';
-    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;"><div style="font-size:20px;margin-bottom:8px;">🎓</div><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Track your progress with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members get personalised research pathways, AI-suggested next articles and progress tracking.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
+    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;"><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Track your progress with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members get personalised research pathways, AI-suggested next articles and progress tracking.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
   }
 
   function showProGate(title) {
@@ -607,22 +642,20 @@
   async function openArticle(topicId, track, title) {
     currentTopic = { id: topicId, track, title };
 
-    // Show article view shell
     document.getElementById('trackView').style.display = 'none';
     document.getElementById('topicView').style.display = 'none';
     document.getElementById('articleView').style.display = 'block';
     document.getElementById('whatsNextSection').style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    const badgeClass = track === 'foundation' ? 'foundation' : track === 'tax' ? 'ttax' : track === '5' ? 't5' : track === '7' ? 't7' : 't10';
-    const badgeLabel = track === 'foundation' ? 'Foundation' : track === 'tax' ? 'Tax & Strategy' : track === '5' ? '5% Track' : track === '7' ? '7% Track' : '10%+ Track';
+    const badgeClass = track === 'foundation' ? 'foundation' : track === 'tax' ? 'ttax' : track === 'life' ? 'tlife' : track === '5' ? 't5' : track === '7' ? 't7' : 't10';
+    const badgeLabel = track === 'foundation' ? 'Foundation' : track === 'tax' ? 'Tax & Strategy' : track === 'life' ? 'Real Questions' : track === '5' ? '5% Track' : track === '7' ? '7% Track' : '10%+ Track';
     document.getElementById('articleBadge').className = `article-track-badge ${badgeClass}`;
     document.getElementById('articleBadge').textContent = badgeLabel;
     document.getElementById('articleTitle').textContent = title;
     document.getElementById('articleMeta').textContent = topicId === 'acronyms' ? 'Interactive glossary · Free' : isPro ? 'Personalised to your FirePath numbers · Pro' : 'Introductory article · Free';
     document.getElementById('articleBackBtn').onclick = (track === 'foundation' || track === 'tax') ? showTrackView : showTopicView;
 
-    // ── GLOSSARY SPECIAL CASE ──
     if (topicId === 'acronyms') {
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('articleContent').style.display = 'none';
@@ -631,7 +664,6 @@
       return;
     }
 
-    // ── REGULAR ARTICLE ──
     document.getElementById('glossaryContent').style.display = 'none';
     document.getElementById('loadingState').style.display = 'block';
     document.getElementById('articleContent').style.display = 'none';
@@ -682,8 +714,8 @@ Use their ACTUAL numbers in examples throughout the article. Make it feel writte
 - Bank real return: ${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(2)}%
 - Super guarantee rate: ${(FP_ASSUMPTIONS.sgRate*100).toFixed(1)}%
 - Super preservation age: ${FP_ASSUMPTIONS.preservationAge}`;
-    const riskNote = track === '10' ? 'IMPORTANT: Clearly explain that higher returns come with higher risk and volatility. Never downplay risk.' : track === '5' ? 'Emphasise the lower-risk nature and suitability for cautious investors.' : track === 'tax' ? 'This is about tax rules, contribution caps, and government schemes — not investment risk. Focus on eligibility criteria, how the mechanism actually works, and where to check the current figures (e.g. myGov / ATO online services), since caps and thresholds change each financial year.' : 'Present a balanced view of risk and return.';
-    const trackLabel = track === 'foundation' ? 'Foundation' : track === 'tax' ? 'Tax & Strategy' : track + '% return target';
+    const riskNote = track === '10' ? 'IMPORTANT: Clearly explain that higher returns come with higher risk and volatility. Never downplay risk.' : track === '5' ? 'Emphasise the lower-risk nature and suitability for cautious investors.' : track === 'tax' ? 'This is about tax rules, contribution caps, and government schemes — not investment risk. Focus on eligibility criteria, how the mechanism actually works, and where to check the current figures (e.g. myGov / ATO online services), since caps and thresholds change each financial year.' : track === 'life' ? 'This is a personal, emotionally-aware question, not a technical investing topic. Answer with genuine warmth and honesty. Validate the feeling behind the question before getting into numbers. Use real (illustrative) figures where helpful, but never be preachy, clinical, or judgmental. This is not about investment risk — it is about giving someone clarity and reassurance grounded in real maths.' : 'Present a balanced view of risk and return.';
+    const trackLabel = track === 'foundation' ? 'Foundation' : track === 'tax' ? 'Tax & Strategy' : track === 'life' ? 'Real, Personal Questions' : track + '% return target';
     const system = `You are the FirePath Learning Lab — a financial education tool for everyday Australians. You are NOT a financial advisor. 
 Write a short educational article about: "${title}"
 Learning track: ${trackLabel}
@@ -696,11 +728,11 @@ Format rules:
 - Start with a short engaging opening paragraph (no heading)
 - Use 2-3 short sections with clear headings
 - Include a "highlight box" with a key insight using this HTML: <div class="highlight-box">...</div>
-- End with a "think about this" question using: <div class="think-box">💭 [question here]</div>
+- End with a "think about this" question using: <div class="think-box">[question here]</div>
 - Keep total length under 350 words
 - Use <strong> for emphasis
 - Never use bullet points — prose only
-- End with exactly: <p style="font-size:11px;color:var(--soft-grey);font-style:italic;">📚 Educational only — not financial advice. Always consider your personal circumstances.</p>
+- End with exactly: <p style="font-size:11px;color:var(--soft-grey);font-style:italic;">Educational only — not financial advice. Always consider your personal circumstances.</p>
 Never say "you should" or "I recommend". Never name specific brokers or platforms. Frame everything as education and questions worth exploring.`;
     const res = await fetch(WORKER_URL, {
       method: 'POST',
@@ -784,7 +816,6 @@ Respond ONLY with valid JSON:
     renderTaxTopics();
     renderSavedArticles();
 
-    // ── URL param deep-link handler ──
     const params = new URLSearchParams(window.location.search);
     const pTopic = params.get('topic');
     const pTrack = params.get('track');
