@@ -283,8 +283,21 @@
           <svg class="icon" style="color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-learn"/></svg>
         </div>
         <div style="flex:1;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--fire-orange);margin-bottom:2px;">Continue Learning</div>
-          <div id="learningNextCardText" style="font-size:14px;font-weight:500;color:var(--warm-brown);">Take the 2-minute quiz to see what's worth learning</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--fire-orange);margin-bottom:2px;">Financial Learning Path</div>
+          <div id="learningNextCardText" style="font-size:14px;font-weight:500;color:var(--warm-brown);">See which tax and super concepts are worth understanding</div>
+        </div>
+        <div style="color:var(--fire-orange);flex-shrink:0;">→</div>
+      </div>
+    </a>
+
+    <a href="learning_lab.html" id="learningLabCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px 22px;margin-bottom:28px;text-decoration:none;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="flex-shrink:0;width:40px;height:40px;border-radius:10px;background:var(--warm-cream);display:flex;align-items:center;justify-content:center;">
+          <svg class="icon" style="color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-momentum"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--fire-orange);margin-bottom:2px;">Learning Lab</div>
+          <div id="learningLabCardText" style="font-size:14px;font-weight:500;color:var(--warm-brown);">Browse FIRE, investing, and super topics in plain English</div>
         </div>
         <div style="color:var(--fire-orange);flex-shrink:0;">→</div>
       </div>
@@ -378,7 +391,7 @@
               </div>
               <div class="dash-card-arrow">→</div>
             </a>
-            <a href="financial-learning-path.html" class="dash-card">
+            <a href="financial_learning_path.html" class="dash-card">
               <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-learn"/></svg></div>
               <div class="dash-card-body">
                 <div class="dash-card-title">Financial Learning Path</div>
@@ -463,6 +476,33 @@ async function loadLearningPathProgress(token, userId) {
         </div>`);
     }
   }
+}
+
+// Learning Lab is a genuinely separate product from the Financial Learning Path quiz —
+// this reads the real lab_progress table (already built alongside learning_lab.html) rather
+// than inventing new tracking. Shows an honest count, not a percentage against an ambiguous
+// total, since "how many Learning Lab topics exist" varies by which tracks someone's used.
+// Note: this can only show articles READ, not articles UNDERSTOOD — learning_lab.html's
+// "mark as read" is currently a single click, not a comprehension check like the Financial
+// Learning Path has. Showing "understood" here would be showing data that doesn't exist yet.
+async function loadLearningLabProgress(token, userId) {
+  const labCard = document.getElementById('learningLabCard');
+  const labCardText = document.getElementById('learningLabCardText');
+  if (!labCard) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/db/lab_progress?user_id=eq.${userId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      const readCount = data.filter(r => !r.saved).length;
+      if (readCount > 0) {
+        labCardText.textContent = `${readCount} article${readCount === 1 ? '' : 's'} read so far — browse more topics`;
+      }
+      // If readCount is 0, leave the default "Browse FIRE, investing, and super topics" text as-is.
+    }
+  } catch(e) { console.log('Learning Lab progress load failed', e); }
+  labCard.style.display = 'block';
 }
 
 document.addEventListener('DOMContentLoaded', async function() {
@@ -724,6 +764,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     renderAICoach(p);
     renderCommitmentCard();
     loadLearningPathProgress(token, userId);
+    loadLearningLabProgress(token, userId);
 
     if (savings) {
       const withdrawalLink = document.getElementById('withdrawalCardLink');
