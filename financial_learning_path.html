@@ -87,6 +87,12 @@
   <div id="resultsView" style="display:none;"></div>
 </div>
 
+<!-- auth.js provides getToken()/getUserId()/WORKER_URL — same pattern as journey.html and tax.html.
+     calculations.js is included for consistency with those pages but isn't required by this file's own logic.
+     Without auth.js, persistence silently no-ops and the page behaves exactly as before: quiz every time, no saved progress. -->
+<script src="js/auth.js"></script>
+<script src="js/calculations.js"></script>
+
 <script>
 const QUESTIONS = [
   {
@@ -133,7 +139,7 @@ const QUESTIONS = [
   },
   {
     key: 'privateHealth',
-    text: "Do you have private hospital cover?",
+    text: "Do you have private hospital cover in your health insurance?",
     options: [
       { label: 'Yes', value: 'yes' },
       { label: 'No', value: 'no' },
@@ -171,6 +177,7 @@ const QUESTIONS = [
 let currentQ = 0;
 const answers = {};
 const completedTopics = new Set();
+let checkingItem = null;
 
 function toggleRoadmapItem(title) {
   if (completedTopics.has(title)) {
@@ -178,6 +185,21 @@ function toggleRoadmapItem(title) {
   } else {
     completedTopics.add(title);
   }
+  saveProgress();
+  showResults();
+}
+
+function startComprehensionCheck(title) {
+  checkingItem = title;
+  showResults();
+}
+
+function answerComprehension(title, understood) {
+  checkingItem = null;
+  if (understood) {
+    completedTopics.add(title);
+  }
+  saveProgress();
   showResults();
 }
 
@@ -200,6 +222,7 @@ function selectAnswer(key, value) {
     currentQ++;
     renderQuestion();
   } else {
+    saveProgress();
     showResults();
   }
 }
@@ -237,7 +260,7 @@ function showResults() {
     triggers: answers.salarySacrifice === 'yes' ? [] : [
       answers.salarySacrifice === 'no' ? "You said you don't currently salary sacrifice" : "You weren't sure if you salary sacrifice",
     ],
-    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    suggestedBecause: answers.salarySacrifice === 'no' ? "You told us you don't currently salary sacrifice. Many employees explore this because it can change how super contributions and taxable income interact." : answers.salarySacrifice === 'not_sure' ? "You weren't sure whether you salary sacrifice. Worth clarifying, since it directly affects your taxable income and super growth." : "You told us you already salary sacrifice. Still worth understanding the full mechanics, including the cap it counts toward.",
     afterReading: ['how salary sacrifice actually works', 'who is generally eligible', 'where the trade-offs against accessibility are'],
     whyMatters: 'This concept can affect how much tax some Australians pay and how quickly their super grows.',
     readingMin: 8,
@@ -254,7 +277,7 @@ function showResults() {
     level: cuLevel,
     triggers: answers.super === 'under500k' ? ['Your super balance is under $500,000']
       : answers.super === 'not_sure' ? ["You weren't sure of your super balance"] : [],
-    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    suggestedBecause: answers.super === 'under500k' ? "You told us your super balance is under $500,000 — the threshold that determines whether unused prior-year contribution cap is available to you." : answers.super === 'not_sure' ? "You weren't sure of your super balance. This threshold is worth checking, since it determines eligibility for this strategy." : "Your super balance appears to be over the $500,000 threshold this generally requires.",
     afterReading: ['how unused concessional cap from recent years can be used', 'who is generally eligible', 'why the $500,000 threshold matters'],
     whyMatters: 'This can let some people contribute well above the standard cap in a single year, meaningfully boosting super at a lower tax rate.',
     readingMin: 10,
@@ -271,7 +294,7 @@ function showResults() {
     tier: 'Super',
     level: spLevel,
     triggers: answers.partner === 'yes' ? ['You have a partner or spouse'] : [],
-    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    suggestedBecause: answers.partner === 'yes' ? "You told us you have a partner. This may be relevant if one of you earns significantly less and could benefit from a contribution." : "This generally only applies to couples, which doesn't appear to match your situation.",
     afterReading: ['how contributing to a partner\'s super can generate a tax offset', 'the income thresholds involved', 'why this only applies to couples'],
     whyMatters: 'This can reduce your own tax while directly building your partner\'s retirement savings.',
     readingMin: 6,
@@ -288,7 +311,7 @@ function showResults() {
     level: frLevel,
     triggers: answers.shares === 'yes' ? ['You own shares or ETFs outside super']
       : answers.shares === 'not_sure' ? ["You weren't sure if you own shares outside super"] : [],
-    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    suggestedBecause: answers.shares === 'yes' ? "You told us you own shares or ETFs outside super. Australian investors often explore franking credits because they affect how dividends are actually taxed." : answers.shares === 'not_sure' ? "You weren't sure if you own shares outside super. Worth checking, since this affects how any dividends you receive are taxed." : "This applies specifically to Australian share ownership outside super, which doesn't appear to match your situation.",
     afterReading: ['how Australia\'s imputation tax system works', 'why franked dividends can beat the headline yield', 'how this differs from international shares'],
     whyMatters: 'This can meaningfully change the real, after-tax return on Australian share investments.',
     readingMin: 7,
@@ -305,7 +328,7 @@ function showResults() {
     level: coLevel,
     triggers: answers.income === 'under60k' ? ['Your income bracket is under $60,000']
       : answers.income === 'not_sure' ? ["You weren't sure of your income bracket"] : [],
-    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
+    suggestedBecause: answers.income === 'under60k' ? "You told us your income is under $60,000 — the general range the government's co-contribution scheme is designed for." : answers.income === 'not_sure' ? "You weren't sure of your income bracket. This scheme has a specific income cutoff worth checking against." : "This scheme generally applies at lower incomes than you indicated.",
     afterReading: ['how the government matches personal super contributions', 'who is generally eligible by income', 'how much the match is worth'],
     whyMatters: 'This is effectively free money added to super for eligible lower and middle income earners.',
     readingMin: 6,
@@ -320,11 +343,11 @@ function showResults() {
     category: 'Tax',
     tier: 'Advanced',
     level: mlsLevel,
-    triggers: answers.privateHealth === 'no' ? ["You don't currently have private hospital cover",
+    triggers: answers.privateHealth === 'no' ? ["You don't currently have private health cover",
       ...(answers.income === 'over100k' ? ['Your income bracket is $100,000+'] : [])] : [],
-    suggestedBecause: 'Based on your answers, FirePath matched your profile against our library of financial education topics and highlighted this as potentially relevant to your circumstances.',
-    afterReading: ['how the surcharge works', 'the income thresholds involved', 'how private hospital cover interacts with it'],
-    whyMatters: 'This can be an avoidable extra cost each year depending on income and private hospital cover decisions.',
+    suggestedBecause: (answers.privateHealth === 'no' && answers.income === 'over100k') ? "You told us you don't have private health cover and your income is $100,000+ — exactly the combination that determines whether this surcharge applies." : answers.privateHealth === 'no' ? "You told us you don't have private health cover. Whether the surcharge applies also depends on your income bracket." : "You told us you already have private health cover, which generally avoids this surcharge.",
+    afterReading: ['how the surcharge works', 'the income thresholds involved', 'how private health cover interacts with it'],
+    whyMatters: 'This can be an avoidable extra cost each year depending on income and private health cover decisions.',
     readingMin: 9,
     link: '/learn/tax-and-investing-australia.html',
   });
@@ -359,11 +382,10 @@ function showResults() {
       ${grouped[cat].map(c => `
         <div class="result-item ${c.level === 'low' ? 'dimmed' : ''}">
           ${confidenceBadge(c.level)}
-          <div class="result-title">${c.title}</div>
+          <div class="result-title">${c.title} <span style="font-size:11px;font-weight:400;color:var(--soft-grey);">— ${c.readingMin} min read</span></div>
           <div class="result-section">
             <div class="result-label">Why FirePath suggested this topic</div>
             <div class="result-text">${c.suggestedBecause}</div>
-            ${c.triggers.length ? `<div class="trigger-list">${c.triggers.map(t => `<div class="trigger-item">✓ ${t}</div>`).join('')}</div>` : ''}
           </div>
           <div class="result-section">
             <div class="result-label">After reading this you'll understand</div>
@@ -372,7 +394,7 @@ function showResults() {
           ${c.whyMatters ? `<div class="result-section"><div class="result-label">Why this matters</div><div class="result-text">${c.whyMatters}</div></div>` : ''}
           ${c.prereq ? `<div style="font-size:11.5px;color:var(--soft-grey);font-style:italic;margin-bottom:10px;">Builds on: ${c.prereq}</div>` : ''}
           <a class="result-link" href="${c.link}">Read in Learning Lab →</a>
-          ${c.proHref ? `<br/><a class="result-link" href="${c.proHref}" style="margin-top:6px;">Already understand this? Model it using your own numbers →</a>` : ''}
+          ${c.proHref ? `<br/><a class="result-link" href="${c.proHref}" style="margin-top:6px;">Ready to see how this works with your own situation? Try it in Tax & Strategy →</a>` : ''}
           ${c.atoUrl ? `<br/><a class="result-link" href="${c.atoUrl}" target="_blank" rel="noopener" style="margin-top:6px;color:var(--soft-grey);">Official source: Australian Taxation Office →</a>` : ''}
         </div>
       `).join('')}
@@ -381,14 +403,40 @@ function showResults() {
     ${roadmapItems.length ? `
     <div class="roadmap-box">
       <h3>Your learning roadmap</h3>
-      <div class="roadmap-sub">Structured like a course, from foundational to more advanced — tap an item to mark it done</div>
+      <div class="roadmap-sub">Structured like a course — complete a topic to unlock what builds on it</div>
+      <div style="background:rgba(255,255,255,0.15);border-radius:5px;height:6px;overflow:hidden;margin-bottom:6px;">
+        <div style="background:white;height:100%;width:${roadmapItems.length ? Math.round((completedCount/roadmapItems.length)*100) : 0}%;transition:width 0.3s;"></div>
+      </div>
+      <div style="font-size:11.5px;opacity:0.85;margin-bottom:14px;">${completedCount} of ${roadmapItems.length} topics in this path completed${completedCount === 0 ? ' — just starting' : completedCount === roadmapItems.length ? ' — path complete' : ' — making progress'}</div>
       ${TIER_ORDER.filter(tier => roadmapItems.some(item => item.tier === tier)).map((tier, tIdx, tiers) => `
         <div class="roadmap-tier-label">${tier.toUpperCase()}</div>
         ${roadmapItems.filter(item => item.tier === tier).map(item => {
           const done = completedTopics.has(item.title);
+          const locked = item.prereq && !completedTopics.has(item.prereq) && roadmapItems.some(ri => ri.title === item.prereq);
+          const checking = checkingItem === item.title;
+          if (locked) {
+            return `
+          <div class="roadmap-item" style="opacity:0.5;cursor:default;">
+            <span>🔒</span>
+            <span>${item.title}</span>
+            <span class="roadmap-time">Complete "${item.prereq}" first</span>
+          </div>`;
+          }
+          if (checking) {
+            return `
+          <div class="roadmap-item" style="flex-direction:column;align-items:stretch;background:rgba(255,255,255,0.2);">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span>○</span><span>${item.title}</span></div>
+            <div style="font-size:12px;margin-bottom:8px;">Do you understand this now?</div>
+            <div style="display:flex;gap:6px;">
+              <button onclick="event.stopPropagation();answerComprehension('${item.title.replace(/'/g, "\\'")}', false)" style="flex:1;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:8px;padding:6px;font-size:11px;cursor:pointer;">Not yet</button>
+              <button onclick="event.stopPropagation();answerComprehension('${item.title.replace(/'/g, "\\'")}', true)" style="flex:1;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:8px;padding:6px;font-size:11px;cursor:pointer;">Mostly</button>
+              <button onclick="event.stopPropagation();answerComprehension('${item.title.replace(/'/g, "\\'")}', true)" style="flex:1;background:white;border:1px solid white;color:var(--fire-orange);border-radius:8px;padding:6px;font-size:11px;font-weight:600;cursor:pointer;">Yes</button>
+            </div>
+          </div>`;
+          }
           return `
-          <div class="roadmap-item" onclick="toggleRoadmapItem('${item.title.replace(/'/g, "\\'")}')" style="cursor:pointer;${done ? 'opacity:0.6;' : ''}">
-            <span>${done ? '✓' : '○'}</span>
+          <div class="roadmap-item" onclick="${done ? `toggleRoadmapItem('${item.title.replace(/'/g, "\\'")}')` : `startComprehensionCheck('${item.title.replace(/'/g, "\\'")}')`}" style="cursor:pointer;${done ? 'opacity:0.6;' : ''}">
+            <span>${done ? '✓' : '🔓'}</span>
             <span style="${done ? 'text-decoration:line-through;' : ''}">${item.title}${item.prereq ? ` <span style="opacity:0.7;font-size:11px;">(builds on ${item.prereq})</span>` : ''}</span>
             <span class="roadmap-time">${item.readingMin} min</span>
           </div>`;
@@ -400,11 +448,72 @@ function showResults() {
     ` : ''}
 
     <div class="caveat">Based on the information you've provided, these are educational topics that may be relevant to explore. FirePath has not assessed whether any strategy is suitable or available to you. ${answers.advisor === 'no' ? 'For decisions specific to your situation, a registered tax agent or financial adviser can confirm what genuinely applies to you.' : ''}</div>
-    <button class="restart-btn" onclick="location.reload()">Start over</button>
+    <button class="restart-btn" onclick="retakeQuiz()">Retake the quiz</button>
   `;
 }
 
-renderQuestion();
+// ── Persistence: check for a saved profile before starting the quiz ──
+// Only activates for logged-in users (fpToken/fpUserId present). Anonymous visitors
+// still get the full free, no-signup quiz experience exactly as before — this only
+// adds a "remember me" layer on top for people who happen to be signed in.
+const fpToken = typeof getToken === 'function' ? getToken() : null;
+const fpUserId = typeof getUserId === 'function' ? getUserId() : null;
+let saveTimer;
+
+async function loadSavedProgress() {
+  if (!fpToken || !fpUserId) { renderQuestion(); return; }
+  try {
+    const res = await fetch(`${WORKER_URL}/db/financial_learning_progress?user_id=eq.${fpUserId}`, {
+      headers: { 'Authorization': `Bearer ${fpToken}` }
+    });
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0 && data[0].answers && Object.keys(data[0].answers).length > 0) {
+      Object.assign(answers, data[0].answers);
+      (data[0].completed_topics || []).forEach(t => completedTopics.add(t));
+      showResults();
+      return;
+    }
+  } catch(e) { console.log('No saved progress found, starting fresh', e); }
+  renderQuestion();
+}
+
+function saveProgress() {
+  if (!fpToken || !fpUserId) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      await fetch(`${WORKER_URL}/db/financial_learning_progress`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({
+          user_id: fpUserId,
+          answers: answers,
+          completed_topics: Array.from(completedTopics),
+          updated_at: new Date().toISOString()
+        })
+      });
+    } catch(e) { console.log('Progress save failed', e); }
+  }, 800);
+}
+
+function retakeQuiz() {
+  if (!confirm('This clears your saved answers and progress. Retake the quiz from the start?')) return;
+  Object.keys(answers).forEach(k => delete answers[k]);
+  completedTopics.clear();
+  currentQ = 0;
+  if (fpToken && fpUserId) {
+    fetch(`${WORKER_URL}/db/financial_learning_progress`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({ user_id: fpUserId, answers: {}, completed_topics: [], updated_at: new Date().toISOString() })
+    }).catch(e => console.log('Reset save failed', e));
+  }
+  document.getElementById('resultsView').style.display = 'none';
+  document.getElementById('quizView').style.display = 'block';
+  renderQuestion();
+}
+
+loadSavedProgress();
 </script>
 </body>
 </html>
