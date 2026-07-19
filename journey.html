@@ -1,4 +1,7 @@
 <!DOCTYPE html>
+<!-- BUILD: journey-2026-07-19-d -- if you don't see this exact string in "View Page Source"
+     on the live site, this file hasn't been deployed yet. Update this string every time
+     a new version is handed over, so it's always a 5-second check, not a screenshot comparison. -->
 <html lang="en">
 <head>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
@@ -368,14 +371,6 @@
               <div class="dash-card-body">
                 <div class="dash-card-title">Super</div>
                 <div class="dash-card-desc">Your two-phase timeline — how your super and your savings connect by age 60.</div>
-              </div>
-              <div class="dash-card-arrow">→</div>
-            </a>
-            <a href="firepath_pro.html?tab=needle" class="dash-card">
-              <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-target"/></svg></div>
-              <div class="dash-card-body">
-                <div class="dash-card-title">My Date</div>
-                <div class="dash-card-desc">Exactly what moves your freedom date forward or back — in real numbers.</div>
               </div>
               <div class="dash-card-arrow">→</div>
             </a>
@@ -763,18 +758,26 @@ document.addEventListener('DOMContentLoaded', async function() {
     const data = await res.json();
     const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
 
+    // A brand new Pro subscriber (or anyone who hasn't run their numbers yet) has no
+    // freedom_number to show progress against — sending them here would mean a hero
+    // card showing 0%/$0, achievements that can never unlock, an empty timeline.
+    // Send them to onboarding instead; they'll land here naturally next time, once
+    // their profile actually has something to show.
+    //
+    // Checks the explicit onboarding_completed flag first (the reliable signal —
+    // doesn't misfire if freedom_number legitimately comes out as 0). Falls back to
+    // freedom_number if the flag is missing/undefined, so this doesn't break for any
+    // profile saved before the flag column existed and before the backfill ran.
+    const hasCompletedOnboarding = p && (p.onboarding_completed === true || (p.onboarding_completed == null && p.freedom_number));
+    if (!hasCompletedOnboarding) {
+      window.location.href = 'firepath_pro.html';
+      return;
+    }
+
     const hour = new Date().getHours();
     const greetWord = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
     const displayName = localStorage.getItem('fp_email') ? localStorage.getItem('fp_email').split('@')[0] : '';
     document.getElementById('greetTitle').textContent = `${greetWord}${displayName ? ', ' + displayName : ''}.`;
-
-    if (!p || !p.freedom_number) {
-      // First-time flow: don't wait for a click — send them straight to
-      // firepath_pro.html to run their numbers so Journey has something
-      // to populate. No numbers yet = nothing here to show.
-      window.location.href = 'firepath_pro.html';
-      return;
-    }
 
     const savings = p.current_savings || 0;
     const freedomNumber = p.freedom_number;
@@ -828,8 +831,8 @@ function toggleSectionMenu() {
 
 const PANEL_LABELS = {
   overview: 'Overview',
-  plan: 'Plan — Results, Super, My Date, Withdrawal, Freedom Gap, What\'s Next',
-  tools: 'Tools — Tax Tools, Calculators'
+  plan: 'Plan — Commitment, What\'s Next, Learning, Results, Super',
+  tools: 'Tools — Tax Tools, Withdrawal, Freedom Gap, Calculators'
 };
 
 function switchPanel(panelName) {
