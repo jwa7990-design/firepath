@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
   <script src="js/tax-engine.js"></script>
+  <script src="js/financial-engine.js"></script>
   <style>
   body { display:block; padding:0; }
   .hero { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);padding:48px 24px 40px;text-align:center;color:white;position:relative;overflow:hidden; }
@@ -32,6 +33,18 @@
   .toggle-btn { flex:1;padding:12px 8px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;text-align:center; }
   .toggle-btn.active { border-color:var(--fire-orange);background:#FFF7F3;color:var(--fire-orange); }
   .gap-hero { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;color:white;margin-bottom:16px;text-align:center; }
+  .gap-eyebrow { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;opacity:0.5;margin-bottom:6px; }
+  .gap-percent { font-family:'Playfair Display',serif;font-size:52px;font-weight:700;color:var(--fire-amber);line-height:1;margin-bottom:2px; }
+  .gap-percent-label { font-size:13px;opacity:0.65;margin-bottom:14px; }
+  .gap-progress-track { height:10px;background:rgba(255,255,255,0.15);border-radius:6px;overflow:hidden;margin-bottom:16px; }
+  .gap-progress-fill { height:100%;background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));border-radius:6px;transition:width 0.5s ease; }
+  .gap-dollar-sub { font-size:13px;opacity:0.7;margin-bottom:18px;line-height:1.5; }
+  .gap-dollar-sub strong { color:var(--fire-amber);font-weight:700; }
+  .gap-source-row { display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.12);font-size:12px; }
+  .gap-source-row:last-child { border-bottom:none; }
+  .gap-source-label { opacity:0.7;display:flex;align-items:center;gap:6px; }
+  .gap-source-value { font-weight:600; }
+  .gap-source-tag { font-size:9px;opacity:0.5;text-transform:uppercase;letter-spacing:0.04em; }
   .gap-label { font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;opacity:0.55;margin-bottom:8px; }
   .gap-annual { font-family:'Playfair Display',serif;font-size:44px;font-weight:700;color:var(--fire-amber);line-height:1;margin-bottom:6px; }
   .gap-sub { font-size:13px;opacity:0.6;margin-bottom:20px; }
@@ -42,6 +55,9 @@
   .data-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
   .data-row:last-child { border-bottom:none; }
   .data-label { color:var(--soft-grey); }
+  .value-tag { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:6px;margin-left:6px;display:inline-block;vertical-align:1px; }
+  .value-tag.calculated { background:#E8F5E9;color:#2E7D32; }
+  .value-tag.estimated { background:#FFF3E0;color:#E65100; }
   .pension-box { background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:12px;padding:16px;margin-top:16px;font-size:13px;color:#2E7D32;line-height:1.7; }
   .pension-box.nil { background:var(--warm-cream);border-color:var(--border);color:var(--soft-grey); }
   .slider-card { background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px; }
@@ -74,20 +90,34 @@
   <div class="glass-card">
     <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-money"/></svg> Your numbers</div>
     <div class="input-row">
-      <div class="input-label-text">Total portfolio value</div>
-      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-portfolio" placeholder="500000" oninput="calcGap()"/></div>
+      <div class="input-label-text">Investments available today</div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-portfolio" placeholder="500000" oninput="recalcGap()"/></div>
+    </div>
+    <div class="input-row">
+      <div class="input-label-text">Other debt (optional)</div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-debt" placeholder="0" oninput="recalcGap()"/></div>
+      <div style="font-size:11px;color:var(--soft-grey);margin-top:2px;">Not your mortgage — this is for things like credit cards, car loans, or personal loans.</div>
+    </div>
+    <div class="input-row">
+      <div class="input-label-text">Super balance — for context, not counted in your gap today (optional)</div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-super" placeholder="0" oninput="recalcGap()"/></div>
     </div>
     <div class="input-row">
       <div class="input-label-text">What you expect to spend per year</div>
-      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-spend" placeholder="60000" oninput="calcGap()"/></div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-spend" placeholder="60000" oninput="recalcGap()"/></div>
+      <div id="g-useProfileSpend" style="display:none;font-size:12px;color:var(--fire-orange);cursor:pointer;margin-top:2px;" onclick="applyProfileSpend()">Autofill from my FirePath profile →</div>
     </div>
     <div class="input-row">
       <div class="input-label-text">Your age</div>
-      <div class="input-wrap"><span class="input-prefix-dark">age</span><input type="number" class="dark-input" id="g-age" placeholder="45" style="padding-left:46px;" oninput="calcGap()"/></div>
+      <div class="input-wrap"><span class="input-prefix-dark">age</span><input type="number" class="dark-input" id="g-age" placeholder="45" style="padding-left:46px;" oninput="recalcGap()"/></div>
+    </div>
+    <div class="input-row">
+      <div class="input-label-text">Still saving? How much per month (optional)</div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-monthlySavings" placeholder="0" oninput="recalcGap()"/></div>
     </div>
     <div class="input-row">
       <div class="input-label-text">What you could earn per hour, working part-time</div>
-      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-rate" placeholder="40" oninput="calcGap()"/></div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-rate" placeholder="40" oninput="recalcGap()"/></div>
     </div>
     <div class="input-row">
       <div class="input-label-text">Do you own your home?</div>
@@ -101,10 +131,27 @@
   <div id="results" style="display:none">
 
     <div class="gap-hero">
-      <div class="gap-label">Your portfolio generates</div>
-      <div class="gap-annual" id="g-portfolioIncome">—</div>
-      <div class="gap-sub" id="g-sub">a year, at a 4% withdrawal rate</div>
-      <div class="gap-breakdown">
+      <div class="gap-eyebrow">Freedom Level</div>
+      <div class="gap-percent" id="g-freedomPercent">—%</div>
+      <div class="gap-percent-label" id="g-freedomFraming">Lifestyle already covered by your investments</div>
+      <div class="gap-progress-track"><div class="gap-progress-fill" id="g-progressFill" style="width:0%;"></div></div>
+      <div class="gap-dollar-sub" id="g-dollarSub">Your portfolio now produces<br/><strong id="g-portfolioIncome" style="font-size:16px;">—</strong> every year</div>
+      <div id="g-netPositionNote" style="display:none;font-size:11px;opacity:0.6;margin-top:-12px;margin-bottom:18px;"></div>
+      <div id="g-sourceBreakdown">
+        <div class="gap-source-row">
+          <span class="gap-source-label">Portfolio covers <span class="gap-source-tag">calculated</span></span>
+          <span class="gap-source-value" id="g-sourcePortfolioPct">—%</span>
+        </div>
+        <div class="gap-source-row" id="g-sourcePensionRow" style="display:none;">
+          <span class="gap-source-label">Age Pension could cover <span class="gap-source-tag">estimated</span></span>
+          <span class="gap-source-value" id="g-sourcePensionPct">—%</span>
+        </div>
+        <div class="gap-source-row">
+          <span class="gap-source-label">Remaining gap</span>
+          <span class="gap-source-value" id="g-sourceGapPct" style="color:var(--fire-amber);">—%</span>
+        </div>
+      </div>
+      <div class="gap-breakdown" style="margin-top:16px;">
         <div class="gap-tile">
           <div class="gap-tile-label">Annual spending</div>
           <div class="gap-tile-value" id="g-annualSpend">—</div>
@@ -116,8 +163,32 @@
       </div>
     </div>
 
+    <div class="glass-card" id="g-freedomStoryCard">
+      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-momentum"/></svg> Your Freedom Story</div>
+      <div id="g-freedomStory" style="font-size:14px;color:var(--warm-brown);line-height:1.75;font-weight:400;"></div>
+      <div id="g-snapshotCompare" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--soft-grey);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;" id="g-snapshotTimeLabel"></div>
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span style="font-size:13px;color:var(--soft-grey);">Freedom Level</span>
+          <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--warm-brown);" id="g-snapshotFrom"></span>
+          <span style="color:var(--soft-grey);">→</span>
+          <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--fire-orange);" id="g-snapshotTo"></span>
+        </div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px;" id="g-snapshotDelta"></div>
+      </div>
+    </div>
+
+    <div class="glass-card" id="g-superContextCard" style="display:none;background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-color:#A5D6A7;">
+      <div class="card-label" style="color:#2E7D32;"><svg class="icon" style="width:14px;height:14px;color:#2E7D32;"><use href="/icons.svg#icon-secure"/></svg> Accessible Today vs Later</div>
+      <div style="font-size:13px;color:#2E7D32;line-height:1.7;">
+        <strong id="g-superToday">—</strong> can fund your life today.<br/>
+        <strong id="g-superRetirement">—</strong> is what you'll have including super.
+        <span id="g-superExplainer"></span>
+      </div>
+    </div>
+
     <div class="glass-card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-secure"/></svg> Age Pension at 67</div>
+      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-secure"/></svg> Age Pension at 67 <span class="value-tag estimated">Estimated</span></div>
       <div id="g-pensionBox" class="pension-box">—</div>
       <div class="data-row" style="margin-top:12px;">
         <span class="data-label">Gap after pension</span>
@@ -126,13 +197,24 @@
     </div>
 
     <div class="slider-card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> How many hours do you want to work?</div>
+      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> If work became optional, how many hours would you choose?</div>
       <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">Drag to find the point where your income fully covers your spending.</div>
       <div class="slider-row">
         <input type="range" class="dark-slider" id="g-hours" min="0" max="40" value="10" oninput="updateHoursSlider()"/>
         <div class="slider-val" id="g-hoursVal">10 hrs</div>
       </div>
       <div class="slider-result" id="g-hoursResult"></div>
+    </div>
+
+    <div class="slider-card">
+      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> Want to look at this differently?</div>
+      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;line-height:1.6;">What age would you like to stop working? FirePath will project your portfolio to that point and recalculate everything.</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="number" id="targetRetirementAgeInput" class="dark-input" placeholder="e.g. 55" style="width:110px;padding-left:14px;" min="1" max="80"/>
+        <button onclick="applyTargetRetirementAge()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:10px;padding:12px 20px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Show me →</button>
+        <button onclick="resetTargetRetirementAge()" id="resetTargetAgeBtn" style="display:none;background:none;border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--soft-grey);font-family:'DM Sans',sans-serif;cursor:pointer;">Reset</button>
+      </div>
+      <div id="targetAgeNote" style="margin-top:10px;font-size:12px;color:var(--soft-grey);line-height:1.6;display:none;"></div>
     </div>
 
     <div class="slider-card">
@@ -146,17 +228,84 @@
       <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
     </div>
 
+    <div class="glass-card" style="text-align:center;background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-color:rgba(244,98,42,0.25);">
+      <div style="font-size:14px;color:var(--warm-brown);font-weight:400;line-height:1.7;margin-bottom:16px;">You've seen where you are today. Now see the different ways you could use this.</div>
+      <a href="freedom-options.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:13px 26px;border-radius:50px;font-size:14px;font-weight:500;text-decoration:none;">Explore My Freedom Options →</a>
+    </div>
+
     <p class="disclaimer">Portfolio income based on a 4% withdrawal rate. Age Pension estimate based on the assets test (single, using your homeowner status) — your actual entitlement depends on your full financial picture at 67. Educational only — not financial advice.</p>
   </div>
 
 </div>
 
 <script>
-  function fmtM(n) {
-    if (n == null || isNaN(n)) return '—';
-    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
-    if (n >= 1000)    return '$' + Math.round(n/1000) + 'K';
-    return '$' + Math.round(n);
+  // Turns a raw percentage into feedback that reads like a response to progress,
+  // not just a static label — same percentage always maps to the same framing.
+  function freedomFraming(pct) {
+    if (pct >= 100) return 'Your portfolio now funds the lifestyle you\'ve chosen.';
+    if (pct >= 90) return 'Almost everything is in place.';
+    if (pct >= 70) return "You're closer than your portfolio balance makes it seem.";
+    if (pct >= 50) return 'More than half your lifestyle is already funded.';
+    if (pct >= 30) return "You've already bought back part of your lifestyle.";
+    return 'Every dollar you save buys back a little more of your future.';
+  }
+
+  // fmtM and niceHours now live in the shared financial-engine.js — aliased here so
+  // every call site elsewhere in this file doesn't need to change.
+  const fmtM = window.FirePathEngine.fmtM;
+  const niceHours = window.FirePathEngine.niceHours;
+
+  // Wraps calcGap() so that changing any other input while a target retirement age is
+  // active re-projects using that same age, instead of silently dropping back to today.
+  function recalcGap() {
+    calcGap(lastGapCalc && lastGapCalc.targetAge ? lastGapCalc.targetAge : undefined);
+  }
+
+  let profileEstimatedSpend = null;
+  let userPersona = 'building'; // beginner / building / fire — inherited from FirePath Pro onboarding
+
+  // ── Financial Snapshot Engine — the shared history mechanism Journey's placeholder
+  // and this "since your last update" feature both turn out to need. ──
+  let previousSnapshot = null;    // most recent snapshot from BEFORE this page load
+  let snapshotSavedThisSession = false;
+
+  async function loadPreviousSnapshot() {
+    try {
+      const token = typeof getToken === 'function' ? getToken() : null;
+      const userId = typeof getUserId === 'function' ? getUserId() : null;
+      if (!token || !userId) return;
+      const res = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) previousSnapshot = data[0];
+    } catch(e) { console.log('Snapshot load failed', e); }
+  }
+
+  // Throttled to once per day — if the most recent snapshot is already from today,
+  // skip saving another. Comparisons stay meaningful ("since 12 days ago") instead of
+  // the table filling with near-duplicate rows every time someone tweaks a number.
+  async function maybeSaveSnapshot(inputs, picture) {
+    if (snapshotSavedThisSession) return;
+    try {
+      const token = typeof getToken === 'function' ? getToken() : null;
+      const userId = typeof getUserId === 'function' ? getUserId() : null;
+      if (!token || !userId) return;
+      if (previousSnapshot) {
+        const hoursSince = (Date.now() - new Date(previousSnapshot.created_at).getTime()) / 3600000;
+        if (hoursSince < 24) { snapshotSavedThisSession = true; return; }
+      }
+      await fetch(`${WORKER_URL}/db/financial_snapshots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ user_id: userId, source: 'freedom-gap', inputs, picture })
+      });
+      snapshotSavedThisSession = true;
+    } catch(e) { console.log('Snapshot save failed', e); }
+  }
+
+  function applyProfileSpend() {
+    if (!profileEstimatedSpend) return;
+    document.getElementById('g-spend').value = profileEstimatedSpend;
+    recalcGap();
   }
 
   let isHomeowner = true;
@@ -166,45 +315,175 @@
     isHomeowner = val;
     document.getElementById('g-homeowner-yes').classList.toggle('active', val);
     document.getElementById('g-homeowner-no').classList.toggle('active', !val);
-    calcGap();
+    recalcGap();
   }
 
-  function calcGap() {
+  function calcGap(targetAge) {
     const portfolio = parseFloat(document.getElementById('g-portfolio').value) || 0;
+    const debt = parseFloat(document.getElementById('g-debt').value) || 0;
+    const superBalance = parseFloat(document.getElementById('g-super').value) || 0;
     const annualSpend = parseFloat(document.getElementById('g-spend').value) || 0;
     const hourlyRate = parseFloat(document.getElementById('g-rate').value) || 40;
+    const currentAge = parseFloat(document.getElementById('g-age').value) || 0;
+    const monthlySavings = parseFloat(document.getElementById('g-monthlySavings').value) || 0;
 
-    if (portfolio <= 0 || annualSpend <= 0) {
+    // Net investable position — what you could actually spend down today, not the gross
+    // portfolio figure. Debt isn't projected or compounded here (no amortisation schedule
+    // assumed); it's simply netted off today's starting point before anything else runs.
+    const netPortfolio = Math.max(0, portfolio - debt);
+
+    if (netPortfolio <= 0 || annualSpend <= 0) {
       document.getElementById('results').style.display = 'none';
       return;
     }
     document.getElementById('results').style.display = 'block';
 
-    const portfolioIncome = Math.round(portfolio * 0.04);
-    const gap = Math.max(0, annualSpend - portfolioIncome);
-    const gapWeekly = Math.round(gap / 52);
+    const netNote = document.getElementById('g-netPositionNote');
+    if (debt > 0) {
+      netNote.style.display = 'block';
+      netNote.textContent = `${fmtM(portfolio)} portfolio − ${fmtM(debt)} debt = ${fmtM(netPortfolio)} net investable position`;
+    } else {
+      netNote.style.display = 'none';
+    }
 
-    document.getElementById('g-portfolioIncome').textContent = fmtM(portfolioIncome);
+    // Project the portfolio forward to a target retirement age, compounding at the same
+    // 7% real-return assumption used across FirePath, plus ongoing monthly contributions —
+    // same pattern as firepath_pro.html's target retirement age feature.
+    let effectivePortfolio = netPortfolio;
+    const targetAgeNote = document.getElementById('targetAgeNote');
+    if (targetAge && currentAge > 0 && targetAge > currentAge) {
+      const yearsToTarget = targetAge - currentAge;
+      effectivePortfolio = Math.round(window.FirePathEngine.projectPortfolio(netPortfolio, monthlySavings, yearsToTarget, 0.07));
+      targetAgeNote.style.display = 'block';
+      targetAgeNote.innerHTML = `Showing your picture at age <strong style="color:var(--warm-brown)">${targetAge}</strong> — portfolio projected to <strong style="color:var(--warm-brown)">${fmtM(effectivePortfolio)}</strong> by then (7% growth${monthlySavings > 0 ? ' + your ongoing savings' : ''}).`;
+      document.getElementById('resetTargetAgeBtn').style.display = 'inline-block';
+    } else {
+      targetAgeNote.style.display = 'none';
+      document.getElementById('resetTargetAgeBtn').style.display = 'none';
+    }
+
+    const freedomPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: effectivePortfolio, annualSpend, isHomeowner });
+    const { portfolioIncome, gap, pensionAnnual, pensionWeekly, gapAfterPension, freedomPct } = freedomPicture;
+
     document.getElementById('g-annualSpend').textContent = fmtM(annualSpend);
     document.getElementById('g-gapAmount').textContent = fmtM(gap) + '/yr';
 
-    let pensionAnnual = 0;
     const pensionBox = document.getElementById('g-pensionBox');
-    if (typeof calculateAgePension === 'function') {
-      const pension = calculateAgePension(portfolio, portfolioIncome, isHomeowner, false);
-      pensionAnnual = pension.annualPension;
-      if (pensionAnnual > 0) {
-        pensionBox.className = 'pension-box';
-        pensionBox.innerHTML = `Estimated entitlement: <strong>${fmtM(pensionAnnual)}/yr</strong> (~${fmtM(pension.weeklyPension)}/week), based on the assets test.`;
-      } else {
-        pensionBox.className = 'pension-box nil';
-        pensionBox.innerHTML = `At your asset level, Age Pension entitlement at 67 would be minimal or nil. Your portfolio is doing the heavy lifting.`;
-      }
+    if (pensionAnnual > 0) {
+      pensionBox.className = 'pension-box';
+      pensionBox.innerHTML = `Estimated entitlement: <strong>${fmtM(pensionAnnual)}/yr</strong> (~${fmtM(pensionWeekly)}/week), based on the assets test.`;
+    } else {
+      pensionBox.className = 'pension-box nil';
+      pensionBox.innerHTML = `At your asset level, Age Pension entitlement at 67 would be minimal or nil. Your portfolio is doing the heavy lifting.`;
     }
-    const gapAfterPension = Math.max(0, gap - pensionAnnual);
     document.getElementById('g-gapAfterPension').textContent = fmtM(gapAfterPension) + '/yr';
 
-    lastGapCalc = { portfolio, annualSpend, portfolioIncome, gap, pensionAnnual, gapAfterPension, hourlyRate };
+    // Freedom Level — how much of annual spending the portfolio alone already covers.
+    document.getElementById('g-freedomPercent').textContent = freedomPct + '%';
+    document.getElementById('g-freedomFraming').textContent = freedomFraming(freedomPct);
+    document.getElementById('g-progressFill').style.width = freedomPct + '%';
+    document.getElementById('g-portfolioIncome').textContent = fmtM(portfolioIncome);
+    document.getElementById('g-sourcePortfolioPct').textContent = freedomPct + '%';
+
+    // Complete the source breakdown now that both pensionAnnual and freedomPct are known
+    const pensionPct = annualSpend > 0 ? Math.round(Math.min(100 - freedomPct, (pensionAnnual / annualSpend) * 100)) : 0;
+    const remainingPct = Math.max(0, 100 - freedomPct - pensionPct);
+    const pensionRow = document.getElementById('g-sourcePensionRow');
+    if (pensionAnnual > 0) {
+      pensionRow.style.display = 'flex';
+      document.getElementById('g-sourcePensionPct').textContent = pensionPct + '%';
+    } else {
+      pensionRow.style.display = 'none';
+    }
+    document.getElementById('g-sourceGapPct').textContent = remainingPct + '%';
+
+    // Your Freedom Story — a deterministic, always-visible summary. No AI call needed to
+    // get the page's core insight; the AI outlook below is an optional deeper layer on top.
+    const hoursToCloseAfterPension = hourlyRate > 0 ? niceHours(gapAfterPension / hourlyRate / 52) : null;
+    let story = `Your investments already cover <strong>${freedomPct}%</strong> of your annual spending — ${fmtM(portfolioIncome)} of the ${fmtM(annualSpend)} you expect to need.`;
+    if (pensionAnnual > 0) {
+      story += ` At 67, the Age Pension could reduce the remaining gap to around <strong>${fmtM(gapAfterPension)}/yr</strong>.`;
+    }
+    if (hoursToCloseAfterPension !== null) {
+      if (hoursToCloseAfterPension <= 0) {
+        story += ` Your portfolio${pensionAnnual > 0 ? ' and pension' : ''} already cover it — no work income needed to close the gap.`;
+      } else {
+        story += ` Working just <strong>${hoursToCloseAfterPension} hour${hoursToCloseAfterPension !== 1 ? 's' : ''} a week</strong> would close what's left.`;
+      }
+    }
+    story += ` You may be closer to freedom than your portfolio balance alone makes it seem — and this isn't a fixed number. Every pay rise, investment return, or dollar you save moves it higher.`;
+    document.getElementById('g-freedomStory').innerHTML = story;
+
+    // Show the comparison against the last real snapshot, if one exists
+    const compareEl = document.getElementById('g-snapshotCompare');
+    if (previousSnapshot && previousSnapshot.picture) {
+      const delta = window.FirePathEngine.compareSnapshots(previousSnapshot.picture, freedomPicture);
+      document.getElementById('g-snapshotTimeLabel').textContent = window.FirePathEngine.formatTimeSince(previousSnapshot.created_at);
+      document.getElementById('g-snapshotFrom').textContent = previousSnapshot.picture.freedomPct + '%';
+      document.getElementById('g-snapshotTo').textContent = freedomPct + '%';
+      const deltaEl = document.getElementById('g-snapshotDelta');
+      if (delta.freedomPctDelta > 0) {
+        deltaEl.style.color = '#2E7D32';
+        deltaEl.textContent = `▲ +${delta.freedomPctDelta}% — you've bought back real ground.`;
+      } else if (delta.freedomPctDelta < 0) {
+        deltaEl.style.color = '#E65100';
+        deltaEl.textContent = `▼ ${delta.freedomPctDelta}% — still worth knowing, not a verdict.`;
+      } else {
+        deltaEl.style.color = 'var(--soft-grey)';
+        deltaEl.textContent = `No change — steady as it is.`;
+      }
+      compareEl.style.display = 'block';
+    } else {
+      compareEl.style.display = 'none';
+    }
+
+    // Fire-and-forget — don't block the UI on this
+    maybeSaveSnapshot(
+      { portfolio: netPortfolio, annualSpend, monthlySavings, hourlyRate, debt, superBalance: superBalance || 0, age: currentAge, isHomeowner },
+      freedomPicture
+    );
+
+    const superCard = document.getElementById('g-superContextCard');
+    if (superBalance > 0) {
+      superCard.style.display = 'block';
+      document.getElementById('g-superToday').textContent = fmtM(netPortfolio);
+      document.getElementById('g-superRetirement').textContent = fmtM(netPortfolio + superBalance);
+      // Same preservation age convention used everywhere else in FirePath (faq.html: "your
+      // super is locked until age 60"). A blanket "isn't yours to spend yet" statement would
+      // be wrong for anyone already past that age, so this branches on it explicitly.
+      document.getElementById('g-superExplainer').textContent = currentAge >= 60
+        ? ` Your super is generally accessible now — you may want to include it in your planning above, not just here.`
+        : ` This isn't counted in the gap above, since super generally isn't available to fund your lifestyle yet.`;
+    } else {
+      superCard.style.display = 'none';
+    }
+
+    lastGapCalc = {
+      inputs: { portfolio: effectivePortfolio, annualSpend, hourlyRate, currentAge, scenarioAge: targetAge || currentAge },
+      freedomPicture: freedomPicture,
+      targetAge: targetAge || null,
+      workBonusHours: null
+    };
+
+    // Hand off to Freedom Options via localStorage — same mechanism already used for Hear
+    // Me Out's prefill (hmo_*). A page navigation loses any `window.` variable, so
+    // localStorage (not an in-memory object) is what actually survives the click through.
+    //
+    // Deliberately uses netPortfolio + real currentAge here, not effectivePortfolio — if a
+    // target-age projection is active on this page, effectivePortfolio represents a future
+    // point in time, and pairing it with today's real age would make Freedom Options compound
+    // an already-future value forward a second time, badly overstating how close someone is.
+    // Freedom Options has its own complete solving engine and doesn't need this page's local
+    // "what if" exploration carried into its starting point — it starts fresh from today's
+    // real (net-of-debt) numbers and finds its own future scenarios independently.
+    try {
+      const todayPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: netPortfolio, annualSpend, isHomeowner });
+      localStorage.setItem('fp_freedom_model', JSON.stringify({
+        inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner },
+        picture: todayPicture,
+        savedAt: new Date().toISOString()
+      }));
+    } catch(e) {}
 
     // Reset AI outlook on any input change — cached narrative no longer matches
     document.getElementById('aiOutlookText').style.display = 'none';
@@ -214,21 +493,64 @@
     updateHoursSlider();
   }
 
+  function applyTargetRetirementAge() {
+    const input = document.getElementById('targetRetirementAgeInput');
+    const targetAge = parseInt(input?.value) || null;
+    const currentAge = parseFloat(document.getElementById('g-age').value) || 0;
+    if (!currentAge) {
+      input.style.borderColor = '#E53935';
+      setTimeout(() => input.style.borderColor = 'var(--border)', 2000);
+      alert('Enter your current age above first — the projection needs a starting point.');
+      return;
+    }
+    if (!targetAge || targetAge <= currentAge || targetAge > 80) {
+      input.style.borderColor = '#E53935';
+      setTimeout(() => input.style.borderColor = 'var(--border)', 2000);
+      return;
+    }
+    calcGap(targetAge);
+  }
+
+  function resetTargetRetirementAge() {
+    document.getElementById('targetRetirementAgeInput').value = '';
+    calcGap();
+  }
+
   function updateHoursSlider() {
     if (!lastGapCalc) return;
     const hours = parseInt(document.getElementById('g-hours').value);
     document.getElementById('g-hoursVal').textContent = hours + ' hrs/wk';
-    const { gap, hourlyRate } = lastGapCalc;
+    const { gap } = lastGapCalc.freedomPicture;
+    const { hourlyRate } = lastGapCalc.inputs;
     const weeklyWorkIncome = hours * hourlyRate;
     const annualWorkIncome = weeklyWorkIncome * 52;
     const remainingGap = Math.max(0, gap - annualWorkIncome);
     const resultEl = document.getElementById('g-hoursResult');
+
+    // Age Pension Work Bonus: the first $300/fortnight of employment income isn't counted
+    // under the income test (current as of July 2026 — this threshold is periodically
+    // indexed, worth reviewing occasionally against Services Australia's published figures).
+    // Converted into hours using this person's own entered hourly rate.
+    const WORK_BONUS_FORTNIGHTLY = 300;
+    const workBonusHours = hourlyRate > 0 ? (WORK_BONUS_FORTNIGHTLY / hourlyRate / 2) : null;
+    lastGapCalc.workBonusHours = workBonusHours;
+
+    let bonusNote = '';
+    if (workBonusHours) {
+      const roundedBonus = Math.round(workBonusHours * 10) / 10;
+      if (hours <= workBonusHours) {
+        bonusNote = `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:#2E7D32;">At your rate, up to <strong>~${roundedBonus} hrs/week</strong> stays within the Age Pension Work Bonus — this work income shouldn't reduce your pension at all.</div>`;
+      } else {
+        bonusNote = `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:#E65100;">At your rate, the Work Bonus covers about <strong>~${roundedBonus} hrs/week</strong> before it starts affecting your pension — you're above that here.</div>`;
+      }
+    }
+
     if (hours === 0) {
-      resultEl.innerHTML = `Not working at all — your portfolio and Age Pension cover what they can.`;
+      resultEl.innerHTML = `Not working at all — your portfolio and Age Pension cover what they can.` + bonusNote;
     } else if (remainingGap <= 0) {
-      resultEl.innerHTML = `<strong>${hours} hrs/week</strong> at ~$${hourlyRate}/hr fully covers the gap. You don't need to touch your portfolio beyond the 4% withdrawal.`;
+      resultEl.innerHTML = `<strong>${hours} hrs/week</strong> at ~$${hourlyRate}/hr fully covers the gap. You don't need to touch your portfolio beyond the 4% withdrawal.` + bonusNote;
     } else {
-      resultEl.innerHTML = `<strong>${hours} hrs/week</strong> covers ${fmtM(annualWorkIncome)}/yr, leaving <strong>${fmtM(remainingGap)}/yr (${fmtM(Math.round(remainingGap/52))}/week)</strong> still to cover.`;
+      resultEl.innerHTML = `<strong>${hours} hrs/week</strong> covers ${fmtM(annualWorkIncome)}/yr, leaving <strong>${fmtM(remainingGap)}/yr (${fmtM(Math.round(remainingGap/52))}/week)</strong> still to cover.` + bonusNote;
     }
   }
 
@@ -241,11 +563,13 @@
     loading.classList.add('visible');
     textEl.style.display = 'none';
 
-    const { portfolio, annualSpend, portfolioIncome, gap, pensionAnnual, gapAfterPension } = lastGapCalc;
+    const { portfolio, annualSpend, hourlyRate, scenarioAge } = lastGapCalc.inputs;
+    const { portfolioIncome, gap, pensionAnnual, gapAfterPension } = lastGapCalc.freedomPicture;
+    const { workBonusHours } = lastGapCalc;
     const hours = parseInt(document.getElementById('g-hours').value);
-    const age = parseFloat(document.getElementById('g-age').value) || null;
+    const roundedBonusHours = workBonusHours ? Math.round(workBonusHours * 10) / 10 : null;
 
-    const userInput = `Portfolio: ${fmtM(portfolio)}. Annual spending target: ${fmtM(annualSpend)}. Portfolio generates: ${fmtM(portfolioIncome)}/yr at a 4% withdrawal rate. The gap: ${fmtM(gap)}/yr. Estimated Age Pension at 67: ${fmtM(pensionAnnual)}/yr. Gap after pension: ${fmtM(gapAfterPension)}/yr. Currently exploring working ${hours} hours/week to help cover it. Age: ${age || 'not provided'}.`;
+    const userInput = `Portfolio: ${fmtM(portfolio)}. Annual spending target: ${fmtM(annualSpend)}. Portfolio generates: ${fmtM(portfolioIncome)}/yr at a 4% withdrawal rate. The gap: ${fmtM(gap)}/yr. Estimated Age Pension at 67: ${fmtM(pensionAnnual)}/yr. Gap after pension: ${fmtM(gapAfterPension)}/yr. Currently exploring working ${hours} hours/week at $${hourlyRate}/hr to help cover it. Age this scenario represents: ${scenarioAge || 'not provided'}. Verified fact: the Age Pension Work Bonus means the first $300/fortnight of employment income isn't counted under the income test — at this person's hourly rate, that's roughly ${roundedBonusHours || 'unknown'} hours/week before it starts affecting their pension.`;
 
     try {
       const res = await fetch(WORKER_URL, {
@@ -254,9 +578,11 @@
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 500,
-          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. You have been given someone's real "partial freedom" numbers — their portfolio income, spending gap, and Age Pension estimate. Do not recalculate these — just narrate what they mean.
+          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. You have been given someone's real "partial freedom" numbers — their portfolio income, spending gap, Age Pension estimate, and a verified Work Bonus hours figure. Do not recalculate any of these, and never state a pension income-test figure that wasn't given to you — just narrate what the given numbers mean.
 
-Rules: 1. Reference the actual numbers given to you. 2. Explain that full financial independence isn't the only version of freedom — a portfolio that covers most of your spending, topped up by some part-time work and eventually the Age Pension, is a legitimate and often much closer form of freedom. 3. Be warm and human about what working a small number of hours by choice (not necessity) actually feels like, versus a full-time job. 4. Never say "you should" or "I recommend" — frame as something worth exploring. 5. Never name specific jobs, employers, or investment products. 6. Max 2 short paragraphs. 7. End with exactly: "This is educational, not financial advice." Use <strong> for bold.`,
+Who this is for: ${{ beginner: 'This person is new to this — warm, simple, human. Never use FIRE community terms like "Coast FIRE," "Barista FIRE," "sequence risk," or "safe withdrawal rate." Explain everything in plain, everyday language.', building: 'This person understands the basics and is actively building toward this. Clear, motivating, practical. You can introduce a FIRE term occasionally if it genuinely helps, but always explain it in the same sentence.', fire: 'This person is deep in the FIRE journey and fluent in the terminology. Direct, analytical, peer-level. Feel free to use terms like Coast FIRE, Barista FIRE, or sequence of returns risk naturally, without stopping to explain them.' }[userPersona] || 'Clear, motivating, practical.'}
+
+Rules: 1. Reference the actual numbers given to you. 2. Explain that full financial independence isn't the only version of freedom — a portfolio that covers most of your spending, topped up by some part-time work and eventually the Age Pension, is a legitimate and often much closer form of freedom. 3. Be warm and human about what working a small number of hours by choice (not necessity) actually feels like, versus a full-time job. 4. If the hours being explored are above 20/week, spend a sentence or two on real levers worth exploring to bring that down — e.g. what a higher hourly rate would do to the same gap, whether the spending target has room to flex, or reviewing how the portfolio is invested — grounded in this person's actual numbers, not generic advice. 5. If the Work Bonus hours figure was given, mention it naturally where relevant — it's real, verified information, not a guess. 6. Never say "you should" or "I recommend" — frame as something worth exploring. 7. Never name specific jobs, employers, or investment products. 8. Max 3 short paragraphs. 9. End with exactly: "This is educational, not financial advice." Use <strong> for bold.`,
           messages: [{ role: 'user', content: userInput }]
         })
       });
@@ -289,19 +615,36 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) {
           const p = data[0];
+          userPersona = p.persona || 'building';
           if (!urlPortfolio && p.current_savings) document.getElementById('g-portfolio').value = p.current_savings;
+          if (p.debt_total) document.getElementById('g-debt').value = p.debt_total;
+          if (p.super_balance) document.getElementById('g-super').value = p.super_balance;
           if (p.age) document.getElementById('g-age').value = p.age;
-          if (p.take_home_income) document.getElementById('g-spend').value = Math.round(p.take_home_income * 12);
+          // Spending = income minus savings, not raw income — using income alone
+          // overstates spending (and therefore the gap) for anyone who saves anything.
+          // The retirement spend multiplier (Less/Same/More, set during FirePath Pro
+          // onboarding) is applied here too — but only as this initial suggestion. Once
+          // saved, it never overwrites anything the person types here themselves.
+          if (p.take_home_income) {
+            const estMonthlySpend = p.take_home_income - (p.savings_monthly || 0);
+            const multiplier = p.retirement_spend_multiplier || 1.0;
+            profileEstimatedSpend = Math.round(Math.max(0, estMonthlySpend) * 12 * multiplier);
+            document.getElementById('g-spend').value = profileEstimatedSpend;
+            document.getElementById('g-useProfileSpend').style.display = 'block';
+          }
+          if (p.savings_monthly) document.getElementById('g-monthlySavings').value = Math.round(p.savings_monthly);
           if (p.take_home_income) document.getElementById('g-rate').value = Math.round((p.take_home_income * 12) / 52 / 38);
           if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
         }
       }
     } catch(e) { console.log('Profile prefill failed', e); }
 
+    await loadPreviousSnapshot();
     calcGap();
   });
 </script>
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
+<script src="js/quick-feedback-widget.js"></script>
 </body>
 </html>
