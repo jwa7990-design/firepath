@@ -435,6 +435,7 @@
 </div>
 
 <script src="js/auth.js"></script>
+<script src="js/financial-engine.js"></script>
 <script>
 async function loadLearningPathProgress(token, userId) {
   const descEl = document.getElementById('learningPathDesc');
@@ -789,10 +790,52 @@ document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('statRate').textContent = p.savings_rate ? p.savings_rate + '%' : '—';
     renderHorizon(pct);
 
-    // Deltas need a monthly snapshot table (fp_snapshots) that doesn't exist yet —
-    // showing an honest empty state instead of fabricated numbers.
-    document.getElementById('deltasWrap').innerHTML = `
-      <div class="deltas-empty">We'll start showing your month-over-month progress here once you've used FirePath for a full month.</div>`;
+    // Deltas — compares only against Journey's OWN prior snapshots (source=journey), not
+    // Freedom Gap's. Journey's pct is gross savings/freedomNumber; Freedom Gap's freedomPct
+    // is net of debt — comparing across the two would show a false jump that's really just
+    // a methodology difference, not real progress. Same table, kept as separate threads
+    // per source until/unless Journey's own percentage becomes debt-aware too.
+    let journeyPreviousSnapshot = null;
+    try {
+      const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const snapData = await snapRes.json();
+      if (Array.isArray(snapData) && snapData.length > 0) journeyPreviousSnapshot = snapData[0];
+    } catch(e) { console.log('Journey snapshot load failed', e); }
+
+    if (journeyPreviousSnapshot && journeyPreviousSnapshot.picture) {
+      const timeLabel = window.FirePathEngine.formatTimeSince(journeyPreviousSnapshot.created_at);
+      const fromPct = journeyPreviousSnapshot.picture.freedomPct;
+      const deltaPct = pct - fromPct;
+      const deltaColor = deltaPct > 0 ? '#2E7D32' : deltaPct < 0 ? '#E65100' : 'var(--soft-grey)';
+      const deltaText = deltaPct > 0 ? `▲ +${deltaPct}%` : deltaPct < 0 ? `▼ ${deltaPct}%` : 'No change';
+      document.getElementById('deltasWrap').innerHTML = `
+        <div class="deltas-empty" style="text-align:left;">
+          <div style="font-size:11px;color:var(--soft-grey);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">${timeLabel}</div>
+          <div style="display:flex;align-items:baseline;gap:10px;">
+            <span style="font-size:13px;color:var(--soft-grey);">Freedom Level</span>
+            <span style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;">${fromPct}%</span>
+            <span style="color:var(--soft-grey);">→</span>
+            <span style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--fire-orange);">${pct}%</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:${deltaColor};margin-top:4px;">${deltaText}</div>
+        </div>`;
+    } else {
+      document.getElementById('deltasWrap').innerHTML = `
+        <div class="deltas-empty">We'll start showing your progress here once we have an earlier snapshot to compare against — check back after your next update.</div>`;
+    }
+
+    // Throttled to once per day, same pattern as Freedom Gap — the comparison above used
+    // whatever the previous snapshot already was; this only decides whether to write a new one.
+    try {
+      const shouldSave = !journeyPreviousSnapshot || (Date.now() - new Date(journeyPreviousSnapshot.created_at).getTime()) / 3600000 >= 24;
+      if (shouldSave) {
+        await fetch(`${WORKER_URL}/db/financial_snapshots`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber }, picture: { freedomPct: pct } })
+        });
+      }
+    } catch(e) { console.log('Journey snapshot save failed', e); }
 
     renderAchievementsAndTimeline(savings, freedomNumber, p.persona);
     renderFinancialDNA(p);

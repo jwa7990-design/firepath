@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="css/main.css"/>
   <script src="js/auth.js"></script>
   <script src="js/calculations.js"></script>
+  <script src="js/financial-engine.js"></script>
   <script src="js/firepath_onboarding.js"></script>
   <script src="js/tax-engine.js"></script>
 <style>
@@ -350,7 +351,7 @@
 <body>
   
 <nav>
-  <a href="/index.html" class="nav-logo">Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
+  <a href="/index.html" class="nav-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
   <div class="nav-links">
     <div id="userStatus" class="nav-desktop-extra" style="font-size:12px;color:var(--soft-grey);"></div>
     <a href="journey.html" class="nav-link">My Journey</a>
@@ -386,7 +387,7 @@
       <!-- ── BLOCK 1 — Persona ── -->
       <div class="ob-block active" id="ob-block-1">
         <div class="ob-inner">
-          <div class="ob-pro-strip">FirePath Pro</div>
+          <div class="ob-pro-strip"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>FirePath Pro</div>
           <h1 class="ob-title">Where are you on your journey?</h1>
           <p class="ob-sub">Your AI insight, your language, your path — all tailored to where you actually are. Pick the one that fits.</p>
 
@@ -1603,14 +1604,43 @@ async function saveProfile() {
         partner_super: parseFloat(document.getElementById('partnerSuper').value) || 0,
         context: calcData.context || '',
         freedom_number: Math.round(calcData.fireNum || 0),
-                onboarding_completed: true,
-                freedom_years: calcData.mSav > 0 ? Math.round((calcData.fireNum || 0) / (calcData.mSav * 12) * 10) / 10 : null,
+        freedom_years: calcData.mSav > 0 ? Math.round((calcData.fireNum || 0) / (calcData.mSav * 12) * 10) / 10 : null,
         savings_rate: calcData.sRate || 0,
         ai_insight_text: lastInsightText || '',
         ai_insight_generated_at: cachedInsightAt || new Date().toISOString()
       })
     });
   } catch(e) { console.log('Profile save failed', e); }
+
+  // Financial Snapshot Engine — this is the one place every real profile change flows
+  // through (onboarding, editing, re-running numbers), so it's the reliable trigger for
+  // capturing history, rather than relying on someone happening to visit Freedom Gap or
+  // Journey. Uses the same net-of-debt methodology as Freedom Gap's own snapshots, so
+  // they're directly comparable regardless of which page actually wrote them.
+  try {
+    if (typeof window.FirePathEngine !== 'undefined') {
+      const netPortfolio = Math.max(0, (calcData.savings || 0) - (calcData.debt || 0));
+      const annualSpend = (calcData.mSpend || 0) * 12;
+      if (netPortfolio > 0 && annualSpend > 0) {
+        const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+        const snapData = await snapRes.json();
+        const prior = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
+        const shouldSave = !prior || (Date.now() - new Date(prior.created_at).getTime()) / 3600000 >= 24;
+        if (shouldSave) {
+          const freedomPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: netPortfolio, annualSpend, isHomeowner: housingStatus !== 'renting' });
+          await fetch(`${WORKER_URL}/db/financial_snapshots`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+              user_id: fpUserId, source: 'profile',
+              inputs: { portfolio: netPortfolio, annualSpend, age: calcData.age || null, isHomeowner: housingStatus !== 'renting' },
+              picture: freedomPicture
+            })
+          });
+        }
+      }
+    }
+  } catch(e) { console.log('Profile snapshot save failed', e); }
 }
 
   async function analyse(){ 
@@ -2110,5 +2140,6 @@ async function saveProfile() {
   }
 </script>
 
+<script src="js/quick-feedback-widget.js"></script>
 </body>
 </html>
