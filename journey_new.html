@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<!-- BUILD: journey-2026-07-19-d -- if you don't see this exact string in "View Page Source"
+     on the live site, this file hasn't been deployed yet. Update this string every time
+     a new version is handed over, so it's always a 5-second check, not a screenshot comparison. -->
+<html lang="en">
+<head>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-Q2QZ662MJ9');
+  </script>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Journey — FirePath Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/visual-system.css"/>
+  <style>
+    .dash-hero { padding: 8px 0 24px; }
+    .dash-eyebrow { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px; }
+    .dash-title { font-family:'Playfair Display',serif;font-size:clamp(24px,5vw,32px);font-weight:700;line-height:1.25;margin-bottom:8px; }
+    .dash-sub { font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.65; }
+    .section-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;margin-top:8px; }
+    .icon { width:20px; height:20px; flex-shrink:0; }
+
+    /* ---------- Horizon hero card ----------
+       Same dark-accent gradient your profile-banner / commit cards already use
+       (#3D2B1F -> #5C3D2E), blending toward fire-orange/amber as progress rises.
+       Colours are read live from your CSS variables at render time, not hardcoded,
+       so this stays in sync if main.css changes. */
+    .horizon-card{ position:relative; border-radius:var(--radius-lg,16px); overflow:hidden; margin-bottom:16px; box-shadow:var(--elevation-2,none); }
+    .freedom-hero-top{ background:white; padding:32px 28px 28px; text-align:center; }
+    .freedom-hero-pct{ font-family:'Playfair Display',serif; font-weight:700; font-size:clamp(56px,14vw,72px); color:var(--warm-brown); line-height:1; }
+    .freedom-hero-label{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--soft-grey); margin-top:8px; margin-bottom:20px; }
+    .freedom-hero-bar-track{ height:8px; background:var(--border); border-radius:8px; overflow:hidden; max-width:280px; margin:0 auto; }
+    .freedom-hero-bar-fill{ height:100%; width:0%; background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber)); border-radius:8px; transition:width 1.4s cubic-bezier(0.16,1,0.3,1); }
+    .horizon-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(255,255,255,0.12); }
+    .h-stat{ background:#3D2B1F; padding:16px 10px; text-align:center; }
+    .h-stat .label{ font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:rgba(255,255,255,0.55); }
+    .h-stat .value{ font-family:'Playfair Display',serif; font-weight:700; font-size:19px; margin-top:4px; color:#fff; }
+    .h-stat.accent .value{ color:var(--fire-amber); }
+    .continue-cta{
+      display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+      padding:15px; border:none; cursor:pointer; background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));
+      color:#fff; font-family:'DM Sans'; font-weight:500; font-size:14px;
+    }
+    .continue-cta:hover{ opacity:0.92; }
+    .bought-back-card{ background:linear-gradient(135deg,#3D2B1F,#5C3D2E); border-radius:var(--radius-lg,16px); box-shadow:var(--elevation-2,none); padding:28px 24px; text-align:center; }
+    .bought-back-label{ font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:16px; }
+    .bought-back-figures{ display:flex;justify-content:center;align-items:baseline;gap:20px;margin-bottom:14px;flex-wrap:wrap; }
+    .bb-figure{ display:flex;flex-direction:column;align-items:center; }
+    .bb-num{ font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:var(--fire-amber);line-height:1; }
+    .bb-unit{ font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px; }
+    .bought-back-caption{ font-size:13px;color:rgba(255,255,255,0.7);font-style:italic; }
+    .bought-back-expand-hint{ font-size:11px;color:rgba(255,255,255,0.4);margin-top:14px; }
+    #boughtBackHistory{ text-align:left;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12); }
+    .bb-history-row{ display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.7);padding:5px 0;gap:12px; }
+    .bb-history-row.total{ color:var(--fire-amber);font-weight:700;border-top:1px solid rgba(255,255,255,0.12);margin-top:4px;padding-top:9px; }
+    .bb-history-note{ font-size:11px;color:rgba(255,255,255,0.4);margin-top:10px;line-height:1.5; }
+
+    .deltas-empty{
+      background:var(--warm-cream); border:1.5px dashed var(--border); border-radius:14px;
+      padding:14px 16px; font-size:12.5px; color:var(--soft-grey); text-align:center; margin-bottom:24px;
+    }
+    .delta-chip{
+      display:inline-flex; align-items:center; gap:6px; background:white; border:1.5px solid var(--border);
+      border-radius:999px; padding:7px 12px; font-size:12.5px; color:var(--soft-grey); margin:0 6px 6px 0;
+    }
+    .delta-chip strong{ color:var(--fire-orange); font-weight:600; }
+
+    /* ---------- Journey nav (replaces tabs/sidebar) ---------- */
+    .journey-nav{ display:flex; gap:8px; margin:26px 0 20px; overflow-x:auto; scrollbar-width:none; padding:4px; background:var(--warm-cream); border-radius:14px; border:1.5px solid var(--border); }
+    .journey-nav::-webkit-scrollbar{ display:none; }
+    .nav-tab{
+      display:flex; align-items:center; gap:6px; flex-shrink:0; padding:10px 14px; border:none;
+      background:white; border:1.5px solid var(--border);
+      cursor:pointer; color:var(--warm-brown); font-family:'DM Sans'; font-weight:600; font-size:13px;
+      border-radius:10px; white-space:nowrap;
+    }
+    .nav-tab svg{ width:15px; height:15px; }
+    .nav-tab[aria-selected="true"]{ color:white; background:var(--fire-orange); border-color:var(--fire-orange); }
+
+    .plan-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+    .plan-grid .dash-card{ flex-direction:column; align-items:flex-start; text-align:left; padding:16px; }
+    .plan-grid .dash-card-icon{ margin-bottom:8px; }
+    .plan-grid .dash-card-arrow{ display:none; }
+    @media (max-width:420px){ .plan-grid{ grid-template-columns:1fr; } }
+
+    .panel{ display:none; padding-top:22px; }
+    .panel.active{ display:block; }
+    .section-block{ margin-bottom:30px; }
+
+    /* ---------- Reuses your existing .dash-card look for consistency ----------
+       Base rule was missing after the dashboard.html merge — cards were rendering
+       as bare browser-default links. Restoring it here. */
+    .card-grid{ display:flex; flex-direction:column; gap:12px; }
+    .dash-card{ background:white; border:1px solid rgba(237,227,218,0.45); border-radius:var(--radius-md,16px); padding:20px; text-decoration:none; display:flex; align-items:center; gap:16px; box-shadow:var(--elevation-1,none); transition:border-color var(--motion-interactive,200ms) ease, transform var(--motion-interactive,200ms) ease, box-shadow var(--motion-interactive,200ms) ease; }
+    .dash-card:hover{ border-color:var(--fire-orange); transform:translateY(-1px); box-shadow:var(--elevation-2,0 6px 20px rgba(61,43,31,0.08)); }
+    .dash-card-icon{ font-size:28px; flex-shrink:0; width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:var(--warm-cream); border-radius:12px; }
+    .dash-card-icon svg{ width:22px; height:22px; color:var(--icon-orange,#E25D29); }
+    .dash-card-body{ flex:1; }
+    .dash-card-title{ font-size:15px; font-weight:600; color:var(--warm-brown); margin-bottom:3px; }
+    .dash-card-desc{ font-size:12px; color:var(--soft-grey); font-weight:300; line-height:1.5; }
+    .dash-card-arrow{ font-size:14px; color:var(--fire-orange); flex-shrink:0; }
+    .dash-card.static{ cursor:default; }
+    .dash-card.locked{ opacity:0.55; }
+    .dash-card.locked .dash-card-icon{ background:var(--border); }
+
+    /* ---------- Achievements ---------- */
+    .achv-strip{ display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; }
+    .achv-badge{ flex-shrink:0; width:76px; text-align:center; }
+    .achv-icon-wrap{
+      width:54px; height:54px; margin:0 auto 6px; border-radius:50%; display:flex;
+      align-items:center; justify-content:center; background:var(--warm-cream); border:1.5px solid var(--border);
+    }
+    .achv-badge.unlocked .achv-icon-wrap{ background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber)); border-color:transparent; }
+    .achv-icon-wrap svg{ width:20px; height:20px; color:var(--soft-grey); }
+    .achv-badge.unlocked .achv-icon-wrap svg{ color:#fff; }
+    .achv-label{ font-size:10.5px; color:var(--soft-grey); line-height:1.3; }
+    .achv-badge.unlocked .achv-label{ color:var(--warm-brown); font-weight:500; }
+    .achv-badge.next .achv-icon-wrap{ border-color:var(--fire-orange); border-width:1.5px; border-style:dashed; background:#FFF7F3; }
+    .achv-badge.next .achv-icon-wrap svg{ color:var(--fire-orange); }
+    .achv-badge.next .achv-label{ color:var(--fire-orange); font-weight:500; }
+    .achv-distance{ font-size:9.5px; color:var(--fire-orange); font-weight:600; margin-top:1px; }
+
+    /* ---------- Timeline ---------- */
+    .timeline{ position:relative; padding-left:22px; }
+    .timeline::before{ content:''; position:absolute; left:5px; top:6px; bottom:6px; width:1.5px; background:var(--border); }
+    .tl-item{ position:relative; padding-bottom:20px; }
+    .tl-item:last-child{ padding-bottom:0; }
+    .tl-dot{ position:absolute; left:-22px; top:2px; width:11px; height:11px; border-radius:50%; background:white; border:2px solid var(--border); }
+    .tl-item.done .tl-dot{ background:var(--fire-orange); border-color:var(--fire-orange); }
+    .tl-item.next .tl-dot{ border-color:var(--fire-orange); border-style:dashed; }
+    .tl-note{ font-size:11px; color:var(--soft-grey); }
+    .tl-label{ font-size:14px; margin-top:2px; }
+    .tl-item.done .tl-label{ color:var(--warm-brown); font-weight:500; }
+    .tl-item:not(.done) .tl-label{ color:var(--soft-grey); }
+    .tl-item.next .tl-label{ color:var(--fire-orange); font-weight:500; }
+    .tl-distance{ font-size:11px; color:var(--fire-orange); font-weight:500; margin-top:2px; }
+
+    .coming-soon-card{
+      background:var(--warm-cream); border:1.5px dashed var(--border); border-radius:14px;
+      padding:16px 18px; font-size:13px; color:var(--soft-grey); line-height:1.6;
+    }
+    .coming-soon-card b{ color:var(--warm-brown); }
+
+    /* ---------- Financial DNA ---------- */
+    .dna-row{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+    .dna-label{ width:100px; flex-shrink:0; font-size:13px; color:var(--soft-grey); }
+    .dna-track{ flex:1; height:7px; border-radius:999px; background:var(--border); overflow:hidden; }
+    .dna-fill{ height:100%; border-radius:999px; background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber)); }
+
+    /* ---------- AI Coach ---------- */
+    .coach-card{ background:white; border:1.5px solid var(--border); border-radius:16px; padding:16px 18px; cursor:pointer; }
+    .coach-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .coach-head-left{ display:flex; align-items:center; gap:10px; }
+    .coach-title{ font-weight:600; font-size:14px; color:var(--warm-brown); }
+    .coach-chevron{ font-size:12px; color:var(--soft-grey); transition:transform 0.2s; }
+    .coach-card[aria-expanded="true"] .coach-chevron{ transform:rotate(180deg); }
+    .coach-summary{ font-size:13.5px; color:var(--soft-grey); margin-top:8px; line-height:1.5; }
+    .coach-detail{ display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:13.5px; color:var(--soft-grey); line-height:1.6; }
+    .coach-card[aria-expanded="true"] .coach-detail{ display:block; }
+    .coach-meta{ font-size:11px; color:var(--soft-grey); margin-top:10px; }
+
+    @media (max-width:600px){ .nav-desktop-extra{ display:none; } }
+  </style>
+</head>
+<body>
+
+<!-- New symbols not yet in /icons.svg — TODO: move these into the shared sprite,
+     same as the other pages' "move into css/main.css once rolled out" TODOs -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <symbol id="icon-flame-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7.5-3 7.5-6.8 0-3-1.8-4.9-3-6.3.2 1.6-.5 2.7-1.3 3.3.3-2.7-1-5.4-3.4-7.2-.4 2.2-1.4 3.6-2.9 5C7.2 11.6 6 12.9 6 15.2 6 19 7.5 22 12 22z"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></symbol>
+    <symbol id="icon-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3.5a2 2 0 010-4h.09A1.65 1.65 0 005 9a1.65 1.65 0 00-.33-1.82l-.06-.06A2 2 0 017.44 4.3l.06.06A1.65 1.65 0 009.5 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019 9a1.65 1.65 0 001.51 1h.09a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></symbol>
+  </defs>
+</svg>
+
+<style>
+  /* Desktop: orange tabs live in the header. Mobile: hamburger only. */
+  .desktop-tabs{ display:flex; gap:20px; align-items:center; }
+  .desktop-tab{
+    color:var(--fire-orange); font-weight:600; font-size:14px; text-decoration:none;
+    font-family:'DM Sans',sans-serif; opacity:0.55; padding-bottom:4px; border-bottom:2px solid transparent;
+    white-space:nowrap;
+  }
+  .desktop-tab.active-tab{ opacity:1; border-bottom-color:var(--fire-orange); }
+  #sectionBurgerBtn, #sectionMenuOverlay, #sectionSlideMenu{ display:none !important; }
+  @media (max-width:768px){
+    .desktop-tabs{ display:none !important; }
+    #sectionBurgerBtn{ display:flex !important; }
+    #sectionMenuOverlay.is-open{ display:block !important; }
+    #sectionSlideMenu.is-open{ display:flex !important; }
+  }
+</style>
+
+<nav>
+  <a href="/index.html" class="nav-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
+  <div class="nav-links">
+    <div class="desktop-tabs" id="desktopTabs">
+      <a href="#" class="desktop-tab active-tab" data-panel="overview" onclick="switchPanel('overview');return false;">Overview</a>
+      <a href="#" class="desktop-tab" data-panel="plan" onclick="switchPanel('plan');return false;">Plan</a>
+      <a href="#" class="desktop-tab" data-panel="tools" onclick="switchPanel('tools');return false;">Tools</a>
+      <a href="learning_lab.html" class="desktop-tab">Learn</a>
+      <a href="account.html" class="desktop-tab">Settings</a>
+    </div>
+    <div id="userStatus" class="nav-desktop-extra" style="font-size:12px;color:var(--soft-grey);"></div>
+    <a href="#" onclick="signOut()" class="nav-link">Sign out</a>
+  </div>
+</nav>
+
+<!-- Mobile-only hamburger + slide menu (hidden entirely on desktop via the media query above) -->
+<div id="sectionBurgerBtn" onclick="toggleSectionMenu()" style="position:fixed;top:16px;right:16px;z-index:100;width:40px;height:40px;background:var(--warm-brown);border-radius:10px;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;box-shadow:0 2px 12px rgba(61,43,31,0.2);">
+  <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
+  <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
+  <div style="width:18px;height:2px;background:white;border-radius:2px;"></div>
+</div>
+<div id="sectionMenuOverlay" onclick="toggleSectionMenu()" style="position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:98;"></div>
+<div id="sectionSlideMenu" style="position:fixed;top:0;right:0;height:100%;width:280px;background:var(--warm-brown);z-index:99;padding:48px 24px 40px;flex-direction:column;gap:8px;box-shadow:-4px 0 40px rgba(0,0,0,0.2);">
+  <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:white;margin-bottom:28px;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>My Journey</div>
+  <a href="#" data-panel="overview" class="section-menu-link" onclick="switchPanel('overview');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Overview</a>
+  <a href="#" data-panel="plan" class="section-menu-link" onclick="switchPanel('plan');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Plan</a>
+  <a href="#" data-panel="tools" class="section-menu-link" onclick="switchPanel('tools');return false;" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Tools</a>
+  <a href="learning_lab.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Learn</a>
+  <a href="account.html" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:white;text-decoration:none;font-size:14px;font-weight:500;">Settings</a>
+  <div style="flex:1"></div>
+  <a onclick="signOut();" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;cursor:pointer;">Sign Out</a>
+</div>
+
+<div class="container" style="max-width:600px;padding-top:80px;padding-left:16px;padding-right:16px;padding-bottom:24px;">
+
+  <div class="dash-hero">
+    <div class="dash-eyebrow"><span style="vertical-align:-2px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></span> My Journey</div>
+    <h1 class="dash-title" id="greetTitle">Good morning.</h1>
+    <p class="dash-sub" id="heroSub">Loading your numbers…</p>
+    <p style="font-style:italic;color:var(--fire-orange);font-size:13px;margin-top:4px;" id="heroEmotional">Every dollar you've saved has already bought back part of your future.</p>
+    <div id="currentPanelLabel" style="margin-top:10px;font-size:12px;font-weight:600;color:var(--fire-orange);text-transform:uppercase;letter-spacing:0.06em;">Viewing: Overview</div>
+  </div>
+
+  <div id="profileLoadError" style="display:none;background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:14px;padding:16px 18px;margin-bottom:20px;text-align:center;">
+    <div style="font-size:13px;color:#E65100;font-weight:500;margin-bottom:6px;">Couldn't load your saved profile.</div>
+    <div id="profileLoadErrorDetail" style="font-size:11px;color:#B34700;font-family:monospace;margin-bottom:10px;word-break:break-word;"></div>
+    <button onclick="window.location.reload()" style="background:var(--fire-orange);color:white;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Try again</button>
+  </div>
+
+  <!-- No profile yet — same pattern as dashboard's dashCtaHero -->
+  <div id="noProfileHero" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:28px 24px;color:white;text-align:center;margin-bottom:28px;">
+    <div style="margin-bottom:10px;"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--fire-amber)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></div>
+    <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;">Your journey starts with your numbers</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:20px;">Run your freedom number first — everything on this page is built from it.</div>
+    <a href="firepath_pro.html" style="display:inline-flex;align-items:center;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 26px;border-radius:50px;font-size:14px;font-weight:500;text-decoration:none;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Run my numbers</a>
+  </div>
+
+  <div id="journeyContent" style="display:none;">
+
+    <div id="overviewHero">
+    <div class="horizon-card fp-reveal">
+      <div class="freedom-hero-top">
+        <div class="freedom-hero-pct" id="progressPct">0%</div>
+        <div class="freedom-hero-label">FREEDOM LEVEL</div>
+        <div class="freedom-hero-bar-track"><div class="freedom-hero-bar-fill" id="heroBarFill"></div></div>
+      </div>
+      <div class="horizon-stats">
+        <div class="h-stat"><div class="label">Current savings</div><div class="value" id="statSavings">—</div></div>
+        <div class="h-stat accent"><div class="label">Freedom number</div><div class="value" id="statFreedom">—</div></div>
+        <div class="h-stat"><div class="label">Savings rate</div><div class="value" id="statRate">—</div></div>
+      </div>
+      <a class="continue-cta" href="firepath_pro.html" id="continueBtn">Continue Journey →</a>
+    </div>
+
+    <div id="deltasWrap"></div>
+    <div id="boughtBackWrap" style="display:none;margin-top:16px;"></div>
+    </div>
+
+
+    <main>
+      <section class="panel active" id="panel-overview">
+        <a href="firepath_pro.html?tab=next" class="dash-card fp-reveal" style="margin-bottom:20px;border-color:var(--fire-orange);background:linear-gradient(135deg,#FFF7F3,#FFFBF7);">
+          <div class="dash-card-icon" style="background:white;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></div>
+          <div class="dash-card-body">
+            <div class="dash-card-title">What's Next</div>
+            <div class="dash-card-desc">Your next step, tailored to exactly where you are right now.</div>
+          </div>
+          <div class="dash-card-arrow">→</div>
+        </a>
+        <div class="section-block">
+          <div class="section-label">Achievements</div>
+          <div class="achv-strip" id="achvStrip"></div>
+          <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;" id="achvNote"></div>
+        </div>
+        <div class="section-block">
+          <div class="section-label">Journey Timeline</div>
+          <div class="timeline" id="timeline"></div>
+        </div>
+        <div class="section-block">
+          <div class="section-label">Financial DNA</div>
+          <div id="dnaType" style="font-family:'Playfair Display',serif;font-weight:700;font-size:19px;color:var(--warm-brown);margin-bottom:12px;"></div>
+          <div id="dnaRows"></div>
+          <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;" id="dnaNote"></div>
+        </div>
+        <div class="section-block">
+          <div class="section-label">AI Coach</div>
+          <div id="coachWrap"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-plan">
+
+        <a href="progress.html" id="commitCtaCard" class="fp-reveal" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:var(--radius-md,16px);box-shadow:var(--elevation-2,none);padding:22px 24px;color:white;margin-bottom:16px;text-decoration:none;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="flex-shrink:0;"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--fire-amber)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></div>
+            <div style="flex:1;">
+              <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:4px;">Your Commitment Tracker</div>
+              <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;">Track the personal commitment you've chosen and see your progress over time.</div>
+            </div>
+            <div style="font-size:14px;color:var(--fire-amber);flex-shrink:0;">→</div>
+          </div>
+        </a>
+
+        <a href="progress.html" id="commitProgressCard" class="fp-reveal" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:var(--radius-md,16px);box-shadow:var(--elevation-2,none);padding:22px 24px;color:white;margin-bottom:16px;text-decoration:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.5);margin-bottom:4px;">Personal Commitment</div>
+              <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--fire-amber);" id="commitCardAmount">—</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;" id="commitCardPct">—</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);">flames earned</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1);border-radius:8px;height:8px;overflow:hidden;margin-bottom:12px;">
+            <div id="commitCardBar" style="background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));height:100%;width:0%;border-radius:8px;"></div>
+          </div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);">Progress check-in →</div>
+        </a>
+
+        <a href="firepath_pro.html?tab=next" class="dash-card fp-reveal" style="margin-bottom:16px;border-color:var(--fire-orange);background:linear-gradient(135deg,#FFF7F3,#FFFBF7);">
+          <div class="dash-card-icon" style="background:white;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></div>
+          <div class="dash-card-body">
+            <div class="dash-card-title">What's Next</div>
+            <div class="dash-card-desc">Your next steps, tailored to exactly where you are on the path right now.</div>
+          </div>
+          <div class="dash-card-arrow">→</div>
+        </a>
+
+        <button type="button" onclick="togglePlanTier()" id="planTierToggle" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;border-top:1px solid var(--border);padding:16px 4px 12px;margin-top:8px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);">Understand & learn</span>
+          <svg id="planTierChevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--fire-orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+
+        <div id="planTierContent" style="display:none;">
+          <div class="section-label" style="margin-top:8px;">Learn more</div>
+          <div class="plan-grid fp-reveal">
+            <a href="financial-learning-path.html" id="learningNextCard" class="dash-card" style="display:none;">
+              <div class="dash-card-icon"><svg class="icon" style="color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-learn"/></svg></div>
+              <div class="dash-card-body">
+                <div class="dash-card-title">Financial Learning Path</div>
+                <div class="dash-card-desc" id="learningNextCardText">See which tax and super concepts are worth understanding</div>
+              </div>
+              <div class="dash-card-arrow">→</div>
+            </a>
+            <a href="learning_lab.html" id="learningLabCard" class="dash-card" style="display:none;">
+              <div class="dash-card-icon"><svg class="icon" style="color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-momentum"/></svg></div>
+              <div class="dash-card-body">
+                <div class="dash-card-title">Learning Lab</div>
+                <div class="dash-card-desc" id="learningLabCardText">Browse FIRE, investing, and super topics in plain English</div>
+              </div>
+              <div class="dash-card-arrow">→</div>
+            </a>
+          </div>
+
+          <div class="section-label" style="margin-top:20px;">Your results, explained</div>
+          <div class="plan-grid fp-reveal fp-reveal-d1">
+            <a href="firepath_pro.html" class="dash-card">
+              <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-insight"/></svg></div>
+              <div class="dash-card-body">
+                <div class="dash-card-title">Results & AI Insight</div>
+                <div class="dash-card-desc">Your freedom number, freedom date, and what your AI insight is telling you right now.</div>
+              </div>
+              <div class="dash-card-arrow">→</div>
+            </a>
+            <a href="firepath_pro.html?tab=super" class="dash-card">
+              <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-super"/></svg></div>
+              <div class="dash-card-body">
+                <div class="dash-card-title">Super</div>
+                <div class="dash-card-desc">Your two-phase timeline — how your super and your savings connect by age 60.</div>
+              </div>
+              <div class="dash-card-arrow">→</div>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-tools">
+        <div style="padding:14px 4px;font-size:12px;color:var(--soft-grey);border-bottom:1px solid var(--border);margin-bottom:16px;">Deeper what-if scenarios and calculators — model a decision before you make it.</div>
+        <div class="section-block">
+          <div class="card-grid fp-reveal">
+            <a href="freedom-gap.html" class="dash-card">
+              <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-date"/></svg></div>
+              <div class="dash-card-body">
+                <div class="dash-card-title">What If...?</div>
+                <div class="dash-card-desc">Calculate your gap, then explore how saving more, working less, or spending differently would change your freedom date.</div>
+              </div>
+              <div class="dash-card-arrow">→</div>
+            </a>
+            <a href="tax_pro.html" class="dash-card">
+              <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-money"/></svg></div>
+              <div class="dash-card-body">
+                <div class="dash-card-title">Tax Tools</div>
+                <div class="dash-card-desc">Your tax picture, salary sacrifice modelling, and offset vs invest — connected to your freedom date.</div>
+              </div>
+              <div class="dash-card-arrow">→</div>
+            </a>
+            <a href="withdrawal.html" class="dash-card" id="withdrawalCardLinkTools">
+              <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-date"/></svg></div>
+              <div class="dash-card-body">
+                <div class="dash-card-title">Withdrawal Modeling</div>
+                <div class="dash-card-desc">Model your income in retirement, see how long your portfolio actually lasts, and get an AI outlook on it.</div>
+              </div>
+              <div class="dash-card-arrow">→</div>
+            </a>
+            <a href="freedom-gap.html" class="dash-card" id="freedomGapCardLinkTools">
+              <div class="dash-card-icon"><svg class="icon"><use href="/icons.svg#icon-money"/></svg></div>
+              <div class="dash-card-body">
+                <div class="dash-card-title">Freedom Gap</div>
+                <div class="dash-card-desc">Using your actual saved numbers — what your portfolio generates, the gap to your spending, and how many hours would close it, including Age Pension.</div>
+              </div>
+              <div class="dash-card-arrow">→</div>
+            </a>
+          </div>
+        </div>
+        <div class="section-block">
+          <div class="section-label">Calculators — "Hear Me Out"</div>
+          <div class="plan-grid fp-reveal fp-reveal-d1">
+            <a href="hearmeout.html?scenario=home" class="dash-card"><div class="dash-card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/><path d="M15 13l3-2 2 2"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Sell & invest</div><div class="dash-card-desc">Sell equity, invest it instead</div></div></a>
+            <a href="hearmeout.html?scenario=loan" class="dash-card"><div class="dash-card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2"/><path d="M2.5 10h19"/><path d="M6 15h4"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Loan payoff</div><div class="dash-card-desc">Pay off debt, then invest</div></div></a>
+            <a href="hearmeout.html?scenario=lump" class="dash-card"><div class="dash-card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6v5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6"/><path d="M5 11v5c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5v-5"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Lump sum</div><div class="dash-card-desc">Invest a windfall</div></div></a>
+            <a href="hearmeout.html?scenario=compound" class="dash-card"><div class="dash-card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-8"/><path d="M12 13c-4.5 0-7-3-7-7 4.5 0 7 3 7 7z"/><path d="M12 13c4.5 0 7-3 7-7-4.5 0-7 3-7 7z"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Compounding</div><div class="dash-card-desc">The cost of waiting</div></div></a>
+            <a href="hearmeout.html?scenario=withdrawal" class="dash-card"><div class="dash-card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c4.5 0 8 3.6 8 8H4c0-4.4 3.5-8 8-8z"/><path d="M12 3v18"/><path d="M9 21c0 1 1.3 1.5 3 1.5s3-.5 3-1.5"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Withdrawal Mode</div><div class="dash-card-desc">Model retirement income</div></div></a>
+            <a href="hearmeout.html?scenario=downsize" class="dash-card"><div class="dash-card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M12 13v9"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Downsize</div><div class="dash-card-desc">Free up home equity</div></div></a>
+            <a href="hearmeout.html?scenario=redundancy" class="dash-card"><div class="dash-card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Redundancy</div><div class="dash-card-desc">Split a payout wisely</div></div></a>
+            <a href="hearmeout.html?scenario=rentvest" class="dash-card"><div class="dash-card-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10l5-4 5 4v8H2z"/><path d="M12 12l5-4 5 4v6h-10"/></svg></div><div class="dash-card-body"><div class="dash-card-title">Rent vs Invest</div><div class="dash-card-desc">Buy a home, or don't</div></div></a>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <p style="text-align:center;font-size:12px;margin-top:24px;margin-bottom:8px;color:var(--soft-grey);">
+    <a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> ·
+    <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> ·
+    <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate</a>
+  </p>
+
+</div>
+
+<script src="js/auth.js"></script>
+<script src="js/financial-engine.js"></script>
+<script src="js/interactions.js"></script>
+<script>
+async function loadLearningPathProgress(token, userId) {
+  const descEl = document.getElementById('learningPathDesc');
+  const nextCard = document.getElementById('learningNextCard');
+  const nextCardText = document.getElementById('learningNextCardText');
+  let completed = 0;
+  let hasStarted = false;
+  try {
+    const res = await fetch(`${WORKER_URL}/db/financial_learning_progress?user_id=eq.${userId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0 && data[0].answers && Object.keys(data[0].answers).length > 0) {
+      hasStarted = true;
+      completed = (data[0].completed_topics || []).length;
+      if (descEl) {
+        descEl.textContent = completed > 0
+          ? `${completed} topic${completed === 1 ? '' : 's'} learned so far — continue where you left off.`
+          : `Your topics are matched — pick up your learning roadmap.`;
+      }
+    }
+  } catch(e) { console.log('Learning path progress load failed', e); }
+  // If no saved answers yet, leave the default "take the quiz" description as-is.
+
+  // "Continue Learning" card — an invitation to learn, not an instruction to act
+  if (nextCard) {
+    if (hasStarted) {
+      nextCardText.textContent = completed > 0
+        ? `Continue your learning path — ${completed} topic${completed === 1 ? '' : 's'} done so far`
+        : `Your topics are matched — start your first lesson`;
+    } else {
+      nextCardText.textContent = `Take the 2-minute quiz to see what's worth learning`;
+    }
+    nextCard.style.display = 'block';
+  }
+
+  // A small, honest achievement for actual learning progress — only appears once earned,
+  // doesn't invent streaks or data we don't track (no login-day or consecutive-month tracking exists yet).
+  if (completed >= 5) {
+    const strip = document.getElementById('achvStrip');
+    if (strip && !strip.querySelector('[data-badge="learning-5"]')) {
+      strip.insertAdjacentHTML('beforeend', `
+        <div class="achv-badge unlocked" data-badge="learning-5">
+          <div class="achv-icon-wrap"><svg><use href="#icon-flame-badge"/></svg></div>
+          <div class="achv-label">Completed 5 lessons</div>
+        </div>`);
+    }
+  }
+}
+
+// Learning Lab is a genuinely separate product from the Financial Learning Path quiz —
+// this reads the real lab_progress table (already built alongside learning_lab.html) rather
+// than inventing new tracking. Shows an honest count, not a percentage against an ambiguous
+// total, since "how many Learning Lab topics exist" varies by which tracks someone's used.
+// Note: this can only show articles READ, not articles UNDERSTOOD — learning_lab.html's
+// "mark as read" is currently a single click, not a comprehension check like the Financial
+// Learning Path has. Showing "understood" here would be showing data that doesn't exist yet.
+function togglePlanTier() {
+  const content = document.getElementById('planTierContent');
+  const chevron = document.getElementById('planTierChevron');
+  const isOpen = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+}
+
+async function loadLearningLabProgress(token, userId) {
+  const labCard = document.getElementById('learningLabCard');
+  const labCardText = document.getElementById('learningLabCardText');
+  if (!labCard) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/db/lab_progress?user_id=eq.${userId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      const readCount = data.filter(r => !r.saved).length;
+      if (readCount > 0) {
+        labCardText.textContent = `${readCount} article${readCount === 1 ? '' : 's'} read so far — browse more topics`;
+      }
+      // If readCount is 0, leave the default "Browse FIRE, investing, and super topics" text as-is.
+    }
+  } catch(e) { console.log('Learning Lab progress load failed', e); }
+  labCard.style.display = 'block';
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+  const token = getToken();
+  const userId = getUserId();
+  if (!token || !userId) { window.location.href = 'auth.html'; return; }
+
+  if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
+
+  const uel = document.getElementById('userStatus');
+
+  const upParams = new URLSearchParams(window.location.search);
+  if (upParams.get('upgraded') === 'true') alert('Welcome to FirePath Pro!');
+
+  // ASSUMPTION: gating this page to Pro same as dashboard.html.
+  // Remove this block if My Journey should be available on the free tier.
+  if (typeof checkProStatus === 'function') { try { await checkProStatus(); } catch(e) {} }
+  if (localStorage.getItem('fp_is_pro') !== 'true') {
+    window.location.href = 'firepath_pro.html?upgrade=true';
+    return;
+  }
+
+  function fmtM(n) {
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
+    return '$' + Math.round(n);
+  }
+
+  function renderCommitmentCard() {
+    let commitment = null;
+    try { commitment = JSON.parse(localStorage.getItem('fp_commitment')); } catch(e) {}
+    if (!commitment || !commitment.amount) {
+      document.getElementById('commitCtaCard').style.display = 'block';
+      return;
+    }
+    const cycleLabel = commitment.cycle === 'weekly' ? 'week' : commitment.cycle === 'fortnightly' ? 'fortnight' : 'month';
+    const totalPossible = commitment.cycle === 'weekly' ? 52 : commitment.cycle === 'fortnightly' ? 26 : 12;
+    const hits = (commitment.hits || []).length;
+    const pct = Math.min(Math.round((hits / totalPossible) * 100), 100);
+    document.getElementById('commitCardAmount').textContent = `Extra $${commitment.amount.toLocaleString()} / ${cycleLabel}`;
+    document.getElementById('commitCardPct').textContent = `${hits}/${totalPossible}`;
+    document.getElementById('commitCardBar').style.width = pct + '%';
+    document.getElementById('commitProgressCard').style.display = 'block';
+  }
+
+  // Persona-aware copy. Confirmed real value: 'beginner'. Other persona strings
+  // (learning / pre-fire / enthusiast, or whatever they actually are) fall through
+  // to 'default' until confirmed — safer than guessing wrong and silently mismatching.
+  const PERSONA_COPY = {
+    beginner: {
+      badgeCoast: 'Halfway cushion',
+      badgeLean:  'Covers the basics',
+      badgeFI:    'Work becomes optional',
+      tlCoast: 'Saved enough that growth alone could carry you one day (rough estimate)',
+      tlLean:  'Close to covering your basic living costs without working (rough estimate)',
+      tlFI:    'Financial independence calculated',
+      note: 'A rough guide based on your savings vs. your freedom number — not an exact calculation yet.'
+    },
+    default: {
+      badgeCoast: 'Coast Achieved',
+      badgeLean:  'Lean FIRE',
+      badgeFI:    'Financial Independence',
+      tlCoast: 'Coast FIRE calculated (rough estimate)',
+      tlLean:  'Lean FIRE calculated (rough estimate)',
+      tlFI:    'Freedom Number Achieved',
+      note: 'Based on current savings vs. your freedom number — a rough guide, not the full Coast/Lean FIRE calc yet.'
+    }
+  };
+
+  // ---------------------------------------------------------------
+  // Financial DNA — v1 scoring model, 4 of 5 dimensions from real data.
+  // "Income growth" is deliberately omitted: it needs income tracked over
+  // time (a snapshot table), which doesn't exist yet — same gap as the
+  // month-over-month deltas above. Thresholds here are a first pass;
+  // revisit weights once real users have run through it.
+  // ---------------------------------------------------------------
+  function scoreSaver(savingsRate) {
+    if (!savingsRate) return 1;
+    return Math.max(1, Math.min(10, Math.round(savingsRate / 5)));
+  }
+  function scoreInvestor(savingsType) {
+    const map = { etfs: 9, shares: 9, super: 6, mixed: 6, cash: 2 };
+    return map[(savingsType || '').toLowerCase()] || 4;
+  }
+  function scoreRisk(debtTotal, mortgageRemaining, grossIncome) {
+    const leverage = debtTotal + mortgageRemaining;
+    if (!grossIncome || grossIncome <= 0) return leverage > 0 ? 6 : 2;
+    const ratio = leverage / grossIncome;
+    return Math.max(1, Math.min(10, Math.round(ratio * 2)));
+  }
+  function scoreSpending(retirementSpendMultiplier) {
+    const m = retirementSpendMultiplier || 0.8;
+    return Math.max(1, Math.min(10, Math.round(m * 10)));
+  }
+
+  // Renders the actual calculation behind "time bought back" when the card is tapped —
+  // real dates, real numbers, real intermediate values. This is the trust mechanism:
+  // instead of asking someone to believe the headline figure, show exactly how it was
+  // derived from their own snapshot history.
+  function wireBoughtBackExpand(oldestSnapshot, oldInputs, currentSavings, currentMonthlySavings, annualSpend, monthsThen, monthsNow, monthsElapsed, boughtBackMonths, years, months, days) {
+    const card = document.getElementById('boughtBackCard');
+    const historyEl = document.getElementById('boughtBackHistory');
+    const hint = card ? card.querySelector('.bought-back-expand-hint') : null;
+    if (!card || !historyEl) return;
+
+    function toggle() {
+      const isOpen = card.getAttribute('aria-expanded') === 'true';
+      card.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      historyEl.style.display = isOpen ? 'none' : 'block';
+      if (hint) hint.textContent = isOpen ? 'See how we calculated this ▾' : 'Hide the calculation ▴';
+      if (!isOpen && !historyEl.dataset.rendered) {
+        const oldDate = new Date(oldestSnapshot.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+        historyEl.innerHTML = `
+          <div class="bb-history-row"><span>Your first snapshot (${oldDate})</span><span>${fmtM(oldInputs.savings)} saved, ${fmtM(oldInputs.monthlySavings)}/mo</span></div>
+          <div class="bb-history-row"><span>Projected months to freedom then</span><span>${monthsThen}</span></div>
+          <div class="bb-history-row"><span>Today</span><span>${fmtM(currentSavings)} saved, ${fmtM(currentMonthlySavings)}/mo</span></div>
+          <div class="bb-history-row"><span>Projected months to freedom now</span><span>${monthsNow}</span></div>
+          <div class="bb-history-row"><span>Time elapsed since first snapshot</span><span>${monthsElapsed} months</span></div>
+          <div class="bb-history-row total"><span>Freedom Unlocked</span><span>${years > 0 ? years + 'y ' : ''}${months}m ${days}d</span></div>
+          <div class="bb-history-note">Calculated as: (months-to-target then − months elapsed) − months-to-target now. Same 4% withdrawal rule and 7% growth assumption used throughout FirePath, applied consistently to both points in time.</div>`;
+        historyEl.dataset.rendered = 'true';
+      }
+    }
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  }
+
+  function renderFinancialDNA(p) {
+    const saverScore = scoreSaver(p.savings_rate);
+    const investorScore = scoreInvestor(p.savings_type);
+    const rows = [
+      { label: 'Saver', score: saverScore },
+      { label: 'Investor', score: investorScore },
+      { label: 'Risk taken', score: scoreRisk(p.debt_total || 0, p.mortgage_remaining || 0, p.gross_income || 0) },
+      { label: 'Spending', score: scoreSpending(p.retirement_spend) }
+    ];
+    document.getElementById('dnaRows').innerHTML = rows.map(r => `
+      <div class="dna-row">
+        <div class="dna-label">${r.label}</div>
+        <div class="dna-track"><div class="dna-fill" style="width:${r.score*10}%"></div></div>
+      </div>`).join('');
+
+    // Personality label — deliberately driven only by Saver and Investor. Risk taken
+    // and Spending are excluded on purpose: a high Risk score reflects more debt
+    // leverage, not a trait worth turning into a celebrated headline, and Spending
+    // reflects a personal preference (planned retirement lifestyle), not a skill.
+    let dnaType = 'The Steady Starter';
+    if (saverScore >= 7 && investorScore >= 7) dnaType = 'The Wealth Architect';
+    else if (saverScore >= 7) dnaType = 'The Quiet Builder';
+    else if (investorScore >= 7) dnaType = 'The Growth Seeker';
+    const dnaTypeEl = document.getElementById('dnaType');
+    if (dnaTypeEl) dnaTypeEl.textContent = dnaType;
+
+    document.getElementById('dnaNote').textContent = "A first-pass score from your saved numbers — not a full financial personality model yet, and doesn't include income growth (needs history we don't track yet).";
+  }
+
+  // ---------------------------------------------------------------
+  // AI Coach — no new AI call needed. firepath_pro.html already saves
+  // the generated insight to fp_profiles.ai_insight_text every time
+  // someone runs their numbers; this just displays that same text.
+  // ---------------------------------------------------------------
+  function renderAICoach(p) {
+    const wrap = document.getElementById('coachWrap');
+    if (!p.ai_insight_text) {
+      wrap.innerHTML = `<div class="coming-soon-card">Run your numbers on the Results tab first — your AI Coach insight will show up here once it's been generated.</div>`;
+      return;
+    }
+    const shortText = p.ai_insight_text.length > 140 ? p.ai_insight_text.slice(0, 140).trim() + '…' : p.ai_insight_text;
+    const genDate = p.ai_insight_generated_at ? new Date(p.ai_insight_generated_at).toLocaleDateString('en-AU', { day:'numeric', month:'short' }) : null;
+    wrap.innerHTML = `
+      <div class="coach-card" id="coachCard" role="button" tabindex="0" aria-expanded="false">
+        <div class="coach-head">
+          <div class="coach-head-left"><span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></span><span class="coach-title">Today's Insight</span></div>
+          <span class="coach-chevron">▾</span>
+        </div>
+        <div class="coach-summary">${shortText}</div>
+        <div class="coach-detail">${p.ai_insight_text}</div>
+        ${genDate ? `<div class="coach-meta">Generated ${genDate} — same insight as your Results tab</div>` : ''}
+      </div>`;
+    const card = document.getElementById('coachCard');
+    function toggleCoach() { card.setAttribute('aria-expanded', card.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'); }
+    card.addEventListener('click', toggleCoach);
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCoach(); } });
+  }
+
+  function renderAchievementsAndTimeline(savings, freedomNumber, persona){
+    const copy = PERSONA_COPY[persona] || PERSONA_COPY.default;
+    const ratio = freedomNumber > 0 ? savings / freedomNumber : 0;
+    // v1 heuristics only — real Coast/Lean/Fat FIRE thresholds need proper
+    // definitions (deferred step). Flags true/false per badge.
+    const badges = [
+      { label: 'First $10k',    unlocked: savings >= 10000, target: 10000 },
+      { label: 'First Six Figures',   unlocked: savings >= 100000, target: 100000 },
+      { label: 'Quarter Free', unlocked: ratio >= 0.25, target: freedomNumber * 0.25 },
+      { label: copy.badgeCoast, unlocked: ratio >= 0.4, target: freedomNumber * 0.4 },
+      { label: copy.badgeLean,  unlocked: ratio >= 0.7, target: freedomNumber * 0.7 },
+      { label: copy.badgeFI,    unlocked: ratio >= 1.0, target: freedomNumber }
+    ];
+    const nextBadgeIdx = badges.findIndex(b => !b.unlocked);
+    document.getElementById('achvNote').textContent = copy.note;
+    document.getElementById('achvStrip').innerHTML = badges.map((b, i) => {
+      const isNext = i === nextBadgeIdx;
+      const remaining = isNext ? Math.max(0, b.target - savings) : 0;
+      return `
+      <div class="achv-badge ${b.unlocked?'unlocked':''} ${isNext?'next':''}">
+        <div class="achv-icon-wrap"><svg><use href="#${b.unlocked?'icon-flame-badge':'icon-lock'}"/></svg></div>
+        <div class="achv-label">${b.label}</div>
+        ${isNext && remaining > 0 ? `<div class="achv-distance">${fmtM(remaining)} away</div>` : ''}
+      </div>`;
+    }).join('');
+
+    const timeline = [
+      { label: 'Started FirePath', done: true, target: 0 },
+      { label: 'Saved first $100k', done: savings >= 100000, target: 100000 },
+      { label: copy.tlCoast, done: ratio >= 0.4, target: freedomNumber * 0.4 },
+      { label: copy.tlLean, done: ratio >= 0.7, target: freedomNumber * 0.7 },
+      { label: copy.tlFI, done: ratio >= 1.0, target: freedomNumber },
+      { label: 'Reached Fat FIRE', done: ratio >= 1.5, target: freedomNumber * 1.5 }
+    ];
+    const nextTlIdx = timeline.findIndex(t => !t.done);
+    document.getElementById('timeline').innerHTML = timeline.map((t, i) => {
+      const isNext = i === nextTlIdx;
+      const remaining = isNext ? Math.max(0, t.target - savings) : 0;
+      return `
+      <div class="tl-item ${t.done?'done':''} ${isNext?'next':''}">
+        <div class="tl-dot"></div>
+        <div class="tl-label">${t.label}</div>
+        ${isNext && remaining > 0 ? `<div class="tl-distance">${fmtM(remaining)} to go</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  try {
+    const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_user_id'); localStorage.removeItem('fp_email'); localStorage.removeItem('fp_persona');
+      sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
+      window.location.href = 'auth.html';
+      return;
+    }
+    if (!res.ok) {
+      document.getElementById('profileLoadErrorDetail').textContent = `HTTP ${res.status} ${res.statusText || ''}`.trim();
+      document.getElementById('profileLoadError').style.display = 'block';
+      return;
+    }
+
+    const data = await res.json();
+    const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
+
+    // A brand new Pro subscriber (or anyone who hasn't run their numbers yet) has no
+    // freedom_number to show progress against — sending them here would mean a hero
+    // card showing 0%/$0, achievements that can never unlock, an empty timeline.
+    // Send them to onboarding instead; they'll land here naturally next time, once
+    // their profile actually has something to show.
+    //
+    // Checks the explicit onboarding_completed flag first (the reliable signal —
+    // doesn't misfire if freedom_number legitimately comes out as 0). Falls back to
+    // freedom_number if the flag is missing/undefined, so this doesn't break for any
+    // profile saved before the flag column existed and before the backfill ran.
+    const hasCompletedOnboarding = p && (p.onboarding_completed === true || (p.onboarding_completed == null && p.freedom_number));
+    if (!hasCompletedOnboarding) {
+      window.location.href = 'firepath_pro.html';
+      return;
+    }
+
+    const hour = new Date().getHours();
+    const greetWord = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    const displayName = localStorage.getItem('fp_email') ? localStorage.getItem('fp_email').split('@')[0] : '';
+    document.getElementById('greetTitle').textContent = `${greetWord}${displayName ? ', ' + displayName : ''}.`;
+
+    const savings = p.current_savings || 0;
+    const freedomNumber = p.freedom_number;
+    const pct = freedomNumber > 0 ? Math.min(100, Math.round((savings / freedomNumber) * 100)) : 0;
+
+    document.getElementById('heroSub').textContent = `You've saved ${fmtM(savings)} toward your ${fmtM(freedomNumber)} freedom number — ${pct}% of the way there.`;
+    document.getElementById('statSavings').textContent = fmtM(savings);
+    document.getElementById('statFreedom').textContent = fmtM(freedomNumber);
+    document.getElementById('statRate').textContent = p.savings_rate ? p.savings_rate + '%' : '—';
+    document.getElementById('progressPct').textContent = pct + '%';
+    document.getElementById('heroBarFill').style.width = pct + '%';
+
+    // Deltas — compares only against Journey's OWN prior snapshots (source=journey), not
+    // Freedom Gap's. Journey's pct is gross savings/freedomNumber; Freedom Gap's freedomPct
+    // is net of debt — comparing across the two would show a false jump that's really just
+    // a methodology difference, not real progress. Same table, kept as separate threads
+    // per source until/unless Journey's own percentage becomes debt-aware too.
+    let journeyPreviousSnapshot = null;
+    try {
+      const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const snapData = await snapRes.json();
+      if (Array.isArray(snapData) && snapData.length > 0) journeyPreviousSnapshot = snapData[0];
+    } catch(e) { console.log('Journey snapshot load failed', e); }
+
+    if (journeyPreviousSnapshot && journeyPreviousSnapshot.picture) {
+      const timeLabel = window.FirePathEngine.formatTimeSince(journeyPreviousSnapshot.created_at);
+      const fromPct = journeyPreviousSnapshot.picture.freedomPct;
+      const deltaPct = pct - fromPct;
+      const deltaColor = deltaPct > 0 ? '#2E7D32' : deltaPct < 0 ? '#E65100' : 'var(--soft-grey)';
+      const deltaText = deltaPct > 0 ? `▲ +${deltaPct}%` : deltaPct < 0 ? `▼ ${deltaPct}%` : 'No change';
+      document.getElementById('deltasWrap').innerHTML = `
+        <div class="deltas-empty" style="text-align:left;">
+          <div style="font-size:11px;color:var(--soft-grey);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">${timeLabel}</div>
+          <div style="display:flex;align-items:baseline;gap:10px;">
+            <span style="font-size:13px;color:var(--soft-grey);">Freedom Level</span>
+            <span style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;">${fromPct}%</span>
+            <span style="color:var(--soft-grey);">→</span>
+            <span style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--fire-orange);">${pct}%</span>
+          </div>
+          <div style="font-size:13px;font-weight:600;color:${deltaColor};margin-top:4px;">${deltaText}</div>
+        </div>`;
+    } else {
+      document.getElementById('deltasWrap').innerHTML = `
+        <div class="deltas-empty">We'll start showing your progress here once we have an earlier snapshot to compare against — check back after your next update.</div>`;
+    }
+
+    // "Time bought back since joining" — compares the FIRST-ever journey snapshot to
+    // today, not just the most recent one. Only computes a real years/months/days figure
+    // if the oldest snapshot has monthlySavings stored (added in this update) — older
+    // snapshots recorded before this only have {savings, freedomNumber}, and there's no
+    // honest way to back-compute a savings rate for them, so those users simply won't see
+    // this card until enough new snapshots accumulate. No estimating around missing data.
+    try {
+      const oldestRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const oldestData = await oldestRes.json();
+      const oldestSnapshot = Array.isArray(oldestData) && oldestData.length > 0 ? oldestData[0] : null;
+      const boughtBackEl = document.getElementById('boughtBackWrap');
+
+      if (boughtBackEl && oldestSnapshot && oldestSnapshot.inputs && oldestSnapshot.inputs.monthlySavings != null
+          && oldestSnapshot.id !== (journeyPreviousSnapshot && journeyPreviousSnapshot.id)) {
+        const oldInputs = oldestSnapshot.inputs;
+        const currentMonthlySavings = p.savings_monthly || 0;
+        const annualSpend = freedomNumber > 0 ? freedomNumber / 25 : 0; // standard 4% rule, same assumption used throughout FirePath
+
+        if (annualSpend > 0 && window.FirePathEngine) {
+          // "Then": how many months to target, starting from the old snapshot's own numbers
+          const monthsThen = window.FirePathEngine.solveMonthsToTarget(oldInputs.savings, oldInputs.monthlySavings, annualSpend);
+          // "Now": how many months to target, starting from today's actual position
+          const monthsNow = window.FirePathEngine.solveMonthsToTarget(savings, currentMonthlySavings, annualSpend);
+          // Time elapsed since the old snapshot was taken, so "months bought back" reflects
+          // real progress made, not just a raw projection difference
+          const monthsElapsed = Math.round((Date.now() - new Date(oldestSnapshot.created_at).getTime()) / (1000*60*60*24*30.44));
+          const boughtBackMonths = Math.max(0, (monthsThen - monthsElapsed) - monthsNow);
+
+          if (boughtBackMonths > 0) {
+            const years = Math.floor(boughtBackMonths / 12);
+            const months = Math.floor(boughtBackMonths % 12);
+            const days = Math.round((boughtBackMonths % 1) * 30.44);
+            boughtBackEl.style.display = 'block';
+            boughtBackEl.innerHTML = `
+              <div class="bought-back-card fp-reveal" id="boughtBackCard" role="button" tabindex="0" aria-expanded="false" style="cursor:pointer;">
+                <div class="bought-back-label">Freedom Unlocked</div>
+                <div class="bought-back-figures">
+                  ${years > 0 ? `<div class="bb-figure"><span class="bb-num">${years}</span><span class="bb-unit">${years === 1 ? 'year' : 'years'}</span></div>` : ''}
+                  <div class="bb-figure"><span class="bb-num">${months}</span><span class="bb-unit">${months === 1 ? 'month' : 'months'}</span></div>
+                  <div class="bb-figure"><span class="bb-num">${days}</span><span class="bb-unit">${days === 1 ? 'day' : 'days'}</span></div>
+                </div>
+                <div class="bought-back-caption">Since your first snapshot</div>
+                <div class="bought-back-expand-hint">See how we calculated this ▾</div>
+                <div id="boughtBackHistory" style="display:none;"></div>
+              </div>`;
+            wireBoughtBackExpand(oldestSnapshot, oldInputs, savings, currentMonthlySavings, annualSpend, monthsThen, monthsNow, monthsElapsed, boughtBackMonths, years, months, days);
+          }
+        }
+      }
+    } catch(e) { console.log('Time bought back calculation failed', e); }
+
+    // Throttled to once per day, same pattern as Freedom Gap — the comparison above used
+    // whatever the previous snapshot already was; this only decides whether to write a new one.
+    try {
+      const shouldSave = !journeyPreviousSnapshot || (Date.now() - new Date(journeyPreviousSnapshot.created_at).getTime()) / 3600000 >= 24;
+      if (shouldSave) {
+        await fetch(`${WORKER_URL}/db/financial_snapshots`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber, monthlySavings: p.savings_monthly || 0 }, picture: { freedomPct: pct } })
+        });
+      }
+    } catch(e) { console.log('Journey snapshot save failed', e); }
+
+    renderAchievementsAndTimeline(savings, freedomNumber, p.persona);
+    renderFinancialDNA(p);
+    renderAICoach(p);
+    renderCommitmentCard();
+    loadLearningPathProgress(token, userId);
+    loadLearningLabProgress(token, userId);
+
+    // Hide the Super card only when there's genuinely nothing to show — not a guess about
+    // whether super is "relevant" to this person. Everyone's income is presumably taxed and
+    // most have super; this only hides the card when the balance field is truly empty, which
+    // usually just means they haven't entered it yet rather than that it doesn't apply to them.
+    const superCardLink = document.querySelector('a[href="firepath_pro.html?tab=super"]');
+    if (superCardLink && !p.super_balance) {
+      superCardLink.style.display = 'none';
+    }
+
+    if (savings) {
+      const withdrawalLink = document.getElementById('withdrawalCardLinkTools');
+      if (withdrawalLink) withdrawalLink.href = `withdrawal.html?portfolio=${Math.round(savings)}`;
+    }
+
+    document.getElementById('journeyContent').style.display = 'block';
+
+  } catch(e) {
+    console.log('Journey profile load failed', e);
+    document.getElementById('profileLoadErrorDetail').textContent = (e && e.message) ? e.message : String(e);
+    document.getElementById('profileLoadError').style.display = 'block';
+  }
+});
+
+function toggleSectionMenu() {
+  document.getElementById('sectionSlideMenu').classList.toggle('is-open');
+  document.getElementById('sectionMenuOverlay').classList.toggle('is-open');
+}
+
+const PANEL_LABELS = {
+  overview: 'Overview',
+  plan: 'Plan — Commitment, What\'s Next, Learning, Results, Super',
+  tools: 'Tools — Tax Tools, Withdrawal, Freedom Gap, Calculators'
+};
+
+function switchPanel(panelName) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + panelName).classList.add('active');
+  document.getElementById('overviewHero').style.display = panelName === 'overview' ? 'block' : 'none';
+  document.querySelectorAll('.section-menu-link').forEach(l => {
+    l.style.background = l.dataset.panel === panelName ? 'rgba(255,255,255,0.1)' : 'transparent';
+  });
+  document.querySelectorAll('.desktop-tab').forEach(t => {
+    t.classList.toggle('active-tab', t.dataset.panel === panelName);
+  });
+  const label = document.getElementById('currentPanelLabel');
+  if (label) label.textContent = 'Viewing: ' + (PANEL_LABELS[panelName] || panelName);
+  // Only relevant on mobile — closes the slide menu if it's open. Harmless no-op on desktop.
+  document.getElementById('sectionSlideMenu').classList.remove('is-open');
+  document.getElementById('sectionMenuOverlay').classList.remove('is-open');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+<script src="js/quick-feedback-widget.js"></script>
+</body>
+</html>
