@@ -43,6 +43,8 @@
   @keyframes fadeUp { from { opacity:0;transform:translateY(16px); } to { opacity:1;transform:translateY(0); } }
   input[type="email"] { width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--warm-brown);background:white;outline:none;box-sizing:border-box;transition:border-color 0.2s; }
   input[type="email"]:focus { border-color:var(--fire-orange); }
+  .submit-error { display:none;background:#FFF3F0;border:1.5px solid #F4622A;border-radius:12px;padding:14px 16px;font-size:13px;color:var(--warm-brown);margin-top:12px;text-align:center;line-height:1.5; }
+  .submit-error.visible { display:block; }
   </style>
 </head>
 <body>
@@ -122,6 +124,7 @@
     </div>
 
     <button class="cta-btn" id="submitBtn" onclick="submitFeedback()">Send feedback 🔥</button>
+    <div class="submit-error" id="submitError">Sorry, that didn't send — mind trying again in a moment?</div>
 
     <p class="disclaimer">Everything you share stays between us and goes straight into making FirePath better.</p>
   </div>
@@ -160,6 +163,8 @@
 
   async function submitFeedback() {
     const btn = document.getElementById('submitBtn');
+    const errorEl = document.getElementById('submitError');
+    errorEl.classList.remove('visible');
     btn.textContent = 'Sending...';
     btn.disabled = true;
 
@@ -175,31 +180,48 @@
       submitted_at: new Date().toISOString(),
     };
 
-    try {
-      // Save to Supabase if logged in
-      const token = typeof getToken === 'function' ? getToken() : null;
-      const userId = typeof getUserId === 'function' ? getUserId() : null;
+    // Only attach user_id when we actually have a logged-in user — but
+    // ALWAYS attempt to send the feedback either way. Previously this whole
+    // request was skipped entirely for anyone not logged in, which silently
+    // dropped feedback from anyone just using the free calculator without
+    // an account — likely a real chunk of actual feedback volume.
+    const token = typeof getToken === 'function' ? getToken() : null;
+    const userId = typeof getUserId === 'function' ? getUserId() : null;
+    if (userId) payload.user_id = userId;
 
-      if (token && userId) {
-        await fetch(`${WORKER_URL}/db/feedback`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'Prefer': 'return=minimal',
-          },
-          body: JSON.stringify({ ...payload, user_id: userId }),
-        });
+    let saved = false;
+    try {
+      const res = await fetch(`${WORKER_URL}/db/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify(payload),
+      });
+      saved = res.ok;
+      if (!saved) {
+        const errText = await res.text().catch(() => '');
+        console.log('Feedback save failed:', res.status, errText);
       }
     } catch (e) {
       console.log('Feedback save error:', e);
-      // Still show success — don't block on DB errors
     }
 
-    // Show success state regardless
-    document.getElementById('formArea').style.display = 'none';
-    document.getElementById('successCard').classList.add('visible');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (saved) {
+      // Only show success once the save has genuinely been confirmed —
+      // previously this ran unconditionally even after a failed save,
+      // meaning feedback could be silently lost while the person was told
+      // "thank you" regardless.
+      document.getElementById('formArea').style.display = 'none';
+      document.getElementById('successCard').classList.add('visible');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      btn.textContent = 'Send feedback 🔥';
+      btn.disabled = false;
+      errorEl.classList.add('visible');
+    }
   }
 </script>
 </body>
