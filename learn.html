@@ -110,13 +110,25 @@
     display: inline-block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
     color: var(--fire-amber); background: rgba(249,168,37,0.14); padding: 4px 9px; border-radius: 20px; margin-bottom: 10px;
   }
+  /* Plays through once per hover-enter, not a loop — no infinite iteration-count, so
+     it settles and stays settled for the rest of the hover rather than pulsing
+     repeatedly while the pointer sits still. */
+  @keyframes rec-badge-pulse {
+    0% { transform: scale(1); background: rgba(249,168,37,0.14); }
+    40% { transform: scale(1.08); background: rgba(249,168,37,0.3); }
+    100% { transform: scale(1); background: rgba(249,168,37,0.14); }
+  }
+  .rec-primary:hover .rec-primary-tag { animation: rec-badge-pulse 600ms var(--ease-standard); }
   .rec-primary-body { flex: 1; min-width: 0; }
   .rec-primary-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: white; line-height: 1.3; margin-bottom: 6px; }
-  .rec-primary-time { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .rec-primary-time { font-size: 12px; color: rgba(255,255,255,0.55); transition: color var(--dur-responsive) var(--ease-standard); }
+  .rec-primary:hover .rec-primary-time { color: rgba(255,255,255,0.85); }
   .rec-primary-arrow {
     width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.14); color: white;
     display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+    transition: transform var(--dur-responsive) var(--ease-standard);
   }
+  .rec-primary:hover .rec-primary-arrow { transform: translateX(5px); }
   .rec-secondary-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 32px; scrollbar-width: thin; }
   .rec-card {
     flex: 0 0 168px; height: 152px; border-radius: 14px; padding: 14px; display: flex; flex-direction: column;
