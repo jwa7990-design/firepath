@@ -212,7 +212,7 @@
     <div class="hero-bar-track"><div class="hero-bar-fill" id="heroBarFill"><div class="hero-bar-dot" id="heroBarDot"></div></div></div>
   </div>
 
-  <div class="fu-section" id="fuSection">
+  <div class="fu-section" id="fuSection" style="display:none;">
     <div class="fu-card" id="fuCard" role="button" tabindex="0" aria-expanded="false">
       <div class="fu-label">Freedom Unlocked</div>
       <div class="fu-figures" id="fuFigures">
@@ -526,31 +526,55 @@
       const monthsToFreedom = (annualSpend > 0 && window.FirePathEngine) ? window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings, annualSpend) : null;
       const yearsToFreedom = monthsToFreedom != null ? Math.round(monthsToFreedom / 12 * 10) / 10 : null;
 
+      // Render the primary hero stat immediately, with no dependency on the optional
+      // snapshot-history lookups below. Those only ever ADD a delta badge or the
+      // Freedom Unlocked card on top of this — they must never be able to blank out
+      // the core percentage/years-to-go numbers if they fail. (This used to be nested
+      // inside the delta try/catch below, so any failure there — e.g. an older
+      // snapshot row saved before the `picture` field existed — silently skipped this
+      // call entirely and left the hero stuck on its raw "0%" / "—" HTML defaults.)
+      animateHero(pct, yearsToFreedom, null, null);
+
       // Delta vs the previous Journey snapshot — same source-scoping principle as
       // journey.html: only compares against Journey's own prior snapshots, never
       // Freedom Gap's, since the two use different percentage methodologies.
-      let deltaText = null, daysCloserText = null;
+      // Isolated in its own try/catch so a failure here (bad/old snapshot shape, a
+      // non-2xx response, a network hiccup) only costs the delta badge above, not
+      // the hero stat, which has already rendered by this point.
+      let prevSnapshot = null;
       try {
         const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
-        const snapData = await snapRes.json();
-        const prevSnapshot = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
-        if (prevSnapshot && prevSnapshot.picture) {
-          const deltaPct = pct - prevSnapshot.picture.freedomPct;
-          deltaText = deltaPct > 0 ? `▲ ${deltaPct}% this month` : deltaPct < 0 ? `▼ ${Math.abs(deltaPct)}% this month` : null;
-          if (prevSnapshot.inputs && prevSnapshot.inputs.monthlySavings != null && annualSpend > 0 && window.FirePathEngine) {
-            const prevMonths = window.FirePathEngine.solveMonthsToTarget(prevSnapshot.inputs.savings, prevSnapshot.inputs.monthlySavings, annualSpend);
-            const nowMonths = window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
-            if (prevMonths != null && nowMonths != null) {
-              const daysCloser = Math.round((prevMonths - nowMonths) * 30.44);
-              if (daysCloser > 0) daysCloserText = `+${daysCloser} days closer since last month`;
+        if (snapRes.ok) {
+          const snapData = await snapRes.json();
+          prevSnapshot = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
+          if (prevSnapshot && prevSnapshot.picture && typeof prevSnapshot.picture.freedomPct === 'number') {
+            const deltaPct = pct - prevSnapshot.picture.freedomPct;
+            const deltaText = deltaPct > 0 ? `▲ ${deltaPct}% this month` : deltaPct < 0 ? `▼ ${Math.abs(deltaPct)}% this month` : null;
+            let daysCloserText = null;
+            if (prevSnapshot.inputs && prevSnapshot.inputs.monthlySavings != null && annualSpend > 0 && window.FirePathEngine) {
+              const prevMonths = window.FirePathEngine.solveMonthsToTarget(prevSnapshot.inputs.savings, prevSnapshot.inputs.monthlySavings, annualSpend);
+              const nowMonths = window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
+              if (prevMonths != null && nowMonths != null) {
+                const daysCloser = Math.round((prevMonths - nowMonths) * 30.44);
+                if (daysCloser > 0) daysCloserText = `+${daysCloser} days closer since last month`;
+              }
             }
+            // Fill in just the delta badges — the hero percentage/years/bar already
+            // rendered above via animateHero() and shouldn't be re-animated here.
+            const deltaEl = document.getElementById('heroDelta');
+            const daysDeltaEl = document.getElementById('heroDaysDelta');
+            if (deltaText) { deltaEl.textContent = deltaText; deltaEl.style.display = ''; deltaEl.classList.add('shown'); }
+            if (daysCloserText) { daysDeltaEl.textContent = daysCloserText; daysDeltaEl.style.display = ''; daysDeltaEl.classList.add('shown'); }
           }
         }
-        animateHero(pct, yearsToFreedom, deltaText, daysCloserText);
+      } catch(e) { console.log('Delta calculation failed', e); }
 
-        // Freedom Unlocked — compares the FIRST-ever journey snapshot to today.
-        try {
-          const oldestRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+      // Freedom Unlocked — compares the FIRST-ever journey snapshot to today. Also
+      // isolated: a failure here just leaves the card hidden (its default state,
+      // set in the HTML above), never blocks the hero stat or the delta badge.
+      try {
+        const oldestRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (oldestRes.ok) {
           const oldestData = await oldestRes.json();
           const oldestSnapshot = Array.isArray(oldestData) && oldestData.length > 0 ? oldestData[0] : null;
           if (oldestSnapshot && oldestSnapshot.inputs && oldestSnapshot.inputs.monthlySavings != null
@@ -580,8 +604,10 @@
           } else {
             document.getElementById('fuSection').style.display = 'none';
           }
-        } catch(e) { console.log('Freedom Unlocked calculation failed', e); }
-      } catch(e) { console.log('Delta calculation failed', e); }
+        } else {
+          document.getElementById('fuSection').style.display = 'none';
+        }
+      } catch(e) { console.log('Freedom Unlocked calculation failed', e); document.getElementById('fuSection').style.display = 'none'; }
 
       renderOpportunityCard(window.FirePathEngine.recommendNextStep(
         p.savings_type || 'cash', p.persona, p.savings_rate || 0, p.super_balance || 0, p.debt_total || 0, p.age, p.has_emergency_fund
