@@ -57,16 +57,22 @@
   .continue-hero {
     background: white; border: 1px solid var(--border); border-radius: 20px; padding: 28px;
     margin-bottom: 28px;
-    opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease;
+    opacity: 0; transform: translateY(14px);
+    transition: opacity 0.6s ease, transform 0.6s ease, background var(--dur-responsive) var(--ease-standard);
   }
   .continue-hero.in-view { opacity: 1; transform: translateY(0); }
+  /* Hover: the whole card warms a touch (not a hard highlight) — a faint orange tint
+     rather than the page's own cream, so the card still reads as raised above it. */
+  .continue-hero:hover { background: rgba(244,98,42,0.035); }
   @media (prefers-reduced-motion: reduce) { .continue-hero { opacity: 1; transform: none; transition: none; } }
   .continue-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
   .continue-lesson-title {
     display: block; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 23px; color: var(--warm-brown);
     text-decoration: none; line-height: 1.3; margin-bottom: 16px; max-width: 46ch;
+    transition: color var(--dur-responsive) var(--ease-standard), transform var(--dur-responsive) var(--ease-standard);
   }
   .continue-lesson-title:hover { color: var(--fire-orange); }
+  .continue-hero:hover .continue-lesson-title { transform: translateX(1px); }
   .continue-meta-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .continue-time { font-size: 12.5px; color: var(--soft-grey); display: flex; align-items: center; gap: 5px; }
   .continue-btn {
@@ -74,6 +80,8 @@
     color: white; border-radius: 50px; padding: 11px 22px; font-size: 13.5px; font-weight: 500; text-decoration: none;
     flex-shrink: 0;
   }
+  .continue-btn-arrow { display: inline-block; transition: transform var(--dur-responsive) var(--ease-standard); }
+  .continue-hero:hover .continue-btn-arrow { transform: translateX(5px); }
   /* Secondary — the ring stays (small, quiet) but the "0%" is its own elegant
      stat rather than tucked inside a tiny LMS-style widget. */
   .progress-strip { display: flex; align-items: center; gap: 14px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
@@ -625,7 +633,9 @@
       const pct = TOTAL_LESSONS > 0 ? Math.round((completedCount / TOTAL_LESSONS) * 100) : 0;
       const circumference = 264; // 2 * PI * 42, matches the SVG r=42 above
       const ringFill = document.getElementById('progressRingFill');
-      ringFill.setAttribute('stroke-dashoffset', String(circumference - (circumference * pct / 100)));
+      const trueOffset = circumference - (circumference * pct / 100);
+      ringFill.setAttribute('stroke-dashoffset', String(trueOffset));
+      ringFill.dataset.trueOffset = String(trueOffset);
       document.getElementById('progressStripPct').textContent = pct + '%';
       document.getElementById('progressHeroCount').textContent = `${completedCount} / ${TOTAL_LESSONS} lessons`;
       document.getElementById('continueHero').classList.add('in-view');
@@ -641,7 +651,7 @@
         titleEl.textContent = nextLesson.title;
         titleEl.href = url;
         timeEl.textContent = `${EST_MINUTES} min`;
-        btnEl.textContent = 'Continue →';
+        btnEl.innerHTML = 'Continue <span class="continue-btn-arrow">→</span>';
         btnEl.href = url;
         taglineEl.textContent = completedCount === 0
           ? 'Your journey starts here.'
@@ -651,7 +661,7 @@
         titleEl.textContent = 'You\'ve finished every lesson in your path';
         titleEl.href = 'learning_lab.html';
         timeEl.textContent = '';
-        btnEl.textContent = 'Explore the full library →';
+        btnEl.innerHTML = 'Explore the full library <span class="continue-btn-arrow">→</span>';
         btnEl.href = 'learning_lab.html';
         taglineEl.textContent = 'You\'ve completed the whole path — nice work.';
       }
@@ -874,6 +884,27 @@
     }
 
     refreshProgressUI();
+
+    // ── Continue card hover: a quiet "tease" of forward progress, not a real state
+    // change — the ring nudges a few percent ahead on hover and settles back to the
+    // true value on mouse-leave. Bound once here (continueHero itself is never
+    // re-created by refreshProgressUI, only its children's text/attrs change), and
+    // reads the live "true" offset off the ring's dataset each time so it stays
+    // correct as progress changes across renders. ──
+    if (!prefersReducedMotion) {
+      const continueHeroEl = document.getElementById('continueHero');
+      const ringFillEl = document.getElementById('progressRingFill');
+      continueHeroEl.addEventListener('mouseenter', () => {
+        const trueOffset = parseFloat(ringFillEl.dataset.trueOffset || '264');
+        const nudge = Math.max(0, trueOffset - 264 * 0.035);
+        ringFillEl.style.transition = 'stroke-dashoffset var(--dur-responsive) var(--ease-standard)';
+        ringFillEl.setAttribute('stroke-dashoffset', String(nudge));
+      });
+      continueHeroEl.addEventListener('mouseleave', () => {
+        const trueOffset = parseFloat(ringFillEl.dataset.trueOffset || '264');
+        ringFillEl.setAttribute('stroke-dashoffset', String(trueOffset));
+      });
+    }
 
     // ── Explore topics — the real track names, linking into learning_lab.html's
     // own track selector (?track=) rather than duplicating that page's content. ──
