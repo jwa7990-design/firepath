@@ -15,9 +15,20 @@
     --soft-grey:   #9E8E85;
     --border:      #EDE3DA;
     --dark-bg:     #2A1E15;
+
+    /* Same small motion system as journey.html — kept consistent across pages
+       rather than each page inventing its own timings. */
+    --dur-instant:    140ms;
+    --dur-responsive: 240ms;
+    --dur-expressive: 800ms;
+    --ease-standard:  cubic-bezier(0.16,1,0.3,1);
+    --ease-gentle:    cubic-bezier(0.22,1,0.36,1);
   }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important; animation-delay: 0.01ms !important;
+      transition-duration: 0.01ms !important; transition-delay: 0.01ms !important;
+    }
   }
   body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); -webkit-font-smoothing: antialiased; }
   .container { max-width: 640px; margin: 0 auto; padding: 40px 24px 60px; }
@@ -131,21 +142,34 @@
   .stepper-tagline { font-size: 10.5px; color: var(--soft-grey); margin-top: 1px; }
 
   .lesson-list { background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 32px; }
-  .lesson-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; text-decoration: none; border-bottom: 1px solid var(--border); }
+  .lesson-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; text-decoration: none; border-bottom: 1px solid var(--border); cursor: pointer; }
   .lesson-row:last-child { border-bottom: none; }
   .lesson-row:hover { background: var(--warm-cream); }
+  .lesson-row[role="link"]:focus-visible { outline: 2px solid var(--fire-orange); outline-offset: -2px; }
   .lesson-num { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 13px; color: var(--soft-grey); width: 24px; flex-shrink: 0; }
   .lesson-body { flex: 1; min-width: 0; }
   .lesson-title { font-size: 14.5px; font-weight: 500; color: var(--warm-brown); margin-bottom: 2px; }
   .lesson-sub { font-size: 12.5px; color: var(--soft-grey); font-weight: 300; }
   .lesson-meta { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
   .lesson-time { font-size: 12px; color: var(--soft-grey); white-space: nowrap; }
-  .lesson-check { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .lesson-check { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background var(--dur-responsive) var(--ease-standard); }
   .lesson-check.done { background: rgba(46,125,50,0.12); color: #2E7D32; }
   .lesson-check.current { background: rgba(244,98,42,0.14); color: var(--fire-orange); }
   .lesson-check.locked { color: var(--soft-grey); }
   .lesson-row.locked-row { opacity: 0.72; }
   .lesson-row.hidden-by-search { display: none; }
+  /* The one lesson-check that's a real control: the current lesson's arrow doubles
+     as a "mark complete" button. Reset to inherit the circle's sizing/color rather
+     than default button chrome. */
+  .lesson-check-btn { all: unset; box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; cursor: pointer; }
+  .lesson-check-btn:hover { background: rgba(244,98,42,0.24); border-radius: 50%; }
+  .lesson-check-btn:focus-visible { outline: 2px solid var(--fire-orange); outline-offset: 2px; }
+  /* The checkmark that draws itself the instant a lesson is marked complete —
+     starts fully undrawn (dashoffset = path length) and animates to 0. */
+  .lesson-check-draw path { transition: stroke-dashoffset 320ms var(--ease-standard); }
+  /* A brief warm flash on the row itself when it completes — "I progressed,"
+     not a fanfare. Toggled on then off by completeLesson(), not left running. */
+  .lesson-row.just-completed { background: rgba(46,125,50,0.08); transition: background 500ms var(--ease-standard); }
 
   /* ── Sidebar cards (stacked in normal flow on mobile, real sidebar on desktop) ── */
   .side-card { background: white; border: 1px solid var(--border); border-radius: 20px; padding: 22px; margin-bottom: 16px; }
@@ -465,6 +489,8 @@
     return `learning_lab.html?topic=${encodeURIComponent(id)}&track=${encodeURIComponent(track)}&title=${encodeURIComponent(title)}`;
   }
 
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   document.addEventListener('DOMContentLoaded', async function() {
     const token = getToken();
     const userId = getUserId();
@@ -496,103 +522,17 @@
       }
     } catch (e) { console.log('Learning progress fetch failed', e); }
 
-    // ── Find the first not-yet-read lesson, in path order, for Recommended/Resume ──
-    let nextLesson = null, nextStage = null;
-    for (const stage of STAGES) {
-      const found = stage.lessons.find(l => !readIds.has(l.id));
-      if (found) { nextLesson = found; nextStage = stage; break; }
-    }
-    const currentStageKey = nextStage ? nextStage.key : STAGES[STAGES.length - 1].key;
-
-    // ── Continue-your-path hero — this is now the dominant action on the page,
-    // with the ring/percentage demoted to a secondary strip beneath it. ──
-    const completedCount = STAGES.reduce((n, s) => n + s.lessons.filter(l => readIds.has(l.id)).length, 0);
-    const pct = TOTAL_LESSONS > 0 ? Math.round((completedCount / TOTAL_LESSONS) * 100) : 0;
-    const circumference = 264; // 2 * PI * 42, matches the SVG r=42 above
-    const ringFill = document.getElementById('progressRingFill');
-    ringFill.setAttribute('stroke-dashoffset', String(circumference - (circumference * pct / 100)));
-    document.getElementById('progressStripPct').textContent = pct + '%';
-    document.getElementById('progressHeroCount').textContent = `${completedCount} / ${TOTAL_LESSONS} lessons`;
-    document.getElementById('continueHero').classList.add('in-view');
-
-    const eyebrowEl = document.getElementById('continueEyebrow');
-    const titleEl = document.getElementById('continueLessonTitle');
-    const timeEl = document.getElementById('continueTime');
-    const btnEl = document.getElementById('continueBtn');
-    const taglineEl = document.getElementById('progressTagline');
-    if (nextLesson) {
-      const url = lessonUrl(nextStage.key, nextLesson.id, nextLesson.title);
-      eyebrowEl.textContent = 'Continue your path';
-      titleEl.textContent = nextLesson.title;
-      titleEl.href = url;
-      timeEl.textContent = `${EST_MINUTES} min`;
-      btnEl.textContent = 'Continue →';
-      btnEl.href = url;
-      taglineEl.textContent = completedCount === 0
-        ? 'Your journey starts here.'
-        : `You're making progress through ${nextStage.name}.`;
-    } else {
-      eyebrowEl.textContent = 'Path complete';
-      titleEl.textContent = 'You\'ve finished every lesson in your path';
-      titleEl.href = 'learning_lab.html';
-      timeEl.textContent = '';
-      btnEl.textContent = 'Explore the full library →';
-      btnEl.href = 'learning_lab.html';
-      taglineEl.textContent = 'You\'ve completed the whole path — nice work.';
-    }
-
-    // ── Recommended for you — the next unread lesson as a dominant "NEXT UP" card,
-    // plus one honest pick from up to three other stages (labelled by real stage
-    // name, not a fabricated "popular" claim there's no data to back). ──
-    const recPicks = [];
-    if (nextLesson) recPicks.push({ tag: 'Next lesson', stage: nextStage, lesson: nextLesson });
-    STAGES.forEach(s => {
-      if (recPicks.length >= 4) return;
-      if (nextStage && s.key === nextStage.key) return;
-      const pick = s.lessons.find(l => !readIds.has(l.id)) || s.lessons[0];
-      if (pick) recPicks.push({ tag: s.name, stage: s, lesson: pick });
-    });
-    const recPrimaryEl = document.getElementById('recPrimary');
-    const recSecondaryEl = document.getElementById('recSecondaryRow');
-    if (recPicks.length) {
-      const first = recPicks[0];
-      recPrimaryEl.innerHTML = `
-        <a href="${lessonUrl(first.stage.key, first.lesson.id, first.lesson.title)}" class="rec-primary" data-search-text="${(first.lesson.title + ' ' + first.lesson.sub).toLowerCase()}">
-          <span class="rec-primary-tag">NEXT UP</span>
-          <span class="rec-primary-body">
-            <span class="rec-primary-title">${first.lesson.title}</span>
-            <span class="rec-primary-time">${first.lesson.sub} · ${EST_MINUTES} min</span>
-          </span>
-          <span class="rec-primary-arrow">→</span>
-        </a>`;
-      recSecondaryEl.innerHTML = recPicks.slice(1, 4).map(p => `
-        <a href="${lessonUrl(p.stage.key, p.lesson.id, p.lesson.title)}" class="rec-card" data-search-text="${(p.lesson.title + ' ' + p.lesson.sub).toLowerCase()}">
-          <span class="rec-card-tag">${p.tag}</span>
-          <span class="rec-card-title">${p.lesson.title}</span>
-          <span class="rec-card-bottom">
-            <span class="rec-card-time"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ${EST_MINUTES} min</span>
-            <span class="rec-card-arrow">→</span>
-          </span>
-        </a>`).join('');
-    } else {
-      recPrimaryEl.innerHTML = '';
-      recSecondaryEl.innerHTML = '';
-    }
-
-    // ── Stepper ──
-    document.getElementById('stepper').innerHTML = STAGES.map((s, i) => {
-      const doneCount = s.lessons.filter(l => readIds.has(l.id)).length;
-      const isDone = doneCount === s.lessons.length;
-      const isCurrent = s.key === currentStageKey;
-      const connector = i < STAGES.length - 1 ? '<div class="stepper-connector"></div>' : '';
-      return `<button class="stepper-step ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''}" data-stage="${s.key}">
-        <div class="stepper-dot">${isDone ? '✓' : i + 1}</div>
-        <div class="stepper-name">${s.name}</div>
-        <div class="stepper-tagline">${isCurrent ? 'Continue here' : s.tagline}</div>
-      </button>${connector}`;
-    }).join('');
-
     const LOCK_ICON = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+    // Draws itself the instant a lesson is marked complete (see completeLesson()
+    // below) — starts fully undrawn (dashoffset = the path's own length) and
+    // animates to 0 via the .lesson-check-draw path transition in the CSS above.
+    const CHECK_DRAW_ICON = '<svg class="lesson-check-draw" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6" stroke-dasharray="24" stroke-dashoffset="24"/></svg>';
+
+    // Which stage's lesson LIST is currently on screen — separate from "the stage
+    // that actually needs attention" (nextStage, computed fresh inside
+    // refreshProgressUI below). Only changes when the user clicks a stepper tab;
+    // starts null so the first refresh can default it to the real current stage.
+    let viewedStageKey = null;
 
     function renderLessonList(stageKey) {
       const stage = STAGES.find(s => s.key === stageKey) || STAGES[0];
@@ -602,8 +542,14 @@
         const isCurrent = !isRead && i === currentIdx;
         const isLocked = !isRead && !isCurrent;
         const state = isRead ? 'done' : (isCurrent ? 'current' : 'locked');
-        const checkMark = isRead ? '✓' : (isCurrent ? '→' : LOCK_ICON);
-        return `<a href="${lessonUrl(stage.key, l.id, l.title)}" class="lesson-row ${isLocked ? 'locked-row' : ''}" data-search-text="${(l.title + ' ' + l.sub).toLowerCase()}">
+        const url = lessonUrl(stage.key, l.id, l.title);
+        const searchText = (l.title + ' ' + l.sub).toLowerCase();
+        const checkInner = isRead
+          ? '✓'
+          : isCurrent
+            ? `<button type="button" class="lesson-check-btn" data-lesson-id="${l.id}" data-stage="${stage.key}" aria-label="Mark complete">→</button>`
+            : LOCK_ICON;
+        const rowInner = `
           <span class="lesson-num">${STAGES.findIndex(s => s.key === stageKey) + 1}.${i + 1}</span>
           <span class="lesson-body">
             <span class="lesson-title">${l.title}</span>
@@ -611,67 +557,251 @@
           </span>
           <span class="lesson-meta">
             <span class="lesson-time">${EST_MINUTES} min</span>
-            <span class="lesson-check ${state}">${checkMark}</span>
-          </span>
-        </a>`;
+            <span class="lesson-check ${state}">${checkInner}</span>
+          </span>`;
+        // Every other row is a plain <a> — real navigation, real accessibility,
+        // no JS needed to follow it. The current row is the one exception: it
+        // needs a real <button> inside it for "mark complete," and a <button>
+        // can't validly nest inside an <a>, so this one row is a clickable
+        // <div role="link"> instead (still keyboard-reachable, still opens the
+        // article on click — just not on the button itself).
+        return isCurrent
+          ? `<div class="lesson-row" role="link" tabindex="0" data-href="${url}" data-lesson-id="${l.id}" data-search-text="${searchText}">${rowInner}</div>`
+          : `<a href="${url}" class="lesson-row ${isLocked ? 'locked-row' : ''}" data-lesson-id="${l.id}" data-search-text="${searchText}">${rowInner}</a>`;
       }).join('');
-    }
-    renderLessonList(currentStageKey);
-    document.querySelectorAll('.stepper-step').forEach(btn => {
-      btn.addEventListener('click', () => renderLessonList(btn.dataset.stage));
-    });
 
-    // ── Your Next Milestone — replaces the sidebar space freed up by removing the
-    // duplicate mobile search box. Uses the same nextStage/completedCount data
-    // already computed above, no new tracking needed. ──
-    const milestoneNameEl = document.getElementById('milestoneName');
-    const milestoneCountEl = document.getElementById('milestoneCount');
-    const milestoneBarFillEl = document.getElementById('milestoneBarFill');
-    const milestoneNextEl = document.getElementById('milestoneNext');
-    if (nextStage) {
-      const doneInStage = nextStage.lessons.filter(l => readIds.has(l.id)).length;
-      const totalInStage = nextStage.lessons.length;
-      const remaining = totalInStage - doneInStage;
-      const stageIdx = STAGES.findIndex(s => s.key === nextStage.key);
-      const followingStage = STAGES[stageIdx + 1];
-      milestoneNameEl.textContent = `Finish ${nextStage.name}`;
-      milestoneCountEl.textContent = `${doneInStage} / ${totalInStage} lessons`;
-      milestoneBarFillEl.style.width = `${totalInStage > 0 ? Math.round((doneInStage / totalInStage) * 100) : 0}%`;
-      milestoneNextEl.textContent = followingStage
-        ? `${remaining} lesson${remaining === 1 ? '' : 's'} to unlock ${followingStage.name}`
-        : `${remaining} lesson${remaining === 1 ? '' : 's'} left in your path`;
-    } else {
-      milestoneNameEl.textContent = 'Path complete';
-      milestoneCountEl.textContent = `${TOTAL_LESSONS} / ${TOTAL_LESSONS} lessons`;
-      milestoneBarFillEl.style.width = '100%';
-      milestoneNextEl.textContent = 'You\'ve completed your path!';
+      document.querySelectorAll('#lessonList .lesson-row[role="link"]').forEach(row => {
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('.lesson-check-btn')) return;
+          window.location.href = row.dataset.href;
+        });
+        row.addEventListener('keydown', (e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.lesson-check-btn')) {
+            e.preventDefault();
+            window.location.href = row.dataset.href;
+          }
+        });
+      });
+      document.querySelectorAll('.lesson-check-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          completeLesson(btn.dataset.stage, btn.dataset.lessonId, btn);
+        });
+      });
     }
 
-    // ── Sidebar: real stats from the same read data above ──
-    document.getElementById('statLessons').textContent = readIds.size;
-    document.getElementById('statHours').textContent = (readIds.size * EST_MINUTES / 60).toFixed(1);
+    // ── Everything derived from readIds/readDates, re-rendered together — on
+    // load, and again after completeLesson() below updates that state. This is
+    // what used to be one flat block that only ever ran once; wrapping it means
+    // marking a lesson complete can update the whole page (hero, recommended,
+    // stepper, lesson list, milestone, stats) instead of just the one row. ──
+    function refreshProgressUI() {
+      // ── Find the first not-yet-read lesson, in path order ──
+      let nextLesson = null, nextStage = null;
+      for (const stage of STAGES) {
+        const found = stage.lessons.find(l => !readIds.has(l.id));
+        if (found) { nextLesson = found; nextStage = stage; break; }
+      }
+      if (viewedStageKey === null) {
+        viewedStageKey = nextStage ? nextStage.key : STAGES[STAGES.length - 1].key;
+      }
 
-    // Streak — consecutive calendar days with at least one read_at, counting back
-    // from today. Real, if modest: no streak tracking existed before this page.
-    const dayKeys = new Set(readDates.map(d => d.toDateString()));
-    let streak = 0;
-    let cursor = new Date();
-    while (dayKeys.has(cursor.toDateString())) {
-      streak++;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-    document.getElementById('statStreak').textContent = streak;
+      // ── Continue-your-path hero ──
+      const completedCount = STAGES.reduce((n, s) => n + s.lessons.filter(l => readIds.has(l.id)).length, 0);
+      const pct = TOTAL_LESSONS > 0 ? Math.round((completedCount / TOTAL_LESSONS) * 100) : 0;
+      const circumference = 264; // 2 * PI * 42, matches the SVG r=42 above
+      const ringFill = document.getElementById('progressRingFill');
+      ringFill.setAttribute('stroke-dashoffset', String(circumference - (circumference * pct / 100)));
+      document.getElementById('progressStripPct').textContent = pct + '%';
+      document.getElementById('progressHeroCount').textContent = `${completedCount} / ${TOTAL_LESSONS} lessons`;
+      document.getElementById('continueHero').classList.add('in-view');
 
-    const dayLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-    const today = new Date();
-    const weekCells = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(today); d.setDate(d.getDate() - i);
-      weekCells.push({ letter: dayLetters[d.getDay()], active: dayKeys.has(d.toDateString()) });
+      const eyebrowEl = document.getElementById('continueEyebrow');
+      const titleEl = document.getElementById('continueLessonTitle');
+      const timeEl = document.getElementById('continueTime');
+      const btnEl = document.getElementById('continueBtn');
+      const taglineEl = document.getElementById('progressTagline');
+      if (nextLesson) {
+        const url = lessonUrl(nextStage.key, nextLesson.id, nextLesson.title);
+        eyebrowEl.textContent = 'Continue your path';
+        titleEl.textContent = nextLesson.title;
+        titleEl.href = url;
+        timeEl.textContent = `${EST_MINUTES} min`;
+        btnEl.textContent = 'Continue →';
+        btnEl.href = url;
+        taglineEl.textContent = completedCount === 0
+          ? 'Your journey starts here.'
+          : `You're making progress through ${nextStage.name}.`;
+      } else {
+        eyebrowEl.textContent = 'Path complete';
+        titleEl.textContent = 'You\'ve finished every lesson in your path';
+        titleEl.href = 'learning_lab.html';
+        timeEl.textContent = '';
+        btnEl.textContent = 'Explore the full library →';
+        btnEl.href = 'learning_lab.html';
+        taglineEl.textContent = 'You\'ve completed the whole path — nice work.';
+      }
+
+      // ── Recommended for you — the next unread lesson as a dominant "NEXT UP" card,
+      // plus one honest pick from up to three other stages (labelled by real stage
+      // name, not a fabricated "popular" claim there's no data to back). ──
+      const recPicks = [];
+      if (nextLesson) recPicks.push({ tag: 'Next lesson', stage: nextStage, lesson: nextLesson });
+      STAGES.forEach(s => {
+        if (recPicks.length >= 4) return;
+        if (nextStage && s.key === nextStage.key) return;
+        const pick = s.lessons.find(l => !readIds.has(l.id)) || s.lessons[0];
+        if (pick) recPicks.push({ tag: s.name, stage: s, lesson: pick });
+      });
+      const recPrimaryEl = document.getElementById('recPrimary');
+      const recSecondaryEl = document.getElementById('recSecondaryRow');
+      if (recPicks.length) {
+        const first = recPicks[0];
+        recPrimaryEl.innerHTML = `
+          <a href="${lessonUrl(first.stage.key, first.lesson.id, first.lesson.title)}" class="rec-primary" data-search-text="${(first.lesson.title + ' ' + first.lesson.sub).toLowerCase()}">
+            <span class="rec-primary-tag">NEXT UP</span>
+            <span class="rec-primary-body">
+              <span class="rec-primary-title">${first.lesson.title}</span>
+              <span class="rec-primary-time">${first.lesson.sub} · ${EST_MINUTES} min</span>
+            </span>
+            <span class="rec-primary-arrow">→</span>
+          </a>`;
+        recSecondaryEl.innerHTML = recPicks.slice(1, 4).map(p => `
+          <a href="${lessonUrl(p.stage.key, p.lesson.id, p.lesson.title)}" class="rec-card" data-search-text="${(p.lesson.title + ' ' + p.lesson.sub).toLowerCase()}">
+            <span class="rec-card-tag">${p.tag}</span>
+            <span class="rec-card-title">${p.lesson.title}</span>
+            <span class="rec-card-bottom">
+              <span class="rec-card-time"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ${EST_MINUTES} min</span>
+              <span class="rec-card-arrow">→</span>
+            </span>
+          </a>`).join('');
+      } else {
+        recPrimaryEl.innerHTML = '';
+        recSecondaryEl.innerHTML = '';
+      }
+
+      // ── Stepper ──
+      document.getElementById('stepper').innerHTML = STAGES.map((s, i) => {
+        const doneCount = s.lessons.filter(l => readIds.has(l.id)).length;
+        const isDone = doneCount === s.lessons.length;
+        const isCurrent = nextStage ? s.key === nextStage.key : false;
+        const connector = i < STAGES.length - 1 ? '<div class="stepper-connector"></div>' : '';
+        return `<button class="stepper-step ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''}" data-stage="${s.key}">
+          <div class="stepper-dot">${isDone ? '✓' : i + 1}</div>
+          <div class="stepper-name">${s.name}</div>
+          <div class="stepper-tagline">${isCurrent ? 'Continue here' : s.tagline}</div>
+        </button>${connector}`;
+      }).join('');
+      document.querySelectorAll('.stepper-step').forEach(btn => {
+        btn.addEventListener('click', () => { viewedStageKey = btn.dataset.stage; renderLessonList(viewedStageKey); });
+      });
+
+      renderLessonList(viewedStageKey);
+
+      // ── Your Next Milestone ──
+      const milestoneNameEl = document.getElementById('milestoneName');
+      const milestoneCountEl = document.getElementById('milestoneCount');
+      const milestoneBarFillEl = document.getElementById('milestoneBarFill');
+      const milestoneNextEl = document.getElementById('milestoneNext');
+      if (nextStage) {
+        const doneInStage = nextStage.lessons.filter(l => readIds.has(l.id)).length;
+        const totalInStage = nextStage.lessons.length;
+        const remaining = totalInStage - doneInStage;
+        const stageIdx = STAGES.findIndex(s => s.key === nextStage.key);
+        const followingStage = STAGES[stageIdx + 1];
+        milestoneNameEl.textContent = `Finish ${nextStage.name}`;
+        milestoneCountEl.textContent = `${doneInStage} / ${totalInStage} lessons`;
+        milestoneBarFillEl.style.width = `${totalInStage > 0 ? Math.round((doneInStage / totalInStage) * 100) : 0}%`;
+        milestoneNextEl.textContent = followingStage
+          ? `${remaining} lesson${remaining === 1 ? '' : 's'} to unlock ${followingStage.name}`
+          : `${remaining} lesson${remaining === 1 ? '' : 's'} left in your path`;
+      } else {
+        milestoneNameEl.textContent = 'Path complete';
+        milestoneCountEl.textContent = `${TOTAL_LESSONS} / ${TOTAL_LESSONS} lessons`;
+        milestoneBarFillEl.style.width = '100%';
+        milestoneNextEl.textContent = 'You\'ve completed your path!';
+      }
+
+      // ── Sidebar: real stats from the same read data above ──
+      document.getElementById('statLessons').textContent = readIds.size;
+      document.getElementById('statHours').textContent = (readIds.size * EST_MINUTES / 60).toFixed(1);
+
+      // Streak — consecutive calendar days with at least one read_at, counting back
+      // from today. Real, if modest: no streak tracking existed before this page.
+      const dayKeys = new Set(readDates.map(d => d.toDateString()));
+      let streak = 0;
+      let cursor = new Date();
+      while (dayKeys.has(cursor.toDateString())) {
+        streak++;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      document.getElementById('statStreak').textContent = streak;
+
+      const dayLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      const today = new Date();
+      const weekCells = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today); d.setDate(d.getDate() - i);
+        weekCells.push({ letter: dayLetters[d.getDay()], active: dayKeys.has(d.toDateString()) });
+      }
+      document.getElementById('weekDots').innerHTML = weekCells.map(c =>
+        `<div class="week-dot-col"><span class="week-dot-letter">${c.letter}</span><span class="week-dot ${c.active ? 'active' : ''}"></span></div>`
+      ).join('');
     }
-    document.getElementById('weekDots').innerHTML = weekCells.map(c =>
-      `<div class="week-dot-col"><span class="week-dot-letter">${c.letter}</span><span class="week-dot ${c.active ? 'active' : ''}"></span></div>`
-    ).join('');
+
+    // ── The signature moment: mark a lesson complete right from the hub, no trip
+    // to the article required. Checkmark draws itself, then — once it's landed —
+    // everything downstream of "how many lessons have you done" updates together:
+    // the ring, the milestone, the stepper, and the list itself (which promotes
+    // the next lesson to "current" as a natural side effect of just re-rendering
+    // from the updated readIds, not a separate animation to hand-author). Roughly
+    // 800ms end to end. No confetti — the progress itself is the reward. ──
+    function completeLesson(trackKey, lessonId, buttonEl) {
+      if (readIds.has(lessonId)) return; // already done — no-op, not a double-count
+      const stage = STAGES.find(s => s.key === trackKey);
+      const lesson = stage && stage.lessons.find(l => l.id === lessonId);
+      if (!lesson) return;
+
+      const finish = () => {
+        readIds.add(lessonId);
+        readDates.push(new Date());
+        refreshProgressUI();
+        // refreshProgressUI() just rebuilt the lesson list from scratch — the row
+        // that was clicked no longer exists as a DOM node, so the flash has to
+        // target its freshly-rendered replacement (now a plain "done" row), found
+        // by the lesson id every row carries. Flashing the old, now-detached
+        // element would just silently do nothing.
+        const newRow = document.querySelector(`#lessonList .lesson-row[data-lesson-id="${lessonId}"]`);
+        if (newRow && !prefersReducedMotion) {
+          newRow.classList.add('just-completed');
+          setTimeout(() => newRow.classList.remove('just-completed'), 900);
+        }
+        // Fire the save in the background — same non-blocking, best-effort pattern
+        // used everywhere else this app writes lab_progress. A failed write here
+        // costs a resync on next load, never a broken UI in the moment.
+        fetch(`${WORKER_URL}/db/lab_progress`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({ user_id: userId, topic_id: lessonId, topic_title: lesson.title, track: trackKey, saved: false, read_at: new Date().toISOString() })
+        }).catch(e => console.log('Mark complete save failed', e));
+      };
+
+      if (prefersReducedMotion) {
+        finish();
+        return;
+      }
+      // Checkmark draws in over ~320ms (see .lesson-check-draw in the CSS above)
+      // before anything downstream reacts — the draw itself is the confirmation,
+      // not an afterthought layered on top of an instant state change.
+      buttonEl.innerHTML = CHECK_DRAW_ICON;
+      const path = buttonEl.querySelector('path');
+      void path.getBoundingClientRect();
+      requestAnimationFrame(() => { requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; }); });
+      setTimeout(finish, 380);
+    }
+
+    refreshProgressUI();
 
     // ── Explore topics — the real track names, linking into learning_lab.html's
     // own track selector (?track=) rather than duplicating that page's content. ──
