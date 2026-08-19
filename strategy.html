@@ -25,7 +25,30 @@
     color: var(--warm-brown);
     -webkit-font-smoothing: antialiased;
   }
-  .container { max-width: 480px; margin: 0 auto; padding: 40px 24px 60px; }
+  /* Bottom padding cleared for .mobile-tabbar floating above the content —
+     desktop overrides this back down further below since the rail replaces the
+     tab bar entirely at that width. */
+  .container { max-width: 480px; margin: 0 auto; padding: 40px 24px calc(104px + env(safe-area-inset-bottom)); }
+
+  /* ── Mobile tab bar — same floating instrument-panel pattern as journey.html;
+       see that file for the full rationale. Primary nav on phones, mirroring the
+       desktop rail's four core destinations. ── */
+  .mobile-tabbar {
+    position: fixed; left: 14px; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom));
+    z-index: 150; display: flex; align-items: stretch; justify-content: space-around;
+    background: rgba(253,246,238,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border); border-radius: 22px; padding: 7px; gap: 2px;
+    box-shadow: 0 10px 30px rgba(61,43,31,0.14);
+  }
+  .mobile-tabbar-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    padding: 8px 4px 7px; border-radius: 16px; text-decoration: none;
+    color: var(--soft-grey); font-size: 10.5px; font-weight: 600;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+  .mobile-tabbar-item svg { opacity: 0.75; transition: opacity 0.2s ease; }
+  .mobile-tabbar-item.active { color: var(--fire-orange); background: rgba(244,98,42,0.1); }
+  .mobile-tabbar-item.active svg { opacity: 1; }
 
   .mobile-topbar { display: flex; align-items: center; padding-top: 6px; margin-bottom: 28px; }
   .mobile-back {
@@ -106,6 +129,8 @@
 
     .container { max-width: 1080px; margin: 0 auto; padding: 56px 56px 100px; }
     .hub-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+    /* Rail replaces the mobile tab bar entirely at this width. */
+    .mobile-tabbar { display: none !important; }
   }
 
   /* ── Footer — same four links every other FirePath page already carries. ── */
@@ -204,6 +229,26 @@
   </footer>
 
 </div>
+
+<!-- ── MOBILE TAB BAR — see journey.html for the full rationale. ── -->
+<nav class="mobile-tabbar" aria-label="Primary">
+  <a href="journey.html" class="mobile-tabbar-item">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+    Journey
+  </a>
+  <a href="money.html" class="mobile-tabbar-item">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
+    Money
+  </a>
+  <a href="strategy.html" class="mobile-tabbar-item active">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
+    Strategy
+  </a>
+  <a href="learn.html" class="mobile-tabbar-item">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
+    Learn
+  </a>
+</nav>
 
 <script>
   document.addEventListener('DOMContentLoaded', async function() {
