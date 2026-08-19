@@ -41,10 +41,13 @@
   .page-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 28px; color: var(--warm-brown); margin-bottom: 8px; line-height: 1.25; }
   .page-sub { font-size: 14px; color: var(--soft-grey); font-weight: 300; margin-bottom: 32px; max-width: 52ch; }
 
-  /* ── Net worth overview — the one new thing this page adds beyond linking out.
-       Same savings-minus-debt formula journey.html already computes and saves
-       into financial_snapshots.picture.netWorth, so the delta below is real,
-       not a separate calculation drifting from Journey's own numbers. ── */
+  /* ── Net worth overview — assets minus liabilities, and every figure in the
+       breakdown below actually sums to the headline. (An earlier version showed
+       "Net worth $86K" directly above "Superannuation $35K" as a separate line,
+       which reads as $86K + $35K even though $86K was meant to already include
+       it — the exact kind of ambiguity that erodes trust in financial software.
+       Now the headline IS assets minus liabilities, full stop, and the two
+       subgroups below are just that sum shown open-book.) ── */
   .networth-card {
     background: white; border: 1px solid var(--border); border-radius: 20px;
     padding: 26px 24px; margin-bottom: 16px;
@@ -58,11 +61,17 @@
   .networth-delta.shown { display: block; }
   .networth-delta.positive { color: #3E8E5A; }
   .networth-delta.negative { color: var(--fire-orange); }
-  .networth-breakdown { display: flex; flex-direction: column; margin-top: 20px; border-top: 1px solid var(--border); }
+  .networth-breakdown { margin-top: 22px; }
+  .networth-subgroup-label {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--soft-grey); margin: 18px 0 2px; padding-top: 12px; border-top: 1px solid var(--border);
+  }
+  .networth-breakdown > .networth-subgroup-label:first-child { padding-top: 0; border-top: none; margin-top: 0; }
   .networth-row { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
-  .networth-row:last-child { border-bottom: none; }
+  .networth-row:last-of-type { border-bottom: none; }
   .networth-row-label { color: var(--soft-grey); font-weight: 300; }
   .networth-row-value { font-weight: 500; color: var(--warm-brown); }
+  .networth-row-value.liability { color: var(--fire-orange); }
   .networth-skeleton { color: var(--soft-grey); font-size: 13px; font-style: italic; }
 
   .hub-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin: 32px 0 12px; }
@@ -159,8 +168,9 @@
 
   <div class="page-eyebrow">Money</div>
   <div class="page-title">Where your money stands.</div>
-  <div class="page-sub">Your net worth, and the tools that break down how you got here.</div>
+  <div class="page-sub">Everything you own, everything you owe, and the one number that's left over.</div>
 
+  <div class="hub-section-label" style="margin-top:0;">Your position</div>
   <div class="networth-card" id="networthCard">
     <div class="networth-label">Net worth</div>
     <div class="networth-figure" id="networthFigure">—</div>
@@ -215,16 +225,27 @@
 
       const savings = p.current_savings || 0;
       const debt = p.debt_total || 0;
+      const mortgage = p.mortgage_remaining || 0;
       const superBal = p.super_balance || 0;
-      const netWorth = savings - debt;
+      // Assets minus liabilities, nothing hidden inside the headline that isn't
+      // also itemised below — same formula journey.html now uses for its own
+      // netWorth figure and Since Last Month delta, so this page and Journey
+      // never disagree about what "net worth" means.
+      const assetsTotal = savings + superBal;
+      const liabilitiesTotal = debt + mortgage;
+      const netWorth = assetsTotal - liabilitiesTotal;
       const fmt = (window.FirePathEngine && window.FirePathEngine.fmtM) ? window.FirePathEngine.fmtM : (n => '$' + Math.round(n));
 
-      document.getElementById('networthFigure').textContent = fmt(netWorth);
-      document.getElementById('networthBreakdown').innerHTML = `
+      const assetRows = `
+        <div class="networth-subgroup-label">Assets</div>
         <div class="networth-row"><span class="networth-row-label">Savings &amp; investments</span><span class="networth-row-value">${fmt(savings)}</span></div>
-        ${superBal ? `<div class="networth-row"><span class="networth-row-label">Superannuation</span><span class="networth-row-value">${fmt(superBal)}</span></div>` : ''}
-        ${debt ? `<div class="networth-row"><span class="networth-row-label">Debt</span><span class="networth-row-value">-${fmt(debt)}</span></div>` : ''}
-      `;
+        ${superBal ? `<div class="networth-row"><span class="networth-row-label">Superannuation</span><span class="networth-row-value">${fmt(superBal)}</span></div>` : ''}`;
+      const liabilityRows = liabilitiesTotal ? `
+        <div class="networth-subgroup-label">Liabilities</div>
+        ${debt ? `<div class="networth-row"><span class="networth-row-label">Debt</span><span class="networth-row-value liability">-${fmt(debt)}</span></div>` : ''}
+        ${mortgage ? `<div class="networth-row"><span class="networth-row-label">Mortgage remaining</span><span class="networth-row-value liability">-${fmt(mortgage)}</span></div>` : ''}` : '';
+      document.getElementById('networthBreakdown').innerHTML = assetRows + liabilityRows;
+      document.getElementById('networthFigure').textContent = fmt(netWorth);
 
       // Delta vs Journey's own last snapshot — reuses the picture.netWorth field
       // journey.html already saves, rather than tracking a separate history here.
