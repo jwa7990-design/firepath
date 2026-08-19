@@ -31,10 +31,15 @@
       --card-bg:     #FFFFFF;
       --dark-bg:     #2A1E15;
 
-      /* Type scale */
-      --text-xs:   11px;
-      --text-sm:   13px;
-      --text-base: 15px;
+      /* Type scale — xs/sm/base bumped up a notch (11/13/15 → 12/14/16). Mobile
+         body copy under 16px reads noticeably smaller than it should, independent
+         of any browser zoom setting; this is the one change that fixes the nav
+         menu labels and every paragraph on the page at once, since they all pull
+         from these three tokens rather than hardcoded sizes. md/lg/xl and up were
+         already comfortable, so those are untouched. */
+      --text-xs:   12px;
+      --text-sm:   14px;
+      --text-base: 16px;
       --text-md:   17px;
       --text-lg:   20px;
       --text-xl:   24px;
@@ -55,82 +60,11 @@
       --space-10: 128px;
 
       /* Shadows */
-      --shadow-sm:  0 2px 10px rgba(61,43,31,0.07);
-      --shadow-md:  0 8px 32px rgba(61,43,31,0.11);
-      --shadow-lg:  0 16px 64px rgba(61,43,31,0.16);
+      --shadow-sm:  0 2px 8px rgba(61,43,31,0.06);
+      --shadow-md:  0 4px 24px rgba(61,43,31,0.09);
+      --shadow-lg:  0 8px 48px rgba(61,43,31,0.12);
       --shadow-glow: 0 4px 32px rgba(244,98,42,0.25);
-
-      /* Depth + glass — added for the visual pass */
-      --shadow-float: 0 24px 64px rgba(61,43,31,0.16), 0 8px 24px rgba(61,43,31,0.08);
-      --glass-bg: rgba(255,255,255,0.72);
-      --glass-border: rgba(255,255,255,0.5);
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
-    }
-
-    /* ── Scroll-reveal: sections fade + rise into view, staggered, under 600ms ── */
-    .reveal { opacity: 0; transform: translateY(16px); transition: opacity 0.55s ease, transform 0.55s ease; }
-    .reveal.in-view { opacity: 1; transform: translateY(0); }
-    .reveal-d1 { transition-delay: 0.08s; }
-    .reveal-d2 { transition-delay: 0.16s; }
-    .reveal-d3 { transition-delay: 0.24s; }
-
-    /* ── Ambient ── background glows sitting behind sections, independent of hero's own ── */
-    .ambient-glow { position: absolute; border-radius: 50%; filter: blur(60px); pointer-events: none; z-index: 0; }
-
-    /* ── Elevated card — soft shadow + faint radial highlight instead of a hard border ── */
-    .elevated-card {
-      background: white;
-      border: 1px solid rgba(237,227,218,0.5);
-      border-radius: 20px;
-      box-shadow: var(--shadow-md);
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .elevated-card::before {
-      content: '';
-      position: absolute; top: -40%; right: -20%;
-      width: 240px; height: 240px;
-      background: radial-gradient(circle, rgba(244,98,42,0.05) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .elevated-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
-
-
-    /* ── Journey trend section ── */
-    .journey-section { max-width: 480px; margin: 0 auto; padding: var(--space-8) 24px; }
-    .journey-card { padding: 32px 28px; max-width: 400px; margin: 24px auto 0; }
-    .journey-bars { display: flex; justify-content: space-between; align-items: flex-end; height: 110px; margin: 20px 0 24px; gap: 10px; }
-    .journey-bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
-    .journey-bar { width: 100%; max-width: 34px; background: linear-gradient(180deg, var(--fire-amber), var(--fire-orange)); border-radius: 6px 6px 3px 3px; height: 0; transition: height 1.1s cubic-bezier(0.16,1,0.3,1); }
-    .journey-bar-pct { font-size: 11px; font-weight: 700; color: var(--warm-brown); margin-top: 8px; }
-    .journey-bar-month { font-size: 10px; color: var(--soft-grey); font-weight: 400; margin-top: 2px; }
-    .journey-stats { display: flex; flex-direction: column; gap: 8px; padding-top: 18px; border-top: 1px solid var(--border); }
-    .journey-stat { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--warm-brown); font-weight: 400; }
-    .journey-stat svg { color: #2E7D32; flex-shrink: 0; }
-
-    /* ── Commitment to your future self — an interactive slider, not just an illustration ── */
-    .commitment-section { max-width: 480px; margin: 0 auto; padding: var(--space-8) 24px; }
-    .commitment-card { padding: 32px 28px; max-width: 400px; margin: 24px auto 0; }
-    .commitment-label { font-size: 13px; color: var(--warm-brown); font-weight: 400; margin-bottom: 16px; }
-    .commitment-presets { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-    .commitment-preset {
-      flex: 1; min-width: 70px;
-      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-      padding: 10px 8px; border-radius: 12px;
-      border: 1.5px solid var(--border); background: var(--warm-cream);
-      color: var(--warm-brown); cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .commitment-preset:hover { border-color: var(--fire-orange); }
-    .commitment-preset.active { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); border-color: transparent; color: white; font-weight: 700; }
-    .commitment-result { text-align: center; }
-    .commitment-result-value { font-family: 'Playfair Display', serif; font-size: 44px; font-weight: 700; color: var(--warm-brown); transition: opacity 0.15s ease; }
-    .commitment-result-label { font-size: 12.5px; color: var(--soft-grey); font-weight: 400; margin-top: 4px; }
-
 
     html { scroll-behavior: smooth; }
     body {
@@ -195,27 +129,17 @@
       padding: 120px 24px 80px;
       position: relative; overflow: hidden;
     }
-    @keyframes glowDrift1 {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(-30px, 24px); }
-    }
-    @keyframes glowDrift2 {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(24px, -20px); }
-    }
     .hero-glow-1 {
       position: absolute; top: -80px; right: -80px;
       width: 480px; height: 480px;
       background: radial-gradient(circle, rgba(244,98,42,0.09) 0%, transparent 68%);
       pointer-events: none;
-      animation: glowDrift1 26s ease-in-out infinite;
     }
     .hero-glow-2 {
       position: absolute; bottom: -60px; left: -60px;
       width: 360px; height: 360px;
       background: radial-gradient(circle, rgba(249,168,37,0.07) 0%, transparent 68%);
       pointer-events: none;
-      animation: glowDrift2 32s ease-in-out infinite;
     }
 
     .hero-eyebrow {
@@ -230,12 +154,12 @@
 
     .hero-headline {
       font-family: 'Playfair Display', serif;
-      font-size: clamp(46px, 9vw, 92px);
+      font-size: var(--text-hero);
       font-weight: 700;
-      line-height: 1.02;
-      letter-spacing: -0.03em;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
       color: var(--warm-brown);
-      max-width: 780px;
+      max-width: 760px;
       margin-bottom: var(--space-6);
       animation: fadeUp 0.6s ease 0.1s both;
     }
@@ -258,48 +182,6 @@
       animation: fadeUp 0.6s ease 0.3s both;
       display: flex; flex-direction: column; align-items: center; gap: var(--space-4);
     }
-
-    /* ── Hero preview card — the signature element. Frosted glass, slow ambient drift,
-         previewing real product language so a visitor sees the experience, not a promise. ── */
-    @keyframes cardDrift {
-      0%, 100% { transform: translateY(0) rotate(-0.6deg); }
-      50% { transform: translateY(-10px) rotate(0.6deg); }
-    }
-    .preview-card-wrap {
-      margin-top: var(--space-8);
-      animation: fadeUp 0.7s ease 0.4s both, cardDrift 8s ease-in-out infinite;
-      perspective: 900px;
-    }
-    @media (prefers-reduced-motion: reduce) { .preview-card-wrap { animation: fadeUp 0.7s ease 0.4s both; } }
-    .preview-card {
-      width: 420px;
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 30px;
-      padding: 40px 36px 36px;
-      box-shadow: var(--shadow-float);
-      text-align: left;
-      transform-style: preserve-3d;
-      transition: transform 0.25s ease-out;
-    }
-    .preview-example-tag {
-      display: inline-block;
-      font-size: 9px; font-weight: 500; text-transform: none; letter-spacing: 0.02em;
-      color: rgba(158,142,133,0.85); font-style: italic;
-      margin-bottom: 12px;
-    }
-    .preview-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fire-orange); margin-bottom: 6px; transition: opacity 0.3s ease; }
-    .preview-percent { font-family: 'Playfair Display', serif; font-size: 80px; font-weight: 700; color: var(--warm-brown); line-height: 0.95; margin-bottom: 18px; }
-    .preview-bar-track { height: 8px; background: var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 26px; }
-    .preview-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--fire-orange), var(--fire-amber)); border-radius: 8px; transition: width 2.6s cubic-bezier(0.16,1,0.3,1); }
-    .preview-stats { padding-top: 20px; border-top: 1px solid var(--border); }
-    .preview-stat-value { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--warm-brown); }
-    .preview-stat-label { font-size: 12px; color: var(--soft-grey); font-weight: 400; margin-top: 3px; }
-    .preview-tradeoff { font-size: 13.5px; color: var(--warm-brown); font-weight: 300; line-height: 1.6; margin-top: 14px; }
-    .preview-tradeoff strong { color: var(--fire-orange); font-weight: 600; }
-
     .btn-primary {
       background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
       color: white;
@@ -462,15 +344,6 @@
       position: relative;
       overflow: hidden;
     }
-    .reveal-milestones {
-      display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 20px;
-      max-width: 420px; margin: 24px auto 0;
-    }
-    .reveal-milestone {
-      display: flex; align-items: center; gap: 7px;
-      font-size: 12px; color: rgba(253,246,238,0.55); font-weight: 300;
-    }
-    .reveal-milestone-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--fire-amber); flex-shrink: 0; }
     .reveal-glow {
       position: absolute;
       top: 50%; left: 50%;
@@ -650,16 +523,14 @@
       max-width: 640px;
       margin: 0 auto;
       padding: var(--space-9) var(--space-5);
-      position: relative;
     }
     .letter-card {
       background: white;
       border: 1px solid var(--border);
-      position: relative;
-      z-index: 1;
       border-radius: 24px;
       padding: var(--space-8) var(--space-7);
       box-shadow: var(--shadow-md);
+      position: relative;
       overflow: hidden;
     }
     .letter-mark {
@@ -859,29 +730,15 @@
       </p>
     </div>
 
-    <div class="preview-card-wrap" id="previewCardWrap">
-      <div class="preview-card" id="previewCard">
-        <span class="preview-example-tag">Illustrative example</span>
-        <div class="preview-label" id="previewStatusLabel">Calculating your Freedom Level...</div>
-        <div class="preview-percent"><span id="previewPct">0</span>%</div>
-        <div class="preview-bar-track"><div class="preview-bar-fill" id="previewBarFill"></div></div>
-        <div class="preview-stats">
-          <div class="preview-stat-value">11 yrs</div>
-          <div class="preview-stat-label">to full freedom, working as you do now</div>
-        </div>
-        <p class="preview-tradeoff">Or work <strong>8 hrs a week</strong> and get there in <strong>6 years</strong> instead.</p>
-      </div>
-    </div>
-
     <p class="hero-social">
       Read by <strong>98,000+ Australians</strong> on r/AusFinance
     </p>
   </section>
 
-  <!-- ── BRIDGE ── -->
+   <!-- ── BRIDGE ── -->
   <div class="bridge">
-    <p class="bridge-line1">Full retirement</p>
-    <p class="bridge-line2">isn't the only kind of freedom.</p>
+    <p class="bridge-line1">Nobody teaches us</p>
+    <p class="bridge-line2">how money works.</p>
     <p class="bridge-you" id="bridgeYou"></p>
   </div>
 
@@ -892,7 +749,7 @@
           observer.disconnect();
           const el = document.getElementById('bridgeYou');
           setTimeout(() => {
-            el.textContent = "We show you every version.";
+            el.textContent = "We're changing that.";
             el.style.transition = 'opacity 1.2s ease';
             el.style.opacity = '1';
           }, 800);
@@ -908,15 +765,9 @@
   <div class="reveal-section">
     <div class="reveal-glow"></div>
     <span class="reveal-label">What you'll see</span>
-    <p class="reveal-pre">Here's an example of what FirePath might uncover</p>
+    <p class="reveal-pre">Based on your numbers, you could be financially free in</p>
     <div class="reveal-date">11 yrs</div>
-    <p class="reveal-post">That's an actual date. Not a guess.<br/>Based on your life. Not the average Australian.</p>
-    <div class="reveal-milestones">
-      <div class="reveal-milestone"><span class="reveal-milestone-dot"></span>Work becomes optional</div>
-      <div class="reveal-milestone"><span class="reveal-milestone-dot"></span>Super kicks in at 60</div>
-      <div class="reveal-milestone"><span class="reveal-milestone-dot"></span>Age Pension begins at 67</div>
-      <div class="reveal-milestone"><span class="reveal-milestone-dot"></span>Portfolio fully supports you</div>
-    </div>
+    <p class="reveal-post">That's an actual date. Not a guess.</p>
     <div class="reveal-divider"></div>
     <p class="reveal-insight">
       Your savings are sitting in a bank account earning almost nothing. <strong>If that money was invested, your date moves 4 years closer.</strong> The Hear Me Out tool lets you model exactly what that looks like.
@@ -928,17 +779,17 @@
        makes FirePath feel like a genuine mission rather than another fintech, so it shouldn't
        be buried past the pricing section where most visitors never scroll. ── -->
   <section class="letter-section" id="why">
-    <div class="ambient-glow" style="top:-60px;left:50%;transform:translateX(-50%);width:420px;height:420px;background:radial-gradient(circle,rgba(249,168,37,0.06) 0%,transparent 70%);"></div>
-    <div class="letter-card reveal">
+    <div class="letter-card">
       <span class="letter-mark">"</span>
       <span class="letter-eyebrow">Why I built this</span>
     <div class="letter-opener">
         "I'm a support worker, and I created FirePath because I wish I had this knowledge in simple terms in my early 20s."
       </div>
       <div class="letter-body">
-        <p>Over the years, I've talked to heaps of people about life, stress and making ends meet. One thing keeps coming up: most people don't quite get how money works. Not because they're not smart — nobody ever explained it to them.</p>
-        <p>My wife and I took some calculated risks to move our family forward. They felt uncomfortable at the time, but we wouldn't be where we are without them. <strong>I wish we'd made them a decade earlier</strong> — the more time you have, the easier it is to get ahead.</p>
-        <p>I wanted to create something that shows people what's actually achievable, built for everyone no matter where you're starting from. It becomes about your numbers, your timeline, and building the knowledge to understand what it all means.</p>
+        <p>Over the years, I've chatted with heaps of people about life, stress and how to make ends meet. One thing that always pops up is that most people don't quite get how money works. It's not because they're not smart — it's just that nobody ever explained it to them.</p>
+        <p>My wife and I decided to take some calculated risks to help our family move forward. Those risks felt a bit uncomfortable at the time. But if we hadn't made them, we wouldn't have reached where we are today. <strong>And I wish we'd made them a decade earlier</strong> — because the more time you have, the easier it is to get ahead.</p>
+        <p>I wanted to create something that shows people what's actually achievable based on their situation. Built for everyone — no matter where you're starting from. It becomes about you, your numbers, your timeline and building your knowledge to understand what it all means.</p>
+        <p>FirePath has real costs to run, but we're aiming to keep it as affordable as possible. $6 a month felt right. Less than a coffee (which I know is still a big ask). I truly hope it gives you value well above this price tag — and if it doesn't, we always welcome your feedback.</p>
       </div>
 
       <div class="letter-sig">
@@ -956,21 +807,21 @@
     <p class="section-sub">It shows you. It educates you. It empowers you.</p>
 
     <div class="steps">
-            <div class="step reveal">
+            <div class="step">
         <div class="step-num">1</div>
         <div class="step-content">
           <div class="step-title">Shows you where you actually stand</div>
-          <div class="step-body">Most of us have a rough idea of our finances, but rough ideas don't give you a plan. FirePath turns confusing financial information into something you can actually understand — including the date you could become financially independent, and what to do about it if that date doesn't fit your life.</div>
+          <div class="step-body">Most of us have a rough idea of our finances, but rough ideas don't give you a plan. FirePath turns confusing financial information into something you can actually understand. One of the first things you'll discover is the date you could become financially independent.<br/><br/>And if that date doesn't fit your life? FirePath helps you understand what you can do about it — in plain English, no judgment.</div>
         </div>
       </div>
-           <div class="step reveal reveal-d2">
+           <div class="step">
         <div class="step-num">2</div>
         <div class="step-content">
           <div class="step-title">Tells you what actually moves the needle</div>
-          <div class="step-body">Not generic tips — your numbers. What happens to your date if you save $50 more a week, or invest instead of leaving it in a bank? FirePath shows the exact difference, and the Learning Lab recommends education built around your situation, so you know what to do next and why it matters.</div>
+          <div class="step-body">Not generic tips. Your numbers. What happens to your date if you save $50 more a week? If your money was invested instead of sitting in a bank? FirePath shows you the exact difference — in years.<br/><br/>The Learning Lab reads your inputs and recommends education built around your situation — so you can figure out what to do next and why it matters.</div>
         </div>
       </div>
-      <div class="step reveal reveal-d3">
+      <div class="step">
         <div class="step-num">3</div>
         <div class="step-content">
           <div class="step-title">Sits beside you as your situation changes</div>
@@ -981,61 +832,13 @@
     </div>
   </section>
 
-  <!-- ── JOURNEY TREND — the trend a "today" snapshot builds into over time. Bars grow
-       in when scrolled into view (see journeyBarObserver below). ── -->
-  <section class="journey-section">
-    <span class="section-eyebrow reveal">Your journey</span>
-    <div class="journey-card elevated-card reveal reveal-d1" id="journeyCard">
-      <span class="preview-example-tag">For illustration</span>
-      <div class="journey-bars">
-        <div class="journey-bar-col"><div class="journey-bar" data-pct="38"></div><div class="journey-bar-pct">38%</div><div class="journey-bar-month">May</div></div>
-        <div class="journey-bar-col"><div class="journey-bar" data-pct="39"></div><div class="journey-bar-pct">39%</div><div class="journey-bar-month">Jun</div></div>
-        <div class="journey-bar-col"><div class="journey-bar" data-pct="43"></div><div class="journey-bar-pct">43%</div><div class="journey-bar-month">Jul</div></div>
-        <div class="journey-bar-col"><div class="journey-bar" data-pct="44"></div><div class="journey-bar-pct">44%</div><div class="journey-bar-month">Aug</div></div>
-      </div>
-      <div class="journey-stats">
-        <div class="journey-stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Freedom Level +6%</div>
-        <div class="journey-stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>The gap reduced</div>
-        <div class="journey-stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Portfolio income +$2,140</div>
-        <div class="journey-stat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Bought back 1.8 years</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── FREE VS PRO ── -->
-  <!-- Four preset amounts, not a continuous slider. A continuous drag slider was tried
-       first — but a ONE-YEAR-ONLY savings boost (not a permanent increase) has a small
-       enough effect at this baseline that most of a slider's range wouldn't visibly move,
-       which reads as broken rather than alive. These four amounts were deliberately
-       spaced far enough apart that each lands on a genuinely different day-count, verified
-       via financial-engine.js's solveMonthsToTarget() against a one-year-boost-then-revert
-       projection (not solveMonthsToTarget()'s own indefinite-rate assumption) — baseline:
-       $520k portfolio / $2,600/mo savings / $65k spend, matching the hero's "11 yrs" claim. -->
-  <section class="commitment-section">
-    <span class="section-eyebrow reveal">A commitment to your future self</span>
-    <div class="commitment-card elevated-card reveal reveal-d1">
-      <span class="preview-example-tag">Illustrative example</span>
-      <div class="commitment-label">Save a little extra, just for one year</div>
-      <div class="commitment-presets">
-        <button class="commitment-preset" data-amount="75" data-days="30">$75/wk</button>
-        <button class="commitment-preset active" data-amount="150" data-days="61">$150/wk</button>
-        <button class="commitment-preset" data-amount="300" data-days="91">$300/wk</button>
-        <button class="commitment-preset" data-amount="500" data-days="152">$500/wk</button>
-      </div>
-      <div class="commitment-result">
-        <div class="commitment-result-value" id="commitDays">61 days</div>
-        <div class="commitment-result-label">of freedom bought back — from just twelve months of saving a bit more</div>
-      </div>
-    </div>
-  </section>
-
   <!-- ── FREE VS PRO ── -->
   <section class="compare-section">
   <span class="section-eyebrow">Free vs Pro</span>
     <h2 class="section-headline">Start free. Get really clever with Pro when you're ready.</h2>
 
     <div class="compare-grid">
-      <div class="compare-card free reveal">
+      <div class="compare-card free">
         <span class="compare-badge">Free forever</span>
         <div class="compare-title">Your number</div>
         <ul class="compare-features">
@@ -1048,8 +851,8 @@
         <a href="firepath.html" class="compare-link">Start for free →</a>
       </div>
 
-      <div class="compare-card pro reveal reveal-d1">
-        <span class="compare-badge">FirePath Pro — everything in one place</span>
+      <div class="compare-card pro">
+        <span class="compare-badge">FirePath Pro (the really clever one)</span>
         <div class="compare-title">The full picture</div>
         <div class="compare-price">$6<span style="font-size:14px;font-weight:300;opacity:0.6">/month</span></div>
         <div class="compare-price-note">Cancel anytime. No lock-in.</div>
@@ -1069,7 +872,7 @@
 
   <!-- ── FINAL CTA ── -->
   <div class="final-cta">
-    <div class="final-cta-inner reveal">
+    <div class="final-cta-inner">
       <h2 class="final-cta-headline">
         You're not lost anymore.
       </h2>
@@ -1101,8 +904,6 @@
   </footer>
 
   <script>
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     function toggleMenu() {
       document.getElementById('navLinks').classList.toggle('open');
       document.getElementById('hamburger').classList.toggle('open');
@@ -1110,112 +911,6 @@
     function closeMenu() {
       document.getElementById('navLinks').classList.remove('open');
       document.getElementById('hamburger').classList.remove('open');
-    }
-
-    // Scroll-reveal: elements fade + rise into view once, staggered via reveal-d1/d2/d3
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-    // Journey bars — grow in once, when scrolled into view. Values (38-46%) are close
-    // together, so heights are scaled to the range rather than used as raw percentages —
-    // otherwise the bars would all look nearly identical instead of showing a clear trend.
-    (function() {
-      const journeyCard = document.getElementById('journeyCard');
-      if (!journeyCard) return;
-      const bars = journeyCard.querySelectorAll('.journey-bar');
-      const values = Array.from(bars).map(b => parseFloat(b.dataset.pct));
-      const min = Math.min(...values), max = Math.max(...values);
-      const journeyObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            bars.forEach(bar => {
-              const val = parseFloat(bar.dataset.pct);
-              const scaled = prefersReducedMotion ? 100 : 35 + ((val - min) / (max - min)) * 65;
-              bar.style.height = scaled + '%';
-            });
-            journeyObserver.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.3 });
-      journeyObserver.observe(journeyCard);
-    })();
-
-    // Commitment presets — tap between four pre-verified amounts (see the comment above
-    // the section for how each figure was calculated). No live in-browser calculation
-    // needed since these are fixed, known-good values, not a continuous range.
-    (function() {
-      const presets = document.querySelectorAll('.commitment-preset');
-      const resultEl = document.getElementById('commitDays');
-      if (!presets.length || !resultEl) return;
-      presets.forEach(btn => {
-        btn.addEventListener('click', () => {
-          presets.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          resultEl.style.opacity = '0.3';
-          setTimeout(() => {
-            resultEl.textContent = btn.dataset.days + ' days';
-            resultEl.style.opacity = '1';
-          }, prefersReducedMotion ? 0 : 120);
-        });
-      });
-    })();
-
-    // Hero preview card — counts up from 0 to 42% on load, "calculating" then "complete".
-    // Skipped (jumps straight to final state) if reduced motion is preferred.
-    (function() {
-      const pctEl = document.getElementById('previewPct');
-      const barEl = document.getElementById('previewBarFill');
-      const labelEl = document.getElementById('previewStatusLabel');
-      const TARGET = 42;
-      if (!pctEl || !barEl || !labelEl) return;
-      if (prefersReducedMotion) {
-        pctEl.textContent = TARGET;
-        barEl.style.width = TARGET + '%';
-        labelEl.textContent = 'Freedom Level';
-        return;
-      }
-      setTimeout(() => { barEl.style.width = TARGET + '%'; }, 300);
-      const duration = 2600, start = performance.now();
-      function tick(now) {
-        const progress = Math.min(1, (now - start) / duration);
-        const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-        pctEl.textContent = Math.round(eased * TARGET);
-        if (progress < 1) {
-          requestAnimationFrame(tick);
-        } else {
-          labelEl.style.opacity = '0';
-          setTimeout(() => {
-            labelEl.textContent = '✓ Freedom Level';
-            labelEl.style.opacity = '1';
-          }, 300);
-        }
-      }
-      requestAnimationFrame(tick);
-    })();
-
-    // Subtle mouse-tilt on the hero card — a couple of degrees max, Vision Pro-style
-    // rather than gaming RGB tilt. Disabled entirely under reduced motion.
-    if (!prefersReducedMotion) {
-      const tiltWrap = document.getElementById('previewCardWrap');
-      const tiltCard = document.getElementById('previewCard');
-      if (tiltWrap && tiltCard) {
-        tiltWrap.addEventListener('mousemove', (e) => {
-          const rect = tiltWrap.getBoundingClientRect();
-          const x = (e.clientX - rect.left) / rect.width - 0.5;
-          const y = (e.clientY - rect.top) / rect.height - 0.5;
-          tiltCard.style.transform = `rotateX(${(-y * 3).toFixed(2)}deg) rotateY(${(x * 3).toFixed(2)}deg)`;
-        });
-        tiltWrap.addEventListener('mouseleave', () => {
-          tiltCard.style.transform = 'rotateX(0deg) rotateY(0deg)';
-        });
-      }
     }
   </script>
 
