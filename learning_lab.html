@@ -1002,6 +1002,13 @@ Respond ONLY with valid JSON:
     if (pTopic && pTrack && pTitle) {
       if (!['foundation', 'tax'].includes(pTrack)) selectTrack(pTrack);
       openArticle(pTopic, pTrack, decodeURIComponent(pTitle));
+    } else {
+      // Deep-link into a track's topic list without opening a specific article —
+      // used by learn.html's "Explore topics" links. Foundation/tax topics already
+      // render directly on the default track view, so only the standalone tracks
+      // ('life', '5', '7', '10') need selectTrack() called explicitly.
+      const pOpenTrack = params.get('openTrack');
+      if (pOpenTrack && !['foundation', 'tax'].includes(pOpenTrack)) selectTrack(pOpenTrack);
     }
   });
 

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FirePath — Learn</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --fire-orange: #F4622A;
+    --fire-amber:  #F9A825;
+    --warm-cream:  #FDF6EE;
+    --warm-brown:  #3D2B1F;
+    --soft-grey:   #9E8E85;
+    --border:      #EDE3DA;
+    --dark-bg:     #2A1E15;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); -webkit-font-smoothing: antialiased; }
+  .container { max-width: 640px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  .mobile-topbar { display: flex; align-items: center; justify-content: space-between; padding-top: 6px; margin-bottom: 24px; gap: 12px; }
+  .mobile-back { display: flex; align-items: center; gap: 6px; color: var(--soft-grey); text-decoration: none; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+  .mobile-back:hover { color: var(--fire-orange); }
+
+  .page-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
+  .page-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 28px; color: var(--warm-brown); margin-bottom: 8px; line-height: 1.2; }
+  .page-sub { font-size: 14px; color: var(--soft-grey); font-weight: 300; margin-bottom: 28px; max-width: 52ch; }
+
+  /* ── Search — real client-side filter over the curated lesson list below, not a
+       decorative input. Typing narrows both the recommended row and the path list. ── */
+  .search-wrap { position: relative; margin-bottom: 28px; }
+  .search-input {
+    width: 100%; background: white; border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 16px 12px 40px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--warm-brown);
+  }
+  .search-input:focus { outline: none; border-color: var(--fire-orange); }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--soft-grey); pointer-events: none; }
+
+  /* ── Progress hero ── */
+  .progress-hero {
+    background: white; border: 1px solid var(--border); border-radius: 20px; padding: 26px;
+    display: flex; align-items: center; gap: 22px; margin-bottom: 28px; flex-wrap: wrap;
+    opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .progress-hero.in-view { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) { .progress-hero { opacity: 1; transform: none; transition: none; } }
+  .progress-ring-wrap { position: relative; width: 92px; height: 92px; flex-shrink: 0; }
+  .progress-ring-wrap svg { width: 100%; height: 100%; }
+  .progress-ring-track { fill: none; stroke: var(--border); stroke-width: 6; }
+  .progress-ring-fill { fill: none; stroke: var(--fire-orange); stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+  .progress-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .progress-ring-pct { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: var(--warm-brown); }
+  .progress-ring-caption { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--soft-grey); font-weight: 700; }
+  .progress-hero-body { flex: 1; min-width: 180px; }
+  .progress-hero-label { font-size: 12px; color: var(--soft-grey); margin-bottom: 2px; }
+  .progress-hero-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: var(--warm-brown); margin-bottom: 10px; }
+  .progress-hero-bar-track { height: 6px; background: var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+  .progress-hero-bar-fill { height: 100%; background: linear-gradient(90deg, var(--fire-orange), var(--fire-amber)); border-radius: 6px; width: 0%; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+  .progress-hero-count { font-size: 12.5px; color: var(--soft-grey); }
+  .resume-btn {
+    display: inline-flex; align-items: center; gap: 6px; background: var(--warm-cream); border: 1px solid var(--border);
+    border-radius: 50px; padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--warm-brown);
+    text-decoration: none; flex-shrink: 0; transition: border-color 0.15s ease;
+  }
+  .resume-btn:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
+
+  /* ── Recommended row ── */
+  .section-label-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); }
+  .section-link { font-size: 12.5px; color: var(--fire-orange); text-decoration: none; font-weight: 500; }
+  .rec-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 32px; scrollbar-width: thin; }
+  .rec-card {
+    flex: 0 0 200px; height: 190px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column;
+    justify-content: space-between; text-decoration: none; position: relative; overflow: hidden;
+    background: linear-gradient(160deg, #241a30 0%, var(--dark-bg) 65%);
+  }
+  .rec-card-tag {
+    align-self: flex-start; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--fire-amber); background: rgba(249,168,37,0.14); padding: 4px 9px; border-radius: 20px;
+  }
+  .rec-card-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 16px; color: white; line-height: 1.3; }
+  .rec-card-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .rec-card-time { font-size: 11.5px; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 4px; }
+  .rec-card-arrow {
+    width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.12); color: white;
+    display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;
+  }
+
+  /* ── Learning path stepper ── */
+  .stepper { display: flex; align-items: flex-start; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+  .stepper-step { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 84px; text-align: center; cursor: pointer; background: none; border: none; font-family: inherit; }
+  .stepper-connector { flex: 1; height: 1px; background: var(--border); margin-top: 17px; min-width: 16px; }
+  .stepper-dot {
+    width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-weight: 700; font-size: 14px; color: var(--soft-grey);
+    background: white; border: 1.5px solid var(--border); margin-bottom: 8px;
+  }
+  .stepper-step.done .stepper-dot { background: var(--fire-orange); border-color: var(--fire-orange); color: white; }
+  .stepper-step.current .stepper-dot { background: var(--fire-orange); border-color: var(--fire-orange); color: white; }
+  .stepper-name { font-size: 12.5px; font-weight: 600; color: var(--warm-brown); }
+  .stepper-tagline { font-size: 10.5px; color: var(--soft-grey); margin-top: 1px; }
+
+  .lesson-list { background: white; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 32px; }
+  .lesson-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; text-decoration: none; border-bottom: 1px solid var(--border); }
+  .lesson-row:last-child { border-bottom: none; }
+  .lesson-row:hover { background: var(--warm-cream); }
+  .lesson-num { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 13px; color: var(--soft-grey); width: 24px; flex-shrink: 0; }
+  .lesson-body { flex: 1; min-width: 0; }
+  .lesson-title { font-size: 14.5px; font-weight: 500; color: var(--warm-brown); margin-bottom: 2px; }
+  .lesson-sub { font-size: 12.5px; color: var(--soft-grey); font-weight: 300; }
+  .lesson-meta { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .lesson-time { font-size: 12px; color: var(--soft-grey); white-space: nowrap; }
+  .lesson-check { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .lesson-check.done { background: rgba(46,125,50,0.12); color: #2E7D32; }
+  .lesson-check.todo { color: var(--soft-grey); }
+  .lesson-row.hidden-by-search { display: none; }
+
+  /* ── Sidebar cards (stacked in normal flow on mobile, real sidebar on desktop) ── */
+  .side-card { background: white; border: 1px solid var(--border); border-radius: 20px; padding: 22px; margin-bottom: 16px; }
+  .side-card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 16px; }
+  .progress-stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .progress-stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .progress-stat-icon.lessons { background: rgba(244,98,42,0.12); color: var(--fire-orange); }
+  .progress-stat-icon.hours { background: rgba(46,125,50,0.1); color: #2E7D32; }
+  .progress-stat-icon.streak { background: rgba(249,168,37,0.15); color: var(--fire-amber); }
+  .progress-stat-value { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px; color: var(--warm-brown); line-height: 1.1; }
+  .progress-stat-label { font-size: 11.5px; color: var(--soft-grey); }
+  .week-dots { display: flex; justify-content: space-between; margin-top: 8px; border-top: 1px solid var(--border); padding-top: 14px; }
+  .week-dot-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .week-dot-letter { font-size: 10px; color: var(--soft-grey); }
+  .week-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .week-dot.active { background: var(--fire-orange); }
+  .topic-link-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; text-decoration: none; color: var(--warm-brown); font-size: 13.5px; border-bottom: 1px solid var(--border); }
+  .topic-link-row:last-of-type { border-bottom: none; }
+  .topic-link-row:hover { color: var(--fire-orange); }
+  .browse-all-btn {
+    display: block; text-align: center; margin-top: 14px; padding: 11px; border: 1px solid var(--border);
+    border-radius: 10px; font-size: 13px; font-weight: 500; color: var(--warm-brown); text-decoration: none;
+  }
+  .browse-all-btn:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     DESKTOP PLATFORM — same rail as journey.html, "Learn" marked active,
+     plus the real two-column layout (main + sidebar) this page was designed for.
+     ══════════════════════════════════════════════════════════════════════ */
+  .desktop-rail { display: none; }
+  .desktop-topbar { display: none; }
+  @media (min-width: 1024px) {
+    body { padding-left: 232px; }
+    .desktop-rail {
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; width: 232px;
+      background: var(--dark-bg); padding: 28px 18px; z-index: 40;
+    }
+    .desktop-rail-logo { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px; color: var(--warm-cream); margin: 6px 10px 36px; letter-spacing: -0.01em; }
+    .desktop-rail-nav { display: flex; flex-direction: column; gap: 3px; }
+    .desktop-rail-item {
+      display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 10px;
+      color: rgba(253,246,238,0.55); text-decoration: none; font-size: 14px; font-weight: 500;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .desktop-rail-item svg { flex-shrink: 0; opacity: 0.8; }
+    .desktop-rail-item:hover { background: rgba(253,246,238,0.06); color: var(--warm-cream); }
+    .desktop-rail-item.active { background: rgba(244,98,42,0.14); color: var(--warm-cream); }
+    .desktop-rail-item.active svg { opacity: 1; color: var(--fire-orange); }
+    .desktop-rail-ask {
+      margin-top: auto; display: flex; align-items: center; gap: 9px; padding: 12px 14px;
+      border-radius: 12px; background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
+      color: white; text-decoration: none; font-size: 13px; font-weight: 500;
+    }
+    .desktop-rail-footer { display: flex; flex-direction: column; gap: 1px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(253,246,238,0.1); }
+    .desktop-rail-footer a { color: rgba(253,246,238,0.4); text-decoration: none; font-size: 12.5px; padding: 7px 12px; border-radius: 8px; transition: color 0.15s ease, background 0.15s ease; }
+    .desktop-rail-footer a:hover { color: rgba(253,246,238,0.8); background: rgba(253,246,238,0.05); }
+
+    .mobile-topbar { display: none; }
+    .desktop-topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 8px; }
+    .desktop-topbar .search-wrap { flex: 1; max-width: 360px; margin-bottom: 0; }
+    .desktop-avatar {
+      width: 38px; height: 38px; border-radius: 50%; background: var(--border); color: var(--warm-brown);
+      display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;
+      text-decoration: none; flex-shrink: 0;
+    }
+
+    .container { max-width: 1240px; margin: 0 auto; padding: 48px 56px 100px; display: grid; grid-template-columns: 1fr 320px; column-gap: 40px; }
+    .desktop-topbar, .page-eyebrow, .page-title, .page-sub, .progress-hero, .rec-section, .path-section { grid-column: 1; }
+    .sidebar-col { grid-column: 2; grid-row: 1 / span 6; }
+    .desktop-topbar { grid-row: 1; }
+    .page-eyebrow { grid-row: 2; margin-top: 24px; }
+    .page-title { grid-row: 3; }
+    .page-sub { grid-row: 4; }
+    .progress-hero { grid-row: 5; }
+    .rec-section { grid-row: 6; }
+    .path-section { grid-row: 7; }
+  }
+</style>
+<script src="js/auth.js"></script>
+</head>
+<body>
+
+<!-- ── DESKTOP RAIL — see journey.html for the full comment on this pattern. ── -->
+<nav class="desktop-rail" aria-label="Primary">
+  <div class="desktop-rail-logo">FirePath</div>
+  <div class="desktop-rail-nav">
+    <a href="journey.html" class="desktop-rail-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+      Journey
+    </a>
+    <a href="money.html" class="desktop-rail-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
+      Money
+    </a>
+    <a href="strategy.html" class="desktop-rail-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
+      Strategy
+    </a>
+    <a href="learn.html" class="desktop-rail-item active">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
+      Learn
+    </a>
+  </div>
+  <a href="ask-firepath.html" class="desktop-rail-ask">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    Ask FirePath
+  </a>
+  <div class="desktop-rail-footer">
+    <a href="account.html">Settings</a>
+    <a href="auth.html?action=signout">Sign out</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="mobile-topbar">
+    <a href="journey.html" class="mobile-back">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Journey
+    </a>
+  </div>
+
+  <div class="desktop-topbar">
+    <div class="search-wrap">
+      <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" class="search-input" id="searchInputDesktop" placeholder="Search lessons…" aria-label="Search lessons"/>
+    </div>
+    <a href="account.html" class="desktop-avatar" id="avatarInitial">·</a>
+  </div>
+
+  <div class="page-eyebrow">Learning Lab</div>
+  <div class="page-title">Build knowledge. Change your future.</div>
+  <div class="page-sub">Short, focused lessons that help you make smarter financial decisions — each one personalised to your actual numbers.</div>
+
+  <div class="search-wrap" id="mobileSearchWrap">
+    <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input type="text" class="search-input" id="searchInputMobile" placeholder="Search lessons…" aria-label="Search lessons"/>
+  </div>
+
+  <div class="progress-hero" id="progressHero">
+    <div class="progress-ring-wrap">
+      <svg viewBox="0 0 100 100">
+        <circle class="progress-ring-track" cx="50" cy="50" r="42"/>
+        <circle class="progress-ring-fill" id="progressRingFill" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"/>
+      </svg>
+      <div class="progress-ring-label">
+        <div class="progress-ring-pct" id="progressRingPct">0%</div>
+        <div class="progress-ring-caption">Complete</div>
+      </div>
+    </div>
+    <div class="progress-hero-body">
+      <div class="progress-hero-label">Your learning path</div>
+      <div class="progress-hero-title">FirePath Foundations Path</div>
+      <div class="progress-hero-bar-track"><div class="progress-hero-bar-fill" id="progressHeroBar"></div></div>
+      <div class="progress-hero-count" id="progressHeroCount">Loading your progress…</div>
+    </div>
+    <a href="learning_lab.html" class="resume-btn" id="resumeBtn">Resume learning →</a>
+  </div>
+
+  <div class="rec-section">
+    <div class="section-label-row">
+      <div class="section-label">Recommended for you</div>
+      <a href="#pathSection" class="section-link">View all</a>
+    </div>
+    <div class="rec-row" id="recRow"></div>
+  </div>
+
+  <div class="path-section" id="pathSection">
+    <div class="section-label">Your learning path</div>
+    <div class="stepper" id="stepper"></div>
+    <div class="lesson-list" id="lessonList"></div>
+  </div>
+
+  <div class="sidebar-col">
+    <div class="side-card">
+      <div class="side-card-title">Your progress</div>
+      <div class="progress-stat-row">
+        <div class="progress-stat-icon lessons">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/></svg>
+        </div>
+        <div>
+          <div class="progress-stat-value" id="statLessons">—</div>
+          <div class="progress-stat-label">Lessons completed</div>
+        </div>
+      </div>
+      <div class="progress-stat-row">
+        <div class="progress-stat-icon hours">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div>
+        <div>
+          <div class="progress-stat-value" id="statHours">—</div>
+          <div class="progress-stat-label">Hours invested (est.)</div>
+        </div>
+      </div>
+      <div class="progress-stat-row" style="margin-bottom: 0;">
+        <div class="progress-stat-icon streak">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a7 7 0 0 1-12 0c-2-3-1-7 2-10 1 1 1 3 2 3s0-4 2-8z"/></svg>
+        </div>
+        <div>
+          <div class="progress-stat-value" id="statStreak">—</div>
+          <div class="progress-stat-label">Day streak</div>
+        </div>
+      </div>
+      <div class="week-dots" id="weekDots"></div>
+    </div>
+
+    <div class="side-card">
+      <div class="side-card-title">Explore topics</div>
+      <div id="exploreTopics"></div>
+      <a href="learning_lab.html" class="browse-all-btn">Browse all topics →</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── Real content, pulled straight from learning_lab.html's own topic data and
+  // track ids — nothing here is invented. Each lesson's `track` is the REAL track
+  // code learning_lab.html expects (foundation/tax/5/7/10), so the deep link below
+  // opens the exact same personalised article + progress-tracking flow that page
+  // already has, just reached from a curated 5-stage path instead of the full
+  // 66-lesson library. Minutes are a flat, honestly-labelled estimate — actual
+  // per-lesson reading time isn't tracked anywhere yet.
+  const EST_MINUTES = 6;
+  const STAGES = [
+    { key: 'foundation', name: 'Foundations', tagline: 'Start here', lessons: [
+      { id: 'what-is-fire', title: 'What is FIRE and is it realistic for me?', sub: 'The basics of financial independence' },
+      { id: 'compounding', title: 'How compound interest actually works', sub: 'With your actual numbers' },
+      { id: 'saving-vs-investing', title: 'The difference between saving and investing', sub: 'Why it matters for your timeline' },
+      { id: 'two-phase', title: 'Your two-phase freedom timeline', sub: 'Savings now, super at 60' },
+      { id: 'acronyms', title: 'The FIRE glossary — every acronym explained', sub: 'PPOR, DINK, ETF, SWR and every term you see in forums' },
+    ]},
+    { key: '5', name: 'Build Your Base', tagline: 'Building blocks', lessons: [
+      { id: 'bonds', title: 'What is a bond and why it matters', sub: 'The conservative building block' },
+      { id: 'hisa', title: 'High interest savings vs term deposits', sub: 'Making your cash work harder' },
+      { id: 'balanced-funds', title: 'Balanced funds explained', sub: 'A bit of everything, less risk' },
+      { id: 'diversification', title: 'What diversification actually means', sub: "Don't put all your eggs in one basket" },
+      { id: 'inflation', title: 'Why inflation is your silent enemy', sub: 'The number eroding your savings right now' },
+      { id: 'etf-intro', title: 'Introduction to ETFs', sub: 'The conservative starting point' },
+      { id: 'risk-reward', title: 'How to think about risk vs reward', sub: 'Finding your comfort zone' },
+    ]},
+    { key: 'tax', name: 'Optimise', tagline: 'Tax & super', lessons: [
+      { id: 'catch-up-contributions', title: 'Catch-up concessional contributions — how they work', sub: 'Using unused prior-year cap for a big lump-sum contribution' },
+      { id: 'super-co-contribution', title: 'The government super co-contribution', sub: 'Free money for lower and middle income earners' },
+      { id: 'spouse-contribution-offset', title: 'Spouse contribution tax offset', sub: "A tax offset for contributing to a lower-earning partner's super" },
+      { id: 'cgt-discount', title: 'The 50% CGT discount, explained', sub: 'Why holding period matters when you sell an investment' },
+      { id: 'franking-credits', title: 'Franking credits on Australian shares', sub: 'A uniquely Australian tax advantage' },
+      { id: 'first-home-super-saver', title: 'First Home Super Saver Scheme', sub: 'Using super to help save a home deposit' },
+      { id: 'division-293', title: 'Division 293 tax, explained', sub: 'Extra tax on super contributions for high earners' },
+    ]},
+    { key: '7', name: 'Freedom', tagline: 'The FIRE standard', lessons: [
+      { id: 'index-funds', title: 'What is an index fund and why it works', sub: 'The FIRE community favourite' },
+      { id: 'etf-how', title: 'ETFs — how to buy, what they cost', sub: 'The practical guide' },
+      { id: 'compounding-numbers', title: 'Compounding with your actual numbers', sub: 'Seeing it in real terms' },
+      { id: 'dca', title: 'Dollar cost averaging', sub: 'What it is and why it works' },
+      { id: 'aus-vs-global', title: 'Australian shares vs global shares', sub: 'Where should your money live?' },
+      { id: 'super-vehicle', title: 'Superannuation as an investment vehicle', sub: 'More than just a retirement fund' },
+      { id: 'four-percent', title: 'The 4% rule — where it comes from', sub: 'The foundation of FIRE' },
+      { id: 'tax-basics', title: 'Tax and investing basics in Australia', sub: 'What you need to know' },
+    ]},
+    { key: '10', name: 'Advanced', tagline: 'Growth strategies', lessons: [
+      { id: 'individual-shares', title: 'Individual shares — how they work', sub: 'Higher risk, higher potential' },
+      { id: 'property', title: 'Property investing explained', sub: 'Leverage, equity, cash flow' },
+      { id: 'arbitrage', title: 'Arbitrage explained simply', sub: 'Finding the gap between prices' },
+      { id: 'growth-vs-value', title: 'Growth vs value investing', sub: 'Two very different approaches' },
+      { id: 'dividends', title: 'Dividends vs capital growth', sub: 'Income now or wealth later?' },
+      { id: 'franking', title: 'Franking credits in Australia', sub: 'A uniquely Australian advantage' },
+      { id: 'volatility', title: 'Volatility — the emotional side', sub: 'How to handle the ride' },
+    ]},
+  ];
+  const TOTAL_LESSONS = STAGES.reduce((n, s) => n + s.lessons.length, 0);
+
+  function lessonUrl(track, id, title) {
+    return `learning_lab.html?topic=${encodeURIComponent(id)}&track=${encodeURIComponent(track)}&title=${encodeURIComponent(title)}`;
+  }
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    const token = getToken();
+    const userId = getUserId();
+    if (!token || !userId) { window.location.href = 'auth.html'; return; }
+
+    const email = localStorage.getItem('fp_email') || '';
+    const initial = email ? email[0].toUpperCase() : '·';
+    const avatarEl = document.getElementById('avatarInitial');
+    if (avatarEl) avatarEl.textContent = initial;
+
+    let readIds = new Set();
+    let readDates = [];
+    try {
+      const res = await fetch(`${WORKER_URL}/db/lab_progress?user_id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_user_id'); localStorage.removeItem('fp_email');
+        sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
+        window.location.href = 'auth.html';
+        return;
+      }
+      if (res.ok) {
+        const rows = await res.json();
+        // saved:false rows are "read" entries in the existing lab_progress schema —
+        // saved:true is a separate bookmark-for-later concept, not completion.
+        rows.filter(r => r && r.saved === false && r.topic_id).forEach(r => {
+          readIds.add(r.topic_id);
+          if (r.read_at) readDates.push(new Date(r.read_at));
+        });
+      }
+    } catch (e) { console.log('Learning progress fetch failed', e); }
+
+    // ── Find the first not-yet-read lesson, in path order, for Recommended/Resume ──
+    let nextLesson = null, nextStage = null;
+    for (const stage of STAGES) {
+      const found = stage.lessons.find(l => !readIds.has(l.id));
+      if (found) { nextLesson = found; nextStage = stage; break; }
+    }
+    const currentStageKey = nextStage ? nextStage.key : STAGES[STAGES.length - 1].key;
+
+    // ── Progress hero ──
+    const completedCount = STAGES.reduce((n, s) => n + s.lessons.filter(l => readIds.has(l.id)).length, 0);
+    const pct = TOTAL_LESSONS > 0 ? Math.round((completedCount / TOTAL_LESSONS) * 100) : 0;
+    const circumference = 264; // 2 * PI * 42, matches the SVG r=42 above
+    const ringFill = document.getElementById('progressRingFill');
+    ringFill.setAttribute('stroke-dashoffset', String(circumference - (circumference * pct / 100)));
+    document.getElementById('progressRingPct').textContent = pct + '%';
+    document.getElementById('progressHeroBar').style.width = pct + '%';
+    document.getElementById('progressHeroCount').textContent = `${completedCount} / ${TOTAL_LESSONS} lessons completed`;
+    document.getElementById('progressHero').classList.add('in-view');
+    if (nextLesson) {
+      document.getElementById('resumeBtn').href = lessonUrl(nextStage.key, nextLesson.id, nextLesson.title);
+      document.getElementById('resumeBtn').textContent = 'Resume learning →';
+    } else {
+      document.getElementById('resumeBtn').href = 'learning_lab.html';
+      document.getElementById('resumeBtn').textContent = 'Explore the full library →';
+    }
+
+    // ── Recommended for you — the next unread lesson, plus one honest pick from
+    // each of two other stages (labelled by real stage name, not a fabricated
+    // "popular" claim there's no data to back). ──
+    const recPicks = [];
+    if (nextLesson) recPicks.push({ tag: 'Next lesson', stage: nextStage, lesson: nextLesson });
+    STAGES.forEach(s => {
+      if (recPicks.length >= 4) return;
+      if (nextStage && s.key === nextStage.key) return;
+      const pick = s.lessons.find(l => !readIds.has(l.id)) || s.lessons[0];
+      if (pick) recPicks.push({ tag: s.name, stage: s, lesson: pick });
+    });
+    document.getElementById('recRow').innerHTML = recPicks.slice(0, 4).map(p => `
+      <a href="${lessonUrl(p.stage.key, p.lesson.id, p.lesson.title)}" class="rec-card" data-search-text="${(p.lesson.title + ' ' + p.lesson.sub).toLowerCase()}">
+        <span class="rec-card-tag">${p.tag}</span>
+        <span class="rec-card-title">${p.lesson.title}</span>
+        <span class="rec-card-bottom">
+          <span class="rec-card-time"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ${EST_MINUTES} min</span>
+          <span class="rec-card-arrow">→</span>
+        </span>
+      </a>`).join('');
+
+    // ── Stepper ──
+    document.getElementById('stepper').innerHTML = STAGES.map((s, i) => {
+      const doneCount = s.lessons.filter(l => readIds.has(l.id)).length;
+      const isDone = doneCount === s.lessons.length;
+      const isCurrent = s.key === currentStageKey;
+      const connector = i < STAGES.length - 1 ? '<div class="stepper-connector"></div>' : '';
+      return `<button class="stepper-step ${isDone ? 'done' : ''} ${isCurrent ? 'current' : ''}" data-stage="${s.key}">
+        <div class="stepper-dot">${isDone ? '✓' : i + 1}</div>
+        <div class="stepper-name">${s.name}</div>
+        <div class="stepper-tagline">${isCurrent ? 'Continue here' : s.tagline}</div>
+      </button>${connector}`;
+    }).join('');
+
+    function renderLessonList(stageKey) {
+      const stage = STAGES.find(s => s.key === stageKey) || STAGES[0];
+      document.getElementById('lessonList').innerHTML = stage.lessons.map((l, i) => {
+        const isRead = readIds.has(l.id);
+        return `<a href="${lessonUrl(stage.key, l.id, l.title)}" class="lesson-row" data-search-text="${(l.title + ' ' + l.sub).toLowerCase()}">
+          <span class="lesson-num">${STAGES.findIndex(s => s.key === stageKey) + 1}.${i + 1}</span>
+          <span class="lesson-body">
+            <span class="lesson-title">${l.title}</span>
+            <span class="lesson-sub">${l.sub}</span>
+          </span>
+          <span class="lesson-meta">
+            <span class="lesson-time">${EST_MINUTES} min</span>
+            <span class="lesson-check ${isRead ? 'done' : 'todo'}">${isRead ? '✓' : ''}</span>
+          </span>
+        </a>`;
+      }).join('');
+    }
+    renderLessonList(currentStageKey);
+    document.querySelectorAll('.stepper-step').forEach(btn => {
+      btn.addEventListener('click', () => renderLessonList(btn.dataset.stage));
+    });
+
+    // ── Sidebar: real stats from the same read data above ──
+    document.getElementById('statLessons').textContent = readIds.size;
+    document.getElementById('statHours').textContent = (readIds.size * EST_MINUTES / 60).toFixed(1);
+
+    // Streak — consecutive calendar days with at least one read_at, counting back
+    // from today. Real, if modest: no streak tracking existed before this page.
+    const dayKeys = new Set(readDates.map(d => d.toDateString()));
+    let streak = 0;
+    let cursor = new Date();
+    while (dayKeys.has(cursor.toDateString())) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    document.getElementById('statStreak').textContent = streak;
+
+    const dayLetters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const today = new Date();
+    const weekCells = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      weekCells.push({ letter: dayLetters[d.getDay()], active: dayKeys.has(d.toDateString()) });
+    }
+    document.getElementById('weekDots').innerHTML = weekCells.map(c =>
+      `<div class="week-dot-col"><span class="week-dot-letter">${c.letter}</span><span class="week-dot ${c.active ? 'active' : ''}"></span></div>`
+    ).join('');
+
+    // ── Explore topics — the real track names, linking into learning_lab.html's
+    // own track selector (?track=) rather than duplicating that page's content. ──
+    const exploreLinks = [
+      { label: 'Real Questions', track: 'life' },
+      { label: 'Build Your Base', track: '5' },
+      { label: 'Tax & Strategy', track: 'tax' },
+      { label: 'The FIRE Standard', track: '7' },
+      { label: 'Grow Faster', track: '10' },
+    ];
+    document.getElementById('exploreTopics').innerHTML = exploreLinks.map(t =>
+      `<a href="learning_lab.html?openTrack=${encodeURIComponent(t.track)}" class="topic-link-row">${t.label} <span>→</span></a>`
+    ).join('');
+
+    // ── Real search — filters recommended cards and the visible lesson list by
+    // title/description text, across both the desktop and mobile search inputs. ──
+    function applySearch(q) {
+      const term = q.trim().toLowerCase();
+      document.querySelectorAll('#recRow .rec-card, #lessonList .lesson-row').forEach(el => {
+        const text = el.getAttribute('data-search-text') || '';
+        el.classList.toggle('hidden-by-search', term.length > 0 && !text.includes(term));
+      });
+    }
+    ['searchInputDesktop', 'searchInputMobile'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', () => applySearch(el.value));
+    });
+  });
+</script>
+</body>
+</html>
