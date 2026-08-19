@@ -227,11 +227,15 @@
       const debt = p.debt_total || 0;
       const mortgage = p.mortgage_remaining || 0;
       const superBal = p.super_balance || 0;
+      // Offset savings are real, owned money (the onboarding form's own hint text
+      // says so — "separate from what's invested elsewhere"), just parked against
+      // the mortgage instead of invested. Was missing entirely from net worth.
+      const offsetAmt = p.offset_amount || 0;
       // Assets minus liabilities, nothing hidden inside the headline that isn't
       // also itemised below — same formula journey.html now uses for its own
       // netWorth figure and Since Last Month delta, so this page and Journey
       // never disagree about what "net worth" means.
-      const assetsTotal = savings + superBal;
+      const assetsTotal = savings + superBal + offsetAmt;
       const liabilitiesTotal = debt + mortgage;
       const netWorth = assetsTotal - liabilitiesTotal;
       const fmt = (window.FirePathEngine && window.FirePathEngine.fmtM) ? window.FirePathEngine.fmtM : (n => '$' + Math.round(n));
@@ -239,7 +243,8 @@
       const assetRows = `
         <div class="networth-subgroup-label">Assets</div>
         <div class="networth-row"><span class="networth-row-label">Savings &amp; investments</span><span class="networth-row-value">${fmt(savings)}</span></div>
-        ${superBal ? `<div class="networth-row"><span class="networth-row-label">Superannuation</span><span class="networth-row-value">${fmt(superBal)}</span></div>` : ''}`;
+        ${superBal ? `<div class="networth-row"><span class="networth-row-label">Superannuation</span><span class="networth-row-value">${fmt(superBal)}</span></div>` : ''}
+        ${offsetAmt ? `<div class="networth-row"><span class="networth-row-label">Mortgage offset</span><span class="networth-row-value">${fmt(offsetAmt)}</span></div>` : ''}`;
       const liabilityRows = liabilitiesTotal ? `
         <div class="networth-subgroup-label">Liabilities</div>
         ${debt ? `<div class="networth-row"><span class="networth-row-label">Debt</span><span class="networth-row-value liability">-${fmt(debt)}</span></div>` : ''}
@@ -257,7 +262,7 @@
           // Same netWorthFormulaVersion guard as journey.html — see that file's
           // comment. Older snapshots saved before the assets-minus-liabilities fix
           // simply aren't compared against, rather than showing a fake jump.
-          if (prevSnapshot && prevSnapshot.picture && typeof prevSnapshot.picture.netWorth === 'number' && prevSnapshot.picture.netWorthFormulaVersion === 2) {
+          if (prevSnapshot && prevSnapshot.picture && typeof prevSnapshot.picture.netWorth === 'number' && prevSnapshot.picture.netWorthFormulaVersion === 3) {
             const delta = netWorth - prevSnapshot.picture.netWorth;
             if (delta !== 0) {
               const deltaEl = document.getElementById('networthDelta');

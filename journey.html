@@ -800,19 +800,25 @@
       const debt = p.debt_total || 0;
       const mortgage = p.mortgage_remaining || 0;
       const superBalForNetWorth = p.super_balance || 0;
-      // True net worth — savings, investments and super, minus everything owed,
-      // mortgage included. Was previously savings minus debt_total only (silently
-      // dropping both super and any mortgage), which is how a Money-page screenshot
-      // ended up showing "Net worth $86K" directly above "Super $35K" as if the
-      // second figure were somehow not part of the first. One honest number now,
-      // and money.html's asset/liability breakdown is built to add up to exactly
-      // this same figure — see that file for the full accounting.
+      // Money sitting in a mortgage offset is real, owned money — the onboarding
+      // form's own hint text says so explicitly ("separate from what's invested
+      // elsewhere"), it's just parked against the mortgage rather than invested.
+      // Leaving it out was undercounting real net worth by exactly that amount.
+      const offsetAmt = p.offset_amount || 0;
+      // True net worth — savings, investments, super and offset savings, minus
+      // everything owed, mortgage included. Was previously savings minus debt_total
+      // only (silently dropping super, mortgage AND offset), which is how a
+      // Money-page screenshot ended up showing "Net worth $86K" directly above
+      // "Super $35K" as if the second figure were somehow not part of the first.
+      // One honest number now, and money.html's asset/liability breakdown is built
+      // to add up to exactly this same figure — see that file for the full accounting.
       //
       // NOTE: existing users' stored snapshots (financial_snapshots.picture.netWorth)
-      // were saved under the OLD narrower formula. The very next "Since Last Month"
-      // comparison for an existing user will show a one-off jump equal to their
-      // super balance minus mortgage — a real definition change, not a real gain.
-      const netWorth = (savings + superBalForNetWorth) - (debt + mortgage);
+      // were saved under an OLDER, narrower formula (twice now — first missing
+      // super/mortgage, then also missing offset). The netWorthFormulaVersion guard
+      // below skips comparing against anything saved under an earlier version,
+      // rather than showing a fake jump the next time the formula changes.
+      const netWorth = (savings + superBalForNetWorth + offsetAmt) - (debt + mortgage);
       const freedomNumber = p.freedom_number;
       const pct = freedomNumber > 0 ? Math.min(100, Math.round((savings / freedomNumber) * 100)) : 0;
       const monthlySavings = p.savings_monthly || 0;
@@ -897,15 +903,16 @@
               }
             }
 
-            // netWorthFormulaVersion 2 = assets-minus-liabilities (savings + super,
-            // minus debt + mortgage). Version 1/undefined snapshots were saved under
-            // the old savings-minus-debt-only formula — comparing across that change
-            // would show a one-off "gain" equal to roughly the person's super balance,
-            // which isn't a real gain, just a different yardstick. Skipping the
-            // comparison (same as any other missing-data case) rather than deleting
-            // that history — Freedom Unlocked still needs the oldest snapshot's
-            // savings/monthlySavings, which this doesn't touch.
-            if (prevSnapshot.picture.netWorth != null && prevSnapshot.picture.netWorthFormulaVersion === 2 && window.FirePathEngine) {
+            // netWorthFormulaVersion 3 = assets-minus-liabilities, assets including
+            // savings + super + mortgage offset, liabilities being debt + mortgage.
+            // Version 2 (savings+super minus debt+mortgage, no offset) and version
+            // 1/undefined (savings minus debt_total only) were both narrower — each
+            // change would otherwise show a one-off "gain" that's really just a
+            // different yardstick, not real money. Skipping the comparison (same as
+            // any other missing-data case) rather than deleting that history —
+            // Freedom Unlocked still needs the oldest snapshot's savings/monthlySavings,
+            // which this doesn't touch.
+            if (prevSnapshot.picture.netWorth != null && prevSnapshot.picture.netWorthFormulaVersion === 3 && window.FirePathEngine) {
               const netWorthDelta = netWorth - prevSnapshot.picture.netWorth;
               if (netWorthDelta !== 0) {
                 sinceRows.push({ label: 'Net worth', before: null, after: `${netWorthDelta > 0 ? '+' : '-'}${window.FirePathEngine.fmtM(Math.abs(netWorthDelta))}`, positive: netWorthDelta > 0 });
@@ -981,7 +988,7 @@
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
             // netWorth and savingsRate feed the Since Last Month strip above; freedomPct
             // is the only field older code relied on, so it stays first and unchanged.
-            body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber, monthlySavings }, picture: { freedomPct: pct, netWorth, netWorthFormulaVersion: 2, savingsRate: p.savings_rate || 0 } })
+            body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber, monthlySavings }, picture: { freedomPct: pct, netWorth, netWorthFormulaVersion: 3, savingsRate: p.savings_rate || 0 } })
           });
         }
       } catch(e) { console.log('Journey snapshot save failed', e); }
