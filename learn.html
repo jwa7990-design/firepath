@@ -128,7 +128,7 @@
   }
 
   /* ── Learning path stepper ── */
-  .stepper { display: flex; align-items: flex-start; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+  .stepper { position: relative; display: flex; align-items: flex-start; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
   .stepper-step { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 84px; text-align: center; cursor: pointer; background: none; border: none; font-family: inherit; }
   .stepper-connector { flex: 1; height: 1px; background: var(--border); margin-top: 17px; min-width: 16px; }
   .stepper-dot {
@@ -138,6 +138,14 @@
   }
   .stepper-step.done .stepper-dot { background: var(--fire-orange); border-color: var(--fire-orange); color: white; }
   .stepper-step.current .stepper-dot { background: var(--fire-orange); border-color: var(--fire-orange); color: white; }
+  /* Traveling dot: a floating twin of .stepper-dot that slides from the just-completed stage
+     to the next one, so progress reads as movement rather than a snap-on-re-render. Sized/positioned
+     inline by animateStepperTravel(); this rule supplies the shape, color and the left/top transition. */
+  .stepper-traveler {
+    position: absolute; border-radius: 50%; background: var(--fire-orange); border: 1.5px solid var(--fire-orange);
+    box-shadow: 0 2px 10px rgba(244,98,42,0.35); pointer-events: none; z-index: 5;
+    transition: left var(--dur-expressive) var(--ease-gentle), top var(--dur-expressive) var(--ease-gentle);
+  }
   .stepper-name { font-size: 12.5px; font-weight: 600; color: var(--warm-brown); }
   .stepper-tagline { font-size: 10.5px; color: var(--soft-grey); margin-top: 1px; }
 
@@ -533,6 +541,10 @@
     // refreshProgressUI below). Only changes when the user clicks a stepper tab;
     // starts null so the first refresh can default it to the real current stage.
     let viewedStageKey = null;
+    // The stage the DATA says is current (kept in sync by refreshProgressUI below)
+    // — used to detect a real stage-to-stage transition in completeLesson(), so
+    // the stepper's dot can travel there instead of just snapping on re-render.
+    let currentTrueStageKey = null;
 
     function renderLessonList(stageKey) {
       const stage = STAGES.find(s => s.key === stageKey) || STAGES[0];
@@ -603,6 +615,7 @@
         const found = stage.lessons.find(l => !readIds.has(l.id));
         if (found) { nextLesson = found; nextStage = stage; break; }
       }
+      currentTrueStageKey = nextStage ? nextStage.key : null;
       if (viewedStageKey === null) {
         viewedStageKey = nextStage ? nextStage.key : STAGES[STAGES.length - 1].key;
       }
@@ -750,18 +763,72 @@
       ).join('');
     }
 
+    // The stepper dot travelling from one stage to the next — only plays when a
+    // completion genuinely finishes the current stage (not for every lesson).
+    // Both dots already exist in the DOM at the moment this is called (every
+    // stage is always rendered; only its done/current styling changes), so their
+    // real on-screen positions can be read directly, no guessing at layout.
+    function animateStepperTravel(fromStageKey, toStageKey, doneFn) {
+      const stepperEl = document.getElementById('stepper');
+      const fromDot = document.querySelector(`.stepper-step[data-stage="${fromStageKey}"] .stepper-dot`);
+      const toDot = document.querySelector(`.stepper-step[data-stage="${toStageKey}"] .stepper-dot`);
+      if (!stepperEl || !fromDot || !toDot) { doneFn(); return; }
+
+      const stepperRect = stepperEl.getBoundingClientRect();
+      const fromRect = fromDot.getBoundingClientRect();
+      const toRect = toDot.getBoundingClientRect();
+
+      const traveler = document.createElement('div');
+      traveler.className = 'stepper-traveler';
+      traveler.style.width = fromRect.width + 'px';
+      traveler.style.height = fromRect.height + 'px';
+      traveler.style.left = (fromRect.left - stepperRect.left + stepperEl.scrollLeft) + 'px';
+      traveler.style.top = (fromRect.top - stepperRect.top + stepperEl.scrollTop) + 'px';
+      stepperEl.appendChild(traveler);
+
+      // Force a reflow before moving it, same reflow-then-transition pattern used
+      // for the trajectory lines on Journey — otherwise the start and end states
+      // land in the same paint and there's nothing to animate between.
+      void traveler.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          traveler.style.left = (toRect.left - stepperRect.left + stepperEl.scrollLeft) + 'px';
+          traveler.style.top = (toRect.top - stepperRect.top + stepperEl.scrollTop) + 'px';
+        });
+      });
+
+      // Matches the traveler's own transition duration (--dur-expressive, 800ms) —
+      // by the time this fires, it's sitting right on top of where the real "now
+      // current" dot is about to appear, so removing it and re-rendering underneath
+      // reads as arrival, not a swap.
+      setTimeout(() => { traveler.remove(); doneFn(); }, 800);
+    }
+
     // ── The signature moment: mark a lesson complete right from the hub, no trip
     // to the article required. Checkmark draws itself, then — once it's landed —
     // everything downstream of "how many lessons have you done" updates together:
     // the ring, the milestone, the stepper, and the list itself (which promotes
     // the next lesson to "current" as a natural side effect of just re-rendering
-    // from the updated readIds, not a separate animation to hand-author). Roughly
-    // 800ms end to end. No confetti — the progress itself is the reward. ──
+    // from the updated readIds, not a separate animation to hand-author). If this
+    // was the LAST lesson in the current stage, the stepper dot travels to the
+    // next stage first, then everything settles — "you're not just done with a
+    // lesson, you've moved somewhere." No confetti — the progress itself is the
+    // reward. ──
     function completeLesson(trackKey, lessonId, buttonEl) {
       if (readIds.has(lessonId)) return; // already done — no-op, not a double-count
       const stage = STAGES.find(s => s.key === trackKey);
       const lesson = stage && stage.lessons.find(l => l.id === lessonId);
       if (!lesson) return;
+
+      // Will this completion finish the whole stage, and is that stage the one
+      // the data actually calls "current" right now? If both, the path itself
+      // advances — worth the travel animation. Completing a lesson in some other
+      // stage (e.g. one you jumped ahead to via the stepper) never triggers this;
+      // your overall position on the path hasn't changed.
+      const stageIdx = STAGES.findIndex(s => s.key === trackKey);
+      const willFinishStage = stage.lessons.every(l => l.id === lessonId || readIds.has(l.id));
+      const nextStageAfter = STAGES[stageIdx + 1];
+      const willTransition = willFinishStage && trackKey === currentTrueStageKey && !!nextStageAfter;
 
       const finish = () => {
         readIds.add(lessonId);
@@ -798,7 +865,12 @@
       const path = buttonEl.querySelector('path');
       void path.getBoundingClientRect();
       requestAnimationFrame(() => { requestAnimationFrame(() => { path.style.strokeDashoffset = '0'; }); });
-      setTimeout(finish, 380);
+
+      if (willTransition) {
+        setTimeout(() => { animateStepperTravel(trackKey, nextStageAfter.key, finish); }, 380);
+      } else {
+        setTimeout(finish, 380);
+      }
     }
 
     refreshProgressUI();
