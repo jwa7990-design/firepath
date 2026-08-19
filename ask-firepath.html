@@ -47,19 +47,25 @@
   .chat-starters { display: flex; flex-direction: column; gap: 8px; }
 
   .pill-chip {
-    align-self: flex-start; text-align: left; background: white; border: 1.5px solid var(--border);
-    border-radius: 20px; padding: 10px 16px; font-size: 13px; font-weight: 500; color: var(--warm-brown);
+    align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
+    text-align: left; background: white; border: 1.5px solid var(--border);
+    border-radius: 20px; padding: 9px 16px 9px 12px; font-size: 13px; font-weight: 500; color: var(--warm-brown);
     cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease;
   }
   .pill-chip:hover { border-color: var(--fire-orange); background: rgba(244,98,42,0.04); }
+  .pill-chip-icon {
+    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(244,98,42,0.12); color: var(--fire-orange);
+    display: flex; align-items: center; justify-content: center;
+  }
 
   /* One turn = the user's bubble plus FirePath's card reply, kept together so the
      thread reads as a conversation rather than a stack of disconnected cards. */
   .chat-turn { display: flex; flex-direction: column; gap: 10px; }
   .chat-bubble-user {
-    align-self: flex-end; max-width: 82%; background: white; border: 1px solid var(--border);
+    align-self: flex-end; max-width: 82%; background: var(--fire-orange); border: 1px solid var(--fire-orange);
     border-radius: 18px 18px 4px 18px; padding: 11px 16px; font-size: 14px; font-weight: 500;
-    color: var(--warm-brown); line-height: 1.4;
+    color: white; line-height: 1.4;
   }
 
   /* ── Reply cards — three distinct visual tones for the three answer tiers, so the
@@ -138,10 +144,10 @@
   <div class="chat-thread" id="chatThread">
     <div class="chat-starters" id="chatStarters">
       <div class="chat-starters-label">Popular questions</div>
-      <button class="pill-chip" data-q="What if I save an extra $250 a month?">What if I save an extra $250 a month?</button>
-      <button class="pill-chip" data-q="What if I spend $150 less a week?">What if I spend $150 less a week?</button>
-      <button class="pill-chip" data-q="What if I retire at 40?">What if I retire at 40?</button>
-      <button class="pill-chip" data-q="What if I sell my investment property?">What if I sell my investment property?</button>
+      <button class="pill-chip" data-q="What if I save an extra $250 a month?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I save an extra $250 a month?</button>
+      <button class="pill-chip" data-q="What if I spend $150 less a week?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I spend $150 less a week?</button>
+      <button class="pill-chip" data-q="What if I retire at 40?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I retire at 40?</button>
+      <button class="pill-chip" data-q="What if I sell my investment property?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I sell my investment property?</button>
     </div>
   </div>
 
@@ -328,7 +334,8 @@
     };
     const suggestions = FOLLOW_UPS[result.type] || [];
     if (!suggestions.length) return '';
-    return `<div class="chat-followups">${suggestions.map(s => `<button class="pill-chip" data-q="${escapeHtml(s)}">${escapeHtml(s)}</button>`).join('')}</div>`;
+    const chipIcon = '<span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>';
+    return `<div class="chat-followups">${suggestions.map(s => `<button class="pill-chip" data-q="${escapeHtml(s)}">${chipIcon}${escapeHtml(s)}</button>`).join('')}</div>`;
   }
 
   // One turn = the user's bubble plus FirePath's card reply, appended to the thread

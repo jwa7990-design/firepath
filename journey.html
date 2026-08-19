@@ -222,7 +222,15 @@
     padding: 14px 16px; text-decoration: none; transition: border-color 0.2s;
   }
   .move-action:hover { border-color: var(--fire-orange); }
-  .move-action-icon { color: var(--fire-orange); flex-shrink: 0; }
+  .move-action-icon { display: block; }
+  .move-action-icon-wrap {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .move-action-icon-wrap.learn { background: rgba(124,92,168,0.13); color: #7C5CA8; }
+  .move-action-icon-wrap.ask { background: rgba(244,98,42,0.12); color: var(--fire-orange); }
+  .move-action-icon-wrap.tool { background: rgba(58,110,165,0.12); color: #3A6EA5; }
+  .move-action-icon-wrap.explore { background: rgba(62,142,90,0.12); color: #3E8E5A; }
   .move-action-body { flex: 1; }
   .move-action-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fire-orange); margin-bottom: 2px; }
   .move-action-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--warm-brown); }
@@ -259,6 +267,7 @@
      with space between them, not one blurred-together draw. */
   .trajectory-path-current { fill: none; stroke: var(--soft-grey); stroke-width: 2; stroke-linecap: round; transition: stroke-dashoffset var(--dur-expressive) var(--ease-gentle); }
   .trajectory-path-optimised { fill: none; stroke: var(--fire-orange); stroke-width: 2.5; stroke-linecap: round; transition: stroke-dashoffset var(--dur-expressive) var(--ease-gentle); }
+  .trajectory-area-optimised { opacity: 0; transition: opacity var(--dur-expressive) var(--ease-gentle); }
   .trajectory-dot-current { fill: var(--soft-grey); transition: opacity var(--dur-responsive) var(--ease-standard); }
   .trajectory-dot-optimised { fill: var(--fire-orange); transition: opacity var(--dur-responsive) var(--ease-standard); }
   .trajectory-target-line { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 4; }
@@ -836,6 +845,13 @@
 
     document.getElementById('trajectorySvgWrap').innerHTML = `
       <svg viewBox="0 0 320 160" width="100%" role="img" aria-label="Trajectory from today to financial freedom, current path versus an optimised path">
+        <defs>
+          <linearGradient id="trajGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--fire-orange)" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="var(--fire-orange)" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon class="trajectory-area-optimised" id="trajAreaOptimised" fill="url(#trajGradient)" points="${x0},${yBase} ${xOptimised},${yTop} ${xOptimised},160 ${x0},160"/>
         <line class="trajectory-target-line" x1="${x0}" y1="${yTop}" x2="${xFull}" y2="${yTop}"/>
         <text class="trajectory-label" x="${x0}" y="${yTop - 5}">Financial freedom</text>
         <line class="trajectory-path-current" id="trajPathCurrent" x1="${x0}" y1="${yBase}" x2="${xFull}" y2="${yTop}" stroke-dasharray="${currentLen}" stroke-dashoffset="${currentLen}"/>
@@ -871,6 +887,7 @@
     const optimisedPathEl = document.getElementById('trajPathOptimised');
     const dotEndEl = document.getElementById('trajDotEnd');
     const dotOptimisedEl = document.getElementById('trajDotOptimised');
+    const areaOptimisedEl = document.getElementById('trajAreaOptimised');
     const gainRowEl = document.getElementById('trajGainRow');
 
     // Self-draw: "here's where you're going" (current path, grey) draws first —
@@ -889,6 +906,7 @@
         optimisedPathEl.style.strokeDashoffset = '0';
         dotEndEl.style.opacity = '1';
         dotOptimisedEl.style.opacity = '1';
+        areaOptimisedEl.style.opacity = '1';
         gainRowEl.classList.remove('trajectory-gain-hidden');
         return;
       }
@@ -904,7 +922,10 @@
           setTimeout(() => {
             optimisedPathEl.style.transition = `stroke-dashoffset ${OPTIMISED_DRAW_MS}ms var(--ease-gentle)`;
             optimisedPathEl.style.strokeDashoffset = '0';
-            setTimeout(() => { dotOptimisedEl.style.opacity = '1'; }, OPTIMISED_DRAW_MS);
+            setTimeout(() => {
+              dotOptimisedEl.style.opacity = '1';
+              areaOptimisedEl.style.opacity = '1';
+            }, OPTIMISED_DRAW_MS);
           }, CURRENT_DRAW_MS + PAUSE_1_MS);
           setTimeout(() => {
             gainRowEl.classList.remove('trajectory-gain-hidden');
@@ -1029,7 +1050,9 @@
       <div class="move-why">Why this matters</div>
       <div class="move-headline">${nextStep.reason}</div>
       <a href="${url}" class="move-action">
-        <svg class="move-action-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${OPPORTUNITY_ICONS[nextStep.type] || OPPORTUNITY_ICONS.learn}</svg>
+        <span class="move-action-icon-wrap ${nextStep.type || 'learn'}">
+          <svg class="move-action-icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${OPPORTUNITY_ICONS[nextStep.type] || OPPORTUNITY_ICONS.learn}</svg>
+        </span>
         <div class="move-action-body">
           <div class="move-action-label">${OPPORTUNITY_LABELS[nextStep.type] || 'Learn'}</div>
           <div class="move-action-title">${title}</div>

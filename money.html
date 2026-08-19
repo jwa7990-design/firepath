@@ -79,11 +79,14 @@
   .networth-card.in-view { opacity: 1; transform: translateY(0); }
   @media (prefers-reduced-motion: reduce) { .networth-card { transition: none; } }
   .networth-label { font-size: 12px; color: var(--soft-grey); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 6px; }
+  .networth-figure-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .networth-figure { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 36px; color: var(--warm-brown); }
-  .networth-delta { font-size: 13px; font-weight: 500; margin-top: 8px; display: none; }
-  .networth-delta.shown { display: block; }
-  .networth-delta.positive { color: #3E8E5A; }
-  .networth-delta.negative { color: var(--fire-orange); }
+  .networth-delta {
+    font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap; display: none;
+  }
+  .networth-delta.shown { display: inline-block; }
+  .networth-delta.positive { color: #3E8E5A; background: rgba(62,142,90,0.12); }
+  .networth-delta.negative { color: var(--fire-orange); background: rgba(244,98,42,0.12); }
   .networth-breakdown { margin-top: 22px; }
   .networth-subgroup-label {
     font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
@@ -105,6 +108,12 @@
     padding: 20px 22px; text-decoration: none; transition: border-color 0.15s ease, transform 0.15s ease;
   }
   .hub-card:hover { border-color: var(--fire-orange); transform: translateX(2px); }
+  .hub-card-icon {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hub-card-icon.pink { background: rgba(217,67,106,0.12); color: #D9436A; }
+  .hub-card-icon.green { background: rgba(62,142,90,0.12); color: #3E8E5A; }
   .hub-card-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 17px; color: var(--warm-brown); margin-bottom: 3px; }
   .hub-card-desc { font-size: 13px; color: var(--soft-grey); font-weight: 300; }
   .hub-card-arrow { color: var(--fire-orange); font-size: 18px; flex-shrink: 0; }
@@ -207,8 +216,10 @@
   <div class="hub-section-label" style="margin-top:0;">Your position</div>
   <div class="networth-card" id="networthCard">
     <div class="networth-label">Net worth</div>
-    <div class="networth-figure" id="networthFigure">—</div>
-    <div class="networth-delta" id="networthDelta"></div>
+    <div class="networth-figure-row">
+      <div class="networth-figure" id="networthFigure">—</div>
+      <div class="networth-delta" id="networthDelta"></div>
+    </div>
     <div class="networth-breakdown" id="networthBreakdown">
       <div class="networth-skeleton">Loading your numbers…</div>
     </div>
@@ -217,6 +228,9 @@
   <div class="hub-section-label">Your numbers</div>
   <div class="hub-cards">
     <a href="freedom-gap.html" class="hub-card">
+      <span class="hub-card-icon pink">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z"/></svg>
+      </span>
       <div>
         <div class="hub-card-title">Freedom Gap</div>
         <div class="hub-card-desc">Where your age, spend, and portfolio come from</div>
@@ -224,6 +238,9 @@
       <span class="hub-card-arrow">→</span>
     </a>
     <a href="firepath_pro.html" class="hub-card">
+      <span class="hub-card-icon green">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 8.7-8 10.5-4.6-1.8-8-5.5-8-10.5v-6L12 2z"/><path d="M9 12l2 2 4-4"/></svg>
+      </span>
       <div>
         <div class="hub-card-title">Full Analysis</div>
         <div class="hub-card-desc">Your complete picture, including super</div>
@@ -324,7 +341,7 @@
             const delta = netWorth - prevSnapshot.picture.netWorth;
             if (delta !== 0) {
               const deltaEl = document.getElementById('networthDelta');
-              deltaEl.textContent = `${delta > 0 ? '▲' : '▼'} ${fmt(Math.abs(delta))} since your last update`;
+              deltaEl.textContent = `${delta > 0 ? '▲' : '▼'} ${fmt(Math.abs(delta))} vs last month`;
               deltaEl.classList.add('shown', delta > 0 ? 'positive' : 'negative');
             }
           }
