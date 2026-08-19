@@ -211,9 +211,13 @@
      not a fanfare. Toggled on then off by completeLesson(), not left running. */
   .lesson-row.just-completed { background: rgba(46,125,50,0.08); transition: background 500ms var(--ease-standard); }
 
-  /* ── Sidebar cards (stacked in normal flow on mobile, real sidebar on desktop) ── */
-  .side-card { background: white; border: 1px solid var(--border); border-radius: 20px; padding: 22px; margin-bottom: 16px; }
-  .side-card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 16px; }
+  /* ── Sidebar sections — editorial, not SaaS: one flowing column separated by
+       hairline dividers and real breathing room, rather than three white boxed
+       cards stacked on top of each other. Same class name and markup as before
+       (three .side-card divs); only how they're framed has changed. ── */
+  .side-card { background: none; border: none; border-top: 1px solid var(--border); border-radius: 0; padding: 30px 0; margin-bottom: 0; }
+  .side-card:first-child { border-top: none; padding-top: 0; }
+  .side-card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 18px; }
   .progress-stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
   .progress-stat-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .progress-stat-icon.lessons { background: rgba(244,98,42,0.12); color: var(--fire-orange); }
@@ -236,11 +240,14 @@
   /* Marks whichever topic is currently swapped into the lesson list below — only
      ever set on the four links that map onto a real stage (see the JS wiring). */
   .topic-link-row.active { color: var(--fire-orange); font-weight: 600; }
+  /* A hairline above it (not a boxed button) separates it from the topic list above,
+     same editorial language as the sidebar sections themselves. */
   .browse-all-btn {
-    display: block; text-align: center; margin-top: 14px; padding: 11px; border: 1px solid var(--border);
-    border-radius: 10px; font-size: 13px; font-weight: 500; color: var(--warm-brown); text-decoration: none;
+    display: block; margin-top: 6px; padding-top: 16px; border-top: 1px solid var(--border);
+    border-radius: 0; font-size: 13px; font-weight: 500; color: var(--fire-orange); text-decoration: none;
+    transition: color var(--dur-responsive) var(--ease-standard);
   }
-  .browse-all-btn:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
+  .browse-all-btn:hover { color: var(--warm-brown); }
 
   /* ── Your Next Milestone — gives the sidebar a purpose beyond a duplicate
        search box (that duplication was a real bug: the mobile-only search wrap
