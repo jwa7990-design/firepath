@@ -67,7 +67,7 @@
   }
   .hero-pct {
     font-family: 'Playfair Display', serif; font-weight: 700; color: var(--warm-brown);
-    font-size: clamp(72px, 22vw, 104px); line-height: 0.9; margin-bottom: 4px;
+    font-size: clamp(72px, 22vw, 104px); line-height: 1; margin-bottom: 14px;
   }
   .hero-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; opacity: 0; transition: opacity 0.4s ease; }
   .hero-label-row.shown { opacity: 1; }
@@ -157,6 +157,11 @@
   .trajectory-section.in-view { opacity: 1; transform: translateY(0); }
   .trajectory-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 14px; }
   .trajectory-svg-wrap { margin-bottom: 18px; }
+  /* The height="auto" HTML attribute isn't a valid SVG length (that's a CSS-only
+     value) and was throwing a console error on every render — this is the actual
+     valid way to let the SVG scale by its viewBox's aspect ratio instead of a
+     hardcoded height. */
+  .trajectory-svg-wrap svg { display: block; width: 100%; height: auto; }
   .trajectory-path-current { fill: none; stroke: var(--soft-grey); stroke-width: 2; stroke-linecap: round; }
   .trajectory-path-optimised { fill: none; stroke: var(--fire-orange); stroke-width: 2.5; stroke-linecap: round; }
   .trajectory-dot-current { fill: var(--soft-grey); }
@@ -284,8 +289,12 @@
     .top-bar, .explore-overlay, .explore-footer { display: none !important; }
 
     /* Wider canvas + a real spatial layout instead of one long stacked column —
-       trajectory sits alongside the hero/next-move narrative rather than under it,
-       and stays in view (sticky) as the left column scrolls past it. */
+       trajectory sits alongside the hero/next-move narrative rather than under it.
+       (This was sticky-positioned in an earlier pass, so it would stay in view as
+       the left column scrolled past — but sticky inside a multi-row grid area
+       fought the "Since Last Month" cell below it, hiding that content behind the
+       pinned box instead of scrolling normally. Static positioning until this gets
+       redesigned properly, e.g. as its own column outside the grid.) */
     .container {
       max-width: 1080px; margin: 0 auto; padding: 56px 56px 100px;
       display: grid; grid-template-columns: 1.15fr 0.85fr; column-gap: 64px;
@@ -296,7 +305,7 @@
     .fu-section { grid-area: fu; margin-bottom: 28px; }
     .monday-check { grid-area: monday; margin-bottom: 28px; }
     .move-section { grid-area: move; margin-bottom: 0; }
-    .trajectory-section { grid-area: trajectory; align-self: start; position: sticky; top: 40px; margin-top: 0; }
+    .trajectory-section { grid-area: trajectory; align-self: start; margin-top: 0; }
     .since-section { grid-area: since; align-self: start; }
     .container {
       grid-template-areas:
@@ -567,7 +576,10 @@
           // Tiny haptic tick, if the browser supports it — Vibration API isn't
           // available on iOS Safari, so this is a bonus on Android/Chrome, not
           // something every visitor will feel.
-          if (navigator.vibrate) navigator.vibrate(8);
+          // Chrome blocks this (and logs a console warning) until the page has had
+          // a user gesture — harmless, but the try/catch keeps it from ever being
+          // mistaken for a real error while reading the console.
+          try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
           setTimeout(() => { deltaEl.classList.add('shown'); }, 80);
         }
       }
@@ -587,7 +599,11 @@
     const gainYears = Math.round((currentYears - optimisedYears) * 10) / 10;
     if (currentYears == null || optimisedYears == null || gainYears < 0.1) { section.style.display = 'none'; return; }
 
-    const x0 = 16, xFull = 300, yTop = 14, yBase = 98;
+    // yBase raised well above yTop (was 98, close enough to yTop that the two lines
+    // read as nearly one line when the optimised gain was a small slice of a long
+    // timeline) — a taller vertical span makes the two paths visibly diverge across
+    // their length instead of only differing right at the very end.
+    const x0 = 16, xFull = 300, yTop = 14, yBase = 140;
     const xOptimisedRaw = x0 + Math.min(1, optimisedYears / currentYears) * (xFull - x0);
     // When the gain is a small slice of a long timeline, the two arrival dots land
     // almost on top of each other — floating year labels used to be positioned off
@@ -599,7 +615,7 @@
     const xOptimised = Math.min(xOptimisedRaw, xFull - minGap);
 
     document.getElementById('trajectorySvgWrap').innerHTML = `
-      <svg viewBox="0 0 320 118" width="100%" height="auto" role="img" aria-label="Trajectory from today to financial freedom, current path versus an optimised path">
+      <svg viewBox="0 0 320 160" width="100%" role="img" aria-label="Trajectory from today to financial freedom, current path versus an optimised path">
         <line class="trajectory-target-line" x1="${x0}" y1="${yTop}" x2="${xFull}" y2="${yTop}"/>
         <text class="trajectory-label" x="${x0}" y="${yTop - 5}">Financial freedom</text>
         <line class="trajectory-path-current" x1="${x0}" y1="${yBase}" x2="${xFull}" y2="${yTop}"/>
