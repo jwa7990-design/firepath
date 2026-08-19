@@ -144,6 +144,32 @@
   .move-action-time { font-size: 12px; color: var(--soft-grey); font-weight: 400; flex-shrink: 0; }
   .move-action-arrow { font-size: 15px; color: var(--fire-orange); flex-shrink: 0; }
 
+  /* ── Your Trajectory — a picture, not a chart. Two lines diverging from "You" toward
+       two arrival points; the gap between them IS the message, no axes, no gridlines,
+       no legend. Numbers underneath are real (same solveMonthsToTarget the hero uses),
+       "optimisation" is deliberately named as the specific $50/week lever it is,
+       rather than an unlabelled "optimised" claim. ── */
+  .trajectory-section { margin-top: 40px; margin-bottom: 8px; opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s; }
+  .trajectory-section.in-view { opacity: 1; transform: translateY(0); }
+  .trajectory-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 14px; }
+  .trajectory-svg-wrap { margin-bottom: 18px; }
+  .trajectory-path-current { fill: none; stroke: var(--soft-grey); stroke-width: 2; stroke-linecap: round; }
+  .trajectory-path-optimised { fill: none; stroke: var(--fire-orange); stroke-width: 2.5; stroke-linecap: round; }
+  .trajectory-dot-current { fill: var(--soft-grey); }
+  .trajectory-dot-optimised { fill: var(--fire-orange); }
+  .trajectory-target-line { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 4; }
+  .trajectory-label { font-family: 'DM Sans', sans-serif; font-size: 10.5px; fill: var(--soft-grey); }
+  .trajectory-label-year { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 12px; }
+  .trajectory-label-year.optimised { fill: var(--fire-orange); }
+  .trajectory-label-year.current { fill: var(--warm-brown); }
+  .trajectory-stats { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--border); }
+  .trajectory-stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--border); }
+  .trajectory-stat-label { font-size: 13px; color: var(--soft-grey); font-weight: 300; }
+  .trajectory-stat-label small { display: block; font-size: 11px; margin-top: 1px; }
+  .trajectory-stat-value { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--warm-brown); }
+  .trajectory-stat-row.gain .trajectory-stat-value { color: var(--fire-orange); }
+  .trajectory-cta { display: block; text-align: right; margin-top: 14px; font-size: 13px; color: var(--fire-orange); font-weight: 500; text-decoration: none; }
+
   /* ── Since Last Month — an editorial strip, not a dashboard. Four lines, no cards,
        no colour beyond what's already on the page. Exists to answer one question:
        "am I moving?" — everything else on the page answers "where am I now." ── */
@@ -261,6 +287,16 @@
     <div class="move-card" id="opportunityCard"></div>
   </div>
 
+  <!-- ── YOUR TRAJECTORY — hidden until there's a real projection to draw; see
+       renderTrajectory(). "Optimisation" is one concrete, named lever ($50/week),
+       not a vague aspirational number. ── -->
+  <div class="trajectory-section" id="trajectorySection" style="display:none;">
+    <div class="trajectory-eyebrow">Your trajectory</div>
+    <div class="trajectory-svg-wrap" id="trajectorySvgWrap"></div>
+    <div class="trajectory-stats" id="trajectoryStats"></div>
+    <a href="hearmeout.html" class="trajectory-cta">Explore your options →</a>
+  </div>
+
   <!-- ── SINCE LAST MONTH — hidden until there's a real previous snapshot to compare
        against; see renderSinceLastMonth(). ── -->
   <div class="since-section" id="sinceSection" style="display:none;">
@@ -337,7 +373,7 @@
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Scroll-reveal — same IntersectionObserver pattern proven on the homepage and Journey.
-  const revealTargets = document.querySelectorAll('.hero-section, .fu-section, .move-section, .monday-check, .since-section');
+  const revealTargets = document.querySelectorAll('.hero-section, .fu-section, .move-section, .trajectory-section, .monday-check, .since-section');
   if (prefersReducedMotion) {
     revealTargets.forEach(el => el.classList.add('in-view'));
   } else {
@@ -424,6 +460,51 @@
       }
       requestAnimationFrame(tick);
     }
+  }
+
+  // Your Trajectory — two lines from "You" to two arrival points, sharing one time
+  // axis so the gap between the dots IS the "potential gain" figure below, not a
+  // separate claim. "Optimised" is always the same named lever (an extra $50/week
+  // saved, invested at 7%) — the same lever buildNeedleCard() in firepath_pro.html
+  // already uses, not a new number invented for this page. Only renders when the
+  // gain is real and meaningful (> ~1 month); a lever that doesn't actually move the
+  // date isn't worth a whole section claiming it does.
+  function renderTrajectory(currentYears, currentFreedomYear, optimisedYears, optimisedFreedomYear, startYear) {
+    const section = document.getElementById('trajectorySection');
+    const gainYears = Math.round((currentYears - optimisedYears) * 10) / 10;
+    if (currentYears == null || optimisedYears == null || gainYears < 0.1) { section.style.display = 'none'; return; }
+
+    const x0 = 16, xFull = 300, yTop = 14, yBase = 98;
+    const xOptimised = x0 + Math.min(1, optimisedYears / currentYears) * (xFull - x0);
+
+    document.getElementById('trajectorySvgWrap').innerHTML = `
+      <svg viewBox="0 0 320 118" width="100%" height="auto" role="img" aria-label="Trajectory from today to financial freedom, current path versus an optimised path">
+        <line class="trajectory-target-line" x1="${x0}" y1="${yTop}" x2="${xFull}" y2="${yTop}"/>
+        <text class="trajectory-label" x="${x0}" y="${yTop - 5}">Financial freedom</text>
+        <line class="trajectory-path-current" x1="${x0}" y1="${yBase}" x2="${xFull}" y2="${yTop}"/>
+        <line class="trajectory-path-optimised" x1="${x0}" y1="${yBase}" x2="${xOptimised}" y2="${yTop}"/>
+        <circle class="trajectory-dot-current" cx="${xFull}" cy="${yTop}" r="4"/>
+        <circle class="trajectory-dot-optimised" cx="${xOptimised}" cy="${yTop}" r="4"/>
+        <circle class="trajectory-dot-current" cx="${x0}" cy="${yBase}" r="3.5"/>
+        <text class="trajectory-label" x="${x0}" y="${yBase + 15}">You · ${startYear}</text>
+        <text class="trajectory-label trajectory-label-year optimised" x="${Math.max(x0, xOptimised - 14)}" y="${yTop - 9}">${optimisedFreedomYear}</text>
+        <text class="trajectory-label trajectory-label-year current" x="${xFull - 26}" y="${yTop + 20}">${currentFreedomYear}</text>
+      </svg>`;
+
+    document.getElementById('trajectoryStats').innerHTML = `
+      <div class="trajectory-stat-row">
+        <span class="trajectory-stat-label">Current path</span>
+        <span class="trajectory-stat-value">${currentYears} years</span>
+      </div>
+      <div class="trajectory-stat-row">
+        <span class="trajectory-stat-label">With optimisation<small>$50/week extra saved, invested at 7%</small></span>
+        <span class="trajectory-stat-value">${optimisedYears} years</span>
+      </div>
+      <div class="trajectory-stat-row gain">
+        <span class="trajectory-stat-label">Potential gain</span>
+        <span class="trajectory-stat-value">${gainYears} years sooner</span>
+      </div>`;
+    section.style.display = 'block';
   }
 
   // Since Last Month — an editorial strip, not another dashboard. Only ever shows
@@ -601,6 +682,23 @@
       // field existed — silently skipped this call entirely and left the hero stuck on
       // its raw "0%" / "—" HTML defaults.)
       animateHero(pct, yearsToFreedom, null, freedomYear, buildHeroNarrative(pct, null));
+
+      // Your Trajectory — current path vs. an optimised path where an extra $50/week
+      // is saved and invested at the same 7% assumption used everywhere else. Kept
+      // independent of the snapshot-history try/catch below: it only needs today's
+      // inputs, not a previous snapshot, so it shouldn't be able to disappear just
+      // because a delta lookup fails.
+      try {
+        if (annualSpend > 0 && window.FirePathEngine && yearsToFreedom != null) {
+          const optimisedMonthlySavings = monthlySavings + (50 * 52 / 12);
+          const optimisedMonths = window.FirePathEngine.solveMonthsToTarget(savings, optimisedMonthlySavings, annualSpend);
+          const optimisedYears = optimisedMonths != null ? Math.round(optimisedMonths / 12 * 10) / 10 : null;
+          const optimisedFreedomYear = optimisedMonths != null ? currentYear + Math.floor(optimisedMonths / 12) : null;
+          if (optimisedYears != null && optimisedFreedomYear != null) {
+            renderTrajectory(yearsToFreedom, freedomYear, optimisedYears, optimisedFreedomYear, currentYear);
+          }
+        }
+      } catch (e) { console.log('Trajectory calculation failed', e); }
 
       // Delta vs the previous Journey snapshot — same source-scoping principle as
       // journey.html: only compares against Journey's own prior snapshots, never
