@@ -14,12 +14,13 @@
   <title>FirePath — Learning Lab</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/visual-system.css"/>
   <style>
     .lab-hero { text-align:center; padding: 32px 0 24px; }
     .lab-hero h1 { font-family:'Playfair Display',serif; font-size:clamp(24px,5vw,36px); font-weight:700; margin-bottom:8px; }
     .lab-hero p { font-size:15px; color:var(--soft-grey); font-weight:300; line-height:1.7; max-width:480px; margin:0 auto; }
     .track-selector { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
-    .track-card { background:white; border:2px solid var(--border); border-radius:16px; padding:20px; cursor:pointer; transition:all 0.2s; }
+    .track-card { background:white; border:2px solid var(--border); border-radius:var(--radius-md,16px); padding:20px; cursor:pointer; transition:all 0.2s; }
     .track-card:hover { border-color:var(--fire-orange); box-shadow:0 4px 16px rgba(244,98,42,0.1); }
     .track-card.selected { border-color:var(--fire-orange); background:#FFF7F3; }
     .track-header { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
@@ -93,7 +94,7 @@
     .glossary-filter-btn { padding:8px 16px; border-radius:50px; border:1.5px solid var(--border); background:white; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--soft-grey); cursor:pointer; transition:all 0.2s; }
     .glossary-filter-btn.active { border-color:var(--fire-orange); background:#FFF7F3; color:var(--warm-brown); }
     .glossary-grid { display:flex; flex-direction:column; gap:10px; }
-    .glossary-card { background:white; border:1.5px solid var(--border); border-radius:14px; overflow:hidden; transition:all 0.2s; }
+    .glossary-card { background:white; border:1.5px solid var(--border); border-radius:var(--radius-md,16px); overflow:hidden; transition:all 0.2s; }
     .glossary-card:hover { border-color:var(--fire-orange); }
     .glossary-card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; }
     .glossary-term { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--fire-orange); }
@@ -149,7 +150,7 @@
       <div class="topics-list" id="taxTopicsList"></div>
     </div>
 
-    <div class="track-card" onclick="selectTrack('life')" style="border-color:var(--fire-orange);border-width:2px;background:linear-gradient(135deg,#FFF7F3,#FFFBF7);position:relative;margin-bottom:24px;">
+    <div class="track-card fp-reveal" onclick="selectTrack('life')" style="border-color:var(--fire-orange);border-width:2px;background:linear-gradient(135deg,#FFF7F3,#FFFBF7);position:relative;margin-bottom:24px;">
       <div style="position:absolute;top:-9px;left:16px;background:var(--fire-orange);color:white;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 10px;border-radius:10px;">Start here</div>
       <div class="track-header"><span class="track-badge tlife">You</span><span class="track-name">Real Questions</span></div>
       <div class="track-desc">The questions people actually type into Google, answered honestly — using your real numbers, no jargon, no judgement.</div>
@@ -229,6 +230,7 @@
 
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
+<script src="js/interactions.js"></script>
 <script>
   const userData = {
     income: parseFloat(localStorage.getItem('ap_income')) || 0,
@@ -994,6 +996,7 @@ Respond ONLY with valid JSON:
     renderFoundationTopics();
     renderTaxTopics();
     renderSavedArticles();
+    if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
 
     const params = new URLSearchParams(window.location.search);
     const pTopic = params.get('topic');

@@ -1,0 +1,143 @@
+/**
+ * FirePath — Visual System
+ * ==========================
+ * The same role for presentation that financial-engine.js plays for calculations:
+ * one shared foundation every page includes, instead of each page inventing its
+ * own spacing, shadows, and durations. Update a token here, every page that uses
+ * it updates too.
+ *
+ * Usage — one line, after your page's own <style> or before it, either works:
+ *   <link rel="stylesheet" href="css/visual-system.css"/>
+ *
+ * This does NOT redefine brand colors (--fire-orange, --warm-brown, etc.) — those
+ * already exist consistently across pages and stay wherever each page currently
+ * defines them. This file adds the primitives that were missing: a real type
+ * scale, named motion categories instead of one fixed duration, elevation levels,
+ * a radius scale, and layout rhythm — the things that make pages feel like they
+ * belong to the same product even when their content is completely different.
+ */
+
+:root {
+  /* ── Spacing — 8px grid ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 56px;
+  --space-10: 72px;
+
+  /* ── Radius scale — pick one, never invent a new value ── */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+
+  /* ── Elevation — five levels, not an infinite range of hand-tuned shadows ── */
+  --elevation-0: none;
+  --elevation-1: 0 2px 10px rgba(61,43,31,0.06);
+  --elevation-2: 0 8px 32px rgba(61,43,31,0.10);
+  --elevation-floating: 0 24px 64px rgba(61,43,31,0.16), 0 8px 24px rgba(61,43,31,0.08);
+  --elevation-modal: 0 32px 80px rgba(61,43,31,0.24);
+
+  /* ── Motion — a duration per category, not one fixed value everywhere.
+       Each category exists because it does a different job: an instant hover
+       response and a one-time hero reveal are not the same kind of motion,
+       and forcing them to the same duration breaks both. ── */
+  --motion-instant: 120ms;      /* hover states, button press, toggle */
+  --motion-interactive: 250ms;  /* tilt response, tab switch, dropdown */
+  --motion-reveal: 550ms;       /* scroll-reveal fade+rise, panel open */
+  --motion-feature-repeat: 550ms; /* count-up on a screen people see daily (dashboards) — snappy on purpose */
+  --motion-feature-once: 2600ms;  /* count-up on a screen people see once (marketing first impressions) — slower, builds anticipation */
+  --motion-ambient: 28000ms;    /* background drift — deliberately slow, near-imperceptible */
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Layout rhythm ── */
+  --content-max: 480px;    /* standard single-column app content width */
+  --content-max-wide: 640px;
+  --section-gap: var(--space-8);
+  --card-padding: var(--space-6);
+  --grid-gutter: var(--space-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Typography scale — one controlled set, not freestyle sizing per page.
+     Fonts assume Playfair Display (display/headings) + DM Sans (everything else)
+     already loaded, matching what every page already uses. ── */
+.text-metric   { font-family: 'Playfair Display', serif; font-size: clamp(64px, 20vw, 104px); font-weight: 700; line-height: 0.9; letter-spacing: -0.02em; }
+.text-display { font-family: 'Playfair Display', serif; font-size: clamp(46px, 9vw, 92px); font-weight: 700; line-height: 1.02; letter-spacing: -0.03em; }
+.text-hero     { font-family: 'Playfair Display', serif; font-size: clamp(32px, 6vw, 52px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+.text-h1       { font-family: 'Playfair Display', serif; font-size: clamp(26px, 4vw, 34px); font-weight: 700; line-height: 1.2; }
+.text-h2       { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; line-height: 1.25; }
+.text-h3       { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; line-height: 1.3; }
+.text-body     { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 400; line-height: 1.65; max-width: 65ch; }
+.text-small    { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 400; line-height: 1.6; }
+.text-caption  { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+
+/* ── Elevation utility classes ── */
+.elevation-1 { box-shadow: var(--elevation-1); }
+.elevation-2 { box-shadow: var(--elevation-2); }
+.elevation-floating { box-shadow: var(--elevation-floating); }
+.elevation-modal { box-shadow: var(--elevation-modal); }
+
+/* ── Components ── */
+
+/* Card — the one shared card primitive. Pick a radius/elevation pair, don't invent a new combination. */
+.fp-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-2);
+  padding: var(--card-padding);
+  border: 1px solid rgba(237,227,218,0.5);
+  transition: transform var(--motion-interactive) ease, box-shadow var(--motion-interactive) ease;
+}
+.fp-card:hover { transform: translateY(-3px); box-shadow: var(--elevation-floating); }
+
+/* Buttons — three types, nothing else. */
+.fp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+  padding: 13px 26px; border-radius: var(--radius-pill);
+  cursor: pointer; border: none; text-decoration: none;
+  transition: transform var(--motion-instant) ease, opacity var(--motion-instant) ease, box-shadow var(--motion-instant) ease;
+}
+.fp-btn:active { transform: scale(0.97); }
+.fp-btn-primary {
+  background: linear-gradient(135deg, var(--fire-orange, #F4622A), var(--fire-amber, #F9A825));
+  color: white;
+}
+.fp-btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+.fp-btn-secondary {
+  background: white; color: var(--fire-orange, #F4622A);
+  border: 1.5px solid var(--fire-orange, #F4622A);
+}
+.fp-btn-secondary:hover { background: #FFF7F3; }
+.fp-btn-ghost {
+  background: none; color: var(--soft-grey, #9E8E85);
+  padding: 13px 16px;
+}
+.fp-btn-ghost:hover { color: var(--warm-brown, #3D2B1F); }
+
+/* ── Scroll-reveal classes — see interactions.js for the observer that drives these ── */
+.fp-reveal { opacity: 0; transform: translateY(16px); transition: opacity var(--motion-reveal) ease, transform var(--motion-reveal) ease; }
+.fp-reveal.in-view { opacity: 1; transform: translateY(0); }
+.fp-reveal-d1 { transition-delay: 0.08s; }
+.fp-reveal-d2 { transition-delay: 0.16s; }
+.fp-reveal-d3 { transition-delay: 0.24s; }
+
+/* ── Layout utilities ── */
+.fp-container { max-width: var(--content-max); margin: 0 auto; padding: 0 var(--space-5); }
+.fp-container-wide { max-width: var(--content-max-wide); margin: 0 auto; padding: 0 var(--space-5); }
+.fp-section { padding: var(--section-gap) var(--space-5); }

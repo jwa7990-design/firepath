@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FirePath — Ask FirePath (Concept)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/visual-system.css"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --fire-orange: #F4622A; --fire-amber: #F9A825; --warm-cream: #FDF6EE;
+    --warm-brown: #3D2B1F; --soft-grey: #9E8E85; --border: #EDE3DA;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); -webkit-font-smoothing: antialiased; }
+  .container { max-width: 480px; margin: 0 auto; padding: 20px 24px 60px; }
+  .concept-tag { text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--soft-grey); margin-bottom: 24px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--soft-grey); text-decoration: none; margin-bottom: 24px; }
+  .back-link:hover { color: var(--fire-orange); }
+
+  .page-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .page-sub { font-size: 14px; color: var(--soft-grey); font-weight: 300; margin-bottom: 24px; line-height: 1.5; }
+
+  .ask-box { position: relative; margin-bottom: 24px; }
+  .ask-input {
+    width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius-md, 16px); background: white;
+    padding: 16px 52px 16px 16px; font-family: 'DM Sans', sans-serif; font-size: 15px;
+    color: var(--warm-brown); resize: none; min-height: 56px;
+  }
+  .ask-input:focus { outline: none; border-color: var(--fire-orange); }
+  .ask-input::placeholder { color: var(--soft-grey); font-weight: 300; }
+  .ask-submit {
+    position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; border-radius: var(--radius-sm, 12px);
+    background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); border: none;
+    color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+
+  .popular-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
+  .resp-anchor { font-size: 13.5px; color: var(--warm-brown); font-weight: 500; padding: 0 2px 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .resp-anchor-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 3px; }
+  .popular-chips { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+  .chip {
+    text-align: left; background: white; border: 1.5px solid var(--border); border-radius: var(--radius-sm, 12px);
+    padding: 12px 14px; font-size: 13.5px; color: var(--warm-brown); cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .chip:hover { border-color: var(--fire-orange); }
+
+  /* ── Response — three distinct visual tones for the three tiers, so the difference
+       between "here's a real answer" and "we can't do that yet" is felt, not just read ── */
+  #response { display: none; }
+  .resp-card { border-radius: var(--radius-md, 18px); padding: 22px 20px; margin-bottom: 12px; }
+  .resp-supported { background: white; border: 1.5px solid var(--border); box-shadow: 0 8px 28px rgba(61,43,31,0.08); }
+  .resp-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; display: inline-block; padding: 3px 9px; border-radius: var(--radius-pill, 20px); }
+  .resp-supported .resp-tag { color: #2E7D32; background: rgba(46,125,50,0.1); }
+  .resp-headline { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--warm-brown); line-height: 1.35; margin-bottom: 10px; }
+  .resp-body { font-size: 13.5px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; margin-bottom: 14px; }
+  .resp-learn {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--warm-cream); border: 1px solid var(--border); border-radius: var(--radius-sm, 12px);
+    padding: 12px 14px; text-decoration: none; font-size: 13px; color: var(--warm-brown); font-weight: 500;
+  }
+
+  .resp-guided { background: linear-gradient(135deg, #FFF7F3, #FFFBF7); border: 1px solid rgba(244,98,42,0.15); }
+  .resp-guided .resp-tag { color: var(--fire-orange); background: rgba(244,98,42,0.1); }
+
+  .resp-unsupported { background: var(--warm-cream); border: 1px dashed var(--border); }
+  .resp-unsupported .resp-tag { color: var(--soft-grey); background: rgba(158,142,133,0.1); }
+
+  .example-tag { display: block; text-align: center; font-size: 10px; font-style: italic; color: var(--soft-grey); margin-top: 8px; }
+</style>
+<script src="js/interactions.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="concept-tag">Concept — Ask FirePath, scoped to what the engine can actually answer</div>
+
+  <a href="journey-concept.html" class="back-link">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back
+  </a>
+
+  <div class="page-title">Ask FirePath</div>
+  <div class="page-sub">Ask a question about your own numbers. FirePath will tell you honestly whether it can calculate an answer.</div>
+
+  <div class="ask-box">
+    <textarea class="ask-input" id="askInput" rows="2" placeholder="Try things like &quot;What if I save another $100 a week?&quot;"></textarea>
+    <button class="ask-submit" id="askSubmit" aria-label="Ask">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+
+  <div class="popular-label">Popular questions</div>
+  <div class="popular-chips">
+    <button class="chip" data-q="What if I save an extra $250 a month?">What if I save an extra $250 a month?</button>
+    <button class="chip" data-q="What if I spend $150 less a week?">What if I spend $150 less a week?</button>
+    <button class="chip" data-q="What if I retire at 40?">What if I retire at 40?</button>
+    <button class="chip" data-q="What if I sell my investment property?">What if I sell my investment property?</button>
+  </div>
+
+  <div id="response"></div>
+</div>
+
+<script>
+  // Baseline — the same numbers used consistently across every FirePath example
+  // tonight ($520k portfolio, $2,600/mo savings, $65k spend, age 35). Kept identical
+  // on purpose so this page's answers stay internally consistent with everything else.
+  const BASELINE = { portfolio: 520000, monthlySavings: 2600, annualSpend: 65000, age: 35 };
+
+  function solveMonthsToTarget(startPortfolio, monthlySavings, targetSpend, rate) {
+    rate = rate == null ? 0.07 : rate;
+    const r = rate / 12;
+    let portfolio = startPortfolio;
+    for (let m = 0; m <= 40 * 12; m++) {
+      if (portfolio * 0.04 >= targetSpend) return m;
+      portfolio = portfolio * (1 + r) + monthlySavings;
+    }
+    return null;
+  }
+  function projectPortfolio(startPortfolio, monthlySavings, years, rate) {
+    rate = rate == null ? 0.07 : rate;
+    const r = rate / 12;
+    let portfolio = startPortfolio;
+    for (let m = 0; m < Math.round(years * 12); m++) portfolio = portfolio * (1 + r) + monthlySavings;
+    return portfolio;
+  }
+  function fmtM(n) { return '$' + Math.round(n).toLocaleString('en-AU'); }
+
+  const baselineMonths = solveMonthsToTarget(BASELINE.portfolio, BASELINE.monthlySavings, BASELINE.annualSpend);
+
+  // ── Classification — three tiers, matching the boundary already agreed: does a
+  //    validated calculation exist for this question, not just "do we have data." ──
+  const GUIDED_KEYWORDS = [
+    { pattern: /propert(y|ies)|sell.*(house|home)|downsiz/i, name: 'selling or downsizing property', why: 'it requires modelling capital gains tax, selling costs, and reinvestment assumptions' },
+    { pattern: /redundan|payout|severance/i, name: 'a redundancy payout', why: 'it requires modelling how a lump sum interacts with tax, timing, and your ongoing income' },
+    { pattern: /child|kids?|baby|pregnan/i, name: 'having a child', why: 'it requires modelling cost-of-living changes and government payments like Family Tax Benefit' },
+    { pattern: /inherit/i, name: 'an inheritance', why: 'it requires modelling how a lump sum changes your timeline alongside your existing plan' },
+  ];
+
+  function classifyAndAnswer(question) {
+    const q = question.toLowerCase();
+
+    // Guided tier — honest, specific reason, not a generic failure
+    for (const g of GUIDED_KEYWORDS) {
+      if (g.pattern.test(q)) {
+        return { tier: 'guided', name: g.name, why: g.why };
+      }
+    }
+
+    // Supported tier — savings increase
+    let m = q.match(/save.*?\$?(\d[\d,]*)\s*(a|per)?\s*(week|fortnight|month)/);
+    if (m) {
+      let amount = parseFloat(m[1].replace(/,/g, ''));
+      const unit = m[3];
+      const extraMonthly = unit === 'week' ? amount * 52 / 12 : unit === 'fortnight' ? amount * 26 / 12 : amount;
+      const newMonths = solveMonthsToTarget(BASELINE.portfolio, BASELINE.monthlySavings + extraMonthly, BASELINE.annualSpend);
+      const movedBy = baselineMonths - newMonths;
+      return { tier: 'supported', type: 'savings', extraMonthly, movedBy, newMonths };
+    }
+
+    // Supported tier — spending decrease
+    m = q.match(/spend.*?\$?(\d[\d,]*)\s*less\s*(a|per)?\s*(week|fortnight|month)/);
+    if (m) {
+      let amount = parseFloat(m[1].replace(/,/g, ''));
+      const unit = m[3];
+      const extraMonthly = unit === 'week' ? amount * 52 / 12 : unit === 'fortnight' ? amount * 26 / 12 : amount;
+      const newAnnualSpend = Math.max(0, BASELINE.annualSpend - extraMonthly * 12);
+      const newMonths = solveMonthsToTarget(BASELINE.portfolio, BASELINE.monthlySavings + extraMonthly, newAnnualSpend);
+      const movedBy = baselineMonths - newMonths;
+      return { tier: 'supported', type: 'spending', extraMonthly, movedBy, newMonths };
+    }
+
+    // Supported tier — retirement age target
+    m = q.match(/retire.*?(\d{2})|(\d{2}).*?(retire|retirement)/);
+    if (m) {
+      const targetAge = parseInt(m[1] || m[2], 10);
+      const yearsToTarget = targetAge - BASELINE.age;
+      if (yearsToTarget <= 0) return { tier: 'unsupported' };
+      const projected = projectPortfolio(BASELINE.portfolio, BASELINE.monthlySavings, yearsToTarget);
+      const income = projected * 0.04;
+      const gap = BASELINE.annualSpend - income;
+      return { tier: 'supported', type: 'retireAge', targetAge, yearsToTarget, projected, income, gap };
+    }
+
+    return { tier: 'unsupported' };
+  }
+
+  function render(result, question) {
+    const el = document.getElementById('response');
+    el.style.display = 'block';
+    const anchor = `<div class="resp-anchor"><span class="resp-anchor-label">Your question</span>${question}</div>`;
+    let html = anchor;
+
+    if (result.tier === 'supported') {
+      let headline = '', body = '';
+      const LEARN_TOPICS = {
+        savings: { title: 'The power of compounding', topic: 'compounding' },
+        spending: { title: 'The real impact of annual spending', topic: 'spending' },
+        retireAge: { title: 'How safe withdrawal rates work', topic: 'four-percent' },
+      };
+      if (result.type === 'savings') {
+        const years = Math.floor(result.movedBy / 12), months = Math.round(result.movedBy % 12);
+        headline = result.movedBy > 0
+          ? `That moves your freedom date <strong>${years > 0 ? years + ' years, ' : ''}${months} months closer</strong>.`
+          : `That change is too small to move your freedom date meaningfully.`;
+        body = `Saving an extra ${fmtM(result.extraMonthly)} a month, on top of what you're already putting away, brings your projected time to freedom down to about ${(result.newMonths / 12).toFixed(1)} years.`;
+      } else if (result.type === 'spending') {
+        const years = Math.floor(result.movedBy / 12), months = Math.round(result.movedBy % 12);
+        headline = `That moves your freedom date <strong>${years > 0 ? years + ' years, ' : ''}${months} months closer</strong>.`;
+        body = `Spending less both reduces what you need to fund in retirement and frees up more to save today — a double effect, which is why it moves the date further than an equivalent savings increase.`;
+      } else if (result.type === 'retireAge') {
+        if (result.gap > 0) {
+          headline = `At age ${result.targetAge}, your portfolio would fall short by about <strong>${fmtM(result.gap)} a year</strong>.`;
+          body = `Projecting your current savings forward ${result.yearsToTarget} years gets you to roughly ${fmtM(result.projected)} — enough to fund ${fmtM(result.income)} a year at a 4% withdrawal rate, against ${fmtM(BASELINE.annualSpend)} you'd actually need.`;
+        } else {
+          headline = `Age ${result.targetAge} looks achievable on your current numbers.`;
+          body = `Projecting forward ${result.yearsToTarget} years puts your portfolio around ${fmtM(result.projected)} — comfortably covering ${fmtM(BASELINE.annualSpend)} a year at a 4% withdrawal rate.`;
+        }
+      }
+      const learn = LEARN_TOPICS[result.type];
+      html += `
+        <div class="resp-card resp-supported fp-reveal">
+          <span class="resp-tag">✓ Calculated from your saved financial profile</span>
+          <div class="resp-headline">${headline}</div>
+          <div class="resp-body">${body}</div>
+          <a href="learning_lab.html?topic=${learn.topic}" class="resp-learn">
+            <span>Worth exploring: ${learn.title}</span>
+            <span>→</span>
+          </a>
+        </div>
+        <div class="popular-label" style="margin-top:20px;">Try another scenario</div>
+        <div class="popular-chips" id="followUpChips"></div>`;
+    } else if (result.tier === 'guided') {
+      html += `
+        <div class="resp-card resp-guided fp-reveal">
+          <span class="resp-tag">Can't calculate this accurately yet</span>
+          <div class="resp-headline">FirePath can't accurately calculate ${result.name} yet.</div>
+          <div class="resp-body">That's because ${result.why}. This is a scenario we're planning to support — for now, the Scenario Explorer has a curated walkthrough for some decisions like this.</div>
+          <a href="hearmeout.html" class="resp-learn">
+            <span>Browse Scenario Explorer</span>
+            <span>→</span>
+          </a>
+        </div>`;
+    } else {
+      html += `
+        <div class="resp-card resp-unsupported fp-reveal">
+          <span class="resp-tag">Can't answer this yet</span>
+          <div class="resp-headline">I'm not able to model that accurately from what you've asked.</div>
+          <div class="resp-body">Try asking about a specific savings amount, spending change, or retirement age — those are the questions FirePath can calculate precisely today.</div>
+        </div>`;
+    }
+    el.innerHTML = html;
+
+    // Follow-up chips — offer question TYPES different from the one just answered,
+    // so tapping through feels like exploring different levers, not repeating the same one
+    if (result.tier === 'supported') {
+      const FOLLOW_UPS = {
+        savings: ['What if I spend $100 less a week?', 'What if I retire at 45?'],
+        spending: ['What if I save an extra $300 a month?', 'What if I retire at 50?'],
+        retireAge: ['What if I save an extra $250 a month?', 'What if I spend $150 less a week?'],
+      };
+      const suggestions = FOLLOW_UPS[result.type] || [];
+      const chipsEl = document.getElementById('followUpChips');
+      if (chipsEl) {
+        chipsEl.innerHTML = suggestions.map(s => `<button class="chip" data-q="${s}">${s}</button>`).join('');
+        chipsEl.querySelectorAll('.chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            document.getElementById('askInput').value = chip.dataset.q;
+            render(classifyAndAnswer(chip.dataset.q), chip.dataset.q);
+          });
+        });
+      }
+    }
+
+    if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  document.getElementById('askSubmit').addEventListener('click', () => {
+    const q = document.getElementById('askInput').value.trim();
+    if (!q) return;
+    render(classifyAndAnswer(q), q);
+  });
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.getElementById('askInput').value = chip.dataset.q;
+      render(classifyAndAnswer(chip.dataset.q), chip.dataset.q);
+    });
+  });
+</script>
+</body>
+</html>

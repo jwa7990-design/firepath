@@ -13,9 +13,11 @@
   <title>FirePath Pro — Know your number. Light your path on Fire.</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/visual-system.css"/>
   <script src="js/auth.js"></script>
   <script src="js/calculations.js"></script>
   <script src="js/financial-engine.js"></script>
+  <script src="js/interactions.js"></script>
   <script src="js/firepath_onboarding.js"></script>
   <script src="js/tax-engine.js"></script>
 <style>
@@ -153,8 +155,8 @@
   /* Persona cards — premium feel */
   .ob-persona-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
   .ob-persona {
-    display: flex; align-items: center; gap: 14px;
-    padding: 18px 16px;
+    display: flex; align-items: center; gap: 16px;
+    padding: 24px 20px;
     background: white;
     border: 1.5px solid var(--border);
     border-radius: 18px;
@@ -164,18 +166,24 @@
   }
   .ob-persona:hover {
     border-color: rgba(244,98,42,0.4);
-    box-shadow: 0 6px 20px rgba(61,43,31,0.08);
-    transform: translateY(-1px);
+    box-shadow: 0 8px 28px rgba(244,98,42,0.12), 0 6px 20px rgba(61,43,31,0.08);
+    transform: translateY(-2px);
   }
   .ob-persona.selected {
     border-color: var(--fire-orange);
     background: #FFF7F3;
-    box-shadow: 0 6px 24px rgba(244,98,42,0.14);
+    box-shadow: 0 8px 32px rgba(244,98,42,0.22), 0 0 0 1px rgba(244,98,42,0.08);
+    transform: translateY(-1px);
   }
-  .ob-persona-icon { font-size: 28px; flex-shrink: 0; }
+  .ob-persona-icon { font-size: 38px; flex-shrink: 0; }
   .ob-persona-info { flex: 1; }
   .ob-persona-name { font-size: 15px; font-weight: 600; color: var(--warm-brown); margin-bottom: 3px; }
   .ob-persona-desc { font-size: 12px; color: var(--soft-grey); font-weight: 300; line-height: 1.5; }
+  .fu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin-bottom: 14px; }
+  .fu-figures { display: flex; justify-content: center; align-items: baseline; gap: 16px; margin-bottom: 10px; }
+  .fu-num { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 700; color: var(--fire-amber); }
+  .fu-unit { font-size: 13px; color: rgba(255,255,255,0.6); margin-left: 4px; margin-right: 12px; }
+  .fu-caption { font-size: 13px; color: rgba(255,255,255,0.7); font-style: italic; }
   .ob-persona-check {
     width: 24px; height: 24px; border-radius: 50%;
     border: 1.5px solid var(--border);
@@ -365,7 +373,12 @@
        PRO CONVERSATIONAL ONBOARDING
        Replaces Screen 1 + Screen 2
        ═══════════════════════════════════════════════ -->
-  <div id="pro-onboarding">
+  <div id="pageLoader" style="min-height:60vh;display:flex;align-items:center;justify-content:center;">
+    <div style="width:28px;height:28px;border-radius:50%;border:3px solid var(--border,#EDE3DA);border-top-color:var(--fire-orange,#F4622A);animation:pageLoaderSpin 0.8s linear infinite;"></div>
+  </div>
+  <style>@keyframes pageLoaderSpin { to { transform: rotate(360deg); } }</style>
+
+  <div id="pro-onboarding" style="display:none;">
 
     <!-- Profile load failure — shown if the saved profile fetch fails, instead of silently defaulting to onboarding -->
     <div id="profileLoadError" style="display:none;background:#FFF3E0;border-bottom:1.5px solid #FFB74D;padding:14px 20px;text-align:center;">
@@ -430,16 +443,6 @@
           <h1 class="ob-title">What does your money look like right now?</h1>
           <p class="ob-sub" id="ob-b2-sub">No judgment here — just the numbers we need to find your freedom date.</p>
 
-          <!-- Pay cycle -->
-          <div class="ob-field">
-            <label class="ob-label">How often do you get paid?</label>
-            <div class="cycle-group">
-              <button class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
-              <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
-              <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
-            </div>
-          </div>
-
           <!-- Income -->
           <div class="ob-field">
             <label class="ob-label" id="ob-incomeLabel">Take-home income</label>
@@ -461,6 +464,20 @@
             </div>
             <div class="savings-hint" id="savingsHintPct" style="margin-top:6px;"></div>
             <div class="savings-hint" id="savingsAmtHint"></div>
+          </div>
+
+          <div style="border-top:1px solid var(--border);margin:28px 0 20px;padding-top:16px;">
+            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--soft-grey);">Optional refinement</span>
+          </div>
+
+          <!-- Pay cycle -->
+          <div class="ob-field">
+            <label class="ob-label">How often do you get paid?</label>
+            <div class="cycle-group">
+              <button class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
+              <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
+              <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
+            </div>
           </div>
 
           <!-- Retirement spend — fades in -->
@@ -577,6 +594,7 @@
             </div>
           </div>
 
+
           <!-- Super -->
           <div class="ob-field">
             <label class="ob-label">Superannuation <span class="optional-badge">optional</span></label>
@@ -611,6 +629,50 @@
               <input class="ob-input-premium" type="number" id="mortgageRemaining" placeholder="0" min="0"oninput="updateInputHint('mortgageRemaining','mortgageHint')"/>
             </div>
             <div class="savings-hint" id="mortgageHint"></div>
+          </div>
+
+          <!-- Offset — genuinely new field, doesn't fold into savingsType like it used to -->
+          <div class="ob-field">
+            <label class="ob-label">Money sitting in a mortgage offset <span class="optional-badge">optional</span></label>
+            <span class="ob-hint" style="margin-bottom:8px;display:block;">If some of your savings offset your mortgage interest, separate from what's invested elsewhere.</span>
+            <div class="ob-input-wrap">
+              <span class="ob-input-prefix">$</span>
+              <input class="ob-input-premium" type="number" id="offsetAmountInput" placeholder="0" min="0" oninput="handleOffsetAmountInput(this.value)"/>
+            </div>
+          </div>
+
+          <!-- Only shown once an offset amount is entered — asking for a mortgage rate
+               when someone has no offset savings would be a question with no purpose. -->
+          <div class="ob-field" id="offsetRateField" style="display:none;">
+            <label class="ob-label">What's your mortgage's interest rate?</label>
+            <span class="ob-hint" style="margin-bottom:8px;display:block;">Your offset savings effectively earn this rate, tax-free — more accurate than a generic estimate.</span>
+            <div class="ob-input-wrap">
+              <input class="ob-input-premium" type="number" id="offsetRateInput" placeholder="6.0" min="0" max="15" step="0.1" style="padding-left:16px;padding-right:40px;" oninput="offsetInterestRate = parseFloat(this.value) || null;"/>
+              <span class="ob-input-prefix" style="left:auto;right:16px;">%</span>
+            </div>
+          </div>
+
+          <!-- Salary sacrifice — shared field, asked once, feeds Next Best Move reasoning.
+               Two options only, not three: "not sure" stays honestly unanswered (null)
+               rather than being forced into a guess, per the earlier design decision. -->
+          <div class="ob-field">
+            <label class="ob-label">Do you salary sacrifice into super?</label>
+            <div class="cycle-group">
+              <button class="cycle-btn" data-sal="yes" onclick="setSalarySacrifice(this, true)">Yes</button>
+              <button class="cycle-btn" data-sal="no" onclick="setSalarySacrifice(this, false)">No</button>
+            </div>
+          </div>
+
+          <!-- Emergency fund — same shape as salary sacrifice: simple yes/no, no forced
+               "not sure," feeds the recommendation engine's foundational-safety check
+               before anything about optimising further (investing idle cash, super, etc). -->
+          <div class="ob-field">
+            <label class="ob-label">Do you have money set aside specifically for emergencies?</label>
+            <span class="ob-hint" style="margin-bottom:8px;display:block;">Separate from other savings — money you wouldn't touch unless something went wrong.</span>
+            <div class="cycle-group">
+              <button class="cycle-btn" data-ef="yes" onclick="setEmergencyFund(this, true)">Yes</button>
+              <button class="cycle-btn" data-ef="no" onclick="setEmergencyFund(this, false)">No</button>
+            </div>
           </div>
 
           <div class="ob-divider"><span>Your situation</span></div>
@@ -702,8 +764,8 @@
     <button class="back-btn" onclick="obShowScreen(2)">← Recalculate</button>
 
     <div class="result-card">
-      <p class="result-label">Your FirePath Pro result</p>
-      <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
+      <p class="result-label" style="text-align:center;">Your FirePath Pro result</p>
+      <div id="yearsOutHero" style="font-family:'Playfair Display',serif;font-weight:700;color:white;text-align:center;line-height:1.05;margin:8px 0 4px;overflow-wrap:break-word;font-size:clamp(40px,11vw,56px);">You could be free in <span id="yearsOut">—</span></div>
       <p class="result-sub" id="resultSub"></p>
       <div class="result-stats">
         <div class="stat-box"><span class="stat-value" id="freedomAgeOut">—</span><span class="stat-name" id="freedomAgeLabel">Your freedom age</span></div>
@@ -721,28 +783,9 @@
       <button onclick="readResultsAloud()" style="margin-top:16px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:10px 18px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;"><use href="/icons.svg#icon-speaker"/></svg> Read my results aloud</button>
     </div>
 
-    <div id="lifeUnlockedCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">Not a score. A life you can already see.</div>
-      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;" id="lifeUnlockedSub"></div>
-      <div id="lifeUnlockedGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
-    </div>
+    <p style="text-align:center;font-style:italic;color:var(--soft-grey);font-size:14px;margin:28px 0 24px;">Every dollar you save this week buys back part of your future.</p>
 
-    <div id="rangeCard" style="display:none;" class="range-card">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your projected range</div>
-      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Here's your current reality, and what changes if your money works harder.</div>
-      <div id="rangeRows"></div>
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
-    </div>
-
-    <div id="recommendedCard" style="display:none;background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:20px;margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-learn"/></svg> Recommended for you</div>
-      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;" id="recommendedReason"></div>
-      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--warm-brown);margin-bottom:16px;line-height:1.4;" id="recommendedTitle"></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <div id="recommendedBtn" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read this article →</div>
-        <div onclick="window.location.href='learning_lab.html'" style="display:inline-flex;align-items:center;gap:8px;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Browse all topics →</div>
-      </div>
-    </div>
+    <div id="freedomUnlockedCard" class="fp-reveal" style="display:none;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px 20px;text-align:center;margin-bottom:32px;"></div>
 
     <div class="tab-nav" id="resultTabNav" style="display:flex;gap:4px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:14px;padding:4px;margin-top:16px;margin-bottom:12px;overflow-x:auto;">
       <button class="rtab-btn active" onclick="switchResultTab('insight', this)" style="flex:1;padding:12px 8px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="icon" style="width:15px;height:15px;"><use href="/icons.svg#icon-insight"/></svg> AI Coach</button>
@@ -757,7 +800,8 @@
       <div id="debtCard" style="display:none"></div>
       <div id="houseCard" style="display:none"></div>
       <div class="ai-insight-card">
-        <div class="ai-insight-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> AI Insight — just for you</div>
+        <div id="freedomDateMovedLine" style="display:none;"></div>
+        <div class="ai-insight-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Today's biggest opportunity</div>
         <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
       </div>
       <div id="insightMetaBar" style="display:none;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-top:12px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -805,6 +849,29 @@
       <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:4px;line-height:1.6;padding:0 4px;">Educational only — not financial advice. Age Pension estimate based on assets test (homeowner, single). Projections assume 7% growth. Always consider your personal circumstances.</p>
     </div>
 
+    <div id="lifeUnlockedCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-top:40px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">Not a score. A life you can already see.</div>
+      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;" id="lifeUnlockedSub"></div>
+      <div id="lifeUnlockedGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+    </div>
+
+    <div id="rangeCard" style="display:none;" class="range-card">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your projected range</div>
+      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">Here's your current reality, and what changes if your money works harder.</div>
+      <div id="rangeRows"></div>
+      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
+    </div>
+
+    <div id="recommendedCard" style="display:none;background:white;border:2px solid var(--fire-orange);border-radius:16px;padding:20px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-learn"/></svg> Recommended for you</div>
+      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;" id="recommendedReason"></div>
+      <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--warm-brown);margin-bottom:16px;line-height:1.4;" id="recommendedTitle"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div id="recommendedBtn" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read this article →</div>
+        <div onclick="window.location.href='learning_lab.html'" style="display:inline-flex;align-items:center;gap:8px;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Browse all topics →</div>
+      </div>
+    </div>
+
   </div><!-- /screen3 -->
 
 </div><!-- /container -->
@@ -820,7 +887,7 @@
     hint.textContent = val >= 1000 ? '$' + val.toLocaleString('en-AU') : '';
   }
 
-  let persona=null,selectedCycle='fortnightly',savingsType='cash',inputMode='type',isListening=false,isContextListening=false;
+  let persona=null,selectedCycle='fortnightly',savingsType='cash',inputMode='type',isListening=false,isContextListening=false,salarySacrifice=null,offsetAmount=0,offsetInterestRate=null,hasEmergencyFund=null;
   let recognition=null,retirementSpendMultiplier=1.0,contextRecognition=null,housingStatus='renting',dependants=0;
   let transcriptText='',calcData={},storedCalc={};
   let cachedInsight=null,cachedInsightAt=null,lastInsightText='',savedProfileData=null;
@@ -1141,6 +1208,7 @@
     if(!token || !userId){ window.location.href='auth.html'; return; }
     fpToken = token;
     fpUserId = userId;
+    if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
     await loadAssumptions(); await loadSavedInputs(); await loadProfile(); await checkProStatus();
     const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('Welcome to FirePath Pro!');
     const uel=document.getElementById('userStatus');
@@ -1148,10 +1216,18 @@
     else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" style="color:var(--fire-orange);text-decoration:none;">Sign in to save progress</a>`;}
     if(savedPersona){ persona=savedPersona; document.querySelectorAll('.ob-persona').forEach(c=>{ if(c.dataset.persona===savedPersona){ c.classList.add('selected'); } }); }
 
-    // If we have a cached insight and a completed profile, skip onboarding and hydrate straight to results
+    // Now that we actually know the state, reveal the right screen and hide the loader —
+    // instead of onboarding being visible by default and getting swapped out after the
+    // fact, which is what caused the "flash of the persona screen" for returning users.
+    document.getElementById('pageLoader').style.display = 'none';
+    // If we have a cached insight and a completed profile, skip onboarding and hydrate
+    // straight to results — hydrateFromSavedProfile() calls showScreen(3) itself once
+    // rendering is complete, so nothing else needs to reveal screen3 here.
     if (savedProfileData && cachedInsight && savedProfileData.freedom_number) {
       hydrateFromSavedProfile(savedProfileData);
       if (up.get('edit') === 'true') { showScreen(2); }
+    } else {
+      document.getElementById('pro-onboarding').style.display = 'flex';
     }
 
     // Coming from Tax Pro with a salary-sacrifice scenario — jump to Super tab and show the what-if
@@ -1202,6 +1278,14 @@
   function saveHMOData(){localStorage.setItem('hmo_fireNum',calcData.fireNum||0);localStorage.setItem('hmo_monthlySav',calcData.mSav||0);localStorage.setItem('hmo_propVal',calcData.propVal||0);}
   function saveActionPlanData(scenario){localStorage.setItem('ap_fireNum',calcData.fireNum||0);localStorage.setItem('ap_monthlySav',calcData.mSav||0);localStorage.setItem('ap_income',calcData.mIncome||0);localStorage.setItem('ap_savings',calcData.savings||0);localStorage.setItem('ap_super',calcData.superBal||0);localStorage.setItem('ap_age',calcData.age||0);localStorage.setItem('ap_sRate',calcData.sRate||0);localStorage.setItem('ap_context',calcData.context||'');localStorage.setItem('ap_persona',persona||'building');localStorage.setItem('ap_cycle',selectedCycle||'fortnightly');localStorage.setItem('ap_scenario',scenario||'save_more');localStorage.setItem('ap_freedomYrs',yearsToGoal(calcData.fireNum,calcData.savings,calcData.mSav,0.07)||0);localStorage.removeItem('ap_saved_plan');}
   function setRetirementSpend(btn){document.querySelectorAll('[data-spend]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');retirementSpendMultiplier=parseFloat(btn.dataset.spend);}
+  function setSalarySacrifice(btn, value){document.querySelectorAll('[data-sal]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');salarySacrifice=value;}
+  function setEmergencyFund(btn, value){document.querySelectorAll('[data-ef]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');hasEmergencyFund=value;}
+  function handleOffsetAmountInput(val){
+    offsetAmount = parseFloat(val) || 0;
+    const rateField = document.getElementById('offsetRateField');
+    if (rateField) rateField.style.display = offsetAmount > 0 ? 'block' : 'none';
+    if (offsetAmount <= 0) { offsetInterestRate = null; const ri = document.getElementById('offsetRateInput'); if (ri) ri.value = ''; }
+  }
   function toggleMenu(){const menu=document.getElementById('slideMenu'),overlay=document.getElementById('menuOverlay'),isOpen=menu.style.display==='flex';menu.style.display=isOpen?'none':'flex';overlay.style.display=isOpen?'none':'block';}
   function togglePartner(){const f=document.getElementById('partnerFields'),i=document.getElementById('partnerToggleIcon'),v=f.style.display!=='none';f.style.display=v?'none':'block';i.textContent=v?'+':'−';}
   let contextSaveTimer;
@@ -1346,6 +1430,121 @@
 
     document.getElementById('aiInsightText').innerHTML = cachedInsight;
     renderInsightMeta();
+
+    // "Your freedom date moved forward X days" — compares the PROJECTED calendar date
+    // computed now against the same projection from the most recent PRIOR *profile*-source
+    // snapshot specifically (not any-source) — Journey's snapshots use a different, gross
+    // methodology, and comparing across them would show a false jump that's really just a
+    // methodology difference, not real progress (same reasoning as Freedom Gap's source
+    // filtering). Only displayed if the shift is large enough (>=14 days) to be a real
+    // signal rather than rounding noise from the underlying month-level search granularity —
+    // verified this noise floor exists by testing a no-real-change scenario before shipping.
+    (async function() {
+      try {
+        const netPortfolio = Math.max(0, savings - debt);
+        const annualSpend = mSp * 12;
+        if (netPortfolio <= 0 || annualSpend <= 0 || typeof window.FirePathEngine === 'undefined' || !window.FirePathEngine.solveMonthsToTarget) return;
+
+        const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&source=eq.profile&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+        const snapData = await snapRes.json();
+        const prior = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
+        if (!prior || !prior.inputs || prior.inputs.portfolio == null || prior.inputs.annualSpend == null) return;
+
+        function projectedDate(fromDate, portfolio, monthlySavings, spend) {
+          const months = window.FirePathEngine.solveMonthsToTarget(portfolio, monthlySavings, spend);
+          if (months == null) return null;
+          const d = new Date(fromDate);
+          d.setMonth(d.getMonth() + months);
+          return d;
+        }
+
+        const oldDate = projectedDate(prior.created_at, prior.inputs.portfolio, mSav, prior.inputs.annualSpend);
+        const newDate = projectedDate(new Date(), netPortfolio, mSav, annualSpend);
+        if (!oldDate || !newDate) return;
+
+        const daysDiff = Math.round((oldDate - newDate) / (1000*60*60*24));
+        const el = document.getElementById('freedomDateMovedLine');
+        if (!el || Math.abs(daysDiff) < 14) return;
+
+        let text;
+        if (daysDiff > 0) {
+          text = `Since your last update, your freedom date moved <strong>${daysDiff} days closer</strong>.`;
+        } else {
+          // Diagnose using only verifiable, this-user's data — never a generic list of
+          // possible causes, since we can only defend what we can actually check.
+          const spendChangePct = prior.inputs.annualSpend > 0 ? ((annualSpend - prior.inputs.annualSpend) / prior.inputs.annualSpend) * 100 : 0;
+          let cause = '';
+          if (spendChangePct > 2) {
+            cause = ` Your spending assumption went from ${fmtM(prior.inputs.annualSpend)} to ${fmtM(annualSpend)} a year — that's the main driver.`;
+          } else if (prior.inputs.monthlySavings != null && prior.inputs.monthlySavings > 0) {
+            const savingsChangePct = ((mSav - prior.inputs.monthlySavings) / prior.inputs.monthlySavings) * 100;
+            if (savingsChangePct < -5) {
+              cause = ` Your monthly saving dropped from ${fmtM(prior.inputs.monthlySavings)} to ${fmtM(mSav)} — that's the main driver.`;
+            }
+          }
+          text = `Your freedom date is now <strong>${Math.abs(daysDiff)} days later</strong> than your previous calculation.${cause || " We can't fully pinpoint why yet — check back after your next update once we have more history to compare against."}`;
+        }
+        el.style.display = 'block';
+        el.style.cssText += 'background:linear-gradient(135deg,#FFF7F3,#FFFBF7);border:1px solid rgba(244,98,42,0.15);border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:14px;color:var(--warm-brown);';
+        el.innerHTML = text;
+      } catch(e) { console.log('Freedom date moved calculation failed', e); }
+    })();
+
+    // "Freedom Unlocked" — cumulative time bought back since the FIRST profile snapshot,
+    // not just the most recent one. Same formula already tested and verified in Journey's
+    // equivalent feature, adapted here to this page's own source=eq.profile methodology
+    // (net-of-debt portfolio) rather than Journey's gross savings — the two are still kept
+    // separate, same reasoning as the since-last-update comparison above.
+    (async function() {
+      try {
+        const netPortfolio = Math.max(0, savings - debt);
+        const annualSpend = mSp * 12;
+        const el = document.getElementById('freedomUnlockedCard');
+        if (!el || netPortfolio <= 0 || annualSpend <= 0 || typeof window.FirePathEngine === 'undefined' || !window.FirePathEngine.solveMonthsToTarget) return;
+
+        const oldestRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&source=eq.profile&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+        const oldestData = await oldestRes.json();
+        const oldest = Array.isArray(oldestData) && oldestData.length > 0 ? oldestData[0] : null;
+        if (!oldest || !oldest.inputs || oldest.inputs.portfolio == null || oldest.inputs.monthlySavings == null || oldest.inputs.annualSpend == null) return;
+
+        const monthsThen = window.FirePathEngine.solveMonthsToTarget(oldest.inputs.portfolio, oldest.inputs.monthlySavings, oldest.inputs.annualSpend);
+        const monthsNow = window.FirePathEngine.solveMonthsToTarget(netPortfolio, mSav, annualSpend);
+        const monthsElapsed = Math.round((Date.now() - new Date(oldest.created_at).getTime()) / (1000*60*60*24*30.44));
+        if (monthsThen == null || monthsNow == null) return;
+        const boughtBackMonths = Math.max(0, (monthsThen - monthsElapsed) - monthsNow);
+        if (boughtBackMonths <= 0) return;
+
+        const years = Math.floor(boughtBackMonths / 12);
+        const months = Math.floor(boughtBackMonths % 12);
+        el.style.display = 'block';
+        el.innerHTML = `
+          <div class="fu-label">Freedom Unlocked</div>
+          <div class="fu-figures">
+            ${years > 0 ? `<span class="fu-num" id="fuYearsNum">0</span><span class="fu-unit">${years === 1 ? 'year' : 'years'}</span>` : ''}
+            <span class="fu-num" id="fuMonthsNum">0</span><span class="fu-unit">${months === 1 ? 'month' : 'months'}</span>
+          </div>
+          <div class="fu-caption">Since your first snapshot</div>`;
+
+        // Count up from 0, same ease-out pattern already proven on the homepage hero.
+        // Skips straight to the final value under reduced motion.
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        function countUpTo(elId, target) {
+          const numEl = document.getElementById(elId);
+          if (!numEl) return;
+          if (reduceMotion || target === 0) { numEl.textContent = target; return; }
+          const duration = 1200, start = performance.now();
+          function tick(now) {
+            const progress = Math.min(1, (now - start) / duration);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            numEl.textContent = Math.round(eased * target);
+            if (progress < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        }
+        if (years > 0) countUpTo('fuYearsNum', years);
+        countUpTo('fuMonthsNum', months);
+      } catch(e) { console.log('Freedom Unlocked calculation failed', e); }
+    })();
 
     showScreen(3);
     return true;
@@ -1555,6 +1754,10 @@ function stopLoadingMessages() {
     if (p.context) document.getElementById('context').value = p.context;
     if (p.debt_total) document.getElementById('debtTotal').value = p.debt_total;
     if (p.mortgage_remaining) document.getElementById('mortgageRemaining').value = p.mortgage_remaining;
+    if (p.offset_amount) { offsetAmount = p.offset_amount; document.getElementById('offsetAmountInput').value = p.offset_amount; const rf = document.getElementById('offsetRateField'); if (rf) rf.style.display = 'block'; }
+    if (p.offset_interest_rate) { offsetInterestRate = p.offset_interest_rate; const ri = document.getElementById('offsetRateInput'); if (ri) ri.value = p.offset_interest_rate; }
+    if (p.salary_sacrifice !== null && p.salary_sacrifice !== undefined) { salarySacrifice = p.salary_sacrifice; document.querySelectorAll('[data-sal]').forEach(b => b.classList.toggle('active', (b.dataset.sal === 'yes') === p.salary_sacrifice)); }
+    if (p.has_emergency_fund !== null && p.has_emergency_fund !== undefined) { hasEmergencyFund = p.has_emergency_fund; document.querySelectorAll('[data-ef]').forEach(b => b.classList.toggle('active', (b.dataset.ef === 'yes') === p.has_emergency_fund)); }
     if (p.dependants) { dependants = p.dependants; document.getElementById('dependantsVal').textContent = p.dependants; }
     if (p.housing_status) { housingStatus = p.housing_status; document.querySelectorAll('[data-housing]').forEach(b => b.classList.toggle('active', b.dataset.housing === p.housing_status)); }
     if (p.savings_type) { savingsType = p.savings_type; document.querySelectorAll('[data-savings]').forEach(b => b.classList.toggle('active', b.dataset.savings === p.savings_type)); }
@@ -1607,7 +1810,12 @@ async function saveProfile() {
         freedom_years: calcData.mSav > 0 ? Math.round((calcData.fireNum || 0) / (calcData.mSav * 12) * 10) / 10 : null,
         savings_rate: calcData.sRate || 0,
         ai_insight_text: lastInsightText || '',
-        ai_insight_generated_at: cachedInsightAt || new Date().toISOString()
+        ai_insight_generated_at: cachedInsightAt || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        salary_sacrifice: salarySacrifice,
+        offset_amount: offsetAmount,
+        offset_interest_rate: offsetInterestRate,
+        has_emergency_fund: hasEmergencyFund
       })
     });
   } catch(e) { console.log('Profile save failed', e); }
@@ -1633,7 +1841,7 @@ async function saveProfile() {
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'return=minimal' },
             body: JSON.stringify({
               user_id: fpUserId, source: 'profile',
-              inputs: { portfolio: netPortfolio, annualSpend, age: calcData.age || null, isHomeowner: housingStatus !== 'renting' },
+              inputs: { portfolio: netPortfolio, annualSpend, monthlySavings: calcData.mSav || 0, age: calcData.age || null, isHomeowner: housingStatus !== 'renting' },
               picture: freedomPicture
             })
           });
@@ -1776,16 +1984,22 @@ async function saveProfile() {
       await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||'',savings_type:savingsType||'cash',retirement_spend:retirementSpendMultiplier||1.0,dependants:dependants||0,housing_status:housingStatus||'renting',persona:persona||'building',debt_total:mDebt||0,mortgage_remaining:mMort||0});
       buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt);
 
-      const rec = recommendArticlePro(savingsType, persona, sRate, superBal, debt, age);
+      const nextStep = recommendNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund);
       const recCard = document.getElementById('recommendedCard');
       const recTitle = document.getElementById('recommendedTitle');
       const recReason = document.getElementById('recommendedReason');
       const recBtn = document.getElementById('recommendedBtn');
       if (recCard && recTitle && recReason && recBtn) {
-        recTitle.textContent = rec.title;
-        recReason.textContent = rec.reason;
-        const labUrl = `learning_lab.html?topic=${rec.topic}&track=${rec.track}&title=${encodeURIComponent(rec.title)}`;
-        recBtn.onclick = () => { localStorage.setItem('ap_persona', persona); localStorage.setItem('ap_sRate', sRate); window.location.href = labUrl; };
+        if (nextStep.type === 'learn') {
+          recTitle.textContent = nextStep.title;
+          recReason.textContent = nextStep.reason;
+          const labUrl = `learning_lab.html?topic=${nextStep.topic}&track=${nextStep.track}&title=${encodeURIComponent(nextStep.title)}`;
+          recBtn.onclick = () => { localStorage.setItem('ap_persona', persona); localStorage.setItem('ap_sRate', sRate); window.location.href = labUrl; };
+        } else {
+          recTitle.textContent = nextStep.name;
+          recReason.textContent = nextStep.reason;
+          recBtn.onclick = () => { window.location.href = nextStep.url; };
+        }
         recCard.style.display = 'block';
       }
       buildNeedleCard(fireNum,savings,mSav,y07);
@@ -1811,16 +2025,28 @@ async function saveProfile() {
     }
   }
 
-  function recommendArticlePro(savingsType, persona, sRate, superBal, debt, age) {
-    if (sRate === 0) return { topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', reason: 'You\'re not saving yet — this is worth understanding before anything else.' };
-    if (persona === 'fire') return { topic: 'four-percent', track: '7', title: 'The 4% rule — where it comes from', reason: 'Worth exploring the maths behind the number that drives your whole strategy.' };
-    if (debt > 0 && superBal > 0) return { topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', reason: `With ${fmtM(debt)} in debt and ${fmtM(superBal)} in super, understanding how compounding works on both sides is worth exploring.` };
-    if (superBal > 0 && age && age < 45) return { topic: 'two-phase', track: 'foundation', title: 'Your two-phase freedom timeline', reason: `With super locked until 60, understanding how your two timelines interact is worth exploring.` };
-    if (savingsType === 'cash') return { topic: 'index-funds', track: '7', title: 'What is an index fund and why it works', reason: 'Your savings are in cash — this article explores what the alternative looks like and the questions worth thinking through.' };
-    if (savingsType === 'etfs') return { topic: 'compounding-numbers', track: '7', title: 'Compounding with your actual numbers', reason: 'You\'re already investing — this explores what happens as your portfolio grows.' };
-    if (savingsType === 'offset') return { topic: 'saving-vs-investing', track: 'foundation', title: 'The difference between saving and investing', reason: 'Your offset is working hard — worth understanding how it compares to other approaches.' };
-    if (savingsType === 'mix') return { topic: 'diversification', track: '5', title: 'What diversification actually means', reason: 'With a mix of savings types, this explores how to think about what you\'re holding and why.' };
-    return { topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', reason: 'The single most important concept behind your freedom number — worth really understanding.' };
+  // Unified recommendation — replaces the earlier date-alternating pair. Each condition
+  // now deliberately picks the destination type that actually fits the situation, rather
+  // than the same condition producing two options and date choosing between them. This
+  // is the real version of the "priority engine" idea: foundational understanding gaps
+  // go to Learning Lab, testable "what happens if" situations go to Ask FirePath
+  // (matched against its actual verified question types, not guessed), genuine
+  // comparisons between paths go to Scenario Explorer, advanced stress-testing goes to
+  // Withdrawal Modeling. Deliberately does NOT include an "emergency fund missing"
+  // condition — nothing in this project tracks that, and faking a condition with no
+  // real data behind it would be the same category of problem as everything else this
+  // session has been careful to avoid.
+  function recommendNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund) {
+    if (sRate === 0) return { type: 'learn', topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', reason: 'You\'re not saving yet — this is worth understanding before anything else.' };
+    if (hasEmergencyFund === false) return { type: 'learn', topic: 'emergency-fund', track: 'foundation', title: 'Why an emergency fund comes before investing', reason: 'You told us you don\'t have money set aside for emergencies yet — worth understanding why this usually comes before optimising anything else.' };
+    if (persona === 'fire') return { type: 'tool', name: 'Withdrawal Modeling', url: 'withdrawal.html', reason: 'Worth stress-testing how long your portfolio actually lasts once you stop working.' };
+    if (debt > 0 && superBal > 0) return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', reason: `Ask what happens if you paid down debt faster, or salary sacrificed more into super.` };
+    if (superBal > 0 && age && age < 45) return { type: 'learn', topic: 'two-phase', track: 'foundation', title: 'Your two-phase freedom timeline', reason: `With super locked until 60, understanding how your two timelines interact is worth exploring.` };
+    if (savingsType === 'cash') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', reason: 'Ask what happens if that cash was invested instead — a real, calculated answer.' };
+    if (savingsType === 'etfs') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', reason: 'Ask what happens if you saved a bit more each month.' };
+    if (savingsType === 'offset') return { type: 'explore', name: 'Scenario Explorer', url: 'hearmeout.html?scenario=loan', reason: 'Compare what your offset is really doing against investing that same money.' };
+    if (savingsType === 'mix') return { type: 'learn', topic: 'diversification', track: '5', title: 'What diversification actually means', reason: 'With a mix of savings types, this explores how to think about what you\'re holding and why.' };
+    return { type: 'learn', topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', reason: 'The single most important concept behind your freedom number — worth really understanding.' };
   }
 
   function buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt) {

@@ -14,8 +14,10 @@
   <title>My Progress — FirePath Pro</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/visual-system.css"/>
   <script src="js/auth.js"></script>
   <script src="js/calculations.js"></script>
+  <script src="js/interactions.js"></script>
   <style>
     /* Shared icon system — TODO: move into css/main.css once rolled out site-wide */
     .icon { width:20px; height:20px; flex-shrink:0; vertical-align:-4px; }
@@ -49,7 +51,7 @@
   <div id="commitSection" style="margin-bottom:16px;">
 
     <!-- No commitment yet -->
-    <div id="noCommitCard" style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;color:white;text-align:center;">
+    <div id="noCommitCard" style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:var(--radius-lg,20px);padding:28px 24px;color:white;text-align:center;">
       <div style="margin-bottom:12px;color:var(--fire-amber);font-size:36px;line-height:1;">🔥</div>
       <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;line-height:1.3;">Your Commitment Tracker</div>
       <div style="font-size:14px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.7;margin-bottom:24px;">Set a personal savings commitment and track it over time. This tracker records the commitment you set for yourself — confirm each period to earn a flame.</div>
@@ -107,7 +109,7 @@
     <div id="hasCommitCard" style="display:none;">
 
       <!-- Commitment header -->
-      <div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:24px;color:white;margin-bottom:12px;">
+      <div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:var(--radius-lg,20px);padding:24px;color:white;margin-bottom:12px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:6px;">Your commitment</div>
         <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--fire-amber);" id="commitDisplay">—</div>
         <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px;" id="commitStreakLine">—</div>
@@ -121,7 +123,7 @@
       </div>
 
       <!-- Check-in card -->
-      <div style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:12px;">
+      <div class="fp-reveal" style="background:white;border:1.5px solid var(--border);border-radius:var(--radius-lg,20px);padding:24px;margin-bottom:12px;">
         <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">🔥</span> Log your check-in</div>
         <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:20px;" id="checkinDueLabel">Did you hit your target this period?</div>
 
@@ -207,6 +209,7 @@
     if (!token || !userId) { window.location.href = 'auth.html'; return; }
     fpToken = token;
     fpUserId = userId;
+    if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
 
     const uel = document.getElementById('userStatus');
     if (localStorage.getItem('fp_email')) {

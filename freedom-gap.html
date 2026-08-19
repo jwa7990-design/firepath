@@ -6,6 +6,7 @@
   <title>Freedom Gap — FirePath</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/visual-system.css"/>
   <script src="js/tax-engine.js"></script>
   <script src="js/financial-engine.js"></script>
   <style>
@@ -18,7 +19,7 @@
   .hero-title { font-family:'Playfair Display',serif;font-size:clamp(28px,7vw,44px);font-weight:900;line-height:1.1;margin-bottom:12px; }
   .hero-sub { font-size:15px;color:rgba(255,255,255,0.6);font-weight:300;line-height:1.7;max-width:480px;margin:0 auto; }
   .content { padding:24px 20px 80px;max-width:580px;margin:0 auto; }
-  .glass-card { background:white;border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;box-shadow:0 2px 20px rgba(61,43,31,0.05); }
+  .glass-card { background:white;border:1px solid var(--border);border-radius:var(--radius-lg,20px);padding:24px;margin-bottom:16px;box-shadow:var(--elevation-2,0 2px 20px rgba(61,43,31,0.05)); }
   .card-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:16px;display:flex;align-items:center;gap:6px; }
   .input-row { display:flex;flex-direction:column;gap:6px;margin-bottom:16px; }
   .input-row:last-child { margin-bottom:0; }
@@ -87,7 +88,7 @@
 
 <div class="content">
 
-  <div class="glass-card">
+  <div class="glass-card fp-reveal">
     <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-money"/></svg> Your numbers</div>
     <div class="input-row">
       <div class="input-label-text">Investments available today</div>
@@ -603,6 +604,7 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
 
   // Prefill from URL params (dashboard link) or saved Supabase profile
   document.addEventListener('DOMContentLoaded', async () => {
+    if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
     const params = new URLSearchParams(window.location.search);
     const urlPortfolio = params.get('portfolio');
     if (urlPortfolio) document.getElementById('g-portfolio').value = urlPortfolio;
@@ -645,6 +647,7 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
 </script>
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
+<script src="js/interactions.js"></script>
 <script src="js/quick-feedback-widget.js"></script>
 </body>
 </html>

@@ -14,9 +14,10 @@
   <meta name="description" content="Your Australian tax picture, salary sacrifice, and offset vs invest — connected to your actual freedom date."/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/main.css"/>
+  <link rel="stylesheet" href="css/visual-system.css"/>
   <script src="js/tax-engine.js"></script>
   <style>
-    .tool-card { background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:20px; }
+    .tool-card { background:white;border:1.5px solid var(--border);border-radius:var(--radius-lg,20px);padding:24px;margin-bottom:20px; }
     .tool-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px; }
     .tool-title { font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:8px; }
     .tool-sub { font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:20px; }
@@ -32,24 +33,24 @@
     .input-row input { border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--warm-brown);background:white;width:100%;box-sizing:border-box; }
     .input-row input:focus { outline:none;border-color:var(--fire-orange); }
     .input-hint { font-size:12px;color:var(--soft-grey);font-weight:300; }
-    .results-box { background:var(--warm-cream);border-radius:14px;padding:18px;margin-top:16px;display:none; }
-    .warning-box { background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:12px 14px;font-size:13px;color:#E65100;line-height:1.6;margin-top:12px; }
+    .results-box { background:var(--warm-cream);border-radius:var(--radius-md,14px);padding:18px;margin-top:16px;display:none; }
+    .warning-box { background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:var(--radius-sm,10px);padding:12px 14px;font-size:13px;color:#E65100;line-height:1.6;margin-top:12px; }
     .comparison-box { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px; }
-    .comparison-item { background:var(--warm-cream);border-radius:12px;padding:16px;text-align:center; }
+    .comparison-item { background:var(--warm-cream);border-radius:var(--radius-sm,12px);padding:16px;text-align:center; }
     .comparison-item.winner { background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7; }
     .comparison-rate { font-size:24px;font-weight:700;font-family:'Playfair Display',serif; }
     .comparison-rate.green { color:#2E7D32; }
     .comparison-rate.orange { color:var(--fire-orange); }
     .comparison-label { font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:4px; }
-    .pro-insight { background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:1.5px solid rgba(244,98,42,0.25);border-radius:14px;padding:16px 18px;margin-top:16px; }
+    .pro-insight { background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:1.5px solid rgba(244,98,42,0.25);border-radius:var(--radius-md,14px);padding:16px 18px;margin-top:16px; }
     .pro-insight-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px; }
     .pro-insight-text { font-size:14px;color:var(--warm-brown);font-weight:300;line-height:1.75; }
     .pro-insight-text strong { font-weight:600; }
     .pro-insight-link { display:inline-block;margin-top:10px;font-size:12px;font-weight:500;color:var(--fire-orange);text-decoration:none; }
-    .profile-banner { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);color:white;border-radius:14px;padding:16px 18px;margin-bottom:24px; }
+    .profile-banner { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);color:white;border-radius:var(--radius-md,14px);padding:16px 18px;margin-bottom:24px; }
     .profile-banner-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#F4A24A;margin-bottom:12px; }
     .profile-banner-stats { display:flex;flex-wrap:wrap;gap:10px; }
-    .profile-stat { background:rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;min-width:90px; }
+    .profile-stat { background:rgba(255,255,255,0.08);border-radius:var(--radius-sm,10px);padding:8px 12px;min-width:90px; }
     .profile-stat-value { font-size:16px;font-weight:700;font-family:'Playfair Display',serif; }
     .profile-stat-label { font-size:11px;color:rgba(255,255,255,0.65);font-weight:300;margin-top:2px; }
     .profile-banner-link { display:inline-block;margin-top:12px;font-size:12px;font-weight:500;color:#F4A24A;text-decoration:none; }
@@ -57,7 +58,7 @@
     .ai-loading.visible { display:block; }
     .fp-loader-flame { font-size:32px;animation:fp-flame-pulse 1.4s ease-in-out infinite;display:inline-block; }
     @keyframes fp-flame-pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.18);opacity:0.75;} }
-    .ai-insight-card { background:white;border:2px solid var(--warm-brown);border-radius:18px;padding:22px;margin-bottom:20px; }
+    .ai-insight-card { background:white;border:2px solid var(--warm-brown);border-radius:var(--radius-md,18px);padding:22px;margin-bottom:20px; }
     .ai-insight-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--warm-brown);margin-bottom:12px; }
     .ai-insight-text { font-size:14px;color:var(--warm-brown);font-weight:300;line-height:1.8; }
     .ai-insight-text strong { font-weight:600;color:var(--fire-orange); }
@@ -99,7 +100,7 @@
 
   <div class="profile-banner" id="profileBanner" style="display:none;"></div>
 
-  <div class="tool-card" id="tool1Card">
+  <div class="tool-card fp-reveal" id="tool1Card">
     <div class="tool-label">Tool 1</div>
     <div class="tool-title">Your tax picture</div>
     <div class="tool-sub">See exactly what you keep from every dollar you earn.</div>
@@ -232,6 +233,7 @@
 
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
+<script src="js/interactions.js"></script>
 <script>
   function fmtM(n){if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';return'$'+Math.round(n).toLocaleString('en-AU');}
   function fmtPct(r){return(r*100).toFixed(1)+'%';}
@@ -628,7 +630,7 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
       if (learnMoreEl && topicTag && topicMap[topicTag]) {
         const t = topicMap[topicTag];
         const labUrl = `learning_lab.html?topic=${t.topic}&track=${t.track}&title=${encodeURIComponent(t.title)}`;
-        learnMoreEl.innerHTML = `<a href="${labUrl}" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:10px 18px;border-radius:50px;font-size:13px;font-weight:500;text-decoration:none;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-learn"/></svg> Go deeper — ${t.title} →</a>`;
+        learnMoreEl.innerHTML = `<a href="${labUrl}" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:10px 18px;border-radius:var(--radius-pill,50px);font-size:13px;font-weight:500;text-decoration:none;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-learn"/></svg> Go deeper — ${t.title} →</a>`;
         learnMoreEl.style.display = 'block';
       } else if (learnMoreEl) {
         learnMoreEl.style.display = 'none';
@@ -665,6 +667,7 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
   }
 
   document.addEventListener('DOMContentLoaded', async function() {
+    if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
     document.getElementById('taxYearLabel').textContent = TAX_CONFIG.year;
     await loadProContext();
   });

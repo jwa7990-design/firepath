@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FirePath — About You</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/main.css"/>
+<link rel="stylesheet" href="css/visual-system.css"/>
+<script src="js/auth.js"></script>
+<script src="js/calculations.js"></script>
+<script src="js/financial-engine.js"></script>
+<script src="js/interactions.js"></script>
+<style>
+  :root {
+    --fire-orange: #F4622A; --fire-amber: #F9A825; --warm-cream: #FDF6EE;
+    --warm-brown: #3D2B1F; --soft-grey: #9E8E85; --border: #EDE3DA;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); margin: 0; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 480px; margin: 0 auto; padding: 20px 24px 60px; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--soft-grey); text-decoration: none; margin-bottom: 24px; }
+  .back-link:hover { color: var(--fire-orange); }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin-bottom: 28px; }
+
+  .section-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;margin-top:8px; }
+  .section-block{ margin-bottom:36px; }
+
+  .achv-strip{ display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; }
+  .achv-badge{ flex-shrink:0; width:76px; text-align:center; }
+  .achv-icon-wrap{
+    width:54px; height:54px; margin:0 auto 6px; border-radius:50%; display:flex;
+    align-items:center; justify-content:center; background:var(--warm-cream); border:1.5px solid var(--border);
+  }
+  .achv-badge.unlocked .achv-icon-wrap{ background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber)); border-color:transparent; }
+  .achv-icon-wrap svg{ width:20px; height:20px; color:var(--soft-grey); }
+  .achv-badge.unlocked .achv-icon-wrap svg{ color:#fff; }
+  .achv-label{ font-size:10.5px; color:var(--soft-grey); line-height:1.3; }
+  .achv-badge.unlocked .achv-label{ color:var(--warm-brown); font-weight:500; }
+  .achv-badge.next .achv-icon-wrap{ border-color:var(--fire-orange); border-width:1.5px; border-style:dashed; background:#FFF7F3; }
+  .achv-badge.next .achv-icon-wrap svg{ color:var(--fire-orange); }
+  .achv-badge.next .achv-label{ color:var(--fire-orange); font-weight:500; }
+  .achv-distance{ font-size:9.5px; color:var(--fire-orange); font-weight:600; margin-top:1px; }
+
+  .timeline{ position:relative; padding-left:22px; }
+  .timeline::before{ content:''; position:absolute; left:5px; top:6px; bottom:6px; width:1.5px; background:var(--border); }
+  .tl-item{ position:relative; padding-bottom:20px; }
+  .tl-item:last-child{ padding-bottom:0; }
+  .tl-dot{ position:absolute; left:-22px; top:2px; width:11px; height:11px; border-radius:50%; background:white; border:2px solid var(--border); }
+  .tl-item.done .tl-dot{ background:var(--fire-orange); border-color:var(--fire-orange); }
+  .tl-item.next .tl-dot{ border-color:var(--fire-orange); border-style:dashed; }
+  .tl-label{ font-size:14px; margin-top:2px; }
+  .tl-item.done .tl-label{ color:var(--warm-brown); font-weight:500; }
+  .tl-item:not(.done) .tl-label{ color:var(--soft-grey); }
+  .tl-item.next .tl-label{ color:var(--fire-orange); font-weight:500; }
+  .tl-distance{ font-size:11px; color:var(--fire-orange); font-weight:500; margin-top:2px; }
+
+  .dna-row{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+  .dna-label{ width:100px; flex-shrink:0; font-size:13px; color:var(--soft-grey); }
+  .dna-track{ flex:1; height:7px; border-radius:999px; background:var(--border); overflow:hidden; }
+  .dna-fill{ height:100%; border-radius:999px; background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber)); }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--soft-grey); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <symbol id="icon-flame-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7.5-3 7.5-6.8 0-3-1.8-4.9-3-6.3.2 1.6-.5 2.7-1.3 3.3.3-2.7-1-5.4-3.4-7.2-.4 2.2-1.4 3.6-2.9 5C7.2 11.6 6 12.9 6 15.2 6 19 7.5 22 12 22z"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></symbol>
+  </defs>
+</svg>
+
+<div class="container">
+  <a href="journey.html" class="back-link">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back
+  </a>
+
+  <div class="page-title">About you</div>
+
+  <div id="loadingState" class="empty-state">Loading...</div>
+
+  <div id="content" style="display:none;">
+    <div class="section-block">
+      <div class="section-label">Achievements</div>
+      <div class="achv-strip" id="achvStrip"></div>
+      <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;" id="achvNote"></div>
+    </div>
+    <div class="section-block">
+      <div class="section-label">Journey Timeline</div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+    <div class="section-block">
+      <div class="section-label">Financial DNA</div>
+      <div id="dnaType" style="font-family:'Playfair Display',serif;font-weight:700;font-size:19px;color:var(--warm-brown);margin-bottom:12px;"></div>
+      <div id="dnaRows"></div>
+      <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;" id="dnaNote"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function fmtM(n) {
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
+    return '$' + Math.round(n);
+  }
+
+  const PERSONA_COPY = {
+    beginner: {
+      badgeCoast: 'Halfway cushion', badgeLean: 'Covers the basics', badgeFI: 'Work becomes optional',
+      tlCoast: 'Saved enough that growth alone could carry you one day (rough estimate)',
+      tlLean: 'Close to covering your basic living costs without working (rough estimate)',
+      tlFI: 'Financial independence calculated',
+      note: 'A rough guide based on your savings vs. your freedom number — not an exact calculation yet.'
+    },
+    default: {
+      badgeCoast: 'Coast Achieved', badgeLean: 'Lean FIRE', badgeFI: 'Financial Independence',
+      tlCoast: 'Coast FIRE calculated (rough estimate)', tlLean: 'Lean FIRE calculated (rough estimate)',
+      tlFI: 'Freedom Number Achieved',
+      note: 'Based on current savings vs. your freedom number — a rough guide, not the full Coast/Lean FIRE calc yet.'
+    }
+  };
+
+  function scoreSaver(savingsRate) {
+    if (!savingsRate) return 1;
+    return Math.max(1, Math.min(10, Math.round(savingsRate / 5)));
+  }
+  function scoreInvestor(savingsType) {
+    const map = { etfs: 9, shares: 9, super: 6, mixed: 6, cash: 2 };
+    return map[(savingsType || '').toLowerCase()] || 4;
+  }
+  function scoreRisk(debtTotal, mortgageRemaining, grossIncome) {
+    const leverage = debtTotal + mortgageRemaining;
+    if (!grossIncome || grossIncome <= 0) return leverage > 0 ? 6 : 2;
+    const ratio = leverage / grossIncome;
+    return Math.max(1, Math.min(10, Math.round(ratio * 2)));
+  }
+  function scoreSpending(retirementSpendMultiplier) {
+    const m = retirementSpendMultiplier || 0.8;
+    return Math.max(1, Math.min(10, Math.round(m * 10)));
+  }
+
+  function renderFinancialDNA(p) {
+    const saverScore = scoreSaver(p.savings_rate);
+    const investorScore = scoreInvestor(p.savings_type);
+    const rows = [
+      { label: 'Saver', score: saverScore },
+      { label: 'Investor', score: investorScore },
+      { label: 'Risk taken', score: scoreRisk(p.debt_total || 0, p.mortgage_remaining || 0, p.gross_income || 0) },
+      { label: 'Spending', score: scoreSpending(p.retirement_spend) }
+    ];
+    document.getElementById('dnaRows').innerHTML = rows.map(r => `
+      <div class="dna-row">
+        <div class="dna-label">${r.label}</div>
+        <div class="dna-track"><div class="dna-fill" style="width:${r.score*10}%"></div></div>
+      </div>`).join('');
+
+    let dnaType = 'The Steady Starter';
+    if (saverScore >= 7 && investorScore >= 7) dnaType = 'The Wealth Architect';
+    else if (saverScore >= 7) dnaType = 'The Quiet Builder';
+    else if (investorScore >= 7) dnaType = 'The Growth Seeker';
+    document.getElementById('dnaType').textContent = dnaType;
+    document.getElementById('dnaNote').textContent = "A first-pass score from your saved numbers — not a full financial personality model yet, and doesn't include income growth (needs history we don't track yet).";
+  }
+
+  function renderAchievementsAndTimeline(savings, freedomNumber, persona){
+    const copy = PERSONA_COPY[persona] || PERSONA_COPY.default;
+    const ratio = freedomNumber > 0 ? savings / freedomNumber : 0;
+    const badges = [
+      { label: 'First $10k',    unlocked: savings >= 10000, target: 10000 },
+      { label: 'First Six Figures',   unlocked: savings >= 100000, target: 100000 },
+      { label: 'Quarter Free', unlocked: ratio >= 0.25, target: freedomNumber * 0.25 },
+      { label: copy.badgeCoast, unlocked: ratio >= 0.4, target: freedomNumber * 0.4 },
+      { label: copy.badgeLean,  unlocked: ratio >= 0.7, target: freedomNumber * 0.7 },
+      { label: copy.badgeFI,    unlocked: ratio >= 1.0, target: freedomNumber }
+    ];
+    const nextBadgeIdx = badges.findIndex(b => !b.unlocked);
+    document.getElementById('achvNote').textContent = copy.note;
+    document.getElementById('achvStrip').innerHTML = badges.map((b, i) => {
+      const isNext = i === nextBadgeIdx;
+      const remaining = isNext ? Math.max(0, b.target - savings) : 0;
+      return `
+      <div class="achv-badge ${b.unlocked?'unlocked':''} ${isNext?'next':''}">
+        <div class="achv-icon-wrap"><svg><use href="#${b.unlocked?'icon-flame-badge':'icon-lock'}"/></svg></div>
+        <div class="achv-label">${b.label}</div>
+        ${isNext && remaining > 0 ? `<div class="achv-distance">${fmtM(remaining)} away</div>` : ''}
+      </div>`;
+    }).join('');
+
+    const timeline = [
+      { label: 'Started FirePath', done: true, target: 0 },
+      { label: 'Saved first $100k', done: savings >= 100000, target: 100000 },
+      { label: copy.tlCoast, done: ratio >= 0.4, target: freedomNumber * 0.4 },
+      { label: copy.tlLean, done: ratio >= 0.7, target: freedomNumber * 0.7 },
+      { label: copy.tlFI, done: ratio >= 1.0, target: freedomNumber },
+      { label: 'Reached Fat FIRE', done: ratio >= 1.5, target: freedomNumber * 1.5 }
+    ];
+    const nextTlIdx = timeline.findIndex(t => !t.done);
+    document.getElementById('timeline').innerHTML = timeline.map((t, i) => {
+      const isNext = i === nextTlIdx;
+      const remaining = isNext ? Math.max(0, t.target - savings) : 0;
+      return `
+      <div class="tl-item ${t.done?'done':''} ${isNext?'next':''}">
+        <div class="tl-dot"></div>
+        <div class="tl-label">${t.label}</div>
+        ${isNext && remaining > 0 ? `<div class="tl-distance">${fmtM(remaining)} to go</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  document.addEventListener('DOMContentLoaded', async function() {
+    const token = getToken();
+    const userId = getUserId();
+    if (!token || !userId) { window.location.href = 'auth.html'; return; }
+
+    try {
+      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.status === 401 || res.status === 403) { window.location.href = 'auth.html'; return; }
+      if (!res.ok) { document.getElementById('loadingState').textContent = "Couldn't load your data — try refreshing."; return; }
+
+      const data = await res.json();
+      const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
+      if (!p || !p.freedom_number) {
+        document.getElementById('loadingState').innerHTML = `Run your numbers first — everything on this page is built from your profile.<br><br><a href="firepath_pro.html" style="color:var(--fire-orange);">Run my numbers →</a>`;
+        return;
+      }
+
+      const savings = p.current_savings || 0;
+      const freedomNumber = p.freedom_number;
+
+      renderAchievementsAndTimeline(savings, freedomNumber, p.persona);
+      renderFinancialDNA(p);
+
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+      if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
+    } catch(e) {
+      console.log('About You load failed', e);
+      document.getElementById('loadingState').textContent = "Couldn't load your data — try refreshing.";
+    }
+  });
+</script>
+</body>
+</html>
