@@ -214,9 +214,16 @@
   .week-dot-letter { font-size: 10px; color: var(--soft-grey); }
   .week-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
   .week-dot.active { background: var(--fire-orange); }
-  .topic-link-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; text-decoration: none; color: var(--warm-brown); font-size: 13.5px; border-bottom: 1px solid var(--border); }
+  .topic-link-row {
+    display: flex; align-items: center; justify-content: space-between; padding: 10px 0; text-decoration: none;
+    color: var(--warm-brown); font-size: 13.5px; border-bottom: 1px solid var(--border);
+    transition: color var(--dur-responsive) var(--ease-standard);
+  }
   .topic-link-row:last-of-type { border-bottom: none; }
   .topic-link-row:hover { color: var(--fire-orange); }
+  /* Marks whichever topic is currently swapped into the lesson list below — only
+     ever set on the four links that map onto a real stage (see the JS wiring). */
+  .topic-link-row.active { color: var(--fire-orange); font-weight: 600; }
   .browse-all-btn {
     display: block; text-align: center; margin-top: 14px; padding: 11px; border: 1px solid var(--border);
     border-radius: 10px; font-size: 13px; font-weight: 500; color: var(--warm-brown); text-decoration: none;
@@ -623,6 +630,22 @@
       });
     }
 
+    // Shared by the stepper tabs AND the sidebar "Explore topics" links — both are
+    // just different entry points into the same in-place swap, so they drive one
+    // path instead of two parallel ones. `scrollTo` is only used by the sidebar
+    // link, since the stepper is already right next to the list it's switching.
+    function viewStage(stageKey, opts = {}) {
+      viewedStageKey = stageKey;
+      renderLessonList(stageKey);
+      document.querySelectorAll('#exploreTopics .topic-link-row').forEach(a => {
+        a.classList.toggle('active', a.dataset.track === stageKey);
+      });
+      if (opts.scrollTo) {
+        const target = document.getElementById('pathSection');
+        if (target) target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+      }
+    }
+
     // ── Everything derived from readIds/readDates, re-rendered together — on
     // load, and again after completeLesson() below updates that state. This is
     // what used to be one flat block that only ever ran once; wrapping it means
@@ -729,7 +752,7 @@
         </button>${connector}`;
       }).join('');
       document.querySelectorAll('.stepper-step').forEach(btn => {
-        btn.addEventListener('click', () => { viewedStageKey = btn.dataset.stage; renderLessonList(viewedStageKey); });
+        btn.addEventListener('click', () => viewStage(btn.dataset.stage));
       });
 
       renderLessonList(viewedStageKey);
@@ -918,8 +941,12 @@
       });
     }
 
-    // ── Explore topics — the real track names, linking into learning_lab.html's
-    // own track selector (?track=) rather than duplicating that page's content. ──
+    // ── Explore topics. Four of these five map directly onto a stage already loaded
+    // here (STAGES), so clicking them swaps the lesson list below in place — same
+    // mechanism as clicking a stepper tab. "Real Questions" (life) is a real track in
+    // learning_lab.html but isn't part of the linear path and has no lesson data
+    // duplicated on this page, so it's left as a real link out rather than faking an
+    // in-place view with no content behind it. ──
     const exploreLinks = [
       { label: 'Real Questions', track: 'life' },
       { label: 'Build Your Base', track: '5' },
@@ -928,8 +955,18 @@
       { label: 'Grow Faster', track: '10' },
     ];
     document.getElementById('exploreTopics').innerHTML = exploreLinks.map(t =>
-      `<a href="learning_lab.html?openTrack=${encodeURIComponent(t.track)}" class="topic-link-row">${t.label} <span>→</span></a>`
+      `<a href="learning_lab.html?openTrack=${encodeURIComponent(t.track)}" class="topic-link-row" data-track="${t.track}">${t.label} <span>→</span></a>`
     ).join('');
+    document.querySelectorAll('#exploreTopics .topic-link-row').forEach(a => {
+      const track = a.dataset.track;
+      // Reflects whichever stage the lesson list already opened to by default.
+      a.classList.toggle('active', track === viewedStageKey);
+      if (!STAGES.some(s => s.key === track)) return;
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        viewStage(track, { scrollTo: true });
+      });
+    });
 
     // ── Real search — filters recommended cards and the visible lesson list by
     // title/description text, across both the desktop and mobile search inputs. ──
