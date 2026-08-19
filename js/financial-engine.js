@@ -74,17 +74,23 @@ window.FirePathEngine = (function () {
   // as a page-local copy inside firepath_pro.html; journey.html already assumed it
   // lived here (calls it as window.FirePathEngine.recommendNextStep). Same function,
   // just promoted so both pages share one copy instead of drifting apart.
+  //
+  // `headline` is a short, imperative framing of the same recommendation — "Build
+  // your emergency buffer." rather than a generic "Why this matters" label — meant
+  // to be the first thing a person reads on the Next Move card, with `reason` as the
+  // supporting sentence underneath it. Added alongside `type`/`reason`, not replacing
+  // them, so any older cached call site that only reads `reason` still works.
   function recommendNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund) {
-    if (sRate === 0) return { type: 'learn', topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', reason: 'You\'re not saving yet — this is worth understanding before anything else.' };
-    if (hasEmergencyFund === false) return { type: 'learn', topic: 'emergency-fund', track: 'foundation', title: 'Why an emergency fund comes before investing', reason: 'You told us you don\'t have money set aside for emergencies yet — worth understanding why this usually comes before optimising anything else.' };
-    if (persona === 'fire') return { type: 'tool', name: 'Withdrawal Modeling', url: 'withdrawal.html', reason: 'Worth stress-testing how long your portfolio actually lasts once you stop working.' };
-    if (debt > 0 && superBal > 0) return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', reason: `Ask what happens if you paid down debt faster, or salary sacrificed more into super.` };
-    if (superBal > 0 && age && age < 45) return { type: 'learn', topic: 'two-phase', track: 'foundation', title: 'Your two-phase freedom timeline', reason: `With super locked until 60, understanding how your two timelines interact is worth exploring.` };
-    if (savingsType === 'cash') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', reason: 'Ask what happens if that cash was invested instead — a real, calculated answer.' };
-    if (savingsType === 'etfs') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', reason: 'Ask what happens if you saved a bit more each month.' };
-    if (savingsType === 'offset') return { type: 'explore', name: 'Scenario Explorer', url: 'hearmeout.html?scenario=loan', reason: 'Compare what your offset is really doing against investing that same money.' };
-    if (savingsType === 'mix') return { type: 'learn', topic: 'diversification', track: '5', title: 'What diversification actually means', reason: 'With a mix of savings types, this explores how to think about what you\'re holding and why.' };
-    return { type: 'learn', topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', reason: 'The single most important concept behind your freedom number — worth really understanding.' };
+    if (sRate === 0) return { type: 'learn', topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', headline: 'Understand what FIRE actually means for you.', reason: 'You\'re not saving yet — this is worth understanding before anything else.' };
+    if (hasEmergencyFund === false) return { type: 'learn', topic: 'emergency-fund', track: 'foundation', title: 'Why an emergency fund comes before investing', headline: 'Build your emergency buffer.', reason: 'You told us you don\'t have money set aside for emergencies yet — worth understanding why this usually comes before optimising anything else.' };
+    if (persona === 'fire') return { type: 'tool', name: 'Withdrawal Modeling', url: 'withdrawal.html', headline: 'Stress-test how long your money lasts.', reason: 'Worth stress-testing how long your portfolio actually lasts once you stop working.' };
+    if (debt > 0 && superBal > 0) return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', headline: 'Weigh paying down debt against super.', reason: `Ask what happens if you paid down debt faster, or salary sacrificed more into super.` };
+    if (superBal > 0 && age && age < 45) return { type: 'learn', topic: 'two-phase', track: 'foundation', title: 'Your two-phase freedom timeline', headline: 'See how your two timelines interact.', reason: `With super locked until 60, understanding how your two timelines interact is worth exploring.` };
+    if (savingsType === 'cash') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', headline: 'See what your cash could be doing instead.', reason: 'Ask what happens if that cash was invested instead — a real, calculated answer.' };
+    if (savingsType === 'etfs') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', headline: 'Find out what a bit more each month buys you.', reason: 'Ask what happens if you saved a bit more each month.' };
+    if (savingsType === 'offset') return { type: 'explore', name: 'Scenario Explorer', url: 'hearmeout.html?scenario=loan', headline: 'Compare your offset against investing.', reason: 'Compare what your offset is really doing against investing that same money.' };
+    if (savingsType === 'mix') return { type: 'learn', topic: 'diversification', track: '5', title: 'What diversification actually means', headline: 'Understand what you\'re actually holding.', reason: 'With a mix of savings types, this explores how to think about what you\'re holding and why.' };
+    return { type: 'learn', topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', headline: 'Get the one concept that changes everything.', reason: 'The single most important concept behind your freedom number — worth really understanding.' };
   }
  
   // Finds the youngest age (from currentAge) at which portfolio income — plus the Age
