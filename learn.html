@@ -50,6 +50,18 @@
   }
   .search-input:focus { outline: none; border-color: var(--fire-orange); }
   .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--soft-grey); pointer-events: none; }
+  /* Hidden until there's an active search term (toggled via applySearch()); a quiet
+     text link, not a button — this is a suggestion sitting alongside real filtered
+     results, not competing with them. */
+  .ask-firepath-hint {
+    display: none; align-items: center; gap: 5px; font-size: 12.5px; color: var(--fire-orange); font-weight: 500;
+    text-decoration: none; margin: -16px 0 24px;
+    opacity: 0; transition: opacity var(--dur-responsive) ease;
+  }
+  .ask-firepath-hint.shown { display: inline-flex; opacity: 1; }
+  .ask-firepath-hint:hover { text-decoration: underline; }
+  .ask-firepath-hint span:last-child { transition: transform var(--dur-responsive) var(--ease-standard); }
+  .ask-firepath-hint:hover span:last-child { transform: translateX(3px); }
 
   /* ── Continue hero — the dominant action on the page now. FirePath tells the
        user what's next rather than making them choose; the progress ring/percent
@@ -367,6 +379,15 @@
     <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
     <input type="text" class="search-input" id="searchInputMobile" placeholder="Search lessons…" aria-label="Search lessons"/>
   </div>
+
+  <!-- Shown alongside filtered results while there's an active search term, not just as
+       a no-results fallback — one shared hint reacts to either search input (desktop or
+       mobile) since both already drive the same applySearch(). Deep-links into
+       ask-firepath.html with ?q=, which prefills and renders an answer immediately,
+       mirroring how that page's own suggestion chips already behave. -->
+  <a href="ask-firepath.html" class="ask-firepath-hint" id="askFirepathHint">
+    Ask FirePath about “<span id="askFirepathHintQuery"></span>” <span>→</span>
+  </a>
 
   <div class="continue-hero" id="continueHero">
     <div class="continue-eyebrow" id="continueEyebrow">Continue your path</div>
@@ -971,11 +992,25 @@
     // ── Real search — filters recommended cards and the visible lesson list by
     // title/description text, across both the desktop and mobile search inputs. ──
     function applySearch(q) {
-      const term = q.trim().toLowerCase();
+      const trimmed = q.trim();
+      const term = trimmed.toLowerCase();
       document.querySelectorAll('#recPrimary .rec-primary, #recSecondaryRow .rec-card, #lessonList .lesson-row').forEach(el => {
         const text = el.getAttribute('data-search-text') || '';
         el.classList.toggle('hidden-by-search', term.length > 0 && !text.includes(term));
       });
+      // Surfaces alongside the filtered results (not just when there are none) — the
+      // point is connecting search to the AI, not apologising for a lesson that
+      // doesn't exist yet.
+      const hintEl = document.getElementById('askFirepathHint');
+      if (hintEl) {
+        if (term.length > 0) {
+          document.getElementById('askFirepathHintQuery').textContent = trimmed;
+          hintEl.href = `ask-firepath.html?q=${encodeURIComponent(trimmed)}`;
+          hintEl.classList.add('shown');
+        } else {
+          hintEl.classList.remove('shown');
+        }
+      }
     }
     ['searchInputDesktop', 'searchInputMobile'].forEach(id => {
       const el = document.getElementById(id);

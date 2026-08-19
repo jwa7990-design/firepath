@@ -287,6 +287,15 @@
       render(classifyAndAnswer(chip.dataset.q), chip.dataset.q);
     });
   });
+
+  // Deep-linked from Learning Lab's search ("Ask FirePath about '{query}'") — mirrors
+  // the chip behavior above exactly: prefill AND render immediately, not just prefill,
+  // so arriving here from that link isn't a dead end.
+  const deepLinkQ = new URLSearchParams(window.location.search).get('q');
+  if (deepLinkQ) {
+    document.getElementById('askInput').value = deepLinkQ;
+    render(classifyAndAnswer(deepLinkQ), deepLinkQ);
+  }
 </script>
 </body>
 </html>
