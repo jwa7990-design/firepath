@@ -15,15 +15,37 @@
     --soft-grey:   #9E8E85;
     --border:      #EDE3DA;
     --dark-bg:     #2A1E15;
+
+    /* ── FirePath motion system — four speeds, used consistently by every
+         animation on this page. The rule behind all of them: motion explains
+         change (where something came from, what changed, where you're going),
+         it never just decorates. "Live" interactions (sliders, drag) have no
+         fixed duration here since they're driven directly by input, not a timer. ── */
+    --dur-instant:    140ms;   /* hover states, arrows, tiny feedback */
+    --dur-responsive: 240ms;   /* nav, cards, staggered content arriving */
+    --dur-settle:     300ms;   /* the three page-settle beats: canvas / nav / greeting */
+    --dur-expressive: 800ms;   /* hero numbers, trajectory drawing, progress travel */
+    --ease-standard:  cubic-bezier(0.16,1,0.3,1);   /* quick, decisive settle — no overshoot */
+    --ease-gentle:    cubic-bezier(0.22,1,0.36,1);  /* slow decelerate, used for anything "travelling" */
   }
+  @keyframes fp-canvas-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fp-fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important; animation-delay: 0.01ms !important;
+      transition-duration: 0.01ms !important; transition-delay: 0.01ms !important;
+    }
   }
   body {
     font-family: 'DM Sans', sans-serif;
     background: var(--warm-cream);
     color: var(--warm-brown);
     -webkit-font-smoothing: antialiased;
+    /* Beat 1 of the page-settle sequence: the canvas itself fades in first,
+       before anything else on it becomes visible (see .top-bar/.desktop-rail
+       and .greeting-title below for beats 2 and 3). */
+    opacity: 0;
+    animation: fp-canvas-in var(--dur-settle) ease-out forwards;
   }
   .container { max-width: 480px; margin: 0 auto; padding: 40px 24px 60px; transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); transform-origin: top center; }
   .container.menu-open { transform: scale(0.985); }
@@ -33,9 +55,12 @@
   }
   /* ── Greeting — deliberately quiet, no card, no border ── */
   .greeting { margin-bottom: 32px; }
+  /* Beat 3 of the page-settle sequence: the greeting fades up 4-6px last, once the
+     canvas and nav have both already settled (600-900ms). */
   .greeting-title {
     font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700;
     color: var(--warm-brown); margin-bottom: 4px;
+    opacity: 0; animation: fp-fade-up var(--dur-settle) var(--ease-standard) 600ms forwards;
   }
   .greeting-sub { font-size: 13px; color: var(--soft-grey); font-weight: 300; }
 
@@ -51,7 +76,10 @@
   .monday-btn-yes { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; border: none; padding: 9px 18px; border-radius: 50px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; }
   .monday-btn-update { background: none; color: var(--soft-grey); border: 1px solid var(--border); padding: 9px 18px; border-radius: 50px; font-size: 13px; font-weight: 500; text-decoration: none; }
 
-  .top-bar { display: flex; justify-content: flex-end; padding-top: 6px; margin-bottom: 4px; }
+  /* Beat 2 of the page-settle sequence: nav becomes present at 300ms, right after
+     the canvas finishes fading in (see body above). Desktop's equivalent is
+     .desktop-rail, further down. */
+  .top-bar { display: flex; justify-content: flex-end; padding-top: 6px; margin-bottom: 4px; opacity: 0; animation: fp-fade-up var(--dur-settle) var(--ease-standard) 300ms forwards; }
   .menu-trigger {
     background: none; border: none; color: var(--warm-brown); cursor: pointer;
     padding: 8px; margin: -8px; display: flex; opacity: 0.45; transition: opacity 0.2s ease;
@@ -68,18 +96,26 @@
   .hero-pct {
     font-family: 'Playfair Display', serif; font-weight: 700; color: var(--warm-brown);
     font-size: clamp(72px, 22vw, 104px); line-height: 1; margin-bottom: 14px;
+    /* Tabular figures — every digit occupies the same width, so counting from
+       0 to a two-digit number doesn't shift the "%" sign (or anything after it)
+       sideways as the value changes. The typography stays put; only the value moves. */
+    font-variant-numeric: tabular-nums;
   }
   .hero-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; opacity: 0; transition: opacity 0.4s ease; }
   .hero-label-row.shown { opacity: 1; }
   .hero-delta {
     font-size: 13px; font-weight: 700;
-    padding: 4px 11px; border-radius: 20px; white-space: nowrap; opacity: 0; transition: opacity 0.3s ease;
+    padding: 4px 11px; border-radius: 20px; white-space: nowrap;
+    opacity: 0; transform: translateX(-6px);
+    transition: opacity var(--dur-responsive) var(--ease-standard), transform var(--dur-responsive) var(--ease-standard);
   }
   /* Direction, not just presence, decides the colour — a ▼ (behind last month) read
      in the same green as a ▲ was telling people bad news looked good. */
   .hero-delta.positive { color: #2E7D32; background: rgba(46,125,50,0.12); }
   .hero-delta.negative { color: var(--fire-orange); background: rgba(244,98,42,0.12); }
-  .hero-delta.shown { opacity: 1; }
+  /* Slides into position once the count-up settles, rather than just appearing —
+     "what changed" (the delta) visibly arrives after "where you are" (the count). */
+  .hero-delta.shown { opacity: 1; transform: translateX(0); }
   /* Editorial sentence, not a stat — this is the "you've built the first 7%" line,
      narrating the number above rather than repeating it as another figure. */
   .hero-narrative { font-size: 14px; color: var(--warm-brown); font-weight: 400; line-height: 1.55; margin-bottom: 18px; max-width: 34ch; }
@@ -87,15 +123,20 @@
   .hero-years strong { color: var(--warm-brown); font-weight: 600; }
   .hero-years-sub { font-weight: 300; }
   .hero-bar-track { height: 8px; background: var(--border); border-radius: 8px; overflow: visible; position: relative; }
+  /* The marker travelling to its position IS the animation here — no separate
+     "counter" needed on this element, the width transition itself reads as
+     "this is your current position on the journey." Gentle deceleration, no
+     bounce/overshoot: a progress bar that overshoots its own endpoint reads as
+     a glitch, not confidence. */
   .hero-bar-fill {
     height: 100%; width: 0%; background: linear-gradient(90deg, var(--fire-orange), var(--fire-amber));
-    border-radius: 8px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); position: relative;
+    border-radius: 8px; transition: width var(--dur-expressive) var(--ease-gentle); position: relative;
   }
   .hero-bar-dot {
     position: absolute; right: -3px; top: 50%; transform: translateY(-50%) scale(0);
     width: 10px; height: 10px; border-radius: 50%; background: white;
     border: 2px solid var(--fire-orange); box-shadow: 0 2px 6px rgba(244,98,42,0.4);
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    transition: transform var(--dur-responsive) var(--ease-standard);
   }
   .hero-bar-dot.settled { transform: translateY(-50%) scale(1); }
   /* The actual destination, not just a duration — "29.4 years" tells you how long
@@ -148,6 +189,20 @@
   .move-action-time { font-size: 12px; color: var(--soft-grey); font-weight: 400; flex-shrink: 0; }
   .move-action-arrow { font-size: 15px; color: var(--fire-orange); flex-shrink: 0; }
 
+  /* Your Next Move arrives as a small internal sequence, not all at once: eyebrow,
+     then the headline, then the reasoning, then the action row — each one opacity
+     + 6px vertical movement only (no slide-from-side), staggered off the moment
+     .move-section itself becomes visible. Selectors are live, so this plays
+     correctly even though the inner content is injected by renderOpportunityCard()
+     after .in-view may already be present (a slow fetch just means it starts a
+     little later, never that it's skipped). */
+  .move-eyebrow, .move-headline-title, .move-why, .move-headline, .move-action { opacity: 0; }
+  .move-section.in-view .move-eyebrow { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 0ms forwards; }
+  .move-section.in-view .move-headline-title { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 120ms forwards; }
+  .move-section.in-view .move-why { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 220ms forwards; }
+  .move-section.in-view .move-headline { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 220ms forwards; }
+  .move-section.in-view .move-action { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 360ms forwards; }
+
   /* ── Your Trajectory — a picture, not a chart. Two lines diverging from "You" toward
        two arrival points; the gap between them IS the message, no axes, no gridlines,
        no legend. Numbers underneath are real (same solveMonthsToTarget the hero uses),
@@ -162,10 +217,14 @@
      valid way to let the SVG scale by its viewBox's aspect ratio instead of a
      hardcoded height. */
   .trajectory-svg-wrap svg { display: block; width: 100%; height: auto; }
-  .trajectory-path-current { fill: none; stroke: var(--soft-grey); stroke-width: 2; stroke-linecap: round; }
-  .trajectory-path-optimised { fill: none; stroke: var(--fire-orange); stroke-width: 2.5; stroke-linecap: round; }
-  .trajectory-dot-current { fill: var(--soft-grey); }
-  .trajectory-dot-optimised { fill: var(--fire-orange); }
+  /* Both paths draw themselves in on load via stroke-dashoffset (set up in
+     renderTrajectory()) — "here's where you're going" (current, grey) draws
+     first, "here's what could change it" (optimised, orange) draws just behind
+     it. Gentle deceleration, matching the hero's progress-bar travel. */
+  .trajectory-path-current { fill: none; stroke: var(--soft-grey); stroke-width: 2; stroke-linecap: round; transition: stroke-dashoffset var(--dur-expressive) var(--ease-gentle); }
+  .trajectory-path-optimised { fill: none; stroke: var(--fire-orange); stroke-width: 2.5; stroke-linecap: round; transition: stroke-dashoffset var(--dur-expressive) var(--ease-gentle); }
+  .trajectory-dot-current { fill: var(--soft-grey); transition: opacity var(--dur-responsive) var(--ease-standard); }
+  .trajectory-dot-optimised { fill: var(--fire-orange); transition: opacity var(--dur-responsive) var(--ease-standard); }
   .trajectory-target-line { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 4; }
   .trajectory-label { font-family: 'DM Sans', sans-serif; font-size: 10.5px; fill: var(--soft-grey); }
   .trajectory-label-year { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 12px; }
@@ -177,6 +236,11 @@
   .trajectory-stat-label small { display: block; font-size: 11px; margin-top: 1px; }
   .trajectory-stat-value { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--warm-brown); }
   .trajectory-stat-row.gain .trajectory-stat-value { color: var(--fire-orange); }
+  /* "X years sooner" — the payoff line — fades in last, once both lines have
+     finished drawing. Kept as a plain opacity transition on a class the JS
+     toggles, rather than another keyframe animation, since it only ever plays once. */
+  .trajectory-stat-row.gain { transition: opacity var(--dur-responsive) var(--ease-standard); }
+  .trajectory-stat-row.gain.trajectory-gain-hidden { opacity: 0; }
   .trajectory-cta { display: block; text-align: right; margin-top: 14px; font-size: 13px; color: var(--fire-orange); font-weight: 500; text-decoration: none; }
 
   /* ── Since Last Month — an editorial strip, not a dashboard. Four lines, no cards,
@@ -246,7 +310,11 @@
      above is completely untouched — same markup, same JS, same hamburger
      menu. This is additive, not a fork: one file, two experiences.
      ══════════════════════════════════════════════════════════════════════ */
-  .desktop-rail { display: none; }
+  /* Beat 2 of the page-settle sequence on desktop — same 300ms arrival as .top-bar
+     above, just the rail instead of the hamburger. Restarts cleanly each time the
+     element re-enters the render tree (e.g. crossing the 1024px breakpoint), which
+     is exactly the "becomes present" moment we want. */
+  .desktop-rail { display: none; opacity: 0; animation: fp-fade-up var(--dur-settle) var(--ease-standard) 300ms forwards; }
 
   @media (min-width: 1024px) {
     body { padding-left: 232px; }
@@ -510,6 +578,14 @@
 
 <script>
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // The page-settle sequence (canvas → nav → greeting, driven by pure CSS above)
+  // runs 0-900ms. The hero's count-up is gated to never start before that finishes,
+  // even on a fast/cached fetch — otherwise the number could start counting while
+  // the greeting is still fading in, and the page reads as "everything happened at
+  // once" instead of one deliberate sequence. On a normal/slow connection the fetch
+  // itself already takes longer than this, so the gate costs nothing in practice.
+  const pageLoadStart = performance.now();
+  const HERO_SETTLE_MS = 900;
 
   // Scroll-reveal — same IntersectionObserver pattern proven on the homepage and Journey.
   const revealTargets = document.querySelectorAll('.hero-section, .fu-section, .move-section, .trajectory-section, .monday-check, .since-section');
@@ -579,28 +655,33 @@
       labelRow.classList.add('shown');
       deltaEl.classList.add('shown');
     } else {
-      barEl.style.width = pct + '%';
-      const start = performance.now();
-      function tick(now) {
-        const progress = Math.min(1, (now - start) / duration);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        pctEl.textContent = Math.round(eased * pct);
-        if (progress < 1) {
-          requestAnimationFrame(tick);
-        } else {
-          dotEl.classList.add('settled');
-          labelRow.classList.add('shown');
-          // Tiny haptic tick, if the browser supports it — Vibration API isn't
-          // available on iOS Safari, so this is a bonus on Android/Chrome, not
-          // something every visitor will feel.
-          // Chrome blocks this (and logs a console warning) until the page has had
-          // a user gesture — harmless, but the try/catch keeps it from ever being
-          // mistaken for a real error while reading the console.
-          try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
-          setTimeout(() => { deltaEl.classList.add('shown'); }, 80);
+      const begin = () => {
+        barEl.style.width = pct + '%';
+        const start = performance.now();
+        function tick(now) {
+          const progress = Math.min(1, (now - start) / duration);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          pctEl.textContent = Math.round(eased * pct);
+          if (progress < 1) {
+            requestAnimationFrame(tick);
+          } else {
+            dotEl.classList.add('settled');
+            labelRow.classList.add('shown');
+            // Tiny haptic tick, if the browser supports it — Vibration API isn't
+            // available on iOS Safari, so this is a bonus on Android/Chrome, not
+            // something every visitor will feel.
+            // Chrome blocks this (and logs a console warning) until the page has had
+            // a user gesture — harmless, but the try/catch keeps it from ever being
+            // mistaken for a real error while reading the console.
+            try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
+            setTimeout(() => { deltaEl.classList.add('shown'); }, 80);
+          }
         }
-      }
-      requestAnimationFrame(tick);
+        requestAnimationFrame(tick);
+      };
+      // Wait out whatever's left of the settle sequence before the number comes alive.
+      const elapsed = performance.now() - pageLoadStart;
+      setTimeout(begin, Math.max(0, HERO_SETTLE_MS - elapsed));
     }
   }
 
@@ -631,14 +712,20 @@
     const minGap = 16;
     const xOptimised = Math.min(xOptimisedRaw, xFull - minGap);
 
+    // Straight-line lengths for the self-draw below — a plain distance formula is
+    // enough here since both paths are simple lines, so there's no need to insert
+    // the element first just to call getTotalLength() on it.
+    const currentLen = Math.round(Math.hypot(xFull - x0, yTop - yBase));
+    const optimisedLen = Math.round(Math.hypot(xOptimised - x0, yTop - yBase));
+
     document.getElementById('trajectorySvgWrap').innerHTML = `
       <svg viewBox="0 0 320 160" width="100%" role="img" aria-label="Trajectory from today to financial freedom, current path versus an optimised path">
         <line class="trajectory-target-line" x1="${x0}" y1="${yTop}" x2="${xFull}" y2="${yTop}"/>
         <text class="trajectory-label" x="${x0}" y="${yTop - 5}">Financial freedom</text>
-        <line class="trajectory-path-current" x1="${x0}" y1="${yBase}" x2="${xFull}" y2="${yTop}"/>
-        <line class="trajectory-path-optimised" x1="${x0}" y1="${yBase}" x2="${xOptimised}" y2="${yTop}"/>
-        <circle class="trajectory-dot-current" cx="${xFull}" cy="${yTop}" r="4"/>
-        <circle class="trajectory-dot-optimised" cx="${xOptimised}" cy="${yTop}" r="4"/>
+        <line class="trajectory-path-current" id="trajPathCurrent" x1="${x0}" y1="${yBase}" x2="${xFull}" y2="${yTop}" stroke-dasharray="${currentLen}" stroke-dashoffset="${currentLen}"/>
+        <line class="trajectory-path-optimised" id="trajPathOptimised" x1="${x0}" y1="${yBase}" x2="${xOptimised}" y2="${yTop}" stroke-dasharray="${optimisedLen}" stroke-dashoffset="${optimisedLen}"/>
+        <circle class="trajectory-dot-current" id="trajDotEnd" cx="${xFull}" cy="${yTop}" r="4" style="opacity:0;"/>
+        <circle class="trajectory-dot-optimised" id="trajDotOptimised" cx="${xOptimised}" cy="${yTop}" r="4" style="opacity:0;"/>
         <circle class="trajectory-dot-current" cx="${x0}" cy="${yBase}" r="3.5"/>
         <text class="trajectory-label" x="${x0}" y="${yBase + 15}">You · ${startYear}</text>
       </svg>`;
@@ -652,11 +739,45 @@
         <span class="trajectory-stat-label">With optimisation<small>$50/week extra saved, invested at 7% — freedom in ${optimisedFreedomYear}</small></span>
         <span class="trajectory-stat-value">${optimisedYears} years</span>
       </div>
-      <div class="trajectory-stat-row gain">
+      <div class="trajectory-stat-row gain trajectory-gain-hidden" id="trajGainRow">
         <span class="trajectory-stat-label">Potential gain</span>
         <span class="trajectory-stat-value">${gainYears} years sooner</span>
       </div>`;
     section.style.display = 'block';
+
+    // Self-draw: "here's where you're going" (current path, grey) draws first,
+    // "here's what could change it" (optimised path, orange) draws in close behind
+    // it, then the gain figure fades in once both have landed. That's the same
+    // three-beat narrative the whole page follows — where you are, where you're
+    // headed, what could change it — just told in one small picture instead of text.
+    const currentPathEl = document.getElementById('trajPathCurrent');
+    const optimisedPathEl = document.getElementById('trajPathOptimised');
+    const dotEndEl = document.getElementById('trajDotEnd');
+    const dotOptimisedEl = document.getElementById('trajDotOptimised');
+    const gainRowEl = document.getElementById('trajGainRow');
+
+    if (prefersReducedMotion) {
+      currentPathEl.style.strokeDashoffset = '0';
+      optimisedPathEl.style.strokeDashoffset = '0';
+      dotEndEl.style.opacity = '1';
+      dotOptimisedEl.style.opacity = '1';
+      gainRowEl.classList.remove('trajectory-gain-hidden');
+      return;
+    }
+
+    // Force a reflow so the browser registers the dasharray/dashoffset starting
+    // state above before the values change below — otherwise both changes land in
+    // the same paint and there's nothing for the CSS transition to animate from.
+    void currentPathEl.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        currentPathEl.style.strokeDashoffset = '0';
+        setTimeout(() => { optimisedPathEl.style.strokeDashoffset = '0'; }, 200);
+        setTimeout(() => { dotEndEl.style.opacity = '1'; }, 780);
+        setTimeout(() => { dotOptimisedEl.style.opacity = '1'; }, 980);
+        setTimeout(() => { gainRowEl.classList.remove('trajectory-gain-hidden'); }, 1050);
+      });
+    });
   }
 
   // Since Last Month — an editorial strip, not another dashboard. Only ever shows
