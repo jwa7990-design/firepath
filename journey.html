@@ -22,14 +22,19 @@
          it never just decorates. "Live" interactions (sliders, drag) have no
          fixed duration here since they're driven directly by input, not a timer. ── */
     --dur-instant:    140ms;   /* hover states, arrows, tiny feedback */
-    --dur-responsive: 240ms;   /* nav, cards, staggered content arriving */
-    --dur-settle:     300ms;   /* the three page-settle beats: canvas / nav / greeting */
-    --dur-expressive: 800ms;   /* hero numbers, trajectory drawing, progress travel */
+    --dur-responsive: 240ms;   /* nav, cards, below-the-fold reveals on scroll */
+    --dur-settle:     450ms;   /* the page quietly appearing, and the greeting after it */
+    --dur-expressive: 1300ms;  /* the progress marker travelling — matches the hero count-up's own duration, so both land together */
     --ease-standard:  cubic-bezier(0.16,1,0.3,1);   /* quick, decisive settle — no overshoot */
     --ease-gentle:    cubic-bezier(0.22,1,0.36,1);  /* slow decelerate, used for anything "travelling" */
   }
   @keyframes fp-canvas-in { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes fp-fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  /* Plain opacity only — no translateY. Reserved for "information": things that
+     should just appear, quietly, rather than visibly travel into place. Real
+     movement (fp-fade-up's old translateY job) is now reserved for the handful
+     of elements that represent actual meaning — the trajectory lines, the
+     progress marker — not used as a generic entrance effect everywhere. */
+  @keyframes fp-fade-in { from { opacity: 0; } to { opacity: 1; } }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important; animation-delay: 0.01ms !important;
@@ -41,9 +46,12 @@
     background: var(--warm-cream);
     color: var(--warm-brown);
     -webkit-font-smoothing: antialiased;
-    /* Beat 1 of the page-settle sequence: the canvas itself fades in first,
-       before anything else on it becomes visible (see .top-bar/.desktop-rail
-       and .greeting-title below for beats 2 and 3). */
+    /* One quiet page-entrance timeline, not several competing ones: the canvas and
+       nav appear together as a single "the page is here" moment (see .top-bar /
+       .desktop-rail below — same duration, only a hair's delay so it doesn't feel
+       like two separate events), then the greeting settles in on its own beat,
+       then the hero itself takes over — see pageLoadStart / TIMELINE_* further
+       down in the script for the rest of that one shared clock. */
     opacity: 0;
     animation: fp-canvas-in var(--dur-settle) ease-out forwards;
   }
@@ -55,20 +63,21 @@
   }
   /* ── Greeting — deliberately quiet, no card, no border ── */
   .greeting { margin-bottom: 32px; }
-  /* Beat 3 of the page-settle sequence: the greeting fades up 4-6px last, once the
-     canvas and nav have both already settled (600-900ms). */
+  /* The greeting is its own distinct beat — appears once the page itself has
+     settled, before the hero takes over at 900ms. Plain fade, no movement:
+     "information," not "meaning." */
   .greeting-title {
     font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700;
     color: var(--warm-brown); margin-bottom: 4px;
-    opacity: 0; animation: fp-fade-up var(--dur-settle) var(--ease-standard) 600ms forwards;
+    opacity: 0; animation: fp-fade-in var(--dur-settle) ease-out 500ms forwards;
   }
   .greeting-sub { font-size: 13px; color: var(--soft-grey); font-weight: 300; }
 
   /* ── Monday check-in — quiet, not a blocking gate. Matches the concept's own
        restrained card language (thin border, no heavy shadow, Playfair for the
        one thing that matters) rather than the real page's older card styling. ── */
-  .monday-check { margin-bottom: 24px; opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
-  .monday-check.in-view { opacity: 1; transform: translateY(0); }
+  .monday-check { margin-bottom: 24px; opacity: 0; transition: opacity 0.6s ease; }
+  .monday-check.in-view { opacity: 1; }
   .monday-check-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; }
   .monday-check-text { font-size: 14px; color: var(--warm-brown); font-weight: 400; margin-bottom: 14px; line-height: 1.5; }
   .monday-check-text strong { font-family: 'Playfair Display', serif; font-weight: 700; }
@@ -76,23 +85,31 @@
   .monday-btn-yes { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; border: none; padding: 9px 18px; border-radius: 50px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; }
   .monday-btn-update { background: none; color: var(--soft-grey); border: 1px solid var(--border); padding: 9px 18px; border-radius: 50px; font-size: 13px; font-weight: 500; text-decoration: none; }
 
-  /* Beat 2 of the page-settle sequence: nav becomes present at 300ms, right after
-     the canvas finishes fading in (see body above). Desktop's equivalent is
-     .desktop-rail, further down. */
-  .top-bar { display: flex; justify-content: flex-end; padding-top: 6px; margin-bottom: 4px; opacity: 0; animation: fp-fade-up var(--dur-settle) var(--ease-standard) 300ms forwards; }
+  /* Part of the same "page quietly appears" moment as the canvas — a hair's delay
+     so it doesn't pop in at frame zero, not a separate second beat. Desktop's
+     equivalent is .desktop-rail, further down. */
+  .top-bar { display: flex; justify-content: flex-end; padding-top: 6px; margin-bottom: 4px; opacity: 0; animation: fp-fade-in var(--dur-settle) ease-out 120ms forwards; }
   .menu-trigger {
     background: none; border: none; color: var(--warm-brown); cursor: pointer;
     padding: 8px; margin: -8px; display: flex; opacity: 0.45; transition: opacity 0.2s ease;
   }
   .menu-trigger:hover, .menu-trigger:focus-visible { opacity: 0.8; }
 
-  /* ── Hero — one anchor, not two. Freedom Level owns the space, years supports it. ── */
-  .hero-section { margin-bottom: 20px; opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
-  .hero-section.in-view { opacity: 1; transform: translateY(0); }
+  /* ── Hero — one anchor, not two. Freedom Level owns the space, years supports it.
+       No container-level fade here anymore: the hero is always the first thing on
+       the page, driven entirely by the single JS entrance timeline below (pct
+       count-up, then label, then delta, then narrative) rather than an extra
+       IntersectionObserver fade wrapped around the outside of it — that was a
+       second, uncoordinated clock competing with the first. ── */
+  .hero-section { margin-bottom: 20px; }
   .hero-label {
     font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
     color: var(--soft-grey);
+    /* "Freedom Level" is the first thing to appear once the number lands —
+       plain fade, no movement. */
+    opacity: 0; transition: opacity var(--dur-responsive) ease;
   }
+  .hero-label.shown { opacity: 1; }
   .hero-pct {
     font-family: 'Playfair Display', serif; font-weight: 700; color: var(--warm-brown);
     font-size: clamp(72px, 22vw, 104px); line-height: 1; margin-bottom: 14px;
@@ -101,24 +118,25 @@
        sideways as the value changes. The typography stays put; only the value moves. */
     font-variant-numeric: tabular-nums;
   }
-  .hero-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; opacity: 0; transition: opacity 0.4s ease; }
-  .hero-label-row.shown { opacity: 1; }
+  .hero-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
   .hero-delta {
     font-size: 13px; font-weight: 700;
     padding: 4px 11px; border-radius: 20px; white-space: nowrap;
-    opacity: 0; transform: translateX(-6px);
-    transition: opacity var(--dur-responsive) var(--ease-standard), transform var(--dur-responsive) var(--ease-standard);
+    /* Plain fade, not a slide — this is "information" (what changed), not
+       "meaning" (a position on the trajectory), so it just appears. */
+    opacity: 0; transition: opacity var(--dur-responsive) ease;
   }
   /* Direction, not just presence, decides the colour — a ▼ (behind last month) read
      in the same green as a ▲ was telling people bad news looked good. */
   .hero-delta.positive { color: #2E7D32; background: rgba(46,125,50,0.12); }
   .hero-delta.negative { color: var(--fire-orange); background: rgba(244,98,42,0.12); }
-  /* Slides into position once the count-up settles, rather than just appearing —
-     "what changed" (the delta) visibly arrives after "where you are" (the count). */
-  .hero-delta.shown { opacity: 1; transform: translateX(0); }
+  .hero-delta.shown { opacity: 1; }
   /* Editorial sentence, not a stat — this is the "you've built the first 7%" line,
      narrating the number above rather than repeating it as another figure. */
-  .hero-narrative { font-size: 14px; color: var(--warm-brown); font-weight: 400; line-height: 1.55; margin-bottom: 18px; max-width: 34ch; }
+  /* Arrives last of the three — count, then label, then delta, then this — so the
+     hero reads as one unhurried thought landing in order, not four things at once. */
+  .hero-narrative { font-size: 14px; color: var(--warm-brown); font-weight: 400; line-height: 1.55; margin-bottom: 18px; max-width: 34ch; opacity: 0; transition: opacity var(--dur-responsive) ease; }
+  .hero-narrative.shown { opacity: 1; }
   .hero-years { font-size: 15px; color: var(--soft-grey); font-weight: 300; margin-bottom: 16px; }
   .hero-years strong { color: var(--warm-brown); font-weight: 600; }
   .hero-years-sub { font-weight: 300; }
@@ -148,8 +166,8 @@
   /* ── Freedom Unlocked — the ONLY dark surface on the page. Reserved deliberately;
        nothing else on this page uses this treatment, so it stays synonymous with
        "earned," not just another card. ── */
-  .fu-section { margin-bottom: 56px; opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s; }
-  .fu-section.in-view { opacity: 1; transform: translateY(0); }
+  .fu-section { margin-bottom: 56px; opacity: 0; transition: opacity 0.6s ease 0.1s; }
+  .fu-section.in-view { opacity: 1; }
   .fu-card {
     background: linear-gradient(135deg, var(--dark-bg), #4A3524);
     border-radius: 20px; padding: 28px 24px; text-align: center;
@@ -168,9 +186,14 @@
   .fu-history-note { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 10px; line-height: 1.5; }
 
   /* ── Your Next Best Move — visually distinct from the hero, not competing with it.
-       Reasoning first ("because of X"), one clear action, nothing else on the card. ── */
-  .move-section { margin-bottom: 8px; opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s; }
-  .move-section.in-view { opacity: 1; transform: translateY(0); }
+       Reasoning first ("because of X"), one clear action, nothing else on the card.
+       Below the fold: waits for the user to scroll to it, same as every other
+       secondary section, and just appears as one quiet unit — no internal
+       eyebrow/title/reason/CTA stagger anymore. That was one more clock running
+       on top of everything else already happening on load; below-the-fold content
+       doesn't need its own choreography, it needs to not be there yet. ── */
+  .move-section { margin-bottom: 8px; opacity: 0; transition: opacity 0.6s ease; }
+  .move-section.in-view { opacity: 1; }
   .move-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
   .move-card { background: white; border: 1px solid var(--border); border-radius: 18px; padding: 24px 22px; box-shadow: 0 8px 28px rgba(61,43,31,0.08); }
   .move-headline-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: var(--warm-brown); line-height: 1.3; margin-bottom: 10px; }
@@ -189,27 +212,19 @@
   .move-action-time { font-size: 12px; color: var(--soft-grey); font-weight: 400; flex-shrink: 0; }
   .move-action-arrow { font-size: 15px; color: var(--fire-orange); flex-shrink: 0; }
 
-  /* Your Next Move arrives as a small internal sequence, not all at once: eyebrow,
-     then the headline, then the reasoning, then the action row — each one opacity
-     + 6px vertical movement only (no slide-from-side), staggered off the moment
-     .move-section itself becomes visible. Selectors are live, so this plays
-     correctly even though the inner content is injected by renderOpportunityCard()
-     after .in-view may already be present (a slow fetch just means it starts a
-     little later, never that it's skipped). */
-  .move-eyebrow, .move-headline-title, .move-why, .move-headline, .move-action { opacity: 0; }
-  .move-section.in-view .move-eyebrow { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 0ms forwards; }
-  .move-section.in-view .move-headline-title { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 120ms forwards; }
-  .move-section.in-view .move-why { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 220ms forwards; }
-  .move-section.in-view .move-headline { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 220ms forwards; }
-  .move-section.in-view .move-action { animation: fp-fade-up var(--dur-responsive) var(--ease-standard) 360ms forwards; }
 
   /* ── Your Trajectory — a picture, not a chart. Two lines diverging from "You" toward
        two arrival points; the gap between them IS the message, no axes, no gridlines,
        no legend. Numbers underneath are real (same solveMonthsToTarget the hero uses),
        "optimisation" is deliberately named as the specific $50/week lever it is,
        rather than an unlabelled "optimised" claim. ── */
-  .trajectory-section { margin-top: 40px; margin-bottom: 8px; opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s; }
-  .trajectory-section.in-view { opacity: 1; transform: translateY(0); }
+  /* No container-level fade+slide here either, same reasoning as .hero-section —
+     the section is hidden via display:none until renderTrajectory() has real data,
+     then the internal line-draw/dot/gain-row choreography (gated by the same
+     single entrance timeline as the hero) IS the entrance. Wrapping the whole
+     thing in its own separate scroll-triggered fade on top of that was exactly
+     the "too many clocks" problem. */
+  .trajectory-section { margin-top: 40px; margin-bottom: 8px; }
   .trajectory-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 14px; }
   .trajectory-svg-wrap { margin-bottom: 18px; }
   /* The height="auto" HTML attribute isn't a valid SVG length (that's a CSS-only
@@ -221,6 +236,10 @@
      renderTrajectory()) — "here's where you're going" (current, grey) draws
      first, "here's what could change it" (optimised, orange) draws just behind
      it. Gentle deceleration, matching the hero's progress-bar travel. */
+  /* Durations are set per-path, inline, by renderTrajectory() below (1.4s for the
+     current path, 1.2s for the optimised one, with a real ~350-400ms pause between
+     them) — these are just the fallback/base values. Two full, deliberate beats
+     with space between them, not one blurred-together draw. */
   .trajectory-path-current { fill: none; stroke: var(--soft-grey); stroke-width: 2; stroke-linecap: round; transition: stroke-dashoffset var(--dur-expressive) var(--ease-gentle); }
   .trajectory-path-optimised { fill: none; stroke: var(--fire-orange); stroke-width: 2.5; stroke-linecap: round; transition: stroke-dashoffset var(--dur-expressive) var(--ease-gentle); }
   .trajectory-dot-current { fill: var(--soft-grey); transition: opacity var(--dur-responsive) var(--ease-standard); }
@@ -246,8 +265,8 @@
   /* ── Since Last Month — an editorial strip, not a dashboard. Four lines, no cards,
        no colour beyond what's already on the page. Exists to answer one question:
        "am I moving?" — everything else on the page answers "where am I now." ── */
-  .since-section { margin-top: 40px; margin-bottom: 8px; opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease 0.25s, transform 0.6s ease 0.25s; }
-  .since-section.in-view { opacity: 1; transform: translateY(0); }
+  .since-section { margin-top: 40px; margin-bottom: 8px; opacity: 0; transition: opacity 0.6s ease 0.25s; }
+  .since-section.in-view { opacity: 1; }
   .since-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
   .since-row { display: flex; align-items: baseline; justify-content: space-between; padding: 9px 0; font-size: 14px; }
   .since-row + .since-row { border-top: 1px solid rgba(237,227,218,0.6); }
@@ -310,11 +329,10 @@
      above is completely untouched — same markup, same JS, same hamburger
      menu. This is additive, not a fork: one file, two experiences.
      ══════════════════════════════════════════════════════════════════════ */
-  /* Beat 2 of the page-settle sequence on desktop — same 300ms arrival as .top-bar
-     above, just the rail instead of the hamburger. Restarts cleanly each time the
-     element re-enters the render tree (e.g. crossing the 1024px breakpoint), which
-     is exactly the "becomes present" moment we want. */
-  .desktop-rail { display: none; opacity: 0; animation: fp-fade-up var(--dur-settle) var(--ease-standard) 300ms forwards; }
+  /* Same "page quietly appears" moment as .top-bar above, just the rail instead of
+     the hamburger. Restarts cleanly each time the element re-enters the render
+     tree (e.g. crossing the 1024px breakpoint). */
+  .desktop-rail { display: none; opacity: 0; animation: fp-fade-in var(--dur-settle) ease-out 120ms forwards; }
 
   @media (min-width: 1024px) {
     body { padding-left: 232px; }
@@ -578,17 +596,28 @@
 
 <script>
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // The page-settle sequence (canvas → nav → greeting, driven by pure CSS above)
-  // runs 0-900ms. The hero's count-up is gated to never start before that finishes,
-  // even on a fast/cached fetch — otherwise the number could start counting while
-  // the greeting is still fading in, and the page reads as "everything happened at
-  // once" instead of one deliberate sequence. On a normal/slow connection the fetch
-  // itself already takes longer than this, so the gate costs nothing in practice.
-  const pageLoadStart = performance.now();
-  const HERO_SETTLE_MS = 900;
 
-  // Scroll-reveal — same IntersectionObserver pattern proven on the homepage and Journey.
-  const revealTargets = document.querySelectorAll('.hero-section, .fu-section, .move-section, .trajectory-section, .monday-check, .since-section');
+  // ── ONE page-entrance timeline, not five uncoordinated clocks ───────────────
+  // Everything above the fold — greeting, hero, trajectory — is scheduled off
+  // this single origin timestamp. Previously the hero gated itself off
+  // pageLoadStart while the trajectory kicked off immediately whenever its data
+  // happened to arrive, self-choreographed on its own separate relative clock —
+  // which is exactly why the page could feel like several things fighting for
+  // attention at once rather than one sequence. Now both wait for their turn on
+  // the same shared timeline below, however fast or slow the data happens to load.
+  // Below-the-fold sections (Freedom Unlocked, Monday Check, Next Move, Since
+  // Last Month) are deliberately NOT part of this — they wait for the user to
+  // scroll instead, via the IntersectionObserver just below.
+  const pageLoadStart = performance.now();
+  const TIMELINE_GREETING_MS = 500;                                          // greeting fades in
+  const TIMELINE_HERO_BEGIN_MS = 900;                                        // hero count-up begins
+  const TIMELINE_HERO_DURATION_MS = 1300;                                    // ...and takes this long to land
+  const TIMELINE_TRAJECTORY_BEGIN_MS = TIMELINE_HERO_BEGIN_MS + TIMELINE_HERO_DURATION_MS + 250; // a real pause after the hero settles, then the trajectory takes over
+
+  // Scroll-reveal for everything below the fold — same IntersectionObserver
+  // pattern as before, just no longer shared with the hero/trajectory, which have
+  // their own always-visible-on-load entrance driven by the timeline above instead.
+  const revealTargets = document.querySelectorAll('.fu-section, .move-section, .monday-check, .since-section');
   if (prefersReducedMotion) {
     revealTargets.forEach(el => el.classList.add('in-view'));
   } else {
@@ -630,15 +659,15 @@
     return `${pctPart} Steady since last month.`;
   }
 
-  // Hero: percentage count-up synced with the bar fill, then the dot settles into
-  // position, then the delta badge fades in — one continuous ~900ms sequence rather
-  // than several independent animations firing at different times.
+  // Hero: the count-up is the ONE thing that moves here — everything else (the
+  // "Freedom Level" label, the delta badge, the narrative sentence) just appears,
+  // in order, once the number has landed and been allowed to linger for a beat.
+  // Numbers count. Information appears. That's the whole hero.
   function animateHero(pct, years, deltaText, freedomYear, narrativeText) {
-    const duration = 550;
     const pctEl = document.getElementById('heroPct');
     const barEl = document.getElementById('heroBarFill');
     const dotEl = document.getElementById('heroBarDot');
-    const labelRow = document.querySelector('.hero-label-row');
+    const labelEl = document.querySelector('.hero-label');
     const deltaEl = document.getElementById('heroDelta');
     const narrativeEl = document.getElementById('heroNarrative');
     const freedomDateRow = document.getElementById('heroFreedomDateRow');
@@ -652,36 +681,40 @@
       pctEl.textContent = pct;
       barEl.style.width = pct + '%';
       dotEl.classList.add('settled');
-      labelRow.classList.add('shown');
+      labelEl.classList.add('shown');
       deltaEl.classList.add('shown');
+      narrativeEl.classList.add('shown');
     } else {
       const begin = () => {
         barEl.style.width = pct + '%';
         const start = performance.now();
         function tick(now) {
-          const progress = Math.min(1, (now - start) / duration);
-          const eased = 1 - Math.pow(1 - progress, 3);
+          const progress = Math.min(1, (now - start) / TIMELINE_HERO_DURATION_MS);
+          // Quartic ease-out — a more pronounced deceleration than a standard cubic,
+          // so the count visibly slows and hovers near its final value rather than
+          // arriving at a constant clip. The explicit pause below does the rest of
+          // the "lingers for a moment" work.
+          const eased = 1 - Math.pow(1 - progress, 4);
           pctEl.textContent = Math.round(eased * pct);
           if (progress < 1) {
             requestAnimationFrame(tick);
           } else {
-            dotEl.classList.add('settled');
-            labelRow.classList.add('shown');
-            // Tiny haptic tick, if the browser supports it — Vibration API isn't
-            // available on iOS Safari, so this is a bonus on Android/Chrome, not
-            // something every visitor will feel.
-            // Chrome blocks this (and logs a console warning) until the page has had
-            // a user gesture — harmless, but the try/catch keeps it from ever being
-            // mistaken for a real error while reading the console.
-            try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
-            setTimeout(() => { deltaEl.classList.add('shown'); }, 80);
+            // The number lands, then is left alone for a beat before anything else
+            // reacts to it — label, then delta, then narrative, each its own quiet
+            // arrival rather than four things happening in the same instant.
+            setTimeout(() => {
+              dotEl.classList.add('settled');
+              labelEl.classList.add('shown');
+              setTimeout(() => { deltaEl.classList.add('shown'); }, 180);
+              setTimeout(() => { narrativeEl.classList.add('shown'); }, 380);
+            }, 180);
           }
         }
         requestAnimationFrame(tick);
       };
-      // Wait out whatever's left of the settle sequence before the number comes alive.
+      // Wait out whatever's left of the timeline before the number comes alive.
       const elapsed = performance.now() - pageLoadStart;
-      setTimeout(begin, Math.max(0, HERO_SETTLE_MS - elapsed));
+      setTimeout(begin, Math.max(0, TIMELINE_HERO_BEGIN_MS - elapsed));
     }
   }
 
@@ -743,41 +776,70 @@
         <span class="trajectory-stat-label">Potential gain</span>
         <span class="trajectory-stat-value">${gainYears} years sooner</span>
       </div>`;
+    // Visible now — but every element inside starts in its hidden/undrawn state
+    // (dashoffset = full length, dots at opacity 0, gain row hidden), so nothing
+    // is actually seen yet. Building this early, as soon as real data exists,
+    // means it's ready the instant the timeline below calls for it — the DATA
+    // being ready and the ANIMATION being allowed to start are two separate
+    // things now, which is the whole fix for the "multiple clocks" problem.
     section.style.display = 'block';
 
-    // Self-draw: "here's where you're going" (current path, grey) draws first,
-    // "here's what could change it" (optimised path, orange) draws in close behind
-    // it, then the gain figure fades in once both have landed. That's the same
-    // three-beat narrative the whole page follows — where you are, where you're
-    // headed, what could change it — just told in one small picture instead of text.
     const currentPathEl = document.getElementById('trajPathCurrent');
     const optimisedPathEl = document.getElementById('trajPathOptimised');
     const dotEndEl = document.getElementById('trajDotEnd');
     const dotOptimisedEl = document.getElementById('trajDotOptimised');
     const gainRowEl = document.getElementById('trajGainRow');
 
-    if (prefersReducedMotion) {
-      currentPathEl.style.strokeDashoffset = '0';
-      optimisedPathEl.style.strokeDashoffset = '0';
-      dotEndEl.style.opacity = '1';
-      dotOptimisedEl.style.opacity = '1';
-      gainRowEl.classList.remove('trajectory-gain-hidden');
-      return;
-    }
+    // Self-draw: "here's where you're going" (current path, grey) draws first —
+    // a full, deliberate 1.4s beat — then a real pause, then "here's what could
+    // change it" (optimised path, orange) draws over 1.2s, then another real
+    // pause before the payoff line fades in. Two distinct thoughts landing one
+    // after the other, not one blurred-together effect.
+    const CURRENT_DRAW_MS = 1400;
+    const PAUSE_1_MS = 350;
+    const OPTIMISED_DRAW_MS = 1200;
+    const PAUSE_2_MS = 400;
 
-    // Force a reflow so the browser registers the dasharray/dashoffset starting
-    // state above before the values change below — otherwise both changes land in
-    // the same paint and there's nothing for the CSS transition to animate from.
-    void currentPathEl.getBoundingClientRect();
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    const playDraw = () => {
+      if (prefersReducedMotion) {
         currentPathEl.style.strokeDashoffset = '0';
-        setTimeout(() => { optimisedPathEl.style.strokeDashoffset = '0'; }, 200);
-        setTimeout(() => { dotEndEl.style.opacity = '1'; }, 780);
-        setTimeout(() => { dotOptimisedEl.style.opacity = '1'; }, 980);
-        setTimeout(() => { gainRowEl.classList.remove('trajectory-gain-hidden'); }, 1050);
+        optimisedPathEl.style.strokeDashoffset = '0';
+        dotEndEl.style.opacity = '1';
+        dotOptimisedEl.style.opacity = '1';
+        gainRowEl.classList.remove('trajectory-gain-hidden');
+        return;
+      }
+      // Force a reflow so the browser registers the dasharray/dashoffset starting
+      // state above before the values change below — otherwise both changes land
+      // in the same paint and there's nothing for the transition to animate from.
+      void currentPathEl.getBoundingClientRect();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          currentPathEl.style.transition = `stroke-dashoffset ${CURRENT_DRAW_MS}ms var(--ease-gentle)`;
+          currentPathEl.style.strokeDashoffset = '0';
+          setTimeout(() => { dotEndEl.style.opacity = '1'; }, CURRENT_DRAW_MS);
+          setTimeout(() => {
+            optimisedPathEl.style.transition = `stroke-dashoffset ${OPTIMISED_DRAW_MS}ms var(--ease-gentle)`;
+            optimisedPathEl.style.strokeDashoffset = '0';
+            setTimeout(() => { dotOptimisedEl.style.opacity = '1'; }, OPTIMISED_DRAW_MS);
+          }, CURRENT_DRAW_MS + PAUSE_1_MS);
+          setTimeout(() => {
+            gainRowEl.classList.remove('trajectory-gain-hidden');
+          }, CURRENT_DRAW_MS + PAUSE_1_MS + OPTIMISED_DRAW_MS + PAUSE_2_MS);
+        });
       });
-    });
+    };
+
+    if (prefersReducedMotion) {
+      playDraw();
+    } else {
+      // Same shared clock the hero uses — the trajectory waits its turn on the one
+      // page timeline rather than starting the instant its own data happens to
+      // arrive (which, on a fast connection, could be before the hero has even
+      // finished counting).
+      const elapsed = performance.now() - pageLoadStart;
+      setTimeout(playDraw, Math.max(0, TIMELINE_TRAJECTORY_BEGIN_MS - elapsed));
+    }
   }
 
   // Since Last Month — an editorial strip, not another dashboard. Only ever shows
