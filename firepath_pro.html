@@ -876,6 +876,10 @@
 
 </div><!-- /container -->
 
+<!-- ═══════════════════════════════════════════════
+     ALL EXISTING JS — completely unchanged
+     (paste your full existing <script> block here)
+     ═══════════════════════════════════════════════ -->
 <script>function updateInputHint(inputId, hintId) {
     const val = parseFloat(document.getElementById(inputId).value) || 0;
     const hint = document.getElementById(hintId);
@@ -1221,7 +1225,12 @@
     // rendering is complete, so nothing else needs to reveal screen3 here.
     if (savedProfileData && cachedInsight && savedProfileData.freedom_number) {
       hydrateFromSavedProfile(savedProfileData);
+      // Two separate entry points from Account settings: ?edit=true re-opens the numbers
+      // form (screen 2) so people can update their figures without re-picking a persona;
+      // ?changePersona=true goes further back to screen 1 itself. Same showScreen(n) the
+      // internal "← Recalculate" / "← Back" buttons already use, just reachable by URL too.
       if (up.get('edit') === 'true') { showScreen(2); }
+      else if (up.get('changePersona') === 'true') { showScreen(1); }
     } else {
       document.getElementById('pro-onboarding').style.display = 'flex';
     }
