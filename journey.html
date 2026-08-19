@@ -72,9 +72,13 @@
   .hero-label-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; opacity: 0; transition: opacity 0.4s ease; }
   .hero-label-row.shown { opacity: 1; }
   .hero-delta {
-    font-size: 13px; font-weight: 700; color: #2E7D32; background: rgba(46,125,50,0.12);
+    font-size: 13px; font-weight: 700;
     padding: 4px 11px; border-radius: 20px; white-space: nowrap; opacity: 0; transition: opacity 0.3s ease;
   }
+  /* Direction, not just presence, decides the colour — a ▼ (behind last month) read
+     in the same green as a ▲ was telling people bad news looked good. */
+  .hero-delta.positive { color: #2E7D32; background: rgba(46,125,50,0.12); }
+  .hero-delta.negative { color: var(--fire-orange); background: rgba(244,98,42,0.12); }
   .hero-delta.shown { opacity: 1; }
   /* Editorial sentence, not a stat — this is the "you've built the first 7%" line,
      narrating the number above rather than repeating it as another figure. */
@@ -584,7 +588,15 @@
     if (currentYears == null || optimisedYears == null || gainYears < 0.1) { section.style.display = 'none'; return; }
 
     const x0 = 16, xFull = 300, yTop = 14, yBase = 98;
-    const xOptimised = x0 + Math.min(1, optimisedYears / currentYears) * (xFull - x0);
+    const xOptimisedRaw = x0 + Math.min(1, optimisedYears / currentYears) * (xFull - x0);
+    // When the gain is a small slice of a long timeline, the two arrival dots land
+    // almost on top of each other — floating year labels used to be positioned off
+    // these coordinates and would collide/cross the lines in exactly that case (a
+    // real screenshot showed "2052" sliced through by the current-path stroke).
+    // The years now live in the stat rows below instead, in text that can't overlap
+    // anything; this minimum gap just keeps the two dots visually distinguishable.
+    const minGap = 16;
+    const xOptimised = Math.min(xOptimisedRaw, xFull - minGap);
 
     document.getElementById('trajectorySvgWrap').innerHTML = `
       <svg viewBox="0 0 320 118" width="100%" height="auto" role="img" aria-label="Trajectory from today to financial freedom, current path versus an optimised path">
@@ -596,17 +608,15 @@
         <circle class="trajectory-dot-optimised" cx="${xOptimised}" cy="${yTop}" r="4"/>
         <circle class="trajectory-dot-current" cx="${x0}" cy="${yBase}" r="3.5"/>
         <text class="trajectory-label" x="${x0}" y="${yBase + 15}">You · ${startYear}</text>
-        <text class="trajectory-label trajectory-label-year optimised" x="${Math.max(x0, xOptimised - 14)}" y="${yTop - 9}">${optimisedFreedomYear}</text>
-        <text class="trajectory-label trajectory-label-year current" x="${xFull - 26}" y="${yTop + 20}">${currentFreedomYear}</text>
       </svg>`;
 
     document.getElementById('trajectoryStats').innerHTML = `
       <div class="trajectory-stat-row">
-        <span class="trajectory-stat-label">Current path</span>
+        <span class="trajectory-stat-label">Current path<small>Freedom in ${currentFreedomYear}</small></span>
         <span class="trajectory-stat-value">${currentYears} years</span>
       </div>
       <div class="trajectory-stat-row">
-        <span class="trajectory-stat-label">With optimisation<small>$50/week extra saved, invested at 7%</small></span>
+        <span class="trajectory-stat-label">With optimisation<small>$50/week extra saved, invested at 7% — freedom in ${optimisedFreedomYear}</small></span>
         <span class="trajectory-stat-value">${optimisedYears} years</span>
       </div>
       <div class="trajectory-stat-row gain">
@@ -830,7 +840,11 @@
             // already rendered above via animateHero() and shouldn't be re-animated.
             const deltaEl = document.getElementById('heroDelta');
             const narrativeEl = document.getElementById('heroNarrative');
-            if (deltaText) { deltaEl.textContent = deltaText; deltaEl.style.display = ''; deltaEl.classList.add('shown'); }
+            if (deltaText) {
+              deltaEl.textContent = deltaText; deltaEl.style.display = ''; deltaEl.classList.add('shown');
+              deltaEl.classList.remove('positive', 'negative');
+              deltaEl.classList.add(deltaPct > 0 ? 'positive' : 'negative');
+            }
             narrativeEl.textContent = buildHeroNarrative(pct, deltaPct);
 
             // Since Last Month — only ever built from fields we actually have real
