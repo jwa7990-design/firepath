@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FirePath — Money</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --fire-orange: #F4622A;
+    --fire-amber:  #F9A825;
+    --warm-cream:  #FDF6EE;
+    --warm-brown:  #3D2B1F;
+    --soft-grey:   #9E8E85;
+    --border:      #EDE3DA;
+    --dark-bg:     #2A1E15;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--warm-cream);
+    color: var(--warm-brown);
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 480px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* ── Mobile back nav — the rail below takes over at desktop widths, but under
+       1024px this page is only ever reached from Journey's explore menu, so it
+       needs its own way back. ── */
+  .mobile-topbar { display: flex; align-items: center; padding-top: 6px; margin-bottom: 28px; }
+  .mobile-back {
+    display: flex; align-items: center; gap: 6px; color: var(--soft-grey);
+    text-decoration: none; font-size: 13px; font-weight: 500;
+  }
+  .mobile-back:hover { color: var(--fire-orange); }
+
+  .page-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
+  .page-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 28px; color: var(--warm-brown); margin-bottom: 8px; line-height: 1.25; }
+  .page-sub { font-size: 14px; color: var(--soft-grey); font-weight: 300; margin-bottom: 32px; max-width: 52ch; }
+
+  /* ── Net worth overview — the one new thing this page adds beyond linking out.
+       Same savings-minus-debt formula journey.html already computes and saves
+       into financial_snapshots.picture.netWorth, so the delta below is real,
+       not a separate calculation drifting from Journey's own numbers. ── */
+  .networth-card {
+    background: white; border: 1px solid var(--border); border-radius: 20px;
+    padding: 26px 24px; margin-bottom: 16px;
+    opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .networth-card.in-view { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) { .networth-card { transition: none; } }
+  .networth-label { font-size: 12px; color: var(--soft-grey); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 6px; }
+  .networth-figure { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 36px; color: var(--warm-brown); }
+  .networth-delta { font-size: 13px; font-weight: 500; margin-top: 8px; display: none; }
+  .networth-delta.shown { display: block; }
+  .networth-delta.positive { color: #3E8E5A; }
+  .networth-delta.negative { color: var(--fire-orange); }
+  .networth-breakdown { display: flex; flex-direction: column; margin-top: 20px; border-top: 1px solid var(--border); }
+  .networth-row { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .networth-row:last-child { border-bottom: none; }
+  .networth-row-label { color: var(--soft-grey); font-weight: 300; }
+  .networth-row-value { font-weight: 500; color: var(--warm-brown); }
+  .networth-skeleton { color: var(--soft-grey); font-size: 13px; font-style: italic; }
+
+  .hub-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin: 32px 0 12px; }
+  .hub-cards { display: flex; flex-direction: column; gap: 10px; }
+  .hub-card {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    background: white; border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px 22px; text-decoration: none; transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .hub-card:hover { border-color: var(--fire-orange); transform: translateX(2px); }
+  .hub-card-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 17px; color: var(--warm-brown); margin-bottom: 3px; }
+  .hub-card-desc { font-size: 13px; color: var(--soft-grey); font-weight: 300; }
+  .hub-card-arrow { color: var(--fire-orange); font-size: 18px; flex-shrink: 0; }
+
+  /* ══════════════════════════════════════════════════════════════════════
+     DESKTOP PLATFORM — same rail as journey.html, "Money" marked active.
+     ══════════════════════════════════════════════════════════════════════ */
+  .desktop-rail { display: none; }
+  @media (min-width: 1024px) {
+    body { padding-left: 232px; }
+    .desktop-rail {
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; width: 232px;
+      background: var(--dark-bg); padding: 28px 18px; z-index: 40;
+    }
+    .desktop-rail-logo { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px; color: var(--warm-cream); margin: 6px 10px 36px; letter-spacing: -0.01em; }
+    .desktop-rail-nav { display: flex; flex-direction: column; gap: 3px; }
+    .desktop-rail-item {
+      display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 10px;
+      color: rgba(253,246,238,0.55); text-decoration: none; font-size: 14px; font-weight: 500;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .desktop-rail-item svg { flex-shrink: 0; opacity: 0.8; }
+    .desktop-rail-item:hover { background: rgba(253,246,238,0.06); color: var(--warm-cream); }
+    .desktop-rail-item.active { background: rgba(244,98,42,0.14); color: var(--warm-cream); }
+    .desktop-rail-item.active svg { opacity: 1; color: var(--fire-orange); }
+    .desktop-rail-ask {
+      margin-top: auto; display: flex; align-items: center; gap: 9px; padding: 12px 14px;
+      border-radius: 12px; background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
+      color: white; text-decoration: none; font-size: 13px; font-weight: 500;
+    }
+    .desktop-rail-footer { display: flex; flex-direction: column; gap: 1px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(253,246,238,0.1); }
+    .desktop-rail-footer a { color: rgba(253,246,238,0.4); text-decoration: none; font-size: 12.5px; padding: 7px 12px; border-radius: 8px; transition: color 0.15s ease, background 0.15s ease; }
+    .desktop-rail-footer a:hover { color: rgba(253,246,238,0.8); background: rgba(253,246,238,0.05); }
+
+    .container { max-width: 1080px; margin: 0 auto; padding: 56px 56px 100px; }
+    .hub-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  }
+</style>
+<script src="js/auth.js"></script>
+<script src="js/financial-engine.js"></script>
+</head>
+<body>
+
+<!-- ── DESKTOP RAIL — see journey.html for the full comment on this pattern. ── -->
+<nav class="desktop-rail" aria-label="Primary">
+  <div class="desktop-rail-logo">FirePath</div>
+  <div class="desktop-rail-nav">
+    <a href="journey.html" class="desktop-rail-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+      Journey
+    </a>
+    <a href="money.html" class="desktop-rail-item active">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
+      Money
+    </a>
+    <a href="strategy.html" class="desktop-rail-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
+      Strategy
+    </a>
+    <a href="learning_lab.html" class="desktop-rail-item">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
+      Learn
+    </a>
+  </div>
+  <a href="ask-firepath.html" class="desktop-rail-ask">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    Ask FirePath
+  </a>
+  <div class="desktop-rail-footer">
+    <a href="account.html">Settings</a>
+    <a href="auth.html?action=signout">Sign out</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="mobile-topbar">
+    <a href="journey.html" class="mobile-back">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      Journey
+    </a>
+  </div>
+
+  <div class="page-eyebrow">Money</div>
+  <div class="page-title">Where your money stands.</div>
+  <div class="page-sub">Your net worth, and the tools that break down how you got here.</div>
+
+  <div class="networth-card" id="networthCard">
+    <div class="networth-label">Net worth</div>
+    <div class="networth-figure" id="networthFigure">—</div>
+    <div class="networth-delta" id="networthDelta"></div>
+    <div class="networth-breakdown" id="networthBreakdown">
+      <div class="networth-skeleton">Loading your numbers…</div>
+    </div>
+  </div>
+
+  <div class="hub-section-label">Your numbers</div>
+  <div class="hub-cards">
+    <a href="freedom-gap.html" class="hub-card">
+      <div>
+        <div class="hub-card-title">Freedom Gap</div>
+        <div class="hub-card-desc">Where your age, spend, and portfolio come from</div>
+      </div>
+      <span class="hub-card-arrow">→</span>
+    </a>
+    <a href="firepath_pro.html" class="hub-card">
+      <div>
+        <div class="hub-card-title">Full Analysis</div>
+        <div class="hub-card-desc">Your complete picture, including super</div>
+      </div>
+      <span class="hub-card-arrow">→</span>
+    </a>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async function() {
+    const token = getToken();
+    const userId = getUserId();
+    if (!token || !userId) { window.location.href = 'auth.html'; return; }
+
+    const card = document.getElementById('networthCard');
+    const revealCard = () => requestAnimationFrame(() => card.classList.add('in-view'));
+
+    try {
+      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_user_id'); localStorage.removeItem('fp_email');
+        sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
+        window.location.href = 'auth.html';
+        return;
+      }
+      if (!res.ok) { revealCard(); return; }
+
+      const data = await res.json();
+      const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
+      if (!p) { revealCard(); return; }
+
+      const savings = p.current_savings || 0;
+      const debt = p.debt_total || 0;
+      const superBal = p.super_balance || 0;
+      const netWorth = savings - debt;
+      const fmt = (window.FirePathEngine && window.FirePathEngine.fmtM) ? window.FirePathEngine.fmtM : (n => '$' + Math.round(n));
+
+      document.getElementById('networthFigure').textContent = fmt(netWorth);
+      document.getElementById('networthBreakdown').innerHTML = `
+        <div class="networth-row"><span class="networth-row-label">Savings &amp; investments</span><span class="networth-row-value">${fmt(savings)}</span></div>
+        ${superBal ? `<div class="networth-row"><span class="networth-row-label">Superannuation</span><span class="networth-row-value">${fmt(superBal)}</span></div>` : ''}
+        ${debt ? `<div class="networth-row"><span class="networth-row-label">Debt</span><span class="networth-row-value">-${fmt(debt)}</span></div>` : ''}
+      `;
+
+      // Delta vs Journey's own last snapshot — reuses the picture.netWorth field
+      // journey.html already saves, rather than tracking a separate history here.
+      try {
+        const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (snapRes.ok) {
+          const snapData = await snapRes.json();
+          const prevSnapshot = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
+          if (prevSnapshot && prevSnapshot.picture && typeof prevSnapshot.picture.netWorth === 'number') {
+            const delta = netWorth - prevSnapshot.picture.netWorth;
+            if (delta !== 0) {
+              const deltaEl = document.getElementById('networthDelta');
+              deltaEl.textContent = `${delta > 0 ? '▲' : '▼'} ${fmt(Math.abs(delta))} since your last update`;
+              deltaEl.classList.add('shown', delta > 0 ? 'positive' : 'negative');
+            }
+          }
+        }
+      } catch (e) { console.log('Net worth delta failed', e); }
+
+      revealCard();
+    } catch (e) {
+      console.log('Money page load failed', e);
+      revealCard();
+    }
+  });
+</script>
+</body>
+</html>
