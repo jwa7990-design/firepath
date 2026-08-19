@@ -609,9 +609,16 @@
         }
       } catch(e) { console.log('Freedom Unlocked calculation failed', e); document.getElementById('fuSection').style.display = 'none'; }
 
-      renderOpportunityCard(window.FirePathEngine.recommendNextStep(
-        p.savings_type || 'cash', p.persona, p.savings_rate || 0, p.super_balance || 0, p.debt_total || 0, p.age, p.has_emergency_fund
-      ));
+      // Guarded the same way every other FirePathEngine call in this file already is —
+      // if the engine script hasn't loaded for any reason, this card just stays empty
+      // instead of throwing and aborting everything after it (that's what happened
+      // when financial-engine.js failed to parse: this line had no guard and took the
+      // snapshot-save below down with it).
+      if (window.FirePathEngine && typeof window.FirePathEngine.recommendNextStep === 'function') {
+        renderOpportunityCard(window.FirePathEngine.recommendNextStep(
+          p.savings_type || 'cash', p.persona, p.savings_rate || 0, p.super_balance || 0, p.debt_total || 0, p.age, p.has_emergency_fund
+        ));
+      }
 
       // Throttled to once per day, same pattern as journey.html and Freedom Gap.
       try {
