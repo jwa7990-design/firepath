@@ -40,54 +40,80 @@
   .search-input:focus { outline: none; border-color: var(--fire-orange); }
   .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--soft-grey); pointer-events: none; }
 
-  /* ── Progress hero ── */
-  .progress-hero {
-    background: white; border: 1px solid var(--border); border-radius: 20px; padding: 26px;
-    display: flex; align-items: center; gap: 22px; margin-bottom: 28px; flex-wrap: wrap;
+  /* ── Continue hero — the dominant action on the page now. FirePath tells the
+       user what's next rather than making them choose; the progress ring/percent
+       moved below as a secondary strip instead of competing with it for attention. ── */
+  .continue-hero {
+    background: white; border: 1px solid var(--border); border-radius: 20px; padding: 28px;
+    margin-bottom: 28px;
     opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease;
   }
-  .progress-hero.in-view { opacity: 1; transform: translateY(0); }
-  @media (prefers-reduced-motion: reduce) { .progress-hero { opacity: 1; transform: none; transition: none; } }
-  .progress-ring-wrap { position: relative; width: 92px; height: 92px; flex-shrink: 0; }
+  .continue-hero.in-view { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) { .continue-hero { opacity: 1; transform: none; transition: none; } }
+  .continue-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
+  .continue-lesson-title {
+    display: block; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 23px; color: var(--warm-brown);
+    text-decoration: none; line-height: 1.3; margin-bottom: 16px; max-width: 46ch;
+  }
+  .continue-lesson-title:hover { color: var(--fire-orange); }
+  .continue-meta-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .continue-time { font-size: 12.5px; color: var(--soft-grey); display: flex; align-items: center; gap: 5px; }
+  .continue-btn {
+    display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
+    color: white; border-radius: 50px; padding: 11px 22px; font-size: 13.5px; font-weight: 500; text-decoration: none;
+    flex-shrink: 0;
+  }
+  /* Secondary — the ring stays (small, quiet) but the "0%" is its own elegant
+     stat rather than tucked inside a tiny LMS-style widget. */
+  .progress-strip { display: flex; align-items: center; gap: 14px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .progress-ring-wrap { position: relative; width: 42px; height: 42px; flex-shrink: 0; }
   .progress-ring-wrap svg { width: 100%; height: 100%; }
   .progress-ring-track { fill: none; stroke: var(--border); stroke-width: 6; }
   .progress-ring-fill { fill: none; stroke: var(--fire-orange); stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.8s cubic-bezier(0.34,1.56,0.64,1); }
-  .progress-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .progress-ring-pct { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: var(--warm-brown); }
-  .progress-ring-caption { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--soft-grey); font-weight: 700; }
-  .progress-hero-body { flex: 1; min-width: 180px; }
-  .progress-hero-label { font-size: 12px; color: var(--soft-grey); margin-bottom: 2px; }
-  .progress-hero-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: var(--warm-brown); margin-bottom: 10px; }
-  .progress-hero-bar-track { height: 6px; background: var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
-  .progress-hero-bar-fill { height: 100%; background: linear-gradient(90deg, var(--fire-orange), var(--fire-amber)); border-radius: 6px; width: 0%; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
-  .progress-hero-count { font-size: 12.5px; color: var(--soft-grey); }
-  .resume-btn {
-    display: inline-flex; align-items: center; gap: 6px; background: var(--warm-cream); border: 1px solid var(--border);
-    border-radius: 50px; padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--warm-brown);
-    text-decoration: none; flex-shrink: 0; transition: border-color 0.15s ease;
-  }
-  .resume-btn:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
+  .progress-strip-pct { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 21px; color: var(--warm-brown); flex-shrink: 0; }
+  .progress-strip-body { flex: 1; min-width: 0; }
+  .progress-strip-tagline { font-size: 13px; color: var(--warm-brown); font-weight: 400; }
+  .progress-strip-count { font-size: 12px; color: var(--soft-grey); margin-top: 1px; }
 
   /* ── Recommended row ── */
   .section-label-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
   .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); }
   .section-link { font-size: 12.5px; color: var(--fire-orange); text-decoration: none; font-weight: 500; }
-  .rec-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 32px; scrollbar-width: thin; }
+  /* Primary pick — dominant, full-width. The row below is deliberately smaller so
+     the hierarchy reads Next-up → other picks → full library, not four equally-
+     weighted "Netflix tiles" competing for the same attention. */
+  .rec-primary {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    background: linear-gradient(160deg, #241a30 0%, var(--dark-bg) 65%);
+    border-radius: 18px; padding: 22px 26px; text-decoration: none; margin-bottom: 14px;
+  }
+  .rec-primary-tag {
+    display: inline-block; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--fire-amber); background: rgba(249,168,37,0.14); padding: 4px 9px; border-radius: 20px; margin-bottom: 10px;
+  }
+  .rec-primary-body { flex: 1; min-width: 0; }
+  .rec-primary-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: white; line-height: 1.3; margin-bottom: 6px; }
+  .rec-primary-time { font-size: 12px; color: rgba(255,255,255,0.55); }
+  .rec-primary-arrow {
+    width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.14); color: white;
+    display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+  }
+  .rec-secondary-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 32px; scrollbar-width: thin; }
   .rec-card {
-    flex: 0 0 200px; height: 190px; border-radius: 16px; padding: 16px; display: flex; flex-direction: column;
+    flex: 0 0 168px; height: 152px; border-radius: 14px; padding: 14px; display: flex; flex-direction: column;
     justify-content: space-between; text-decoration: none; position: relative; overflow: hidden;
     background: linear-gradient(160deg, #241a30 0%, var(--dark-bg) 65%);
   }
   .rec-card-tag {
-    align-self: flex-start; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
-    color: var(--fire-amber); background: rgba(249,168,37,0.14); padding: 4px 9px; border-radius: 20px;
+    align-self: flex-start; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--fire-amber); background: rgba(249,168,37,0.14); padding: 3px 8px; border-radius: 20px;
   }
-  .rec-card-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 16px; color: white; line-height: 1.3; }
+  .rec-card-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 14px; color: white; line-height: 1.3; }
   .rec-card-bottom { display: flex; align-items: center; justify-content: space-between; }
-  .rec-card-time { font-size: 11.5px; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 4px; }
+  .rec-card-time { font-size: 10.5px; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 4px; }
   .rec-card-arrow {
-    width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.12); color: white;
-    display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;
+    width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.12); color: white;
+    display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0;
   }
 
   /* ── Learning path stepper ── */
@@ -116,7 +142,9 @@
   .lesson-time { font-size: 12px; color: var(--soft-grey); white-space: nowrap; }
   .lesson-check { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .lesson-check.done { background: rgba(46,125,50,0.12); color: #2E7D32; }
-  .lesson-check.todo { color: var(--soft-grey); }
+  .lesson-check.current { background: rgba(244,98,42,0.14); color: var(--fire-orange); }
+  .lesson-check.locked { color: var(--soft-grey); }
+  .lesson-row.locked-row { opacity: 0.72; }
   .lesson-row.hidden-by-search { display: none; }
 
   /* ── Sidebar cards (stacked in normal flow on mobile, real sidebar on desktop) ── */
@@ -142,6 +170,15 @@
     border-radius: 10px; font-size: 13px; font-weight: 500; color: var(--warm-brown); text-decoration: none;
   }
   .browse-all-btn:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
+
+  /* ── Your Next Milestone — gives the sidebar a purpose beyond a duplicate
+       search box (that duplication was a real bug: the mobile-only search wrap
+       had no desktop hide rule, so it rendered alongside the top search bar). ── */
+  .milestone-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 16px; color: var(--warm-brown); margin-bottom: 4px; }
+  .milestone-count { font-size: 12.5px; color: var(--soft-grey); margin-bottom: 12px; }
+  .milestone-bar-track { height: 6px; background: var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+  .milestone-bar-fill { height: 100%; background: linear-gradient(90deg, var(--fire-orange), var(--fire-amber)); border-radius: 6px; width: 0%; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+  .milestone-next { font-size: 12.5px; color: var(--warm-brown); font-weight: 500; }
 
   /* ══════════════════════════════════════════════════════════════════════
      DESKTOP PLATFORM — same rail as journey.html, "Learn" marked active,
@@ -186,16 +223,20 @@
     }
 
     .container { max-width: 1240px; margin: 0 auto; padding: 48px 56px 100px; display: grid; grid-template-columns: 1fr 320px; column-gap: 40px; }
-    .desktop-topbar, .page-eyebrow, .page-title, .page-sub, .progress-hero, .rec-section, .path-section { grid-column: 1; }
+    .desktop-topbar, .page-eyebrow, .page-title, .page-sub, .continue-hero, .rec-section, .path-section { grid-column: 1; }
     .sidebar-col { grid-column: 2; grid-row: 1 / span 6; }
     .desktop-topbar { grid-row: 1; }
     .page-eyebrow { grid-row: 2; margin-top: 24px; }
     .page-title { grid-row: 3; }
     .page-sub { grid-row: 4; }
-    .progress-hero { grid-row: 5; }
+    .continue-hero { grid-row: 5; }
     .rec-section { grid-row: 6; }
     .path-section { grid-row: 7; }
     .page-footer { grid-column: 1 / -1; grid-row: 8; }
+    /* The top search bar in .desktop-topbar covers this at desktop widths — the
+       second copy below the page-sub was only ever meant for mobile, where there's
+       no top bar at all, but it had no hide rule and rendered on both. */
+    .mobile-only-search { display: none; }
   }
 
   /* ── Footer — same four links every other FirePath page already carries. ── */
@@ -260,32 +301,34 @@
   </div>
 
   <div class="page-eyebrow">Learning Lab</div>
-  <div class="page-title">Build knowledge. Change your future.</div>
-  <div class="page-sub">Short, focused lessons that help you make smarter financial decisions — each one personalised to your actual numbers.</div>
+  <div class="page-title">Understand your money. Change your future.</div>
+  <div class="page-sub">Short, focused lessons that help you make smarter financial decisions — each one connected back to your actual numbers.</div>
 
-  <div class="search-wrap" id="mobileSearchWrap">
+  <div class="search-wrap mobile-only-search" id="mobileSearchWrap">
     <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
     <input type="text" class="search-input" id="searchInputMobile" placeholder="Search lessons…" aria-label="Search lessons"/>
   </div>
 
-  <div class="progress-hero" id="progressHero">
-    <div class="progress-ring-wrap">
-      <svg viewBox="0 0 100 100">
-        <circle class="progress-ring-track" cx="50" cy="50" r="42"/>
-        <circle class="progress-ring-fill" id="progressRingFill" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"/>
-      </svg>
-      <div class="progress-ring-label">
-        <div class="progress-ring-pct" id="progressRingPct">0%</div>
-        <div class="progress-ring-caption">Complete</div>
+  <div class="continue-hero" id="continueHero">
+    <div class="continue-eyebrow" id="continueEyebrow">Continue your path</div>
+    <a href="learning_lab.html" class="continue-lesson-title" id="continueLessonTitle">Loading your path…</a>
+    <div class="continue-meta-row">
+      <span class="continue-time" id="continueTime"></span>
+      <a href="learning_lab.html" class="continue-btn" id="continueBtn">Continue →</a>
+    </div>
+    <div class="progress-strip">
+      <div class="progress-ring-wrap">
+        <svg viewBox="0 0 100 100">
+          <circle class="progress-ring-track" cx="50" cy="50" r="42"/>
+          <circle class="progress-ring-fill" id="progressRingFill" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"/>
+        </svg>
+      </div>
+      <div class="progress-strip-pct" id="progressStripPct">0%</div>
+      <div class="progress-strip-body">
+        <div class="progress-strip-tagline" id="progressTagline">Your journey starts here.</div>
+        <div class="progress-strip-count" id="progressHeroCount">Loading your progress…</div>
       </div>
     </div>
-    <div class="progress-hero-body">
-      <div class="progress-hero-label">Your learning path</div>
-      <div class="progress-hero-title">FirePath Foundations Path</div>
-      <div class="progress-hero-bar-track"><div class="progress-hero-bar-fill" id="progressHeroBar"></div></div>
-      <div class="progress-hero-count" id="progressHeroCount">Loading your progress…</div>
-    </div>
-    <a href="learning_lab.html" class="resume-btn" id="resumeBtn">Resume learning →</a>
   </div>
 
   <div class="rec-section">
@@ -293,7 +336,8 @@
       <div class="section-label">Recommended for you</div>
       <a href="#pathSection" class="section-link">View all</a>
     </div>
-    <div class="rec-row" id="recRow"></div>
+    <div id="recPrimary"></div>
+    <div class="rec-secondary-row" id="recSecondaryRow"></div>
   </div>
 
   <div class="path-section" id="pathSection">
@@ -303,6 +347,14 @@
   </div>
 
   <div class="sidebar-col">
+    <div class="side-card" id="milestoneCard">
+      <div class="side-card-title">Your next milestone</div>
+      <div class="milestone-name" id="milestoneName">Loading…</div>
+      <div class="milestone-count" id="milestoneCount"></div>
+      <div class="milestone-bar-track"><div class="milestone-bar-fill" id="milestoneBarFill"></div></div>
+      <div class="milestone-next" id="milestoneNext"></div>
+    </div>
+
     <div class="side-card">
       <div class="side-card-title">Your progress</div>
       <div class="progress-stat-row">
@@ -357,50 +409,54 @@
   // 66-lesson library. Minutes are a flat, honestly-labelled estimate — actual
   // per-lesson reading time isn't tracked anywhere yet.
   const EST_MINUTES = 6;
+  // Every sub-line below is written as "why this matters to you," not a textbook
+  // description — the same move that made the compounding lesson's "With your
+  // actual numbers" land well. Titles are untouched (real, from learning_lab.html);
+  // only the framing underneath changed.
   const STAGES = [
     { key: 'foundation', name: 'Foundations', tagline: 'Start here', lessons: [
-      { id: 'what-is-fire', title: 'What is FIRE and is it realistic for me?', sub: 'The basics of financial independence' },
+      { id: 'what-is-fire', title: 'What is FIRE and is it realistic for me?', sub: 'See what financial independence would actually look like for you' },
       { id: 'compounding', title: 'How compound interest actually works', sub: 'With your actual numbers' },
-      { id: 'saving-vs-investing', title: 'The difference between saving and investing', sub: 'Why it matters for your timeline' },
-      { id: 'two-phase', title: 'Your two-phase freedom timeline', sub: 'Savings now, super at 60' },
-      { id: 'acronyms', title: 'The FIRE glossary — every acronym explained', sub: 'PPOR, DINK, ETF, SWR and every term you see in forums' },
+      { id: 'saving-vs-investing', title: 'The difference between saving and investing', sub: 'Why it matters for your specific timeline' },
+      { id: 'two-phase', title: 'Your two-phase freedom timeline', sub: 'How your savings and super timelines actually interact' },
+      { id: 'acronyms', title: 'The FIRE glossary — every acronym explained', sub: 'Every term you\'ll see, explained in plain English' },
     ]},
     { key: '5', name: 'Build Your Base', tagline: 'Building blocks', lessons: [
-      { id: 'bonds', title: 'What is a bond and why it matters', sub: 'The conservative building block' },
-      { id: 'hisa', title: 'High interest savings vs term deposits', sub: 'Making your cash work harder' },
-      { id: 'balanced-funds', title: 'Balanced funds explained', sub: 'A bit of everything, less risk' },
-      { id: 'diversification', title: 'What diversification actually means', sub: "Don't put all your eggs in one basket" },
-      { id: 'inflation', title: 'Why inflation is your silent enemy', sub: 'The number eroding your savings right now' },
-      { id: 'etf-intro', title: 'Introduction to ETFs', sub: 'The conservative starting point' },
-      { id: 'risk-reward', title: 'How to think about risk vs reward', sub: 'Finding your comfort zone' },
+      { id: 'bonds', title: 'What is a bond and why it matters', sub: 'See how bonds could fit into your retirement strategy' },
+      { id: 'hisa', title: 'High interest savings vs term deposits', sub: 'Compare against what your own cash is currently earning' },
+      { id: 'balanced-funds', title: 'Balanced funds explained', sub: 'A lower-risk option worth weighing against your own plan' },
+      { id: 'diversification', title: 'What diversification actually means', sub: 'Understand what you\'re actually holding — and what you\'re not' },
+      { id: 'inflation', title: 'Why inflation is your silent enemy', sub: 'See what it\'s really doing to your own freedom number' },
+      { id: 'etf-intro', title: 'Introduction to ETFs', sub: 'The starting point most FIRE portfolios are built on' },
+      { id: 'risk-reward', title: 'How to think about risk vs reward', sub: 'Work out your own comfort zone before you invest more' },
     ]},
     { key: 'tax', name: 'Optimise', tagline: 'Tax & super', lessons: [
-      { id: 'catch-up-contributions', title: 'Catch-up concessional contributions — how they work', sub: 'Using unused prior-year cap for a big lump-sum contribution' },
-      { id: 'super-co-contribution', title: 'The government super co-contribution', sub: 'Free money for lower and middle income earners' },
-      { id: 'spouse-contribution-offset', title: 'Spouse contribution tax offset', sub: "A tax offset for contributing to a lower-earning partner's super" },
-      { id: 'cgt-discount', title: 'The 50% CGT discount, explained', sub: 'Why holding period matters when you sell an investment' },
-      { id: 'franking-credits', title: 'Franking credits on Australian shares', sub: 'A uniquely Australian tax advantage' },
-      { id: 'first-home-super-saver', title: 'First Home Super Saver Scheme', sub: 'Using super to help save a home deposit' },
-      { id: 'division-293', title: 'Division 293 tax, explained', sub: 'Extra tax on super contributions for high earners' },
+      { id: 'catch-up-contributions', title: 'Catch-up concessional contributions — how they work', sub: 'See whether unused super contribution capacity could help your plan' },
+      { id: 'super-co-contribution', title: 'The government super co-contribution', sub: 'Check whether you\'re leaving free government money on the table' },
+      { id: 'spouse-contribution-offset', title: 'Spouse contribution tax offset', sub: 'Worth knowing if you or a partner earn less in some years' },
+      { id: 'cgt-discount', title: 'The 50% CGT discount, explained', sub: 'Why how long you hold an investment changes what you owe' },
+      { id: 'franking-credits', title: 'Franking credits on Australian shares', sub: 'A uniquely Australian advantage worth understanding before you invest' },
+      { id: 'first-home-super-saver', title: 'First Home Super Saver Scheme', sub: 'See if this could help fund a deposit without derailing your plan' },
+      { id: 'division-293', title: 'Division 293 tax, explained', sub: 'Worth knowing if you\'re a higher earner making extra contributions' },
     ]},
     { key: '7', name: 'Freedom', tagline: 'The FIRE standard', lessons: [
-      { id: 'index-funds', title: 'What is an index fund and why it works', sub: 'The FIRE community favourite' },
-      { id: 'etf-how', title: 'ETFs — how to buy, what they cost', sub: 'The practical guide' },
+      { id: 'index-funds', title: 'What is an index fund and why it works', sub: 'The approach behind most of the numbers FirePath shows you' },
+      { id: 'etf-how', title: 'ETFs — how to buy, what they cost', sub: 'The practical side of actually putting a plan into action' },
       { id: 'compounding-numbers', title: 'Compounding with your actual numbers', sub: 'Seeing it in real terms' },
-      { id: 'dca', title: 'Dollar cost averaging', sub: 'What it is and why it works' },
-      { id: 'aus-vs-global', title: 'Australian shares vs global shares', sub: 'Where should your money live?' },
-      { id: 'super-vehicle', title: 'Superannuation as an investment vehicle', sub: 'More than just a retirement fund' },
-      { id: 'four-percent', title: 'The 4% rule — where it comes from', sub: 'The foundation of FIRE' },
-      { id: 'tax-basics', title: 'Tax and investing basics in Australia', sub: 'What you need to know' },
+      { id: 'dca', title: 'Dollar cost averaging', sub: 'A simple habit that can smooth out market timing risk' },
+      { id: 'aus-vs-global', title: 'Australian shares vs global shares', sub: 'Where your own portfolio might want to sit' },
+      { id: 'super-vehicle', title: 'Superannuation as an investment vehicle', sub: 'More than just a retirement fund — see how it fits your timeline' },
+      { id: 'four-percent', title: 'The 4% rule — where it comes from', sub: 'The rule your own freedom number is built on' },
+      { id: 'tax-basics', title: 'Tax and investing basics in Australia', sub: 'What you need to know before you start investing seriously' },
     ]},
     { key: '10', name: 'Advanced', tagline: 'Growth strategies', lessons: [
-      { id: 'individual-shares', title: 'Individual shares — how they work', sub: 'Higher risk, higher potential' },
-      { id: 'property', title: 'Property investing explained', sub: 'Leverage, equity, cash flow' },
-      { id: 'arbitrage', title: 'Arbitrage explained simply', sub: 'Finding the gap between prices' },
-      { id: 'growth-vs-value', title: 'Growth vs value investing', sub: 'Two very different approaches' },
-      { id: 'dividends', title: 'Dividends vs capital growth', sub: 'Income now or wealth later?' },
-      { id: 'franking', title: 'Franking credits in Australia', sub: 'A uniquely Australian advantage' },
-      { id: 'volatility', title: 'Volatility — the emotional side', sub: 'How to handle the ride' },
+      { id: 'individual-shares', title: 'Individual shares — how they work', sub: 'Higher risk, higher potential — see if it fits your plan' },
+      { id: 'property', title: 'Property investing explained', sub: 'Leverage, equity, cash flow — weighed against your own numbers' },
+      { id: 'arbitrage', title: 'Arbitrage explained simply', sub: 'An advanced concept worth understanding, even if you never use it' },
+      { id: 'growth-vs-value', title: 'Growth vs value investing', sub: 'Two very different approaches — see which suits your timeline' },
+      { id: 'dividends', title: 'Dividends vs capital growth', sub: 'Income now or wealth later — which matters more for your plan?' },
+      { id: 'franking', title: 'Franking credits in Australia', sub: 'A deeper look at a uniquely Australian advantage' },
+      { id: 'volatility', title: 'Volatility — the emotional side', sub: 'How to handle the ride without derailing your own plan' },
     ]},
   ];
   const TOTAL_LESSONS = STAGES.reduce((n, s) => n + s.lessons.length, 0);
@@ -448,27 +504,46 @@
     }
     const currentStageKey = nextStage ? nextStage.key : STAGES[STAGES.length - 1].key;
 
-    // ── Progress hero ──
+    // ── Continue-your-path hero — this is now the dominant action on the page,
+    // with the ring/percentage demoted to a secondary strip beneath it. ──
     const completedCount = STAGES.reduce((n, s) => n + s.lessons.filter(l => readIds.has(l.id)).length, 0);
     const pct = TOTAL_LESSONS > 0 ? Math.round((completedCount / TOTAL_LESSONS) * 100) : 0;
     const circumference = 264; // 2 * PI * 42, matches the SVG r=42 above
     const ringFill = document.getElementById('progressRingFill');
     ringFill.setAttribute('stroke-dashoffset', String(circumference - (circumference * pct / 100)));
-    document.getElementById('progressRingPct').textContent = pct + '%';
-    document.getElementById('progressHeroBar').style.width = pct + '%';
-    document.getElementById('progressHeroCount').textContent = `${completedCount} / ${TOTAL_LESSONS} lessons completed`;
-    document.getElementById('progressHero').classList.add('in-view');
+    document.getElementById('progressStripPct').textContent = pct + '%';
+    document.getElementById('progressHeroCount').textContent = `${completedCount} / ${TOTAL_LESSONS} lessons`;
+    document.getElementById('continueHero').classList.add('in-view');
+
+    const eyebrowEl = document.getElementById('continueEyebrow');
+    const titleEl = document.getElementById('continueLessonTitle');
+    const timeEl = document.getElementById('continueTime');
+    const btnEl = document.getElementById('continueBtn');
+    const taglineEl = document.getElementById('progressTagline');
     if (nextLesson) {
-      document.getElementById('resumeBtn').href = lessonUrl(nextStage.key, nextLesson.id, nextLesson.title);
-      document.getElementById('resumeBtn').textContent = 'Resume learning →';
+      const url = lessonUrl(nextStage.key, nextLesson.id, nextLesson.title);
+      eyebrowEl.textContent = 'Continue your path';
+      titleEl.textContent = nextLesson.title;
+      titleEl.href = url;
+      timeEl.textContent = `${EST_MINUTES} min`;
+      btnEl.textContent = 'Continue →';
+      btnEl.href = url;
+      taglineEl.textContent = completedCount === 0
+        ? 'Your journey starts here.'
+        : `You're making progress through ${nextStage.name}.`;
     } else {
-      document.getElementById('resumeBtn').href = 'learning_lab.html';
-      document.getElementById('resumeBtn').textContent = 'Explore the full library →';
+      eyebrowEl.textContent = 'Path complete';
+      titleEl.textContent = 'You\'ve finished every lesson in your path';
+      titleEl.href = 'learning_lab.html';
+      timeEl.textContent = '';
+      btnEl.textContent = 'Explore the full library →';
+      btnEl.href = 'learning_lab.html';
+      taglineEl.textContent = 'You\'ve completed the whole path — nice work.';
     }
 
-    // ── Recommended for you — the next unread lesson, plus one honest pick from
-    // each of two other stages (labelled by real stage name, not a fabricated
-    // "popular" claim there's no data to back). ──
+    // ── Recommended for you — the next unread lesson as a dominant "NEXT UP" card,
+    // plus one honest pick from up to three other stages (labelled by real stage
+    // name, not a fabricated "popular" claim there's no data to back). ──
     const recPicks = [];
     if (nextLesson) recPicks.push({ tag: 'Next lesson', stage: nextStage, lesson: nextLesson });
     STAGES.forEach(s => {
@@ -477,15 +552,32 @@
       const pick = s.lessons.find(l => !readIds.has(l.id)) || s.lessons[0];
       if (pick) recPicks.push({ tag: s.name, stage: s, lesson: pick });
     });
-    document.getElementById('recRow').innerHTML = recPicks.slice(0, 4).map(p => `
-      <a href="${lessonUrl(p.stage.key, p.lesson.id, p.lesson.title)}" class="rec-card" data-search-text="${(p.lesson.title + ' ' + p.lesson.sub).toLowerCase()}">
-        <span class="rec-card-tag">${p.tag}</span>
-        <span class="rec-card-title">${p.lesson.title}</span>
-        <span class="rec-card-bottom">
-          <span class="rec-card-time"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ${EST_MINUTES} min</span>
-          <span class="rec-card-arrow">→</span>
-        </span>
-      </a>`).join('');
+    const recPrimaryEl = document.getElementById('recPrimary');
+    const recSecondaryEl = document.getElementById('recSecondaryRow');
+    if (recPicks.length) {
+      const first = recPicks[0];
+      recPrimaryEl.innerHTML = `
+        <a href="${lessonUrl(first.stage.key, first.lesson.id, first.lesson.title)}" class="rec-primary" data-search-text="${(first.lesson.title + ' ' + first.lesson.sub).toLowerCase()}">
+          <span class="rec-primary-tag">NEXT UP</span>
+          <span class="rec-primary-body">
+            <span class="rec-primary-title">${first.lesson.title}</span>
+            <span class="rec-primary-time">${first.lesson.sub} · ${EST_MINUTES} min</span>
+          </span>
+          <span class="rec-primary-arrow">→</span>
+        </a>`;
+      recSecondaryEl.innerHTML = recPicks.slice(1, 4).map(p => `
+        <a href="${lessonUrl(p.stage.key, p.lesson.id, p.lesson.title)}" class="rec-card" data-search-text="${(p.lesson.title + ' ' + p.lesson.sub).toLowerCase()}">
+          <span class="rec-card-tag">${p.tag}</span>
+          <span class="rec-card-title">${p.lesson.title}</span>
+          <span class="rec-card-bottom">
+            <span class="rec-card-time"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ${EST_MINUTES} min</span>
+            <span class="rec-card-arrow">→</span>
+          </span>
+        </a>`).join('');
+    } else {
+      recPrimaryEl.innerHTML = '';
+      recSecondaryEl.innerHTML = '';
+    }
 
     // ── Stepper ──
     document.getElementById('stepper').innerHTML = STAGES.map((s, i) => {
@@ -500,11 +592,18 @@
       </button>${connector}`;
     }).join('');
 
+    const LOCK_ICON = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+
     function renderLessonList(stageKey) {
       const stage = STAGES.find(s => s.key === stageKey) || STAGES[0];
+      const currentIdx = stage.lessons.findIndex(l => !readIds.has(l.id));
       document.getElementById('lessonList').innerHTML = stage.lessons.map((l, i) => {
         const isRead = readIds.has(l.id);
-        return `<a href="${lessonUrl(stage.key, l.id, l.title)}" class="lesson-row" data-search-text="${(l.title + ' ' + l.sub).toLowerCase()}">
+        const isCurrent = !isRead && i === currentIdx;
+        const isLocked = !isRead && !isCurrent;
+        const state = isRead ? 'done' : (isCurrent ? 'current' : 'locked');
+        const checkMark = isRead ? '✓' : (isCurrent ? '→' : LOCK_ICON);
+        return `<a href="${lessonUrl(stage.key, l.id, l.title)}" class="lesson-row ${isLocked ? 'locked-row' : ''}" data-search-text="${(l.title + ' ' + l.sub).toLowerCase()}">
           <span class="lesson-num">${STAGES.findIndex(s => s.key === stageKey) + 1}.${i + 1}</span>
           <span class="lesson-body">
             <span class="lesson-title">${l.title}</span>
@@ -512,7 +611,7 @@
           </span>
           <span class="lesson-meta">
             <span class="lesson-time">${EST_MINUTES} min</span>
-            <span class="lesson-check ${isRead ? 'done' : 'todo'}">${isRead ? '✓' : ''}</span>
+            <span class="lesson-check ${state}">${checkMark}</span>
           </span>
         </a>`;
       }).join('');
@@ -521,6 +620,32 @@
     document.querySelectorAll('.stepper-step').forEach(btn => {
       btn.addEventListener('click', () => renderLessonList(btn.dataset.stage));
     });
+
+    // ── Your Next Milestone — replaces the sidebar space freed up by removing the
+    // duplicate mobile search box. Uses the same nextStage/completedCount data
+    // already computed above, no new tracking needed. ──
+    const milestoneNameEl = document.getElementById('milestoneName');
+    const milestoneCountEl = document.getElementById('milestoneCount');
+    const milestoneBarFillEl = document.getElementById('milestoneBarFill');
+    const milestoneNextEl = document.getElementById('milestoneNext');
+    if (nextStage) {
+      const doneInStage = nextStage.lessons.filter(l => readIds.has(l.id)).length;
+      const totalInStage = nextStage.lessons.length;
+      const remaining = totalInStage - doneInStage;
+      const stageIdx = STAGES.findIndex(s => s.key === nextStage.key);
+      const followingStage = STAGES[stageIdx + 1];
+      milestoneNameEl.textContent = `Finish ${nextStage.name}`;
+      milestoneCountEl.textContent = `${doneInStage} / ${totalInStage} lessons`;
+      milestoneBarFillEl.style.width = `${totalInStage > 0 ? Math.round((doneInStage / totalInStage) * 100) : 0}%`;
+      milestoneNextEl.textContent = followingStage
+        ? `${remaining} lesson${remaining === 1 ? '' : 's'} to unlock ${followingStage.name}`
+        : `${remaining} lesson${remaining === 1 ? '' : 's'} left in your path`;
+    } else {
+      milestoneNameEl.textContent = 'Path complete';
+      milestoneCountEl.textContent = `${TOTAL_LESSONS} / ${TOTAL_LESSONS} lessons`;
+      milestoneBarFillEl.style.width = '100%';
+      milestoneNextEl.textContent = 'You\'ve completed your path!';
+    }
 
     // ── Sidebar: real stats from the same read data above ──
     document.getElementById('statLessons').textContent = readIds.size;
@@ -565,7 +690,7 @@
     // title/description text, across both the desktop and mobile search inputs. ──
     function applySearch(q) {
       const term = q.trim().toLowerCase();
-      document.querySelectorAll('#recRow .rec-card, #lessonList .lesson-row').forEach(el => {
+      document.querySelectorAll('#recPrimary .rec-primary, #recSecondaryRow .rec-card, #lessonList .lesson-row').forEach(el => {
         const text = el.getAttribute('data-search-text') || '';
         el.classList.toggle('hidden-by-search', term.length > 0 && !text.includes(term));
       });
