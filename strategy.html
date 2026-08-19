@@ -38,6 +38,26 @@
   .page-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 28px; color: var(--warm-brown); margin-bottom: 8px; line-height: 1.25; }
   .page-sub { font-size: 14px; color: var(--soft-grey); font-weight: 300; margin-bottom: 32px; max-width: 52ch; }
 
+  /* ── Your Levers — personalised, computed against this person's actual numbers
+       via the same solveMonthsToTarget the trajectory chart on Journey uses. Turns
+       Strategy from "here are three calculators" into "here's what actually moves
+       your date," with the three tools below as how you'd go act on any of them. ── */
+  .levers-card {
+    background: white; border: 1px solid var(--border); border-radius: 20px;
+    padding: 24px 24px 10px; margin-bottom: 28px;
+    opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .levers-card.in-view { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) { .levers-card { opacity: 1; transform: none; transition: none; } }
+  .levers-question { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: var(--warm-brown); margin-bottom: 4px; }
+  .levers-caption { font-size: 12.5px; color: var(--soft-grey); font-weight: 300; margin-bottom: 16px; }
+  .lever-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .lever-row:last-of-type { border-bottom: none; }
+  .lever-label { font-size: 14px; color: var(--warm-brown); font-weight: 500; }
+  .lever-value { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 16px; color: var(--fire-orange); white-space: nowrap; flex-shrink: 0; }
+  .levers-skeleton { color: var(--soft-grey); font-size: 13px; font-style: italic; padding: 4px 0 16px; }
+  .levers-cta { display: block; text-align: right; padding: 16px 0; font-size: 13px; color: var(--fire-orange); font-weight: 500; text-decoration: none; }
+
   .hub-cards { display: flex; flex-direction: column; gap: 10px; }
   .hub-card {
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -89,6 +109,7 @@
   }
 </style>
 <script src="js/auth.js"></script>
+<script src="js/financial-engine.js"></script>
 </head>
 <body>
 
@@ -136,6 +157,15 @@
   <div class="page-title">Test the levers that move your date.</div>
   <div class="page-sub">Each of these runs a real calculation against your numbers — not a generic estimate.</div>
 
+  <div class="levers-card" id="leversCard">
+    <div class="levers-question">What could move your freedom date?</div>
+    <div class="levers-caption">Run against your actual savings and spending, not a generic example.</div>
+    <div id="leversList">
+      <div class="levers-skeleton">Working out your levers…</div>
+    </div>
+    <a href="hearmeout.html" class="levers-cta">Explore scenarios →</a>
+  </div>
+
   <div class="hub-cards" id="hubCards">
     <a href="tax_pro.html" class="hub-card">
       <div>
@@ -163,7 +193,7 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
     const token = getToken();
     const userId = getUserId();
     if (!token || !userId) { window.location.href = 'auth.html'; return; }
@@ -182,6 +212,81 @@
         });
       }, { threshold: 0.15 });
       cards.forEach(el => observer.observe(el));
+    }
+
+    // ── Your Levers — same solveMonthsToTarget the trajectory chart on Journey
+    // already uses, just run against a few different named changes instead of one
+    // fixed "$50/week" optimisation. Isolated in its own try/catch so a failure
+    // here never blocks the three tool cards above, which don't depend on it.
+    const leversCard = document.getElementById('leversCard');
+    try {
+      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_user_id'); localStorage.removeItem('fp_email');
+        sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
+        window.location.href = 'auth.html';
+        return;
+      }
+      if (!res.ok) { leversCard.style.display = 'none'; return; }
+
+      const data = await res.json();
+      const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
+      if (!p || !window.FirePathEngine) { leversCard.style.display = 'none'; return; }
+
+      const savings = p.current_savings || 0;
+      const monthlySavings = p.savings_monthly || 0;
+      const freedomNumber = p.freedom_number || 0;
+      const annualSpend = freedomNumber > 0 ? freedomNumber / 25 : 0;
+      if (annualSpend <= 0) { leversCard.style.display = 'none'; return; }
+
+      const baseMonths = window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
+      if (baseMonths == null) { leversCard.style.display = 'none'; return; }
+      const baseYears = baseMonths / 12;
+
+      // Each lever changes exactly one named thing, holding everything else at
+      // today's values — "if you did only this, and nothing else" rather than a
+      // blended what-if, so each row is a genuinely isolated, explainable comparison.
+      const candidates = [
+        {
+          label: 'Invest an extra $200/month',
+          months: window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings + 200, annualSpend)
+        },
+        {
+          label: 'Cut spending by $300/month',
+          months: window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings + 300, Math.max(0, annualSpend - 3600))
+        }
+      ];
+      // Only shown if take_home_income is on file — without it, "5% of income"
+      // isn't a real number, just a guess, and this page doesn't show guesses.
+      if (p.take_home_income) {
+        const extraMonthly = (p.take_home_income * 0.05) / 12;
+        candidates.push({
+          label: 'Increase your savings rate by 5%',
+          months: window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings + extraMonthly, annualSpend)
+        });
+      }
+
+      const rows = candidates
+        .map(c => {
+          if (c.months == null) return null;
+          const gainYears = Math.round((baseYears - c.months / 12) * 10) / 10;
+          if (gainYears < 0.1) return null;
+          return `<div class="lever-row"><span class="lever-label">${c.label}</span><span class="lever-value">−${gainYears} yr${gainYears === 1 ? '' : 's'}</span></div>`;
+        })
+        .filter(Boolean);
+
+      const leversList = document.getElementById('leversList');
+      if (rows.length === 0) {
+        leversList.innerHTML = `<div class="levers-skeleton">You're already moving fast enough that these standard levers don't add much — the tools below go deeper.</div>`;
+      } else {
+        leversList.innerHTML = rows.join('');
+      }
+
+      if (prefersReducedMotion) { leversCard.classList.add('in-view'); }
+      else { requestAnimationFrame(() => leversCard.classList.add('in-view')); }
+    } catch (e) {
+      console.log('Levers calculation failed', e);
+      leversCard.style.display = 'none';
     }
   });
 </script>

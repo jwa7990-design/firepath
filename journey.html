@@ -897,7 +897,15 @@
               }
             }
 
-            if (prevSnapshot.picture.netWorth != null && window.FirePathEngine) {
+            // netWorthFormulaVersion 2 = assets-minus-liabilities (savings + super,
+            // minus debt + mortgage). Version 1/undefined snapshots were saved under
+            // the old savings-minus-debt-only formula — comparing across that change
+            // would show a one-off "gain" equal to roughly the person's super balance,
+            // which isn't a real gain, just a different yardstick. Skipping the
+            // comparison (same as any other missing-data case) rather than deleting
+            // that history — Freedom Unlocked still needs the oldest snapshot's
+            // savings/monthlySavings, which this doesn't touch.
+            if (prevSnapshot.picture.netWorth != null && prevSnapshot.picture.netWorthFormulaVersion === 2 && window.FirePathEngine) {
               const netWorthDelta = netWorth - prevSnapshot.picture.netWorth;
               if (netWorthDelta !== 0) {
                 sinceRows.push({ label: 'Net worth', before: null, after: `${netWorthDelta > 0 ? '+' : '-'}${window.FirePathEngine.fmtM(Math.abs(netWorthDelta))}`, positive: netWorthDelta > 0 });
@@ -973,7 +981,7 @@
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
             // netWorth and savingsRate feed the Since Last Month strip above; freedomPct
             // is the only field older code relied on, so it stays first and unchanged.
-            body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber, monthlySavings }, picture: { freedomPct: pct, netWorth, savingsRate: p.savings_rate || 0 } })
+            body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber, monthlySavings }, picture: { freedomPct: pct, netWorth, netWorthFormulaVersion: 2, savingsRate: p.savings_rate || 0 } })
           });
         }
       } catch(e) { console.log('Journey snapshot save failed', e); }

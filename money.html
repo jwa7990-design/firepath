@@ -254,7 +254,10 @@
         if (snapRes.ok) {
           const snapData = await snapRes.json();
           const prevSnapshot = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
-          if (prevSnapshot && prevSnapshot.picture && typeof prevSnapshot.picture.netWorth === 'number') {
+          // Same netWorthFormulaVersion guard as journey.html — see that file's
+          // comment. Older snapshots saved before the assets-minus-liabilities fix
+          // simply aren't compared against, rather than showing a fake jump.
+          if (prevSnapshot && prevSnapshot.picture && typeof prevSnapshot.picture.netWorth === 'number' && prevSnapshot.picture.netWorthFormulaVersion === 2) {
             const delta = netWorth - prevSnapshot.picture.netWorth;
             if (delta !== 0) {
               const deltaEl = document.getElementById('networthDelta');
