@@ -1,3 +1,5 @@
+
+Financial engine · JS
 /**
  * FirePath — Financial Engine
  * =============================
@@ -16,16 +18,16 @@
  * 7% return rate, the 4% withdrawal rate) meant finding and updating it in more than
  * one place. This is now the single place that logic lives.
  */
-
+ 
 window.FirePathEngine = (function () {
-
+ 
   function fmtM(n) {
     if (n == null || isNaN(n)) return '—';
     if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
     if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
     return '$' + Math.round(n);
   }
-
+ 
   // Rounds a raw hours-needed figure up to the nearest "nice" number people naturally
   // think in (2.5, 5, 7.5, 10, 15, 20...) rather than something like 11 or 17. Always
   // rounds UP so the figure stays conservative — never undersells what's actually needed.
@@ -37,7 +39,7 @@ window.FirePathEngine = (function () {
     for (const step of stepsOver10) { if (rawHours <= step) return step; }
     return Math.ceil(rawHours);
   }
-
+ 
   // Compounds a starting portfolio forward with ongoing monthly contributions.
   function projectPortfolio(startPortfolio, monthlySavings, years, rate) {
     rate = rate == null ? 0.07 : rate;
@@ -46,7 +48,29 @@ window.FirePathEngine = (function () {
     for (let m = 0; m < Math.round(years * 12); m++) { bal = bal * (1 + r) + monthlySavings; }
     return bal;
   }
-
+ 
+  // Months from now until a 4%-rule withdrawal off the growing portfolio covers
+  // targetSpend — i.e. how long until this portfolio, on its own, funds the target
+  // annual spend. Same growth/withdrawal assumptions as computeFreedomPicture (7%
+  // default growth, 4% withdrawal), just solved month-by-month instead of at a single
+  // point in time, since Journey and the Freedom Unlocked card need "how many months
+  // from today" rather than "what does today look like."
+  //
+  // Was previously only defined as a page-local copy inside ask-firepath.html; every
+  // other call site (journey.html, firepath_pro.html) already assumed it lived here.
+  // Capped at 40 years out — returns null if the target still isn't reached by then,
+  // same "don't pretend to know" convention as solveFreedomAge's 90-year ceiling.
+  function solveMonthsToTarget(startPortfolio, monthlySavings, targetSpend, rate) {
+    rate = rate == null ? 0.07 : rate;
+    const r = rate / 12;
+    let portfolio = startPortfolio;
+    for (let m = 0; m <= 40 * 12; m++) {
+      if (portfolio * 0.04 >= targetSpend) return m;
+      portfolio = portfolio * (1 + r) + monthlySavings;
+    }
+    return null;
+  }
+ 
   // Finds the youngest age (from currentAge) at which portfolio income — plus the Age
   // Pension once age 67 is reached — covers targetSpend. Returns null if not reached by 90.
   function solveFreedomAge(currentAge, startPortfolio, monthlySavings, targetSpend, homeowner, rate) {
@@ -66,7 +90,7 @@ window.FirePathEngine = (function () {
     }
     return null;
   }
-
+ 
   // The "today's snapshot" — portfolio income, gap, pension estimate, gap after pension,
   // and freedom percentage — all derived consistently from the same inputs. Both Freedom
   // Gap and Freedom Options need this exact bundle; previously each derived it separately.
@@ -87,18 +111,18 @@ window.FirePathEngine = (function () {
     const freedomPct = annualSpend > 0 ? Math.min(100, Math.round((portfolioIncome / annualSpend) * 100)) : 0;
     return { portfolioIncome, gap, pensionAnnual, pensionWeekly, gapAfterPension, freedomPct };
   }
-
+ 
   // ── Financial Snapshot Engine helpers ──
   // Actual reads/writes to financial_snapshots live in each page, not here — same
   // boundary as calculateAgePension: this file computes, it doesn't do I/O.
-
+ 
   // Flexible time-since phrasing, not a fixed "monthly" cadence — compares against
   // whatever the previous snapshot actually was, however long ago that happened to be.
   function formatTimeSince(previousDate) {
     const now = new Date();
     const prev = new Date(previousDate);
     const diffDays = Math.floor((now - prev) / 86400000);
-
+ 
     if (diffDays <= 0) return 'since your last update';
     if (diffDays === 1) return 'since yesterday';
     if (diffDays < 30) return `since ${diffDays} days ago`;
@@ -109,7 +133,7 @@ window.FirePathEngine = (function () {
     const years = Math.round(diffDays / 365.25);
     return `since ${years} year${years !== 1 ? 's' : ''} ago`;
   }
-
+ 
   // Compares two computeFreedomPicture() results — both are just plain objects, so this
   // works whether "previous" came from a live calculation or a stored snapshot's picture.
   function compareSnapshots(previousPicture, currentPicture) {
@@ -119,6 +143,6 @@ window.FirePathEngine = (function () {
       gapDelta: currentPicture.gap - previousPicture.gap
     };
   }
-
-  return { fmtM, niceHours, projectPortfolio, solveFreedomAge, computeFreedomPicture, formatTimeSince, compareSnapshots };
+ 
+  return { fmtM, niceHours, projectPortfolio, solveMonthsToTarget, solveFreedomAge, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();
