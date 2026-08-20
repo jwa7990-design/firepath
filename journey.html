@@ -58,7 +58,7 @@
   /* Bottom padding cleared to make room for .mobile-tabbar floating above the
      content — desktop overrides this back down further below since the rail
      replaces the tab bar entirely at that width. */
-  .container { max-width: 480px; margin: 0 auto; padding: 40px 24px calc(104px + env(safe-area-inset-bottom)); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); transform-origin: top center; }
+  .container { max-width: 480px; margin: 0 auto; padding: 40px 24px calc(152px + env(safe-area-inset-bottom)); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); transform-origin: top center; }
   .container.menu-open { transform: scale(0.985); }
   @media (prefers-reduced-motion: reduce) {
     .container { transition: none; }
@@ -287,6 +287,15 @@
   .trajectory-stat-row.gain { transition: opacity var(--dur-responsive) var(--ease-standard); }
   .trajectory-stat-row.gain.trajectory-gain-hidden { opacity: 0; }
   .trajectory-cta { display: block; text-align: right; margin-top: 14px; font-size: 13px; color: var(--fire-orange); font-weight: 500; text-decoration: none; }
+  /* Contextual entry point into Ask FirePath — deliberately quiet, a question and
+     a link, not a card or a button. Sits right where the curiosity it's answering
+     would naturally occur, rather than pulling FirePath into its own competing card. */
+  .trajectory-ask-prompt {
+    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);
+    display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px;
+  }
+  .trajectory-ask-text { font-size: 12.5px; color: var(--soft-grey); }
+  .trajectory-ask-link { font-size: 12.5px; color: var(--fire-orange); font-weight: 600; text-decoration: none; white-space: nowrap; }
 
   /* ── Since Last Month — an editorial strip, not a dashboard. Four lines, no cards,
        no colour beyond what's already on the page. Exists to answer one question:
@@ -370,6 +379,21 @@
   .mobile-tabbar-item.active { color: var(--fire-orange); background: rgba(244,98,42,0.1); }
   .mobile-tabbar-item.active svg { opacity: 1; }
 
+  /* Persistent, global entry point into Ask FirePath — a quiet pill floating just
+     above the tabbar, not a fifth nav item and not a big orange SaaS-style button.
+     Cream fill, thin orange border: a tool sitting above the navigation. */
+  .ask-pill {
+    position: fixed; right: 14px; bottom: calc(92px + env(safe-area-inset-bottom));
+    z-index: 149; display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(253,246,238,0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid var(--fire-orange); border-radius: 20px; padding: 10px 16px;
+    color: var(--fire-orange); font-size: 12.5px; font-weight: 600; text-decoration: none;
+    box-shadow: 0 6px 20px rgba(61,43,31,0.12);
+    opacity: 0; animation: fp-fade-in var(--dur-settle) ease-out 220ms forwards;
+  }
+  .ask-pill:active { background: rgba(244,98,42,0.08); }
+  .ask-pill svg { flex-shrink: 0; }
+
   /* ══════════════════════════════════════════════════════════════════════
      DESKTOP PLATFORM — persistent rail + spatial layout, >=1024px only.
      Below that, this is invisible and the mobile narrative experience
@@ -423,7 +447,7 @@
        hidden outright, so its child .greeting can still take its own grid-area
        below exactly as before this session's mobile pass. */
     .mobile-header-row { display: contents; }
-    .header-icons, .explore-overlay, .explore-footer, .mobile-tabbar { display: none !important; }
+    .header-icons, .explore-overlay, .explore-footer, .mobile-tabbar, .ask-pill { display: none !important; }
 
     /* Wider canvas + a real spatial layout instead of one long stacked column —
        trajectory sits alongside the hero/next-move narrative rather than under it.
@@ -583,6 +607,10 @@
     <div class="trajectory-svg-wrap" id="trajectorySvgWrap"></div>
     <div class="trajectory-stats" id="trajectoryStats"></div>
     <a href="hearmeout.html" class="trajectory-cta">Explore your options →</a>
+    <div class="trajectory-ask-prompt">
+      <span class="trajectory-ask-text">Want to understand what's moving this?</span>
+      <a href="ask-firepath.html" class="trajectory-ask-link">Ask FirePath →</a>
+    </div>
   </div>
 
   <!-- ── SINCE LAST MONTH — hidden until there's a real previous snapshot to compare
@@ -604,6 +632,14 @@
      menu opens, and position:fixed descendants of a transformed ancestor are
      "fixed" to that ancestor instead of the real viewport. Hidden entirely at
      desktop (see the >=1024px block), where the rail is already primary nav. ── -->
+<!-- ── ASK FIREPATH — persistent floating pill, the second (global) entry point
+     alongside the contextual prompts placed beside relevant data. Sibling of
+     .container for the same fixed-positioning reason as the tabbar above. ── -->
+<a href="ask-firepath.html" class="ask-pill">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+  Ask FirePath
+</a>
+
 <nav class="mobile-tabbar" aria-label="Primary">
   <a href="journey.html" class="mobile-tabbar-item active">
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
