@@ -2,148 +2,141 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>FirePath — Ask FirePath</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="css/visual-system.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/app.css"/>
+<script src="js/persona.js"></script>
+<script src="js/calculations.js"></script>
+<script src="js/interactions.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --fire-orange: #F4622A; --fire-amber: #F9A825; --warm-cream: #FDF6EE;
-    --warm-brown: #3D2B1F; --soft-grey: #9E8E85; --border: #EDE3DA;
+  /* ── Chat layout: page header + scrolling thread + input bar pinned to the bottom.
+       The page itself doesn't scroll — the thread does — so the input bar always
+       sits in view. On mobile it's lifted above the shell's floating tab bar. ── */
+  html, body.app { height: 100%; }
+  body.app { overflow: hidden; }
+  .ask-main {
+    display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+    max-width: 760px; padding-bottom: 0;
   }
-  html, body { height: 100%; }
-  body {
-    font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown);
-    -webkit-font-smoothing: antialiased; overflow: hidden;
-  }
-
-  /* ── A real chat shell: header + scrolling thread + fixed input bar, not a form
-       with a single answer block appended below it. Constrained to a phone-ish
-       column even at wider viewports — this page doesn't have the rail-based
-       desktop treatment the other pages do yet, so it just stays centred and
-       readable rather than stretching full-bleed. ── */
-  .chat-page { display: flex; flex-direction: column; height: 100dvh; max-width: 640px; margin: 0 auto; }
-
-  .chat-header {
-    flex-shrink: 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-    padding: max(22px, env(safe-area-inset-top)) 22px 16px; border-bottom: 1px solid var(--border);
-  }
-  .chat-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 22px; margin-bottom: 4px; }
-  .chat-sub { font-size: 13px; color: var(--soft-grey); font-weight: 300; line-height: 1.4; max-width: 36ch; }
-  .chat-close {
-    flex-shrink: 0; width: 34px; height: 34px; margin-top: 2px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--warm-brown); text-decoration: none; opacity: 0.5; transition: opacity 0.2s ease, background 0.2s ease;
-  }
-  .chat-close:hover { opacity: 0.9; background: rgba(61,43,31,0.06); }
+  @media (min-width: 768px) { .ask-main { padding-bottom: 0; } }
+  @media (min-width: 1024px) { .ask-main { padding-bottom: 0; padding-top: 40px; } }
+  .ask-main .page-head { flex-shrink: 0; margin-bottom: 0; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 
   .chat-thread {
-    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-    padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 16px;
+    flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    padding: 20px 2px 16px; display: flex; flex-direction: column; gap: 20px;
   }
 
-  .chat-starters-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
   .chat-starters { display: flex; flex-direction: column; gap: 8px; }
+  .chat-starters-label { margin-bottom: 4px; }
 
+  /* Suggestion chips — same family as .chip, sized up to be comfortable tap targets */
   .pill-chip {
-    align-self: flex-start; display: inline-flex; align-items: center; gap: 8px;
-    text-align: left; background: white; border: 1.5px solid var(--border);
-    border-radius: 20px; padding: 9px 16px 9px 12px; font-size: 13px; font-weight: 500; color: var(--warm-brown);
-    cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease;
+    align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; max-width: 100%;
+    min-height: 40px; padding: 8px 16px 8px 10px; border-radius: 999px; text-align: left;
+    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+    font: 500 13.5px/1.35 var(--font-ui); color: var(--ink); cursor: pointer;
+    transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease);
   }
-  .pill-chip:hover { border-color: var(--fire-orange); background: rgba(244,98,42,0.04); }
+  .pill-chip:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); }
+  .pill-chip:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
   .pill-chip-icon {
     width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
-    background: rgba(244,98,42,0.12); color: var(--fire-orange);
+    background: var(--ember-wash); color: var(--ember-ink);
     display: flex; align-items: center; justify-content: center;
   }
 
-  /* One turn = the user's bubble plus FirePath's card reply, kept together so the
-     thread reads as a conversation rather than a stack of disconnected cards. */
-  .chat-turn { display: flex; flex-direction: column; gap: 10px; }
+  /* One turn = the user's bubble + FirePath's card reply + follow-up chips */
+  .chat-turn { display: flex; flex-direction: column; gap: 10px; animation: fp-rise var(--dur-slow) var(--ease) both; }
   .chat-bubble-user {
-    align-self: flex-end; max-width: 82%; background: var(--fire-orange); border: 1px solid var(--fire-orange);
-    border-radius: 18px 18px 4px 18px; padding: 11px 16px; font-size: 14px; font-weight: 500;
-    color: white; line-height: 1.4;
+    align-self: flex-end; max-width: 82%; background: var(--ink); color: var(--bg);
+    border-radius: 18px 18px 4px 18px; padding: 11px 16px; font-size: 14.5px; font-weight: 500; line-height: 1.45;
+    overflow-wrap: anywhere;
   }
 
-  /* ── Reply cards — three distinct visual tones for the three answer tiers, so the
-       difference between "here's a real answer" and "we can't do that yet" is felt,
-       not just read. Same classification logic as before this pass, only how it's
-       presented (a chat card instead of the page's single response block) changed. ── */
-  .chat-card { border-radius: 18px; padding: 18px 18px; }
-  .chat-card-supported { background: white; border: 1.5px solid var(--border); box-shadow: 0 8px 24px rgba(61,43,31,0.06); }
-  .chat-card-guided { background: linear-gradient(135deg, #FFF7F3, #FFFBF7); border: 1px solid rgba(244,98,42,0.15); }
-  .chat-card-unsupported { background: white; border: 1px dashed var(--border); }
+  /* Reply cards — three tones for the three answer tiers */
+  .chat-card { border-radius: var(--r-lg); padding: 18px 20px; max-width: 100%; }
+  @media (min-width: 768px) { .chat-card { padding: 22px 24px; } }
+  .chat-card-supported { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); }
+  .chat-card-guided { background: #FFF7F2; border: 1px solid rgba(244,98,42,0.22); }
+  .chat-card-unsupported { background: var(--surface-2); border: 1px dashed var(--line-strong); }
   .chat-tag {
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-    margin-bottom: 10px; display: inline-block; padding: 3px 9px; border-radius: 20px;
+    display: inline-flex; align-items: center; margin-bottom: 12px; padding: 4px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
   }
-  .chat-card-supported .chat-tag { color: #2E7D32; background: rgba(46,125,50,0.1); }
-  .chat-card-guided .chat-tag { color: var(--fire-orange); background: rgba(244,98,42,0.1); }
-  .chat-card-unsupported .chat-tag { color: var(--soft-grey); background: rgba(158,142,133,0.1); }
-  .chat-headline { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--warm-brown); line-height: 1.35; margin-bottom: 8px; }
-  .chat-body { font-size: 13.5px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; margin-bottom: 12px; }
-  /* The little "what it would take" stat callout from the mockup's retire-age
-     answer — a real number pulled out of the paragraph above it, not a chart
-     (that would need its own render pass this pass didn't budget for). */
+  .chat-card-supported .chat-tag { color: var(--positive); background: var(--positive-wash); }
+  .chat-card-guided .chat-tag { color: var(--ember-ink); background: var(--ember-wash); }
+  .chat-card-unsupported .chat-tag { color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); }
+  .chat-headline { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--ink); line-height: 1.35; letter-spacing: -0.005em; margin-bottom: 8px; }
+  .chat-headline strong { color: var(--ember-ink); font-weight: 700; }
+  .chat-body { font-size: 14.5px; color: var(--ink-2); line-height: 1.65; margin-bottom: 14px; }
+  .chat-card-unsupported .chat-body { margin-bottom: 0; }
   .chat-stat-row {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    background: var(--warm-cream); border: 1px solid var(--border); border-radius: 12px;
-    padding: 11px 14px; margin-bottom: 12px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
+    padding: 12px 14px; margin-bottom: 14px;
   }
-  .chat-stat-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 13.5px; color: var(--warm-brown); }
-  .chat-stat-label { font-size: 11px; color: var(--soft-grey); margin-top: 1px; }
-  .chat-stat-value { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 14px; color: var(--fire-orange); text-align: right; flex-shrink: 0; }
+  .chat-stat-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .chat-stat-label { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
+  .chat-stat-value { font-size: 15px; font-weight: 600; color: var(--ink); text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums lining-nums; }
   .chat-learn-link {
-    display: flex; align-items: center; justify-content: space-between;
-    background: var(--warm-cream); border: 1px solid var(--border); border-radius: 12px;
-    padding: 12px 14px; text-decoration: none; font-size: 13px; color: var(--warm-brown); font-weight: 500;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
+    padding: 12px 14px; text-decoration: none; font-size: 13.5px; font-weight: 500; color: var(--ink);
+    transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
   }
-  .chat-learn-link:hover { border-color: var(--fire-orange); }
+  .chat-learn-link span:last-child { color: var(--ember-ink); flex-shrink: 0; }
+  .chat-learn-link:hover { border-color: var(--ember); background: #FFF7F2; }
+  .chat-learn-link:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
   .chat-followups { display: flex; flex-wrap: wrap; gap: 8px; }
   .chat-followups .pill-chip { align-self: auto; }
 
+  /* Input bar — sits above the mobile tab bar (≈76px + safe area), flush at desktop */
   .chat-input-bar {
     flex-shrink: 0; display: flex; align-items: flex-end; gap: 10px;
-    padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--border);
-    background: rgba(253,246,238,0.96); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    margin: 0 -16px; padding: 12px 16px calc(92px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line); background: var(--bg);
   }
+  @media (min-width: 768px) { .chat-input-bar { margin: 0 -32px; padding-left: 32px; padding-right: 32px; } }
+  @media (min-width: 1024px) { .chat-input-bar { margin: 0; padding: 14px 0 28px; } }
   .chat-input {
-    flex: 1; border: 1.5px solid var(--border); border-radius: 22px; background: white;
-    padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 14.5px; color: var(--warm-brown);
-    resize: none; min-height: 22px; max-height: 100px; line-height: 1.4;
+    flex: 1; min-width: 0; min-height: 48px; max-height: 100px; resize: none;
+    padding: 13px 16px; border-radius: 24px; border: 1px solid var(--line-strong); background: var(--surface);
+    font: 400 15px/1.4 var(--font-ui); color: var(--ink); box-shadow: var(--shadow-1);
+    transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   }
-  .chat-input:focus { outline: none; border-color: var(--fire-orange); }
-  .chat-input::placeholder { color: var(--soft-grey); font-weight: 300; }
+  .chat-input:focus { outline: none; border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
+  .chat-input::placeholder { color: var(--ink-3); }
   .chat-send {
-    flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); border: none;
-    color: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: opacity 0.15s ease;
+    flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
+    background: var(--ink); color: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity var(--dur-fast) ease, transform var(--dur-fast) ease;
   }
-  .chat-send:disabled { opacity: 0.4; cursor: default; }
+  .chat-send:not(:disabled):hover { background: #3F2C1F; }
+  .chat-send:not(:disabled):active { transform: scale(0.96); }
+  .chat-send:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .chat-send:disabled { opacity: 0.35; cursor: default; }
 </style>
-<script src="js/interactions.js"></script>
 </head>
-<body>
-<div class="chat-page">
+<body class="app" data-shell="app" data-active="ask">
+<script src="js/shell.js"></script>
 
-  <header class="chat-header">
+<main class="app-main ask-main">
+
+  <header class="page-head">
     <div>
-      <div class="chat-title">Ask FirePath</div>
-      <div class="chat-sub">Your AI copilot for smarter financial decisions.</div>
+      <h1 class="page-head-title">Ask FirePath</h1>
+      <p class="page-head-sub">Your AI copilot for smarter financial decisions.</p>
     </div>
-    <a href="journey.html" class="chat-close" aria-label="Close">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-    </a>
   </header>
 
   <div class="chat-thread" id="chatThread">
     <div class="chat-starters" id="chatStarters">
-      <div class="chat-starters-label">Popular questions</div>
+      <div class="chat-starters-label eyebrow">Popular questions</div>
       <button class="pill-chip" data-q="What if I save an extra $250 a month?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I save an extra $250 a month?</button>
       <button class="pill-chip" data-q="What if I spend $150 less a week?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I spend $150 less a week?</button>
       <button class="pill-chip" data-q="What if I retire at 40?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I retire at 40?</button>
@@ -158,7 +151,7 @@
     </button>
   </div>
 
-</div>
+</main>
 
 <script>
   // Baseline — the same numbers used consistently across every FirePath example
@@ -183,7 +176,6 @@
     for (let m = 0; m < Math.round(years * 12); m++) portfolio = portfolio * (1 + r) + monthlySavings;
     return portfolio;
   }
-  function fmtM(n) { return '$' + Math.round(n).toLocaleString('en-AU'); }
 
   const baselineMonths = solveMonthsToTarget(BASELINE.portfolio, BASELINE.monthlySavings, BASELINE.annualSpend);
 
@@ -266,7 +258,7 @@
         headline = result.movedBy > 0
           ? `That moves your freedom date <strong>${years > 0 ? years + ' years, ' : ''}${months} months closer</strong>.`
           : `That change is too small to move your freedom date meaningfully.`;
-        body = `Saving an extra ${fmtM(result.extraMonthly)} a month, on top of what you're already putting away, brings your projected time to freedom down to about ${(result.newMonths / 12).toFixed(1)} years.`;
+        body = `Saving an extra ${fmtDollars(result.extraMonthly)} a month, on top of what you're already putting away, brings your projected time to freedom down to about ${(result.newMonths / 12).toFixed(1)} years.`;
       } else if (result.type === 'spending') {
         const years = Math.floor(result.movedBy / 12), months = Math.round(result.movedBy % 12);
         headline = `That moves your freedom date <strong>${years > 0 ? years + ' years, ' : ''}${months} months closer</strong>.`;
@@ -274,11 +266,11 @@
       } else if (result.type === 'retireAge') {
         const shortfall = result.gap > 0;
         if (shortfall) {
-          headline = `At age ${result.targetAge}, your portfolio would fall short by about <strong>${fmtM(result.gap)} a year</strong>.`;
-          body = `Projecting your current savings forward ${result.yearsToTarget} years gets you to roughly ${fmtM(result.projected)} — enough to fund ${fmtM(result.income)} a year at a 4% withdrawal rate, against ${fmtM(BASELINE.annualSpend)} you'd actually need.`;
+          headline = `At age ${result.targetAge}, your portfolio would fall short by about <strong>${fmtDollars(result.gap)} a year</strong>.`;
+          body = `Projecting your current savings forward ${result.yearsToTarget} years gets you to roughly ${fmtDollars(result.projected)} — enough to fund ${fmtDollars(result.income)} a year at a 4% withdrawal rate, against ${fmtDollars(BASELINE.annualSpend)} you'd actually need.`;
         } else {
           headline = `Age ${result.targetAge} looks achievable on your current numbers.`;
-          body = `Projecting forward ${result.yearsToTarget} years puts your portfolio around ${fmtM(result.projected)} — comfortably covering ${fmtM(BASELINE.annualSpend)} a year at a 4% withdrawal rate.`;
+          body = `Projecting forward ${result.yearsToTarget} years puts your portfolio around ${fmtDollars(result.projected)} — comfortably covering ${fmtDollars(BASELINE.annualSpend)} a year at a 4% withdrawal rate.`;
         }
         // The mockup's "what it would take" stat callout — a real number pulled out
         // of the paragraph above, not a chart (no render pass built for that yet).
@@ -288,7 +280,7 @@
               <div class="chat-stat-title">Retire at ${result.targetAge}</div>
               <div class="chat-stat-label">What it would take</div>
             </div>
-            <div class="chat-stat-value">${shortfall ? 'Shortfall' : 'Buffer'} ${fmtM(Math.abs(result.gap))}</div>
+            <div class="chat-stat-value">${shortfall ? 'Shortfall' : 'Buffer'} ${fmtDollars(Math.abs(result.gap))}</div>
           </div>`;
       }
       const learn = LEARN_TOPICS[result.type];

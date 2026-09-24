@@ -9,721 +9,161 @@
     gtag('config', 'G-Q2QZ662MJ9');
   </script>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>FirePath — Money shouldn't feel confusing</title>
   <meta name="description" content="Money shouldn't feel confusing. FirePath helps everyday Australians understand tax, super, investing and the financial decisions that shape their future — in plain English."/>
   <meta property="og:title" content="FirePath — Money shouldn't feel confusing"/>
   <meta property="og:description" content="FirePath helps everyday Australians understand tax, super, investing and the financial decisions that shape their future — in plain English."/>
   <meta property="og:url" content="https://firepath.pro"/>
   <meta property="og:type" content="website"/>
-  <title>FirePath — Money shouldn't feel confusing</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+  <script src="js/persona.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --fire-orange: #F4622A;
-      --fire-amber:  #F9A825;
-      --warm-cream:  #FDF6EE;
-      --warm-brown:  #3D2B1F;
-      --soft-grey:   #9E8E85;
-      --mid-grey:    #C4B8B0;
-      --border:      #EDE3DA;
-      --card-bg:     #FFFFFF;
-      --dark-bg:     #2A1E15;
-
-      /* Type scale — xs/sm/base bumped up a notch (11/13/15 → 12/14/16). Mobile
-         body copy under 16px reads noticeably smaller than it should, independent
-         of any browser zoom setting; this is the one change that fixes the nav
-         menu labels and every paragraph on the page at once, since they all pull
-         from these three tokens rather than hardcoded sizes. md/lg/xl and up were
-         already comfortable, so those are untouched. */
-      --text-xs:   12px;
-      --text-sm:   14px;
-      --text-base: 16px;
-      --text-md:   17px;
-      --text-lg:   20px;
-      --text-xl:   24px;
-      --text-2xl:  32px;
-      --text-3xl:  44px;
-      --text-hero: clamp(42px, 8vw, 80px);
-
-      /* Spacing */
-      --space-1:  4px;
-      --space-2:  8px;
-      --space-3:  12px;
-      --space-4:  16px;
-      --space-5:  24px;
-      --space-6:  32px;
-      --space-7:  48px;
-      --space-8:  64px;
-      --space-9:  96px;
-      --space-10: 128px;
-
-      /* Shadows */
-      --shadow-sm:  0 2px 8px rgba(61,43,31,0.06);
-      --shadow-md:  0 4px 24px rgba(61,43,31,0.09);
-      --shadow-lg:  0 8px 48px rgba(61,43,31,0.12);
-      --shadow-glow: 0 4px 32px rgba(244,98,42,0.25);
-    }
-
     html { scroll-behavior: smooth; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--warm-cream);
-      color: var(--warm-brown);
-      -webkit-font-smoothing: antialiased;
-    }
 
-    /* ── NAV ── */
-    nav {
-      position: fixed; top: 0; left: 0; right: 0;
-      background: rgba(253,246,238,0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(237,227,218,0.6);
-      padding: 0 24px;
-      height: 64px;
-      display: flex; align-items: center; justify-content: space-between;
-      z-index: 100;
-    }
-    .nav-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px; font-weight: 700;
-      color: var(--warm-brown); text-decoration: none;
-      word-spacing: 0;
-    }
-    .nav-logo span { color: var(--fire-orange); letter-spacing: -0.5px; word-spacing: 0; }
-    .nav-links { display: flex; align-items: center; gap: 24px; }
-    .nav-link {
-      font-size: var(--text-sm); color: var(--soft-grey);
-      text-decoration: none; font-weight: 400;
-      transition: color 0.2s;
-    }
-    .nav-link:hover { color: var(--warm-brown); }
-    .nav-cta {
-      background: var(--warm-brown); color: white;
-      padding: 9px 20px; border-radius: 10px;
-      font-size: var(--text-sm); font-weight: 500;
-      text-decoration: none; transition: all 0.2s;
-      letter-spacing: 0.01em;
-    }
-    .nav-cta:hover { background: var(--fire-orange); transform: translateY(-1px); }
-    .hamburger {
-      display: none; flex-direction: column; gap: 5px;
-      cursor: pointer; padding: 4px; background: none; border: none;
-    }
-    .hamburger span {
-      display: block; width: 22px; height: 2px;
-      background: var(--warm-brown); border-radius: 2px; transition: all 0.3s;
-    }
-    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-    .hamburger.open span:nth-child(2) { opacity: 0; }
-    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    /* ── Rhythm: every section gets the same vertical breathing room ── */
+    .sec { padding: 48px 0; }
+    @media (min-width: 768px) { .sec { padding: 56px 0; } }
+    .sec-head { max-width: 640px; margin-bottom: 36px; }
+    .sec-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+    .sec-head .eyebrow { display: block; color: var(--ember-ink); margin-bottom: 14px; }
+    .sec-head .lead { margin-top: 16px; }
+    .sec-head.center .lead { margin-left: auto; margin-right: auto; }
+    @media (min-width: 768px) { .sec-head { margin-bottom: 48px; } }
 
-    /* ── HERO ── */
+    /* ── Hero ── */
     .hero {
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center;
-      padding: 120px 24px 80px;
-      position: relative; overflow: hidden;
+      min-height: calc(100vh - var(--nav-h) - 120px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 24px 0 56px;
     }
-    .hero-glow-1 {
-      position: absolute; top: -80px; right: -80px;
-      width: 480px; height: 480px;
-      background: radial-gradient(circle, rgba(244,98,42,0.09) 0%, transparent 68%);
-      pointer-events: none;
-    }
-    .hero-glow-2 {
-      position: absolute; bottom: -60px; left: -60px;
-      width: 360px; height: 360px;
-      background: radial-gradient(circle, rgba(249,168,37,0.07) 0%, transparent 68%);
-      pointer-events: none;
-    }
-
-    .hero-eyebrow {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--soft-grey);
-      margin-bottom: var(--space-6);
-      animation: fadeUp 0.6s ease both;
-    }
-
-    .hero-headline {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-hero);
-      font-weight: 700;
-      line-height: 1.05;
-      letter-spacing: -0.02em;
-      color: var(--warm-brown);
-      max-width: 760px;
-      margin-bottom: var(--space-6);
-      animation: fadeUp 0.6s ease 0.1s both;
-    }
-    .hero-headline em {
-      font-style: italic;
-      color: var(--fire-orange);
-    }
-
-    .hero-sub {
-      font-size: var(--text-md);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.8;
-      max-width: 480px;
-      margin-bottom: var(--space-8);
-      animation: fadeUp 0.6s ease 0.2s both;
-    }
-
-    .hero-cta {
-      animation: fadeUp 0.6s ease 0.3s both;
-      display: flex; flex-direction: column; align-items: center; gap: var(--space-4);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-      color: white;
-      padding: 18px 40px;
-      border-radius: 14px;
-      font-size: var(--text-md);
-      font-weight: 500;
-      text-decoration: none;
-      transition: all 0.25s;
-      box-shadow: var(--shadow-glow);
-      letter-spacing: 0.01em;
-      display: inline-block;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 40px rgba(244,98,42,0.35);
-    }
-    .hero-cta-note {
-      font-size: var(--text-sm);
-      color: var(--mid-grey);
-      font-weight: 300;
-    }
-    .hero-cta-note a {
-      color: var(--soft-grey);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-    }
-
+    .hero .eyebrow { margin-bottom: 24px; animation: fadeUp 0.6s var(--ease) both; }
+    .hero .display-xl { max-width: 12ch; margin: 0 auto 24px; animation: fadeUp 0.6s var(--ease) 0.1s both; }
+    .hero .lead { margin: 0 auto 40px; max-width: 36em; animation: fadeUp 0.6s var(--ease) 0.2s both; }
+    .hero-cta { display: flex; flex-direction: column; align-items: center; gap: 14px; animation: fadeUp 0.6s var(--ease) 0.3s both; }
+    .hero-cta .btn-ember { box-shadow: 0 10px 28px -10px rgba(244, 98, 42, 0.55); }
+    .hero-cta-note { font-size: 14px; color: var(--ink-2); }
+    .hero-cta-note a { color: var(--ember-ink); font-weight: 500; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
     .hero-social {
-      margin-top: var(--space-9);
-      font-size: var(--text-sm);
-      color: var(--mid-grey);
-      font-weight: 300;
-      animation: fadeUp 0.6s ease 0.4s both;
+      margin-top: 56px; display: inline-flex; align-items: center; gap: 10px;
+      font-size: 14px; color: var(--ink-2);
+      padding: 8px 16px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+      animation: fadeUp 0.6s var(--ease) 0.4s both;
     }
-    .hero-social strong { color: var(--soft-grey); font-weight: 500; }
+    .hero-social strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+    @media (min-width: 768px) { .hero { padding: 40px 0 72px; } .hero-social { margin-top: 72px; } }
 
-    /* ── BRIDGE (the honest middle) ── */
-        .bridge {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: var(--space-10) var(--space-5);
-      text-align: center;
-    }
-    .bridge-line1 {
-      font-size: clamp(18px, 3vw, 24px);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.6;
-      margin-bottom: 4px;
-    }
-    .bridge-line2 {
-      font-size: clamp(18px, 3vw, 24px);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.6;
-      margin-bottom: var(--space-6);
-    }
+    /* ── Bridge (the honest middle) ── */
+    .bridge { max-width: 640px; margin: 0 auto; text-align: center; }
+    .bridge-line1, .bridge-line2 { font-size: clamp(19px, 3vw, 24px); font-weight: 400; color: var(--ink-2); line-height: 1.6; }
+    .bridge-line2 { margin-bottom: 24px; }
     .bridge-you {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(32px, 6vw, 52px);
-      font-weight: 700;
-      font-style: italic;
-      color: var(--fire-orange);
-      line-height: 1.2;
-      min-height: 60px;
-      opacity: 0;
+      font-family: var(--font-display); font-size: clamp(32px, 6vw, 52px); font-weight: 700; font-style: italic;
+      color: var(--ember); line-height: 1.2; min-height: 62px; opacity: 0;
     }
+
+    /* ── The reveal — the page's one dark surface ── */
+    .reveal-section {
+      background: linear-gradient(140deg, var(--espresso), var(--espresso-2));
+      border-radius: var(--r-xl); padding: 64px 20px; text-align: center; color: var(--bg);
+      box-shadow: var(--shadow-3);
+    }
+    @media (min-width: 768px) { .reveal-section { padding: 96px 48px; } }
+    .reveal-label { display: block; font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(253, 246, 238, 0.55); margin-bottom: 28px; }
+    .reveal-pre { font-size: 16px; color: rgba(253, 246, 238, 0.72); margin-bottom: 16px; }
+    .reveal-date {
+      font-family: var(--font-display); font-size: clamp(60px, 12vw, 104px); font-weight: 700; line-height: 1;
+      color: var(--amber); letter-spacing: -0.02em; margin-bottom: 16px; font-variant-numeric: tabular-nums lining-nums;
+    }
+    .reveal-post { font-size: 16px; color: rgba(253, 246, 238, 0.62); font-style: italic; margin-bottom: 40px; }
+    .reveal-divider { width: 40px; height: 1px; background: rgba(253, 246, 238, 0.18); margin: 0 auto 40px; }
+    .reveal-insight { font-size: 17px; line-height: 1.75; color: rgba(253, 246, 238, 0.74); max-width: 500px; margin: 0 auto 40px; }
+    .reveal-insight strong { color: var(--bg); font-weight: 500; }
+
+    /* ── Founder letter ── */
+    .letter-card { position: relative; overflow: hidden; max-width: 720px; margin: 0 auto; padding: 32px 22px; box-shadow: var(--shadow-2); }
+    @media (min-width: 768px) { .letter-card { padding: 56px 56px 48px; } }
+    .letter-mark {
+      position: absolute; top: -28px; left: 10px; font-family: var(--font-display); font-size: 180px; line-height: 1;
+      color: rgba(244, 98, 42, 0.07); pointer-events: none; user-select: none;
+    }
+    .letter-eyebrow { display: block; color: var(--ember-ink); margin-bottom: 20px; position: relative; }
+    .letter-opener { font-family: var(--font-display); font-size: clamp(20px, 3vw, 26px); font-weight: 700; line-height: 1.4; color: var(--ink); margin-bottom: 28px; position: relative; }
+    .letter-body { font-size: 16.5px; line-height: 1.8; color: var(--ink-2); }
+    .letter-body p + p { margin-top: 20px; }
+    .letter-body strong { color: var(--ink); font-weight: 600; }
+    .letter-sig { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
+    .letter-sig-name { display: block; font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+    .letter-sig-role { font-size: 14px; color: var(--ink-2); }
+
+    /* ── How it works ── */
+    .steps { display: grid; gap: 16px; }
+    @media (min-width: 900px) { .steps { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+    .step { display: flex; flex-direction: column; gap: 14px; }
     @keyframes pulsate {
-      0%, 100% { color: var(--border); }
-      50% { color: var(--fire-orange); opacity: 0.6; }
+      0%, 100% { color: var(--line-strong); }
+      50% { color: var(--ember); opacity: 0.6; }
     }
     .step-num {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-2xl);
-      font-weight: 700;
-      color: var(--border);
-      line-height: 1;
-      padding-top: 4px;
-      animation: pulsate 3s ease-in-out infinite;
+      font-family: var(--font-display); font-size: 36px; font-weight: 700; line-height: 1; color: var(--line-strong);
+      font-variant-numeric: tabular-nums; animation: pulsate 3s ease-in-out infinite;
     }
     .step:nth-child(2) .step-num { animation-delay: 1s; }
     .step:nth-child(3) .step-num { animation-delay: 2s; }
+    .step-title { font-size: 18px; font-weight: 600; line-height: 1.35; color: var(--ink); }
+    .step-body { font-size: 15.5px; line-height: 1.75; color: var(--ink-2); }
 
-    /* ── WHAT FIREPATH DOES ── */
-    .what-section {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: var(--space-9) var(--space-5);
-    }
-    .section-eyebrow {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--fire-orange);
-      margin-bottom: var(--space-4);
-      display: block;
-    }
-    .section-headline {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(26px, 4.5vw, 40px);
-      font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: var(--space-5);
-      max-width: 600px;
-    }
-    .section-sub {
-      font-size: var(--text-md);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.8;
-      max-width: 560px;
-      margin-bottom: var(--space-8);
-    }
+    /* ── Free vs Pro ── */
+    .compare-grid { display: grid; gap: 16px; max-width: 880px; margin: 0 auto; }
+    @media (min-width: 720px) { .compare-grid { grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; } }
+    .compare-card { display: flex; flex-direction: column; padding: 28px 22px; }
+    @media (min-width: 768px) { .compare-card { padding: 36px 32px; } }
+    .compare-card.pro { border: 1.5px solid var(--ember); box-shadow: var(--shadow-2), 0 0 0 4px var(--ember-wash); }
+    .compare-badge { display: block; margin-bottom: 14px; }
+    .compare-card.pro .compare-badge { color: var(--ember-ink); }
+    .compare-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; line-height: 1.2; color: var(--ink); margin-bottom: 20px; }
+    .compare-price { font-family: var(--font-display); font-size: 40px; font-weight: 700; line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; margin-bottom: 8px; }
+    .compare-price-per { font-family: var(--font-ui); font-size: 15px; font-weight: 400; color: var(--ink-2); margin-left: 2px; }
+    .compare-price-note { font-size: 13.5px; color: var(--ink-2); margin-bottom: 20px; }
+    .compare-features { list-style: none; display: grid; gap: 12px; margin-bottom: 28px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .compare-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+    .compare-features li::before { content: '✓'; flex-shrink: 0; font-size: 13px; font-weight: 600; color: var(--ember-ink); margin-top: 2px; }
+    .compare-card .btn { margin-top: auto; align-self: flex-start; }
 
-    .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .step {
-      display: grid;
-      grid-template-columns: 48px 1fr;
-      gap: var(--space-5);
-      padding: var(--space-6) 0;
-      border-bottom: 1px solid var(--border);
-      align-items: start;
-    }
-    .step:last-child { border-bottom: none; }
-    .step-num {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-2xl);
-      font-weight: 700;
-      color: var(--border);
-      line-height: 1;
-      padding-top: 4px;
-    }
-    .step-content {}
-    .step-title {
-      font-size: var(--text-lg);
-      font-weight: 500;
-      margin-bottom: var(--space-2);
-      color: var(--warm-brown);
-    }
-    .step-body {
-      font-size: var(--text-base);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.75;
-    }
+    /* ── Final CTA ── */
+    .final-cta { text-align: center; max-width: 600px; margin: 0 auto; }
+    .final-cta .lead { margin: 18px auto 36px; }
+    .final-cta-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 
-    /* ── THE DARK MOMENT (result preview) ── */
-    .reveal-section {
-      background: var(--dark-bg);
-      margin: 0 20px;
-      border-radius: 28px;
-      padding: var(--space-10) var(--space-5);
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .reveal-glow {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(244,98,42,0.12) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .reveal-label {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: rgba(255,255,255,0.3);
-      margin-bottom: var(--space-6);
-      display: block;
-    }
-    .reveal-pre {
-      font-size: var(--text-base);
-      color: rgba(255,255,255,0.4);
-      font-weight: 300;
-      margin-bottom: var(--space-4);
-    }
-    .reveal-date {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(56px, 12vw, 100px);
-      font-weight: 700;
-      color: var(--fire-amber);
-      line-height: 1;
-      margin-bottom: var(--space-4);
-      letter-spacing: -0.02em;
-    }
-    .reveal-post {
-      font-size: var(--text-base);
-      color: rgba(255,255,255,0.35);
-      font-weight: 300;
-      margin-bottom: var(--space-8);
-      font-style: italic;
-    }
-    .reveal-divider {
-      width: 40px; height: 1px;
-      background: rgba(255,255,255,0.15);
-      margin: 0 auto var(--space-7);
-    }
-    .reveal-insight {
-      font-size: var(--text-md);
-      color: rgba(255,255,255,0.6);
-      font-weight: 300;
-      line-height: 1.8;
-      max-width: 480px;
-      margin: 0 auto var(--space-7);
-    }
-    .reveal-insight strong {
-      color: rgba(255,255,255,0.85);
-      font-weight: 500;
-    }
-    .reveal-cta {
-      background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-      color: white;
-      padding: 16px 36px;
-      border-radius: 12px;
-      font-size: var(--text-base);
-      font-weight: 500;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.2s;
-      box-shadow: 0 4px 24px rgba(244,98,42,0.3);
-    }
-    .reveal-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(244,98,42,0.4); }
-
-    /* ── FREE VS PRO ── */
-    .compare-section {
-      max-width: 760px;
-      margin: 0 auto;
-      padding: var(--space-10) var(--space-5);
-    }
-    .compare-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-4);
-      margin-top: var(--space-7);
-    }
-    .compare-card {
-      border-radius: 20px;
-      padding: var(--space-7) var(--space-6);
-    }
-    .compare-card.free {
-      background: white;
-      border: 1.5px solid var(--border);
-      box-shadow: var(--shadow-sm);
-    }
-    .compare-card.pro {
-      background: linear-gradient(145deg, #3D2B1F, #5C3D2E);
-      color: white;
-      box-shadow: var(--shadow-lg);
-    }
-    .compare-badge {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: var(--space-5);
-      display: block;
-    }
-    .compare-card.free .compare-badge { color: var(--soft-grey); }
-    .compare-card.pro .compare-badge { color: var(--fire-amber); }
-    .compare-title {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-xl);
-      font-weight: 700;
-      margin-bottom: var(--space-5);
-    }
-    .compare-card.pro .compare-title { color: white; }
-    .compare-features {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-3);
-      margin-bottom: var(--space-6);
-    }
-    .compare-features li {
-      font-size: var(--text-sm);
-      font-weight: 300;
-      line-height: 1.5;
-      display: flex;
-      align-items: flex-start;
-      gap: var(--space-3);
-    }
-    .compare-card.free .compare-features li { color: var(--soft-grey); }
-    .compare-card.pro .compare-features li { color: rgba(255,255,255,0.7); }
-    .compare-features li::before {
-      content: '✓';
-      font-size: var(--text-xs);
-      font-weight: 700;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .compare-card.free .compare-features li::before { color: var(--fire-orange); }
-    .compare-card.pro .compare-features li::before { color: var(--fire-amber); }
-    .compare-link {
-      font-size: var(--text-sm);
-      font-weight: 500;
-      text-decoration: none;
-      display: inline-block;
-      transition: all 0.2s;
-    }
-    .compare-card.free .compare-link {
-      color: var(--warm-brown);
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 2px;
-    }
-    .compare-card.free .compare-link:hover { border-color: var(--fire-orange); color: var(--fire-orange); }
-    .compare-card.pro .compare-link {
-      background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-      color: white;
-      padding: 12px 24px;
-      border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(244,98,42,0.3);
-    }
-    .compare-card.pro .compare-link:hover { transform: translateY(-1px); }
-    .compare-price {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-2xl);
-      font-weight: 700;
-      color: var(--fire-amber);
-      margin-bottom: var(--space-2);
-    }
-    .compare-price-note {
-      font-size: var(--text-xs);
-      color: rgba(255,255,255,0.4);
-      font-weight: 300;
-      margin-bottom: var(--space-5);
-    }
-
-    /* ── JAY'S LETTER ── */
-    .letter-section {
-      max-width: 640px;
-      margin: 0 auto;
-      padding: var(--space-9) var(--space-5);
-    }
-    .letter-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: var(--space-8) var(--space-7);
-      box-shadow: var(--shadow-md);
-      position: relative;
-      overflow: hidden;
-    }
-    .letter-mark {
-      font-family: 'Playfair Display', serif;
-      font-size: 180px;
-      color: rgba(244,98,42,0.05);
-      position: absolute;
-      top: -24px; left: 8px;
-      line-height: 1;
-      pointer-events: none;
-      user-select: none;
-    }
-    .letter-eyebrow {
-      font-size: var(--text-xs);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--fire-orange);
-      margin-bottom: var(--space-5);
-      display: block;
-    }
-    .letter-opener {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(18px, 3vw, 24px);
-      font-weight: 700;
-      line-height: 1.4;
-      color: var(--warm-brown);
-      margin-bottom: var(--space-6);
-    }
-    .letter-body {
-      font-size: var(--text-base);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.95;
-    }
-    .letter-body p { margin-bottom: var(--space-5); }
-    .letter-body p:last-child { margin-bottom: 0; }
-    .letter-body strong { color: var(--warm-brown); font-weight: 500; }
-    .letter-sig {
-      margin-top: var(--space-7);
-      padding-top: var(--space-6);
-      border-top: 1px solid var(--border);
-    }
-    .letter-sig-name {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-lg);
-      font-weight: 700;
-      color: var(--warm-brown);
-      display: block;
-      margin-bottom: var(--space-1);
-    }
-    .letter-sig-role {
-      font-size: var(--text-sm);
-      color: var(--soft-grey);
-      font-weight: 300;
-    }
-
-    /* ── FINAL CTA ── */
-    .final-cta {
-      padding: var(--space-9) var(--space-5) var(--space-10);
-      text-align: center;
-    }
-    .final-cta-inner {
-      max-width: 560px;
-      margin: 0 auto;
-    }
-    .final-cta-headline {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(28px, 5vw, 44px);
-      font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: var(--space-5);
-    }
-    .final-cta-sub {
-      font-size: var(--text-md);
-      font-weight: 300;
-      color: var(--soft-grey);
-      line-height: 1.7;
-      margin-bottom: var(--space-7);
-    }
-    .final-cta-actions {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--space-3);
-    }
-    .btn-ghost {
-      font-size: var(--text-sm);
-      color: var(--soft-grey);
-      text-decoration: none;
-      font-weight: 400;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 2px;
-      transition: all 0.2s;
-    }
-    .btn-ghost:hover { color: var(--fire-orange); border-color: var(--fire-orange); }
-
-    /* ── FOOTER ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: var(--space-7) var(--space-5);
-      text-align: center;
-    }
-    .footer-logo {
-      font-family: 'Playfair Display', serif;
-      font-size: var(--text-lg);
-      font-weight: 700;
-      margin-bottom: var(--space-4);
-      color: var(--warm-brown);
-    }
-    .footer-logo span { color: var(--fire-orange); }
-    .footer-links {
-      display: flex; justify-content: center;
-      gap: var(--space-5); flex-wrap: wrap;
-      margin-bottom: var(--space-5);
-    }
-    .footer-link {
-      font-size: var(--text-sm);
-      color: var(--soft-grey);
-      text-decoration: none;
-      font-weight: 300;
-      transition: color 0.2s;
-    }
-    .footer-link:hover { color: var(--fire-orange); }
-    .footer-legal {
-      font-size: var(--text-xs);
-      color: var(--mid-grey);
-      font-weight: 300;
-      line-height: 1.7;
-      max-width: 480px;
-      margin: 0 auto;
-    }
-
-    /* ── ANIMATIONS ── */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(16px); }
       to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── MOBILE ── */
-    @media (max-width: 640px) {
-      .nav-links {
-        display: none; flex-direction: column;
-        position: fixed; top: 64px; left: 0; right: 0;
-        background: rgba(253,246,238,0.98);
-        border-bottom: 1px solid var(--border);
-        padding: var(--space-5) var(--space-5);
-        gap: var(--space-5); z-index: 99;
-      }
-      .nav-links.open { display: flex; }
-      .nav-links .nav-cta { text-align: center; }
-      .hamburger { display: flex; }
-      .compare-grid { grid-template-columns: 1fr; }
-      .letter-card { padding: var(--space-6) var(--space-5); }
-      .reveal-section { margin: 0 12px; padding: var(--space-8) var(--space-4); }
     }
   </style>
 </head>
-<body>
+<body class="site" data-shell="site">
+<script src="js/shell.js"></script>
 
-  <!-- Nav -->
-  <nav>
-    <a href="/index.html" class="nav-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg><span style="color:var(--warm-brown)">Fire<span style="color:var(--fire-orange)">Path</span></span></a>
-    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-    <div class="nav-links" id="navLinks">
-      <a href="features.html" class="nav-link" onclick="closeMenu()">Features</a>
-      <a href="#why" class="nav-link" onclick="closeMenu()">Why</a>
-      <a href="auth.html" class="nav-link" onclick="closeMenu()">Sign in</a>
-      <a href="firepath.html" class="nav-cta" onclick="closeMenu()">Find my path →</a>
-    </div>
-
-  </nav>
+<main class="site-main">
 
   <!-- ── HERO ── -->
   <section class="hero">
-    <div class="hero-glow-1"></div>
-    <div class="hero-glow-2"></div>
+    <p class="eyebrow">Built for everyday Australians</p>
 
-    <p class="hero-eyebrow">Built for everyday Australians</p>
-
-    <h1 class="hero-headline">
+    <h1 class="display-xl">
       Money shouldn't<br/>
-      feel <em>confusing.</em>
+      feel <em class="accent">confusing.</em>
     </h1>
 
-    <p class="hero-sub">
+    <p class="lead">
       FirePath helps everyday Australians understand tax, super, investing and the financial decisions that shape their future — in plain English. One of the first things you'll discover is when work could become optional.
     </p>
 
     <div class="hero-cta">
-      <a href="firepath.html" class="btn-primary"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Find my path</a>
+      <a href="firepath.html" class="btn btn-ember btn-lg"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Find my path</a>
       <p class="hero-cta-note">
         Free. Takes 2 minutes. No signup needed. &nbsp;·&nbsp;
         <a href="auth.html">Try Pro →</a>
@@ -731,18 +171,20 @@
     </div>
 
     <p class="hero-social">
-      Read by <strong>98,000+ Australians</strong> on r/AusFinance
+      <span>Read by <strong>98,000+ Australians</strong> on r/AusFinance</span>
     </p>
   </section>
 
-   <!-- ── BRIDGE ── -->
-  <div class="bridge">
-    <p class="bridge-line1">Nobody teaches us</p>
-    <p class="bridge-line2">how money works.</p>
-    <p class="bridge-you" id="bridgeYou"></p>
+  <!-- ── BRIDGE ── -->
+  <div class="sec">
+    <div class="bridge">
+      <p class="bridge-line1">Nobody teaches us</p>
+      <p class="bridge-line2">how money works.</p>
+      <p class="bridge-you" id="bridgeYou"></p>
+    </div>
   </div>
 
-    <script>
+  <script>
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -762,27 +204,28 @@
 
   <!-- ── THE REVEAL — moved up right after the Bridge, so the concrete proof of the promise
        lands before anything else, per the "promise, then proof" structure. ── -->
-  <div class="reveal-section">
-    <div class="reveal-glow"></div>
-    <span class="reveal-label">What you'll see</span>
-    <p class="reveal-pre">Based on your numbers, you could be financially free in</p>
-    <div class="reveal-date">11 yrs</div>
-    <p class="reveal-post">That's an actual date. Not a guess.</p>
-    <div class="reveal-divider"></div>
-    <p class="reveal-insight">
-      Your savings are sitting in a bank account earning almost nothing. <strong>If that money was invested, your date moves 4 years closer.</strong> The Hear Me Out tool lets you model exactly what that looks like.
-    </p>
-    <a href="firepath.html" class="reveal-cta">Find my number →</a>
+  <div class="sec">
+    <div class="reveal-section">
+      <span class="reveal-label">What you'll see</span>
+      <p class="reveal-pre">Based on your numbers, you could be financially free in</p>
+      <div class="reveal-date">11 yrs</div>
+      <p class="reveal-post">That's an actual date. Not a guess.</p>
+      <div class="reveal-divider"></div>
+      <p class="reveal-insight">
+        Your savings are sitting in a bank account earning almost nothing. <strong>If that money was invested, your date moves 4 years closer.</strong> The Hear Me Out tool lets you model exactly what that looks like.
+      </p>
+      <a href="firepath.html" class="btn btn-ember btn-lg">Find my number →</a>
+    </div>
   </div>
 
   <!-- ── JAY'S LETTER — moved up from near the bottom of the page. This is the part that
        makes FirePath feel like a genuine mission rather than another fintech, so it shouldn't
        be buried past the pricing section where most visitors never scroll. ── -->
-  <section class="letter-section" id="why">
-    <div class="letter-card">
-      <span class="letter-mark">"</span>
-      <span class="letter-eyebrow">Why I built this</span>
-    <div class="letter-opener">
+  <section class="sec" id="why">
+    <div class="card letter-card">
+      <span class="letter-mark" aria-hidden="true">"</span>
+      <span class="eyebrow letter-eyebrow">Why I built this</span>
+      <div class="letter-opener">
         "I'm a support worker, and I created FirePath because I wish I had this knowledge in simple terms in my early 20s."
       </div>
       <div class="letter-body">
@@ -801,45 +244,42 @@
   </section>
 
   <!-- ── WHAT FIREPATH DOES ── -->
-  <section class="what-section">
-    <span class="section-eyebrow">How it works</span>
-    <h2 class="section-headline">Three things FirePath does differently.</h2>
-    <p class="section-sub">It shows you. It educates you. It empowers you.</p>
+  <section class="sec">
+    <div class="sec-head">
+      <span class="eyebrow">How it works</span>
+      <h2 class="display-lg">Three things FirePath does differently.</h2>
+      <p class="lead">It shows you. It educates you. It empowers you.</p>
+    </div>
 
     <div class="steps">
-            <div class="step">
+      <div class="step card">
         <div class="step-num">1</div>
-        <div class="step-content">
-          <div class="step-title">Shows you where you actually stand</div>
-          <div class="step-body">Most of us have a rough idea of our finances, but rough ideas don't give you a plan. FirePath turns confusing financial information into something you can actually understand. One of the first things you'll discover is the date you could become financially independent.<br/><br/>And if that date doesn't fit your life? FirePath helps you understand what you can do about it — in plain English, no judgment.</div>
-        </div>
+        <div class="step-title">Shows you where you actually stand</div>
+        <div class="step-body">Most of us have a rough idea of our finances, but rough ideas don't give you a plan. FirePath turns confusing financial information into something you can actually understand. One of the first things you'll discover is the date you could become financially independent.<br/><br/>And if that date doesn't fit your life? FirePath helps you understand what you can do about it — in plain English, no judgment.</div>
       </div>
-           <div class="step">
+      <div class="step card">
         <div class="step-num">2</div>
-        <div class="step-content">
-          <div class="step-title">Tells you what actually moves the needle</div>
-          <div class="step-body">Not generic tips. Your numbers. What happens to your date if you save $50 more a week? If your money was invested instead of sitting in a bank? FirePath shows you the exact difference — in years.<br/><br/>The Learning Lab reads your inputs and recommends education built around your situation — so you can figure out what to do next and why it matters.</div>
-        </div>
+        <div class="step-title">Tells you what actually moves the needle</div>
+        <div class="step-body">Not generic tips. Your numbers. What happens to your date if you save $50 more a week? If your money was invested instead of sitting in a bank? FirePath shows you the exact difference — in years.<br/><br/>The Learning Lab reads your inputs and recommends education built around your situation — so you can figure out what to do next and why it matters.</div>
       </div>
-      <div class="step">
+      <div class="step card">
         <div class="step-num">3</div>
-        <div class="step-content">
-          <div class="step-title">Sits beside you as your situation changes</div>
-          <div class="step-body">Life changes. Your numbers should too. Every time you come back, FirePath updates your picture. Over time you'll watch the most important number in your life get smaller — and that feeling is what we want you to experience.</div>
-        </div>
+        <div class="step-title">Sits beside you as your situation changes</div>
+        <div class="step-body">Life changes. Your numbers should too. Every time you come back, FirePath updates your picture. Over time you'll watch the most important number in your life get smaller — and that feeling is what we want you to experience.</div>
       </div>
-
     </div>
   </section>
 
   <!-- ── FREE VS PRO ── -->
-  <section class="compare-section">
-  <span class="section-eyebrow">Free vs Pro</span>
-    <h2 class="section-headline">Start free. Get really clever with Pro when you're ready.</h2>
+  <section class="sec">
+    <div class="sec-head center">
+      <span class="eyebrow">Free vs Pro</span>
+      <h2 class="display-lg">Start free. Get really clever with Pro when you're ready.</h2>
+    </div>
 
     <div class="compare-grid">
-      <div class="compare-card free">
-        <span class="compare-badge">Free forever</span>
+      <div class="card compare-card free">
+        <span class="eyebrow compare-badge">Free forever</span>
         <div class="compare-title">Your number</div>
         <ul class="compare-features">
           <li>Your financial freedom date</li>
@@ -848,15 +288,15 @@
           <li>Personalised article recommendations</li>
           <li>No signup required</li>
         </ul>
-        <a href="firepath.html" class="compare-link">Start for free →</a>
+        <a href="firepath.html" class="btn btn-quiet btn-lg">Start for free →</a>
       </div>
 
-      <div class="compare-card pro">
-        <span class="compare-badge">FirePath Pro (the really clever one)</span>
+      <div class="card compare-card pro">
+        <span class="eyebrow compare-badge">FirePath Pro (the really clever one)</span>
         <div class="compare-title">The full picture</div>
-        <div class="compare-price">$6<span style="font-size:14px;font-weight:300;opacity:0.6">/month</span></div>
+        <div class="compare-price">$6<span class="compare-price-per">/month</span></div>
         <div class="compare-price-note">Cancel anytime. No lock-in.</div>
-                <ul class="compare-features">
+        <ul class="compare-features">
           <li>AI that actually understands your situation</li>
           <li>See exactly what moves your freedom date</li>
           <li>Your super mapped to your timeline</li>
@@ -865,54 +305,28 @@
           <li>Watch your progress change over time</li>
           <li>Tax tools that show you where your money really goes</li>
         </ul>
-        <a href="auth.html" class="compare-link">Try Pro free for 7 days →</a>
+        <a href="auth.html" class="btn btn-primary btn-lg">Try Pro free for 7 days →</a>
       </div>
     </div>
   </section>
 
   <!-- ── FINAL CTA ── -->
-  <div class="final-cta">
-    <div class="final-cta-inner">
-      <h2 class="final-cta-headline">
+  <section class="sec">
+    <div class="final-cta">
+      <h2 class="display-lg">
         You're not lost anymore.
       </h2>
-      <p class="final-cta-sub">
+      <p class="lead">
         Find out where you actually stand. Free, in 2 minutes, no signup needed.
       </p>
       <div class="final-cta-actions">
-        <a href="firepath.html" class="btn-primary"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Find my path</a>
-        <a href="auth.html" class="btn-ghost">Try Pro free for 7 days</a>
+        <a href="firepath.html" class="btn btn-ember btn-lg"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Find my path</a>
+        <a href="auth.html" class="btn btn-quiet btn-lg">Try Pro free for 7 days</a>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Footer -->
-  <footer>
-    <div class="footer-logo"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:3px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span></div>
-    <div class="footer-links">
-      <a href="features.html" class="footer-link">Features</a>
-      <a href="/learn/index.html" class="footer-link">Learning Lab</a>
-      <a href="auth.html" class="footer-link">Sign in</a>
-      <a href="privacy.html" class="footer-link">Privacy Policy</a>
-      <a href="terms.html" class="footer-link">Terms</a>
-      <a href="faq.html" class="footer-link">FAQ</a>
-    </div>
-    <p class="footer-legal">
-      FirePath is an educational tool. We don't provide financial advice.<br/>
-      Projections are illustrative only. Always consider your personal circumstances.
-    </p>
-  </footer>
-
-  <script>
-    function toggleMenu() {
-      document.getElementById('navLinks').classList.toggle('open');
-      document.getElementById('hamburger').classList.toggle('open');
-    }
-    function closeMenu() {
-      document.getElementById('navLinks').classList.remove('open');
-      document.getElementById('hamburger').classList.remove('open');
-    }
-  </script>
+</main>
 
 </body>
 </html>

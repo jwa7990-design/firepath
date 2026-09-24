@@ -2,1359 +2,969 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>FirePath — Journey</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Journey — FirePath</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/app.css"/>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --fire-orange: #F4622A;
-    --fire-amber:  #F9A825;
-    --warm-cream:  #FDF6EE;
-    --warm-brown:  #3D2B1F;
-    --soft-grey:   #9E8E85;
-    --border:      #EDE3DA;
-    --dark-bg:     #2A1E15;
-
-    /* ── FirePath motion system — four speeds, used consistently by every
-         animation on this page. The rule behind all of them: motion explains
-         change (where something came from, what changed, where you're going),
-         it never just decorates. "Live" interactions (sliders, drag) have no
-         fixed duration here since they're driven directly by input, not a timer. ── */
-    --dur-instant:    140ms;   /* hover states, arrows, tiny feedback */
-    --dur-responsive: 240ms;   /* nav, cards, below-the-fold reveals on scroll */
-    --dur-settle:     450ms;   /* the page quietly appearing, and the greeting after it */
-    --dur-expressive: 1300ms;  /* the progress marker travelling — matches the hero count-up's own duration, so both land together */
-    --ease-standard:  cubic-bezier(0.16,1,0.3,1);   /* quick, decisive settle — no overshoot */
-    --ease-gentle:    cubic-bezier(0.22,1,0.36,1);  /* slow decelerate, used for anything "travelling" */
-  }
-  @keyframes fp-canvas-in { from { opacity: 0; } to { opacity: 1; } }
-  /* Plain opacity only — no translateY. Reserved for "information": things that
-     should just appear, quietly, rather than visibly travel into place. Real
-     movement (fp-fade-up's old translateY job) is now reserved for the handful
-     of elements that represent actual meaning — the trajectory lines, the
-     progress marker — not used as a generic entrance effect everywhere. */
-  @keyframes fp-fade-in { from { opacity: 0; } to { opacity: 1; } }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important; animation-delay: 0.01ms !important;
-      transition-duration: 0.01ms !important; transition-delay: 0.01ms !important;
-    }
-  }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--warm-cream);
-    color: var(--warm-brown);
-    -webkit-font-smoothing: antialiased;
-    /* One quiet page-entrance timeline, not several competing ones: the canvas and
-       nav appear together as a single "the page is here" moment (see .top-bar /
-       .desktop-rail below — same duration, only a hair's delay so it doesn't feel
-       like two separate events), then the greeting settles in on its own beat,
-       then the hero itself takes over — see pageLoadStart / TIMELINE_* further
-       down in the script for the rest of that one shared clock. */
-    opacity: 0;
-    animation: fp-canvas-in var(--dur-settle) ease-out forwards;
-  }
-  /* Bottom padding cleared to make room for .mobile-tabbar floating above the
-     content — desktop overrides this back down further below since the rail
-     replaces the tab bar entirely at that width. */
-  .container { max-width: 480px; margin: 0 auto; padding: 40px 24px calc(152px + env(safe-area-inset-bottom)); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1); transform-origin: top center; }
-  .container.menu-open { transform: scale(0.985); }
-  @media (prefers-reduced-motion: reduce) {
-    .container { transition: none; }
-    .container.menu-open { transform: none; }
-  }
-  /* ── Greeting — deliberately quiet, no card, no border ── */
-  .greeting { margin-bottom: 32px; }
-  /* The greeting is its own distinct beat — appears once the page itself has
-     settled, before the hero takes over at 900ms. Plain fade, no movement:
-     "information," not "meaning." */
-  .greeting-title {
-    font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700;
-    color: var(--warm-brown); margin-bottom: 4px;
-    opacity: 0; animation: fp-fade-in var(--dur-settle) ease-out 500ms forwards;
-  }
-  .greeting-sub { font-size: 13px; color: var(--soft-grey); font-weight: 300; }
-
-  /* ── Monday check-in — quiet, not a blocking gate. Matches the concept's own
-       restrained card language (thin border, no heavy shadow, Playfair for the
-       one thing that matters) rather than the real page's older card styling. ── */
-  .monday-check { margin-bottom: 24px; opacity: 0; transition: opacity 0.6s ease; }
-  .monday-check.in-view { opacity: 1; }
-  .monday-check-card { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; }
-  .monday-check-text { font-size: 14px; color: var(--warm-brown); font-weight: 400; margin-bottom: 14px; line-height: 1.5; }
-  .monday-check-text strong { font-family: 'Playfair Display', serif; font-weight: 700; }
-  .monday-check-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-  .monday-btn-yes { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); color: white; border: none; padding: 9px 18px; border-radius: 50px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; }
-  .monday-btn-update { background: none; color: var(--soft-grey); border: 1px solid var(--border); padding: 9px 18px; border-radius: 50px; font-size: 13px; font-weight: 500; text-decoration: none; }
-
-  /* Greeting text and the icon cluster now share one row on mobile (matching the
-     mockup) instead of stacking as two separate beats — but they still fade in on
-     their own separate timings underneath: .header-icons is part of the same
-     "page quietly appears" moment as the canvas (a hair's delay so it doesn't pop
-     in at frame zero), while .greeting-title keeps its own later beat, unchanged
-     below. This wrapper itself carries no opacity/animation of its own — it's
-     purely a mobile layout row; display:contents removes it from the box model
-     at desktop (see the >=1024px block) so .greeting can still sit in its own
-     grid-area exactly as before. */
-  .mobile-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-top: 6px; }
-  .header-icons { display: flex; align-items: center; gap: 2px; flex-shrink: 0; margin: -8px -8px 0 0; opacity: 0; animation: fp-fade-in var(--dur-settle) ease-out 120ms forwards; }
-  .icon-btn {
-    background: none; border: none; color: var(--warm-brown); cursor: pointer;
-    padding: 8px; display: flex; opacity: 0.45; transition: opacity 0.2s ease; border-radius: 50%;
-  }
-  .icon-btn:hover, .icon-btn:focus-visible { opacity: 0.8; background: rgba(61,43,31,0.05); }
-
-  /* ── Hero — one anchor, not two. Freedom Level owns the space, years supports it.
-       No container-level fade here anymore: the hero is always the first thing on
-       the page, driven entirely by the single JS entrance timeline below (pct
-       count-up, then label, then delta, then narrative) rather than an extra
-       IntersectionObserver fade wrapped around the outside of it — that was a
-       second, uncoordinated clock competing with the first. ── */
-  .hero-section { margin-bottom: 20px; }
-  /* Eyebrow now sits ABOVE the number (mockup) rather than in a row below it —
-     still the first thing to appear once the number lands, still a plain fade,
-     no movement. Class name/id contract with animateHero() below is unchanged,
-     only its position and layout context. */
-  .hero-label {
-    display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--soft-grey); margin-bottom: 10px;
-    opacity: 0; transition: opacity var(--dur-responsive) ease;
-  }
-  .hero-label.shown { opacity: 1; }
-  /* Number and delta badge share one row, badge riding near the top of the digit
-     rather than pinned to a caption line below it — closer to how the mockup
-     treats the delta as an annotation ON the number, not a separate stat. */
-  .hero-pct-row { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-  .hero-pct {
-    font-family: 'Playfair Display', serif; font-weight: 700; color: var(--warm-brown);
-    font-size: clamp(72px, 22vw, 104px); line-height: 1;
-    /* Tabular figures — every digit occupies the same width, so counting from
-       0 to a two-digit number doesn't shift the "%" sign (or anything after it)
-       sideways as the value changes. The typography stays put; only the value moves. */
-    font-variant-numeric: tabular-nums;
-  }
-  .hero-delta {
-    font-size: 13px; font-weight: 700; margin-top: 16px;
-    padding: 4px 11px; border-radius: 20px; white-space: nowrap;
-    /* Plain fade, not a slide — this is "information" (what changed), not
-       "meaning" (a position on the trajectory), so it just appears. */
-    opacity: 0; transition: opacity var(--dur-responsive) ease;
-  }
-  /* Direction, not just presence, decides the colour — a ▼ (behind last month) read
-     in the same green as a ▲ was telling people bad news looked good. */
-  .hero-delta.positive { color: #2E7D32; background: rgba(46,125,50,0.12); }
-  .hero-delta.negative { color: var(--fire-orange); background: rgba(244,98,42,0.12); }
-  .hero-delta.shown { opacity: 1; }
-  /* Editorial sentence, not a stat — this is the "you've built the first 7%" line,
-     narrating the number above rather than repeating it as another figure. */
-  /* Arrives last of the three — count, then label, then delta, then this — so the
-     hero reads as one unhurried thought landing in order, not four things at once. */
-  .hero-narrative { font-size: 14px; color: var(--warm-brown); font-weight: 400; line-height: 1.55; margin-bottom: 22px; max-width: 34ch; opacity: 0; transition: opacity var(--dur-responsive) ease; }
-  .hero-narrative.shown { opacity: 1; }
-  .hero-bar-track { height: 8px; background: var(--border); border-radius: 8px; overflow: visible; position: relative; }
-  /* The marker travelling to its position IS the animation here — no separate
-     "counter" needed on this element, the width transition itself reads as
-     "this is your current position on the journey." Gentle deceleration, no
-     bounce/overshoot: a progress bar that overshoots its own endpoint reads as
-     a glitch, not confidence. */
-  .hero-bar-fill {
-    height: 100%; width: 0%; background: linear-gradient(90deg, var(--fire-orange), var(--fire-amber));
-    border-radius: 8px; transition: width var(--dur-expressive) var(--ease-gentle); position: relative;
-  }
-  .hero-bar-dot {
-    position: absolute; right: -3px; top: 50%; transform: translateY(-50%) scale(0);
-    width: 10px; height: 10px; border-radius: 50%; background: white;
-    border: 2px solid var(--fire-orange); box-shadow: 0 2px 6px rgba(244,98,42,0.4);
-    transition: transform var(--dur-responsive) var(--ease-standard);
-  }
-  .hero-bar-dot.settled { transform: translateY(-50%) scale(1); }
-  /* The actual destination, not just a duration — "2055" tells you where the road
-     ends, "29.4 years to go" tells you how long it is. Given real weight here
-     (mockup) instead of one small inline caption line — this is mobile's second
-     anchor point, not a footnote. Desktop keeps a more compact version of this
-     same block further down, since it wasn't asked to be redesigned yet. */
-  .hero-freedom-date { margin-top: 26px; }
-  .hero-freedom-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 6px; }
-  .hero-freedom-year { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 38px; color: var(--warm-brown); line-height: 1.1; margin-bottom: 5px; }
-  .hero-freedom-years { font-size: 13.5px; color: var(--soft-grey); font-weight: 300; }
-  .hero-freedom-years strong { color: var(--warm-brown); font-weight: 600; }
-
-  /* ── Freedom Unlocked — the ONLY dark surface on the page. Reserved deliberately;
-       nothing else on this page uses this treatment, so it stays synonymous with
-       "earned," not just another card. ── */
-  .fu-section { margin-bottom: 56px; opacity: 0; transition: opacity 0.6s ease 0.1s; }
-  .fu-section.in-view { opacity: 1; }
-  .fu-card {
-    background: linear-gradient(135deg, var(--dark-bg), #4A3524);
-    border-radius: 20px; padding: 28px 24px; text-align: center;
-    cursor: pointer;
-  }
-  .fu-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin-bottom: 16px; }
-  .fu-figures { display: flex; justify-content: center; align-items: baseline; gap: 18px; margin-bottom: 10px; }
-  .fu-num { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; color: var(--fire-amber); }
-  .fu-unit { font-size: 13px; color: rgba(255,255,255,0.6); margin-left: 4px; margin-right: 10px; }
-  .fu-caption { font-size: 13px; color: rgba(255,255,255,0.7); font-style: italic; margin-bottom: 10px; }
-  .fu-emotional { font-family: 'Playfair Display', serif; font-size: 14.5px; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 16px; }
-  .fu-expand-hint { font-size: 10px; color: rgba(255,255,255,0.32); }
-  #fuHistory { display: none; text-align: left; margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12); }
-  .fu-history-row { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.7); padding: 5px 0; gap: 12px; }
-  .fu-history-row.total { color: var(--fire-amber); font-weight: 700; border-top: 1px solid rgba(255,255,255,0.12); margin-top: 4px; padding-top: 9px; }
-  .fu-history-note { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 10px; line-height: 1.5; }
-
-  /* ── Your Next Best Move — visually distinct from the hero, not competing with it.
-       Reasoning first ("because of X"), one clear action, nothing else on the card.
-       Below the fold: waits for the user to scroll to it, same as every other
-       secondary section, and just appears as one quiet unit — no internal
-       eyebrow/title/reason/CTA stagger anymore. That was one more clock running
-       on top of everything else already happening on load; below-the-fold content
-       doesn't need its own choreography, it needs to not be there yet. ── */
-  .move-section { margin-bottom: 8px; opacity: 0; transition: opacity 0.6s ease; }
-  .move-section.in-view { opacity: 1; }
-  .move-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
-  .move-card { background: white; border: 1px solid var(--border); border-radius: 18px; padding: 24px 22px; box-shadow: 0 8px 28px rgba(61,43,31,0.08); }
-  .move-headline-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: var(--warm-brown); line-height: 1.3; margin-bottom: 10px; }
-  .move-why { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
-  .move-headline { font-size: 14px; color: var(--soft-grey); font-weight: 300; line-height: 1.55; margin-bottom: 20px; }
-  .move-action {
-    display: flex; align-items: center; gap: 12px;
-    background: var(--warm-cream); border: 1px solid var(--border); border-radius: 14px;
-    padding: 14px 16px; text-decoration: none; transition: border-color 0.2s;
-  }
-  .move-action:hover { border-color: var(--fire-orange); }
-  .move-action-icon { display: block; }
-  .move-action-icon-wrap {
-    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .move-action-icon-wrap.learn { background: rgba(124,92,168,0.13); color: #7C5CA8; }
-  .move-action-icon-wrap.ask { background: rgba(244,98,42,0.12); color: var(--fire-orange); }
-  .move-action-icon-wrap.tool { background: rgba(58,110,165,0.12); color: #3A6EA5; }
-  .move-action-icon-wrap.explore { background: rgba(62,142,90,0.12); color: #3E8E5A; }
-  .move-action-body { flex: 1; }
-  .move-action-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fire-orange); margin-bottom: 2px; }
-  .move-action-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--warm-brown); }
-  .move-action-time { font-size: 12px; color: var(--soft-grey); font-weight: 400; flex-shrink: 0; }
-  .move-action-arrow { font-size: 15px; color: var(--fire-orange); flex-shrink: 0; }
-
-
-  /* ── Your Trajectory — a picture, not a chart. Two lines diverging from "You" toward
-       two arrival points; the gap between them IS the message, no axes, no gridlines,
-       no legend. Numbers underneath are real (same solveMonthsToTarget the hero uses),
-       "optimisation" is deliberately named as the specific $50/week lever it is,
-       rather than an unlabelled "optimised" claim. ── */
-  /* No container-level fade+slide here either, same reasoning as .hero-section —
-     the section is hidden via display:none until renderTrajectory() has real data,
-     then the internal line-draw/dot/gain-row choreography (gated by the same
-     single entrance timeline as the hero) IS the entrance. Wrapping the whole
-     thing in its own separate scroll-triggered fade on top of that was exactly
-     the "too many clocks" problem. */
-  .trajectory-section { margin-top: 40px; margin-bottom: 8px; }
-  .trajectory-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 14px; }
-  .trajectory-svg-wrap { margin-bottom: 18px; }
-  /* The height="auto" HTML attribute isn't a valid SVG length (that's a CSS-only
-     value) and was throwing a console error on every render — this is the actual
-     valid way to let the SVG scale by its viewBox's aspect ratio instead of a
-     hardcoded height. */
-  .trajectory-svg-wrap svg { display: block; width: 100%; height: auto; }
-  /* Both paths draw themselves in on load via stroke-dashoffset (set up in
-     renderTrajectory()) — "here's where you're going" (current, grey) draws
-     first, "here's what could change it" (optimised, orange) draws just behind
-     it. Gentle deceleration, matching the hero's progress-bar travel. */
-  /* Durations are set per-path, inline, by renderTrajectory() below (1.4s for the
-     current path, 1.2s for the optimised one, with a real ~350-400ms pause between
-     them) — these are just the fallback/base values. Two full, deliberate beats
-     with space between them, not one blurred-together draw. */
-  .trajectory-path-current { fill: none; stroke: var(--soft-grey); stroke-width: 2; stroke-linecap: round; transition: stroke-dashoffset var(--dur-expressive) var(--ease-gentle); }
-  .trajectory-path-optimised { fill: none; stroke: var(--fire-orange); stroke-width: 2.5; stroke-linecap: round; transition: stroke-dashoffset var(--dur-expressive) var(--ease-gentle); }
-  .trajectory-area-optimised { opacity: 0; transition: opacity var(--dur-expressive) var(--ease-gentle); }
-  .trajectory-dot-current { fill: var(--soft-grey); transition: opacity var(--dur-responsive) var(--ease-standard); }
-  .trajectory-dot-optimised { fill: var(--fire-orange); transition: opacity var(--dur-responsive) var(--ease-standard); }
-  .trajectory-target-line { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 4; }
-  .trajectory-label { font-family: 'DM Sans', sans-serif; font-size: 10.5px; fill: var(--soft-grey); }
-  .trajectory-label-year { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 12px; }
-  .trajectory-label-year.optimised { fill: var(--fire-orange); }
-  .trajectory-label-year.current { fill: var(--warm-brown); }
-  .trajectory-stats { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--border); }
-  .trajectory-stat-row { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--border); }
-  .trajectory-stat-label { font-size: 13px; color: var(--soft-grey); font-weight: 300; }
-  .trajectory-stat-label small { display: block; font-size: 11px; margin-top: 1px; }
-  .trajectory-stat-value { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--warm-brown); }
-  .trajectory-stat-row.gain .trajectory-stat-value { color: var(--fire-orange); }
-  /* "X years sooner" — the payoff line — fades in last, once both lines have
-     finished drawing. Kept as a plain opacity transition on a class the JS
-     toggles, rather than another keyframe animation, since it only ever plays once. */
-  .trajectory-stat-row.gain { transition: opacity var(--dur-responsive) var(--ease-standard); }
-  .trajectory-stat-row.gain.trajectory-gain-hidden { opacity: 0; }
-  .trajectory-cta { display: block; text-align: right; margin-top: 14px; font-size: 13px; color: var(--fire-orange); font-weight: 500; text-decoration: none; }
-  /* Contextual entry point into Ask FirePath — deliberately quiet, a question and
-     a link, not a card or a button. Sits right where the curiosity it's answering
-     would naturally occur, rather than pulling FirePath into its own competing card. */
-  .trajectory-ask-prompt {
-    margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border);
-    display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 10px;
-  }
-  .trajectory-ask-text { font-size: 12.5px; color: var(--soft-grey); }
-  .trajectory-ask-link { font-size: 12.5px; color: var(--fire-orange); font-weight: 600; text-decoration: none; white-space: nowrap; }
-
-  /* ── Since Last Month — an editorial strip, not a dashboard. Four lines, no cards,
-       no colour beyond what's already on the page. Exists to answer one question:
-       "am I moving?" — everything else on the page answers "where am I now." ── */
-  .since-section { margin-top: 40px; margin-bottom: 8px; opacity: 0; transition: opacity 0.6s ease 0.25s; }
-  .since-section.in-view { opacity: 1; }
-  .since-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--soft-grey); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-  .since-row { display: flex; align-items: baseline; justify-content: space-between; padding: 9px 0; font-size: 14px; }
-  .since-row + .since-row { border-top: 1px solid rgba(237,227,218,0.6); }
-  .since-label { color: var(--soft-grey); font-weight: 300; }
-  .since-value { color: var(--warm-brown); font-weight: 500; text-align: right; }
-  .since-value .since-arrow { color: var(--soft-grey); font-weight: 300; margin: 0 5px; }
-  .since-value .since-after { font-weight: 700; }
-  .since-value.since-positive .since-after { color: #2E7D32; }
-
-  /* ── The single door to everything else — quiet, not a menu ── */
-  /* ── Full-screen explore overlay — floats over the page, doesn't navigate away.
-       Apple.com's mobile menu pattern: no icons, no card chrome, just bold text
-       and real spacing. Simplicity here is deliberate, not unfinished. ── */
-  .explore-overlay {
-    position: fixed; inset: 0; background: var(--warm-cream); z-index: 200;
-    transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
-    overflow-y: auto; -webkit-overflow-scrolling: touch;
-  }
-  .explore-overlay.open { transform: translateX(0); }
-  .explore-close {
-    position: absolute; top: 20px; right: 20px; background: none; border: none;
-    color: var(--warm-brown); cursor: pointer; padding: 8px;
-  }
-  .explore-inner { padding: 76px 28px 100px; max-width: 480px; margin: 0 auto; }
-  .explore-group { margin-bottom: 36px; }
-  .explore-group-label {
-    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
-    color: var(--fire-orange); margin-bottom: 10px;
-  }
-  .explore-item {
-    display: block; font-family: 'Playfair Display', serif; font-weight: 700;
-    color: var(--warm-brown); text-decoration: none; font-size: 25px; line-height: 1.35;
-    transition: color 0.15s ease;
-  }
-  .explore-item:hover, .explore-item:active { color: var(--fire-orange); }
-  .explore-item-wrap {
-    display: block; text-decoration: none; padding: 4px 0 12px;
-  }
-  .explore-item-wrap .explore-item { padding: 0; margin-bottom: 2px; }
-  .explore-item-wrap:hover .explore-item, .explore-item-wrap:active .explore-item { color: var(--fire-orange); }
-  .explore-item-desc { font-size: 12.5px; color: var(--soft-grey); font-weight: 300; }
-  .explore-footer {
-    position: fixed; bottom: 0; left: 0; right: 0; background: var(--warm-cream);
-    border-top: 1px solid rgba(237,227,218,0.5); padding: 16px 28px calc(16px + env(safe-area-inset-bottom));
-    align-items: center; justify-content: space-between; z-index: 201;
-    display: none;
-  }
-  .explore-footer.open { display: flex; }
-  .explore-settings, .explore-signout {
-    display: flex; align-items: center; gap: 7px; color: var(--soft-grey); font-size: 13px;
-    text-decoration: none; font-weight: 500;
-  }
-  .explore-settings:hover, .explore-signout:hover { color: var(--fire-orange); }
-
-  .example-tag { display: block; text-align: center; font-size: 10px; font-style: italic; color: var(--soft-grey); margin-top: 10px; }
-
-  /* ── Mobile tab bar — floating instrument panel, not an Android-style full-width
-       navbar. Translucent cream surface, quiet border, real corner radius so it
-       reads as an object sitting above the page rather than a UI chrome strip. ── */
-  .mobile-tabbar {
-    position: fixed; left: 14px; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom));
-    z-index: 150; display: flex; align-items: stretch; justify-content: space-around;
-    background: rgba(253,246,238,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border); border-radius: 22px; padding: 7px; gap: 2px;
-    box-shadow: 0 10px 30px rgba(61,43,31,0.14);
-    opacity: 0; animation: fp-fade-in var(--dur-settle) ease-out 120ms forwards;
-  }
-  .mobile-tabbar-item {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-    padding: 8px 4px 7px; border-radius: 16px; text-decoration: none;
-    color: var(--soft-grey); font-size: 10.5px; font-weight: 600;
-    transition: color var(--dur-responsive) var(--ease-standard), background var(--dur-responsive) var(--ease-standard);
-  }
-  .mobile-tabbar-item svg { opacity: 0.75; transition: opacity var(--dur-responsive) ease; }
-  .mobile-tabbar-item.active { color: var(--fire-orange); background: rgba(244,98,42,0.1); }
-  .mobile-tabbar-item.active svg { opacity: 1; }
-
-  /* Persistent, global entry point into Ask FirePath — a quiet pill floating just
-     above the tabbar, not a fifth nav item and not a big orange SaaS-style button.
-     Cream fill, thin orange border: a tool sitting above the navigation. */
-  .ask-pill {
-    position: fixed; right: 14px; bottom: calc(92px + env(safe-area-inset-bottom));
-    z-index: 149; display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(253,246,238,0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1.5px solid var(--fire-orange); border-radius: 20px; padding: 10px 16px;
-    color: var(--fire-orange); font-size: 12.5px; font-weight: 600; text-decoration: none;
-    box-shadow: 0 6px 20px rgba(61,43,31,0.12);
-    opacity: 0; animation: fp-fade-in var(--dur-settle) ease-out 220ms forwards;
-  }
-  .ask-pill:active { background: rgba(244,98,42,0.08); }
-  .ask-pill svg { flex-shrink: 0; }
-
-  /* ══════════════════════════════════════════════════════════════════════
-     DESKTOP PLATFORM — persistent rail + spatial layout, >=1024px only.
-     Below that, this is invisible and the mobile narrative experience
-     above is completely untouched — same markup, same JS, same hamburger
-     menu. This is additive, not a fork: one file, two experiences.
-     ══════════════════════════════════════════════════════════════════════ */
-  /* Same "page quietly appears" moment as .top-bar above, just the rail instead of
-     the hamburger. Restarts cleanly each time the element re-enters the render
-     tree (e.g. crossing the 1024px breakpoint). */
-  .desktop-rail { display: none; opacity: 0; animation: fp-fade-in var(--dur-settle) ease-out 120ms forwards; }
-
+  /* ── Journey layout ──────────────────────────────────────
+     One question per row, most important first:
+       1. When does work become optional?      (hero + projection)
+       2. Where does my money stand?           (→ Money)
+       3. What should I do / what moves it?    (next move, → Strategy)
+       4. Am I making progress / what to learn (→ Learn)
+     Each section names the tab it previews, so Journey works as the hub. */
+  .journey-grid { display: grid; gap: 16px; }
   @media (min-width: 1024px) {
-    body { padding-left: 232px; }
-
-    .desktop-rail {
-      display: flex; flex-direction: column;
-      position: fixed; top: 0; left: 0; bottom: 0; width: 232px;
-      background: var(--dark-bg); padding: 28px 18px; z-index: 40;
-    }
-    .desktop-rail-logo {
-      font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px;
-      color: var(--warm-cream); margin: 6px 10px 36px; letter-spacing: -0.01em;
-    }
-    .desktop-rail-nav { display: flex; flex-direction: column; gap: 3px; }
-    .desktop-rail-item {
-      display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 10px;
-      color: rgba(253,246,238,0.55); text-decoration: none; font-size: 14px; font-weight: 500;
-      transition: background 0.15s ease, color 0.15s ease;
-    }
-    .desktop-rail-item svg { flex-shrink: 0; opacity: 0.8; }
-    .desktop-rail-item:hover { background: rgba(253,246,238,0.06); color: var(--warm-cream); }
-    .desktop-rail-item.active { background: rgba(244,98,42,0.14); color: var(--warm-cream); }
-    .desktop-rail-item.active svg { opacity: 1; color: var(--fire-orange); }
-    .desktop-rail-ask {
-      margin-top: auto; display: flex; align-items: center; gap: 9px; padding: 12px 14px;
-      border-radius: 12px; background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-      color: white; text-decoration: none; font-size: 13px; font-weight: 500;
-    }
-    .desktop-rail-footer {
-      display: flex; flex-direction: column; gap: 1px; margin-top: 16px; padding-top: 16px;
-      border-top: 1px solid rgba(253,246,238,0.1);
-    }
-    .desktop-rail-footer a {
-      color: rgba(253,246,238,0.4); text-decoration: none; font-size: 12.5px;
-      padding: 7px 12px; border-radius: 8px; transition: color 0.15s ease, background 0.15s ease;
-    }
-    .desktop-rail-footer a:hover { color: rgba(253,246,238,0.8); background: rgba(253,246,238,0.05); }
-
-    /* Rail replaces the mobile hamburger/explore-overlay/bottom-tabbar entirely at
-       this width. .mobile-header-row becomes display:contents rather than being
-       hidden outright, so its child .greeting can still take its own grid-area
-       below exactly as before this session's mobile pass. */
-    .mobile-header-row { display: contents; }
-    .header-icons, .explore-overlay, .explore-footer, .mobile-tabbar, .ask-pill { display: none !important; }
-
-    /* Wider canvas + a real spatial layout instead of one long stacked column —
-       trajectory sits alongside the hero/next-move narrative rather than under it.
-       (This was sticky-positioned in an earlier pass, so it would stay in view as
-       the left column scrolled past — but sticky inside a multi-row grid area
-       fought the "Since Last Month" cell below it, hiding that content behind the
-       pinned box instead of scrolling normally. Static positioning until this gets
-       redesigned properly, e.g. as its own column outside the grid.) */
-    .container {
-      max-width: 1080px; margin: 0 auto; padding: 56px 56px 100px;
-      display: grid; grid-template-columns: 1.15fr 0.85fr; column-gap: 64px;
-      transform: none !important;
-    }
-    .greeting { grid-area: greeting; margin-bottom: 40px; }
-    .hero-section { grid-area: hero; margin-bottom: 28px; }
-    /* Keeps this block's older, more compact footprint at desktop — the bigger
-       "one object" treatment above is mobile-specific until desktop gets its own
-       pass. */
-    .hero-freedom-date { margin-top: 18px; }
-    .hero-freedom-year { font-size: 22px; margin-bottom: 2px; }
-    .fu-section { grid-area: fu; margin-bottom: 28px; }
-    .monday-check { grid-area: monday; margin-bottom: 28px; }
-    .move-section { grid-area: move; margin-bottom: 0; }
-    .trajectory-section { grid-area: trajectory; align-self: start; margin-top: 0; }
-    .since-section { grid-area: since; align-self: start; }
-    .container {
-      grid-template-areas:
-        "greeting  greeting"
-        "hero      trajectory"
-        "fu        trajectory"
-        "monday    trajectory"
-        "move      since"
-        "footer    footer";
-    }
-    .page-footer { grid-area: footer; }
+    .journey-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 20px; }
+    .span-12 { grid-column: span 12; }
+    .span-7 { grid-column: span 7; }
+    .span-5 { grid-column: span 5; }
   }
 
-  /* ── Footer — same four links every other FirePath page already carries
-     (privacy.html, terms.html, faq.html, assumptions.html), just also present on
-     the new rail pages, which didn't have a footer at all before. ── */
-  .page-footer {
-    margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);
-    text-align: center; font-size: 12px; color: var(--soft-grey);
+  /* Mobile header row: greeting + menu button */
+  .head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; width: 100%; }
+  @media (min-width: 1024px) { .head-row { width: auto; } .menu-btn { display: none; } }
+  .menu-btn { background: none; border: none; color: var(--ink); padding: 8px; margin: -6px -8px 0 0; border-radius: 50%; cursor: pointer; }
+  .menu-btn:hover { background: rgba(43,29,20,0.05); }
+
+  /* Level prompt + Monday check banners */
+  .banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 18px;
+    border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+    font-size: 13.5px; color: var(--ink-2); text-decoration: none;
   }
-  .page-footer a { color: var(--fire-orange); text-decoration: none; }
-  .page-footer a:hover { text-decoration: underline; }
-  .page-footer .footer-sep { margin: 0 8px; color: var(--border); }
+  .banner strong { color: var(--ink); font-weight: 600; }
+  .banner[hidden] { display: none; }
+  .banner-accent { background: #FFF7F2; border-color: rgba(244,98,42,0.22); }
+  .banner-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+
+  /* ── Hero ── */
+  .hero { padding: 0; overflow: hidden; }
+  .hero-inner { display: grid; }
+  @media (min-width: 1024px) { .hero-inner { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+  .hero-copy { padding: 24px 20px 20px; display: flex; flex-direction: column; }
+  @media (min-width: 768px) { .hero-copy { padding: 32px 32px 28px; } }
+  .hero-year-row { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+  .hero-year {
+    font-family: var(--font-display); font-weight: 700; letter-spacing: -0.03em; line-height: 0.9;
+    font-size: clamp(72px, 19vw, 112px); color: var(--ink); font-variant-numeric: lining-nums tabular-nums;
+  }
+  .hero-year.skeleton { width: 3.2ch; }
+  .hero-year-row .chip { margin-top: 8px; }
+  .hero-meta { margin-top: 12px; font-size: 15px; color: var(--ink-2); }
+  .hero-meta strong { color: var(--ink); font-weight: 600; }
+  .hero-narrative { margin-top: 18px; font-size: 14px; line-height: 1.6; color: var(--ink-2); max-width: 44ch; }
+
+  /* Progress toward the freedom number, with milestones on the track */
+  .progress { margin-top: auto; padding-top: 28px; }
+  .progress-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; font-size: 13px; color: var(--ink-2); }
+  .progress-head strong { color: var(--ink); font-weight: 600; font-size: 14px; }
+  .track { position: relative; height: 8px; border-radius: 99px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
+  .track-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--ember), var(--amber)); transition: width 1.3s var(--ease); }
+  .milestone { position: absolute; top: 50%; width: 12px; height: 12px; margin-left: -6px; transform: translateY(-50%); border-radius: 50%; background: var(--surface); border: 2px solid var(--line-strong); }
+  .milestone.reached { border-color: var(--ember); background: var(--ember); }
+  .milestone-labels { position: relative; height: 34px; margin-top: 8px; font-size: 11.5px; color: var(--ink-3); }
+  .milestone-label { position: absolute; transform: translateX(-50%); white-space: nowrap; text-align: center; line-height: 1.3; }
+  .milestone-label.edge-end { transform: translateX(-100%); text-align: right; }
+  .milestone-label.edge-start { transform: translateX(-12px); text-align: left; }
+  .milestone-label b { display: block; font-weight: 600; color: var(--ink-2); }
+  .milestone-label.reached b { color: var(--ember-ink); }
+
+  /* Projection chart panel */
+  .hero-chart { background: var(--surface-2); border-top: 1px solid var(--line); padding: 20px 12px 12px 8px; display: flex; flex-direction: column; min-width: 0; }
+  @media (min-width: 1024px) { .hero-chart { border-top: none; border-left: 1px solid var(--line); padding: 28px 24px 20px 16px; } }
+  .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 0 0 12px 12px; }
+  .chart-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { display: inline-block; width: 14px; height: 0; border-top: 2px solid var(--ink); }
+  .legend i.opt { border-top: 2px dashed var(--ember); }
+  .chart-wrap { position: relative; flex: 1; min-height: 210px; }
+  .chart-wrap svg { display: block; overflow: visible; }
+  .chart-wrap text { font-family: var(--font-ui); font-size: 11px; fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .chart-tip {
+    position: absolute; top: 0; pointer-events: none; min-width: 150px; padding: 10px 12px; border-radius: 12px;
+    background: var(--ink); color: var(--bg); font-size: 12px; line-height: 1.5; box-shadow: var(--shadow-3);
+    opacity: 0; transition: opacity var(--dur-fast) ease; transform: translateX(-50%); z-index: 2;
+  }
+  .chart-tip.show { opacity: 1; }
+  .chart-tip b { font-weight: 600; }
+  .chart-tip .tip-row { display: flex; justify-content: space-between; gap: 16px; font-variant-numeric: tabular-nums; }
+  .chart-tip .tip-muted { color: rgba(253,246,238,0.6); }
+  .chart-foot { padding: 8px 0 0 12px; font-size: 11.5px; color: var(--ink-3); }
+  .chart-foot a { color: var(--ink-2); }
+
+  /* ── KPI tiles (→ Money) ── */
+  .kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  @media (min-width: 1024px) { .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; } }
+  .kpi { padding: 18px; }
+  @media (min-width: 768px) { .kpi { padding: 20px 22px; } }
+  .kpi-label { font-size: 12.5px; color: var(--ink-2); font-weight: 500; }
+  .kpi-value { margin-top: 6px; font-size: clamp(22px, 5.5vw, 28px); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+  .kpi-value.skeleton { width: 5ch; height: 1.2em; }
+  .kpi-sub { margin-top: 4px; font-size: 12px; color: var(--ink-3); min-height: 18px; }
+  .kpi-sub .delta-up, .kpi-sub .delta-down { font-weight: 600; }
+
+  /* ── Next move ── */
+  .move-title { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.25; color: var(--ink); letter-spacing: -0.01em; }
+  .move-reason { margin-top: 10px; font-size: 14px; line-height: 1.6; color: var(--ink-2); max-width: 56ch; }
+  .move-action {
+    margin-top: 20px; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--r-md);
+    background: var(--surface-2); border: 1px solid var(--line); text-decoration: none; transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
+  }
+  .move-action:hover { border-color: var(--ember); background: #FFF7F2; }
+  .move-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; }
+  .move-icon.learn { background: rgba(124,92,168,0.12); color: var(--purple); }
+  .move-icon.ask { background: var(--ember-wash); color: var(--ember-ink); }
+  .move-icon.tool { background: rgba(58,110,165,0.12); color: var(--blue); }
+  .move-icon.explore { background: rgba(62,142,90,0.12); color: var(--green); }
+  .move-body { flex: 1; min-width: 0; }
+  .move-kind { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .move-name { font-weight: 600; font-size: 14.5px; color: var(--ink); }
+  .move-time { font-size: 12px; color: var(--ink-3); flex-shrink: 0; }
+  .arrow { color: var(--ember-ink); flex-shrink: 0; transition: transform var(--dur-fast) ease; }
+  a:hover > .arrow { transform: translateX(2px); }
+
+  /* ── Levers (→ Strategy) ── */
+  .lever { display: flex; align-items: center; gap: 14px; padding: 14px 0; text-decoration: none; border-top: 1px solid var(--line); }
+  .lever:first-child { border-top: none; padding-top: 2px; }
+  .lever-body { flex: 1; min-width: 0; }
+  .lever-title { font-size: 14.5px; font-weight: 600; color: var(--ink); }
+  .lever-desc { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+  .lever:hover .lever-title { color: var(--ember-ink); }
+  .lever-empty { font-size: 13.5px; color: var(--ink-2); }
+
+  /* ── Progress ── */
+  .since-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .since-row:first-child { border-top: none; padding-top: 2px; }
+  .since-label { color: var(--ink-2); }
+  .since-value { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .since-value .before { color: var(--ink-3); font-weight: 400; }
+  .since-value.up .after { color: var(--positive); }
+  .progress-empty { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+
+  /* Freedom Unlocked — the one dark surface on the page, reserved for "earned" */
+  .fu { margin-top: 16px; border-radius: var(--r-md); background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); color: var(--bg); padding: 20px; cursor: pointer; }
+  .fu[hidden] { display: none; }
+  .fu-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(253,246,238,0.55); }
+  .fu-figure { margin-top: 6px; font-family: var(--font-display); font-weight: 700; font-size: 34px; color: var(--amber); letter-spacing: -0.01em; }
+  .fu-figure small { font-family: var(--font-ui); font-size: 13px; font-weight: 500; color: rgba(253,246,238,0.65); margin: 0 10px 0 4px; letter-spacing: 0; }
+  .fu-text { margin-top: 6px; font-size: 13.5px; color: rgba(253,246,238,0.8); }
+  .fu-toggle { margin-top: 10px; font-size: 12px; color: rgba(253,246,238,0.5); }
+  .fu-history { display: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(253,246,238,0.12); }
+  .fu[aria-expanded="true"] .fu-history { display: block; }
+  .fu-history-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 12px; color: rgba(253,246,238,0.72); }
+  .fu-history-row.total { color: var(--amber); font-weight: 600; border-top: 1px solid rgba(253,246,238,0.12); margin-top: 4px; padding-top: 8px; }
+  .fu-history-note { margin-top: 8px; font-size: 11px; color: rgba(253,246,238,0.45); }
+
+  /* ── Learn (→ Learn) ── */
+  .read { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--line); text-decoration: none; }
+  .read:first-child { border-top: none; padding-top: 2px; }
+  .read-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(124,92,168,0.1); color: var(--purple); display: grid; place-items: center; flex-shrink: 0; }
+  .read-title { flex: 1; font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.4; }
+  .read:hover .read-title { color: var(--ember-ink); }
+
+  /* ── Mobile "more" overlay ── */
+  .explore { position: fixed; inset: 0; z-index: 200; background: var(--bg); transform: translateX(100%); transition: transform 0.35s var(--ease); overflow-y: auto; }
+  .explore.open { transform: none; }
+  .explore-close { position: absolute; top: 16px; right: 16px; background: none; border: none; padding: 8px; color: var(--ink); cursor: pointer; }
+  .explore-inner { max-width: 480px; margin: 0 auto; padding: 72px 24px 48px; }
+  .explore-group { margin-bottom: 32px; }
+  .explore-group .eyebrow { margin-bottom: 8px; }
+  .explore-link { display: block; padding: 8px 0; text-decoration: none; }
+  .explore-link b { display: block; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); }
+  .explore-link span { font-size: 13px; color: var(--ink-2); }
+  .explore-link:hover b { color: var(--ember-ink); }
+  .explore-foot { display: flex; gap: 20px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; }
+  .explore-foot a { color: var(--ink-2); text-decoration: none; }
+  @media (min-width: 1024px) { .explore { display: none; } }
 </style>
+<script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/financial-engine.js"></script>
-<script src="js/interactions.js"></script>
 </head>
-<body>
+<body class="app" data-shell="app" data-active="journey">
+<script src="js/shell.js"></script>
 
-<!-- ── DESKTOP RAIL — hidden below 1024px, replaces the hamburger/explore-overlay
-     above that width. Same four destinations described across every page:
-     Journey (this page), Money, Strategy, Learn. Ask FirePath sits apart as a
-     standing action rather than a fifth category, since it's meant to work
-     across all of them, not live inside one. ── -->
-<nav class="desktop-rail" aria-label="Primary">
-  <div class="desktop-rail-logo">FirePath</div>
-  <div class="desktop-rail-nav">
-    <a href="journey.html" class="desktop-rail-item active">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
-      Journey
-    </a>
-    <a href="money.html" class="desktop-rail-item">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
-      Money
-    </a>
-    <a href="strategy.html" class="desktop-rail-item">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
-      Strategy
-    </a>
-    <a href="learn.html" class="desktop-rail-item">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
-      Learn
-    </a>
-  </div>
-  <a href="ask-firepath.html" class="desktop-rail-ask">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-    Ask FirePath
-  </a>
-  <div class="desktop-rail-footer">
-    <a href="account.html">Settings</a>
-    <a href="auth.html?action=signout">Sign out</a>
-  </div>
-</nav>
+<main class="app-main">
 
-<div class="container" id="dashboardContainer">
-
-  <!-- display:contents at desktop (see CSS) lets .greeting keep participating as a
-       direct grid child of .container for its own grid-area, exactly as before —
-       this wrapper only exists to lay greeting + icons out as one row on mobile. -->
-  <div class="mobile-header-row">
-    <div class="greeting">
-      <div class="greeting-title" id="greetTitle">Good morning, Jay.</div>
-      <div class="greeting-sub">Here's your journey at a glance.</div>
-    </div>
-    <div class="header-icons">
-      <!-- Visual placeholder — no notifications system exists behind this yet. -->
-      <button class="icon-btn" id="notifTrigger" aria-label="Notifications">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      </button>
-      <button class="icon-btn" id="menuTrigger" aria-label="More">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- ── WHERE YOU ARE ── -->
-  <div class="hero-section" id="heroSection">
-    <span class="hero-label">Freedom Level</span>
-    <div class="hero-pct-row">
-      <div class="hero-pct"><span id="heroPct">0</span>%</div>
-      <span class="hero-delta" id="heroDelta">▲ 2% this month</span>
-    </div>
-    <div class="hero-narrative" id="heroNarrative"></div>
-    <div class="hero-bar-track"><div class="hero-bar-fill" id="heroBarFill"><div class="hero-bar-dot" id="heroBarDot"></div></div></div>
-    <div class="hero-freedom-date" id="heroFreedomDateRow">
-      <div class="hero-freedom-label">Financial freedom</div>
-      <div class="hero-freedom-year" id="heroFreedomYear">—</div>
-      <div class="hero-freedom-years"><strong id="heroYears">—</strong> years to go</div>
-    </div>
-  </div>
-
-  <div class="fu-section" id="fuSection" style="display:none;">
-    <div class="fu-card" id="fuCard" role="button" tabindex="0" aria-expanded="false">
-      <div class="fu-label">Freedom Unlocked</div>
-      <div class="fu-figures" id="fuFigures">
-        <span class="fu-num" id="fuYears">0</span><span class="fu-unit">years</span>
-        <span class="fu-num" id="fuMonths">0</span><span class="fu-unit">months</span>
+  <header class="page-head rise" style="--i:0">
+    <div class="head-row">
+      <div>
+        <h1 class="page-head-title" id="greetTitle">Welcome back.</h1>
+        <p class="page-head-sub" id="greetSub">&nbsp;</p>
       </div>
-      <div class="fu-caption">Since your first snapshot</div>
-      <div class="fu-emotional">You've already brought your freedom date forward by 1 year and 4 months.</div>
-      <div class="fu-expand-hint" id="fuHint">Calculation details ▾</div>
-      <div id="fuHistory"></div>
+      <button class="menu-btn" id="menuTrigger" aria-label="More" aria-controls="explore" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+      </button>
     </div>
-    <span class="example-tag">Illustrative example — real calculation shape, sample numbers</span>
-  </div>
-
-  <div class="monday-check" id="mondayCheck"></div>
-
-  <!-- ── YOUR NEXT MOVE — was "Today's Opportunity." Same real reasoning underneath
-       (recommendNextStep, run against the actual profile), just framed as guidance
-       rather than a label. ── -->
-  <div class="move-section" id="moveSection">
-    <div class="move-eyebrow">Your next move</div>
-    <div class="move-card" id="opportunityCard"></div>
-  </div>
-
-  <!-- ── YOUR TRAJECTORY — hidden until there's a real projection to draw; see
-       renderTrajectory(). "Optimisation" is one concrete, named lever ($50/week),
-       not a vague aspirational number. ── -->
-  <div class="trajectory-section" id="trajectorySection" style="display:none;">
-    <div class="trajectory-eyebrow">Your trajectory</div>
-    <div class="trajectory-svg-wrap" id="trajectorySvgWrap"></div>
-    <div class="trajectory-stats" id="trajectoryStats"></div>
-    <a href="hearmeout.html" class="trajectory-cta">Explore your options →</a>
-    <div class="trajectory-ask-prompt">
-      <span class="trajectory-ask-text">Want to understand what's moving this?</span>
-      <a href="ask-firepath.html" class="trajectory-ask-link">Ask FirePath →</a>
+    <div class="page-head-actions">
+      <button type="button" class="chip" data-persona-open title="Change how FirePath talks to you">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        <span data-persona-name></span>
+      </button>
+      <a href="firepath_pro.html?edit=true" class="btn btn-quiet">Update numbers</a>
     </div>
+  </header>
+
+  <div class="journey-grid">
+
+    <a href="welcome.html?next=journey.html" class="banner banner-accent span-12" id="levelPrompt" data-persona-open hidden>
+      <span><strong>How much do you already know about money?</strong> Tell us and FirePath will explain things at your level.</span>
+      <span class="arrow" aria-hidden="true">→</span>
+    </a>
+    <div class="span-12" id="mondayCheck" hidden></div>
+
+    <!-- 1 ── When does work become optional? ── -->
+    <section class="card hero span-12 rise" style="--i:1" aria-labelledby="heroEyebrow">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <div class="eyebrow" id="heroEyebrow" data-copy-fire="Projected FI date">Work becomes optional in</div>
+          <div class="hero-year-row">
+            <div class="hero-year skeleton" id="heroYear">2040</div>
+            <span class="chip" id="heroDelta" hidden></span>
+          </div>
+          <div class="hero-meta" id="heroMeta">&nbsp;</div>
+          <p class="hero-narrative" id="heroNarrative"></p>
+
+          <div class="progress" id="progressBlock">
+            <div class="progress-head">
+              <span><strong class="num" id="progressPct">0%</strong> of your <span data-term="freedomNumberLabel">freedom number</span></span>
+              <span class="num" id="progressAmounts"></span>
+            </div>
+            <div class="track" id="track"><div class="track-fill" id="trackFill"></div></div>
+            <div class="milestone-labels" id="milestoneLabels"></div>
+          </div>
+        </div>
+
+        <div class="hero-chart">
+          <div class="chart-head">
+            <div class="chart-title">Your projection</div>
+            <div class="legend" aria-hidden="true">
+              <span><i></i>Current path</span>
+              <span><i class="opt"></i>+$50 a week</span>
+                    </div>
+          </div>
+          <div class="chart-wrap" id="chartWrap">
+            <div class="chart-tip" id="chartTip" role="status" aria-live="polite"></div>
+          </div>
+          <div class="chart-foot">Invested savings outside super, growing at 7% a year after inflation. <a href="assumptions.html">How we calculate</a></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 ── Where does my money stand? (→ Money) ── -->
+    <section class="span-12 rise" style="--i:2" aria-labelledby="moneyHead">
+      <div class="section-head">
+        <h2 class="section-label" id="moneyHead">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
+          Your money
+        </h2>
+        <a href="money.html" class="section-link">Money →</a>
+      </div>
+      <div class="kpis" id="kpis">
+        <a href="money.html" class="card card-link kpi"><div class="kpi-label" data-copy-beginner="What you're worth">Net worth</div><div class="kpi-value skeleton" id="kpiNetWorth">$000K</div><div class="kpi-sub" id="kpiNetWorthSub"></div></a>
+        <a href="money.html" class="card card-link kpi"><div class="kpi-label" data-copy-beginner="Savings & investments" data-copy-fire="Portfolio (ex-super)">Invested</div><div class="kpi-value skeleton" id="kpiInvested">$000K</div><div class="kpi-sub" id="kpiInvestedSub"></div></a>
+        <a href="money.html" class="card card-link kpi"><div class="kpi-label">Super</div><div class="kpi-value skeleton" id="kpiSuper">$000K</div><div class="kpi-sub" id="kpiSuperSub"></div></a>
+        <a href="money.html" class="card card-link kpi"><div class="kpi-label" data-copy-fire="Savings rate (SR)">Savings rate</div><div class="kpi-value skeleton" id="kpiRate">00%</div><div class="kpi-sub" id="kpiRateSub"></div></a>
+      </div>
+    </section>
+
+    <!-- 3 ── What should I do next / what moves the date? (→ Strategy) ── -->
+    <section class="card span-7 rise" style="--i:3" aria-labelledby="moveHead">
+      <div class="section-head">
+        <h2 class="section-label" id="moveHead">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          Your next move
+        </h2>
+      </div>
+      <div id="opportunityCard"><div class="skeleton" style="height:26px;width:70%"></div><div class="skeleton" style="height:14px;width:90%;margin-top:14px"></div><div class="skeleton" style="height:64px;margin-top:20px;border-radius:14px"></div></div>
+    </section>
+
+    <section class="card span-5 rise" style="--i:4" aria-labelledby="leversHead">
+      <div class="section-head">
+        <h2 class="section-label" id="leversHead">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
+          What moves your date
+        </h2>
+        <a href="strategy.html" class="section-link">Strategy →</a>
+      </div>
+      <div id="levers"><div class="skeleton" style="height:44px"></div><div class="skeleton" style="height:44px;margin-top:12px"></div><div class="skeleton" style="height:44px;margin-top:12px"></div></div>
+    </section>
+
+    <!-- 4 ── Am I making progress? What should I learn? (→ Learn) ── -->
+    <section class="card span-7 rise" style="--i:5" aria-labelledby="progressHead">
+      <div class="section-head">
+        <h2 class="section-label" id="progressHead">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>
+          Since your last check-in
+        </h2>
+        <a href="about-you.html" class="section-link">Milestones →</a>
+      </div>
+      <div id="sinceList"><p class="progress-empty">Your progress shows up here after your next visit — FirePath compares each check-in with the one before.</p></div>
+      <div class="fu" id="fuCard" role="button" tabindex="0" aria-expanded="false" hidden>
+        <div class="fu-label">Freedom unlocked</div>
+        <div class="fu-figure num" id="fuFigure"></div>
+        <div class="fu-text" id="fuText"></div>
+        <div class="fu-toggle" id="fuToggle">How this is calculated ▾</div>
+        <div class="fu-history" id="fuHistory"></div>
+      </div>
+    </section>
+
+    <section class="card span-5 rise" style="--i:6" aria-labelledby="learnHead">
+      <div class="section-head">
+        <h2 class="section-label" id="learnHead">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
+          Picked for your level
+        </h2>
+        <a href="learn.html" class="section-link">Learn →</a>
+      </div>
+      <div id="learnList"></div>
+    </section>
+
   </div>
 
-  <!-- ── SINCE LAST MONTH — hidden until there's a real previous snapshot to compare
-       against; see renderSinceLastMonth(). ── -->
-  <div class="since-section" id="sinceSection" style="display:none;">
-    <div class="since-eyebrow">Since last month</div>
-    <div id="sinceList"></div>
-  </div>
-
-  <footer class="page-footer">
-    <a href="faq.html">FAQ</a><span class="footer-sep">·</span><a href="assumptions.html">Assumptions</a><span class="footer-sep">·</span><a href="terms.html">Terms</a><span class="footer-sep">·</span><a href="privacy.html">Privacy</a>
+  <footer class="app-footer">
+    <span>Educational only — not financial advice.</span>
+    <nav aria-label="Footer"><a href="faq.html">FAQ</a><a href="assumptions.html">Assumptions</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></nav>
   </footer>
+</main>
 
-</div>
-
-<!-- ── MOBILE TAB BAR — the new primary nav on phones, mirroring the desktop rail's
-     four core destinations. Sibling of .container, not nested inside it, for the
-     same reason as .explore-footer above: .container gets a transform when the
-     menu opens, and position:fixed descendants of a transformed ancestor are
-     "fixed" to that ancestor instead of the real viewport. Hidden entirely at
-     desktop (see the >=1024px block), where the rail is already primary nav. ── -->
-<!-- ── ASK FIREPATH — persistent floating pill, the second (global) entry point
-     alongside the contextual prompts placed beside relevant data. Sibling of
-     .container for the same fixed-positioning reason as the tabbar above. ── -->
-<a href="ask-firepath.html" class="ask-pill">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
-  Ask FirePath
-</a>
-
-<nav class="mobile-tabbar" aria-label="Primary">
-  <a href="journey.html" class="mobile-tabbar-item active">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
-    Journey
-  </a>
-  <a href="money.html" class="mobile-tabbar-item">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
-    Money
-  </a>
-  <a href="strategy.html" class="mobile-tabbar-item">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
-    Strategy
-  </a>
-  <a href="learn.html" class="mobile-tabbar-item">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
-    Learn
-  </a>
-</nav>
-
-<!-- ── EXPLORE OVERLAY — floats over the page, doesn't navigate away ── -->
-<div class="explore-overlay" id="exploreOverlay">
+<div class="explore" id="explore" aria-hidden="true">
   <button class="explore-close" id="exploreClose" aria-label="Close menu">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
   <div class="explore-inner">
-
     <div class="explore-group">
-      <div class="explore-group-label">Ask &amp; explore</div>
-      <a href="freedom-gap.html" class="explore-item-wrap">
-        <span class="explore-item">Freedom Gap</span>
-        <span class="explore-item-desc">Where your age, spend, and portfolio come from</span>
-      </a>
-      <a href="ask-firepath.html" class="explore-item-wrap">
-        <span class="explore-item">Ask FirePath</span>
-        <span class="explore-item-desc">Ask questions about your financial plan</span>
-      </a>
-      <a href="hearmeout.html" class="explore-item-wrap">
-        <span class="explore-item">Scenario Explorer</span>
-        <span class="explore-item-desc">Test real financial decisions</span>
-      </a>
-      <a href="learning_lab.html" class="explore-item">Learning Lab</a>
-      <a href="financial-learning-path.html" class="explore-item">Financial Learning Path</a>
+      <div class="eyebrow">Explore</div>
+      <a href="freedom-gap.html" class="explore-link"><b>Freedom Gap</b><span>Where your age, spend and portfolio come from</span></a>
+      <a href="hearmeout.html" class="explore-link"><b>Scenario Explorer</b><span>Test real decisions before you make them</span></a>
+      <a href="ask-firepath.html" class="explore-link"><b>Ask FirePath</b><span>Ask anything about your plan</span></a>
     </div>
-
     <div class="explore-group">
-      <div class="explore-group-label">Tools</div>
-      <a href="tax_pro.html" class="explore-item-wrap">
-        <span class="explore-item">Tax Tools</span>
-        <span class="explore-item-desc">Reduce tax, legally</span>
-      </a>
-      <a href="withdrawal.html" class="explore-item-wrap">
-        <span class="explore-item">Withdrawal Modeling</span>
-        <span class="explore-item-desc">Stress-test retirement income</span>
-      </a>
+      <div class="eyebrow">Tools</div>
+      <a href="tax_pro.html" class="explore-link"><b>Tax Tools</b><span>Reduce tax, legally</span></a>
+      <a href="withdrawal.html" class="explore-link"><b>Withdrawal Modeling</b><span>Stress-test retirement income</span></a>
+      <a href="firepath_pro.html" class="explore-link"><b>Full Analysis</b><span>Your complete picture, including super</span></a>
     </div>
-
     <div class="explore-group">
-      <div class="explore-group-label">Your results</div>
-      <a href="firepath_pro.html" class="explore-item">Full Analysis</a>
-      <a href="firepath_pro.html?tab=super" class="explore-item">Super Timeline</a>
+      <div class="eyebrow">You</div>
+      <a href="about-you.html" class="explore-link"><b>Milestones</b><span>Achievements and your financial DNA</span></a>
+      <a href="learning_lab.html" class="explore-link"><b>Learning Lab</b><span>Short lessons built around your numbers</span></a>
     </div>
-
-    <div class="explore-group">
-      <div class="explore-group-label">About you</div>
-      <a href="about-you.html" class="explore-item">Achievements &amp; Financial DNA</a>
+    <div class="explore-foot">
+      <a href="#" data-persona-open>Level: <span data-persona-name></span></a>
+      <a href="account.html">Settings</a>
+      <a href="auth.html?action=signout">Sign out</a>
     </div>
-
   </div>
-</div>
-
-<!-- Deliberately a sibling of .explore-overlay, not nested inside it — .explore-overlay
-     uses transform for its slide animation, and transform on an ancestor creates a new
-     containing block for position:fixed descendants. Nested inside, this footer would be
-     "fixed" relative to the overlay's own scroll area instead of the real viewport. -->
-<div class="explore-footer" id="exploreFooter">
-  <a href="account.html" class="explore-settings">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    Settings
-  </a>
-  <a href="auth.html?action=signout" class="explore-signout">Sign out</a>
 </div>
 
 <script>
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+(function () {
+  const Engine = window.FirePathEngine;
+  const Persona = window.FirePathPersona;
+  const RATE = 0.07;
+  const EXTRA_WEEKLY = 50;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = id => document.getElementById(id);
 
-  // ── ONE page-entrance timeline, not five uncoordinated clocks ───────────────
-  // Everything above the fold — greeting, hero, trajectory — is scheduled off
-  // this single origin timestamp. Previously the hero gated itself off
-  // pageLoadStart while the trajectory kicked off immediately whenever its data
-  // happened to arrive, self-choreographed on its own separate relative clock —
-  // which is exactly why the page could feel like several things fighting for
-  // attention at once rather than one sequence. Now both wait for their turn on
-  // the same shared timeline below, however fast or slow the data happens to load.
-  // Below-the-fold sections (Freedom Unlocked, Monday Check, Next Move, Since
-  // Last Month) are deliberately NOT part of this — they wait for the user to
-  // scroll instead, via the IntersectionObserver just below.
-  const pageLoadStart = performance.now();
-  const TIMELINE_GREETING_MS = 500;                                          // greeting fades in
-  const TIMELINE_HERO_BEGIN_MS = 900;                                        // hero count-up begins
-  const TIMELINE_HERO_DURATION_MS = 1300;                                    // ...and takes this long to land
-  const TIMELINE_TRAJECTORY_BEGIN_MS = TIMELINE_HERO_BEGIN_MS + TIMELINE_HERO_DURATION_MS + 250; // a real pause after the hero settles, then the trajectory takes over
-
-  // Scroll-reveal for everything below the fold — same IntersectionObserver
-  // pattern as before, just no longer shared with the hero/trajectory, which have
-  // their own always-visible-on-load entrance driven by the timeline above instead.
-  const revealTargets = document.querySelectorAll('.fu-section, .move-section, .monday-check, .since-section');
-  if (prefersReducedMotion) {
-    revealTargets.forEach(el => el.classList.add('in-view'));
-  } else {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15 });
-    revealTargets.forEach(el => observer.observe(el));
+  // ── Formatting ─────────────────────────────────────────
+  function money(n) {
+    if (n == null || isNaN(n)) return '—';
+    const sign = n < 0 ? '−' : '';
+    const a = Math.abs(n);
+    if (a >= 1e6) return `${sign}$${(a / 1e6).toFixed(a >= 1e7 ? 1 : 2).replace(/\.?0+$/, '')}M`;
+    if (a >= 1e3) return `${sign}$${Math.round(a / 1e3)}K`;
+    return `${sign}$${Math.round(a)}`;
   }
-
-  // Count-up — identical ease-out-cubic pattern already tested on the homepage hero
-  // and on Freedom Unlocked in firepath_pro.html. No new animation logic invented here.
-  function countUpTo(elId, target, duration) {
-    const el = document.getElementById(elId);
-    if (!el) return;
-    if (prefersReducedMotion) { el.textContent = target; return; }
-    const start = performance.now();
-    function tick(now) {
-      const progress = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.round(eased * target);
-      if (progress < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
+  function duration(months) {
+    const m = Math.round(Math.abs(months));
+    const y = Math.floor(m / 12), r = m % 12;
+    if (Persona.get() === 'fire') return (y ? `${y}y ` : '') + (r || !y ? `${r}m` : '').trim();
+    const yp = y ? `${y} yr${y === 1 ? '' : 's'}` : '';
+    const mp = r ? `${r} mo${r === 1 ? '' : 's'}` : '';
+    return [yp, mp].filter(Boolean).join(' ') || 'under a month';
   }
+  // Calendar year `months` after `from` — the one way every freedom date on this page is worked out.
+  const yearAfter = (from, months) => new Date(from.getFullYear(), from.getMonth() + months, 1).getFullYear();
+  const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  // Builds the "You've built the first 7% of your freedom" sentence. Kept separate
-  // from animateHero() so it's easy to reason about in isolation — it's just string
-  // composition, no animation state.
-  function buildHeroNarrative(pct, deltaPct) {
-    const pctPart = pct > 0 ? `You've built the first ${pct}% of your freedom.` : `You're at the very start of your freedom journey.`;
-    if (deltaPct == null) return pctPart;
-    if (deltaPct > 0) return `${pctPart} You're moving ${deltaPct}% faster than last month.`;
-    if (deltaPct < 0) return `${pctPart} That's ${Math.abs(deltaPct)}% behind last month — worth a look at what changed.`;
-    return `${pctPart} Steady since last month.`;
-  }
-
-  // Hero: the count-up is the ONE thing that moves here — everything else (the
-  // "Freedom Level" label, the delta badge, the narrative sentence) just appears,
-  // in order, once the number has landed and been allowed to linger for a beat.
-  // Numbers count. Information appears. That's the whole hero.
-  function animateHero(pct, years, deltaText, freedomYear, narrativeText) {
-    const pctEl = document.getElementById('heroPct');
-    const barEl = document.getElementById('heroBarFill');
-    const dotEl = document.getElementById('heroBarDot');
-    const labelEl = document.querySelector('.hero-label');
-    const deltaEl = document.getElementById('heroDelta');
-    const narrativeEl = document.getElementById('heroNarrative');
-    const freedomDateRow = document.getElementById('heroFreedomDateRow');
-    document.getElementById('heroYears').textContent = years != null ? years : '—';
-    if (deltaText) deltaEl.textContent = deltaText; else deltaEl.style.display = 'none';
-    if (narrativeText) narrativeEl.textContent = narrativeText;
-    if (freedomYear != null) { document.getElementById('heroFreedomYear').textContent = freedomYear; }
-    else { freedomDateRow.style.display = 'none'; }
-
-    if (prefersReducedMotion) {
-      pctEl.textContent = pct;
-      barEl.style.width = pct + '%';
-      dotEl.classList.add('settled');
-      labelEl.classList.add('shown');
-      deltaEl.classList.add('shown');
-      narrativeEl.classList.add('shown');
-    } else {
-      const begin = () => {
-        barEl.style.width = pct + '%';
-        const start = performance.now();
-        function tick(now) {
-          const progress = Math.min(1, (now - start) / TIMELINE_HERO_DURATION_MS);
-          // Quartic ease-out — a more pronounced deceleration than a standard cubic,
-          // so the count visibly slows and hovers near its final value rather than
-          // arriving at a constant clip. The explicit pause below does the rest of
-          // the "lingers for a moment" work.
-          const eased = 1 - Math.pow(1 - progress, 4);
-          pctEl.textContent = Math.round(eased * pct);
-          if (progress < 1) {
-            requestAnimationFrame(tick);
-          } else {
-            // The number lands, then is left alone for a beat before anything else
-            // reacts to it — label, then delta, then narrative, each its own quiet
-            // arrival rather than four things happening in the same instant.
-            setTimeout(() => {
-              dotEl.classList.add('settled');
-              labelEl.classList.add('shown');
-              setTimeout(() => { deltaEl.classList.add('shown'); }, 180);
-              setTimeout(() => { narrativeEl.classList.add('shown'); }, 380);
-            }, 180);
-          }
-        }
-        requestAnimationFrame(tick);
-      };
-      // Wait out whatever's left of the timeline before the number comes alive.
-      const elapsed = performance.now() - pageLoadStart;
-      setTimeout(begin, Math.max(0, TIMELINE_HERO_BEGIN_MS - elapsed));
-    }
-  }
-
-  // Your Trajectory — two lines from "You" to two arrival points, sharing one time
-  // axis so the gap between the dots IS the "potential gain" figure below, not a
-  // separate claim. "Optimised" is always the same named lever (an extra $50/week
-  // saved, invested at 7%) — the same lever buildNeedleCard() in firepath_pro.html
-  // already uses, not a new number invented for this page. Only renders when the
-  // gain is real and meaningful (> ~1 month); a lever that doesn't actually move the
-  // date isn't worth a whole section claiming it does.
-  function renderTrajectory(currentYears, currentFreedomYear, optimisedYears, optimisedFreedomYear, startYear) {
-    const section = document.getElementById('trajectorySection');
-    const gainYears = Math.round((currentYears - optimisedYears) * 10) / 10;
-    if (currentYears == null || optimisedYears == null || gainYears < 0.1) { section.style.display = 'none'; return; }
-
-    // yBase raised well above yTop (was 98, close enough to yTop that the two lines
-    // read as nearly one line when the optimised gain was a small slice of a long
-    // timeline) — a taller vertical span makes the two paths visibly diverge across
-    // their length instead of only differing right at the very end.
-    const x0 = 16, xFull = 300, yTop = 14, yBase = 140;
-    const xOptimisedRaw = x0 + Math.min(1, optimisedYears / currentYears) * (xFull - x0);
-    // When the gain is a small slice of a long timeline, the two arrival dots land
-    // almost on top of each other — floating year labels used to be positioned off
-    // these coordinates and would collide/cross the lines in exactly that case (a
-    // real screenshot showed "2052" sliced through by the current-path stroke).
-    // The years now live in the stat rows below instead, in text that can't overlap
-    // anything; this minimum gap just keeps the two dots visually distinguishable.
-    const minGap = 16;
-    const xOptimised = Math.min(xOptimisedRaw, xFull - minGap);
-
-    // Straight-line lengths for the self-draw below — a plain distance formula is
-    // enough here since both paths are simple lines, so there's no need to insert
-    // the element first just to call getTotalLength() on it.
-    const currentLen = Math.round(Math.hypot(xFull - x0, yTop - yBase));
-    const optimisedLen = Math.round(Math.hypot(xOptimised - x0, yTop - yBase));
-
-    document.getElementById('trajectorySvgWrap').innerHTML = `
-      <svg viewBox="0 0 320 160" width="100%" role="img" aria-label="Trajectory from today to financial freedom, current path versus an optimised path">
-        <defs>
-          <linearGradient id="trajGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--fire-orange)" stop-opacity="0.28"/>
-            <stop offset="100%" stop-color="var(--fire-orange)" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <polygon class="trajectory-area-optimised" id="trajAreaOptimised" fill="url(#trajGradient)" points="${x0},${yBase} ${xOptimised},${yTop} ${xOptimised},160 ${x0},160"/>
-        <line class="trajectory-target-line" x1="${x0}" y1="${yTop}" x2="${xFull}" y2="${yTop}"/>
-        <text class="trajectory-label" x="${x0}" y="${yTop - 5}">Financial freedom</text>
-        <line class="trajectory-path-current" id="trajPathCurrent" x1="${x0}" y1="${yBase}" x2="${xFull}" y2="${yTop}" stroke-dasharray="${currentLen}" stroke-dashoffset="${currentLen}"/>
-        <line class="trajectory-path-optimised" id="trajPathOptimised" x1="${x0}" y1="${yBase}" x2="${xOptimised}" y2="${yTop}" stroke-dasharray="${optimisedLen}" stroke-dashoffset="${optimisedLen}"/>
-        <circle class="trajectory-dot-current" id="trajDotEnd" cx="${xFull}" cy="${yTop}" r="4" style="opacity:0;"/>
-        <circle class="trajectory-dot-optimised" id="trajDotOptimised" cx="${xOptimised}" cy="${yTop}" r="4" style="opacity:0;"/>
-        <circle class="trajectory-dot-current" cx="${x0}" cy="${yBase}" r="3.5"/>
-        <text class="trajectory-label" x="${x0}" y="${yBase + 15}">You · ${startYear}</text>
-      </svg>`;
-
-    document.getElementById('trajectoryStats').innerHTML = `
-      <div class="trajectory-stat-row">
-        <span class="trajectory-stat-label">Current path<small>Freedom in ${currentFreedomYear}</small></span>
-        <span class="trajectory-stat-value">${currentYears} years</span>
-      </div>
-      <div class="trajectory-stat-row">
-        <span class="trajectory-stat-label">With optimisation<small>$50/week extra saved, invested at 7% — freedom in ${optimisedFreedomYear}</small></span>
-        <span class="trajectory-stat-value">${optimisedYears} years</span>
-      </div>
-      <div class="trajectory-stat-row gain trajectory-gain-hidden" id="trajGainRow">
-        <span class="trajectory-stat-label">Potential gain</span>
-        <span class="trajectory-stat-value">${gainYears} years sooner</span>
-      </div>`;
-    // Visible now — but every element inside starts in its hidden/undrawn state
-    // (dashoffset = full length, dots at opacity 0, gain row hidden), so nothing
-    // is actually seen yet. Building this early, as soon as real data exists,
-    // means it's ready the instant the timeline below calls for it — the DATA
-    // being ready and the ANIMATION being allowed to start are two separate
-    // things now, which is the whole fix for the "multiple clocks" problem.
-    section.style.display = 'block';
-
-    const currentPathEl = document.getElementById('trajPathCurrent');
-    const optimisedPathEl = document.getElementById('trajPathOptimised');
-    const dotEndEl = document.getElementById('trajDotEnd');
-    const dotOptimisedEl = document.getElementById('trajDotOptimised');
-    const areaOptimisedEl = document.getElementById('trajAreaOptimised');
-    const gainRowEl = document.getElementById('trajGainRow');
-
-    // Self-draw: "here's where you're going" (current path, grey) draws first —
-    // a full, deliberate 1.4s beat — then a real pause, then "here's what could
-    // change it" (optimised path, orange) draws over 1.2s, then another real
-    // pause before the payoff line fades in. Two distinct thoughts landing one
-    // after the other, not one blurred-together effect.
-    const CURRENT_DRAW_MS = 1400;
-    const PAUSE_1_MS = 350;
-    const OPTIMISED_DRAW_MS = 1200;
-    const PAUSE_2_MS = 400;
-
-    const playDraw = () => {
-      if (prefersReducedMotion) {
-        currentPathEl.style.strokeDashoffset = '0';
-        optimisedPathEl.style.strokeDashoffset = '0';
-        dotEndEl.style.opacity = '1';
-        dotOptimisedEl.style.opacity = '1';
-        areaOptimisedEl.style.opacity = '1';
-        gainRowEl.classList.remove('trajectory-gain-hidden');
-        return;
-      }
-      // Force a reflow so the browser registers the dasharray/dashoffset starting
-      // state above before the values change below — otherwise both changes land
-      // in the same paint and there's nothing for the transition to animate from.
-      void currentPathEl.getBoundingClientRect();
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          currentPathEl.style.transition = `stroke-dashoffset ${CURRENT_DRAW_MS}ms var(--ease-gentle)`;
-          currentPathEl.style.strokeDashoffset = '0';
-          setTimeout(() => { dotEndEl.style.opacity = '1'; }, CURRENT_DRAW_MS);
-          setTimeout(() => {
-            optimisedPathEl.style.transition = `stroke-dashoffset ${OPTIMISED_DRAW_MS}ms var(--ease-gentle)`;
-            optimisedPathEl.style.strokeDashoffset = '0';
-            setTimeout(() => {
-              dotOptimisedEl.style.opacity = '1';
-              areaOptimisedEl.style.opacity = '1';
-            }, OPTIMISED_DRAW_MS);
-          }, CURRENT_DRAW_MS + PAUSE_1_MS);
-          setTimeout(() => {
-            gainRowEl.classList.remove('trajectory-gain-hidden');
-          }, CURRENT_DRAW_MS + PAUSE_1_MS + OPTIMISED_DRAW_MS + PAUSE_2_MS);
-        });
-      });
+  // ── Model — every number on the page comes from here ────
+  // Same formulas as before the redesign: freedom % is invested savings over the
+  // freedom number, and the date is solveMonthsToTarget at 7% with a 4% withdrawal.
+  function buildModel(p) {
+    const savings = p.current_savings || 0;
+    const superBal = p.super_balance || 0;
+    const debt = p.debt_total || 0;
+    const mortgage = p.mortgage_remaining || 0;
+    const offset = p.offset_amount || 0;
+    const freedomNumber = p.freedom_number || 0;
+    const monthlySavings = p.savings_monthly || 0;
+    const annualSpend = freedomNumber > 0 ? freedomNumber / 25 : 0;
+    const months = annualSpend > 0 ? Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend, RATE) : null;
+    const now = new Date();
+    return {
+      p, savings, superBal, debt, mortgage, offset, freedomNumber, monthlySavings, annualSpend, months,
+      // Net worth — savings, super and offset, minus everything owed (formula version 3).
+      netWorth: (savings + superBal + offset) - (debt + mortgage),
+      pct: freedomNumber > 0 ? Math.min(100, Math.round((savings / freedomNumber) * 100)) : 0,
+      age: p.age || null,
+      currentYear: now.getFullYear(),
+      freedomYear: months != null ? yearAfter(now, months) : null,
+      savingsRate: p.savings_rate != null ? p.savings_rate : null
     };
-
-    if (prefersReducedMotion) {
-      playDraw();
-    } else {
-      // Same shared clock the hero uses — the trajectory waits its turn on the one
-      // page timeline rather than starting the instant its own data happens to
-      // arrive (which, on a fast connection, could be before the hero has even
-      // finished counting).
-      const elapsed = performance.now() - pageLoadStart;
-      setTimeout(playDraw, Math.max(0, TIMELINE_TRAJECTORY_BEGIN_MS - elapsed));
-    }
   }
 
-  // Since Last Month — an editorial strip, not another dashboard. Only ever shows
-  // fields it actually has real before/after data for; older snapshot rows saved
-  // before netWorth/savingsRate were captured just skip those two rows rather than
-  // showing a fabricated number.
-  function renderSinceLastMonth(rows) {
-    const section = document.getElementById('sinceSection');
-    const list = document.getElementById('sinceList');
-    if (!rows || rows.length === 0) { section.style.display = 'none'; return; }
-    list.innerHTML = rows.map(r => `
+  // ── Header ─────────────────────────────────────────────
+  function renderHeader(p) {
+    const h = new Date().getHours();
+    const greet = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    const email = localStorage.getItem('fp_email') || '';
+    const raw = email.split('@')[0].split(/[._-]/)[0];
+    const name = raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : '';
+    $('greetTitle').textContent = `${greet}${name ? ', ' + name : ''}.`;
+    const today = new Date().toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' });
+    let updated = '';
+    if (p.updated_at) {
+      const days = Math.floor((Date.now() - new Date(p.updated_at).getTime()) / 864e5);
+      updated = days <= 0 ? ' · Numbers updated today' : days === 1 ? ' · Numbers updated yesterday' : ` · Numbers updated ${days} days ago`;
+    }
+    $('greetSub').textContent = today + updated;
+  }
+
+  // ── Hero ───────────────────────────────────────────────
+  function narrative(m) {
+    const persona = Persona.get();
+    const remaining = Math.max(0, m.freedomNumber - m.savings);
+    if (m.months == null) {
+      return persona === 'fire'
+        ? `Not reaching FI inside 40 years at current contributions. SR and spend are the levers — see below.`
+        : `At today's pace your savings don't reach your freedom number within 40 years. The levers below show what changes that.`;
+    }
+    if (persona === 'beginner') {
+      return `You've saved ${m.pct}% of what you'd need for work to become optional. Money saved early does the most work — it has the longest to grow.`;
+    }
+    if (persona === 'fire') {
+      return `${m.pct}% FI. ${money(remaining)} to go at a 4% SWR, ${money(m.monthlySavings)}/mo contributions, 7% real.`;
+    }
+    return `You're ${m.pct}% of the way to your freedom number. Keep saving ${money(m.monthlySavings)} a month and you get there in ${m.freedomYear}.`;
+  }
+
+  function renderHero(m) {
+    const yearEl = $('heroYear');
+    yearEl.classList.remove('skeleton');
+    yearEl.textContent = m.freedomYear != null ? m.freedomYear : '40+ yrs';
+    const parts = [];
+    if (m.months != null) {
+      if (m.age) parts.push(`Age <strong>${Math.floor(m.age + m.months / 12)}</strong>`);
+      parts.push(`<strong>${duration(m.months)}</strong> from now`);
+    } else {
+      parts.push('Beyond 40 years at your current pace');
+    }
+    $('heroMeta').innerHTML = parts.join(' · ');
+    $('heroNarrative').textContent = narrative(m);
+
+    $('progressPct').textContent = `${m.pct}%`;
+    $('progressAmounts').textContent = `${money(m.savings)} of ${money(m.freedomNumber)}`;
+    renderMilestones(m);
+    requestAnimationFrame(() => requestAnimationFrame(() => { $('trackFill').style.width = `${m.pct}%`; }));
+  }
+
+  // Milestones on the progress track. Coast = the balance that grows to the freedom
+  // number by 60 with no further saving (same 7%), which is what "coast" means.
+  function renderMilestones(m) {
+    const persona = Persona.get();
+    const list = [];
+    if (m.age && m.age < 58) {
+      const coastPct = Math.round(100 / Math.pow(1 + RATE, 60 - m.age));
+      if (coastPct >= 3 && coastPct <= 85) list.push({ at: coastPct, name: Persona.copy('coastTerm'), hint: persona === 'beginner' ? 'Grows on its own by 60' : 'FI by 60 without saving more' });
+    }
+    list.push({ at: 50, name: persona === 'fire' ? '50% FI' : 'Halfway', hint: money(m.freedomNumber / 2) });
+    list.push({ at: 100, name: persona === 'fire' ? 'FI' : 'Work optional', hint: money(m.freedomNumber) });
+    // Drop a label that would collide with the one before it (needs more room on phones).
+    const track = $('track');
+    const minGap = track.clientWidth < 420 ? 38 : 18;
+    const shown = [];
+    list.forEach(ms => {
+      const last = shown[shown.length - 1];
+      if (!last || ms.at === 100 || ms.at - last.at >= minGap) shown.push(ms);
+    });
+
+    track.querySelectorAll('.milestone').forEach(n => n.remove());
+    $('milestoneLabels').innerHTML = '';
+    shown.forEach(ms => {
+      const reached = m.pct >= ms.at;
+      const dot = document.createElement('span');
+      dot.className = 'milestone' + (reached ? ' reached' : '');
+      dot.style.left = `${ms.at}%`;
+      dot.title = `${ms.name} — ${ms.hint}`;
+      track.appendChild(dot);
+      const label = document.createElement('div');
+      label.className = 'milestone-label' + (reached ? ' reached' : '') + (ms.at >= 95 ? ' edge-end' : ms.at <= 22 ? ' edge-start' : '');
+      label.style.left = ms.at >= 95 ? '100%' : `${ms.at}%`;
+      label.innerHTML = `<b>${escapeHtml(ms.name)}</b>${escapeHtml(ms.hint)}`;
+      $('milestoneLabels').appendChild(label);
+    });
+  }
+
+  function renderHeroDelta(deltaPct) {
+    const chip = $('heroDelta');
+    if (!deltaPct) { chip.hidden = true; return; }
+    chip.hidden = false;
+    chip.className = 'chip ' + (deltaPct > 0 ? 'chip-positive' : 'chip-negative');
+    chip.textContent = `${deltaPct > 0 ? '▲' : '▼'} ${Math.abs(deltaPct)} pt${Math.abs(deltaPct) === 1 ? '' : 's'} since last check-in`;
+  }
+
+  // ── Projection chart ───────────────────────────────────
+  // Portfolio (invested savings) year by year on the current path and with an extra
+  // $50 a week, against the freedom number. Hover or drag for exact values.
+  let chartDrawn = false;
+  // Round axis steps ($250K, $500K, $1M…) so every gridline label is a clean number.
+  function niceStep(raw) {
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    for (const s of [1, 2, 2.5, 5, 10]) { if (s * mag >= raw) return s * mag; }
+    return 10 * mag;
+  }
+
+  function renderProjection(m) {
+    const wrap = $('chartWrap');
+    const tip = $('chartTip');
+    const W = Math.max(280, wrap.clientWidth);
+    const H = W < 520 ? 210 : 260;
+    const pad = { l: 52, r: 14, t: 16, b: 28 };
+    const reachYears = m.months != null ? m.months / 12 : null;
+    const horizon = Math.max(8, Math.min(40, reachYears != null ? Math.ceil(reachYears + 4) : 30));
+    const extra = EXTRA_WEEKLY * 52 / 12;
+    const steps = horizon * 4;
+    const pts = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = i / 4;
+      pts.push({ t, cur: Engine.projectPortfolio(m.savings, m.monthlySavings, t, RATE), opt: Engine.projectPortfolio(m.savings, m.monthlySavings + extra, t, RATE) });
+    }
+    const goal = m.freedomNumber;
+    const top = Math.max(goal * 1.18, Math.min(pts[steps].cur, goal * 1.6));
+    const yStep = niceStep(top / 4);
+    const yMax = Math.ceil(top / yStep) * yStep;
+    const x = t => pad.l + (t / horizon) * (W - pad.l - pad.r);
+    const y = v => pad.t + (1 - Math.min(v, yMax) / yMax) * (H - pad.t - pad.b);
+    const line = key => pts.map((d, i) => `${i ? 'L' : 'M'}${x(d.t).toFixed(1)},${y(d[key]).toFixed(1)}`).join('');
+    const area = `${line('cur')}L${x(horizon).toFixed(1)},${y(0)}L${x(0)},${y(0)}Z`;
+
+    const yTicks = [];
+    for (let v = yStep; v <= yMax + 1; v += yStep) yTicks.push(v);
+    const xTicks = [];
+    for (let t = 1; t <= horizon; t++) { if ((m.currentYear + t) % 5 === 0) xTicks.push(t); }
+    if (W < 520 && xTicks.length > 4) for (let i = xTicks.length - 1; i >= 0; i -= 2) xTicks.splice(i, 1);
+
+    let marker = '';
+    if (reachYears != null && reachYears <= horizon) {
+      const mx = x(reachYears), my = y(goal);
+      const label = String(m.freedomYear);
+      const lw = label.length * 7 + 16;
+      const lx = Math.min(W - pad.r - lw, Math.max(pad.l, mx - lw / 2));
+      marker = `
+        <line x1="${mx}" x2="${mx}" y1="${my}" y2="${y(0)}" stroke="var(--ember)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>
+        <rect x="${lx}" y="${my - 30}" width="${lw}" height="20" rx="10" fill="var(--ink)"/>
+        <text x="${lx + lw / 2}" y="${my - 16}" text-anchor="middle" style="fill:var(--bg);font-weight:600">${label}</text>
+        <circle cx="${mx}" cy="${my}" r="5.5" fill="var(--surface)" stroke="var(--ember)" stroke-width="2.5"/>`;
+    }
+
+    const svg = `
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Projected invested savings reaching ${money(goal)} in ${m.freedomYear || 'more than 40 years'}">
+        <defs>
+          <linearGradient id="pgFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--ember)" stop-opacity="0.16"/>
+            <stop offset="1" stop-color="var(--ember)" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="pgReveal"><rect id="pgRevealRect" x="0" y="0" width="${chartDrawn || reduceMotion ? W : 0}" height="${H}"/></clipPath>
+        </defs>
+        ${yTicks.map(v => `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pad.l - 10}" y="${y(v) + 4}" text-anchor="end">${money(v)}</text>`).join('')}
+        <line x1="${pad.l}" x2="${W - pad.r}" y1="${y(0)}" y2="${y(0)}" stroke="var(--line-strong)" stroke-width="1"/>
+        <text x="${x(0)}" y="${H - 8}" text-anchor="start">Today</text>
+        ${xTicks.map(t => `<text x="${x(t)}" y="${H - 8}" text-anchor="middle">${m.currentYear + t}</text>`).join('')}
+        <line x1="${pad.l}" x2="${W - pad.r}" y1="${y(goal)}" y2="${y(goal)}" stroke="var(--ink-3)" stroke-width="1.25" stroke-dasharray="4 4"/>
+        <text x="${pad.l + 8}" y="${y(goal) - 7}" style="fill:var(--ink-2);font-weight:500">${escapeHtml(Persona.copy('freedomNumberLabel'))} · ${money(goal)}</text>
+        <g clip-path="url(#pgReveal)">
+          <path d="${area}" fill="url(#pgFill)"/>
+          <path d="${line('opt')}" fill="none" stroke="var(--ember)" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/>
+          <path d="${line('cur')}" fill="none" stroke="var(--ink)" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round"/>
+        </g>
+        ${marker}
+        <g id="pgHover" style="opacity:0">
+          <line id="pgHoverLine" y1="${pad.t}" y2="${y(0)}" stroke="var(--ink)" stroke-width="1" opacity="0.25"/>
+          <circle id="pgHoverOpt" r="4" fill="var(--surface)" stroke="var(--ember)" stroke-width="2"/>
+          <circle id="pgHoverCur" r="4.5" fill="var(--ink)" stroke="var(--surface)" stroke-width="2"/>
+        </g>
+        <rect id="pgHit" x="${pad.l}" y="0" width="${W - pad.l - pad.r}" height="${H}" fill="transparent" style="cursor:crosshair"/>
+      </svg>`;
+    wrap.querySelectorAll('svg').forEach(n => n.remove());
+    wrap.insertAdjacentHTML('afterbegin', svg);
+
+    if (!chartDrawn && !reduceMotion) {
+      const r = $('pgRevealRect');
+      const start = performance.now(), dur = 1400;
+      const step = now => {
+        const k = Math.min(1, (now - start) / dur);
+        r.setAttribute('width', W * (1 - Math.pow(1 - k, 3)));
+        if (k < 1) requestAnimationFrame(step);
+      };
+      setTimeout(() => requestAnimationFrame(step), 250);
+    }
+    chartDrawn = true;
+
+    const hover = $('pgHover'), hit = $('pgHit');
+    const show = evt => {
+      const rect = hit.getBoundingClientRect();
+      const px = Math.max(0, Math.min(rect.width, evt.clientX - rect.left));
+      const t = Math.round((px / rect.width) * horizon * 4) / 4;
+      const d = pts[Math.round(t * 4)];
+      const cx = x(d.t);
+      $('pgHoverLine').setAttribute('x1', cx); $('pgHoverLine').setAttribute('x2', cx);
+      $('pgHoverCur').setAttribute('cx', cx); $('pgHoverCur').setAttribute('cy', y(d.cur));
+      $('pgHoverOpt').setAttribute('cx', cx); $('pgHoverOpt').setAttribute('cy', y(d.opt));
+      hover.style.opacity = 1;
+      const yr = m.currentYear + Math.floor(d.t);
+      const ageTxt = m.age ? ` · age ${Math.floor(m.age + d.t)}` : '';
+      tip.innerHTML = `<div><b>${d.t === 0 ? 'Today' : yr}</b><span class="tip-muted">${ageTxt}</span></div>
+        <div class="tip-row"><span class="tip-muted">Current path</span><b>${money(d.cur)}</b></div>
+        <div class="tip-row"><span class="tip-muted">+$50 a week</span><b>${money(d.opt)}</b></div>`;
+      const tipW = 170;
+      tip.style.left = `${Math.min(W - tipW / 2, Math.max(tipW / 2, cx))}px`;
+      tip.style.top = `${Math.max(0, y(d.cur) - 96)}px`;
+      tip.classList.add('show');
+    };
+    const hide = () => { hover.style.opacity = 0; tip.classList.remove('show'); };
+    hit.addEventListener('pointermove', show);
+    hit.addEventListener('pointerdown', show);
+    hit.addEventListener('pointerleave', hide);
+  }
+
+  // ── KPIs ───────────────────────────────────────────────
+  function setKpi(id, value, sub) {
+    const el = $(id);
+    el.classList.remove('skeleton');
+    el.textContent = value;
+    $(id + 'Sub').innerHTML = sub;
+  }
+  function renderKpis(m, prev) {
+    const persona = Persona.get();
+    let nwSub = persona === 'beginner' ? 'What you own minus what you owe' : 'Assets less debts, incl. super';
+    if (prev && prev.picture && prev.picture.netWorth != null && prev.picture.netWorthFormulaVersion === 3) {
+      const d = m.netWorth - prev.picture.netWorth;
+      if (d) nwSub = `<span class="${d > 0 ? 'delta-up' : 'delta-down'}">${d > 0 ? '▲' : '▼'} ${money(Math.abs(d))}</span> since last check-in`;
+    }
+    setKpi('kpiNetWorth', money(m.netWorth), nwSub);
+    setKpi('kpiInvested', money(m.savings), persona === 'beginner' ? 'Money you can use before 60' : persona === 'fire' ? 'Accessible pre-preservation' : 'Outside super');
+    setKpi('kpiSuper', money(m.superBal), persona === 'beginner' ? "Locked until you're 60" : 'Preservation age 60');
+    let rateSub = `${money(m.monthlySavings)} a month`;
+    if (prev && prev.picture && prev.picture.savingsRate != null && m.savingsRate != null && prev.picture.savingsRate !== m.savingsRate) {
+      const d = m.savingsRate - prev.picture.savingsRate;
+      rateSub = `<span class="${d > 0 ? 'delta-up' : 'delta-down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)} pts</span> · ${rateSub}`;
+    }
+    setKpi('kpiRate', m.savingsRate != null ? `${m.savingsRate}%` : '—', rateSub);
+  }
+
+  // ── Levers — three real recalculations of the same date ─
+  const LEVER_COPY = {
+    more: {
+      beginner: ['Save an extra $50 a week', 'About the cost of a couple of takeaway meals.'],
+      building: ['Save $50 more a week', 'Invested at the same 7% assumption.'],
+      fire: ['+$50/wk contributions', 'Same 7% real return.']
+    },
+    spend: {
+      beginner: ['Spend 10% less', "You'd need less saved, and save more each month — it works twice."],
+      building: ['Cut spending by 10%', 'Lowers your freedom number and lifts your savings.'],
+      fire: ['−10% annual spend', 'Lower FI number and higher SR at once.']
+    },
+    returns: {
+      beginner: ['If investments grow slower', 'Markets vary — this is 6% a year instead of 7%.'],
+      building: ['Returns 1% lower', '6% instead of 7%. Worth knowing the downside.'],
+      fire: ['Real return 6% (−1pt)', 'Sensitivity to your return assumption.']
+    }
+  };
+  function renderLevers(m) {
+    const el = $('levers');
+    if (!(m.annualSpend > 0)) { el.innerHTML = '<p class="lever-empty">Add your numbers to see what moves your date.</p>'; return; }
+    const persona = Persona.get();
+    const base = m.months;
+    const solve = (monthly, spend, rate) => Engine.solveMonthsToTarget(m.savings, monthly, spend, rate);
+    const rows = [
+      { key: 'more', url: 'hearmeout.html', months: solve(m.monthlySavings + EXTRA_WEEKLY * 52 / 12, m.annualSpend, RATE) },
+      { key: 'spend', url: 'hearmeout.html', months: solve(m.monthlySavings + m.annualSpend * 0.1 / 12, m.annualSpend * 0.9, RATE) },
+      { key: 'returns', url: 'withdrawal.html', months: solve(m.monthlySavings, m.annualSpend, RATE - 0.01) }
+    ];
+    el.innerHTML = rows.map(r => {
+      const [title, desc] = LEVER_COPY[r.key][persona];
+      let chip;
+      if (base == null && r.months == null) chip = '<span class="chip">No change</span>';
+      else if (base == null) chip = `<span class="chip chip-positive">Reachable in ${duration(r.months)}</span>`;
+      else if (r.months == null) chip = '<span class="chip chip-negative">40+ yrs</span>';
+      else {
+        const diff = base - r.months;
+        chip = Math.abs(diff) < 1 ? '<span class="chip">No change</span>'
+          : `<span class="chip ${diff > 0 ? 'chip-positive' : 'chip-negative'}">${duration(diff)} ${diff > 0 ? 'sooner' : 'later'}</span>`;
+      }
+      return `<a class="lever" href="${r.url}"><div class="lever-body"><div class="lever-title">${title}</div><div class="lever-desc">${desc}</div></div>${chip}</a>`;
+    }).join('');
+  }
+
+  // ── Next move — the shared recommendNextStep() against the real profile ──
+  const MOVE_ICONS = {
+    learn: '<path d="M12 6.5c-1.8-1.3-4.2-1.8-6.5-1.5v13c2.3-.3 4.7.2 6.5 1.5"/><path d="M12 6.5c1.8-1.3 4.2-1.8 6.5-1.5v13c-2.3-.3-4.7.2-6.5 1.5"/><path d="M12 6.5v13.5"/>',
+    ask: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+    tool: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 3h6"/>',
+    explore: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5 5-2z"/>'
+  };
+  const MOVE_KIND = { learn: 'Read', ask: 'Ask FirePath', tool: 'Open tool', explore: 'Explore' };
+  function renderNextMove(p) {
+    const el = $('opportunityCard');
+    if (!Engine || typeof Engine.recommendNextStep !== 'function') { el.innerHTML = ''; return; }
+    const s = Engine.recommendNextStep(p.savings_type || 'cash', Persona.get(), p.savings_rate || 0, p.super_balance || 0, p.debt_total || 0, p.age, p.has_emergency_fund);
+    const isLearn = s.type === 'learn';
+    const title = isLearn ? s.title : s.name;
+    const url = isLearn ? `learning_lab.html?topic=${s.topic}&track=${s.track}&title=${encodeURIComponent(s.title)}` : s.url;
+    const type = MOVE_ICONS[s.type] ? s.type : 'learn';
+    el.innerHTML = `
+      <div class="move-title">${escapeHtml(s.headline || title)}</div>
+      <p class="move-reason">${escapeHtml(s.reason)}</p>
+      <a href="${url}" class="move-action">
+        <span class="move-icon ${type}"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MOVE_ICONS[type]}</svg></span>
+        <span class="move-body"><span class="move-kind">${MOVE_KIND[type]}</span><span class="move-name" style="display:block">${escapeHtml(title)}</span></span>
+        <span class="move-time">${isLearn ? '7 min' : '2 min'}</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>`;
+  }
+
+  // ── Learn — three reads matched to the knowledge level ──
+  const READS = {
+    beginner: [
+      ['learn/how-compound-interest-works.html', 'How compound interest works, with real Australian examples'],
+      ['learn/what-is-an-index-fund.html', 'What is an index fund?'],
+      ['learn/good-savings-rate.html', "What's a good savings rate for my income?"]
+    ],
+    building: [
+      ['learn/salary-sacrifice-explained.html', 'How salary sacrifice actually works'],
+      ['learn/debt-vs-invest.html', 'Should I pay off debt or invest first?'],
+      ['learn/what-is-coast-fire.html', 'What is Coast FIRE — and could I already be there?']
+    ],
+    fire: [
+      ['learn/four-percent-rule-australia.html', 'The 4% rule — does it hold up for Australian FIRE?'],
+      ['learn/before-super-access.html', 'Bridging the gap before preservation age'],
+      ['learn/franking-credits-australia.html', 'Franking credits and your drawdown']
+    ]
+  };
+  function renderLearn() {
+    $('learnList').innerHTML = READS[Persona.get()].map(([href, title]) => `
+      <a class="read" href="${href}">
+        <span class="read-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MOVE_ICONS.learn}</svg></span>
+        <span class="read-title">${escapeHtml(title)}</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>`).join('');
+  }
+
+  // ── Progress ───────────────────────────────────────────
+  function renderSince(rows) {
+    if (!rows.length) return;
+    $('sinceList').innerHTML = rows.map(r => `
       <div class="since-row">
         <span class="since-label">${r.label}</span>
-        <span class="since-value${r.positive ? ' since-positive' : ''}">${r.before != null ? `${r.before} <span class="since-arrow">→</span> ` : ''}<span class="since-after">${r.after}</span></span>
+        <span class="since-value${r.positive ? ' up' : ''}">${r.before != null ? `<span class="before">${r.before} → </span>` : ''}<span class="after">${r.after}</span></span>
       </div>`).join('');
-    section.style.display = 'block';
   }
 
-
-  // Freedom Unlocked — real calculation, ported directly from journey.html's tested
-  // logic: compares the first-ever journey snapshot to today, using the same
-  // solveMonthsToTarget engine function for both points in time.
-  function renderFreedomUnlocked(years, months, days, historyRows, noteText) {
-    const figuresEl = document.getElementById('fuFigures');
-    figuresEl.innerHTML = (years > 0 ? `<span class="fu-num" id="fuYears">0</span><span class="fu-unit">${years === 1 ? 'year' : 'years'}</span>` : '') +
-      `<span class="fu-num" id="fuMonths">0</span><span class="fu-unit">${months === 1 ? 'month' : 'months'}</span>`;
-    if (years > 0) countUpTo('fuYears', years, 1200);
-    countUpTo('fuMonths', months, 1200);
-    document.querySelector('.fu-emotional').textContent =
-      `You've already brought your freedom date forward by ${years > 0 ? years + ' year' + (years === 1 ? '' : 's') + ' and ' : ''}${months} month${months === 1 ? '' : 's'}.`;
-    document.getElementById('fuHistory').innerHTML = historyRows + `<div class="fu-history-note">${noteText}</div>`;
+  function renderFreedomUnlocked(years, months, historyRows, note) {
+    const fu = $('fuCard');
+    $('fuFigure').innerHTML = (years > 0 ? `${years}<small>${years === 1 ? 'year' : 'years'}</small>` : '') + `${months}<small>${months === 1 ? 'month' : 'months'}</small>`;
+    $('fuText').textContent = `You've brought your freedom date forward by ${years > 0 ? years + ' year' + (years === 1 ? '' : 's') + ' and ' : ''}${months} month${months === 1 ? '' : 's'} since your first check-in.`;
+    $('fuHistory').innerHTML = historyRows + `<div class="fu-history-note">${note}</div>`;
+    fu.hidden = false;
   }
-
-  // Tap-to-expand — the "trophy, not a dropdown" version already signed off as correct
-  const fuCard = document.getElementById('fuCard');
-  const fuHistory = document.getElementById('fuHistory');
-  const fuHint = document.getElementById('fuHint');
   function toggleFu() {
-    const isOpen = fuCard.getAttribute('aria-expanded') === 'true';
-    fuCard.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
-    fuHistory.style.display = isOpen ? 'none' : 'block';
-    fuHint.textContent = isOpen ? 'Calculation details ▾' : 'Hide details ▴';
+    const fu = $('fuCard');
+    const open = fu.getAttribute('aria-expanded') === 'true';
+    fu.setAttribute('aria-expanded', open ? 'false' : 'true');
+    $('fuToggle').textContent = open ? 'How this is calculated ▾' : 'Hide details ▴';
   }
-  fuCard.addEventListener('click', toggleFu);
-  fuCard.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleFu(); } });
+  $('fuCard').addEventListener('click', toggleFu);
+  $('fuCard').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleFu(); } });
 
-  // Monday check-in — real gating, ported directly from journey.html: only fires if
-  // today is genuinely Monday AND it's been 6+ days since the profile was last touched.
-  // "Yes, still accurate" resends the complete profile object with only updated_at
-  // changed — the same safe full-object pattern used everywhere else in this codebase,
-  // since nothing here uses PATCH and a bare partial POST risks nulling out every other
-  // field under this setup's upsert semantics.
+  // Monday check-in — only on a Monday, and only if the profile is 6+ days old.
+  // "Still accurate" resends the full profile with a new updated_at (upsert semantics).
   function renderMondayCheck(p, token) {
-    const isMonday = new Date().getDay() === 1;
-    if (!isMonday || !p.updated_at) return;
-    const daysSince = (Date.now() - new Date(p.updated_at).getTime()) / (1000*60*60*24);
-    if (daysSince < 6) return;
-    const el = document.getElementById('mondayCheck');
-    if (!el) return;
+    if (new Date().getDay() !== 1 || !p.updated_at) return;
+    if ((Date.now() - new Date(p.updated_at).getTime()) / 864e5 < 6) return;
+    const el = $('mondayCheck');
     const dateStr = new Date(p.updated_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
     el.innerHTML = `
-      <div class="monday-check-card fp-reveal">
-        <div class="monday-check-text">Your numbers are from <strong>${dateStr}</strong>. Still roughly right?</div>
-        <div class="monday-check-actions">
-          <button id="mondayConfirmBtn" class="monday-btn-yes">Yes, still accurate</button>
-          <a href="firepath_pro.html?edit=true" class="monday-btn-update">Update my numbers</a>
-        </div>
+      <div class="banner">
+        <span>Your numbers are from <strong>${dateStr}</strong>. Still roughly right?</span>
+        <span class="banner-actions">
+          <button id="mondayConfirmBtn" class="btn btn-primary">Yes, still accurate</button>
+          <a href="firepath_pro.html?edit=true" class="btn btn-quiet">Update</a>
+        </span>
       </div>`;
-    document.getElementById('mondayConfirmBtn').addEventListener('click', async () => {
+    el.hidden = false;
+    $('mondayConfirmBtn').addEventListener('click', async () => {
       try {
         await fetch(`${WORKER_URL}/db/fp_profiles`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'resolution=merge-duplicates' },
           body: JSON.stringify({ ...p, updated_at: new Date().toISOString() })
         });
-        el.style.display = 'none';
-      } catch(e) { console.log('Monday confirmation failed', e); }
+        el.hidden = true;
+      } catch (e) { console.log('Monday confirmation failed', e); }
     });
   }
 
-  // Your Next Move — calls the real, shared recommendNextStep() from financial-engine.js
-  // against the person's actual profile. Handles all four possible destination types the
-  // function can return, not just the one type demonstrated in the earlier fixed-scenario
-  // version. nextStep.headline is the short, imperative framing ("Build your emergency
-  // buffer.") that recommendNextStep() now returns alongside the existing reason text —
-  // falls back to the destination title/name for older cached recommendations that
-  // predate the headline field, so this never renders blank.
-  const OPPORTUNITY_ICONS = {
-    learn: '<path d="M12 6.5c-1.8-1.3-4.2-1.8-6.5-1.5v13c2.3-.3 4.7.2 6.5 1.5"/><path d="M12 6.5c1.8-1.3 4.2-1.8 6.5-1.5v13c-2.3-.3-4.7.2-6.5 1.5"/><path d="M12 6.5v13.5"/>',
-    ask: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
-    tool: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 3h6"/>',
-    explore: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5 5-2z"/>'
-  };
-  const OPPORTUNITY_LABELS = { learn: 'Learn', ask: 'Ask', tool: 'Try', explore: 'Explore' };
-  function renderOpportunityCard(nextStep) {
-    const el = document.getElementById('opportunityCard');
-    if (!el) return;
-    const isLearn = nextStep.type === 'learn';
-    const title = isLearn ? nextStep.title : nextStep.name;
-    const url = isLearn ? `learning_lab.html?topic=${nextStep.topic}&track=${nextStep.track}&title=${encodeURIComponent(nextStep.title)}` : nextStep.url;
-    const timeLabel = isLearn ? '7 min' : '2 min';
-    el.innerHTML = `
-      <div class="move-headline-title">${nextStep.headline || title}</div>
-      <div class="move-why">Why this matters</div>
-      <div class="move-headline">${nextStep.reason}</div>
-      <a href="${url}" class="move-action">
-        <span class="move-action-icon-wrap ${nextStep.type || 'learn'}">
-          <svg class="move-action-icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${OPPORTUNITY_ICONS[nextStep.type] || OPPORTUNITY_ICONS.learn}</svg>
-        </span>
-        <div class="move-action-body">
-          <div class="move-action-label">${OPPORTUNITY_LABELS[nextStep.type] || 'Learn'}</div>
-          <div class="move-action-title">${title}</div>
-        </div>
-        <span class="move-action-time">${timeLabel}</span>
-        <span class="move-action-arrow">→</span>
-      </a>`;
+  // ── Data flow ──────────────────────────────────────────
+  let model = null, prevSnapshot = null;
+
+  function renderAll() {
+    renderHero(model);
+    renderProjection(model);
+    renderKpis(model, prevSnapshot);
+    renderLevers(model);
+    renderNextMove(model.p);
+    renderLearn();
   }
 
-
-  // ── Main data flow — auth, profile fetch, and every calculation feeding the render
-  //    functions above. Ported directly from journey.html's tested logic; nothing here
-  //    is a new formula, just the same proven calculations wired into this page's layout. ──
-  document.addEventListener('DOMContentLoaded', async function() {
+  document.addEventListener('DOMContentLoaded', async () => {
     const token = getToken();
     const userId = getUserId();
     if (!token || !userId) { window.location.href = 'auth.html'; return; }
 
-    if (typeof checkProStatus === 'function') { try { await checkProStatus(); } catch(e) {} }
-    if (localStorage.getItem('fp_is_pro') !== 'true') {
-      window.location.href = 'firepath_pro.html?upgrade=true';
-      return;
-    }
+    if (typeof checkProStatus === 'function') { try { await checkProStatus(); } catch (e) {} }
+    if (localStorage.getItem('fp_is_pro') !== 'true') { window.location.href = 'firepath_pro.html?upgrade=true'; return; }
 
     try {
       const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.status === 401 || res.status === 403) {
-        localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_user_id'); localStorage.removeItem('fp_email');
+        ['fp_access_token', 'fp_user_id', 'fp_email'].forEach(k => localStorage.removeItem(k));
         sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
         window.location.href = 'auth.html';
         return;
       }
       if (!res.ok) return;
-
       const data = await res.json();
-      const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
-      const hasCompletedOnboarding = p && (p.onboarding_completed === true || (p.onboarding_completed == null && p.freedom_number));
-      if (!hasCompletedOnboarding) {
-        window.location.href = 'firepath_pro.html';
-        return;
-      }
+      const p = Array.isArray(data) && data.length ? data[0] : null;
+      const onboarded = p && (p.onboarding_completed === true || (p.onboarding_completed == null && p.freedom_number));
+      if (!onboarded) { window.location.href = 'firepath_pro.html'; return; }
 
+      model = buildModel(p);
+      renderHeader(p);
       renderMondayCheck(p, token);
+      renderAll();
 
-      const hour = new Date().getHours();
-      const greetWord = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-      const displayName = localStorage.getItem('fp_email') ? localStorage.getItem('fp_email').split('@')[0] : '';
-      document.getElementById('greetTitle').textContent = `${greetWord}${displayName ? ', ' + displayName : ''}.`;
+      // Re-render wording when the knowledge level changes; re-draw the chart on resize.
+      Persona.onChange(() => { if (model) renderAll(); });
+      let lastW = $('chartWrap').clientWidth;
+      new ResizeObserver(() => {
+        const w = $('chartWrap').clientWidth;
+        if (model && Math.abs(w - lastW) > 4) { lastW = w; renderProjection(model); }
+      }).observe($('chartWrap'));
 
-      const savings = p.current_savings || 0;
-      const debt = p.debt_total || 0;
-      const mortgage = p.mortgage_remaining || 0;
-      const superBalForNetWorth = p.super_balance || 0;
-      // Money sitting in a mortgage offset is real, owned money — the onboarding
-      // form's own hint text says so explicitly ("separate from what's invested
-      // elsewhere"), it's just parked against the mortgage rather than invested.
-      // Leaving it out was undercounting real net worth by exactly that amount.
-      const offsetAmt = p.offset_amount || 0;
-      // True net worth — savings, investments, super and offset savings, minus
-      // everything owed, mortgage included. Was previously savings minus debt_total
-      // only (silently dropping super, mortgage AND offset), which is how a
-      // Money-page screenshot ended up showing "Net worth $86K" directly above
-      // "Super $35K" as if the second figure were somehow not part of the first.
-      // One honest number now, and money.html's asset/liability breakdown is built
-      // to add up to exactly this same figure — see that file for the full accounting.
-      //
-      // NOTE: existing users' stored snapshots (financial_snapshots.picture.netWorth)
-      // were saved under an OLDER, narrower formula (twice now — first missing
-      // super/mortgage, then also missing offset). The netWorthFormulaVersion guard
-      // below skips comparing against anything saved under an earlier version,
-      // rather than showing a fake jump the next time the formula changes.
-      const netWorth = (savings + superBalForNetWorth + offsetAmt) - (debt + mortgage);
-      const freedomNumber = p.freedom_number;
-      const pct = freedomNumber > 0 ? Math.min(100, Math.round((savings / freedomNumber) * 100)) : 0;
-      const monthlySavings = p.savings_monthly || 0;
-      const annualSpend = freedomNumber > 0 ? freedomNumber / 25 : 0;
-      const monthsToFreedom = (annualSpend > 0 && window.FirePathEngine) ? window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings, annualSpend) : null;
-      const yearsToFreedom = monthsToFreedom != null ? Math.round(monthsToFreedom / 12 * 10) / 10 : null;
-      const currentYear = new Date().getFullYear();
-      const freedomYear = monthsToFreedom != null ? currentYear + Math.floor(monthsToFreedom / 12) : null;
+      const { savings, monthlySavings, annualSpend, freedomNumber, netWorth, pct } = model;
 
-      // Render the primary hero stat immediately, with no dependency on the optional
-      // snapshot-history lookups below. Those only ever ADD a delta badge, a richer
-      // narrative sentence, or the Freedom Unlocked / Since Last Month sections on top
-      // of this — they must never be able to blank out the core percentage/years-to-go
-      // numbers if they fail. (This used to be nested inside the delta try/catch below,
-      // so any failure there — e.g. an older snapshot row saved before the `picture`
-      // field existed — silently skipped this call entirely and left the hero stuck on
-      // its raw "0%" / "—" HTML defaults.)
-      animateHero(pct, yearsToFreedom, null, freedomYear, buildHeroNarrative(pct, null));
-
-      // Your Trajectory — current path vs. an optimised path where an extra $50/week
-      // is saved and invested at the same 7% assumption used everywhere else. Kept
-      // independent of the snapshot-history try/catch below: it only needs today's
-      // inputs, not a previous snapshot, so it shouldn't be able to disappear just
-      // because a delta lookup fails.
-      try {
-        if (annualSpend > 0 && window.FirePathEngine && yearsToFreedom != null) {
-          const optimisedMonthlySavings = monthlySavings + (50 * 52 / 12);
-          const optimisedMonths = window.FirePathEngine.solveMonthsToTarget(savings, optimisedMonthlySavings, annualSpend);
-          const optimisedYears = optimisedMonths != null ? Math.round(optimisedMonths / 12 * 10) / 10 : null;
-          const optimisedFreedomYear = optimisedMonths != null ? currentYear + Math.floor(optimisedMonths / 12) : null;
-          if (optimisedYears != null && optimisedFreedomYear != null) {
-            renderTrajectory(yearsToFreedom, freedomYear, optimisedYears, optimisedFreedomYear, currentYear);
-          }
-        }
-      } catch (e) { console.log('Trajectory calculation failed', e); }
-
-      // Delta vs the previous Journey snapshot — same source-scoping principle as
-      // journey.html: only compares against Journey's own prior snapshots, never
-      // Freedom Gap's, since the two use different percentage methodologies.
-      // Isolated in its own try/catch so a failure here (bad/old snapshot shape, a
-      // non-2xx response, a network hiccup) only costs the delta badge/Since Last
-      // Month strip above, not the hero stat, which has already rendered by this point.
-      let prevSnapshot = null;
+      // Compare with the previous Journey snapshot (Journey's own only — Freedom Gap
+      // uses a different percentage method). A failure here only costs the deltas.
       try {
         const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (snapRes.ok) {
           const snapData = await snapRes.json();
-          prevSnapshot = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
+          prevSnapshot = Array.isArray(snapData) && snapData.length ? snapData[0] : null;
           if (prevSnapshot && prevSnapshot.picture && typeof prevSnapshot.picture.freedomPct === 'number') {
             const deltaPct = pct - prevSnapshot.picture.freedomPct;
-            const deltaText = deltaPct > 0 ? `▲ ${deltaPct}% this month` : deltaPct < 0 ? `▼ ${Math.abs(deltaPct)}% this month` : null;
+            renderHeroDelta(deltaPct);
+            renderKpis(model, prevSnapshot);
 
-            // Fill in the delta badge and the fuller narrative sentence now that we
-            // actually have last month's number — the hero percentage/years/bar
-            // already rendered above via animateHero() and shouldn't be re-animated.
-            const deltaEl = document.getElementById('heroDelta');
-            const narrativeEl = document.getElementById('heroNarrative');
-            if (deltaText) {
-              deltaEl.textContent = deltaText; deltaEl.style.display = ''; deltaEl.classList.add('shown');
-              deltaEl.classList.remove('positive', 'negative');
-              deltaEl.classList.add(deltaPct > 0 ? 'positive' : 'negative');
-            }
-            narrativeEl.textContent = buildHeroNarrative(pct, deltaPct);
-
-            // Since Last Month — only ever built from fields we actually have real
-            // before/after values for. netWorth and savingsRate were only added to the
-            // snapshot's `picture` recently, so older rows simply won't have them —
-            // those rows fall through the `!= null` checks and skip that row rather
-            // than fabricating a before value.
-            const sinceRows = [];
-            sinceRows.push({ label: 'Freedom level', before: `${prevSnapshot.picture.freedomPct}%`, after: `${pct}%`, positive: deltaPct > 0 });
-
-            if (prevSnapshot.inputs && prevSnapshot.inputs.monthlySavings != null && annualSpend > 0 && window.FirePathEngine) {
-              const prevMonths = window.FirePathEngine.solveMonthsToTarget(prevSnapshot.inputs.savings, prevSnapshot.inputs.monthlySavings, annualSpend);
-              const nowMonths = window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
+            const rows = [{ label: Persona.get() === 'fire' ? 'FI %' : 'Progress to freedom number', before: `${prevSnapshot.picture.freedomPct}%`, after: `${pct}%`, positive: deltaPct > 0 }];
+            if (prevSnapshot.inputs && prevSnapshot.inputs.monthlySavings != null && annualSpend > 0) {
+              const prevMonths = Engine.solveMonthsToTarget(prevSnapshot.inputs.savings, prevSnapshot.inputs.monthlySavings, annualSpend);
+              const nowMonths = Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
               if (prevMonths != null && nowMonths != null) {
-                const prevYear = new Date(prevSnapshot.created_at).getFullYear() + Math.floor(prevMonths / 12);
-                const nowYear = currentYear + Math.floor(nowMonths / 12);
-                if (prevYear !== nowYear) {
-                  sinceRows.push({ label: 'Freedom date', before: String(prevYear), after: String(nowYear), positive: nowYear < prevYear });
-                }
+                const prevYear = yearAfter(new Date(prevSnapshot.created_at), prevMonths);
+                const nowYear = yearAfter(new Date(), nowMonths);
+                if (prevYear !== nowYear) rows.push({ label: 'Freedom date', before: String(prevYear), after: String(nowYear), positive: nowYear < prevYear });
               }
             }
-
-            // netWorthFormulaVersion 3 = assets-minus-liabilities, assets including
-            // savings + super + mortgage offset, liabilities being debt + mortgage.
-            // Version 2 (savings+super minus debt+mortgage, no offset) and version
-            // 1/undefined (savings minus debt_total only) were both narrower — each
-            // change would otherwise show a one-off "gain" that's really just a
-            // different yardstick, not real money. Skipping the comparison (same as
-            // any other missing-data case) rather than deleting that history —
-            // Freedom Unlocked still needs the oldest snapshot's savings/monthlySavings,
-            // which this doesn't touch.
-            if (prevSnapshot.picture.netWorth != null && prevSnapshot.picture.netWorthFormulaVersion === 3 && window.FirePathEngine) {
-              const netWorthDelta = netWorth - prevSnapshot.picture.netWorth;
-              if (netWorthDelta !== 0) {
-                sinceRows.push({ label: 'Net worth', before: null, after: `${netWorthDelta > 0 ? '+' : '-'}${window.FirePathEngine.fmtM(Math.abs(netWorthDelta))}`, positive: netWorthDelta > 0 });
-              }
+            // Only compare net worth measured the same way (formula version 3).
+            if (prevSnapshot.picture.netWorth != null && prevSnapshot.picture.netWorthFormulaVersion === 3) {
+              const d = netWorth - prevSnapshot.picture.netWorth;
+              if (d !== 0) rows.push({ label: 'Net worth', before: null, after: `${d > 0 ? '+' : '−'}${money(Math.abs(d))}`, positive: d > 0 });
             }
-
             if (prevSnapshot.picture.savingsRate != null && p.savings_rate != null && prevSnapshot.picture.savingsRate !== p.savings_rate) {
-              sinceRows.push({ label: 'Savings rate', before: `${prevSnapshot.picture.savingsRate}%`, after: `${p.savings_rate}%`, positive: p.savings_rate > prevSnapshot.picture.savingsRate });
+              rows.push({ label: 'Savings rate', before: `${prevSnapshot.picture.savingsRate}%`, after: `${p.savings_rate}%`, positive: p.savings_rate > prevSnapshot.picture.savingsRate });
             }
-
-            renderSinceLastMonth(sinceRows);
+            renderSince(rows);
           }
         }
-      } catch(e) { console.log('Delta calculation failed', e); }
+      } catch (e) { console.log('Delta calculation failed', e); }
 
-      // Freedom Unlocked — compares the FIRST-ever journey snapshot to today. Also
-      // isolated: a failure here just leaves the card hidden (its default state,
-      // set in the HTML above), never blocks the hero stat or the delta badge.
+      // Freedom Unlocked — first-ever Journey snapshot vs today, same engine both times.
       try {
         const oldestRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (oldestRes.ok) {
           const oldestData = await oldestRes.json();
-          const oldestSnapshot = Array.isArray(oldestData) && oldestData.length > 0 ? oldestData[0] : null;
-          if (oldestSnapshot && oldestSnapshot.inputs && oldestSnapshot.inputs.monthlySavings != null
-              && oldestSnapshot.id !== (prevSnapshot && prevSnapshot.id) && annualSpend > 0 && window.FirePathEngine) {
-            const oldInputs = oldestSnapshot.inputs;
-            const monthsThen = window.FirePathEngine.solveMonthsToTarget(oldInputs.savings, oldInputs.monthlySavings, annualSpend);
-            const monthsNow = window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
-            const monthsElapsed = Math.round((Date.now() - new Date(oldestSnapshot.created_at).getTime()) / (1000*60*60*24*30.44));
-            const boughtBackMonths = Math.max(0, (monthsThen - monthsElapsed) - monthsNow);
-            if (boughtBackMonths > 0) {
-              const years = Math.floor(boughtBackMonths / 12);
-              const months = Math.floor(boughtBackMonths % 12);
-              const days = Math.round((boughtBackMonths % 1) * 30.44);
-              const oldDateStr = new Date(oldestSnapshot.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
-              const historyRows = `
-                <div class="fu-history-row"><span>First snapshot (${oldDateStr})</span><span>${window.FirePathEngine.fmtM(oldInputs.savings)} saved, ${window.FirePathEngine.fmtM(oldInputs.monthlySavings)}/mo</span></div>
-                <div class="fu-history-row"><span>Projected months to freedom then</span><span>${monthsThen}</span></div>
-                <div class="fu-history-row"><span>Today</span><span>${window.FirePathEngine.fmtM(savings)} saved, ${window.FirePathEngine.fmtM(monthlySavings)}/mo</span></div>
-                <div class="fu-history-row"><span>Projected months to freedom now</span><span>${monthsNow}</span></div>
-                <div class="fu-history-row"><span>Time elapsed since first snapshot</span><span>${monthsElapsed} months</span></div>
-                <div class="fu-history-row total"><span>Freedom Unlocked</span><span>${years > 0 ? years + 'yr ' : ''}${months}mo</span></div>`;
-              renderFreedomUnlocked(years, months, days, historyRows, 'Same 4% withdrawal rule and 7% growth assumption used throughout FirePath, applied consistently to both points in time.');
-              document.getElementById('fuSection').style.display = 'block';
-            } else {
-              document.getElementById('fuSection').style.display = 'none';
+          const oldest = Array.isArray(oldestData) && oldestData.length ? oldestData[0] : null;
+          if (oldest && oldest.inputs && oldest.inputs.monthlySavings != null && oldest.id !== (prevSnapshot && prevSnapshot.id) && annualSpend > 0) {
+            const oi = oldest.inputs;
+            const monthsThen = Engine.solveMonthsToTarget(oi.savings, oi.monthlySavings, annualSpend);
+            const monthsNow = Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
+            const elapsed = Math.round((Date.now() - new Date(oldest.created_at).getTime()) / (864e5 * 30.44));
+            const bought = Math.max(0, (monthsThen - elapsed) - monthsNow);
+            if (bought > 0) {
+              const years = Math.floor(bought / 12), months = Math.floor(bought % 12);
+              const oldDate = new Date(oldest.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+              const rows = `
+                <div class="fu-history-row"><span>First check-in (${oldDate})</span><span>${money(oi.savings)} saved, ${money(oi.monthlySavings)}/mo</span></div>
+                <div class="fu-history-row"><span>Months to freedom then</span><span>${monthsThen}</span></div>
+                <div class="fu-history-row"><span>Today</span><span>${money(savings)} saved, ${money(monthlySavings)}/mo</span></div>
+                <div class="fu-history-row"><span>Months to freedom now</span><span>${monthsNow}</span></div>
+                <div class="fu-history-row"><span>Time since first check-in</span><span>${elapsed} months</span></div>
+                <div class="fu-history-row total"><span>Freedom unlocked</span><span>${years > 0 ? years + 'y ' : ''}${months}m</span></div>`;
+              renderFreedomUnlocked(years, months, rows, 'Same 4% withdrawal rule and 7% growth assumption at both points in time.');
             }
-          } else {
-            document.getElementById('fuSection').style.display = 'none';
           }
-        } else {
-          document.getElementById('fuSection').style.display = 'none';
         }
-      } catch(e) { console.log('Freedom Unlocked calculation failed', e); document.getElementById('fuSection').style.display = 'none'; }
+      } catch (e) { console.log('Freedom Unlocked calculation failed', e); }
 
-      // Guarded the same way every other FirePathEngine call in this file already is —
-      // if the engine script hasn't loaded for any reason, this card just stays empty
-      // instead of throwing and aborting everything after it (that's what happened
-      // when financial-engine.js failed to parse: this line had no guard and took the
-      // snapshot-save below down with it).
-      if (window.FirePathEngine && typeof window.FirePathEngine.recommendNextStep === 'function') {
-        renderOpportunityCard(window.FirePathEngine.recommendNextStep(
-          p.savings_type || 'cash', p.persona, p.savings_rate || 0, p.super_balance || 0, p.debt_total || 0, p.age, p.has_emergency_fund
-        ));
-      }
-
-      // Throttled to once per day, same pattern as journey.html and Freedom Gap.
+      // Snapshot for next time — throttled to once a day.
       try {
         const shouldSave = !p.updated_at || (Date.now() - new Date(p.updated_at).getTime()) / 3600000 >= 24;
         if (shouldSave) {
           await fetch(`${WORKER_URL}/db/financial_snapshots`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
-            // netWorth and savingsRate feed the Since Last Month strip above; freedomPct
-            // is the only field older code relied on, so it stays first and unchanged.
             body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber, monthlySavings }, picture: { freedomPct: pct, netWorth, netWorthFormulaVersion: 3, savingsRate: p.savings_rate || 0 } })
           });
         }
-      } catch(e) { console.log('Journey snapshot save failed', e); }
-
-    } catch(e) { console.log('Journey load failed', e); }
+      } catch (e) { console.log('Journey snapshot save failed', e); }
+    } catch (e) { console.log('Journey load failed', e); }
   });
 
-  const exploreOverlay = document.getElementById('exploreOverlay');
-  const exploreFooter = document.getElementById('exploreFooter');
-  const menuTrigger = document.getElementById('menuTrigger');
-  const exploreClose = document.getElementById('exploreClose');
-  const dashboardContainer = document.getElementById('dashboardContainer');
-  menuTrigger.addEventListener('click', () => {
-    exploreOverlay.classList.add('open');
-    exploreFooter.classList.add('open');
-    dashboardContainer.classList.add('menu-open');
-    document.body.style.overflow = 'hidden';
-  });
-  exploreClose.addEventListener('click', () => {
-    exploreOverlay.classList.remove('open');
-    exploreFooter.classList.remove('open');
-    dashboardContainer.classList.remove('menu-open');
-    document.body.style.overflow = '';
-  });
+  // Level prompt — shown until a knowledge level is picked.
+  const levelPrompt = $('levelPrompt');
+  const syncPrompt = () => { levelPrompt.hidden = Persona.hasChosen(); };
+  syncPrompt();
+  Persona.onChange(syncPrompt);
+
+  // Mobile "more" menu
+  const explore = $('explore'), trigger = $('menuTrigger');
+  const setMenu = open => {
+    explore.classList.toggle('open', open);
+    explore.setAttribute('aria-hidden', open ? 'false' : 'true');
+    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+  trigger.addEventListener('click', () => setMenu(true));
+  $('exploreClose').addEventListener('click', () => setMenu(false));
+  explore.addEventListener('click', e => { if (e.target.closest('[data-persona-open]')) setMenu(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && explore.classList.contains('open')) setMenu(false); });
+})();
 </script>
 </body>
 </html>

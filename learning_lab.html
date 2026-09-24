@@ -10,132 +10,199 @@
     gtag('config', 'G-Q2QZ662MJ9');
   </script>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>FirePath — Learning Lab</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+  <script src="js/persona.js"></script>
   <style>
-    .lab-hero { text-align:center; padding: 32px 0 24px; }
-    .lab-hero h1 { font-family:'Playfair Display',serif; font-size:clamp(24px,5vw,36px); font-weight:700; margin-bottom:8px; }
-    .lab-hero p { font-size:15px; color:var(--soft-grey); font-weight:300; line-height:1.7; max-width:480px; margin:0 auto; }
-    .track-selector { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
-    .track-card { background:white; border:2px solid var(--border); border-radius:16px; padding:20px; cursor:pointer; transition:all 0.2s; }
-    .track-card:hover { border-color:var(--fire-orange); box-shadow:0 4px 16px rgba(244,98,42,0.1); }
-    .track-card.selected { border-color:var(--fire-orange); background:#FFF7F3; }
-    .track-header { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
-    .track-badge { font-family:'Playfair Display',serif; font-size:14px; font-weight:700; color:white; border-radius:8px; padding:4px 12px; }
-    .track-badge.t5 { background:#7CB97E; }
-    .track-badge.t7 { background:var(--fire-orange); }
-    .track-badge.t10 { background:#C0392B; }
-    .track-badge.ttax { background:#2E5E4E; }
-    .track-badge.tlife { background:#B5657A; }
-    .track-name { font-size:15px; font-weight:500; }
-    .track-desc { font-size:13px; color:var(--soft-grey); font-weight:300; line-height:1.6; }
-    .track-risk { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin-top:8px; }
-    .track-risk.low { color:#7CB97E; }
-    .track-risk.mid { color:var(--fire-orange); }
-    .track-risk.high { color:#C0392B; }
-    .track-risk.life { color:#B5657A; }
-    .section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--fire-orange); margin-bottom:12px; }
-    .topics-list { display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
-    .topic-item { background:white; border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; transition:all 0.2s; }
-    .topic-item:hover { border-color:var(--fire-orange); transform:translateY(-1px); }
-    .topic-item.read { border-color:#A5D6A7; background:#F0FFF4; }
-    .topic-item.saved { border-color:var(--fire-amber); background:#FFFBF0; }
-    .topic-left { display:flex; align-items:center; gap:12px; }
-    .topic-icon { font-size:20px; }
-    .topic-title { font-size:14px; font-weight:500; }
-    .topic-sub { font-size:12px; color:var(--soft-grey); font-weight:300; margin-top:2px; }
-    .topic-arrow { font-size:14px; color:var(--fire-orange); }
-    .pro-lock { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber)); color:white; padding:2px 8px; border-radius:10px; }
-    .read-badge { font-size:10px; font-weight:700; color:#2E7D32; background:#E8F5E9; padding:2px 8px; border-radius:10px; }
-    .saved-badge { font-size:10px; font-weight:700; color:#E65100; background:#FFF3E0; padding:2px 8px; border-radius:10px; }
-    .topic-section-divider { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--soft-grey); margin:16px 0 2px; padding-top:6px; }
-    .topic-section-divider:first-child { margin-top:0; padding-top:0; }
-    .foundation-section { margin-bottom:28px; }
-    .article-view { display:none; }
-    .article-header { margin-bottom:20px; }
-    .article-track-badge { display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:4px 12px; border-radius:20px; color:white; margin-bottom:12px; }
-    .article-track-badge.t5 { background:#7CB97E; }
-    .article-track-badge.t7 { background:var(--fire-orange); }
-    .article-track-badge.t10 { background:#C0392B; }
-    .article-track-badge.foundation { background:var(--warm-brown); }
-    .article-track-badge.ttax { background:#2E5E4E; }
-    .article-track-badge.tlife { background:#B5657A; }
-    .article-title { font-family:'Playfair Display',serif; font-size:clamp(20px,4vw,28px); font-weight:700; margin-bottom:8px; line-height:1.3; }
-    .article-meta { font-size:12px; color:var(--soft-grey); font-weight:300; }
-    .article-body { background:white; border:1.5px solid var(--border); border-radius:16px; padding:24px; margin-bottom:16px; font-size:14px; color:var(--warm-brown); line-height:1.8; font-weight:300; }
-    .article-body h3 { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; margin:20px 0 10px; }
-    .article-body p { margin-bottom:14px; }
-    .article-body strong { font-weight:500; color:var(--warm-brown); }
-    .article-body .highlight-box { background:#FFF7F3; border:1px solid rgba(244,98,42,0.2); border-radius:10px; padding:14px; margin:16px 0; font-size:13px; line-height:1.7; }
-    .article-body .think-box { background:var(--warm-cream); border-left:3px solid var(--fire-orange); padding:14px 16px; border-radius:0 10px 10px 0; margin:16px 0; font-size:13px; line-height:1.7; font-style:italic; }
-    .article-body .misconception-box { background:white; border-left:3px solid var(--warm-brown); border-radius:0 10px 10px 0; padding:14px 16px; margin:16px 0; }
-    .article-body .misconception-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--soft-grey); margin-bottom:6px; display:block; }
-    .article-body .misconception-box p { margin-bottom:0; font-size:13px; }
-    .article-body .example-box { background:var(--warm-cream); border-radius:10px; padding:14px 16px; margin:16px 0; font-size:13px; line-height:1.7; }
-    .article-body .example-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--fire-orange); margin-bottom:6px; display:block; }
-    .article-body .closer-line { font-family:'Playfair Display',serif; font-style:italic; font-size:15px; color:var(--warm-brown); text-align:center; padding:16px 8px 4px; margin-top:16px; border-top:1px solid var(--border); line-height:1.5; }
-    .pro-teaser { background:linear-gradient(135deg,#3D2B1F,#5C3D2E); border-radius:16px; padding:24px; color:white; margin-bottom:16px; text-align:center; }
-    .pro-teaser h3 { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; margin-bottom:8px; }
-    .pro-teaser p { font-size:13px; color:rgba(255,255,255,0.65); font-weight:300; line-height:1.6; margin-bottom:16px; }
-    .pro-teaser-btn { display:inline-block; background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber)); color:white; padding:12px 24px; border-radius:50px; font-size:13px; font-weight:500; cursor:pointer; }
-    .loading-state { text-align:center; padding:40px 20px; }
-    .loading-state p { font-size:14px; color:var(--soft-grey); font-weight:300; margin-top:12px; }
-    .disclaimer { font-size:11px; color:var(--soft-grey); font-style:italic; text-align:center; line-height:1.6; margin-top:8px; }
-    .action-buttons { display:flex; gap:10px; justify-content:center; margin:20px 0; flex-wrap:wrap; }
-    .btn-mark-read { background:white; border:2px solid var(--fire-orange); color:var(--fire-orange); padding:12px 24px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; }
-    .btn-save { background:white; border:2px solid var(--fire-amber); color:#E65100; padding:12px 24px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; }
-    .btn-saved { background:#FFF3E0; border:2px solid var(--fire-amber); color:#E65100; padding:12px 24px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; cursor:pointer; }
-    .saved-section { background:white; border:1.5px solid var(--fire-amber); border-radius:16px; padding:20px; margin-bottom:20px; }
-    .saved-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#E65100; margin-bottom:12px; }
-    .glossary-filter-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
-    .glossary-filter-btn { padding:8px 16px; border-radius:50px; border:1.5px solid var(--border); background:white; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--soft-grey); cursor:pointer; transition:all 0.2s; }
-    .glossary-filter-btn.active { border-color:var(--fire-orange); background:#FFF7F3; color:var(--warm-brown); }
-    .glossary-grid { display:flex; flex-direction:column; gap:10px; }
-    .glossary-card { background:white; border:1.5px solid var(--border); border-radius:14px; overflow:hidden; transition:all 0.2s; }
-    .glossary-card:hover { border-color:var(--fire-orange); }
-    .glossary-card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; cursor:pointer; }
-    .glossary-term { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--fire-orange); }
-    .glossary-full { font-size:13px; font-weight:500; color:var(--warm-brown); margin-top:2px; }
-    .glossary-chevron { font-size:10px; color:var(--soft-grey); transition:transform 0.2s; }
-    .glossary-chevron.open { transform:rotate(180deg); }
-    .glossary-body { display:none; border-top:1px solid var(--border); padding:16px 18px; }
-    .glossary-body.open { display:block; }
-    .glossary-plain { font-size:14px; color:var(--warm-brown); line-height:1.7; font-weight:300; margin-bottom:10px; }
-    .glossary-context { font-size:13px; color:var(--soft-grey); line-height:1.6; font-weight:300; font-style:italic; margin-bottom:12px; }
-    .glossary-personal { background:#FFF7F3; border:1px solid rgba(244,98,42,0.2); border-radius:10px; padding:12px 14px; font-size:13px; color:var(--warm-brown); line-height:1.6; margin-bottom:12px; }
-    .glossary-deep-btn { display:inline-flex; align-items:center; gap:6px; background:white; border:1.5px solid var(--fire-orange); color:var(--fire-orange); padding:8px 16px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; cursor:pointer; }
-    .glossary-deep-result { margin-top:12px; font-size:13px; color:var(--warm-brown); line-height:1.7; font-weight:300; background:var(--warm-cream); border-radius:10px; padding:14px; }
-    .glossary-loading { font-size:12px; color:var(--soft-grey); font-style:italic; }
-    .icon { width:20px; height:20px; flex-shrink:0; vertical-align:-4px; }
+    .lab { max-width: 760px; }
+    .icon { width: 20px; height: 20px; flex-shrink: 0; vertical-align: -4px; }
+
+    /* ── Hero ── */
+    .lab-hero { margin-bottom: 24px; }
+    .lab-hero h1 { font-family: var(--font-display); font-size: clamp(28px, 5vw, 36px); font-weight: 700; line-height: 1.15; letter-spacing: -0.015em; color: var(--ink); margin-bottom: 8px; }
+    .lab-hero h1 .accent { font-style: normal; }
+    .lab-hero p { font-size: 15px; color: var(--ink-2); line-height: 1.65; max-width: 52ch; }
+    .lab-note { margin-bottom: 16px; }
+
+    /* ── Section labels (page-level, overrides nothing in JS) ── */
+    .section-label { margin-bottom: 12px; }
+    .section-label .icon { color: var(--ink-3); }
+    .section-intro { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: -4px 0 14px; }
+
+    /* ── Track cards ── */
+    .track-selector { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+    .track-card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
+      padding: 20px; cursor: pointer;
+      transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
+    }
+    @media (min-width: 768px) { .track-card { padding: 22px 24px; } }
+    .track-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
+    .track-card.selected { border-color: var(--ember); background: #FFF7F2; }
+    .track-card-featured { position: relative; margin: 8px 0 28px; background: #FFF7F2; border-color: rgba(244,98,42,0.35); }
+    .track-card-featured:hover { border-color: var(--ember); }
+    .track-flag { position: absolute; top: -10px; left: 16px; padding: 3px 10px; border-radius: 999px; background: var(--ember); color: #fff; font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+    .track-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+    .track-badge { font-family: var(--font-ui) !important; font-size: 12px !important; font-weight: 600 !important; color: #fff; border-radius: 999px !important; padding: 4px 11px !important; letter-spacing: 0.02em; }
+    .track-badge.t5 { background: var(--green); }
+    .track-badge.t7 { background: var(--ember-ink); }
+    .track-badge.t10 { background: #A33A1C; }
+    .track-badge.ttax { background: #2E5E4E; }
+    .track-badge.tlife { background: var(--purple); }
+    .track-name { font-size: 16px; font-weight: 600; color: var(--ink); }
+    .track-desc { font-size: 14px; color: var(--ink-2); line-height: 1.6; }
+    .track-risk { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; }
+    .track-risk.low { color: var(--green); }
+    .track-risk.mid { color: var(--ember-ink); }
+    .track-risk.high { color: #A33A1C; }
+    .track-risk.life { color: var(--purple); }
+
+    /* ── Topic rows (rendered by JS) ── */
+    .topics-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+    .topic-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; cursor: pointer;
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1);
+      transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
+    }
+    .topic-item:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
+    .topic-item.read { background: var(--surface-2); box-shadow: none; }
+    .topic-item.saved { border-color: rgba(249,168,37,0.5); }
+    .topic-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .topic-icon { font-size: 20px; flex-shrink: 0; width: 28px; text-align: center; }
+    .topic-title { font-size: 14.5px; font-weight: 600; color: var(--ink); line-height: 1.35; }
+    .topic-sub { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; line-height: 1.4; }
+    .topic-arrow { font-size: 14px; color: var(--ember-ink); }
+    .pro-lock, .read-badge, .saved-badge { flex-shrink: 0; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+    .pro-lock { text-transform: uppercase; letter-spacing: 0.06em; background: linear-gradient(135deg, var(--ember), var(--amber)); color: #fff; }
+    .read-badge { color: var(--positive); background: var(--positive-wash); }
+    .saved-badge { color: var(--ember-ink); background: rgba(249,168,37,0.16); }
+    .topic-section-divider { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin: 16px 0 2px; padding-top: 6px; }
+    .topic-section-divider:first-child { margin-top: 0; padding-top: 0; }
+    .foundation-section { margin-bottom: 28px; }
+
+    .saved-section { margin-bottom: 24px; border-color: rgba(249,168,37,0.5); }
+    .saved-section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ember-ink); margin-bottom: 12px; }
+
+    /* ── Back button (views are switched by JS) ── */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; padding: 0; background: none; border: none; cursor: pointer;
+      font: 500 13.5px var(--font-ui); color: var(--ember-ink); border-radius: 6px;
+    }
+    .back-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+    .back-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+    /* ── Article ── */
+    .article-view { display: none; }
+    .article-view .article-header { max-width: 680px; margin-bottom: 20px; }
+    .article-track-badge { display: inline-block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 11px; border-radius: 999px; color: #fff; margin-bottom: 12px; }
+    .article-track-badge.t5 { background: var(--green); }
+    .article-track-badge.t7 { background: var(--ember-ink); }
+    .article-track-badge.t10 { background: #A33A1C; }
+    .article-track-badge.foundation { background: var(--ink); }
+    .article-track-badge.ttax { background: #2E5E4E; }
+    .article-track-badge.tlife { background: var(--purple); }
+    .article-title { font-family: var(--font-display); font-size: clamp(26px, 4.4vw, 36px); font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; color: var(--ink); margin-bottom: 8px; }
+    .article-meta { font-size: 13px; color: var(--ink-2); }
+
+    /* Lesson body — long-form reading via .prose, inside a card */
+    .article-body {
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
+      padding: 22px 20px; margin-bottom: 16px; overflow-wrap: break-word;
+    }
+    @media (min-width: 768px) { .article-body { padding: 36px 40px; } }
+    .article-body.prose { font-size: 16px; }
+    @media (min-width: 768px) { .article-body.prose { font-size: 17px; } }
+    .article-body > * { max-width: 68ch; }
+    .article-body h3 { font-family: var(--font-display); font-size: 21px; font-weight: 700; line-height: 1.3; color: var(--ink); margin-top: 1.8em; }
+    .article-body h3:first-child { margin-top: 0; }
+    .article-body p { margin-bottom: 0; }
+    .article-body strong { font-weight: 600; color: var(--ink); }
+    .article-body .highlight-box { background: #FFF7F2; border: 1px solid rgba(244,98,42,0.22); border-radius: var(--r-md); padding: 16px 18px; font-size: 0.94em; line-height: 1.65; color: var(--ink); }
+    .article-body .think-box { background: var(--surface-2); border-left: 3px solid var(--ember); padding: 14px 18px; border-radius: 0 var(--r-sm) var(--r-sm) 0; font-size: 0.94em; line-height: 1.65; font-style: italic; }
+    .article-body .misconception-box { background: var(--surface-2); border-left: 3px solid var(--ink); border-radius: 0 var(--r-sm) var(--r-sm) 0; padding: 14px 18px; }
+    .article-body .misconception-label, .article-body .example-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 6px; display: block; font-style: normal; }
+    .article-body .example-label { color: var(--ember-ink); }
+    .article-body .misconception-box p { margin: 0; font-size: 0.94em; }
+    .article-body .example-box { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 18px; font-size: 0.94em; line-height: 1.65; }
+    .article-body .example-box > * + * { margin-top: 0.6em; }
+    .article-body .closer-line { font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 1.12em; color: var(--ink); text-align: center; padding: 20px 8px 4px; margin-top: 1.6em; border-top: 1px solid var(--line); line-height: 1.5; max-width: none; }
+
+    .pro-teaser { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-lg); padding: 24px; color: var(--bg); margin-bottom: 16px; text-align: center; }
+    .pro-teaser h3 { font-family: var(--font-display); font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+    .pro-teaser p { font-size: 13.5px; color: rgba(253,246,238,0.7); line-height: 1.6; margin-bottom: 16px; }
+    .pro-teaser-btn { display: inline-block; background: linear-gradient(135deg, var(--ember), var(--amber)); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 13.5px; font-weight: 500; cursor: pointer; }
+
+    .loading-state { text-align: center; padding: 48px 20px; }
+    .loading-state p { font-size: 14px; color: var(--ink-2); margin-top: 12px; }
+    .loading-dots { display: flex; justify-content: center; gap: 8px; }
+    .loading-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--ember); animation: fp-dot 1.2s ease infinite; }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes fp-dot { 0%, 80%, 100% { transform: translateY(0); opacity: 0.5; } 40% { transform: translateY(-6px); opacity: 1; } }
+
+    .disclaimer { font-size: 12px; color: var(--ink-3); font-style: italic; text-align: center; line-height: 1.6; margin-top: 12px; }
+
+    /* Mark-complete / save — JS swaps .btn-save ↔ .btn-saved and sets inline colours on #markReadBtn */
+    .action-buttons { display: flex; gap: 10px; justify-content: center; margin: 24px 0; flex-wrap: wrap; }
+    .btn-mark-read, .btn-save, .btn-saved {
+      height: 44px; padding: 0 20px; border-radius: 999px; cursor: pointer;
+      font: 500 14px var(--font-ui); transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
+    }
+    .btn-mark-read { background: var(--surface); border: 1px solid var(--ember); color: var(--ember-ink); }
+    .btn-save { background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink); }
+    .btn-save:hover { background: var(--surface-2); }
+    .btn-saved { background: rgba(249,168,37,0.16); border: 1px solid rgba(249,168,37,0.5); color: var(--ember-ink); }
+    .btn-mark-read:focus-visible, .btn-save:focus-visible, .btn-saved:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+    /* ── Glossary ── */
+    .glossary-intro { font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-bottom: 16px; }
+    .glossary-filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .glossary-filter-btn { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); font: 500 13px var(--font-ui); color: var(--ink-2); cursor: pointer; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
+    .glossary-filter-btn:hover { color: var(--ink); }
+    .glossary-filter-btn.active { background: var(--surface); color: var(--ink); border-color: var(--line-strong); box-shadow: var(--shadow-1); }
+    .glossary-grid { display: flex; flex-direction: column; gap: 8px; }
+    .glossary-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); overflow: hidden; transition: border-color var(--dur-fast) ease; }
+    .glossary-card:hover { border-color: var(--line-strong); }
+    .glossary-card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; cursor: pointer; }
+    .glossary-term { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--ink); }
+    .glossary-full { font-size: 13px; font-weight: 500; color: var(--ink-2); margin-top: 2px; }
+    .glossary-chevron { font-size: 10px; color: var(--ink-3); transition: transform var(--dur-base) var(--ease); }
+    .glossary-chevron.open { transform: rotate(180deg); }
+    .glossary-body { display: none; border-top: 1px solid var(--line); padding: 16px 18px; }
+    .glossary-body.open { display: block; }
+    .glossary-plain { font-size: 15px; color: var(--ink); line-height: 1.7; margin-bottom: 10px; }
+    .glossary-context { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; font-style: italic; margin-bottom: 12px; }
+    .glossary-personal { background: #FFF7F2; border: 1px solid rgba(244,98,42,0.22); border-radius: var(--r-sm); padding: 12px 14px; font-size: 13.5px; color: var(--ink); line-height: 1.6; margin-bottom: 12px; }
+    .glossary-deep-btn { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink); font: 500 13px var(--font-ui); cursor: pointer; }
+    .glossary-deep-btn:hover { border-color: var(--ember); color: var(--ember-ink); }
+    .glossary-deep-result { margin-top: 12px; font-size: 14px; color: var(--ink-2); line-height: 1.7; background: var(--surface-2); border-radius: var(--r-sm); padding: 14px 16px; }
+    .glossary-loading { font-size: 13px; color: var(--ink-2); font-style: italic; }
   </style>
 </head>
-<body>
+<body class="app" data-shell="app" data-active="learn">
+<script src="js/shell.js"></script>
 
-<nav>
-  <a href="/index.html" class="nav-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span></a>
-  <div class="nav-links">
-    <a href="journey.html" class="nav-link">My Journey</a>
-  </div>
-</nav>
-
-<div class="container">
+<main class="app-main lab">
 
   <!-- TRACK SELECTION VIEW -->
   <div id="trackView">
     <div class="lab-hero">
-      <h1>What's your <span style="color:var(--fire-orange)">return goal?</span></h1>
+      <div class="eyebrow" style="margin-bottom:8px;">Learning Lab</div>
+      <h1>What's your <span class="accent">return goal?</span></h1>
       <p>Choose your track and we'll show you the education that matches — explained in plain English, using your actual numbers.</p>
     </div>
-    <div id="userContext" style="display:none;background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--warm-brown);line-height:1.6;"></div>
+    <div id="userContext" class="callout callout-ember lab-note" style="display:none;"></div>
 
     <!-- Saved articles section -->
-    <div id="savedSection" style="display:none;" class="saved-section">
+    <div id="savedSection" style="display:none;" class="saved-section card">
       <div class="saved-section-title" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved articles</div>
       <div id="savedList" style="display:flex;flex-direction:column;gap:8px;"></div>
     </div>
-    <div id="liveRatesBar" style="background:#FFF7F3;border:1px solid rgba(244,98,42,0.2);border-radius:12px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--warm-brown);line-height:1.6;display:none;">
+    <div id="liveRatesBar" class="callout lab-note" style="display:none;font-variant-numeric:tabular-nums;">
       <svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-live"/></svg> <strong>Live data:</strong> RBA cash rate <strong id="llCashRate">—</strong> · CPI <strong id="llCpi">—</strong> · Bank real return <strong id="llBank">—</strong> · Super guarantee <strong id="llSg">—</strong>
     </div>
 
@@ -145,21 +212,21 @@
     </div>
 
     <div class="foundation-section">
-      <div class="section-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-money"/></svg> Tax & Strategy</div>
+      <div class="section-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-money"/></svg> Tax & Strategy</div>
       <div class="topics-list" id="taxTopicsList"></div>
     </div>
 
-    <div class="track-card" onclick="selectTrack('life')" style="border-color:var(--fire-orange);border-width:2px;background:linear-gradient(135deg,#FFF7F3,#FFFBF7);position:relative;margin-bottom:24px;">
-      <div style="position:absolute;top:-9px;left:16px;background:var(--fire-orange);color:white;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 10px;border-radius:10px;">Start here</div>
+    <div class="track-card track-card-featured" onclick="selectTrack('life')">
+      <div class="track-flag">Start here</div>
       <div class="track-header"><span class="track-badge tlife">You</span><span class="track-name">Real Questions</span></div>
       <div class="track-desc">The questions people actually type into Google, answered honestly — using your real numbers, no jargon, no judgement.</div>
       <div class="track-risk life">⬤ Straight answers, with your numbers</div>
     </div>
 
-    <div class="section-label" style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="section-label" style="justify-content:space-between;">
       <span>Or, follow a structured curriculum</span>
     </div>
-    <p style="font-size:12px;color:var(--soft-grey);font-weight:300;margin:-8px 0 12px;line-height:1.5;">These go deeper on investing itself, organised by return expectation rather than by question.</p>
+    <p class="section-intro">These go deeper on investing itself, organised by return expectation rather than by question.</p>
     <div class="track-selector">
       <div class="track-card" onclick="selectTrack('5')">
         <div class="track-header"><span class="track-badge t5">Steady</span><span class="track-name">Build Wealth Slowly</span></div>
@@ -201,7 +268,7 @@
       <p id="loadingStageText">Drafting your article...</p>
     </div>
     <div id="articleContent" style="display:none;">
-      <div class="article-body" id="articleBody"></div>
+      <div class="article-body prose" id="articleBody"></div>
       <div id="proSection"></div>
       <div class="action-buttons">
         <button id="markReadBtn" class="btn-mark-read" style="display:flex;align-items:center;gap:6px;"
@@ -219,13 +286,13 @@
 
     <!-- GLOSSARY VIEW — shown instead of article for acronyms topic -->
     <div id="glossaryContent" style="display:none;">
-      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px;">Tap any term to see what it means in plain English. Tap "Go deeper" to get an AI explanation tailored to your situation.</div>
+      <div class="glossary-intro">Tap any term to see what it means in plain English. Tap "Go deeper" to get an AI explanation tailored to your situation.</div>
       <div class="glossary-filter-bar" id="glossaryFilterBar"></div>
       <div class="glossary-grid" id="glossaryGrid"></div>
       <p class="disclaimer" style="margin-top:16px;">FirePath Learning Lab is educational only — not financial advice.</p>
     </div>
   </div>
-</div>
+</main>
 
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
@@ -244,7 +311,6 @@
   };
   const isPro = localStorage.getItem('fp_is_pro') === 'true';
 
-  function fmtM(n) { if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + Math.round(n); }
   const currentYear = new Date().getFullYear();
   const freedomYear = userData.freedomYrs ? currentYear + Math.round(userData.freedomYrs) : null;
   const weeklyAmt = userData.monthlySav ? Math.round(userData.monthlySav * 12 / 52) : 0;
@@ -338,7 +404,7 @@
           <div class="glossary-body" id="gbody-${i}">
             <p class="glossary-plain">${t.plain}</p>
             <p class="glossary-context">${t.context}</p>
-            ${personalNote ? `<div class="glossary-personal" style="display:flex;align-items:flex-start;gap:8px;"><svg class="icon" style="width:14px;height:14px;flex-shrink:0;margin-top:2px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-insight"/></svg> <span><strong>For you:</strong> ${personalNote}</span></div>` : ''}
+            ${personalNote ? `<div class="glossary-personal" style="display:flex;align-items:flex-start;gap:8px;"><svg class="icon" style="width:14px;height:14px;flex-shrink:0;margin-top:2px;color:var(--ember);"><use href="/icons.svg#icon-insight"/></svg> <span><strong>For you:</strong> ${personalNote}</span></div>` : ''}
             <button class="glossary-deep-btn" onclick="goDeeper('${t.term}', '${t.full}', ${i})">
               <svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Explain this more deeply →
             </button>
@@ -382,7 +448,7 @@
       const data = await res.json();
       deepEl.innerHTML = `<div class="glossary-deep-result">${data.content[0].text.replace(/\n/g, '<br/>')}</div>`;
     } catch(e) {
-      deepEl.innerHTML = `<div class="glossary-deep-result" style="color:#E53935;">Something went wrong. Please try again.</div>`;
+      deepEl.innerHTML = `<div class="glossary-deep-result" style="color:var(--negative);">Something went wrong. Please try again.</div>`;
     }
   }
 
@@ -425,7 +491,7 @@
       saveLabProgress(topicId, title, track, false);
     }
     const btn = document.getElementById('markReadBtn');
-    if (btn) { btn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Explored'; btn.style.background = '#E8F5E9'; btn.style.borderColor = '#A5D6A7'; btn.style.color = '#2E7D32'; }
+    if (btn) { btn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Explored'; btn.style.background = 'var(--positive-wash)'; btn.style.borderColor = 'rgba(46,125,50,0.35)'; btn.style.color = 'var(--positive)'; }
     showWhatsNext(topicId, title, track);
   }
 
@@ -449,7 +515,7 @@
   function showProGateSave() {
     const nextEl = document.getElementById('whatsNextSection');
     nextEl.style.display = 'block';
-    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;"><div style="margin-bottom:8px;color:var(--fire-amber);"><svg class="icon" style="width:20px;height:20px;"><use href="/icons.svg#icon-bookmark"/></svg></div><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Save articles with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members can save articles to read again, track progress across devices, and get AI-suggested next lessons.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
+    nextEl.innerHTML = `<div style="background:linear-gradient(140deg,var(--espresso),var(--espresso-2));border-radius:var(--r-lg);padding:24px;color:var(--bg);text-align:center;margin-top:16px;"><div style="margin-bottom:8px;color:var(--fire-amber);"><svg class="icon" style="width:20px;height:20px;"><use href="/icons.svg#icon-bookmark"/></svg></div><div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Save articles with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:400;line-height:1.6;margin-bottom:16px;">Pro members can save articles to read again, track progress across devices, and get AI-suggested next lessons.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
   }
 
   function renderSavedArticles() {
@@ -459,7 +525,7 @@
     section.style.display = 'block';
     list.innerHTML = savedTopics.map(s => `
       <div class="topic-item saved" onclick="openArticle('${s.id}', '${s.track}', '${s.title}')">
-        <div class="topic-left"><span class="topic-icon"><svg class="icon" style="width:18px;height:18px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-bookmark"/></svg></span><div><div class="topic-title">${s.title}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track === 'life' ? 'Real Questions' : s.track + '% track'}</div></div></div>
+        <div class="topic-left"><span class="topic-icon"><svg class="icon" style="width:18px;height:18px;color:var(--ember);"><use href="/icons.svg#icon-bookmark"/></svg></span><div><div class="topic-title">${s.title}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track === 'life' ? 'Real Questions' : s.track + '% track'}</div></div></div>
         <span class="saved-badge">Saved</span>
       </div>`).join('');
   }
@@ -603,17 +669,17 @@
     const minsLeft = (totalCount - completedCount) * 4;
     const timeLeftText = minsLeft <= 0 ? 'All done — nice work' : minsLeft < 60 ? `~${minsLeft} min left` : `~${Math.round(minsLeft/60*10)/10} hrs left`;
     document.getElementById('trackHero').innerHTML = `
-      <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;">
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);padding:20px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <span class="track-badge ${info.badge}" style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:white;border-radius:8px;padding:4px 12px;">${info.label}${info.noPercent ? '' : '%'}</span>
-          <span style="font-size:16px;font-weight:500;">${info.name}</span>
+          <span class="track-badge ${info.badge}" style="color:white;">${info.label}${info.noPercent ? '' : '%'}</span>
+          <span style="font-size:16px;font-weight:600;color:var(--ink);">${info.name}</span>
         </div>
-        <p style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:8px;">${info.desc}</p>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);margin-bottom:14px;">${info.risk}</div>
-        <div style="height:6px;background:var(--warm-cream);border-radius:4px;overflow:hidden;margin-bottom:8px;">
+        <p style="font-size:13px;color:var(--soft-grey);font-weight:400;line-height:1.6;margin-bottom:8px;">${info.desc}</p>
+        <div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-2);margin-bottom:14px;">${info.risk}</div>
+        <div style="height:6px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);border-radius:99px;overflow:hidden;margin-bottom:8px;">
           <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));border-radius:4px;transition:width 0.3s;"></div>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--soft-grey);font-weight:300;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--soft-grey);font-weight:400;">
           <span>${completedCount} of ${totalCount} completed</span>
           <span>${timeLeftText}</span>
         </div>
@@ -656,7 +722,7 @@
   function showProGateMarkAsRead() {
     const nextEl = document.getElementById('whatsNextSection');
     nextEl.style.display = 'block';
-    nextEl.innerHTML = `<div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:16px;padding:24px;color:white;text-align:center;margin-top:16px;"><div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:8px;">Track your progress with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:16px;">Pro members get personalised research pathways, AI-suggested next articles and progress tracking.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
+    nextEl.innerHTML = `<div style="background:linear-gradient(140deg,var(--espresso),var(--espresso-2));border-radius:var(--r-lg);padding:24px;color:var(--bg);text-align:center;margin-top:16px;"><div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Track your progress with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:400;line-height:1.6;margin-bottom:16px;">Pro members get personalised research pathways, AI-suggested next articles and progress tracking.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
   }
 
   function showProGate(title) {
@@ -698,8 +764,8 @@
     const markBtn = document.getElementById('markReadBtn');
     const saveBtn = document.getElementById('saveBtn');
     if (markBtn) {
-      if (isRead) { markBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Explored'; markBtn.style.background = '#E8F5E9'; markBtn.style.borderColor = '#A5D6A7'; markBtn.style.color = '#2E7D32'; }
-      else { markBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Mark as complete'; markBtn.style.background = 'white'; markBtn.style.borderColor = 'var(--fire-orange)'; markBtn.style.color = 'var(--fire-orange)'; }
+      if (isRead) { markBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Explored'; markBtn.style.background = 'var(--positive-wash)'; markBtn.style.borderColor = 'rgba(46,125,50,0.35)'; markBtn.style.color = 'var(--positive)'; }
+      else { markBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Mark as complete'; markBtn.style.background = 'var(--surface)'; markBtn.style.borderColor = 'var(--ember)'; markBtn.style.color = 'var(--ember-ink)'; }
     }
     if (saveBtn) {
       if (isSaved) { saveBtn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved!'; saveBtn.className = 'btn-saved'; }
@@ -739,7 +805,7 @@
       document.getElementById('articleContent').style.display = 'block';
     } catch(e) {
       console.error(e);
-      document.getElementById('loadingState').innerHTML = '<p style="color:#E53935;">Something went wrong generating this article. Please try again.</p>';
+      document.getElementById('loadingState').innerHTML = '<p style="color:var(--negative);">Something went wrong generating this article. Please try again.</p>';
     }
   }
 
@@ -925,7 +991,7 @@ Respond with a short, specific, actionable list of fixes — quote the exact phr
   async function showWhatsNext(topicId, title, track) {
     const nextEl = document.getElementById('whatsNextSection');
     if (!nextEl) return;
-    nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:16px;">Building your research pathway...</div><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
+    nextEl.innerHTML = `<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);padding:24px;margin-top:16px;"><div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ember-ink);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div><div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:16px;">Building your research pathway...</div><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
     nextEl.style.display = 'block';
     try {
       const persona = userData.persona || 'building';
@@ -955,25 +1021,25 @@ Respond ONLY with valid JSON:
       const r = result.research;
       const next = result.next;
       nextEl.innerHTML = `
-        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;margin-bottom:12px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div>
-          <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--warm-brown);margin-bottom:6px;line-height:1.4;">${r.headline}</div>
-          <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:20px;font-style:italic;">${r.disclaimer}</div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);padding:24px;margin-top:16px;margin-bottom:12px;">
+          <div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ember-ink);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--warm-brown);margin-bottom:6px;line-height:1.4;">${r.headline}</div>
+          <div style="font-size:12px;color:var(--soft-grey);font-weight:400;margin-bottom:20px;font-style:italic;">${r.disclaimer}</div>
           <div style="display:flex;flex-direction:column;gap:12px;">
-            ${r.steps.map((s,i) => `<div style="background:var(--warm-cream);border-radius:12px;padding:14px 16px;border-left:3px solid var(--fire-orange);"><div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:4px;">${i+1}. ${s.title}</div><div style="font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;">${s.description}</div></div>`).join('')}
+            ${r.steps.map((s,i) => `<div style="background:var(--surface-2);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:14px 16px;border-left:3px solid var(--ember);"><div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:4px;">${i+1}. ${s.title}</div><div style="font-size:12px;color:var(--soft-grey);font-weight:400;line-height:1.6;">${s.description}</div></div>`).join('')}
           </div>
         </div>
-        <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-bottom:12px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-learn"/></svg> Continue learning</div>
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);padding:24px;margin-bottom:12px;">
+          <div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ember-ink);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-learn"/></svg> Continue learning</div>
           <div style="font-size:15px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">${next.title}</div>
-          <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:16px;">${next.why}</div>
+          <div style="font-size:13px;color:var(--soft-grey);font-weight:400;line-height:1.6;margin-bottom:16px;">${next.why}</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <div onclick="openArticle('${next.topicId}','${next.track}','${next.title}')" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
             <div onclick="showTopicView()" style="display:inline-flex;align-items:center;gap:8px;color:var(--soft-grey);font-size:13px;cursor:pointer;padding:12px 0;">Back to all topics</div>
           </div>
         </div>`;
     } catch(e) {
-      nextEl.innerHTML = `<div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-top:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div><div onclick="showTopicView()" style="font-size:13px;color:var(--fire-orange);cursor:pointer;">← Back to all topics</div></div>`;
+      nextEl.innerHTML = `<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);padding:24px;margin-top:16px;"><div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ember-ink);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div><div onclick="showTopicView()" style="font-size:13px;color:var(--fire-orange);cursor:pointer;">← Back to all topics</div></div>`;
     }
   }
 

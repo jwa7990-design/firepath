@@ -38,23 +38,29 @@
   function injectStyles() {
     const style = document.createElement('style');
     style.textContent = `
+      /* A quiet secondary control — the page's own CTAs and the Ask pill stay primary. */
       #qfw-btn {
-        position: fixed; bottom: 20px; right: 20px; z-index: 9998;
-        width: 48px; height: 48px; border-radius: 50%;
-        background: linear-gradient(135deg, var(--fire-orange, #F4622A), var(--fire-amber, #F9A825));
-        border: none; box-shadow: 0 4px 16px rgba(244,98,42,0.35);
+        position: fixed; bottom: 20px; right: 20px; z-index: 148;
+        width: 44px; height: 44px; border-radius: 50%;
+        background: var(--surface, #fff); border: 1px solid var(--line, #EDE3DA);
+        box-shadow: var(--shadow-2, 0 4px 16px rgba(43,29,20,0.12));
         display: flex; align-items: center; justify-content: center;
-        cursor: pointer; transition: transform 0.2s ease;
+        cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease;
       }
-      #qfw-btn:hover { transform: scale(1.08); }
-      #qfw-btn svg { width: 22px; height: 22px; color: white; }
+      #qfw-btn:hover { transform: translateY(-1px); border-color: var(--line-strong, #E2D5C8); }
+      #qfw-btn svg { width: 20px; height: 20px; color: var(--ink-2, #65544A); }
+      /* App pages on phones: the tab bar owns the bottom edge and the Ask pill the
+         right, so sit on the left just above the tab bar. */
+      @media (max-width: 1023px) {
+        body.app #qfw-btn { left: 12px; right: auto; bottom: calc(88px + env(safe-area-inset-bottom)); }
+      }
       #qfw-overlay {
         display: none; position: fixed; inset: 0; background: rgba(61,43,31,0.4);
         z-index: 9999; align-items: flex-end; justify-content: center;
       }
       #qfw-overlay.open { display: flex; }
       #qfw-panel {
-        background: white; border-radius: 20px 20px 0 0; padding: 24px 20px 28px;
+        background: var(--surface, #fff); border-radius: 20px 20px 0 0; padding: 24px 20px 28px;
         width: 100%; max-width: 420px; box-sizing: border-box;
         font-family: 'DM Sans', sans-serif; color: var(--warm-brown, #3D2B1F);
         animation: qfw-slide-up 0.25s ease both;
@@ -65,7 +71,7 @@
       }
       @keyframes qfw-slide-up { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       #qfw-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
-      #qfw-sub { font-size: 12px; color: var(--soft-grey, #9E8E85); font-weight: 300; margin-bottom: 16px; }
+      #qfw-sub { font-size: 12px; color: var(--soft-grey, #9E8E85); font-weight: 400; margin-bottom: 16px; }
       #qfw-faces { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 14px; }
       .qfw-face-btn {
         flex: 1; background: none; border: 2px solid var(--border, #EDE3DA); border-radius: 12px;

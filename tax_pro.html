@@ -9,103 +9,152 @@
     gtag('config', 'G-Q2QZ662MJ9');
   </script>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Tax & Strategy Pro — FirePath</title>
   <meta name="description" content="Your Australian tax picture, salary sacrifice, and offset vs invest — connected to your actual freedom date."/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+  <script src="js/persona.js"></script>
   <script src="js/tax-engine.js"></script>
   <style>
-    .tool-card { background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:20px; }
-    .tool-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px; }
-    .tool-title { font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:8px; }
-    .tool-sub { font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:20px; }
-    .result-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px; }
-    .result-row:last-child { border-bottom:none; }
-    .result-label { color:var(--soft-grey);font-weight:300; }
-    .result-value { font-weight:700;color:var(--warm-brown); }
-    .result-value.highlight { color:var(--fire-orange); }
-    .result-value.green { color:#2E7D32; }
-    .result-value.red { color:#E53935; }
-    .input-row { display:flex;flex-direction:column;gap:6px;margin-bottom:16px; }
-    .input-row label { font-size:13px;font-weight:500;color:var(--warm-brown); }
-    .input-row input { border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--warm-brown);background:white;width:100%;box-sizing:border-box; }
-    .input-row input:focus { outline:none;border-color:var(--fire-orange); }
-    .input-hint { font-size:12px;color:var(--soft-grey);font-weight:300; }
-    .results-box { background:var(--warm-cream);border-radius:14px;padding:18px;margin-top:16px;display:none; }
-    .warning-box { background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:12px 14px;font-size:13px;color:#E65100;line-height:1.6;margin-top:12px; }
-    .comparison-box { display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px; }
-    .comparison-item { background:var(--warm-cream);border-radius:12px;padding:16px;text-align:center; }
-    .comparison-item.winner { background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border:1.5px solid #A5D6A7; }
-    .comparison-rate { font-size:24px;font-weight:700;font-family:'Playfair Display',serif; }
-    .comparison-rate.green { color:#2E7D32; }
-    .comparison-rate.orange { color:var(--fire-orange); }
-    .comparison-label { font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:4px; }
-    .pro-insight { background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:1.5px solid rgba(244,98,42,0.25);border-radius:14px;padding:16px 18px;margin-top:16px; }
-    .pro-insight-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px; }
-    .pro-insight-text { font-size:14px;color:var(--warm-brown);font-weight:300;line-height:1.75; }
-    .pro-insight-text strong { font-weight:600; }
-    .pro-insight-link { display:inline-block;margin-top:10px;font-size:12px;font-weight:500;color:var(--fire-orange);text-decoration:none; }
-    .profile-banner { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);color:white;border-radius:14px;padding:16px 18px;margin-bottom:24px; }
-    .profile-banner-title { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#F4A24A;margin-bottom:12px; }
-    .profile-banner-stats { display:flex;flex-wrap:wrap;gap:10px; }
-    .profile-stat { background:rgba(255,255,255,0.08);border-radius:10px;padding:8px 12px;min-width:90px; }
-    .profile-stat-value { font-size:16px;font-weight:700;font-family:'Playfair Display',serif; }
-    .profile-stat-label { font-size:11px;color:rgba(255,255,255,0.65);font-weight:300;margin-top:2px; }
-    .profile-banner-link { display:inline-block;margin-top:12px;font-size:12px;font-weight:500;color:#F4A24A;text-decoration:none; }
-    .ai-loading { display:none;padding:30px 20px;text-align:center; }
-    .ai-loading.visible { display:block; }
-    .fp-loader-flame { font-size:32px;animation:fp-flame-pulse 1.4s ease-in-out infinite;display:inline-block; }
+    /* ── Layout ── */
+    .tax-wrap { max-width: 720px; margin: 0 auto; }
+    .page-head .section-link { display: inline-block; margin-bottom: 10px; }
+    .page-head .eyebrow { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .page-head-sub { max-width: 60ch; line-height: 1.6; }
+    .icon { width: 20px; height: 20px; flex-shrink: 0; vertical-align: -4px; }
+
+    /* Learning path prompt */
+    .promo { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding: 16px 18px; }
+    .promo-icon { flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--ember-wash); color: var(--ember-ink); }
+    .promo-body { flex: 1; min-width: 0; }
+    .promo-title { font-size: 14.5px; font-weight: 600; color: var(--ink); }
+    .promo-sub { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; line-height: 1.5; }
+    .promo .arrow { color: var(--ember-ink); flex-shrink: 0; transition: transform var(--dur-fast) ease; }
+    .promo:hover .arrow { transform: translateX(2px); }
+    .promo:hover .promo-title { color: var(--ember-ink); }
+
+    /* Saved-profile strip (filled by JS) */
+    .profile-banner { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 18px; margin-bottom: 16px; }
+    .profile-banner-title { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2); margin-bottom: 12px; }
+    .profile-banner-stats { display: flex; flex-wrap: wrap; gap: 10px; }
+    .profile-stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 12px; min-width: 90px; }
+    .profile-stat-value { font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+    .profile-stat-label { font-size: 11.5px; color: var(--ink-2); margin-top: 2px; }
+    .profile-banner-link { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
+    .profile-banner-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+    /* ── Tool cards ── */
+    .tool-card { margin-bottom: 16px; }
+    .tool-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 6px; }
+    .tool-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 6px; }
+    .tool-sub { font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-bottom: 20px; }
+
+    .input-row { display: grid; gap: 6px; margin-bottom: 16px; }
+    .input-row label { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+    .input-hint { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+
+    /* Pay-cycle toggle — .segmented look, full width so four options fit at 375px */
+    .cycle-group.segmented { display: flex; width: 100%; }
+    .cycle-group.segmented > .cycle-btn { flex: 1; min-width: 0; padding: 8px 6px; white-space: nowrap; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
+    .cycle-group.segmented > .cycle-btn:hover:not(.active) { color: var(--ink); }
+    .cycle-group.segmented > .cycle-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+
+    /* ── Results ── */
+    .results-box { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 18px; margin-top: 16px; display: none; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .result-row:last-child { border-bottom: none; }
+    .result-row.total { border-top: 1px solid var(--line-strong); margin-top: 4px; padding-top: 12px; }
+    .result-row.total .result-label { font-weight: 600; color: var(--ink); }
+    .result-label { color: var(--ink-2); }
+    .result-value { font-weight: 600; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums lining-nums; }
+    .result-value.highlight { color: var(--ember-ink); }
+    .result-value.green { color: var(--positive); }
+    .result-value.red { color: var(--negative); }
+    .result-note { margin-top: 12px; font-size: 12.5px; color: var(--ink-2); line-height: 1.6; }
+    .result-note strong { color: var(--ink); font-weight: 600; }
+
+    .plain-english { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; margin-bottom: 16px; font-size: 14px; color: var(--ink-2); line-height: 1.75; }
+    .plain-english strong { color: var(--ink); font-weight: 600; }
+    .plain-english-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+
+    .warning-box { background: var(--negative-wash); border: 1px solid rgba(196, 72, 15, 0.22); border-radius: var(--r-sm); padding: 12px 14px; font-size: 13px; color: var(--ember-ink); line-height: 1.6; margin-top: 12px; }
+
+    .comparison-box { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .comparison-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 12px; text-align: center; }
+    .comparison-item.winner { background: var(--positive-wash); border-color: rgba(46, 125, 50, 0.3); }
+    .comparison-rate { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+    .comparison-rate.green { color: var(--positive); }
+    .comparison-rate.orange { color: var(--ember-ink); }
+    .comparison-label { font-size: 12px; color: var(--ink-2); margin-top: 4px; line-height: 1.45; }
+
+    .verdict { margin-top: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 14px; font-size: 13.5px; color: var(--ink-2); line-height: 1.7; }
+    .verdict:empty { display: none; }
+    .verdict strong { color: var(--ink); }
+
+    .pro-insight { background: #FFF7F2; border: 1px solid rgba(244, 98, 42, 0.22); border-radius: var(--r-md); padding: 16px 18px; margin-top: 16px; }
+    .pro-insight-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .pro-insight-text { font-size: 14px; color: var(--ink-2); line-height: 1.7; }
+    .pro-insight-text strong { font-weight: 600; color: var(--ink); }
+    .pro-insight-link { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
+    .pro-insight-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+    /* ── AI insight ── */
+    .meta-bar { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 12px; font-size: 12.5px; color: var(--ink-2); }
+    /* JS flips this button between display:none and display:block — keep the label centred either way */
+    .calc-btn { text-align: center; line-height: 48px; }
+    .ai-loading { display: none; padding: 30px 20px; text-align: center; }
+    .ai-loading.visible { display: block; }
+    .ai-loading-text { font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+    .fp-loader-flame { color: var(--ember); animation: fp-flame-pulse 1.4s ease-in-out infinite; display: inline-block; }
     @keyframes fp-flame-pulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.18);opacity:0.75;} }
-    .ai-insight-card { background:white;border:2px solid var(--warm-brown);border-radius:18px;padding:22px;margin-bottom:20px; }
-    .ai-insight-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--warm-brown);margin-bottom:12px; }
-    .ai-insight-text { font-size:14px;color:var(--warm-brown);font-weight:300;line-height:1.8; }
-    .ai-insight-text strong { font-weight:600;color:var(--fire-orange); }
-    .icon { width:20px; height:20px; flex-shrink:0; vertical-align:-4px; }
-    @media (max-width: 600px) { .nav-desktop-extra { display: none; } }
+    .ai-insight-card { background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-md); box-shadow: var(--shadow-1); padding: 20px; }
+    .ai-insight-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .ai-insight-text { font-size: 14.5px; color: var(--ink-2); line-height: 1.75; }
+    .ai-insight-text strong { font-weight: 600; color: var(--ink); }
+    .ai-learn-more { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+
+    .page-foot { font-size: 12px; color: var(--ink-2); text-align: center; line-height: 1.6; margin: 24px 0 8px; }
+    .page-foot a { color: var(--ember-ink); }
   </style>
 </head>
-<body>
+<body class="app" data-shell="app" data-active="strategy">
+<script src="js/shell.js"></script>
 
-<nav>
-  <a href="/index.html" class="nav-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span> <span class="pro-badge">Pro</span></a>
-  <div class="nav-links">
-    <div id="userStatus" class="nav-desktop-extra" style="font-size:12px;color:var(--soft-grey);"></div>
-    <a href="journey.html" class="nav-link">My Journey</a>
-    <a href="#" onclick="signOut()" class="nav-link">Sign out</a>
-  </div>
-</nav>
+<main class="app-main">
+<div class="tax-wrap">
 
-<div class="container" style="max-width:600px;padding-top:80px;padding-left:16px;padding-right:16px;padding-bottom:24px;">
-
-  <div style="margin-bottom:20px;">
-    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-money"/></svg> Tax & Strategy — Pro</div>
-    <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1.2;margin-bottom:8px;">Every dollar, connected to your freedom date.</h1>
-    <p style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.6;">These tools use your saved profile — savings, super, age, and freedom number — to show real impact, not generic ranges.</p>
-  </div>
-
-  <a href="/financial_learning_path.html" style="display:block;text-decoration:none;margin-bottom:24px;">
-    <div style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:18px;padding:20px 22px;color:white;display:flex;align-items:center;gap:16px;">
-      <div style="flex-shrink:0;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-      </div>
-      <div style="flex:1;">
-        <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:2px;">Not sure what else might apply to you?</div>
-        <div style="font-size:12.5px;opacity:0.9;font-weight:300;">Take the Financial Learning Path — a 2-minute quiz to see what's worth exploring</div>
-      </div>
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+  <header class="page-head">
+    <div>
+      <a href="strategy.html" class="section-link">← Strategy</a>
+      <div class="eyebrow"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-money"/></svg> Tax & Strategy — Pro</div>
+      <h1 class="page-head-title">Every dollar, connected to your freedom date.</h1>
+      <p class="page-head-sub">These tools use your saved profile — savings, super, age, and freedom number — to show real impact, not generic ranges.</p>
     </div>
+  </header>
+
+  <a href="/financial_learning_path.html" class="card card-link promo">
+    <div class="promo-icon">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    </div>
+    <div class="promo-body">
+      <div class="promo-title">Not sure what else might apply to you?</div>
+      <div class="promo-sub">Take the Financial Learning Path — a 2-minute quiz to see what's worth exploring</div>
+    </div>
+    <span class="arrow" aria-hidden="true">→</span>
   </a>
 
   <div class="profile-banner" id="profileBanner" style="display:none;"></div>
 
-  <div class="tool-card" id="tool1Card">
+  <div class="card tool-card" id="tool1Card">
     <div class="tool-label">Tool 1</div>
     <div class="tool-title">Your tax picture</div>
     <div class="tool-sub">See exactly what you keep from every dollar you earn.</div>
     <div class="input-row">
       <label>How often do you get paid?</label>
-      <div class="cycle-group">
+      <div class="cycle-group segmented">
         <button class="cycle-btn" data-taxcycle="weekly" onclick="setTaxCycle(this)">Weekly</button>
         <button class="cycle-btn" data-taxcycle="fortnightly" onclick="setTaxCycle(this)">Fortnightly</button>
         <button class="cycle-btn" data-taxcycle="monthly" onclick="setTaxCycle(this)">Monthly</button>
@@ -113,13 +162,13 @@
       </div>
     </div>
     <div class="input-row">
-      <label id="t1GrossLabel">Your gross income (before tax)</label>
-      <input type="number" id="t1Gross" placeholder="e.g. 85000" oninput="runTool1()"/>
+      <label id="t1GrossLabel" for="t1Gross">Your gross income (before tax)</label>
+      <input type="number" class="input" id="t1Gross" placeholder="e.g. 85000" oninput="runTool1()"/>
       <span class="input-hint" id="t1GrossHint">Annual salary before any deductions</span>
     </div>
     <div class="results-box" id="t1Results">
-      <div id="t1PlainEnglish" style="display:none;background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-radius:12px;padding:16px;margin-bottom:16px;font-size:14px;color:var(--warm-brown);line-height:1.8;font-weight:300;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--fire-orange);margin-bottom:10px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-insight"/></svg> In plain English</div>
+      <div id="t1PlainEnglish" class="plain-english" style="display:none;">
+        <div class="plain-english-label"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-insight"/></svg> In plain English</div>
         <div id="t1PlainText"></div>
       </div>
       <div id="t1Breakdown">
@@ -127,12 +176,12 @@
         <div class="result-row"><span class="result-label">Income tax</span><span class="result-value red" id="t1TaxOut">—</span></div>
         <div class="result-row"><span class="result-label">Low income tax offset (LITO)</span><span class="result-value green" id="t1LitoOut">—</span></div>
         <div class="result-row"><span class="result-label">Medicare levy (2%)</span><span class="result-value red" id="t1MedicareOut">—</span></div>
-        <div class="result-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:12px;"><span class="result-label" style="font-weight:500;color:var(--warm-brown);">Take-home pay</span><span class="result-value highlight" id="t1TakeHomeOut">—</span></div>
+        <div class="result-row total"><span class="result-label">Take-home pay</span><span class="result-value highlight" id="t1TakeHomeOut">—</span></div>
         <div class="result-row"><span class="result-label">Effective tax rate</span><span class="result-value" id="t1EffectiveOut">—</span></div>
         <div class="result-row"><span class="result-label">Marginal tax rate</span><span class="result-value" id="t1MarginalOut">—</span></div>
         <div class="result-row"><span class="result-label">You keep per $100 earned</span><span class="result-value green" id="t1KeepOut">—</span></div>
       </div>
-      <div style="margin-top:12px;font-size:12px;color:var(--soft-grey);font-weight:300;line-height:1.6;" id="t1FirePathNote"></div>
+      <div class="result-note" id="t1FirePathNote"></div>
       <div class="pro-insight" id="t1ProInsight" style="display:none;">
         <div class="pro-insight-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> Your freedom picture</div>
         <div class="pro-insight-text" id="t1ProInsightText"></div>
@@ -140,17 +189,17 @@
     </div>
   </div>
 
-  <div class="tool-card" id="tool2Card">
+  <div class="card tool-card" id="tool2Card">
     <div class="tool-label">Tool 2</div>
     <div class="tool-title">Salary sacrifice</div>
     <div class="tool-sub">Sacrifice pre-tax dollars into super and pay less income tax.</div>
     <div class="input-row">
-      <label>Your gross income</label>
-      <input type="number" id="t2Gross" placeholder="e.g. 85000" oninput="runTool2()"/>
+      <label for="t2Gross">Your gross income</label>
+      <input type="number" class="input" id="t2Gross" placeholder="e.g. 85000" oninput="runTool2()"/>
     </div>
     <div class="input-row">
-      <label>Amount to sacrifice per year</label>
-      <input type="number" id="t2Sacrifice" placeholder="e.g. 10000" oninput="runTool2();debounceSaveTaxField('last_sacrifice_amount', this.value)"/>
+      <label for="t2Sacrifice">Amount to sacrifice per year</label>
+      <input type="number" class="input" id="t2Sacrifice" placeholder="e.g. 10000" oninput="runTool2();debounceSaveTaxField('last_sacrifice_amount', this.value)"/>
       <span class="input-hint">This reduces your taxable income and goes into super at 15% tax instead of your marginal rate</span>
     </div>
     <div class="results-box" id="t2Results">
@@ -169,21 +218,21 @@
     </div>
   </div>
 
-  <div class="tool-card" id="tool3Card">
+  <div class="card tool-card" id="tool3Card">
     <div class="tool-label">Tool 3</div>
     <div class="tool-title">Offset vs invest</div>
     <div class="tool-sub">Is your offset beating what investing the same money would do?</div>
     <div class="input-row">
-      <label>Your mortgage interest rate (%)</label>
-      <input type="number" id="t3MortgageRate" placeholder="e.g. 6.5" step="0.1" oninput="runTool3();debounceSaveTaxField('last_mortgage_rate', this.value)"/>
+      <label for="t3MortgageRate">Your mortgage interest rate (%)</label>
+      <input type="number" class="input" id="t3MortgageRate" placeholder="e.g. 6.5" step="0.1" oninput="runTool3();debounceSaveTaxField('last_mortgage_rate', this.value)"/>
     </div>
     <div class="input-row">
-      <label>Your offset balance</label>
-      <input type="number" id="t3OffsetBalance" placeholder="e.g. 50000" oninput="runTool3();debounceSaveTaxField('last_offset_balance', this.value)"/>
+      <label for="t3OffsetBalance">Your offset balance</label>
+      <input type="number" class="input" id="t3OffsetBalance" placeholder="e.g. 50000" oninput="runTool3();debounceSaveTaxField('last_offset_balance', this.value)"/>
     </div>
     <div class="input-row">
-      <label>Your gross income (for tax rate)</label>
-      <input type="number" id="t3Gross" placeholder="e.g. 85000" oninput="runTool3()"/>
+      <label for="t3Gross">Your gross income (for tax rate)</label>
+      <input type="number" class="input" id="t3Gross" placeholder="e.g. 85000" oninput="runTool3()"/>
     </div>
     <div class="results-box" id="t3Results">
       <div class="comparison-box">
@@ -196,7 +245,7 @@
           <div class="comparison-label">Investing after tax<br/>(7% × (1 - marginal rate))</div>
         </div>
       </div>
-      <div id="t3Verdict" style="margin-top:16px;background:var(--warm-cream);border-radius:12px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;"></div>
+      <div id="t3Verdict" class="verdict"></div>
       <div class="result-row" style="margin-top:12px;"><span class="result-label">Annual saving from offset</span><span class="result-value" id="t3AnnualOffset">—</span></div>
       <div class="result-row"><span class="result-label">Annual gain from investing</span><span class="result-value" id="t3AnnualInvest">—</span></div>
       <div class="result-row"><span class="result-label">Annual difference</span><span class="result-value highlight" id="t3Difference">—</span></div>
@@ -207,33 +256,33 @@
     </div>
   </div>
 
-  <div class="tool-card">
+  <div class="card tool-card">
     <div class="tool-label">Your AI insight</div>
     <div class="tool-title">What this means for you</div>
     <div class="tool-sub">Pulls together your tax picture, your profile, and your freedom number into one plain-English read.</div>
-    <div id="taxInsightMetaBar" style="display:none;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:14px;padding:12px 16px;margin-bottom:12px;font-size:12px;color:var(--soft-grey);"></div>
-    <button class="calc-btn" id="aiInsightBtn" onclick="getAiTaxInsight()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%;">Get my tax insight</button>
+    <div id="taxInsightMetaBar" class="meta-bar" style="display:none;"></div>
+    <button class="calc-btn btn btn-ember btn-lg btn-block" id="aiInsightBtn" onclick="getAiTaxInsight()">Get my tax insight</button>
     <div class="ai-loading" id="aiTaxLoading">
-      <div class="fp-loader-flame" style="color:var(--fire-orange);"><svg class="icon" style="width:24px;height:24px;"><use href="/icons.svg#icon-momentum"/></svg></div>
-      <div style="font-size:13px;color:var(--soft-grey);margin-top:10px;">Reading your numbers...</div>
+      <div class="fp-loader-flame"><svg class="icon" style="width:24px;height:24px;"><use href="/icons.svg#icon-momentum"/></svg></div>
+      <div class="ai-loading-text">Reading your numbers...</div>
     </div>
     <div id="aiTaxInsightCard" style="display:none;margin-top:16px;">
       <div class="ai-insight-card">
-        <div class="ai-insight-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> AI Insight — just for you</div>
+        <div class="ai-insight-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> AI Insight — just for you</div>
         <div class="ai-insight-text" id="aiTaxInsightText"></div>
-        <div id="aiTaxLearnMore" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);"></div>
+        <div id="aiTaxLearnMore" class="ai-learn-more" style="display:none;"></div>
       </div>
     </div>
   </div>
 
-<p style="font-size:11px;color:var(--soft-grey);font-style:italic;text-align:center;line-height:1.6;margin-bottom:32px;">Based on <span id="taxYearLabel"></span> ATO tax rates. Educational only — not financial advice. <a href="assumptions.html" style="color:var(--fire-orange);">Our assumptions →</a></p>
+  <p class="page-foot">Based on <span id="taxYearLabel"></span> ATO tax rates. Educational only — not financial advice. <a href="assumptions.html">Our assumptions →</a></p>
 
 </div>
+</main>
 
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
 <script>
-  function fmtM(n){if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';return'$'+Math.round(n).toLocaleString('en-AU');}
   function fmtPct(r){return(r*100).toFixed(1)+'%';}
   function yearsToGoal(goal,cur,ms,rate){if(ms<=0)return null;if(cur>=goal)return 0;const r=rate/12;let b=cur,m=0;while(b<goal&&m<1200){b=b*(1+r)+ms;m++;}return m<1200?m/12:null;}
   function fmtYrs(y){if(y===null)return'100+ yrs';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo';}
@@ -355,7 +404,7 @@
     const el = document.getElementById('profileBanner');
     if (!el || !proProfile) return;
     const stats = [];
-    if (proProfile.freedom_number) stats.push({ v: fmtM(proProfile.freedom_number), l: 'Freedom number' });
+    if (proProfile.freedom_number) stats.push({ v: fmtDollars(proProfile.freedom_number), l: 'Freedom number' });
     if (proProfile.age) stats.push({ v: proProfile.age, l: 'Age' });
     if (proProfile.savings_rate) stats.push({ v: proProfile.savings_rate + '%', l: 'Savings rate' });
     if (stats.length === 0) return;
@@ -424,22 +473,22 @@
     } else {
       plainEnglish.style.display = 'block';
       if (persona === 'beginner') {
-        plainText.innerHTML = `You earn <strong>${fmtM(gross)}</strong> a year before tax.<br/><br/>The government takes <strong>${fmtM(r.total)}</strong> — income tax and Medicare.<br/><br/>You keep <strong>${fmtM(r.takeHome)}</strong>. That's <strong>${fmtM(fortnightly)} per fortnight</strong> or <strong>${fmtM(weekly)} per week</strong>.<br/><br/>Your highest tax rate is <strong>${(marginal*100).toFixed(0)}%</strong> — but only on the dollars at the top. Your first $18,200 is tax-free.`;
+        plainText.innerHTML = `You earn <strong>${fmtDollars(gross)}</strong> a year before tax.<br/><br/>The government takes <strong>${fmtDollars(r.total)}</strong> — income tax and Medicare.<br/><br/>You keep <strong>${fmtDollars(r.takeHome)}</strong>. That's <strong>${fmtDollars(fortnightly)} per fortnight</strong> or <strong>${fmtDollars(weekly)} per week</strong>.<br/><br/>Your highest tax rate is <strong>${(marginal*100).toFixed(0)}%</strong> — but only on the dollars at the top. Your first $18,200 is tax-free.`;
       } else {
-        plainText.innerHTML = `On <strong>${fmtM(gross)}</strong> gross you take home <strong>${fmtM(r.takeHome)}/yr</strong> — <strong>${fmtM(fortnightly)}/fn</strong> after tax and Medicare.<br/><br/>Your marginal rate is <strong>${(marginal*100).toFixed(0)}%</strong> — every extra dollar earned or sacrificed is worth ${(marginal*100).toFixed(0)} cents in tax difference.`;
+        plainText.innerHTML = `On <strong>${fmtDollars(gross)}</strong> gross you take home <strong>${fmtDollars(r.takeHome)}/yr</strong> — <strong>${fmtDollars(fortnightly)}/fn</strong> after tax and Medicare.<br/><br/>Your marginal rate is <strong>${(marginal*100).toFixed(0)}%</strong> — every extra dollar earned or sacrificed is worth ${(marginal*100).toFixed(0)} cents in tax difference.`;
       }
     }
 
-    document.getElementById('t1GrossOut').textContent = fmtM(gross);
-    document.getElementById('t1TaxOut').textContent = '-' + fmtM(r.tax);
-    document.getElementById('t1LitoOut').textContent = '+' + fmtM(r.lito);
-    document.getElementById('t1MedicareOut').textContent = '-' + fmtM(r.medicare);
-    document.getElementById('t1TakeHomeOut').textContent = fmtM(r.takeHome) + '/yr (' + fmtM(fortnightly) + '/fn)';
+    document.getElementById('t1GrossOut').textContent = fmtDollars(gross);
+    document.getElementById('t1TaxOut').textContent = '-' + fmtDollars(r.tax);
+    document.getElementById('t1LitoOut').textContent = '+' + fmtDollars(r.lito);
+    document.getElementById('t1MedicareOut').textContent = '-' + fmtDollars(r.medicare);
+    document.getElementById('t1TakeHomeOut').textContent = fmtDollars(r.takeHome) + '/yr (' + fmtDollars(fortnightly) + '/fn)';
     document.getElementById('t1EffectiveOut').textContent = fmtPct(r.effectiveRate);
     document.getElementById('t1MarginalOut').textContent = fmtPct(marginal);
     document.getElementById('t1KeepOut').textContent = '$' + Math.round((1 - r.effectiveRate) * 100);
 
-    document.getElementById('t1FirePathNote').innerHTML = `<svg class="icon" style="width:12px;height:12px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-insight"/></svg> <strong>FirePath tip:</strong> Enter <strong>${fmtM(fortnightly)}/fortnight</strong> as your income in FirePath — that's your actual take-home after tax.`;
+    document.getElementById('t1FirePathNote').innerHTML = `<svg class="icon" style="width:12px;height:12px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-insight"/></svg> <strong>FirePath tip:</strong> Enter <strong>${fmtDollars(fortnightly)}/fortnight</strong> as your income in FirePath — that's your actual take-home after tax.`;
 
     const t1Insight = document.getElementById('t1ProInsight');
     const t1Text = document.getElementById('t1ProInsightText');
@@ -447,7 +496,7 @@
       const pct = Math.round((r.takeHome / proProfile.freedom_number) * 100);
       const sRate = proProfile.savings_rate || 0;
       const towardFreedom = Math.round(r.takeHome * sRate / 100 / 52);
-      t1Text.innerHTML = `Your take-home covers <strong>${pct}%</strong> of your freedom number (${fmtM(proProfile.freedom_number)}). At your current savings rate of ${sRate}%, that's <strong>${fmtM(towardFreedom)}/week</strong> actually moving toward freedom — the rest funds today.`;
+      t1Text.innerHTML = `Your take-home covers <strong>${pct}%</strong> of your freedom number (${fmtDollars(proProfile.freedom_number)}). At your current savings rate of ${sRate}%, that's <strong>${fmtDollars(towardFreedom)}/week</strong> actually moving toward freedom — the rest funds today.`;
       t1Insight.style.display = 'block';
     } else {
       t1Insight.style.display = 'none';
@@ -465,13 +514,13 @@
     const r = calculateSalarySacrifice(gross, sacrifice);
     if (!r) return;
     document.getElementById('t2Results').style.display = 'block';
-    document.getElementById('t2TaxSaved').textContent = '+' + fmtM(r.taxSaved) + '/yr';
-    document.getElementById('t2SuperTax').textContent = '-' + fmtM(r.superTax);
-    document.getElementById('t2NetSuper').textContent = fmtM(r.netSuperGain) + ' into super';
-    document.getElementById('t2TakeHomeCost').textContent = fmtM(r.takehomeCost) + '/yr (' + fmtM(Math.round(r.takehomeCost/52)) + '/week)';
+    document.getElementById('t2TaxSaved').textContent = '+' + fmtDollars(r.taxSaved) + '/yr';
+    document.getElementById('t2SuperTax').textContent = '-' + fmtDollars(r.superTax);
+    document.getElementById('t2NetSuper').textContent = fmtDollars(r.netSuperGain) + ' into super';
+    document.getElementById('t2TakeHomeCost').textContent = fmtDollars(r.takehomeCost) + '/yr (' + fmtDollars(Math.round(r.takehomeCost/52)) + '/week)';
     const sgContrib = Math.round(gross * TAX_CONFIG.sgRate);
     const capRemaining = Math.max(0, TAX_CONFIG.concessionalCap - sacrifice - sgContrib);
-    document.getElementById('t2CapRemaining').textContent = fmtM(capRemaining);
+    document.getElementById('t2CapRemaining').textContent = fmtDollars(capRemaining);
     document.getElementById('t2CapWarning').style.display = r.atCapWarning ? 'flex' : 'none';
 
     const t2Insight = document.getElementById('t2ProInsight');
@@ -491,11 +540,11 @@
       const extra = Math.round(withExtra - withoutExtra);
       if (t2Compare) {
         t2Compare.innerHTML = `
-          <div class="comparison-item"><div class="comparison-rate orange">${fmtM(Math.round(withoutExtra))}</div><div class="comparison-label">Super at 60<br/>without this sacrifice</div></div>
-          <div class="comparison-item winner"><div class="comparison-rate green">${fmtM(Math.round(withExtra))}</div><div class="comparison-label">Super at 60<br/>with ${fmtM(sacrifice)}/yr sacrificed</div></div>
+          <div class="comparison-item"><div class="comparison-rate orange">${fmtDollars(Math.round(withoutExtra))}</div><div class="comparison-label">Super at 60<br/>without this sacrifice</div></div>
+          <div class="comparison-item winner"><div class="comparison-rate green">${fmtDollars(Math.round(withExtra))}</div><div class="comparison-label">Super at 60<br/>with ${fmtDollars(sacrifice)}/yr sacrificed</div></div>
         `;
       }
-      t2Text.innerHTML = `That's <strong>${fmtM(extra)} extra</strong> in your super by 60, for a real cost of <strong>${fmtM(Math.round(r.takehomeCost/52))}/week</strong> in take-home pay now.`;
+      t2Text.innerHTML = `That's <strong>${fmtDollars(extra)} extra</strong> in your super by 60, for a real cost of <strong>${fmtDollars(Math.round(r.takehomeCost/52))}/week</strong> in take-home pay now.`;
       if (t2Link) t2Link.href = `firepath_pro.html?scenario=sacrifice&amount=${Math.round(sacrifice)}`;
       t2Insight.style.display = 'block';
     } else if (proProfile && proProfile.age >= 60) {
@@ -518,9 +567,9 @@
     document.getElementById('t3Results').style.display = 'block';
     document.getElementById('t3OffsetRate').textContent = fmtPct(r.offsetReturn);
     document.getElementById('t3InvestRate').textContent = fmtPct(r.investReturnAfterTax);
-    document.getElementById('t3AnnualOffset').textContent = fmtM(r.annualSaving) + '/yr';
-    document.getElementById('t3AnnualInvest').textContent = fmtM(r.annualInvestGain) + '/yr';
-    document.getElementById('t3Difference').textContent = fmtM(r.difference) + '/yr';
+    document.getElementById('t3AnnualOffset').textContent = fmtDollars(r.annualSaving) + '/yr';
+    document.getElementById('t3AnnualInvest').textContent = fmtDollars(r.annualInvestGain) + '/yr';
+    document.getElementById('t3Difference').textContent = fmtDollars(r.difference) + '/yr';
 
     const offsetBox = document.getElementById('t3OffsetBox');
     const investBox = document.getElementById('t3InvestBox');
@@ -544,11 +593,11 @@
       const diffYrs = (baseY !== null && newY !== null) ? baseY - newY : null;
       if (r.offsetBetter) {
         t3Text.innerHTML = diffYrs !== null
-          ? `Switching your ${fmtM(offsetBalance)} offset to investing would push your freedom date back by roughly <strong>${fmtYrs(Math.abs(diffYrs))}</strong> at today's rates. Your offset is doing the right job for now.`
+          ? `Switching your ${fmtDollars(offsetBalance)} offset to investing would push your freedom date back by roughly <strong>${fmtYrs(Math.abs(diffYrs))}</strong> at today's rates. Your offset is doing the right job for now.`
           : `Your offset is currently the stronger move — keep it as is for now.`;
       } else {
         t3Text.innerHTML = diffYrs !== null
-          ? `Redirecting your ${fmtM(offsetBalance)} offset into investing could bring your freedom date forward by roughly <strong>${fmtYrs(diffYrs)}</strong>.`
+          ? `Redirecting your ${fmtDollars(offsetBalance)} offset into investing could bring your freedom date forward by roughly <strong>${fmtYrs(diffYrs)}</strong>.`
           : `Investing this balance looks like the stronger long-term move based on your numbers.`;
       }
       t3Insight.style.display = 'block';
@@ -575,9 +624,9 @@
     const offsetBalance = parseFloat(document.getElementById('t3OffsetBalance').value) || 0;
     const mortgageRate = parseFloat(document.getElementById('t3MortgageRate').value) || 0;
 
-    const profileSummary = proProfile ? `Age: ${proProfile.age || 'unknown'}. Freedom number: ${fmtM(proProfile.freedom_number || 0)}. Current savings: ${fmtM(proProfile.current_savings || 0)}. Super balance: ${fmtM(proProfile.super_balance || 0)}. Savings rate: ${proProfile.savings_rate || 0}%. Savings type: ${proProfile.savings_type || 'unknown'}. Persona: ${proProfile.persona || 'building'}.` : 'No saved profile available.';
+    const profileSummary = proProfile ? `Age: ${proProfile.age || 'unknown'}. Freedom number: ${fmtDollars(proProfile.freedom_number || 0)}. Current savings: ${fmtDollars(proProfile.current_savings || 0)}. Super balance: ${fmtDollars(proProfile.super_balance || 0)}. Savings rate: ${proProfile.savings_rate || 0}%. Savings type: ${proProfile.savings_type || 'unknown'}. Persona: ${proProfile.persona || 'building'}.` : 'No saved profile available.';
 
-    const userInput = `Gross income: ${fmtM(gross)}/yr. Take-home: ${fmtM(r.takeHome)}/yr. Marginal tax rate: ${(marginal*100).toFixed(0)}%. Effective tax rate: ${(r.effectiveRate*100).toFixed(1)}%. Salary sacrifice considered: ${fmtM(sacrifice)}/yr. Offset balance: ${fmtM(offsetBalance)}, mortgage rate: ${mortgageRate}%. User profile — ${profileSummary}`;
+    const userInput = `Gross income: ${fmtDollars(gross)}/yr. Take-home: ${fmtDollars(r.takeHome)}/yr. Marginal tax rate: ${(marginal*100).toFixed(0)}%. Effective tax rate: ${(r.effectiveRate*100).toFixed(1)}%. Salary sacrifice considered: ${fmtDollars(sacrifice)}/yr. Offset balance: ${fmtDollars(offsetBalance)}, mortgage rate: ${mortgageRate}%. User profile — ${profileSummary}`;
 
     try {
       const res = await fetch(WORKER_URL, {
@@ -669,17 +718,6 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
     await loadProContext();
   });
 </script>
-
-<footer style="border-top:1px solid var(--border);padding:24px;text-align:center;margin-top:20px;">
-  <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:8px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:3px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span style="color:var(--fire-orange)">Path</span></div>
-  <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
-    <a href="dashboard.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Dashboard</a>
-    <a href="learn/index.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Learning Lab</a>
-    <a href="assumptions.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">How We Calculate</a>
-    <a href="privacy.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Privacy</a>
-  </div>
-  <p style="font-size:11px;color:var(--soft-grey);font-weight:300;">FirePath is an educational tool. Not financial advice.</p>
-</footer>
 
 </body>
 </html>

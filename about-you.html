@@ -2,68 +2,63 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>FirePath — About You</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="css/main.css"/>
-<link rel="stylesheet" href="css/visual-system.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/app.css"/>
+<script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
 <script src="js/financial-engine.js"></script>
 <script src="js/interactions.js"></script>
 <style>
-  :root {
-    --fire-orange: #F4622A; --fire-amber: #F9A825; --warm-cream: #FDF6EE;
-    --warm-brown: #3D2B1F; --soft-grey: #9E8E85; --border: #EDE3DA;
+  .about-wrap { max-width: 720px; }
+  .section-block { margin-bottom: 16px; }
+  .block-note { font-size: 12.5px; color: var(--ink-2); margin-top: 12px; line-height: 1.55; }
+
+  .achv-strip { display: flex; gap: 10px; overflow-x: auto; padding: 2px 0 4px; }
+  .achv-badge { flex-shrink: 0; width: 80px; text-align: center; }
+  .achv-icon-wrap {
+    width: 54px; height: 54px; margin: 0 auto 8px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; background: var(--surface-2); border: 1px solid var(--line-strong);
   }
-  * { box-sizing: border-box; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); margin: 0; -webkit-font-smoothing: antialiased; }
-  .container { max-width: 480px; margin: 0 auto; padding: 20px 24px 60px; }
-  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--soft-grey); text-decoration: none; margin-bottom: 24px; }
-  .back-link:hover { color: var(--fire-orange); }
-  .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; margin-bottom: 28px; }
+  .achv-badge.unlocked .achv-icon-wrap { background: linear-gradient(135deg, var(--ember), var(--amber)); border-color: transparent; }
+  .achv-icon-wrap svg { width: 20px; height: 20px; color: var(--ink-3); }
+  .achv-badge.unlocked .achv-icon-wrap svg { color: #fff; }
+  .achv-label { font-size: 11.5px; color: var(--ink-2); line-height: 1.3; }
+  .achv-badge.unlocked .achv-label { color: var(--ink); font-weight: 500; }
+  .achv-badge.next .achv-icon-wrap { border: 1.5px dashed var(--ember); background: var(--ember-wash); }
+  .achv-badge.next .achv-icon-wrap svg { color: var(--ember-ink); }
+  .achv-badge.next .achv-label { color: var(--ember-ink); font-weight: 500; }
+  .achv-distance { font-size: 11px; color: var(--ember-ink); font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
 
-  .section-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:12px;margin-top:8px; }
-  .section-block{ margin-bottom:36px; }
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before { content: ''; position: absolute; left: 5px; top: 6px; bottom: 6px; width: 1.5px; background: var(--line-strong); }
+  .tl-item { position: relative; padding-bottom: 20px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-dot { position: absolute; left: -24px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--line-strong); }
+  .tl-item.done .tl-dot { background: var(--ember); border-color: var(--ember); }
+  .tl-item.next .tl-dot { border-color: var(--ember); border-style: dashed; }
+  .tl-label { font-size: 14px; line-height: 1.45; }
+  .tl-item.done .tl-label { color: var(--ink); font-weight: 500; }
+  .tl-item:not(.done) .tl-label { color: var(--ink-2); }
+  .tl-item.next .tl-label { color: var(--ember-ink); font-weight: 500; }
+  .tl-distance { font-size: 12px; color: var(--ember-ink); font-weight: 500; margin-top: 2px; font-variant-numeric: tabular-nums; }
 
-  .achv-strip{ display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; }
-  .achv-badge{ flex-shrink:0; width:76px; text-align:center; }
-  .achv-icon-wrap{
-    width:54px; height:54px; margin:0 auto 6px; border-radius:50%; display:flex;
-    align-items:center; justify-content:center; background:var(--warm-cream); border:1.5px solid var(--border);
-  }
-  .achv-badge.unlocked .achv-icon-wrap{ background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber)); border-color:transparent; }
-  .achv-icon-wrap svg{ width:20px; height:20px; color:var(--soft-grey); }
-  .achv-badge.unlocked .achv-icon-wrap svg{ color:#fff; }
-  .achv-label{ font-size:10.5px; color:var(--soft-grey); line-height:1.3; }
-  .achv-badge.unlocked .achv-label{ color:var(--warm-brown); font-weight:500; }
-  .achv-badge.next .achv-icon-wrap{ border-color:var(--fire-orange); border-width:1.5px; border-style:dashed; background:#FFF7F3; }
-  .achv-badge.next .achv-icon-wrap svg{ color:var(--fire-orange); }
-  .achv-badge.next .achv-label{ color:var(--fire-orange); font-weight:500; }
-  .achv-distance{ font-size:9.5px; color:var(--fire-orange); font-weight:600; margin-top:1px; }
+  .dna-type { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 14px; }
+  .dna-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .dna-label { width: 100px; flex-shrink: 0; font-size: 13.5px; color: var(--ink-2); }
+  .dna-track { flex: 1; height: 8px; border-radius: 999px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+  .dna-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--ember), var(--amber)); }
 
-  .timeline{ position:relative; padding-left:22px; }
-  .timeline::before{ content:''; position:absolute; left:5px; top:6px; bottom:6px; width:1.5px; background:var(--border); }
-  .tl-item{ position:relative; padding-bottom:20px; }
-  .tl-item:last-child{ padding-bottom:0; }
-  .tl-dot{ position:absolute; left:-22px; top:2px; width:11px; height:11px; border-radius:50%; background:white; border:2px solid var(--border); }
-  .tl-item.done .tl-dot{ background:var(--fire-orange); border-color:var(--fire-orange); }
-  .tl-item.next .tl-dot{ border-color:var(--fire-orange); border-style:dashed; }
-  .tl-label{ font-size:14px; margin-top:2px; }
-  .tl-item.done .tl-label{ color:var(--warm-brown); font-weight:500; }
-  .tl-item:not(.done) .tl-label{ color:var(--soft-grey); }
-  .tl-item.next .tl-label{ color:var(--fire-orange); font-weight:500; }
-  .tl-distance{ font-size:11px; color:var(--fire-orange); font-weight:500; margin-top:2px; }
-
-  .dna-row{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
-  .dna-label{ width:100px; flex-shrink:0; font-size:13px; color:var(--soft-grey); }
-  .dna-track{ flex:1; height:7px; border-radius:999px; background:var(--border); overflow:hidden; }
-  .dna-fill{ height:100%; border-radius:999px; background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber)); }
-
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--soft-grey); font-size: 14px; }
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--ink-2); font-size: 14px; line-height: 1.6; }
+  .empty-state a { color: var(--ember-ink) !important; font-weight: 500; }
 </style>
 </head>
-<body>
+<body class="app" data-shell="app" data-active="journey">
+<script src="js/shell.js"></script>
 
 <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
   <defs>
@@ -72,42 +67,41 @@
   </defs>
 </svg>
 
-<div class="container">
-  <a href="journey.html" class="back-link">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-    Back
-  </a>
+<main class="app-main">
+<div class="about-wrap">
 
-  <div class="page-title">About you</div>
+  <header class="page-head rise" style="--i:0">
+    <div>
+      <a href="journey.html" class="section-link">← Journey</a>
+      <h1 class="page-head-title" style="margin-top:8px;">About you</h1>
+      <p class="page-head-sub">Milestones you've reached, what's next, and how you handle money.</p>
+    </div>
+  </header>
 
-  <div id="loadingState" class="empty-state">Loading...</div>
+  <div id="loadingState" class="card empty-state">Loading...</div>
 
   <div id="content" style="display:none;">
-    <div class="section-block">
-      <div class="section-label">Achievements</div>
+    <section class="card section-block">
+      <div class="section-head"><h2 class="section-label">Achievements</h2></div>
       <div class="achv-strip" id="achvStrip"></div>
-      <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;" id="achvNote"></div>
-    </div>
-    <div class="section-block">
-      <div class="section-label">Journey Timeline</div>
+      <div class="block-note" id="achvNote"></div>
+    </section>
+    <section class="card section-block">
+      <div class="section-head"><h2 class="section-label">Journey timeline</h2></div>
       <div class="timeline" id="timeline"></div>
-    </div>
-    <div class="section-block">
-      <div class="section-label">Financial DNA</div>
-      <div id="dnaType" style="font-family:'Playfair Display',serif;font-weight:700;font-size:19px;color:var(--warm-brown);margin-bottom:12px;"></div>
+    </section>
+    <section class="card section-block">
+      <div class="section-head"><h2 class="section-label">Financial DNA</h2></div>
+      <div class="dna-type" id="dnaType"></div>
       <div id="dnaRows"></div>
-      <div style="font-size:11px;color:var(--soft-grey);margin-top:8px;" id="dnaNote"></div>
-    </div>
+      <div class="block-note" id="dnaNote"></div>
+    </section>
   </div>
+
 </div>
+</main>
 
 <script>
-  function fmtM(n) {
-    if (n === null || n === undefined || isNaN(n)) return '—';
-    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
-    if (n >= 1000) return '$' + Math.round(n/1000) + 'K';
-    return '$' + Math.round(n);
-  }
 
   const PERSONA_COPY = {
     beginner: {

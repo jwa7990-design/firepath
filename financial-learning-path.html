@@ -2,90 +2,104 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Financial Learning Path — Mockup</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/app.css"/>
+<script src="js/persona.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --fire-orange: #F4622A;
-    --fire-amber: #F9A825;
-    --warm-cream: #FDF6EE;
-    --warm-brown: #3D2B1F;
-    --soft-grey: #9E8E85;
-    --border: #EDE3DA;
-    --green: #4CA771;
-    --amber: #E5A028;
+  .flp { max-width: 640px; }
+  .flp .page-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .flp .section-link { margin-bottom: 6px; }
+  .flp .page-head-sub { font-size: 14px; line-height: 1.6; max-width: 52ch; }
+  .mockup-tag { margin-bottom: 2px; }
+
+  /* ── Quiz ── */
+  .progress-dots { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); transition: background var(--dur-base) var(--ease), transform var(--dur-base) var(--ease); }
+  .dot.active { background: var(--ember); transform: scale(1.25); }
+  .dot.done { background: var(--amber); }
+  .question-card { padding: 24px 20px; }
+  @media (min-width: 768px) { .question-card { padding: 32px 28px; } }
+  .question-text { font-family: var(--font-display); font-size: 21px; font-weight: 700; margin-bottom: 20px; line-height: 1.3; color: var(--ink); letter-spacing: -0.005em; }
+  .option-btn {
+    display: block; width: 100%; min-height: 50px; text-align: left; margin-bottom: 10px; padding: 14px 16px;
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-md);
+    font: 500 14.5px/1.4 var(--font-ui); color: var(--ink); cursor: pointer;
+    transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   }
-  body { font-family: 'DM Sans', sans-serif; background: var(--warm-cream); color: var(--warm-brown); min-height: 100vh; }
-  .container { max-width: 480px; margin: 0 auto; padding: 32px 20px 60px; }
-  .mockup-tag { text-align: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--soft-grey); margin-bottom: 20px; }
-  h1 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; text-align: center; margin-bottom: 10px; line-height: 1.25; }
-  .subtitle { font-size: 14px; color: var(--soft-grey); font-weight: 300; text-align: center; margin-bottom: 32px; line-height: 1.6; }
-  .progress-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 28px; flex-wrap: wrap; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: background 0.2s; }
-  .dot.active { background: var(--fire-orange); }
-  .dot.done { background: var(--fire-amber); }
-  .question-card { background: white; border: 1.5px solid var(--border); border-radius: 18px; padding: 28px 22px; }
-  .question-text { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; margin-bottom: 20px; line-height: 1.35; }
-  .option-btn { display: block; width: 100%; text-align: left; background: var(--warm-cream); border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--warm-brown); cursor: pointer; transition: all 0.15s; }
-  .option-btn:hover { border-color: var(--fire-orange); background: #FFF7F3; }
-  .back-link { display: inline-block; margin-top: 16px; font-size: 13px; color: var(--soft-grey); text-decoration: none; cursor: pointer; }
-  .back-link:hover { color: var(--fire-orange); }
+  .option-btn:hover { border-color: var(--ember); background: #FFF7F2; }
+  .option-btn:focus-visible { outline: none; border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
+  .back-link { display: inline-block; margin-top: 10px; font-size: 13.5px; font-weight: 500; color: var(--ink-2); text-decoration: none; cursor: pointer; }
+  .back-link:hover { color: var(--ember-ink); }
 
-  .results-header { text-align: center; margin-bottom: 24px; }
-  .results-header .eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fire-orange); margin-bottom: 8px; }
-  .results-header h2 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
-  .results-header p { font-size: 13px; color: var(--soft-grey); font-weight: 300; line-height: 1.6; }
+  /* ── Results ── */
+  .results-header { margin-bottom: 24px; }
+  .results-header .eyebrow { color: var(--ember-ink); margin-bottom: 8px; }
+  .results-header h2 { font-family: var(--font-display); font-size: clamp(24px, 4vw, 28px); font-weight: 700; margin-bottom: 10px; line-height: 1.25; color: var(--ink); letter-spacing: -0.01em; }
+  .results-header p { font-size: 14px; color: var(--ink-2); line-height: 1.65; }
 
-  .confidence-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px; }
-  .confidence-badge.high { background: rgba(76,167,113,0.12); color: var(--green); }
-  .confidence-badge.review { background: rgba(66,133,180,0.14); color: #4285B4; }
-  .confidence-badge.maybe { background: rgba(229,160,40,0.14); color: var(--amber); }
-  .confidence-badge.low { background: var(--warm-cream); color: var(--soft-grey); }
+  .confidence-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .confidence-badge.high { background: var(--positive-wash); color: var(--positive); }
+  .confidence-badge.review { background: rgba(58,110,165,0.12); color: var(--blue); }
+  .confidence-badge.maybe { background: var(--ember-wash); color: var(--ember-ink); }
+  .confidence-badge.low { background: var(--surface-2); color: var(--ink-2); }
 
-  .result-item { background: white; border: 1.5px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 12px; }
-  .category-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fire-orange); margin: 20px 0 10px; }
+  .category-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); margin: 28px 0 12px; }
   .category-label:first-of-type { margin-top: 0; }
-  .result-item.dimmed { opacity: 0.55; }
-  .result-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 14px; }
-  .result-section { margin-bottom: 12px; }
-  .result-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--soft-grey); margin-bottom: 3px; }
-  .result-text { font-size: 13px; color: var(--warm-brown); font-weight: 300; line-height: 1.6; }
+  .result-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: 20px; margin-bottom: 12px; }
+  @media (min-width: 768px) { .result-item { padding: 24px; } }
+  .result-item.dimmed { opacity: 0.6; box-shadow: none; }
+  .result-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; line-height: 1.3; margin-bottom: 14px; color: var(--ink); }
+  .result-title span { font-family: var(--font-ui); color: var(--ink-2) !important; font-size: 12px !important; }
+  .result-section { margin-bottom: 14px; }
+  .result-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: 4px; }
+  .result-text { font-size: 14px; color: var(--ink-2); line-height: 1.65; }
   .trigger-list { margin-top: 8px; }
-  .trigger-item { font-size: 12px; color: var(--green); font-weight: 500; margin-bottom: 3px; }
-  .outcome-list { margin: 4px 0 0 16px; padding: 0; }
-  .outcome-list li { font-size: 13px; color: var(--warm-brown); font-weight: 300; line-height: 1.6; margin-bottom: 2px; }
-  .result-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: var(--fire-orange); text-decoration: none; margin-top: 4px; }
+  .trigger-item { font-size: 12.5px; color: var(--positive); font-weight: 500; margin-bottom: 3px; }
+  .outcome-list { margin: 4px 0 0 18px; padding: 0; }
+  .outcome-list li { font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-bottom: 3px; }
+  .result-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13.5px; font-weight: 500; color: var(--ember-ink); text-decoration: none; margin-top: 4px; }
+  .result-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-  .roadmap-tier-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin: 12px 0 6px; }
+  /* Roadmap — the page's one dark "earned" surface */
+  .roadmap-box { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-lg); box-shadow: var(--shadow-2); padding: 24px 20px; color: var(--bg); margin: 32px 0 16px; }
+  @media (min-width: 768px) { .roadmap-box { padding: 28px; } }
+  .roadmap-box h3 { font-family: var(--font-display); font-size: 21px; font-weight: 700; margin-bottom: 4px; }
+  .roadmap-box .roadmap-sub { font-size: 13px; opacity: 0.75; margin-bottom: 16px; }
+  .roadmap-box > div[style*="height:6px"] > div { background: linear-gradient(90deg, var(--ember), var(--amber)) !important; }
+  .roadmap-tier-label { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; color: rgba(253,246,238,0.6); margin: 14px 0 8px; }
   .roadmap-tier-label:first-of-type { margin-top: 0; }
-  .roadmap-arrow { text-align: center; font-size: 14px; opacity: 0.6; margin: 4px 0; }
+  .roadmap-arrow { text-align: center; font-size: 14px; opacity: 0.5; margin: 4px 0; }
+  .roadmap-item { display: flex; align-items: center; gap: 10px; background: rgba(253,246,238,0.07); border: 1px solid rgba(253,246,238,0.08); border-radius: var(--r-sm); padding: 11px 12px; margin-bottom: 8px; font-size: 13.5px; transition: background var(--dur-fast) ease; }
+  .roadmap-item[onclick]:hover { background: rgba(253,246,238,0.12); }
+  .roadmap-num { width: 20px; height: 20px; border-radius: 50%; background: var(--ember); color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .roadmap-time { margin-left: auto; font-size: 12px; opacity: 0.65; text-align: right; flex-shrink: 0; max-width: 45%; font-variant-numeric: tabular-nums; }
+  .roadmap-progress { font-size: 12.5px; margin-top: 14px; opacity: 0.75; font-variant-numeric: tabular-nums; }
 
-  .roadmap-box { background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber)); border-radius: 18px; padding: 24px; color: white; margin: 28px 0 16px; }
-  .roadmap-box h3 { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; margin-bottom: 4px; }
-  .roadmap-box .roadmap-sub { font-size: 12.5px; opacity: 0.85; margin-bottom: 16px; }
-  .roadmap-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.12); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; }
-  .roadmap-num { width: 20px; height: 20px; border-radius: 50%; background: white; color: var(--fire-orange); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .roadmap-time { margin-left: auto; font-size: 11px; opacity: 0.75; }
-  .roadmap-progress { font-size: 12px; margin-top: 12px; opacity: 0.85; }
-
-  .caveat { font-size: 11.5px; color: var(--soft-grey); font-style: italic; text-align: center; line-height: 1.7; margin: 20px 0 8px; padding: 16px; background: white; border-radius: 12px; border: 1px solid var(--border); }
-  .restart-btn { display: block; width: 100%; text-align: center; background: white; border: 2px solid var(--fire-orange); color: var(--fire-orange); padding: 13px; border-radius: 50px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+  .caveat { margin: 20px 0 8px; font-size: 12.5px; text-align: center; font-style: italic; }
+  .restart-btn { margin-top: 16px; }
 </style>
 </head>
-<body>
-<div class="container">
-  <div class="mockup-tag">Mockup — Financial Learning Path</div>
+<body class="app" data-shell="app" data-active="learn">
+<script src="js/shell.js"></script>
+
+<main class="app-main flp">
+  <header class="page-head">
+    <a href="learn.html" class="section-link">← Learn</a>
+    <div class="mockup-tag eyebrow">Mockup — Financial Learning Path</div>
+  </header>
   <div id="quizView">
-    <h1>What's worth exploring?</h1>
-    <p class="subtitle">A few quick questions to see which topics are worth learning about. No numbers calculated, no advice given — just relevant education pointed your way.</p>
+    <h1 class="page-head-title">What's worth exploring?</h1>
+    <p class="page-head-sub subtitle" style="margin-bottom:24px;">A few quick questions to see which topics are worth learning about. No numbers calculated, no advice given — just relevant education pointed your way.</p>
     <div class="progress-dots" id="progressDots"></div>
-    <div class="question-card" id="questionCard"></div>
+    <div class="question-card card" id="questionCard"></div>
   </div>
 
   <div id="resultsView" style="display:none;"></div>
-</div>
+</main>
 
 <!-- auth.js provides getToken()/getUserId()/WORKER_URL — same pattern as journey.html and tax.html.
      calculations.js is included for consistency with those pages but isn't required by this file's own logic.
@@ -382,7 +396,7 @@ function showResults() {
       ${grouped[cat].map(c => `
         <div class="result-item ${c.level === 'low' ? 'dimmed' : ''}">
           ${confidenceBadge(c.level)}
-          <div class="result-title">${c.title} <span style="font-size:11px;font-weight:400;color:var(--soft-grey);">— ${c.readingMin} min read</span></div>
+          <div class="result-title">${c.title} <span style="font-size:12px;font-weight:400;color:var(--ink-2);">— ${c.readingMin} min read</span></div>
           <div class="result-section">
             <div class="result-label">Why FirePath suggested this topic</div>
             <div class="result-text">${c.suggestedBecause}</div>
@@ -392,10 +406,10 @@ function showResults() {
             <ul class="outcome-list">${c.afterReading.map(o => `<li>${o}</li>`).join('')}</ul>
           </div>
           ${c.whyMatters ? `<div class="result-section"><div class="result-label">Why this matters</div><div class="result-text">${c.whyMatters}</div></div>` : ''}
-          ${c.prereq ? `<div style="font-size:11.5px;color:var(--soft-grey);font-style:italic;margin-bottom:10px;">Builds on: ${c.prereq}</div>` : ''}
+          ${c.prereq ? `<div style="font-size:12.5px;color:var(--ink-2);font-style:italic;margin-bottom:10px;">Builds on: ${c.prereq}</div>` : ''}
           <a class="result-link" href="${c.link}">Read in Learning Lab →</a>
           ${c.proHref ? `<br/><a class="result-link" href="${c.proHref}" style="margin-top:6px;">Ready to see how this works with your own situation? Try it in Tax & Strategy →</a>` : ''}
-          ${c.atoUrl ? `<br/><a class="result-link" href="${c.atoUrl}" target="_blank" rel="noopener" style="margin-top:6px;color:var(--soft-grey);">Official source: Australian Taxation Office →</a>` : ''}
+          ${c.atoUrl ? `<br/><a class="result-link" href="${c.atoUrl}" target="_blank" rel="noopener" style="margin-top:6px;color:var(--ink-2);">Official source: Australian Taxation Office →</a>` : ''}
         </div>
       `).join('')}
     `).join('')}
@@ -430,7 +444,7 @@ function showResults() {
             <div style="display:flex;gap:6px;">
               <button onclick="event.stopPropagation();answerComprehension('${item.title.replace(/'/g, "\\'")}', false)" style="flex:1;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:8px;padding:6px;font-size:11px;cursor:pointer;">Not yet</button>
               <button onclick="event.stopPropagation();answerComprehension('${item.title.replace(/'/g, "\\'")}', true)" style="flex:1;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:8px;padding:6px;font-size:11px;cursor:pointer;">Mostly</button>
-              <button onclick="event.stopPropagation();answerComprehension('${item.title.replace(/'/g, "\\'")}', true)" style="flex:1;background:white;border:1px solid white;color:var(--fire-orange);border-radius:8px;padding:6px;font-size:11px;font-weight:600;cursor:pointer;">Yes</button>
+              <button onclick="event.stopPropagation();answerComprehension('${item.title.replace(/'/g, "\\'")}', true)" style="flex:1;background:white;border:1px solid white;color:var(--ember-ink);border-radius:8px;padding:6px;font-size:11px;font-weight:600;cursor:pointer;">Yes</button>
             </div>
           </div>`;
           }
@@ -447,8 +461,8 @@ function showResults() {
     </div>
     ` : ''}
 
-    <div class="caveat">Based on the information you've provided, these are educational topics that may be relevant to explore. FirePath has not assessed whether any strategy is suitable or available to you. ${answers.advisor === 'no' ? 'For decisions specific to your situation, a registered tax agent or financial adviser can confirm what genuinely applies to you.' : ''}</div>
-    <button class="restart-btn" onclick="retakeQuiz()">Retake the quiz</button>
+    <div class="caveat callout">Based on the information you've provided, these are educational topics that may be relevant to explore. FirePath has not assessed whether any strategy is suitable or available to you. ${answers.advisor === 'no' ? 'For decisions specific to your situation, a registered tax agent or financial adviser can confirm what genuinely applies to you.' : ''}</div>
+    <button class="restart-btn btn btn-quiet btn-lg btn-block" onclick="retakeQuiz()">Retake the quiz</button>
   `;
 }
 

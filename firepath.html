@@ -10,252 +10,231 @@
     gtag('config', 'G-Q2QZ662MJ9');
   </script>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>FirePath — Know your number. Light your path on Fire.</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/visual-system.css"/>
+  <script src="js/persona.js"></script>
   <style>
-  /* ── Existing styles (unchanged) ── */
-  .rate-card { background:white;border:1.5px solid var(--border);border-radius:var(--radius-md,16px);margin-bottom:10px;overflow:hidden;transition:box-shadow 0.2s; }
-  .rate-card:hover { box-shadow:0 4px 16px rgba(61,43,31,0.07); }
-  .rate-header { display:flex;align-items:center;justify-content:space-between;padding:16px 18px;cursor:pointer;user-select:none; }
-  .rate-left { display:flex;align-items:center;gap:12px; }
-  .rate-badge { font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:white;border-radius:var(--radius-sm,8px);padding:4px 10px;min-width:50px;text-align:center; }
-  .rate-badge.bank { background:var(--soft-grey); }
-  .rate-badge.low { background:#7CB97E; }
-  .rate-badge.mid { background:var(--fire-orange); }
-  .rate-badge.high { background:#C0392B; }
-  .rate-title { font-size:14px;font-weight:500; }
-  .rate-subtitle { font-size:11px;color:var(--soft-grey);margin-top:2px; }
-  .rate-right { display:flex;align-items:center;gap:8px; }
-  .rate-result { font-size:13px;font-weight:700;color:var(--fire-orange); }
-  .rate-result.muted { color:var(--soft-grey); }
-  .chevron { font-size:10px;color:var(--soft-grey);transition:transform 0.2s; }
-  .chevron.open { transform:rotate(180deg); }
-  .rate-body { border-top:1px solid var(--border);padding:16px 18px;display:none; }
-  .rate-body.open { display:block; }
-  .rate-body p { font-size:13px;color:var(--soft-grey);line-height:1.7;font-weight:300;margin-bottom:10px; }
-  .rate-body p:last-child { margin-bottom:0; }
-  .rate-body p strong { color:var(--warm-brown);font-weight:500; }
-  .type-tags { display:flex;flex-wrap:wrap;gap:6px;margin-top:10px; }
-  .type-tag { font-size:11px;font-weight:500;padding:4px 10px;border-radius:var(--radius-pill,20px);background:var(--warm-cream);color:var(--warm-brown);border:1px solid var(--border); }
-  .edu-note { font-size:11px !important;font-style:italic;opacity:0.7;margin-top:12px !important; }
-  .optional-badge { display:inline-block;font-size:10px;font-weight:500;color:var(--soft-grey);background:var(--warm-cream);border:1px solid var(--border);border-radius:var(--radius-pill,20px);padding:2px 8px;margin-left:6px;vertical-align:middle; }
-  .thought-header { text-align:center;margin-bottom:16px; }
-  .thought-header h3 { font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:4px; }
-  .thought-header p { font-size:13px;color:var(--soft-grey);font-weight:300; }
-  .slider-hint { font-size:13px;color:var(--soft-grey);font-weight:300;margin-top:2px; }
-  .needle-card { background:white;border:1.5px solid var(--border);border-radius:var(--radius-md,16px);margin-bottom:12px;overflow:hidden; }
-  .needle-tabs { display:flex;border-bottom:1px solid var(--border); }
-  .needle-tab { flex:1;padding:12px 8px;text-align:center;font-size:13px;font-weight:500;color:var(--soft-grey);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s; }
-  .needle-tab.active { color:var(--fire-orange);border-bottom-color:var(--fire-orange); }
-  .needle-panel { display:none;padding:16px; }
-  .needle-panel.active { display:block; }
-  .needle-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
-  .needle-row:last-child { border-bottom:none; }
-  .needle-label { color:var(--soft-grey);font-weight:300; }
-  .needle-result { font-weight:700; }
-  .needle-result.better { color:#2E7D32; }
-  .needle-result.worse { color:#E53935; }
-  .needle-result.base { color:var(--warm-brown); }
-  .needle-pro-nudge { background:#FFF7F3;border-radius:var(--radius-sm,10px);padding:12px 14px;margin-top:12px;font-size:12px;color:var(--warm-brown);line-height:1.6; }
-  .range-card { background:white;border:1.5px solid var(--border);border-radius:var(--radius-md,16px);padding:20px;margin-bottom:12px; }
-  .range-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
-  .range-row:last-child { border-bottom:none; }
-  .range-row.base { background:#FFF7F3;margin:0 -20px;padding:10px 20px;border-bottom:1px solid rgba(244,98,42,0.15); }
-  .range-label { color:var(--soft-grey);font-weight:300; }
-  .range-label strong { color:var(--warm-brown);font-weight:500; }
-  .range-value { font-weight:700;color:var(--warm-brown); }
-  .range-value.optimistic { color:#2E7D32; }
-  .range-value.base { color:var(--fire-orange); }
-  .range-value.conservative { color:#E65100; }
+  /* ── Page frame: the site shell draws the nav; this is the calculator column ── */
+  /* position/z-index reset: main.css gives .container z-index:1, which would trap the
+     cinematic stage and bento modal underneath the shell's sticky nav. */
+  .fp-calc { width: 100%; max-width: 520px; margin: 0 auto; padding: 0 16px calc(48px + env(safe-area-inset-bottom)); position: static; z-index: auto; }
 
-  /* ── Onboarding styles ── */
-  #onboarding {
-    background: var(--warm-cream);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+  /* main.css loads after app.css here (the page still uses its form classes), so pin .card back to app.css */
+  .fp-calc .card { border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: 20px; background: var(--surface); border: 1px solid var(--line); }
+  /* ── Shared form controls (classes come from main.css; restyled to app.css tokens) ── */
+  .fp-calc input[type="number"], .fp-calc input[type="text"] {
+    height: 48px; padding: 0 14px 0 32px; border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+    background: var(--surface); color: var(--ink); font: 400 16px var(--font-ui); font-variant-numeric: tabular-nums;
+    transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   }
-  #ob-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    padding: 24px 0 0;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--warm-cream);
+  .fp-calc input[type="number"]:focus, .fp-calc input[type="text"]:focus, .fp-calc .context-textarea:focus { outline: none; border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
+  .fp-calc input::placeholder, .fp-calc .context-textarea::placeholder { color: var(--ink-3); font-weight: 400; }
+  .fp-calc .input-wrapper.with-word input { padding-left: 44px; }
+  .input-prefix { color: var(--ink-3); font-weight: 500; }
+  .input-prefix.word { font-size: 13px; left: 12px; }
+  .context-textarea { border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--ink); font: 400 15px/1.6 var(--font-ui); padding: 12px 14px; margin-top: 8px; }
+  .input-label { color: var(--ink); font-size: 13.5px; }
+  .error-msg { color: var(--negative); font-weight: 400; font-size: 13.5px; background: var(--negative-wash); padding: 10px 14px; border-radius: var(--r-sm); margin: 0 0 12px; }
+
+  /* Toggles: pay cycle, spend, housing, savings type — JS toggles .active */
+  .cycle-group, .housing-group { display: flex; gap: 8px; margin-bottom: 0; flex-wrap: wrap; }
+  .cycle-btn, .housing-btn {
+    flex: 1 1 0; min-width: 0; min-height: 44px; padding: 10px 8px; border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+    background: var(--surface); color: var(--ink-2); font: 500 13.5px/1.35 var(--font-ui); cursor: pointer; text-align: center;
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, color var(--dur-fast) ease;
   }
-  .ob-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--border);
-    transition: background 0.3s, transform 0.3s;
-    cursor: default;
-  }
-  .ob-dot.active {
-    background: var(--fire-orange);
-    transform: scale(1.3);
-  }
-  #ob-wrapper {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-  }
+  .housing-btn { flex-direction: row; gap: 6px; }
+  .housing-group .housing-btn[data-savings] { flex: 1 1 calc(50% - 4px); }
+  .cycle-btn:hover, .housing-btn:hover { border-color: var(--ink-3); color: var(--ink); }
+  .cycle-btn.active, .housing-btn.active { background: var(--ember-wash); border-color: var(--ember); color: var(--ember-ink); }
+  .cycle-btn:focus-visible, .housing-btn:focus-visible, .counter-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .cycle-btn-note { font-size: 11px; font-weight: 400; opacity: 0.8; line-height: 1.3; }
+  .housing-btn .icon { width: 15px; height: 15px; flex-shrink: 0; }
+
+  .counter-row { margin: 10px 0 0; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-sm); }
+  .counter-label { color: var(--ink); font-size: 14px; }
+  .counter-btn { width: 36px; height: 36px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); }
+  .counter-btn:hover { border-color: var(--ember); color: var(--ember-ink); }
+  .counter-val { font-family: var(--font-ui); font-weight: 600; font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* Partner */
+  .partner-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: var(--surface); border: 1px dashed var(--line-strong); border-radius: var(--r-md); cursor: pointer; transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease; }
+  .partner-toggle:hover { border-color: var(--ember); background: var(--ember-wash); }
+  .partner-toggle-title { font-size: 14.5px; font-weight: 500; color: var(--ink); }
+  .partner-toggle-sub { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+  #partnerToggleIcon { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--ember-wash); color: var(--ember-ink); display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; }
+  .partner-fields { margin-top: 12px; }
+  .partner-fields .section-label { margin-bottom: 14px; }
+  .partner-fields .input-group:last-child { margin-bottom: 0; }
+  .label-optional { color: var(--ink-3); font-weight: 400; }
+
+  /* ── Existing result detail styles (restyled) ── */
+  .rate-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 10px; overflow: hidden; transition: box-shadow var(--dur-base) var(--ease); }
+  .rate-card:hover { box-shadow: var(--shadow-2); }
+  .rate-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; cursor: pointer; user-select: none; }
+  .rate-left { display: flex; align-items: center; gap: 12px; }
+  .rate-badge { font-size: 14px; font-weight: 600; color: #fff; border-radius: var(--r-sm); padding: 4px 10px; min-width: 50px; text-align: center; font-variant-numeric: tabular-nums; }
+  .rate-badge.bank { background: var(--ink-3); }
+  .rate-badge.low { background: var(--green); }
+  .rate-badge.mid { background: var(--ember); }
+  .rate-badge.high { background: var(--negative); }
+  .rate-title { font-size: 14px; font-weight: 500; color: var(--ink); }
+  .rate-subtitle { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .rate-right { display: flex; align-items: center; gap: 8px; }
+  .rate-result { font-size: 13px; font-weight: 600; color: var(--ember-ink); }
+  .rate-result.muted { color: var(--ink-2); }
+  .chevron { font-size: 10px; color: var(--ink-3); transition: transform var(--dur-base) var(--ease); }
+  .chevron.open { transform: rotate(180deg); }
+  .rate-body { border-top: 1px solid var(--line); padding: 16px 18px; display: none; }
+  .rate-body.open { display: block; }
+  .rate-body p { font-size: 13.5px; color: var(--ink-2); line-height: 1.7; margin-bottom: 10px; }
+  .rate-body p:last-child { margin-bottom: 0; }
+  .rate-body p strong { color: var(--ink); font-weight: 600; }
+  .type-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .type-tag { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
+  .edu-note { font-size: 12px !important; font-style: italic; margin-top: 12px !important; }
+  .optional-badge { display: inline-block; font-size: 11px; font-weight: 500; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
+  .thought-header { text-align: center; margin-bottom: 16px; }
+  .thought-header h3 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
+  .thought-header p { font-size: 13.5px; color: var(--ink-2); }
+  .slider-hint { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+  .needle-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 12px; overflow: hidden; }
+  .needle-tabs { display: flex; gap: 2px; padding: 3px; margin-bottom: 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
+  .needle-tab { flex: 1; padding: 8px 8px; text-align: center; font-size: 13px; font-weight: 500; color: var(--ink-2); cursor: pointer; border-radius: 999px; line-height: 1.3; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
+  .needle-tab.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
+  .needle-panel { display: none; padding: 4px 0 0; }
+  .needle-panel.active { display: block; }
+  .needle-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+  .needle-row:last-child { border-bottom: none; }
+  .needle-label { color: var(--ink-2); }
+  .needle-result { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .needle-result.better { color: var(--positive); }
+  .needle-result.worse { color: var(--negative); }
+  .needle-result.base { color: var(--ink); }
+  .needle-pro-nudge { background: var(--surface-2); border-radius: var(--r-sm); padding: 12px 14px; margin-top: 12px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+  .needle-pro-nudge strong { color: var(--ink); }
+  .range-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 20px; margin-bottom: 12px; }
+  .range-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+  .range-row:last-child { border-bottom: none; }
+  .range-row.base { background: var(--ember-wash); margin: 0 -12px; padding: 11px 12px; border-radius: var(--r-sm); border-bottom-color: transparent; }
+  .range-label { color: var(--ink-2); }
+  .range-label strong { color: var(--ink); font-weight: 600; }
+  .range-value { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .range-value.optimistic { color: var(--positive); }
+  .range-value.base { color: var(--ember-ink); }
+  .range-value.conservative { color: var(--ink-2); }
+  .range-footnote { font-size: 12.5px; color: var(--ink-2); font-style: italic; margin-top: 12px; line-height: 1.6; }
+  .range-footnote a, .fp-links a { color: var(--ember-ink); }
+
+  /* ── Onboarding ── */
+  #onboarding { background: var(--bg); min-height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
+  #ob-dots { display: flex; justify-content: center; gap: 8px; padding: 20px 0 4px; position: sticky; top: var(--nav-h); z-index: 10; background: var(--bg); }
+  .ob-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--line-strong); transition: background var(--dur-base) ease, width var(--dur-base) var(--ease); cursor: default; }
+  .ob-dot.active { background: var(--ember); width: 22px; }
+  #ob-wrapper { flex: 1; position: relative; overflow: hidden; }
   .ob-block {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    transform: translateX(100%);
-    opacity: 0;
-    pointer-events: none;
+    position: absolute; top: 0; left: 0; right: 0;
+    transform: translateX(100%); opacity: 0; pointer-events: none;
     transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease;
     min-height: calc(100vh - 60px);
   }
-  .ob-block.active {
-    position: relative;
-    transform: translateX(0);
-    opacity: 1;
-    pointer-events: all;
-  }
-  .ob-inner {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 24px 20px 56px;
-  }
-  .ob-eyebrow {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--fire-orange);
-    margin-bottom: 10px;
-  }
-  .ob-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--warm-brown);
-    line-height: 1.25;
-    margin-bottom: 10px;
-  }
-  .ob-sub {
-    font-size: 14px;
-    color: var(--soft-grey);
-    font-weight: 300;
-    line-height: 1.6;
-    margin-bottom: 28px;
-  }
-  .ob-field {
-    margin-bottom: 24px;
-  }
-  .ob-label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--warm-brown);
-    margin-bottom: 6px;
-  }
-  .ob-hint {
-    font-size: 12px;
-    color: var(--soft-grey);
-    font-weight: 300;
-    line-height: 1.5;
-    display: block;
-  }
-  /* Persona cards */
-  .ob-persona-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-  .ob-persona {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px;
-    background: white;
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
-    cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
-  }
-  .ob-persona:hover {
-    border-color: rgba(244,98,42,0.4);
-    box-shadow: 0 4px 16px rgba(61,43,31,0.07);
-    transform: translateY(-1px);
-  }
-  .ob-persona.selected {
-    border-color: var(--fire-orange);
-    background: #FFF7F3;
-    box-shadow: 0 4px 20px rgba(244,98,42,0.15);
-  }
-  .ob-persona-icon { font-size: 28px; flex-shrink: 0; }
-  .ob-persona-info { flex: 1; }
-  .ob-persona-name { font-size: 15px; font-weight: 600; color: var(--warm-brown); margin-bottom: 3px; }
-  .ob-persona-desc { font-size: 12px; color: var(--soft-grey); font-weight: 300; line-height: 1.5; }
-  .ob-persona-check {
-    width: 24px; height: 24px; border-radius: 50%;
-    border: 1.5px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; color: transparent; flex-shrink: 0;
-    transition: all 0.2s;
-  }
-  .ob-persona.selected .ob-persona-check {
-    background: var(--fire-orange);
-    border-color: var(--fire-orange);
-    color: white;
-  }
+  .ob-block.active { position: relative; transform: translateX(0); opacity: 1; pointer-events: all; }
+  .ob-inner { max-width: 480px; margin: 0 auto; padding: 20px 0 56px; }
+  .ob-eyebrow { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 10px; }
+  .ob-title { font-family: var(--font-display); font-size: clamp(26px, 6vw, 30px); font-weight: 700; color: var(--ink); line-height: 1.2; letter-spacing: -0.01em; margin-bottom: 10px; }
+  .ob-sub { font-size: 15px; color: var(--ink-2); line-height: 1.6; margin-bottom: 28px; }
+  .ob-field { margin-bottom: 24px; }
+  .ob-label { display: block; font-size: 14.5px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+  .ob-hint { font-size: 13px; color: var(--ink-2); line-height: 1.5; display: block; }
+  .ob-hint.live { margin-top: 6px; min-height: 18px; }
+  .ob-hint.spaced { margin-bottom: 10px; }
+  .ob-field .input-wrapper.spaced, .ob-field .housing-group.spaced { margin-top: 8px; }
+  .ob-subfield { margin-top: 14px; }
+  .ob-subfield .ob-label { margin-bottom: 0; }
+  /* Persona cards (markup from persona.js renderPicker) */
+  .ob-persona-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+  .ob-persona { display: flex; align-items: center; gap: 14px; padding: 18px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); cursor: pointer; transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease), background var(--dur-fast) ease; }
+  .ob-persona:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
+  .ob-persona.selected { border-color: var(--ember); background: var(--ember-wash); box-shadow: var(--shadow-2); transform: none; }
+  .ob-persona:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .ob-persona-icon { font-size: 28px; flex-shrink: 0; color: var(--ember); display: flex; }
+  .ob-persona-info { flex: 1; min-width: 0; }
+  .ob-persona-name { font-size: 15.5px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
+  .ob-persona-desc { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+  .ob-persona-check { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line-strong); display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; flex-shrink: 0; transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease; }
+  .ob-persona.selected .ob-persona-check { background: var(--ember); border-color: var(--ember); color: #fff; }
   /* Fade-in for progressive field reveal */
-  .ob-fade-field {
-    transition: opacity 0.4s ease;
-  }
-  /* Next / back buttons */
+  .ob-fade-field { transition: opacity 0.4s ease; }
+  /* Next / back buttons (JS toggles :disabled) */
   .ob-next {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-    color: white;
-    border: none;
-    border-radius: 50px;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: opacity 0.2s, transform 0.15s;
-    font-family: 'DM Sans', sans-serif;
+    display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; margin-top: 8px; padding: 0 24px;
+    background: var(--ink); color: var(--bg); border: none; border-radius: 999px;
+    font: 500 15px var(--font-ui); cursor: pointer; transition: background var(--dur-fast) ease, opacity var(--dur-fast) ease, transform var(--dur-fast) ease;
   }
-  .ob-next:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
-  .ob-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .ob-back {
-    background: none; border: none;
-    color: var(--soft-grey); font-size: 13px;
-    cursor: pointer; padding: 0; margin-bottom: 20px;
-    font-weight: 300; font-family: 'DM Sans', sans-serif;
+  .ob-next:hover:not(:disabled) { background: #3F2C1F; }
+  .ob-next:active:not(:disabled) { transform: scale(0.98); }
+  .ob-next:disabled { opacity: 0.35; cursor: not-allowed; }
+  .ob-next:focus-visible, .cta-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .ob-back { display: inline-flex; align-items: center; min-height: 32px; background: none; border: none; color: var(--ink-2); font: 500 13.5px var(--font-ui); cursor: pointer; padding: 0; margin-bottom: 16px; }
+  .ob-back:hover { color: var(--ink); }
+  /* The page's main conversion action */
+  .cta-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 54px; padding: 0 24px;
+    background: linear-gradient(135deg, var(--ember), var(--amber)); color: #fff; border: none; border-radius: 999px;
+    font: 500 16px var(--font-ui); cursor: pointer; box-shadow: 0 10px 24px -10px rgba(244, 98, 42, 0.55);
+    transition: filter var(--dur-fast) ease, transform var(--dur-fast) ease;
   }
-  .ob-back:hover { color: var(--warm-brown); }
+  .cta-btn:hover { filter: brightness(1.04); transform: none; box-shadow: 0 10px 24px -10px rgba(244, 98, 42, 0.55); }
+  .cta-btn:active { transform: scale(0.98); }
+  .privacy-note { font-size: 13px; color: var(--ink-2); text-align: center; line-height: 1.5; margin-bottom: 14px; }
+  .privacy-note .icon { width: 12px; height: 12px; vertical-align: -2px; }
+  .privacy-note a { color: var(--ember-ink); text-decoration: none; }
+  .privacy-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-  nav { position:fixed;top:0;left:0;right:0;background:rgba(253,246,238,0.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(237,227,218,0.6);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;z-index:100; }
-    .nav-logo { font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--warm-brown);text-decoration:none;word-spacing:0; }
-    .nav-logo span { color:var(--fire-orange); }
-    .nav-link { font-size:13px;color:var(--soft-grey);text-decoration:none;font-weight:400; }
-    .nav-cta { background:var(--warm-brown);color:white;padding:9px 20px;border-radius:var(--radius-sm,10px);font-size:13px;font-weight:500;text-decoration:none; }
-    .nav-links { display:flex;align-items:center;gap:24px; }
+  /* ── Results ── */
+  #results-body { padding-top: 24px; }
+  .back-btn { color: var(--ink-2); font: 500 13.5px var(--font-ui); margin-bottom: 16px; min-height: 32px; }
+  .back-btn:hover { color: var(--ink); }
+  /* The one dark "earned" surface in the results flow */
+  .result-card { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-xl); padding: 28px 20px 20px; color: var(--bg); box-shadow: var(--shadow-3); margin-bottom: 12px; }
+  @media (min-width: 768px) { .result-card { padding: 32px 28px 24px; } }
+  .result-card::before { display: none; }
+  .result-label { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; opacity: 1; color: rgba(253, 246, 238, 0.55); }
+  .result-headline { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.2; color: var(--bg); }
+  .result-headline span { color: var(--amber); font-size: 32px; font-variant-numeric: tabular-nums; }
+  .result-sub { opacity: 1; color: rgba(253, 246, 238, 0.7); font-size: 14px; font-weight: 400; margin-bottom: 20px; }
+  .result-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .stat-box { background: rgba(253, 246, 238, 0.06); border: 1px solid rgba(253, 246, 238, 0.08); border-radius: var(--r-md); padding: 14px 8px; }
+  .result-card .stat-value { font-family: var(--font-display); font-size: clamp(18px, 5vw, 24px); color: var(--amber); font-variant-numeric: tabular-nums; letter-spacing: 0; margin-bottom: 6px; }
+  .stat-name { font-size: 11.5px; opacity: 1; color: rgba(253, 246, 238, 0.6); }
+  .stat-note { font-size: 10.5px; color: rgba(253, 246, 238, 0.5); margin-top: 4px; }
+
+  .life-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: 20px; margin-bottom: 12px; }
+  .life-card-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 4px; }
+  .life-card-sub { font-size: 13px; color: var(--ink-2); margin-bottom: 16px; }
+  .life-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .feedback-card { text-align: center; margin-bottom: 16px; }
+  .feedback-card svg { margin: 0 auto 8px; display: block; color: var(--ember); }
+  .feedback-card-title { font-size: 15.5px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .feedback-card-sub { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin: 0 auto 14px; max-width: 40ch; }
+  .fp-calc .disclaimer { font-size: 12.5px; color: var(--ink-2); font-weight: 400; }
+  .fp-links { text-align: center; font-size: 13px; margin: 8px 0 16px; color: var(--ink-3); }
+  .fp-links a { text-decoration: none; font-weight: 500; }
+  .fp-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
   </style>
 </head>
-<body>
-<div class="container">
- <nav>
-  <a href="/index.html" class="nav-logo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-4px;margin-right:4px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span>Path</span></a>
-  <div class="nav-links">
-    <a href="features.html" class="nav-link">Features</a>
-    <a href="auth.html" class="nav-link">Sign in</a>
-    <a href="firepath_pro.html" class="nav-cta">Try Pro →</a>
-  </div>
-</nav>
+<body class="site" data-shell="site" data-footer="none">
+<script src="js/shell.js"></script>
+
+<main class="container fp-calc">
 
   <!-- ═══════════════════════════════════════════════
        CONVERSATIONAL ONBOARDING — replaces Screen 1 + Screen 2
@@ -279,32 +258,7 @@
           <h1 class="ob-title">Where are you on your journey?</h1>
           <p class="ob-sub">FirePath tailors everything to you — your language, your explanations, your path.</p>
 
-          <div class="ob-persona-list">
-            <div class="ob-persona" data-persona="beginner" onclick="obSelectPersona(this)">
-              <span class="ob-persona-icon"><svg viewBox="0 0 24 24" style="width:28px;height:28px;color:var(--fire-orange);" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-8"/><path d="M12 13c-4.5 0-7-3-7-7 4.5 0 7 3 7 7z"/><path d="M12 13c4.5 0 7-3 7-7-4.5 0-7 3-7 7z"/></svg></span>
-              <div class="ob-persona-info">
-                <div class="ob-persona-name">Just getting started</div>
-                <div class="ob-persona-desc">I've heard about financial freedom but don't know where to begin</div>
-              </div>
-              <div class="ob-persona-check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
-            </div>
-            <div class="ob-persona" data-persona="building" onclick="obSelectPersona(this)">
-              <span class="ob-persona-icon"><svg viewBox="0 0 24 24" style="width:28px;height:28px;color:var(--fire-orange);" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l5-5 4 4 7-8"/><path d="M16 8h4v4"/></svg></span>
-              <div class="ob-persona-info">
-                <div class="ob-persona-name">Building towards it</div>
-                <div class="ob-persona-desc">I know the basics and I'm working on my plan</div>
-              </div>
-              <div class="ob-persona-check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
-            </div>
-            <div class="ob-persona" data-persona="fire" onclick="obSelectPersona(this)">
-              <span class="ob-persona-icon"><svg viewBox="0 0 24 24" style="width:28px;height:28px;color:var(--fire-orange);" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></span>
-              <div class="ob-persona-info">
-                <div class="ob-persona-name">FIRE community</div>
-                <div class="ob-persona-desc">I know my SWR, my FI number, and I'm deep in the journey</div>
-              </div>
-              <div class="ob-persona-check"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
-            </div>
-          </div>
+          <div id="obPersonaList"></div>
         </div>
       </div>
 
@@ -312,7 +266,7 @@
       <div class="ob-block" id="ob-block-2">
         <div class="ob-inner">
           <button class="ob-back" onclick="obGoTo(1)">← Back</button>
-          <div class="ob-eyebrow" id="ob-block2-eyebrow">Your money</div>
+          <div class="ob-eyebrow" id="ob-block2-eyebrow" data-term="obEyebrow">Your money</div>
           <h1 class="ob-title">What does your money look like right now?</h1>
           <p class="ob-sub">Just the basics — we'll use this to find your number.</p>
 
@@ -328,12 +282,12 @@
 
           <!-- Income -->
           <div class="ob-field">
-            <label class="ob-label" id="ob-incomeLabel">Take-home income</label>
+            <label class="ob-label" id="ob-incomeLabel" data-term="incomeLabel">Take-home income</label>
             <div class="input-wrapper">
               <span class="input-prefix">$</span>
               <input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint(); obIncomeHint()"/>
             </div>
-            <span class="ob-hint" id="ob-incomeHint" style="margin-top:6px;min-height:18px;"></span>
+            <span class="ob-hint live" id="ob-incomeHint"></span>
           </div>
 
           <!-- Savings per cycle — fades in after income entered -->
@@ -343,17 +297,17 @@
               <span class="input-prefix">$</span>
               <input type="number" id="savingsAmount" placeholder="0" min="0" oninput="updateSavingsHint(); obSavingsHint()"/>
             </div>
-            <span class="ob-hint" id="sliderHint" style="margin-top:6px;min-height:18px;"></span>
+            <span class="ob-hint live" id="sliderHint"></span>
           </div>
 
           <!-- Retirement spend — fades in after savings entered -->
           <div class="ob-field ob-fade-field" id="ob-spendField" style="opacity:0.3;pointer-events:none;">
             <label class="ob-label">In retirement, how much do you expect to spend?</label>
-            <span class="ob-hint" style="margin-bottom:10px;display:block;">This adjusts your freedom number to your actual retirement lifestyle.</span>
+            <span class="ob-hint spaced">This adjusts your freedom number to your actual retirement lifestyle.</span>
             <div class="cycle-group">
-              <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less<div style="font-size:10px;margin-top:2px;opacity:0.7">Mortgage paid, kids grown</div></button>
-              <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same<div style="font-size:10px;margin-top:2px;opacity:0.7">Similar lifestyle</div></button>
-              <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More<div style="font-size:10px;margin-top:2px;opacity:0.7">Travel, experiences</div></button>
+              <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less<span class="cycle-btn-note">Mortgage paid, kids grown</span></button>
+              <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same<span class="cycle-btn-note">Similar lifestyle</span></button>
+              <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More<span class="cycle-btn-note">Travel, experiences</span></button>
             </div>
           </div>
 
@@ -373,19 +327,19 @@
           <div class="ob-field">
             <label class="ob-label">Your age</label>
             <span class="ob-hint">Used to calculate super timelines and your two-phase freedom date</span>
-            <div class="input-wrapper" style="margin-top:8px;">
-              <span class="input-prefix" style="font-size:13px;left:10px">age</span>
-              <input type="number" id="age" placeholder="e.g. 28" min="16" max="80" style="padding-left:44px" oninput="obAgeHint()"/>
+            <div class="input-wrapper with-word spaced">
+              <span class="input-prefix word">age</span>
+              <input type="number" inputmode="numeric" id="age" placeholder="e.g. 28" min="16" max="80" oninput="obAgeHint()"/>
             </div>
-            <span class="ob-hint" id="ob-ageHint" style="margin-top:6px;min-height:18px;"></span>
+            <span class="ob-hint live" id="ob-ageHint"></span>
           </div>
 
           <!-- Housing -->
           <div class="ob-field">
             <label class="ob-label">Do you rent or own?</label>
             <div class="housing-group">
-              <button class="housing-btn active" data-housing="renting" onclick="setHousing(this)"><svg class="icon" style="width:15px;height:15px;vertical-align:-3px;"><use href="/icons.svg#icon-home"/></svg> Renting</button>
-              <button class="housing-btn" data-housing="owning" onclick="setHousing(this)"><svg class="icon" style="width:15px;height:15px;vertical-align:-3px;"><use href="/icons.svg#icon-key"/></svg> Own my home</button>
+              <button class="housing-btn active" data-housing="renting" onclick="setHousing(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-home"/></svg> Renting</button>
+              <button class="housing-btn" data-housing="owning" onclick="setHousing(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-key"/></svg> Own my home</button>
             </div>
           </div>
 
@@ -393,7 +347,7 @@
           <div class="ob-field">
             <label class="ob-label">Dependants</label>
             <span class="ob-hint">Kids, caring responsibilities</span>
-            <div class="counter-row" style="margin-top:10px;">
+            <div class="counter-row">
               <div class="counter-label">How many?</div>
               <div class="counter-controls">
                 <button class="counter-btn" onclick="adjustDependants(-1)">−</button>
@@ -405,19 +359,19 @@
 
           <!-- Partner toggle -->
           <div class="ob-field">
-            <div onclick="togglePartner()" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:12px;cursor:pointer;">
+            <div class="partner-toggle" onclick="togglePartner()">
               <div>
-                <div style="font-size:14px;font-weight:500;color:var(--warm-brown);">Adding a partner?</div>
-                <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:2px;">Combine your numbers for a shared freedom date</div>
+                <div class="partner-toggle-title">Adding a partner?</div>
+                <div class="partner-toggle-sub">Combine your numbers for a shared freedom date</div>
               </div>
-              <div id="partnerToggleIcon" style="font-size:18px;color:var(--fire-orange);">+</div>
+              <div id="partnerToggleIcon">+</div>
             </div>
-            <div id="partnerFields" style="display:none;margin-top:12px;padding:16px;background:white;border:1.5px solid var(--border);border-radius:12px;">
-              <p class="section-label" style="margin-bottom:12px;">Partner's details</p>
+            <div id="partnerFields" class="card partner-fields" style="display:none;">
+              <p class="section-label">Partner's details</p>
               <div class="input-group"><label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0"/></div></div>
               <div class="input-group"><label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0"/></div></div>
-              <div class="input-group"><label class="input-label">Their age <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix" style="font-size:13px;left:10px">age</span><input type="number" id="partnerAge" placeholder="0" min="16" max="80" style="padding-left:44px"/></div></div>
-              <div class="input-group" style="margin-bottom:0"><label class="input-label">Their super balance <span style="color:var(--soft-grey);font-weight:300">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div></div>
+              <div class="input-group"><label class="input-label">Their age <span class="label-optional">(optional)</span></label><div class="input-wrapper with-word"><span class="input-prefix word">age</span><input type="number" inputmode="numeric" id="partnerAge" placeholder="0" min="16" max="80"/></div></div>
+              <div class="input-group"><label class="input-label">Their super balance <span class="label-optional">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div></div>
             </div>
           </div>
 
@@ -435,19 +389,19 @@
 
           <!-- Savings & investments -->
           <div class="ob-field">
-            <label class="ob-label" id="savingsLabel">Current savings &amp; investments</label>
+            <label class="ob-label" id="savingsLabel" data-term="savingsLabel">Current savings &amp; investments</label>
             <span class="ob-hint">Bank savings, shares, ETFs, offset balance — if it's working for you, it counts.</span>
-            <div class="input-wrapper" style="margin-top:8px;">
+            <div class="input-wrapper spaced">
               <span class="input-prefix">$</span>
               <input type="number" id="savings" placeholder="0" min="0"/>
             </div>
-            <div style="margin-top:12px;">
-              <label class="ob-label" style="margin-bottom:8px;">Where is this money held?</label>
-              <div class="housing-group" style="margin-top:8px;">
-                <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)"><svg class="icon" style="width:15px;height:15px;vertical-align:-3px;"><use href="/icons.svg#icon-secure"/></svg> Bank / cash</button>
-                <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)"><svg class="icon" style="width:15px;height:15px;vertical-align:-3px;"><use href="/icons.svg#icon-insight"/></svg> ETFs / shares</button>
-                <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)"><svg class="icon" style="width:15px;height:15px;vertical-align:-3px;"><use href="/icons.svg#icon-home"/></svg> Offset</button>
-                <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)"><svg class="icon" style="width:15px;height:15px;vertical-align:-3px;"><use href="/icons.svg#icon-target"/></svg> Mix</button>
+            <div class="ob-subfield">
+              <label class="ob-label">Where is this money held?</label>
+              <div class="housing-group spaced">
+                <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-secure"/></svg> Bank / cash</button>
+                <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-insight"/></svg> ETFs / shares</button>
+                <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-home"/></svg> Offset</button>
+                <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-target"/></svg> Mix</button>
               </div>
             </div>
           </div>
@@ -456,7 +410,7 @@
           <div class="ob-field">
             <label class="ob-label">Super balance <span class="optional-badge">optional</span></label>
             <span class="ob-hint">It counts toward your future, even if you can't touch it yet.</span>
-            <div class="input-wrapper" style="margin-top:8px;">
+            <div class="input-wrapper spaced">
               <span class="input-prefix">$</span>
               <input type="number" id="superBalance" placeholder="0" min="0"/>
             </div>
@@ -466,7 +420,7 @@
           <div class="ob-field">
             <label class="ob-label">Total debt <span class="optional-badge">optional</span></label>
             <span class="ob-hint">Credit cards, car loans, personal loans — not your mortgage.</span>
-            <div class="input-wrapper" style="margin-top:8px;">
+            <div class="input-wrapper spaced">
               <span class="input-prefix">$</span>
               <input type="number" id="debtTotal" placeholder="0" min="0"/>
             </div>
@@ -476,7 +430,7 @@
           <div class="ob-field">
             <label class="ob-label">Mortgage remaining <span class="optional-badge">optional</span></label>
             <span class="ob-hint">Only if you own your home.</span>
-            <div class="input-wrapper" style="margin-top:8px;">
+            <div class="input-wrapper spaced">
               <span class="input-prefix">$</span>
               <input type="number" id="mortgageRemaining" placeholder="0" min="0"/>
             </div>
@@ -485,13 +439,13 @@
           <!-- Context -->
           <div class="ob-field">
             <label class="ob-label">Anything else we should know?</label>
-            <span class="ob-hint" id="contextHint">e.g. irregular income, self-employed, saving for a house</span>
-            <textarea class="context-textarea" id="contextNote" placeholder="Tell us a bit about your situation…" style="margin-top:8px;"></textarea>
+            <span class="ob-hint" id="contextHint" data-term="contextHint">e.g. irregular income, self-employed, saving for a house</span>
+            <textarea class="context-textarea" id="contextNote" placeholder="Tell us a bit about your situation…"></textarea>
           </div>
 
           <p class="error-msg" id="errorMsg" style="display:none;">Please enter your income first.</p>
-          <p style="font-size:12px;color:var(--soft-grey);text-align:center;margin-bottom:12px;font-weight:300;"><svg class="icon" style="width:12px;height:12px;vertical-align:-2px;"><use href="/icons.svg#icon-secure"/></svg> Your numbers stay on your device. We don't store or sell them. <a href="privacy.html" style="color:var(--fire-orange);text-decoration:none;">Privacy Policy</a></p>
-          <button class="cta-btn" onclick="calculate()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:5px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Show me my path</button>
+          <p class="privacy-note"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-secure"/></svg> Your numbers stay on your device. We don't store or sell them. <a href="privacy.html">Privacy Policy</a></p>
+          <button class="cta-btn" onclick="calculate()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Show me my path</button>
         </div>
       </div>
 
@@ -511,7 +465,7 @@
       background:
         radial-gradient(ellipse 900px 700px at 50% 38%, rgba(244,162,74,0.16), transparent 60%),
         radial-gradient(ellipse 600px 500px at 50% 38%, rgba(244,98,42,0.10), transparent 55%),
-        #3D2B1F;
+        var(--espresso);
       z-index:100;
       flex-direction:column;
       align-items:center;
@@ -526,7 +480,7 @@
         opacity:0;
         transition:opacity 0.9s ease;
       ">
-        <div id="cin-mondays-text" style="font-family:'Playfair Display',serif;font-size:clamp(24px,6vw,32px);color:#F5EEE3;line-height:1.35;"></div>
+        <div id="cin-mondays-text" style="font-family:var(--font-display);font-size:clamp(24px,6vw,32px);color:var(--bg);line-height:1.35;"></div>
       </div>
 
       <div id="cin-eyebrow" style="
@@ -536,31 +490,31 @@
       ">You could be free in</div>
 
       <div id="cin-number" style="
-        font-family:'Playfair Display',serif;font-size:64px;font-weight:700;
-        color:#F4A24A;line-height:1;opacity:0;
+        font-family:var(--font-display);font-size:64px;font-weight:700;
+        color:var(--amber);line-height:1;opacity:0;
         transform:translateY(12px);
         transition:opacity 0.8s ease, transform 0.8s ease;
         margin-bottom:12px;
       ">—</div>
 
       <div id="cin-sub" style="
-        font-size:14px;color:rgba(255,255,255,0.4);font-weight:300;
+        font-size:14px;color:rgba(255,255,255,0.4);font-weight:400;
         opacity:0;transition:opacity 0.8s ease;
         margin-bottom:28px;max-width:280px;line-height:1.6;
       "></div>
 
       <div id="cin-freedomage" style="
-        font-size:13px;color:rgba(255,255,255,0.55);font-weight:300;
+        font-size:13px;color:rgba(255,255,255,0.55);font-weight:400;
         opacity:0;transition:opacity 0.8s ease;
         margin-bottom:40px;
       "></div>
 
       <div id="cin-unless" style="opacity:0;transition:opacity 0.8s ease;margin-bottom:40px;">
-        <div style="font-family:'Playfair Display',serif;font-style:italic;color:#F4A24A;font-size:18px;margin-bottom:16px;">Unless…</div>
+        <div style="font-family:var(--font-display);font-style:italic;color:var(--amber);font-size:18px;margin-bottom:16px;">Unless…</div>
         <button onclick="cinematicApplyLever()" id="cin-lever-btn" style="
-          background:transparent;border:1px solid #F4A24A;color:#F4A24A;
-          padding:12px 22px;border-radius:var(--radius-pill,50px);font-size:13px;font-weight:500;
-          cursor:pointer;font-family:'DM Sans',sans-serif;
+          background:transparent;border:1px solid var(--amber);color:var(--amber);
+          padding:12px 22px;border-radius:999px;font-size:13px;font-weight:500;
+          cursor:pointer;font-family:var(--font-ui);
         ">Save an extra $50/week</button>
         <div id="cin-lever-result" style="margin-top:12px;font-size:12px;color:#7CB97E;min-height:16px;"></div>
 
@@ -582,26 +536,26 @@
             text-align:left;
           ">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#7CB97E;margin-bottom:10px;">Milestone reached</div>
-            <div style="font-family:'Playfair Display',serif;font-size:19px;color:#F5EEE3;line-height:1.35;margin-bottom:16px;">
-              You just reclaimed <em id="cin-shock-days" style="color:#F4A24A;font-style:italic;">— days</em>.
+            <div style="font-family:var(--font-display);font-size:19px;color:var(--bg);line-height:1.35;margin-bottom:16px;">
+              You just reclaimed <em id="cin-shock-days" style="color:var(--amber);font-style:italic;">— days</em>.
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:rgba(255,255,255,0.4);">
-              <span style="font-family:'Playfair Display',serif;font-style:italic;color:rgba(255,255,255,0.7);">FirePath</span>
-              <span onclick="cinematicShareResult()" id="cin-share-btn" style="cursor:pointer;color:#F4A24A;">Share this →</span>
+              <span style="font-family:var(--font-display);font-style:italic;color:rgba(255,255,255,0.7);">FirePath</span>
+              <span onclick="cinematicShareResult()" id="cin-share-btn" style="cursor:pointer;color:var(--amber);">Share this →</span>
             </div>
           </div>
         </div>
       </div>
 
       <div id="cin-cta" style="opacity:0;transition:opacity 0.8s ease;">
-        <div style="font-size:13px;color:rgba(255,255,255,0.35);margin-bottom:16px;font-weight:300;">
+        <div style="font-size:13px;color:rgba(255,255,255,0.35);margin-bottom:16px;font-weight:400;">
           here's what that means
         </div>
         <button onclick="cinematicRevealCards()" style="
-          background:linear-gradient(135deg,#F4622A,#F4A24A);color:white;
-          border:none;border-radius:var(--radius-pill,50px);padding:14px 32px;
+          background:linear-gradient(135deg,var(--ember),var(--amber));color:white;
+          border:none;border-radius:999px;padding:14px 32px;
           font-size:15px;font-weight:500;cursor:pointer;
-          font-family:'DM Sans',sans-serif;
+          font-family:var(--font-ui);
         ">Show me the full picture →</button>
       </div>
     </div>
@@ -616,21 +570,21 @@
         <p class="result-sub" id="resultSub"></p>
         <div class="result-stats">
           <div class="stat-box"><span class="stat-value" id="savingsRateOut">—</span><span class="stat-name">Savings rate</span></div>
-          <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number</span><div style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:4px;">in today's dollars</div></div>
+          <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number</span><div class="stat-note">in today's dollars</div></div>
           <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / cycle</span></div>
         </div>
       </div>
 
-      <div id="lifeUnlockedCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;" class="cin-card">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:4px;">Not a score. A life you can already see.</div>
-        <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;" id="lifeUnlockedSub"></div>
-        <div id="lifeUnlockedGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+      <div id="lifeUnlockedCard" style="display:none;" class="life-card cin-card">
+        <div class="life-card-label">Not a score. A life you can already see.</div>
+        <div class="life-card-sub" id="lifeUnlockedSub"></div>
+        <div id="lifeUnlockedGrid" class="life-card-grid"></div>
       </div>
 
       <div class="bento-squares cin-card">
         <div class="bsq" id="sq-range" style="display:none;" onclick="openBentoModal('range')">
           <div class="bsq-top">
-            <span class="bsq-icon" style="background:rgba(124,185,126,0.15);color:#4a9a4d;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/></svg></span>
+            <span class="bsq-icon" style="background:var(--positive-wash);color:var(--positive);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/></svg></span>
             <span class="bsq-num">1</span>
           </div>
           <div class="bsq-title">Your projected range</div>
@@ -639,7 +593,7 @@
 
         <div class="bsq" id="sq-meaning" style="display:none;" onclick="openBentoModal('meaning')">
           <div class="bsq-top">
-            <span class="bsq-icon" style="background:rgba(244,98,42,0.12);color:var(--fire-orange);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 2a7 7 0 0 0-4 12.7c.5.4.8 1 .8 1.6V17h6.4v-.7c0-.6.3-1.2.8-1.6A7 7 0 0 0 12 2z"/><path d="M9.5 20h5"/></svg></span>
+            <span class="bsq-icon" style="background:var(--ember-wash);color:var(--ember-ink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 2a7 7 0 0 0-4 12.7c.5.4.8 1 .8 1.6V17h6.4v-.7c0-.6.3-1.2.8-1.6A7 7 0 0 0 12 2z"/><path d="M9.5 20h5"/></svg></span>
             <span class="bsq-num">2</span>
           </div>
           <div class="bsq-title">What this means</div>
@@ -648,7 +602,7 @@
 
         <div class="bsq" id="sq-needle" style="display:none;" onclick="openBentoModal('needle')">
           <div class="bsq-top">
-            <span class="bsq-icon" style="background:rgba(232,185,74,0.18);color:#B8860B;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
+            <span class="bsq-icon" style="background:rgba(249,168,37,0.16);color:#9A6B00;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
             <span class="bsq-num">3</span>
           </div>
           <div class="bsq-title">What changes your date</div>
@@ -657,7 +611,7 @@
 
         <div class="bsq" id="sq-withdrawal" style="display:none;" onclick="openBentoModal('withdrawal')">
           <div class="bsq-top">
-            <span class="bsq-icon" style="background:rgba(92,61,46,0.12);color:var(--warm-brown);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 10h18"/><circle cx="17" cy="14" r="1.3" fill="currentColor" stroke="none"/></svg></span>
+            <span class="bsq-icon" style="background:var(--surface-2);color:var(--ink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 10h18"/><circle cx="17" cy="14" r="1.3" fill="currentColor" stroke="none"/></svg></span>
             <span class="bsq-num">4</span>
           </div>
           <div class="bsq-title">Already working for you</div>
@@ -666,7 +620,7 @@
 
         <div class="bsq bsq-wide" id="sq-tax" style="display:none;" onclick="openBentoModal('tax')">
           <div class="bsq-top">
-            <span class="bsq-icon" style="background:rgba(61,43,31,0.1);color:var(--warm-brown);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 2h12v18l-3-2-3 2-3-2-3 2V2z"/><path d="M9 7h6"/><path d="M9 11h6"/></svg></span>
+            <span class="bsq-icon" style="background:var(--surface-2);color:var(--ink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 2h12v18l-3-2-3 2-3-2-3 2V2z"/><path d="M9 7h6"/><path d="M9 11h6"/></svg></span>
             <span class="bsq-num">5</span>
           </div>
           <div class="bsq-title">Where your next dollar goes</div>
@@ -687,16 +641,16 @@
       <div style="display:none;">
         <div id="rangeCard" class="fp-reveal">
           <div id="rangeRows"></div>
-          <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a></p>
+          <p class="range-footnote">7% real return (after inflation) is the FIRE standard — grounded in 150+ years of market data. <a href="assumptions.html">How we calculate →</a></p>
         </div>
         <div id="meaningCard">
-          <div id="whatThisMeansText" style="font-size:14px;color:var(--warm-brown);line-height:1.7;font-weight:300;"></div>
+          <div id="whatThisMeansText" style="font-size:14.5px;color:var(--ink);line-height:1.7;"></div>
         </div>
         <div id="needleCard"></div>
         <div id="withdrawalCard"></div>
         <div id="taxNudgeCard">
-          <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;" id="taxNudgeText"></div>
-          <a href="tax.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:10px 22px;border-radius:var(--radius-pill,50px);font-size:13px;font-weight:500;text-decoration:none;">Open Tax & Strategy — it's free →</a>
+          <div style="font-size:14px;color:var(--ink-2);line-height:1.7;margin-bottom:14px;" id="taxNudgeText"></div>
+          <a href="tax.html" class="btn btn-ember">Open Tax & Strategy — it's free →</a>
         </div>
       </div>
 
@@ -710,26 +664,26 @@
 
       <div id="proUpgradeBanner" class="cin-card"></div>
 
-      <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;" class="cin-card">
-        <div style="margin-bottom:8px;"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="var(--fire-orange)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto;display:block;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-        <div style="font-size:15px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">Help shape FirePath</div>
-        <div style="font-size:13px;color:var(--soft-grey);font-weight:300;line-height:1.6;margin-bottom:14px;">Got 2 minutes? Tell us what you think — what's useful, what's missing, what could be better.</div>
-        <a href="feedback.html" style="display:inline-block;background:var(--fire-orange);color:white;padding:10px 24px;border-radius:var(--radius-pill,50px);font-size:13px;font-weight:500;text-decoration:none;">Share feedback →</a>
+      <div class="card feedback-card cin-card">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div class="feedback-card-title">Help shape FirePath</div>
+        <div class="feedback-card-sub">Got 2 minutes? Tell us what you think — what's useful, what's missing, what could be better.</div>
+        <a href="feedback.html" class="btn btn-quiet">Share feedback →</a>
       </div>
 
       <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
-      <p style="text-align:center;font-size:12px;margin-bottom:16px;"><a href="assumptions.html" style="color:var(--fire-orange);">How we calculate →</a> · <a href="faq.html" style="color:var(--fire-orange);">FAQ</a></p>
+      <p class="fp-links"><a href="assumptions.html">How we calculate →</a> · <a href="faq.html">FAQ</a></p>
     </div>
 
   </div>
 
-</div><!-- /container -->
+</main><!-- /container -->
 
 <!-- ═══════════════════════════════════════════════
      ORIGINAL JS — completely unchanged
      ═══════════════════════════════════════════════ -->
 <script>
-  let persona = null, selectedCycle = 'fortnightly', retirementSpendMultiplier = 1.0;
+  let persona = FirePathPersona.get(), selectedCycle = 'fortnightly', retirementSpendMultiplier = 1.0;
   let housingStatus = 'renting', dependants = 0, savingsType = 'cash';
 
   function setSavingsType(btn) { document.querySelectorAll('[data-savings]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); savingsType = btn.dataset.savings; }
@@ -754,7 +708,6 @@
     return months / 12;
   }
   function fmt(y) { if (y === null) return '100+ yrs'; if (y === 0) return 'Already there!'; const yr = Math.floor(y), mo = Math.round((y - yr) * 12); if (yr === 0) return mo + ' months'; if (mo === 0) return yr + ' yr' + (yr !== 1 ? 's' : ''); return yr + 'yr ' + mo + 'mo'; }
-  function fmtM(n) { if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M'; if (n >= 1000) return '$' + Math.round(n/1000) + 'K'; return '$' + Math.round(n); }
 
   function updateSavingsHint() {
     const income = parseFloat(document.getElementById('income').value) || 0;
@@ -802,9 +755,9 @@
     document.getElementById('savingsRateOut').textContent = sRate + '%';
     document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
     document.getElementById('monthlySavingOut').textContent = fmtM(cycleSaving);
-    document.getElementById('stat2label').textContent = persona === 'fire' ? 'FI number' : 'Freedom number';
+    document.getElementById('stat2label').textContent = FirePathPersona.copy('freedomNumberLabel', persona);
     document.getElementById('stat3label').textContent = cycleStatLabel;
-    document.getElementById('resultSub').textContent = `Saving ${fmtM(cycleSaving)} per ${cycleWord} toward your ${persona === 'fire' ? 'FI' : 'freedom'} number of ${fmtM(fireNum)}.`;
+    document.getElementById('resultSub').textContent = `Saving ${fmtM(cycleSaving)} per ${cycleWord} toward your ${FirePathPersona.copy('freedomShort', persona)} number of ${fmtM(fireNum)}.`;
 
     const gap = fireNum - savings;
     const weeklyAmt = fmtM(mSav * 12 / 52);
@@ -901,24 +854,7 @@
   // Persona vocabulary — reuses the SAME persona value set at onboarding Block 1
   // (beginner / building / fire). No separate toggle — set once, used everywhere.
   function getPersonaCopy() {
-    const copy = {
-      beginner: {
-        coastTerm: 'ease off saving',
-        freedomTerm: 'fully free',
-        freedomAgeLabel: 'Freedom Age'
-      },
-      building: {
-        coastTerm: 'Coast FIRE',
-        freedomTerm: 'Freedom',
-        freedomAgeLabel: 'Freedom Age'
-      },
-      fire: {
-        coastTerm: 'Coast FIRE',
-        freedomTerm: 'FI/RE',
-        freedomAgeLabel: 'FI Age'
-      }
-    };
-    return copy[persona] || copy.building;
+    return FirePathPersona.config(persona).copy;
   }
 
   // Lump-sum compounding check (no further contributions) — used to approximate
@@ -1290,30 +1226,12 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function obSelectPersona(el) {
-    document.querySelectorAll('.ob-persona').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    persona = el.dataset.persona;
-
-    // Persona-specific copy
-    const labels = {
-      beginner: { eyebrow: 'Just getting started', income: 'Money coming in (after tax)', savings: 'Current savings & investments', hint: "e.g. I'm saving for a house, I have kids, my income varies" },
-      building: { eyebrow: 'Building your plan', income: 'Take-home income', savings: 'Current savings & investments', hint: "e.g. irregular income, planning to buy a house, self-employed" },
-      fire: { eyebrow: 'Running your numbers', income: 'Net income', savings: 'Current portfolio value', hint: "e.g. planning to coast-FIRE, partner income, RE timeline" }
-    };
-    const l = labels[persona] || labels.building;
-    const ey = document.getElementById('ob-block2-eyebrow');
-    const incL = document.getElementById('ob-incomeLabel');
-    const savL = document.getElementById('savingsLabel');
-    const ctxH = document.getElementById('contextHint');
-    if (ey) ey.textContent = l.eyebrow;
-    if (incL) incL.textContent = l.income;
-    if (savL) savL.textContent = l.savings;
-    if (ctxH) ctxH.textContent = l.hint;
-
-    // Auto-advance
-    setTimeout(() => obGoTo(2), 320);
-  }
+  // Picker markup, copy and saving all live in js/persona.js. Choosing a card saves it
+  // and re-applies every data-term label on the page; all this page adds is advancing.
+  FirePathPersona.renderPicker(document.getElementById('obPersonaList'), {
+    onSelect: id => { persona = id; setTimeout(() => obGoTo(2), 320); }
+  });
+  FirePathPersona.onChange(id => { persona = id; });
 
   function obIncomeHint() {
     const income = parseFloat(document.getElementById('income').value) || 0;
@@ -1377,241 +1295,79 @@
 }
 
 /* ── Bento grid: tap-to-expand detail tiles ── */
-.bento-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin-bottom: 12px;
-}
+.bento-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 12px; }
 @media (min-width: 560px) {
   .bento-grid { grid-template-columns: 1fr 1fr; }
   .bento-full { grid-column: 1 / -1; }
 }
-.bento-tile {
-  background: white;
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-}
-.bento-tile.accent { border-color: var(--fire-orange); border-width: 2px; }
-.bento-tile.dark { background: linear-gradient(135deg,#3D2B1F,#5C3D2E); border: none; color: white; }
-.bento-head {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 16px 18px;
-  cursor: pointer;
-  user-select: none;
-}
+.bento-tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); overflow: hidden; }
+.bento-tile.accent { border-color: var(--ember); }
+.bento-tile.dark { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border: none; color: var(--bg); }
+.bento-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 18px; cursor: pointer; user-select: none; }
 .bento-head.static { cursor: default; }
-.bento-num {
-  flex-shrink: 0;
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: var(--warm-cream);
-  color: var(--fire-orange);
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 1px;
-}
-.bento-tile.dark .bento-num { background: rgba(255,255,255,0.12); color: #F4A24A; }
+.bento-num { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--ember-wash); color: var(--ember-ink); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.bento-tile.dark .bento-num { background: rgba(253, 246, 238, 0.12); color: var(--amber); }
 .bento-head-text { flex: 1; min-width: 0; }
-.bento-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--warm-brown);
-  margin-bottom: 3px;
-}
-.bento-tile.dark .bento-title { color: white; }
-.bento-teaser {
-  font-size: 12px;
-  color: var(--soft-grey);
-  font-weight: 300;
-  line-height: 1.5;
-}
-.bento-tile.dark .bento-teaser { color: rgba(255,255,255,0.55); }
-.bento-chevron {
-  flex-shrink: 0;
-  font-size: 11px;
-  color: var(--soft-grey);
-  transition: transform 0.25s ease;
-  margin-top: 2px;
-}
+.bento-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 3px; }
+.bento-tile.dark .bento-title { color: var(--bg); }
+.bento-teaser { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.bento-tile.dark .bento-teaser { color: rgba(253, 246, 238, 0.6); }
+.bento-chevron { flex-shrink: 0; font-size: 11px; color: var(--ink-3); transition: transform 0.25s ease; margin-top: 2px; }
 .bento-tile.open .bento-chevron { transform: rotate(180deg); }
-.bento-body-wrap {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease, opacity 0.3s ease;
-}
-.bento-tile.open .bento-body-wrap {
-  max-height: 900px;
-  opacity: 1;
-}
-.bento-body {
-  padding: 0 18px 18px;
-}
+.bento-body-wrap { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; }
+.bento-tile.open .bento-body-wrap { max-height: 900px; opacity: 1; }
+.bento-body { padding: 0 18px 18px; }
 
-/* ── Square tile grid — designed, eye-catching, opens a floating modal ── */
-.bento-squares {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-auto-flow: dense;
-  gap: 10px;
-  margin-bottom: 12px;
-}
+/* ── Square tile grid — opens a floating modal ── */
+.bento-squares { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: dense; gap: 10px; margin-bottom: 12px; }
 .bsq-recommended {
-  background: white;
-  border: 2px solid var(--fire-orange);
-  border-radius: 18px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  background: var(--surface); border: 1px solid rgba(244, 98, 42, 0.45); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
+  padding: 16px; display: flex; flex-direction: column; justify-content: space-between;
 }
-.bsq-recommended .bsq-reason {
-  font-size: 11px;
-  color: var(--soft-grey);
-  font-weight: 300;
-  line-height: 1.4;
-  margin-bottom: 8px;
-}
-.bsq-recommended .bsq-article-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--warm-brown);
-  line-height: 1.3;
-  margin-bottom: 10px;
-}
+.bsq-recommended .bsq-reason { font-size: 12px; color: var(--ink-2); line-height: 1.4; margin-bottom: 8px; }
+.bsq-recommended .bsq-article-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.3; margin-bottom: 10px; }
 .bsq-recommended .bsq-read-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: linear-gradient(135deg,var(--fire-orange),var(--fire-amber));
-  color: white;
-  padding: 9px 14px;
-  border-radius: 50px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--ember), var(--amber)); color: #fff;
+  padding: 9px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 500; cursor: pointer; align-self: flex-start;
 }
 .bsq {
-  background: white;
-  border: 1.5px solid var(--border);
-  border-radius: 18px;
-  padding: 16px;
-  cursor: pointer;
-  aspect-ratio: 1 / 0.95;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
+  padding: 16px; cursor: pointer; aspect-ratio: 1 / 0.95; min-width: 0;
+  display: flex; flex-direction: column; justify-content: space-between;
+  transition: transform var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), border-color var(--dur-fast) ease;
 }
-.bsq:active {
-  transform: scale(0.97);
-}
-.bsq:hover {
-  box-shadow: 0 8px 24px rgba(61,43,31,0.1);
-  border-color: rgba(244,98,42,0.3);
-}
-.bsq-wide {
-  grid-column: 1 / -1;
-  aspect-ratio: auto;
-  flex-direction: row;
-  align-items: center;
-  gap: 14px;
-}
+.bsq:active { transform: scale(0.97); }
+.bsq:hover { box-shadow: var(--shadow-2); border-color: var(--line-strong); }
+.bsq-wide { grid-column: 1 / -1; aspect-ratio: auto; flex-direction: row; align-items: center; gap: 14px; }
 .bsq-wide .bsq-top { flex-direction: column; }
-.bsq-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
-.bsq-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+.bsq-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.bsq-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 .bsq-icon svg { width: 20px; height: 20px; }
-.bsq-num {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--soft-grey);
-}
-.bsq-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 15px;
-  color: var(--warm-brown);
-  line-height: 1.25;
-  margin-top: 10px;
-}
-.bsq-stat {
-  font-size: 12px;
-  color: var(--fire-orange);
-  font-weight: 500;
-  margin-top: 6px;
-}
+.bsq-num { font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.bsq-title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--ink); line-height: 1.25; margin-top: 10px; }
+.bsq-stat { font-size: 12.5px; color: var(--ember-ink); font-weight: 500; margin-top: 6px; font-variant-numeric: tabular-nums; }
 
 /* ── Floating modal ── */
 .bento-modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(36,28,22,0.55);
-  backdrop-filter: blur(3px);
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  opacity: 0;
-  transition: opacity 0.25s ease;
+  display: none; position: fixed; inset: 0; background: rgba(36, 25, 16, 0.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  z-index: 200; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease;
 }
-.bento-modal-overlay.open {
-  display: flex;
-  opacity: 1;
-}
+.bento-modal-overlay.open { display: flex; opacity: 1; }
 .bento-modal {
-  background: white;
-  border-radius: 20px;
-  padding: 26px 22px 22px;
-  max-width: 420px;
-  width: 100%;
-  max-height: 82vh;
-  overflow-y: auto;
-  position: relative;
-  transform: scale(0.92) translateY(8px);
-  opacity: 0;
+  background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-3);
+  padding: 26px 22px 22px; max-width: 440px; width: 100%; max-height: 82vh; overflow-y: auto; position: relative;
+  transform: scale(0.92) translateY(8px); opacity: 0;
   transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
 }
-.bento-modal-overlay.open .bento-modal {
-  transform: scale(1) translateY(0);
-  opacity: 1;
-}
+.bento-modal-overlay.open .bento-modal { transform: scale(1) translateY(0); opacity: 1; }
 .bento-modal-close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: var(--warm-cream);
-  color: var(--warm-brown);
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: var(--surface-2); color: var(--ink); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
+.bento-modal-close:hover { background: var(--line); }
+
+/* Pro upgrade card is built by JS with inline styles — align its surface to the tokens */
+#proUpgradeBanner > div { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)) !important; border-radius: var(--r-xl) !important; box-shadow: var(--shadow-2); }
 </style>
 
 <script>
@@ -1751,17 +1507,6 @@ function cinematicRevealCards() {
 }
 </script>
 
-<footer style="border-top:1px solid var(--border);padding:24px;text-align:center;margin-top:20px;">
-  <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-bottom:8px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--fire-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:3px;"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Fire<span style="color:var(--fire-orange)">Path</span></div>
-  <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
-    <a href="index.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Home</a>
-    <a href="firepath.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Free Calculator</a>
-    <a href="learn/index.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Learning Lab</a>
-    <a href="assumptions.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">How We Calculate</a>
-    <a href="privacy.html" style="font-size:13px;color:var(--soft-grey);text-decoration:none;">Privacy</a>
-  </div>
-  <p style="font-size:11px;color:var(--soft-grey);font-weight:300;">FirePath is an educational tool. Not financial advice.</p>
-</footer>
 
 <script src="js/quick-feedback-widget.js"></script>
 </body>

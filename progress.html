@@ -10,189 +10,290 @@
     gtag('config', 'G-Q2QZ662MJ9');
   </script>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>My Progress — FirePath Pro</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/main.css"/>
-  <link rel="stylesheet" href="css/visual-system.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+  <script src="js/persona.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/calculations.js"></script>
   <script src="js/interactions.js"></script>
   <style>
-    /* Shared icon system — TODO: move into css/main.css once rolled out site-wide */
-    .icon { width:20px; height:20px; flex-shrink:0; vertical-align:-4px; }
+    .progress-wrap { max-width: 640px; }
+    .icon { width: 20px; height: 20px; flex-shrink: 0; vertical-align: -4px; }
+    .user-status { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
+    .user-status:empty { display: none; }
+    .user-status a { color: var(--ember-ink) !important; font-weight: 500; }
+    .stack > * + * { margin-top: 12px; }
+
+    /* Scroll reveal (FirePathMotion.initReveal adds .in-view). */
+    .fp-reveal { opacity: 0; transform: translateY(6px); transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease); }
+    .fp-reveal.in-view { opacity: 1; transform: none; }
+
+    /* No calc data */
+    .no-calc { text-align: center; margin-bottom: 16px; }
+    .no-calc-icon { color: var(--ember-ink); margin-bottom: 8px; }
+    .no-calc-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+    .no-calc-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin: 0 auto 16px; max-width: 42ch; }
+
+    /* Milestone flash (toggled .visible by showMilestone()) */
+    .milestone { display: none; margin-bottom: 12px; }
+    .milestone.visible { display: block; animation: fp-rise var(--dur-slow) var(--ease) both; }
+    .milestone-emoji { font-size: 22px; margin-bottom: 6px; display: block; }
+    .milestone-text { font-size: 14px; color: var(--ink); line-height: 1.6; }
+    .milestone-text strong { color: var(--ember-ink); font-weight: 600; }
+
+    /* Commitment — the page's one dark "earned" surface (only one of the two
+       dark cards is ever shown at a time). */
+    .commit-dark { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-lg); padding: 24px 20px; color: var(--bg); box-shadow: var(--shadow-2); }
+    @media (min-width: 768px) { .commit-dark { padding: 28px; } }
+    .commit-intro { text-align: center; }
+    .commit-flame { color: var(--amber); margin-bottom: 10px; }
+    .commit-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; line-height: 1.3; margin-bottom: 8px; }
+    .commit-lead { font-size: 14px; color: rgba(253,246,238,0.72); line-height: 1.65; margin: 0 auto 22px; max-width: 46ch; }
+    .commit-panel { background: rgba(253,246,238,0.07); border-radius: var(--r-md); padding: 18px; margin-bottom: 18px; }
+    .commit-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(253,246,238,0.55); margin-bottom: 14px; }
+    .commit-field { margin-bottom: 16px; }
+    .commit-field-label { font-size: 13.5px; color: rgba(253,246,238,0.78); margin-bottom: 8px; }
+    .commit-options { display: flex; gap: 8px; }
+    .commit-suggest-chip, .commit-cycle-btn {
+      flex: 1; min-width: 0; border-radius: var(--r-sm); border: 1.5px solid rgba(255,255,255,0.2); background: transparent;
+      color: rgba(255,255,255,0.85); font: 500 13.5px var(--font-ui); cursor: pointer;
+      transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
+    }
+    .commit-suggest-chip { padding: 12px 6px; }
+    .commit-suggest-chip span { display: block; font-size: 11px; font-weight: 400; opacity: 0.75; margin-top: 2px; }
+    .commit-cycle-btn { padding: 11px 6px; color: rgba(255,255,255,0.7); font-weight: 500; }
+    .commit-cycle-btn.active-cycle { border-color: var(--ember); background: rgba(244,98,42,0.2); color: #fff; }
+    .commit-suggest-chip:focus-visible, .commit-cycle-btn:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+    .commit-amount { display: flex; align-items: center; height: 48px; background: rgba(255,255,255,0.08); border-radius: var(--r-sm); border: 1.5px solid rgba(255,255,255,0.2); overflow: hidden; }
+    .commit-amount:focus-within { border-color: var(--ember); }
+    .commit-amount span { padding: 0 12px 0 14px; color: rgba(255,255,255,0.55); font-size: 16px; }
+    .commit-amount input { flex: 1; min-width: 0; height: 100%; background: transparent; border: none; outline: none; color: #fff; font: 500 16px var(--font-ui); padding: 0 8px 0 0; font-variant-numeric: tabular-nums; }
+    .commit-preview { display: none; background: rgba(255,255,255,0.06); border-radius: var(--r-sm); padding: 12px 14px; font-size: 13.5px; color: rgba(253,246,238,0.78); line-height: 1.6; text-align: left; }
+
+    .commit-display { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--amber); font-variant-numeric: tabular-nums; }
+    .commit-line { font-size: 13.5px; color: rgba(253,246,238,0.65); margin-top: 4px; }
+    .commit-impact { font-size: 13.5px; color: rgba(253,246,238,0.8); margin-top: 8px; font-style: italic; }
+    .commit-perflame { font-size: 12.5px; color: rgba(253,246,238,0.6); margin-top: 6px; }
+    .streak-flames { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 16px; min-height: 28px; }
+    .commit-cumulative { font-size: 13.5px; color: var(--amber); margin-top: 10px; font-weight: 500; }
+    .commit-change { margin-top: 16px; height: 34px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(253,246,238,0.75); }
+    .commit-change:hover { background: rgba(255,255,255,0.16); }
+
+    /* Check-in card */
+    .checkin-title { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+    .checkin-title svg { color: var(--ember); }
+    .checkin-due { font-size: 13.5px; color: var(--ink-2); margin-bottom: 18px; }
+    .checkin-actions { display: flex; gap: 10px; margin-bottom: 16px; }
+    .checkin-actions .btn { flex: 1; min-width: 0; }
+    .btn-hit { background: var(--positive); color: #fff; }
+    .btn-hit:hover { filter: brightness(1.08); }
+    .checkin-update { border-top: 1px solid var(--line); padding-top: 16px; }
+    .checkin-update-label { font-size: 13.5px; color: var(--ink-2); margin-bottom: 8px; }
+    .money-input { display: flex; align-items: center; height: 48px; background: var(--surface); border-radius: var(--r-sm); border: 1px solid var(--line-strong); overflow: hidden; margin-bottom: 8px; transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease; }
+    .money-input:focus-within { border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
+    .money-input span { padding: 0 10px 0 14px; color: var(--ink-3); font-size: 15px; }
+    .money-input input { flex: 1; min-width: 0; height: 100%; background: transparent; border: none; outline: none; color: var(--ink); font: 400 15px var(--font-ui); padding: 0 8px 0 0; font-variant-numeric: tabular-nums; }
+    .checkin-hint { font-size: 12px; color: var(--ink-2); }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .stat-box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-1); padding: 14px 10px; text-align: center; }
+    .stat-box .stat-value { display: block; font-size: 17px; line-height: 1.2; margin-bottom: 4px; }
+    .stat-name { display: block; font-size: 12px; color: var(--ink-2); line-height: 1.35; }
+
+    .card-title { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+    .path-track { position: relative; height: 8px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
+    .path-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--ember), var(--amber)); transition: width 0.8s var(--ease); }
+    .path-markers { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+    .path-markers span:last-child { display: inline-flex; align-items: center; gap: 4px; }
+    .path-markers svg { color: var(--ember); }
+    .milestones-roadmap { display: flex; flex-direction: column; gap: 8px; }
+
+    .history-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .history-item:last-child { border-bottom: none; }
+    .history-date { color: var(--ink-2); }
+    .history-change { font-weight: 500; }
+    .history-change.positive { color: var(--positive); }
+    .history-change.negative { color: var(--negative); }
   </style>
 </head>
-<body>
+<body class="app" data-shell="app" data-active="journey">
+<script src="js/shell.js"></script>
 
-<div class="container">
-  <div class="header">
-    <div style="margin-bottom:8px;"><a href="journey.html" style="color:var(--fire-orange);font-size:13px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">← My Journey</a></div>
-    <a href="index.html" class="logo" style="text-decoration:none;"><span style="font-size:26px">🔥</span><span class="logo-text">Fire<span>Path</span> <span class="pro-badge">Pro</span></span></a>
-    <p class="tagline">My Progress</p>
-    <div id="userStatus" style="margin-top:8px;font-size:12px;color:var(--soft-grey)"></div>
-  </div>
+<main class="app-main">
+<div class="progress-wrap">
+
+  <header class="page-head rise" style="--i:0">
+    <div>
+      <a href="journey.html" class="section-link">← Journey</a>
+      <h1 class="page-head-title" style="margin-top:8px;">My progress</h1>
+      <p class="page-head-sub">Your savings commitment, check-ins and milestones.</p>
+      <div class="user-status" id="userStatus"></div>
+    </div>
+  </header>
 
   <!-- No calc data warning -->
-  <div id="noCalcWarning" style="display:none;background:#FFF7F3;border:1.5px solid rgba(244,98,42,0.3);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;">
-    <div style="margin-bottom:8px;color:var(--icon-orange,#E25D29);"><svg class="icon" style="width:20px;height:20px;"><use href="/icons.svg#icon-insight"/></svg></div>
-    <div style="font-size:14px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">Run your numbers first</div>
-    <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;">Your progress tracker uses your freedom number and savings rate from your last calculation.</div>
-    <a href="index.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:11px 24px;border-radius:50px;font-size:13px;font-weight:500;text-decoration:none;">Calculate my path →</a>
+  <div id="noCalcWarning" class="card callout-ember no-calc" style="display:none;">
+    <div class="no-calc-icon"><svg class="icon"><use href="/icons.svg#icon-insight"/></svg></div>
+    <div class="no-calc-title">Run your numbers first</div>
+    <div class="no-calc-text">Your progress tracker uses your freedom number and savings rate from your last calculation.</div>
+    <a href="index.html" class="btn btn-ember">Calculate my path →</a>
   </div>
 
   <!-- Milestone flash -->
-  <div class="milestone" id="milestone">
+  <div class="card callout-ember milestone" id="milestone">
     <span class="milestone-emoji" id="milestoneEmoji">🎉</span>
     <div class="milestone-text" id="milestoneText"></div>
   </div>
 
   <!-- SECTION 1: Commitment -->
-  <div id="commitSection" style="margin-bottom:16px;">
+  <div id="commitSection" style="margin-bottom:12px;">
 
     <!-- No commitment yet -->
-    <div id="noCommitCard" style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:var(--radius-lg,20px);padding:28px 24px;color:white;text-align:center;">
-      <div style="margin-bottom:12px;color:var(--fire-amber);font-size:36px;line-height:1;">🔥</div>
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;line-height:1.3;">Your Commitment Tracker</div>
-      <div style="font-size:14px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.7;margin-bottom:24px;">Set a personal savings commitment and track it over time. This tracker records the commitment you set for yourself — confirm each period to earn a flame.</div>
+    <div id="noCommitCard" class="commit-dark commit-intro">
+      <div class="commit-flame"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></div>
+      <div class="commit-title">Your Commitment Tracker</div>
+      <div class="commit-lead">Set a personal savings commitment and track it over time. This tracker records the commitment you set for yourself — confirm each period to earn a flame.</div>
 
-      <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:20px;margin-bottom:20px;text-align:left;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:14px;">My commitment</div>
+      <div class="commit-panel" style="text-align:left;">
+        <div class="commit-label">My commitment</div>
 
         <!-- Suggested amounts -->
-        <div style="margin-bottom:18px;">
-          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Not sure? Try one of these — you can still change it below:</div>
-          <div style="display:flex;gap:8px;" id="commitSuggestChips">
-            <button type="button" onclick="pickSuggestedAmount(25, this)" class="commit-suggest-chip" style="flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
-              +$25<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;" id="chipDaysLabel-25">a week</span>
+        <div class="commit-field">
+          <div class="commit-field-label">Not sure? Try one of these — you can still change it below:</div>
+          <div class="commit-options" id="commitSuggestChips">
+            <button type="button" onclick="pickSuggestedAmount(25, this)" class="commit-suggest-chip">
+              +$25<span id="chipDaysLabel-25">a week</span>
             </button>
-            <button type="button" onclick="pickSuggestedAmount(50, this)" class="commit-suggest-chip" style="flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
-              +$50<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;" id="chipDaysLabel-50">a week</span>
+            <button type="button" onclick="pickSuggestedAmount(50, this)" class="commit-suggest-chip">
+              +$50<span id="chipDaysLabel-50">a week</span>
             </button>
-            <button type="button" onclick="pickSuggestedAmount(100, this)" class="commit-suggest-chip" style="flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.85);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
-              +$100<span style="display:block;font-size:10px;font-weight:300;opacity:0.7;margin-top:2px;" id="chipDaysLabel-100">a week</span>
+            <button type="button" onclick="pickSuggestedAmount(100, this)" class="commit-suggest-chip">
+              +$100<span id="chipDaysLabel-100">a week</span>
             </button>
           </div>
         </div>
 
         <!-- Frequency selector -->
-        <div style="margin-bottom:16px;">
-          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">I'll save this extra amount every:</div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="setCommitCycle(this,'weekly')" data-cycle="weekly" class="commit-cycle-btn active-cycle" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid var(--fire-orange);background:rgba(244,98,42,0.2);color:white;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Weekly</button>
-            <button onclick="setCommitCycle(this,'fortnightly')" data-cycle="fortnightly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Fortnightly</button>
-            <button onclick="setCommitCycle(this,'monthly')" data-cycle="monthly" class="commit-cycle-btn" style="flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Monthly</button>
+        <div class="commit-field">
+          <div class="commit-field-label">I'll save this extra amount every:</div>
+          <div class="commit-options">
+            <button onclick="setCommitCycle(this,'weekly')" data-cycle="weekly" class="commit-cycle-btn active-cycle">Weekly</button>
+            <button onclick="setCommitCycle(this,'fortnightly')" data-cycle="fortnightly" class="commit-cycle-btn">Fortnightly</button>
+            <button onclick="setCommitCycle(this,'monthly')" data-cycle="monthly" class="commit-cycle-btn">Monthly</button>
           </div>
         </div>
 
         <!-- Amount input -->
-        <div style="margin-bottom:16px;">
-          <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Extra amount I'll save:</div>
-          <div style="display:flex;align-items:center;background:rgba(255,255,255,0.1);border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);overflow:hidden;">
-            <span style="padding:12px 14px;color:rgba(255,255,255,0.5);font-size:16px;">$</span>
-            <input type="number" id="commitAmount" placeholder="0" min="0"
-              style="flex:1;background:transparent;border:none;outline:none;color:white;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:500;padding:12px 8px 12px 0;"
+        <div class="commit-field">
+          <div class="commit-field-label">Extra amount I'll save:</div>
+          <div class="commit-amount">
+            <span>$</span>
+            <input type="number" id="commitAmount" placeholder="0" min="0" aria-label="Extra amount I'll save"
               oninput="clearChipSelection();updateCommitPreview()"/>
           </div>
         </div>
 
         <!-- Preview -->
-        <div id="commitPreview" style="display:none;background:rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6;"></div>
+        <div id="commitPreview" class="commit-preview"></div>
       </div>
 
-      <button onclick="saveCommitment()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border:none;border-radius:14px;color:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0.3px;">
+      <button onclick="saveCommitment()" class="btn btn-ember btn-lg btn-block">
         Save this commitment
       </button>
     </div>
 
     <!-- Has commitment -->
-    <div id="hasCommitCard" style="display:none;">
+    <div id="hasCommitCard" class="stack" style="display:none;">
 
       <!-- Commitment header -->
-      <div style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:var(--radius-lg,20px);padding:24px;color:white;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.5);margin-bottom:6px;">Your commitment</div>
-        <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--fire-amber);" id="commitDisplay">—</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px;" id="commitStreakLine">—</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:8px;font-style:italic;" id="commitImpactLine"></div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:6px;" id="commitPerFlameLine"></div>
-        <div id="streakFlames" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:16px;min-height:28px;"></div>
-        <div style="font-size:13px;color:var(--fire-amber);margin-top:10px;font-weight:500;" id="commitCumulativeLine"></div>
-        <button onclick="resetCommitment()" style="margin-top:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;">
+      <div class="commit-dark">
+        <div class="commit-label" style="margin-bottom:6px;">Your commitment</div>
+        <div class="commit-display" id="commitDisplay">—</div>
+        <div class="commit-line" id="commitStreakLine">—</div>
+        <div class="commit-impact" id="commitImpactLine"></div>
+        <div class="commit-perflame" id="commitPerFlameLine"></div>
+        <div id="streakFlames" class="streak-flames"></div>
+        <div class="commit-cumulative" id="commitCumulativeLine"></div>
+        <button onclick="resetCommitment()" class="btn commit-change">
           Change commitment
         </button>
       </div>
 
-      <!-- Check-in card -->
-      <div class="fp-reveal" style="background:white;border:1.5px solid var(--border);border-radius:var(--radius-lg,20px);padding:24px;margin-bottom:12px;">
-        <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">🔥</span> Log your check-in</div>
-        <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:20px;" id="checkinDueLabel">Did you hit your target this period?</div>
+      <!-- Check-in card (JS inserts feedback after "#hasCommitCard > div:nth-child(2)" — keep it second) -->
+      <div class="card fp-reveal">
+        <div class="checkin-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg> Log your check-in</div>
+        <div class="checkin-due" id="checkinDueLabel">Did you hit your target this period?</div>
 
-        <div style="display:flex;gap:10px;margin-bottom:16px;">
-          <button onclick="logCheckin(true)" style="flex:1;padding:14px;background:linear-gradient(135deg,#2E7D32,#43A047);border:none;border-radius:12px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <div class="checkin-actions">
+          <button onclick="logCheckin(true)" class="btn btn-lg btn-hit">
             <svg class="icon" style="width:16px;height:16px;"><use href="/icons.svg#icon-result"/></svg> Yes, I hit it!
           </button>
-          <button onclick="logCheckin(false)" style="flex:1;padding:14px;background:var(--warm-cream);border:1.5px solid var(--border);border-radius:12px;color:var(--warm-brown);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;">
+          <button onclick="logCheckin(false)" class="btn btn-lg btn-quiet">
             Not this time
           </button>
         </div>
 
         <!-- Update portfolio -->
-        <div style="border-top:1px solid var(--border);padding-top:16px;">
-          <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:10px;">Update your portfolio balance (optional):</div>
-          <div style="display:flex;align-items:center;background:var(--warm-cream);border-radius:10px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:10px;">
-            <span style="padding:10px 12px;color:var(--soft-grey);font-size:14px;">$</span>
-            <input type="number" id="ci-savings" placeholder="Current total savings" min="0"
-              style="flex:1;background:transparent;border:none;outline:none;color:var(--warm-brown);font-family:'DM Sans',sans-serif;font-size:14px;padding:10px 8px 10px 0;"/>
+        <div class="checkin-update">
+          <div class="checkin-update-label">Update your portfolio balance (optional):</div>
+          <div class="money-input">
+            <span>$</span>
+            <input type="number" id="ci-savings" placeholder="Current total savings" min="0" aria-label="Current total savings"/>
           </div>
-          <div style="font-size:11px;color:var(--soft-grey);font-style:italic;">This updates your freedom date in real time.</div>
+          <div class="checkin-hint">This updates your freedom date in real time.</div>
         </div>
       </div>
 
       <!-- Progress stats -->
-      <div style="display:flex;gap:10px;margin-bottom:12px;">
-        <div class="stat-box" style="background:var(--warm-cream);flex:1;">
-          <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accFreedomDate">—</span>
-          <span class="stat-name" style="opacity:0.7;">Freedom date</span>
+      <div class="stats-row">
+        <div class="stat-box">
+          <span class="stat-value" id="accFreedomDate">—</span>
+          <span class="stat-name">Freedom date</span>
         </div>
-        <div class="stat-box" style="background:var(--warm-cream);flex:1;">
-          <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accPortfolio">—</span>
-          <span class="stat-name" style="opacity:0.7;">Portfolio today</span>
+        <div class="stat-box">
+          <span class="stat-value" id="accPortfolio">—</span>
+          <span class="stat-name">Portfolio today</span>
         </div>
-        <div class="stat-box" style="background:var(--warm-cream);flex:1;">
-          <span class="stat-value" style="color:var(--warm-brown);font-size:16px;" id="accYearsToGo">—</span>
-          <span class="stat-name" style="opacity:0.7;">Years to go</span>
+        <div class="stat-box">
+          <span class="stat-value" id="accYearsToGo">—</span>
+          <span class="stat-name">Years to go</span>
         </div>
       </div>
 
       <!-- Progress bar -->
-      <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
-        <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:10px;">Progress to freedom</div>
+      <div class="card">
+        <div class="card-title">Progress to freedom</div>
         <div class="path-track"><div class="path-fill" id="pathFill" style="width:0%"></div></div>
-        <div class="path-markers" style="margin-top:6px;"><span>Start</span><span id="progressPct">0%</span><span style="display:inline-flex;align-items:center;gap:4px;">Freedom <span style="font-size:14px;">🔥</span></span></div>
+        <div class="path-markers"><span>Start</span><span id="progressPct">0%</span><span>Freedom <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></span></div>
       </div>
 
       <!-- Milestones -->
-      <div style="background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
-        <div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:12px;">Your milestones</div>
-        <div id="milestonesRoadmap" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="card">
+        <div class="card-title">Your milestones</div>
+        <div id="milestonesRoadmap" class="milestones-roadmap"></div>
       </div>
 
     </div>
   </div>
 
   <!-- Check-in history -->
-  <div id="historyCard" style="display:none;background:white;border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:12px;">
-    <div style="font-size:13px;font-weight:600;color:var(--warm-brown);margin-bottom:12px;">Check-in history</div>
+  <div id="historyCard" class="card" style="display:none;margin-bottom:12px;">
+    <div class="card-title">Check-in history</div>
     <div id="historyList"></div>
   </div>
 
-  <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.</p>
-  <p style="text-align:center;font-size:12px;margin-bottom:32px;">
-    <a href="privacy.html" style="color:var(--fire-orange);">Privacy Policy</a> · 
-    <a href="terms.html" style="color:var(--fire-orange);">Terms of Service</a> ·
-    <a href="assumptions.html" style="color:var(--fire-orange);">How we calculate</a>
-  </p>
+  <footer class="app-footer">
+    <span>FirePath is an educational tool. We don't provide financial advice.</span>
+    <nav aria-label="Footer"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="assumptions.html">How we calculate</a></nav>
+  </footer>
+
 </div>
+</main>
 
 <script>
   // ── Auth & init ──
@@ -264,7 +365,6 @@
   });
 
   // ── Helpers (mirrors main app) ──
-  function fmtM(n) { if(n>=1000000)return'$'+(n/1000000).toFixed(1)+'M';if(n>=1000)return'$'+Math.round(n/1000)+'K';return'$'+Math.round(n); }
   function fmt(y) { if(y===null)return'100+ yrs';if(y===0)return'Already there!';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo'; }
   function yearsToGoal(goal,cur,ms,rate) { if(ms<=0)return null;if(cur>=goal)return 0;const r=rate/12;let b=cur,m=0;while(b<goal&&m<1200){b=b*(1+r)+ms;m++;}return m<1200?m/12:null; }
 

@@ -2,115 +2,140 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>The Compounding Effect — FirePath</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/main.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/app.css"/>
+  <script src="js/persona.js"></script>
 <style>
-  body { display:block; padding:0; }
-  .hero { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);padding:48px 24px 40px;text-align:center;color:white;position:relative;overflow:hidden;width:100%; }
-  .hero::before { content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(244,98,42,0.2) 0%,transparent 65%);pointer-events:none; }
-  .back-link { display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,0.5);font-size:13px;text-decoration:none;margin-bottom:28px; }
-  .back-link:hover { color:white; }
-  .hero-badge { display:inline-block;background:rgba(244,98,42,0.2);border:1px solid rgba(244,98,42,0.4);color:var(--fire-amber);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:20px; }
-  .hero-title { font-family:'Playfair Display',serif;font-size:clamp(28px,7vw,48px);font-weight:900;line-height:1.1;margin-bottom:12px; }
-  .hero-sub { font-size:15px;color:rgba(255,255,255,0.6);font-weight:300;line-height:1.7;max-width:480px;margin:0 auto; }
-  .content { padding:24px 20px 80px;max-width:580px;margin:0 auto; }
-  .glass-card { background:white;border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;box-shadow:0 2px 20px rgba(61,43,31,0.05); }
-  .card-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:16px; }
-  .input-row { display:flex;flex-direction:column;gap:6px;margin-bottom:16px; }
-  .input-row:last-child { margin-bottom:0; }
-  .input-label-text { font-size:13px;color:var(--soft-grey);font-weight:400; }
-  .input-wrap { position:relative; }
-  .input-prefix-dark { position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--soft-grey); }
-  .dark-input { width:100%;padding:13px 14px 13px 30px;background:white;border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;color:var(--warm-brown);outline:none;transition:border-color 0.2s;-moz-appearance:textfield; }
-  .dark-input::-webkit-inner-spin-button,.dark-input::-webkit-outer-spin-button { -webkit-appearance:none; }
-  .dark-input:focus { border-color:var(--fire-orange); }
-  .dark-input::placeholder { color:#CCC5BF; }
-  .mode-toggle { display:flex;gap:0;margin-bottom:16px;border:1.5px solid var(--border);border-radius:12px;overflow:hidden; }
-  .mode-btn { flex:1;padding:12px;background:white;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--soft-grey);cursor:pointer;transition:all 0.2s; }
-  .mode-btn:first-child { border-right:1.5px solid var(--border); }
-  .mode-btn.active { background:var(--fire-orange);color:white; }
-  .slider-row { display:flex;align-items:center;gap:14px; }
-  input[type="range"].dark-slider { flex:1;-webkit-appearance:none;height:6px;border-radius:6px;background:var(--border);outline:none;cursor:pointer; }
-  input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--fire-orange);box-shadow:0 2px 8px rgba(244,98,42,0.4);cursor:pointer; }
-  .slider-val { font-weight:700;color:var(--fire-orange);min-width:44px;text-align:right;font-size:15px; }
-  .milestones { display:flex;flex-direction:column;gap:12px;margin-bottom:16px;animation:fadeUp 0.4s ease both; }
-  .milestone-card { background:white;border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:all 0.3s; }
-  .milestone-card.highlight { border-color:var(--fire-orange);box-shadow:0 4px 20px rgba(244,98,42,0.1); }
-  .milestone-year { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--soft-grey);margin-bottom:4px; }
-  .milestone-total { font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--warm-brown);margin-bottom:12px; }
-  .milestone-total span { color:var(--fire-orange); }
-  .milestone-bar-wrap { height:8px;background:var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden; }
-  .milestone-bar { height:100%;border-radius:8px;display:flex; }
-  .bar-contributed { background:var(--soft-grey);height:100%; }
-  .bar-compound { background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));height:100%; }
-  .milestone-breakdown { display:flex;justify-content:space-between;font-size:12px; }
-  .breakdown-you { color:var(--soft-grey); }
-  .breakdown-compound { color:var(--fire-orange);font-weight:500; }
-  .milestone-insight { margin-top:10px;padding:8px 12px;background:var(--warm-cream);border-radius:8px;font-size:12px;color:var(--warm-brown);line-height:1.5;font-style:italic; }
-  .waiting-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px; }
-  .waiting-tile { border-radius:12px;padding:16px 12px;text-align:center;border:1px solid var(--border); }
-  .waiting-tile.now { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-color:transparent; }
-  .waiting-label { font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--soft-grey);margin-bottom:6px; }
-  .waiting-tile.now .waiting-label { color:rgba(255,255,255,0.5); }
-  .waiting-value { font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--fire-orange); }
-  .waiting-tile.now .waiting-value { color:var(--fire-amber); }
-  .waiting-sub { font-size:10px;color:var(--soft-grey);margin-top:4px; }
-  .waiting-tile.now .waiting-sub { color:rgba(255,255,255,0.4); }
-  .cost-banner { background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border:1.5px solid rgba(244,98,42,0.2);border-radius:14px;padding:16px 20px;text-align:center; }
-  .cost-banner-label { font-size:12px;color:var(--soft-grey);margin-bottom:6px; }
-  .cost-banner-value { font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--fire-orange);margin-bottom:4px; }
-  .cost-banner-sub { font-size:12px;color:var(--soft-grey);font-weight:300; }
+  .compound-main { max-width: 640px; }
+  .compound-head { margin-bottom: 28px; }
+  .compound-head .section-link { display: inline-block; margin-bottom: 20px; }
+  .compound-head .eyebrow { color: var(--ember-ink); margin-bottom: 10px; }
+  .compound-head .lead { margin-top: 12px; }
+
+  .glass-card { margin-bottom: 14px; }
+  .card-label { margin-bottom: 14px; }
+  .card-note { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin-top: 12px; }
+  .card-note-lead { margin: 0 0 16px; }
+
+  .input-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .input-row:last-child { margin-bottom: 0; }
+  .input-row-growing { margin-top: 16px; }
+  .input-label-text { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+  .input-wrap { position: relative; }
+  .input-prefix-dark { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--ink-3); pointer-events: none; }
+  .input-prefix-word { font-size: 13px; left: 12px; }
+  .dark-input { padding-left: 30px; font-size: 16px; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+  .dark-input.dark-input-word { padding-left: 44px; }
+  .dark-input::-webkit-inner-spin-button, .dark-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .dark-input::placeholder { color: var(--ink-3); }
+
+  /* Pay cycle + contribution mode: segmented controls (JS toggles .active) */
+  .cycle-group, .mode-toggle { display: flex; width: 100%; }
+  .cycle-btn, .mode-btn { flex: 1; min-height: 40px; white-space: nowrap; }
+  .mode-btn { padding: 8px 10px; }
+
+  .slider-row { display: flex; align-items: center; gap: 14px; }
+  input[type="range"].dark-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 6px; background: var(--line-strong); outline: none; cursor: pointer; }
+  input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
+  input[type="range"].dark-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
+  input[type="range"].dark-slider:focus-visible { outline: 2px solid var(--ember); outline-offset: 4px; }
+  .slider-val { font-weight: 600; color: var(--ink); min-width: 44px; text-align: right; font-size: 15px; font-variant-numeric: tabular-nums; }
+
+  .milestones { display: flex; flex-direction: column; gap: 12px; animation: fadeUp 0.4s var(--ease) both; }
+  .milestone-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px; transition: border-color var(--dur-base) ease; }
+  .milestone-card.highlight { border-color: rgba(244, 98, 42, 0.45); box-shadow: var(--shadow-1); }
+  .milestone-year { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 4px; }
+  .milestone-total { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--ink); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+  .milestone-total span { color: var(--ink); }
+  .milestone-card.highlight .milestone-total span { color: var(--ember-ink); }
+  .milestone-bar-wrap { height: 8px; background: var(--surface-2); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+  .milestone-bar { height: 100%; border-radius: 8px; display: flex; }
+  .bar-contributed { background: var(--ink-3); height: 100%; }
+  .bar-compound { background: linear-gradient(90deg, var(--ember), var(--amber)); height: 100%; }
+  .milestone-breakdown { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .breakdown-you { color: var(--ink-2); }
+  .breakdown-compound { color: var(--ember-ink); font-weight: 500; }
+  .milestone-insight { margin-top: 12px; padding: 10px 12px; background: var(--surface-2); border-radius: var(--r-sm); font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+
+  .waiting-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .waiting-tile { border-radius: var(--r-md); padding: 14px 8px; text-align: center; border: 1px solid var(--line); background: var(--surface); }
+  .waiting-tile.now { background: var(--ember-wash); border-color: rgba(244, 98, 42, 0.3); }
+  .waiting-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: 6px; }
+  .waiting-tile.now .waiting-label { color: var(--ember-ink); }
+  .waiting-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .waiting-tile.now .waiting-value { color: var(--ember-ink); }
+  .waiting-sub { font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+  .cost-banner { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 20px; text-align: center; }
+  .cost-banner-label { font-size: 13px; color: var(--ink-2); margin-bottom: 4px; }
+  .cost-banner-value { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--negative); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+  .cost-banner-sub { font-size: 12.5px; color: var(--ink-2); }
+
+  /* The one dark "earned" surface on the page */
+  .next-card { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-xl); padding: 32px 24px; cursor: pointer; text-align: center; color: var(--bg); margin: 8px 0 16px; box-shadow: var(--shadow-2); transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease); }
+  .next-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-3); }
+  .next-card-emoji { font-size: 28px; margin-bottom: 12px; }
+  .next-card-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .next-card-sub { font-size: 14.5px; color: rgba(253, 246, 238, 0.7); line-height: 1.7; margin: 0 auto 20px; max-width: 44ch; }
+  .next-card .btn { white-space: normal; text-align: center; }
+
+  .disclaimer { font-size: 12.5px; color: var(--ink-2); text-align: center; line-height: 1.6; margin-top: 8px; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 </style>
 </head>
-<body>
-<div class="hero">
-  <div><a href="firepath_pro.html" class="back-link">← Back to FirePath</a></div>
-  <div class="hero-badge">The most powerful force in finance</div>
-  <h1 class="hero-title">The Compounding Effect 🌱</h1>
-  <p class="hero-sub">You don't need to invest more. You need to start sooner. See what time does to your money.</p>
-</div>
+<body class="site" data-shell="site">
+<script src="js/shell.js"></script>
 
-<div class="content">
+<main class="site-main compound-main">
 
-  <div class="glass-card">
-    <div class="card-label">Your details</div>
+  <header class="compound-head">
+    <a href="firepath_pro.html" class="section-link back-link">← Back to FirePath</a>
+    <div class="eyebrow">The most powerful force in finance</div>
+    <h1 class="display-lg">The Compounding Effect 🌱</h1>
+    <p class="lead">You don't need to invest more. You need to start sooner. See what time does to your money.</p>
+  </header>
+
+
+  <div class="card glass-card">
+    <div class="eyebrow card-label">Your details</div>
 
     <div class="input-row">
       <div class="input-label-text">Your age now</div>
-      <div class="input-wrap"><span class="input-prefix-dark" style="font-size:13px;left:10px">age</span><input type="number" class="dark-input" id="c-age" placeholder="25" min="16" max="60" style="padding-left:44px" oninput="calcCompound()"/></div>
+      <div class="input-wrap"><span class="input-prefix-dark input-prefix-word">age</span><input type="number" inputmode="numeric" class="input dark-input dark-input-word" id="c-age" placeholder="25" min="16" max="60" oninput="calcCompound()"/></div>
     </div>
 
     <div class="input-row">
       <div class="input-label-text">Pay cycle</div>
-      <div class="cycle-group">
+      <div class="segmented cycle-group">
         <button class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
         <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
         <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
       </div>
     </div>
 
-    <div class="input-row" style="margin-top:16px;">
+    <div class="input-row">
       <div class="input-label-text">Amount you invest per <span id="cycleWord">fortnight</span></div>
-      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="c-amount" placeholder="200" oninput="calcCompound()"/></div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" inputmode="decimal" class="input dark-input" id="c-amount" placeholder="200" oninput="calcCompound()"/></div>
     </div>
 
     <div class="input-row">
       <div class="input-label-text">Already invested / saved (optional)</div>
-      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="c-existing" placeholder="0" oninput="calcCompound()"/></div>
+      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" inputmode="decimal" class="input dark-input" id="c-existing" placeholder="0" oninput="calcCompound()"/></div>
     </div>
   </div>
 
-  <div class="glass-card">
-    <div class="card-label">Contribution mode</div>
-    <div class="mode-toggle">
+  <div class="card glass-card">
+    <div class="eyebrow card-label">Contribution mode</div>
+    <div class="segmented mode-toggle">
       <button class="mode-btn active" id="fixedBtn" onclick="setMode('fixed')">📌 Fixed amount</button>
       <button class="mode-btn" id="growingBtn" onclick="setMode('growing')">📈 Growing amount</button>
     </div>
-    <p id="modeExplainer" style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-top:10px;line-height:1.6;">You invest the same amount every cycle — simple and consistent.</p>
+    <p id="modeExplainer" class="card-note">You invest the same amount every cycle — simple and consistent.</p>
     <div id="growingOptions" style="display:none;">
-      <div class="input-row" style="margin-top:8px;">
+      <div class="input-row input-row-growing">
         <div class="input-label-text">Annual contribution increase %</div>
         <div class="slider-row">
           <input type="range" class="dark-slider" id="c-contribIncrease" min="0" max="10" value="3" oninput="document.getElementById('c-contribIncreaseVal').textContent=this.value+'%';calcCompound()"/>
@@ -120,8 +145,8 @@
     </div>
   </div>
 
-  <div class="glass-card">
-    <div class="card-label">Assumptions</div>
+  <div class="card glass-card">
+    <div class="eyebrow card-label">Assumptions</div>
     <div class="input-row">
       <div class="input-label-text">Investment return per year</div>
       <div class="slider-row">
@@ -133,14 +158,14 @@
 
   <div id="results" style="display:none;">
 
-    <div class="glass-card">
-      <div class="card-label">Your compounding journey 🔥</div>
+    <div class="card glass-card">
+      <div class="eyebrow card-label">Your compounding journey 🔥</div>
       <div class="milestones" id="milestonesContainer"></div>
     </div>
 
-    <div class="glass-card">
-      <div class="card-label">💸 The cost of waiting</div>
-      <p style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:16px;line-height:1.6;">Same amount. Same rate. The only difference is when you start.</p>
+    <div class="card glass-card">
+      <div class="eyebrow card-label">💸 The cost of waiting</div>
+      <p class="card-note card-note-lead">Same amount. Same rate. The only difference is when you start.</p>
       <div class="waiting-grid">
         <div class="waiting-tile now">
           <div class="waiting-label">Start now</div>
@@ -164,16 +189,16 @@
         <div class="cost-banner-sub">at age 60 — from the same weekly investment</div>
       </div>
     </div>
-    <div onclick="window.location.href='withdrawal.html'" style="background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;cursor:pointer;text-align:center;color:white;margin-bottom:16px;">
-      <div style="font-size:28px;margin-bottom:12px">🏖️</div>
-      <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:8px;">Now here's the best part.</div>
-      <div style="font-size:14px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.7;margin-bottom:20px;">You've spent years building this. Now imagine never having to touch it — and still living an incredible life. That's what withdrawal mode shows you.</div>
-      <div style="display:inline-flex;align-items:center;gap:8px;background:var(--fire-orange);color:white;padding:12px 24px;border-radius:50px;font-size:14px;font-weight:500;">See how to live off your wealth →</div>
+    <div class="next-card" onclick="window.location.href='withdrawal.html'">
+      <div class="next-card-emoji">🏖️</div>
+      <div class="next-card-title">Now here's the best part.</div>
+      <div class="next-card-sub">You've spent years building this. Now imagine never having to touch it — and still living an incredible life. That's what withdrawal mode shows you.</div>
+      <div class="btn btn-ember btn-lg">See how to live off your wealth →</div>
     </div>
     <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections assume consistent returns — real returns vary year to year.</p>
   </div>
 
-</div>
+</main>
 
 <script>
   let selectedCycle = 'fortnightly';
@@ -206,12 +231,6 @@
     return n;
   }
 
-  function fmtM(n) {
-    if (n == null || isNaN(n) || n < 0) return '$0';
-    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
-    if (n >= 1000)    return '$' + Math.round(n/1000) + 'K';
-    return '$' + Math.round(n);
-  }
 
   function calcAtYear(years, monthlyStart, existing, returnRate, contribIncreaseRate) {
     let portfolio = existing;

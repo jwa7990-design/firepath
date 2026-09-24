@@ -1,123 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Freedom Gap — FirePath</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/main.css"/>
-  <link rel="stylesheet" href="css/visual-system.css"/>
-  <script src="js/tax-engine.js"></script>
-  <script src="js/financial-engine.js"></script>
-  <style>
-  body { display:block; padding:0; }
-  .hero { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);padding:48px 24px 40px;text-align:center;color:white;position:relative;overflow:hidden; }
-  .hero::before { content:'';position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(244,98,42,0.2) 0%,transparent 65%);pointer-events:none; }
-  .back-link { display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,0.5);font-size:13px;text-decoration:none;margin-bottom:28px; }
-  .back-link:hover { color:white; }
-  .hero-badge { display:inline-block;background:rgba(244,98,42,0.2);border:1px solid rgba(244,98,42,0.4);color:var(--fire-amber);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:20px; }
-  .hero-title { font-family:'Playfair Display',serif;font-size:clamp(28px,7vw,44px);font-weight:900;line-height:1.1;margin-bottom:12px; }
-  .hero-sub { font-size:15px;color:rgba(255,255,255,0.6);font-weight:300;line-height:1.7;max-width:480px;margin:0 auto; }
-  .content { padding:24px 20px 80px;max-width:580px;margin:0 auto; }
-  .glass-card { background:white;border:1px solid var(--border);border-radius:var(--radius-lg,20px);padding:24px;margin-bottom:16px;box-shadow:var(--elevation-2,0 2px 20px rgba(61,43,31,0.05)); }
-  .card-label { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--fire-orange);margin-bottom:16px;display:flex;align-items:center;gap:6px; }
-  .input-row { display:flex;flex-direction:column;gap:6px;margin-bottom:16px; }
-  .input-row:last-child { margin-bottom:0; }
-  .input-label-text { font-size:13px;color:var(--soft-grey);font-weight:400; }
-  .input-wrap { position:relative; }
-  .input-prefix-dark { position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--soft-grey); }
-  .dark-input { width:100%;padding:13px 14px 13px 30px;background:white;border:1.5px solid var(--border);border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;color:var(--warm-brown);outline:none;transition:border-color 0.2s;-moz-appearance:textfield; }
-  .dark-input::-webkit-inner-spin-button,.dark-input::-webkit-outer-spin-button { -webkit-appearance:none; }
-  .dark-input:focus { border-color:var(--fire-orange); }
-  .dark-input::placeholder { color:#CCC5BF; }
-  .toggle-group { display:flex;gap:8px; }
-  .toggle-btn { flex:1;padding:12px 8px;border-radius:10px;border:1.5px solid var(--border);background:white;color:var(--soft-grey);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;text-align:center; }
-  .toggle-btn.active { border-color:var(--fire-orange);background:#FFF7F3;color:var(--fire-orange); }
-  .gap-hero { background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;color:white;margin-bottom:16px;text-align:center; }
-  .gap-eyebrow { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;opacity:0.5;margin-bottom:6px; }
-  .gap-percent { font-family:'Playfair Display',serif;font-size:52px;font-weight:700;color:var(--fire-amber);line-height:1;margin-bottom:2px; }
-  .gap-percent-label { font-size:13px;opacity:0.65;margin-bottom:14px; }
-  .gap-progress-track { height:10px;background:rgba(255,255,255,0.15);border-radius:6px;overflow:hidden;margin-bottom:16px; }
-  .gap-progress-fill { height:100%;background:linear-gradient(90deg,var(--fire-orange),var(--fire-amber));border-radius:6px;transition:width 0.5s ease; }
-  .gap-dollar-sub { font-size:13px;opacity:0.7;margin-bottom:18px;line-height:1.5; }
-  .gap-dollar-sub strong { color:var(--fire-amber);font-weight:700; }
-  .gap-source-row { display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.12);font-size:12px; }
-  .gap-source-row:last-child { border-bottom:none; }
-  .gap-source-label { opacity:0.7;display:flex;align-items:center;gap:6px; }
-  .gap-source-value { font-weight:600; }
-  .gap-source-tag { font-size:9px;opacity:0.5;text-transform:uppercase;letter-spacing:0.04em; }
-  .gap-label { font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;opacity:0.55;margin-bottom:8px; }
-  .gap-annual { font-family:'Playfair Display',serif;font-size:44px;font-weight:700;color:var(--fire-amber);line-height:1;margin-bottom:6px; }
-  .gap-sub { font-size:13px;opacity:0.6;margin-bottom:20px; }
-  .gap-breakdown { display:grid;grid-template-columns:1fr 1fr;gap:8px; }
-  .gap-tile { background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 8px; }
-  .gap-tile-label { font-size:10px;opacity:0.55;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px; }
-  .gap-tile-value { font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--fire-amber); }
-  .data-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
-  .data-row:last-child { border-bottom:none; }
-  .data-label { color:var(--soft-grey); }
-  .value-tag { font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:2px 7px;border-radius:6px;margin-left:6px;display:inline-block;vertical-align:1px; }
-  .value-tag.calculated { background:#E8F5E9;color:#2E7D32; }
-  .value-tag.estimated { background:#FFF3E0;color:#E65100; }
-  .pension-box { background:#E8F5E9;border:1.5px solid #A5D6A7;border-radius:12px;padding:16px;margin-top:16px;font-size:13px;color:#2E7D32;line-height:1.7; }
-  .pension-box.nil { background:var(--warm-cream);border-color:var(--border);color:var(--soft-grey); }
-  .slider-card { background:white;border:1.5px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px; }
-  .slider-row { display:flex;align-items:center;gap:14px;margin-top:14px; }
-  input[type="range"].dark-slider { flex:1;-webkit-appearance:none;height:6px;border-radius:6px;background:var(--border);outline:none;cursor:pointer; }
-  input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--fire-orange);box-shadow:0 2px 8px rgba(244,98,42,0.4);cursor:pointer; }
-  .slider-val { font-weight:700;color:var(--fire-orange);min-width:64px;text-align:right;font-size:15px; }
-  .slider-result { background:var(--warm-cream);border-radius:12px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-top:14px; }
-  .ai-outlook-btn { background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%; }
-  .ai-outlook-loading { display:none;text-align:center;padding:24px 0; }
-  .ai-outlook-loading.visible { display:block; }
-  .ai-outlook-flame { animation:aiFlamePulse 1.4s ease-in-out infinite;display:inline-block;color:var(--fire-orange); }
-  @keyframes aiFlamePulse { 0%,100%{transform:scale(1);opacity:1;} 50%{transform:scale(1.18);opacity:0.75;} }
-  .ai-outlook-text { font-size:14px;color:var(--warm-brown);line-height:1.8;font-weight:300;margin-top:16px;padding-top:16px;border-top:1px solid var(--border); }
-  .ai-outlook-text strong { font-weight:600;color:var(--fire-orange); }
-  .icon { width:20px; height:20px; flex-shrink:0; vertical-align:-4px; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>Freedom Gap — FirePath</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/app.css"/>
+<script src="js/persona.js"></script>
+<script src="js/tax-engine.js"></script>
+<script src="js/financial-engine.js"></script>
+<style>
+  /* ── Layout: inputs on the left, the picture on the right (desktop) ── */
+  .page-head-sub { max-width: 62ch; }
+  .page-back { display: inline-block; margin-bottom: 10px; }
+  .tool-layout { display: grid; gap: 16px; }
+  @media (min-width: 1024px) {
+    .tool-layout { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 20px; align-items: start; }
+  }
+  .stack > * + * { margin-top: 16px; }
+  @media (min-width: 1024px) { .stack > * + * { margin-top: 20px; } }
+  .icon { width: 20px; height: 20px; flex-shrink: 0; vertical-align: -4px; }
+
+  /* Card header — same voice as .section-label */
+  .card-label { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
+  .card-label .icon { color: var(--ink-3); }
+  .card-sub { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin: -6px 0 14px; }
+
+  /* ── Inputs (match .input) ── */
+  .input-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .input-row:last-child { margin-bottom: 0; }
+  .input-label-text { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+  .input-hint { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+  .input-link { font-size: 12.5px; font-weight: 500; color: var(--ember-ink); cursor: pointer; }
+  .input-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .input-wrap { position: relative; }
+  .input-prefix-dark { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--ink-2); pointer-events: none; }
+  .dark-input {
+    width: 100%; height: 48px; padding: 0 14px 0 30px; border-radius: var(--r-sm); border: 1px solid var(--line-strong);
+    background: var(--surface); color: var(--ink); font: 400 15px var(--font-ui); font-variant-numeric: tabular-nums;
+    outline: none; -moz-appearance: textfield; transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+  }
+  .dark-input::-webkit-inner-spin-button, .dark-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .dark-input:focus { border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
+  .dark-input::placeholder { color: var(--ink-3); }
+
+  /* Yes / No — segmented control */
+  .toggle-group { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
+  .toggle-btn { flex: 1; height: 38px; border: none; background: none; border-radius: 999px; font: 500 13.5px var(--font-ui); color: var(--ink-2); cursor: pointer; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
+  .toggle-btn.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
+  .toggle-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+  /* ── Freedom Level — the one dark "earned" surface on the page ── */
+  .gap-hero { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-lg); padding: 24px 20px; color: var(--bg); box-shadow: var(--shadow-2); }
+  @media (min-width: 768px) { .gap-hero { padding: 28px; } }
+  .gap-eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(253,246,238,0.55); margin-bottom: 8px; }
+  .gap-percent { font-family: var(--font-display); font-weight: 700; font-size: clamp(52px, 12vw, 72px); line-height: 1; letter-spacing: -0.02em; color: var(--amber); font-variant-numeric: lining-nums tabular-nums; }
+  .gap-percent-label { margin-top: 8px; font-size: 14px; color: rgba(253,246,238,0.8); margin-bottom: 18px; }
+  .gap-progress-track { height: 8px; background: rgba(253,246,238,0.14); border-radius: 99px; overflow: hidden; margin-bottom: 16px; }
+  .gap-progress-fill { height: 100%; background: linear-gradient(90deg, var(--ember), var(--amber)); border-radius: 99px; transition: width 0.6s var(--ease); }
+  .gap-dollar-sub { font-size: 13.5px; color: rgba(253,246,238,0.72); margin-bottom: 18px; line-height: 1.5; }
+  .gap-dollar-sub strong { color: var(--amber); font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums; }
+  .gap-net-note { font-size: 12px; color: rgba(253,246,238,0.6); margin: -10px 0 18px; font-variant-numeric: tabular-nums; }
+  .gap-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .gap-tile { background: rgba(253,246,238,0.07); border: 1px solid rgba(253,246,238,0.08); border-radius: var(--r-md); padding: 12px 14px; }
+  .gap-tile-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(253,246,238,0.55); margin-bottom: 4px; }
+  .gap-tile-value { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--bg); font-variant-numeric: tabular-nums lining-nums; }
+  .gap-sources { margin-top: 16px; }
+  .gap-source-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(253,246,238,0.1); font-size: 13px; }
+  .gap-source-row:last-child { border-bottom: none; }
+  .gap-source-label { color: rgba(253,246,238,0.72); display: flex; align-items: center; gap: 6px; }
+  .gap-source-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .gap-source-value.accent-amber { color: var(--amber); }
+  .gap-source-tag { font-size: 10px; font-weight: 600; color: rgba(253,246,238,0.45); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── Freedom story + snapshot ── */
+  .story { font-size: 14.5px; color: var(--ink-2); line-height: 1.7; }
+  .story strong { color: var(--ink); font-weight: 600; }
+  .snapshot { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .snapshot-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-2); }
+  .snapshot-fig { font-size: 20px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .snapshot-fig.to { color: var(--ember-ink); }
+  .snapshot-delta { font-size: 13px; font-weight: 600; margin-top: 4px; }
+  .snapshot .eyebrow { margin-bottom: 6px; }
+
+  /* Super: accessible today vs later */
+  .super-card { background: var(--positive-wash); border-color: rgba(46,125,50,0.2); }
+  .super-card .card-label, .super-card .card-label .icon { color: var(--positive); }
+  .super-text { font-size: 14px; color: var(--ink-2); line-height: 1.7; }
+  .super-text strong { color: var(--positive); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Age Pension */
+  .value-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; display: inline-block; }
+  .value-tag.calculated { background: var(--positive-wash); color: var(--positive); }
+  .value-tag.estimated { background: var(--ember-wash); color: var(--ember-ink); }
+  .pension-box { background: var(--positive-wash); border: 1px solid rgba(46,125,50,0.2); border-radius: var(--r-md); padding: 14px 16px; font-size: 14px; color: var(--ink-2); line-height: 1.6; }
+  .pension-box strong { color: var(--positive); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pension-box.nil { background: var(--surface-2); border-color: var(--line); }
+  .data-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 0 0; font-size: 14px; }
+  .data-label { color: var(--ink-2); }
+  .data-value { font-weight: 600; font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* ── Sliders ── */
+  .slider-row { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
+  input[type="range"].dark-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 99px; background: var(--line-strong); outline: none; cursor: pointer; }
+  input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
+  input[type="range"].dark-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
+  input[type="range"].dark-slider:focus-visible { box-shadow: 0 0 0 3px var(--ember-wash); }
+  .slider-val { min-width: 76px; text-align: right; font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .slider-result { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px 16px; font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-top: 14px; }
+  .slider-result strong { color: var(--ink); font-weight: 600; }
+
+  /* Target age */
+  .target-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .target-row .dark-input { width: 120px; padding-left: 14px; }
+  .target-note { margin-top: 12px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
+
+  /* ── AI outlook ── */
+  .ai-outlook-loading { display: none; text-align: center; padding: 24px 0; }
+  .ai-outlook-loading.visible { display: block; }
+  .ai-outlook-loading-text { font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+  .ai-outlook-flame { animation: aiFlamePulse 1.4s ease-in-out infinite; display: inline-block; color: var(--ember); }
+  @keyframes aiFlamePulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: 0.75; } }
+  .ai-outlook-text { font-size: 14.5px; color: var(--ink-2); line-height: 1.75; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .ai-outlook-text strong { font-weight: 600; color: var(--ink); }
+
+  /* Next step */
+  .next-step { text-align: center; }
+  .next-step p { font-size: 14.5px; color: var(--ink-2); line-height: 1.6; margin: 0 auto 16px; max-width: 46ch; }
+
+  .disclaimer { font-size: 12px; color: var(--ink-2); line-height: 1.6; text-align: center; max-width: 64ch; margin: 4px auto 0; }
 </style>
 </head>
-<body>
+<body class="app" data-shell="app" data-active="money">
+<script src="js/shell.js"></script>
 
-<div class="hero">
-  <div><a href="journey.html" class="back-link">← Back to My Journey</a></div>
-  <div class="hero-badge">Beyond full FIRE</div>
-  <h1 class="hero-title">Freedom Gap</h1>
-  <p class="hero-sub">Full financial independence isn't the only version of freedom. See what your portfolio already generates, what the Age Pension adds, and how much of the gap is actually left to close.</p>
-</div>
+<main class="app-main">
 
-<div class="content">
+  <header class="page-head">
+    <div>
+      <a href="money.html" class="section-link page-back">← Money</a>
+      <div class="eyebrow">Beyond full FIRE</div>
+      <h1 class="page-head-title">Freedom Gap</h1>
+      <p class="page-head-sub">Full financial independence isn't the only version of freedom. See what your portfolio already generates, what the Age Pension adds, and how much of the gap is actually left to close.</p>
+    </div>
+  </header>
 
-  <div class="glass-card fp-reveal">
+  <div class="tool-layout">
+
+  <div class="card fp-reveal">
     <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-money"/></svg> Your numbers</div>
     <div class="input-row">
-      <div class="input-label-text">Investments available today</div>
+      <label class="input-label-text" for="g-portfolio">Investments available today</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-portfolio" placeholder="500000" oninput="recalcGap()"/></div>
     </div>
     <div class="input-row">
-      <div class="input-label-text">Other debt (optional)</div>
+      <label class="input-label-text" for="g-debt">Other debt (optional)</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-debt" placeholder="0" oninput="recalcGap()"/></div>
-      <div style="font-size:11px;color:var(--soft-grey);margin-top:2px;">Not your mortgage — this is for things like credit cards, car loans, or personal loans.</div>
+      <div class="input-hint">Not your mortgage — this is for things like credit cards, car loans, or personal loans.</div>
     </div>
     <div class="input-row">
-      <div class="input-label-text">Super balance — for context, not counted in your gap today (optional)</div>
+      <label class="input-label-text" for="g-super">Super balance — for context, not counted in your gap today (optional)</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-super" placeholder="0" oninput="recalcGap()"/></div>
     </div>
     <div class="input-row">
-      <div class="input-label-text">What you expect to spend per year</div>
+      <label class="input-label-text" for="g-spend">What you expect to spend per year</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-spend" placeholder="60000" oninput="recalcGap()"/></div>
-      <div id="g-useProfileSpend" style="display:none;font-size:12px;color:var(--fire-orange);cursor:pointer;margin-top:2px;" onclick="applyProfileSpend()">Autofill from my FirePath profile →</div>
+      <div id="g-useProfileSpend" class="input-link" style="display:none;" onclick="applyProfileSpend()">Autofill from my FirePath profile →</div>
     </div>
     <div class="input-row">
-      <div class="input-label-text">Your age</div>
+      <label class="input-label-text" for="g-age">Your age</label>
       <div class="input-wrap"><span class="input-prefix-dark">age</span><input type="number" class="dark-input" id="g-age" placeholder="45" style="padding-left:46px;" oninput="recalcGap()"/></div>
     </div>
     <div class="input-row">
-      <div class="input-label-text">Still saving? How much per month (optional)</div>
+      <label class="input-label-text" for="g-monthlySavings">Still saving? How much per month (optional)</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-monthlySavings" placeholder="0" oninput="recalcGap()"/></div>
     </div>
     <div class="input-row">
-      <div class="input-label-text">What you could earn per hour, working part-time</div>
+      <label class="input-label-text" for="g-rate">What you could earn per hour, working part-time</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-rate" placeholder="40" oninput="recalcGap()"/></div>
     </div>
     <div class="input-row">
@@ -129,15 +190,15 @@
     </div>
   </div>
 
-  <div id="results" style="display:none">
+  <div id="results" class="stack" style="display:none">
 
     <div class="gap-hero">
       <div class="gap-eyebrow">Freedom Level</div>
       <div class="gap-percent" id="g-freedomPercent">—%</div>
       <div class="gap-percent-label" id="g-freedomFraming">Lifestyle already covered by your investments</div>
       <div class="gap-progress-track"><div class="gap-progress-fill" id="g-progressFill" style="width:0%;"></div></div>
-      <div class="gap-dollar-sub" id="g-dollarSub">Your portfolio now produces<br/><strong id="g-portfolioIncome" style="font-size:16px;">—</strong> every year</div>
-      <div id="g-netPositionNote" style="display:none;font-size:11px;opacity:0.6;margin-top:-12px;margin-bottom:18px;"></div>
+      <div class="gap-dollar-sub" id="g-dollarSub">Your portfolio now produces<br/><strong id="g-portfolioIncome">—</strong> every year</div>
+      <div id="g-netPositionNote" class="gap-net-note" style="display:none;"></div>
       <div class="gap-breakdown">
         <div class="gap-tile">
           <div class="gap-tile-label">Annual spending</div>
@@ -148,7 +209,7 @@
           <div class="gap-tile-value" id="g-gapAmount">—</div>
         </div>
       </div>
-      <div id="g-sourceBreakdown" style="margin-top:16px;">
+      <div id="g-sourceBreakdown" class="gap-sources">
         <div class="gap-source-row">
           <span class="gap-source-label">Portfolio covers <span class="gap-source-tag">calculated</span></span>
           <span class="gap-source-value" id="g-sourcePortfolioPct">—%</span>
@@ -159,85 +220,86 @@
         </div>
         <div class="gap-source-row">
           <span class="gap-source-label">Remaining gap</span>
-          <span class="gap-source-value" id="g-sourceGapPct" style="color:var(--fire-amber);">—%</span>
+          <span class="gap-source-value accent-amber" id="g-sourceGapPct">—%</span>
         </div>
       </div>
     </div>
 
-    <div class="glass-card" id="g-freedomStoryCard">
+    <div class="card" id="g-freedomStoryCard">
       <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-momentum"/></svg> Your Freedom Story</div>
-      <div id="g-freedomStory" style="font-size:14px;color:var(--warm-brown);line-height:1.75;font-weight:400;"></div>
-      <div id="g-snapshotCompare" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-        <div style="font-size:11px;color:var(--soft-grey);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;" id="g-snapshotTimeLabel"></div>
-        <div style="display:flex;align-items:baseline;gap:10px;">
-          <span style="font-size:13px;color:var(--soft-grey);">Freedom Level</span>
-          <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--warm-brown);" id="g-snapshotFrom"></span>
-          <span style="color:var(--soft-grey);">→</span>
-          <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--fire-orange);" id="g-snapshotTo"></span>
+      <div id="g-freedomStory" class="story"></div>
+      <div id="g-snapshotCompare" class="snapshot" style="display:none;">
+        <div class="eyebrow" id="g-snapshotTimeLabel"></div>
+        <div class="snapshot-row">
+          <span>Freedom Level</span>
+          <span class="snapshot-fig" id="g-snapshotFrom"></span>
+          <span aria-hidden="true">→</span>
+          <span class="snapshot-fig to" id="g-snapshotTo"></span>
         </div>
-        <div style="font-size:13px;font-weight:600;margin-top:4px;" id="g-snapshotDelta"></div>
+        <div class="snapshot-delta" id="g-snapshotDelta"></div>
       </div>
     </div>
 
-    <div class="glass-card" id="g-superContextCard" style="display:none;background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-color:#A5D6A7;">
-      <div class="card-label" style="color:#2E7D32;"><svg class="icon" style="width:14px;height:14px;color:#2E7D32;"><use href="/icons.svg#icon-secure"/></svg> Accessible Today vs Later</div>
-      <div style="font-size:13px;color:#2E7D32;line-height:1.7;">
+    <div class="card super-card" id="g-superContextCard" style="display:none;">
+      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-secure"/></svg> Accessible Today vs Later</div>
+      <div class="super-text">
         <strong id="g-superToday">—</strong> can fund your life today.<br/>
         <strong id="g-superRetirement">—</strong> is what you'll have including super.
         <span id="g-superExplainer"></span>
       </div>
     </div>
 
-    <div class="glass-card">
+    <div class="card">
       <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-secure"/></svg> Age Pension at 67 <span class="value-tag estimated">Estimated</span></div>
       <div id="g-pensionBox" class="pension-box">—</div>
-      <div class="data-row" style="margin-top:12px;">
+      <div class="data-row">
         <span class="data-label">Gap after pension</span>
-        <span style="font-weight:600;font-size:15px;color:var(--fire-orange)" id="g-gapAfterPension">—</span>
+        <span class="data-value" id="g-gapAfterPension">—</span>
       </div>
     </div>
 
-    <div class="slider-card">
+    <div class="card">
       <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> If work became optional, how many hours would you choose?</div>
-      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;">Drag to find the point where your income fully covers your spending.</div>
+      <div class="card-sub">Drag to find the point where your income fully covers your spending.</div>
       <div class="slider-row">
-        <input type="range" class="dark-slider" id="g-hours" min="0" max="40" value="10" oninput="updateHoursSlider()"/>
+        <input type="range" class="dark-slider" id="g-hours" min="0" max="40" value="10" oninput="updateHoursSlider()" aria-label="Hours per week"/>
         <div class="slider-val" id="g-hoursVal">10 hrs</div>
       </div>
       <div class="slider-result" id="g-hoursResult"></div>
     </div>
 
-    <div class="slider-card">
+    <div class="card">
       <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> Want to look at this differently?</div>
-      <div style="font-size:13px;color:var(--soft-grey);font-weight:300;margin-bottom:12px;line-height:1.6;">What age would you like to stop working? FirePath will project your portfolio to that point and recalculate everything.</div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <input type="number" id="targetRetirementAgeInput" class="dark-input" placeholder="e.g. 55" style="width:110px;padding-left:14px;" min="1" max="80"/>
-        <button onclick="applyTargetRetirementAge()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:10px;padding:12px 20px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Show me →</button>
-        <button onclick="resetTargetRetirementAge()" id="resetTargetAgeBtn" style="display:none;background:none;border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--soft-grey);font-family:'DM Sans',sans-serif;cursor:pointer;">Reset</button>
+      <div class="card-sub">What age would you like to stop working? FirePath will project your portfolio to that point and recalculate everything.</div>
+      <div class="target-row">
+        <input type="number" id="targetRetirementAgeInput" class="dark-input" placeholder="e.g. 55" min="1" max="80" aria-label="Target retirement age"/>
+        <button type="button" class="btn btn-primary btn-lg" onclick="applyTargetRetirementAge()">Show me →</button>
+        <button type="button" class="btn btn-quiet btn-lg" onclick="resetTargetRetirementAge()" id="resetTargetAgeBtn" style="display:none;">Reset</button>
       </div>
-      <div id="targetAgeNote" style="margin-top:10px;font-size:12px;color:var(--soft-grey);line-height:1.6;display:none;"></div>
+      <div id="targetAgeNote" class="target-note" style="display:none;"></div>
     </div>
 
-    <div class="slider-card">
+    <div class="card">
       <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your AI outlook</div>
-      <div style="font-size:12px;color:var(--soft-grey);font-weight:300;margin-bottom:14px;">A plain-English read on what this gap actually means for your life.</div>
-      <button class="ai-outlook-btn" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook</button>
+      <div class="card-sub">A plain-English read on what this gap actually means for your life.</div>
+      <button type="button" class="ai-outlook-btn btn btn-primary btn-lg btn-block" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook</button>
       <div class="ai-outlook-loading" id="aiOutlookLoading">
         <div class="ai-outlook-flame"><svg class="icon" style="width:28px;height:28px;"><use href="/icons.svg#icon-momentum"/></svg></div>
-        <div style="font-size:13px;color:var(--soft-grey);margin-top:10px;">Reading your numbers...</div>
+        <div class="ai-outlook-loading-text">Reading your numbers...</div>
       </div>
       <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
     </div>
 
-    <div class="glass-card" style="text-align:center;background:linear-gradient(135deg,#FFF7F3,#FFF3E0);border-color:rgba(244,98,42,0.25);">
-      <div style="font-size:14px;color:var(--warm-brown);font-weight:400;line-height:1.7;margin-bottom:16px;">You've seen where you are today. Now see the different ways you could use this.</div>
-      <a href="freedom-options.html" style="display:inline-block;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:13px 26px;border-radius:50px;font-size:14px;font-weight:500;text-decoration:none;">Explore My Freedom Options →</a>
+    <div class="card callout-ember next-step">
+      <p>You've seen where you are today. Now see the different ways you could use this.</p>
+      <a href="freedom-options.html" class="btn btn-ember btn-lg">Explore My Freedom Options →</a>
     </div>
 
-    <p class="disclaimer">Portfolio income based on a 4% withdrawal rate. Age Pension estimate based on the assets test (single, using your homeowner status) — your actual entitlement depends on your full financial picture at 67. Educational only — not financial advice.</p>
+    <p class="disclaimer">Portfolio income based on a 4% withdrawal rate. Age Pension estimate uses both the assets and income tests (single, using your homeowner status, with Centrelink deeming on investments) — your actual entitlement depends on your full financial picture at 67. Educational only — not financial advice.</p>
   </div>
 
-</div>
+  </div>
+</main>
 
 <script>
   // Turns a raw percentage into feedback that reads like a response to progress,
@@ -356,7 +418,7 @@
       const yearsToTarget = targetAge - currentAge;
       effectivePortfolio = Math.round(window.FirePathEngine.projectPortfolio(netPortfolio, monthlySavings, yearsToTarget, 0.07));
       targetAgeNote.style.display = 'block';
-      targetAgeNote.innerHTML = `Showing your picture at age <strong style="color:var(--warm-brown)">${targetAge}</strong> — portfolio projected to <strong style="color:var(--warm-brown)">${fmtM(effectivePortfolio)}</strong> by then (7% growth${monthlySavings > 0 ? ' + your ongoing savings' : ''}).`;
+      targetAgeNote.innerHTML = `Showing your picture at age <strong style="color:var(--ink)">${targetAge}</strong> — portfolio projected to <strong style="color:var(--ink)">${fmtM(effectivePortfolio)}</strong> by then (7% growth${monthlySavings > 0 ? ' + your ongoing savings' : ''}).`;
       document.getElementById('resetTargetAgeBtn').style.display = 'inline-block';
     } else {
       targetAgeNote.style.display = 'none';
@@ -372,7 +434,7 @@
     const pensionBox = document.getElementById('g-pensionBox');
     if (pensionAnnual > 0) {
       pensionBox.className = 'pension-box';
-      pensionBox.innerHTML = `Estimated entitlement: <strong>${fmtM(pensionAnnual)}/yr</strong> (~${fmtM(pensionWeekly)}/week), based on the assets test.`;
+      pensionBox.innerHTML = `Estimated entitlement: <strong>${fmtM(pensionAnnual)}/yr</strong> (~${fmtM(pensionWeekly)}/week), based on the assets and income tests.`;
     } else {
       pensionBox.className = 'pension-box nil';
       pensionBox.innerHTML = `At your asset level, Age Pension entitlement at 67 would be minimal or nil. Your portfolio is doing the heavy lifting.`;
@@ -424,13 +486,13 @@
       document.getElementById('g-snapshotTo').textContent = freedomPct + '%';
       const deltaEl = document.getElementById('g-snapshotDelta');
       if (delta.freedomPctDelta > 0) {
-        deltaEl.style.color = '#2E7D32';
+        deltaEl.style.color = 'var(--positive)';
         deltaEl.textContent = `▲ +${delta.freedomPctDelta}% — you've bought back real ground.`;
       } else if (delta.freedomPctDelta < 0) {
-        deltaEl.style.color = '#E65100';
+        deltaEl.style.color = 'var(--negative)';
         deltaEl.textContent = `▼ ${delta.freedomPctDelta}% — still worth knowing, not a verdict.`;
       } else {
-        deltaEl.style.color = 'var(--soft-grey)';
+        deltaEl.style.color = 'var(--ink-2)';
         deltaEl.textContent = `No change — steady as it is.`;
       }
       compareEl.style.display = 'block';
@@ -499,14 +561,14 @@
     const targetAge = parseInt(input?.value) || null;
     const currentAge = parseFloat(document.getElementById('g-age').value) || 0;
     if (!currentAge) {
-      input.style.borderColor = '#E53935';
-      setTimeout(() => input.style.borderColor = 'var(--border)', 2000);
+      input.style.borderColor = 'var(--negative)';
+      setTimeout(() => input.style.borderColor = '', 2000);
       alert('Enter your current age above first — the projection needs a starting point.');
       return;
     }
     if (!targetAge || targetAge <= currentAge || targetAge > 80) {
-      input.style.borderColor = '#E53935';
-      setTimeout(() => input.style.borderColor = 'var(--border)', 2000);
+      input.style.borderColor = 'var(--negative)';
+      setTimeout(() => input.style.borderColor = '', 2000);
       return;
     }
     calcGap(targetAge);
@@ -540,9 +602,9 @@
     if (workBonusHours) {
       const roundedBonus = Math.round(workBonusHours * 10) / 10;
       if (hours <= workBonusHours) {
-        bonusNote = `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:#2E7D32;">At your rate, up to <strong>~${roundedBonus} hrs/week</strong> stays within the Age Pension Work Bonus — this work income shouldn't reduce your pension at all.</div>`;
+        bonusNote = `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px;color:var(--positive);">At your rate, up to <strong>~${roundedBonus} hrs/week</strong> stays within the Age Pension Work Bonus — this work income shouldn't reduce your pension at all.</div>`;
       } else {
-        bonusNote = `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:#E65100;">At your rate, the Work Bonus covers about <strong>~${roundedBonus} hrs/week</strong> before it starts affecting your pension — you're above that here.</div>`;
+        bonusNote = `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px;color:var(--negative);">At your rate, the Work Bonus covers about <strong>~${roundedBonus} hrs/week</strong> before it starts affecting your pension — you're above that here.</div>`;
       }
     }
 
@@ -646,7 +708,6 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
   });
 </script>
 <script src="js/auth.js"></script>
-<script src="js/calculations.js"></script>
 <script src="js/interactions.js"></script>
 <script src="js/quick-feedback-widget.js"></script>
 </body>

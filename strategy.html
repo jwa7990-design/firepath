@@ -2,302 +2,146 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>FirePath — Strategy</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --fire-orange: #F4622A;
-    --fire-amber:  #F9A825;
-    --warm-cream:  #FDF6EE;
-    --warm-brown:  #3D2B1F;
-    --soft-grey:   #9E8E85;
-    --border:      #EDE3DA;
-    --dark-bg:     #2A1E15;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-  }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--warm-cream);
-    color: var(--warm-brown);
-    -webkit-font-smoothing: antialiased;
-  }
-  /* Bottom padding cleared for .mobile-tabbar floating above the content —
-     desktop overrides this back down further below since the rail replaces the
-     tab bar entirely at that width. */
-  .container { max-width: 480px; margin: 0 auto; padding: 40px 24px calc(152px + env(safe-area-inset-bottom)); }
-
-  /* ── Mobile tab bar — same floating instrument-panel pattern as journey.html;
-       see that file for the full rationale. Primary nav on phones, mirroring the
-       desktop rail's four core destinations. ── */
-  .mobile-tabbar {
-    position: fixed; left: 14px; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom));
-    z-index: 150; display: flex; align-items: stretch; justify-content: space-around;
-    background: rgba(253,246,238,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border); border-radius: 22px; padding: 7px; gap: 2px;
-    box-shadow: 0 10px 30px rgba(61,43,31,0.14);
-  }
-  .mobile-tabbar-item {
-    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-    padding: 8px 4px 7px; border-radius: 16px; text-decoration: none;
-    color: var(--soft-grey); font-size: 10.5px; font-weight: 600;
-    transition: color 0.2s ease, background 0.2s ease;
-  }
-  .mobile-tabbar-item svg { opacity: 0.75; transition: opacity 0.2s ease; }
-  .mobile-tabbar-item.active { color: var(--fire-orange); background: rgba(244,98,42,0.1); }
-  .mobile-tabbar-item.active svg { opacity: 1; }
-
-  /* Persistent, global entry point into Ask FirePath — a quiet pill floating just
-     above the tabbar, not a fifth nav item and not a big orange SaaS-style button. */
-  .ask-pill {
-    position: fixed; right: 14px; bottom: calc(92px + env(safe-area-inset-bottom));
-    z-index: 149; display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(253,246,238,0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1.5px solid var(--fire-orange); border-radius: 20px; padding: 10px 16px;
-    color: var(--fire-orange); font-size: 12.5px; font-weight: 600; text-decoration: none;
-    box-shadow: 0 6px 20px rgba(61,43,31,0.12);
-  }
-  .ask-pill:active { background: rgba(244,98,42,0.08); }
-  .ask-pill svg { flex-shrink: 0; }
-
-  .mobile-topbar { display: flex; align-items: center; padding-top: 6px; margin-bottom: 28px; }
-  .mobile-back {
-    display: flex; align-items: center; gap: 6px; color: var(--soft-grey);
-    text-decoration: none; font-size: 13px; font-weight: 500;
-  }
-  .mobile-back:hover { color: var(--fire-orange); }
-
-  .page-eyebrow { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fire-orange); margin-bottom: 10px; }
-  .page-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 28px; color: var(--warm-brown); margin-bottom: 8px; line-height: 1.25; }
-  .page-sub { font-size: 14px; color: var(--soft-grey); font-weight: 300; margin-bottom: 32px; max-width: 52ch; }
-
-  /* ── Your Levers — personalised, computed against this person's actual numbers
-       via the same solveMonthsToTarget the trajectory chart on Journey uses. Turns
-       Strategy from "here are three calculators" into "here's what actually moves
-       your date," with the three tools below as how you'd go act on any of them. ── */
-  .levers-card {
-    background: white; border: 1px solid var(--border); border-radius: 20px;
-    padding: 24px 24px 10px; margin-bottom: 28px;
-    opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  .levers-card.in-view { opacity: 1; transform: translateY(0); }
-  @media (prefers-reduced-motion: reduce) { .levers-card { opacity: 1; transform: none; transition: none; } }
-  .levers-question { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; color: var(--warm-brown); margin-bottom: 4px; }
-  .levers-caption { font-size: 12.5px; color: var(--soft-grey); font-weight: 300; margin-bottom: 16px; }
-  .lever-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); }
-  .lever-row:last-of-type { border-bottom: none; }
-  .lever-icon {
-    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .lever-icon.invest { background: rgba(62,142,90,0.12); color: #3E8E5A; }
-  .lever-icon.cut { background: rgba(233,84,111,0.12); color: #D9436A; }
-  .lever-icon.increase { background: rgba(244,98,42,0.12); color: var(--fire-orange); }
-  .lever-label { flex: 1; font-size: 14px; color: var(--warm-brown); font-weight: 500; }
-  .lever-value {
-    font-family: 'Playfair Display', serif; font-weight: 700; font-size: 13px; line-height: 1.3;
-    text-align: right; white-space: nowrap; flex-shrink: 0;
-  }
-  .lever-value.invest { color: #3E8E5A; }
-  .lever-value.cut { color: #D9436A; }
-  .lever-value.increase { color: var(--fire-orange); }
-  .lever-arrow { color: var(--soft-grey); font-size: 15px; flex-shrink: 0; }
-  .levers-skeleton { color: var(--soft-grey); font-size: 13px; font-style: italic; padding: 4px 0 16px; }
-  .levers-cta { display: block; text-align: right; padding: 16px 0; font-size: 13px; color: var(--fire-orange); font-weight: 500; text-decoration: none; }
-
-  .hub-cards { display: flex; flex-direction: column; gap: 10px; }
-  .hub-card {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    background: white; border: 1px solid var(--border); border-radius: 16px;
-    padding: 22px; text-decoration: none; transition: border-color 0.15s ease, transform 0.15s ease;
-    opacity: 0; transform: translateY(14px);
-  }
-  .hub-card.in-view { opacity: 1; transform: translateY(0); transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.15s ease; }
-  @media (prefers-reduced-motion: reduce) { .hub-card { opacity: 1; transform: none; } }
-  .hub-card:hover { border-color: var(--fire-orange); transform: translateX(2px); }
-  .hub-card.in-view:hover { transform: translateY(0) translateX(2px); }
-  .hub-card-icon {
-    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .hub-card-icon.blue { background: rgba(58,110,165,0.12); color: #3A6EA5; }
-  .hub-card-icon.amber { background: rgba(249,168,37,0.15); color: var(--fire-amber); }
-  .hub-card-icon.purple { background: rgba(124,92,168,0.13); color: #7C5CA8; }
-  .hub-card-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px; color: var(--warm-brown); margin-bottom: 4px; }
-  .hub-card-desc { font-size: 13px; color: var(--soft-grey); font-weight: 300; }
-  .hub-card-arrow { color: var(--fire-orange); font-size: 18px; flex-shrink: 0; }
-
-  /* ══════════════════════════════════════════════════════════════════════
-     DESKTOP PLATFORM — same rail as journey.html, "Strategy" marked active.
-     ══════════════════════════════════════════════════════════════════════ */
-  .desktop-rail { display: none; }
-  @media (min-width: 1024px) {
-    body { padding-left: 232px; }
-    .desktop-rail {
-      display: flex; flex-direction: column;
-      position: fixed; top: 0; left: 0; bottom: 0; width: 232px;
-      background: var(--dark-bg); padding: 28px 18px; z-index: 40;
-    }
-    .desktop-rail-logo { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 18px; color: var(--warm-cream); margin: 6px 10px 36px; letter-spacing: -0.01em; }
-    .desktop-rail-nav { display: flex; flex-direction: column; gap: 3px; }
-    .desktop-rail-item {
-      display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 10px;
-      color: rgba(253,246,238,0.55); text-decoration: none; font-size: 14px; font-weight: 500;
-      transition: background 0.15s ease, color 0.15s ease;
-    }
-    .desktop-rail-item svg { flex-shrink: 0; opacity: 0.8; }
-    .desktop-rail-item:hover { background: rgba(253,246,238,0.06); color: var(--warm-cream); }
-    .desktop-rail-item.active { background: rgba(244,98,42,0.14); color: var(--warm-cream); }
-    .desktop-rail-item.active svg { opacity: 1; color: var(--fire-orange); }
-    .desktop-rail-ask {
-      margin-top: auto; display: flex; align-items: center; gap: 9px; padding: 12px 14px;
-      border-radius: 12px; background: linear-gradient(135deg, var(--fire-orange), var(--fire-amber));
-      color: white; text-decoration: none; font-size: 13px; font-weight: 500;
-    }
-    .desktop-rail-footer { display: flex; flex-direction: column; gap: 1px; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(253,246,238,0.1); }
-    .desktop-rail-footer a { color: rgba(253,246,238,0.4); text-decoration: none; font-size: 12.5px; padding: 7px 12px; border-radius: 8px; transition: color 0.15s ease, background 0.15s ease; }
-    .desktop-rail-footer a:hover { color: rgba(253,246,238,0.8); background: rgba(253,246,238,0.05); }
-
-    .container { max-width: 1080px; margin: 0 auto; padding: 56px 56px 100px; }
-    .hub-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
-    /* Rail replaces the mobile tab bar entirely at this width. */
-    .mobile-tabbar, .ask-pill { display: none !important; }
-  }
-
-  /* ── Footer — same four links every other FirePath page already carries. ── */
-  .page-footer {
-    margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);
-    text-align: center; font-size: 12px; color: var(--soft-grey);
-  }
-  .page-footer a { color: var(--fire-orange); text-decoration: none; }
-  .page-footer a:hover { text-decoration: underline; }
-  .page-footer .footer-sep { margin: 0 8px; color: var(--border); }
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/app.css"/>
+<script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/financial-engine.js"></script>
+<style>
+  .strategy-wrap { max-width: 1000px; }
+  .strategy-wrap > .fp-why, .strategy-wrap > .fp-tldr { margin: -12px 0 24px; }
+  .strategy-section { margin-bottom: 32px; }
+  .strategy-section > .fp-consider { margin: 0 0 16px; }
+
+  /* ── Your Levers — personalised, computed against this person's actual numbers
+       via the same solveMonthsToTarget the trajectory chart on Journey uses. ── */
+  .levers-card { padding-bottom: 8px; opacity: 0; transform: translateY(6px); transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease); }
+  .levers-card.in-view { opacity: 1; transform: none; }
+  @media (min-width: 768px) { .levers-card { padding-bottom: 8px; } }
+  .levers-question { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 4px; }
+  .levers-caption { font-size: 13.5px; color: var(--ink-2); margin-bottom: 12px; }
+  .lever-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .lever-row:last-of-type { border-bottom: none; }
+  .lever-icon { width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0; display: grid; place-items: center; }
+  .lever-icon.invest { background: rgba(62,142,90,0.12); color: var(--green); }
+  .lever-icon.cut { background: rgba(124,92,168,0.12); color: var(--purple); }
+  .lever-icon.increase { background: var(--ember-wash); color: var(--ember-ink); }
+  .lever-label { flex: 1; min-width: 0; font-size: 14.5px; color: var(--ink); font-weight: 500; }
+  .lever-value { font-size: 13px; font-weight: 600; line-height: 1.3; text-align: right; white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .lever-value.invest { color: var(--green); }
+  .lever-value.cut { color: var(--purple); }
+  .lever-value.increase { color: var(--ember-ink); }
+  .lever-arrow { color: var(--ink-3); flex-shrink: 0; }
+  .levers-skeleton { color: var(--ink-2); font-size: 13.5px; padding: 4px 0 16px; }
+  .levers-cta { display: block; text-align: right; padding: 14px 0 12px; border-top: 1px solid var(--line); font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
+  .levers-cta:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ── Tool cards (card + card-link, like Journey's tiles); .in-view is added by the
+       IntersectionObserver below. ── */
+  .hub-cards { display: grid; gap: 12px; }
+  @media (min-width: 768px) { .hub-cards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; } }
+  .hub-card { display: flex; align-items: center; gap: 14px; opacity: 0; transform: translateY(6px); }
+  .hub-card.in-view { opacity: 1; transform: none; transition: opacity var(--dur-slow) var(--ease), transform var(--dur-base) var(--ease), border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease); }
+  .hub-card.in-view:hover { transform: translateY(-1px); }
+  @media (prefers-reduced-motion: reduce) { .hub-card { opacity: 1; transform: none; } }
+  .hub-card > div { flex: 1; min-width: 0; }
+  .hub-card-icon { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; display: grid; place-items: center; }
+  .hub-card-icon.blue { background: rgba(58,110,165,0.12); color: var(--blue); }
+  .hub-card-icon.amber { background: rgba(249,168,37,0.15); color: #B7791F; }
+  .hub-card-icon.purple { background: rgba(124,92,168,0.12); color: var(--purple); }
+  .hub-card-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+  .hub-card-desc { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+  .hub-card-arrow { color: var(--ember-ink); flex-shrink: 0; transition: transform var(--dur-fast) ease; }
+  .hub-card:hover .hub-card-title { color: var(--ember-ink); }
+  .hub-card:hover .hub-card-arrow { transform: translateX(2px); }
+</style>
 </head>
-<body>
+<body class="app" data-shell="app" data-active="strategy">
+<script src="js/shell.js"></script>
 
-<!-- ── DESKTOP RAIL — see journey.html for the full comment on this pattern. ── -->
-<nav class="desktop-rail" aria-label="Primary">
-  <div class="desktop-rail-logo">FirePath</div>
-  <div class="desktop-rail-nav">
-    <a href="journey.html" class="desktop-rail-item">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
-      Journey
-    </a>
-    <a href="money.html" class="desktop-rail-item">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
-      Money
-    </a>
-    <a href="strategy.html" class="desktop-rail-item active">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
-      Strategy
-    </a>
-    <a href="learn.html" class="desktop-rail-item">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
-      Learn
-    </a>
-  </div>
-  <a href="ask-firepath.html" class="desktop-rail-ask">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-    Ask FirePath
-  </a>
-  <div class="desktop-rail-footer">
-    <a href="account.html">Settings</a>
-    <a href="auth.html?action=signout">Sign out</a>
-  </div>
-</nav>
+<main class="app-main">
+<div class="strategy-wrap">
 
-<div class="container">
-
-  <div class="mobile-topbar">
-    <a href="journey.html" class="mobile-back">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-      Journey
-    </a>
-  </div>
-
-  <div class="page-eyebrow">Strategy</div>
-  <div class="page-title">Test the levers that move your date.</div>
-  <div class="page-sub">Each of these runs a real calculation against your numbers — not a generic estimate.</div>
-
-  <div class="levers-card" id="leversCard">
-    <div class="levers-question">What could move your freedom date?</div>
-    <div class="levers-caption">Run against your actual savings and spending, not a generic example.</div>
-    <div id="leversList">
-      <div class="levers-skeleton">Working out your levers…</div>
+  <header class="page-head rise" style="--i:0">
+    <div>
+      <div class="eyebrow">Strategy</div>
+      <h1 class="page-head-title" data-copy-beginner="Small changes can move your date by years." data-copy-fire="Levers, stress tests, tax.">Test the levers that move your date.</h1>
+      <p class="page-head-sub" data-copy-beginner="Every tool here uses your own numbers, so what you see is about you — not a made-up example." data-copy-fire="All modelled on your inputs. Assumptions are editable in each tool.">Each of these runs a real calculation against your numbers — not a generic estimate.</p>
     </div>
-    <a href="hearmeout.html" class="levers-cta">Explore scenarios →</a>
-  </div>
+  </header>
+  <div class="fp-why" data-persona-show="beginner">The date you could stop needing to work isn't fixed. Saving a little more, paying less tax, or changing one big decision can bring it closer — these tools show by how much, before you commit to anything.</div>
+  <div class="fp-tldr" data-persona-show="fire">Biggest movers are usually savings rate, CC headroom and your SWR assumption. Stress-test the SWR in Withdrawal before trusting the FI date.</div>
 
-  <div class="hub-cards" id="hubCards">
-    <a href="tax_pro.html" class="hub-card">
-      <span class="hub-card-icon blue">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01"/></svg>
-      </span>
-      <div>
-        <div class="hub-card-title">Tax Tools</div>
-        <div class="hub-card-desc">Reduce tax, legally</div>
+  <section class="strategy-section">
+    <div class="card levers-card" id="leversCard">
+      <div class="section-head">
+        <h2 class="section-label">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
+          Your levers
+        </h2>
       </div>
-      <span class="hub-card-arrow">→</span>
-    </a>
-    <a href="withdrawal.html" class="hub-card">
-      <span class="hub-card-icon amber">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-      </span>
-      <div>
-        <div class="hub-card-title">Withdrawal Modeling</div>
-        <div class="hub-card-desc">Stress-test how long your money lasts</div>
+      <div class="levers-question">What could move your freedom date?</div>
+      <div class="levers-caption">Run against your actual savings and spending, not a generic example.</div>
+      <div id="leversList">
+        <div class="levers-skeleton">Working out your levers…</div>
       </div>
-      <span class="hub-card-arrow">→</span>
-    </a>
-    <a href="hearmeout.html" class="hub-card">
-      <span class="hub-card-icon purple">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-      </span>
-      <div>
-        <div class="hub-card-title">Scenario Explorer</div>
-        <div class="hub-card-desc">Test real financial decisions before you make them</div>
-      </div>
-      <span class="hub-card-arrow">→</span>
-    </a>
-  </div>
+      <a href="hearmeout.html" class="levers-cta">Explore scenarios →</a>
+    </div>
+  </section>
 
-  <footer class="page-footer">
-    <a href="faq.html">FAQ</a><span class="footer-sep">·</span><a href="assumptions.html">Assumptions</a><span class="footer-sep">·</span><a href="terms.html">Terms</a><span class="footer-sep">·</span><a href="privacy.html">Privacy</a>
+  <section class="strategy-section" aria-labelledby="toolsHead">
+    <div class="section-head">
+      <h2 class="section-label" id="toolsHead">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        Tools
+      </h2>
+    </div>
+    <div class="fp-consider" data-persona-show="beginner building">Whether your employer lets you salary sacrifice into super? For many people it's the simplest legal way to pay less tax — the tax tool shows what it would mean for you.</div>
+    <div class="hub-cards" id="hubCards" data-tool-list>
+      <a href="tax_pro.html" class="card card-link hub-card" data-tool="tax-tools">
+        <span class="hub-card-icon blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01"/></svg>
+        </span>
+        <div>
+          <div class="hub-card-title" data-tool-title>Tax Tools</div>
+          <div class="hub-card-desc" data-tool-desc>Reduce tax, legally</div>
+        </div>
+        <span class="hub-card-arrow" aria-hidden="true">→</span>
+      </a>
+      <a href="withdrawal.html" class="card card-link hub-card" data-tool="withdrawal">
+        <span class="hub-card-icon amber">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+        </span>
+        <div>
+          <div class="hub-card-title" data-tool-title>Withdrawal Modeling</div>
+          <div class="hub-card-desc" data-tool-desc>Stress-test how long your money lasts</div>
+        </div>
+        <span class="hub-card-arrow" aria-hidden="true">→</span>
+      </a>
+      <a href="hearmeout.html" class="card card-link hub-card" data-tool="scenarios">
+        <span class="hub-card-icon purple">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+        </span>
+        <div>
+          <div class="hub-card-title" data-tool-title>Scenario Explorer</div>
+          <div class="hub-card-desc" data-tool-desc>Test real financial decisions before you make them</div>
+        </div>
+        <span class="hub-card-arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+  <footer class="app-footer">
+    <span>Educational only — not financial advice.</span>
+    <nav aria-label="Footer"><a href="faq.html">FAQ</a><a href="assumptions.html">Assumptions</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></nav>
   </footer>
 
 </div>
-
-<!-- ── ASK FIREPATH — persistent floating pill, see journey.html for the full rationale. ── -->
-<a href="ask-firepath.html" class="ask-pill">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
-  Ask FirePath
-</a>
-
-<!-- ── MOBILE TAB BAR — see journey.html for the full rationale. ── -->
-<nav class="mobile-tabbar" aria-label="Primary">
-  <a href="journey.html" class="mobile-tabbar-item">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
-    Journey
-  </a>
-  <a href="money.html" class="mobile-tabbar-item">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
-    Money
-  </a>
-  <a href="strategy.html" class="mobile-tabbar-item active">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
-    Strategy
-  </a>
-  <a href="learn.html" class="mobile-tabbar-item">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
-    Learn
-  </a>
-</nav>
+</main>
 
 <script>
   document.addEventListener('DOMContentLoaded', async function() {
