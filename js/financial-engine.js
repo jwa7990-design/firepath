@@ -6,9 +6,9 @@
  * options are relevant to a given person — that's each page's own product logic,
  * built on top of what this file returns.
  *
- * Requires js/calculations.js to be loaded first (for calculateAgePension). Load
+ * Requires js/tax-engine.js to be loaded first (for calculateAgePension). Load
  * this file after it:
- *   <script src="js/calculations.js"></script>
+ *   <script src="js/tax-engine.js"></script>
  *   <script src="js/financial-engine.js"></script>
  *
  * Extracted from freedom-gap.html and freedom-options.html, which had independently
@@ -21,9 +21,11 @@ window.FirePathEngine = (function () {
  
   function fmtM(n) {
     if (n == null || isNaN(n)) return '—';
-    if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
-    if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
-    return '$' + Math.round(n);
+    const sign = n < 0 ? '-' : '';
+    const a = Math.abs(n);
+    if (a >= 1000000) return sign + '$' + (a / 1000000).toFixed(1) + 'M';
+    if (a >= 1000) return sign + '$' + Math.round(a / 1000) + 'K';
+    return sign + '$' + Math.round(a);
   }
  
   // Rounds a raw hours-needed figure up to the nearest "nice" number people naturally
@@ -95,6 +97,14 @@ window.FirePathEngine = (function () {
  
   // Finds the youngest age (from currentAge) at which portfolio income — plus the Age
   // Pension once age 67 is reached — covers targetSpend. Returns null if not reached by 90.
+  let warnedNoPension = false;
+  function pensionAvailable() {
+    if (typeof calculateAgePension === 'function') return true;
+    if (!warnedNoPension && typeof console !== 'undefined') console.warn('FirePathEngine: js/tax-engine.js is not loaded on this page, so Age Pension is counted as $0.');
+    warnedNoPension = true;
+    return false;
+  }
+
   function solveFreedomAge(currentAge, startPortfolio, monthlySavings, targetSpend, homeowner, rate) {
     rate = rate == null ? 0.07 : rate;
     const CEILING_AGE = 90;
@@ -103,8 +113,9 @@ window.FirePathEngine = (function () {
       const portfolio = projectPortfolio(startPortfolio, monthlySavings, yearsOut, rate);
       const portfolioIncome = portfolio * 0.04;
       let pensionIncome = 0;
-      if (age >= 67 && typeof calculateAgePension === 'function') {
-        try { pensionIncome = calculateAgePension(portfolio, portfolioIncome, homeowner, false).annualPension || 0; } catch (e) {}
+      if (age >= 67 && pensionAvailable()) {
+        // Other income 0: Centrelink deems the portfolio rather than counting drawdowns.
+        try { pensionIncome = calculateAgePension(portfolio, 0, homeowner, false).annualPension || 0; } catch (e) {}
       }
       if (portfolioIncome + pensionIncome >= targetSpend) {
         return { age, portfolio: Math.round(portfolio), portfolioIncome: Math.round(portfolioIncome), pensionIncome: Math.round(pensionIncome) };
@@ -122,9 +133,9 @@ window.FirePathEngine = (function () {
     const portfolioIncome = portfolio * rate;
     const gap = Math.max(0, annualSpend - portfolioIncome);
     let pensionAnnual = 0, pensionWeekly = 0;
-    if (typeof calculateAgePension === 'function') {
+    if (pensionAvailable()) {
       try {
-        const pension = calculateAgePension(portfolio, portfolioIncome, isHomeowner, false);
+        const pension = calculateAgePension(portfolio, 0, isHomeowner, false);
         pensionAnnual = pension.annualPension || 0;
         pensionWeekly = pension.weeklyPension || 0;
       } catch (e) {}

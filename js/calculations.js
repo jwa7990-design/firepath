@@ -54,9 +54,25 @@ function fmt(y) {
    e.g. 1500000 → "$1.5M", 45000 → "$45K", 500 → "$500"
 ──────────────────────────────────────────────────────────── */
 function fmtM(n) {
-  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
-  if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
-  return '$' + Math.round(n);
+  if (n == null || isNaN(n)) return '—';
+  const sign = n < 0 ? '-' : '';
+  const a = Math.abs(n);
+  if (a >= 1000000) return sign + '$' + (a / 1000000).toFixed(1) + 'M';
+  if (a >= 1000) return sign + '$' + Math.round(a / 1000) + 'K';
+  return sign + '$' + Math.round(a);
+}
+
+/* ── Format exact dollars ──────────────────────────────────
+   For amounts where the exact figure matters (tax, shortfalls).
+   e.g. 20520 → "$20,520", -1234 → "-$1,234", 1500000 → "$1.5M"
+   Pass { compact: false } to show millions in full too.
+──────────────────────────────────────────────────────────── */
+function fmtDollars(n, opts) {
+  if (n == null || isNaN(n)) return '—';
+  const sign = n < 0 ? '-' : '';
+  const a = Math.abs(n);
+  if (a >= 1000000 && !(opts && opts.compact === false)) return sign + '$' + (a / 1000000).toFixed(1) + 'M';
+  return sign + '$' + Math.round(a).toLocaleString('en-AU');
 }
 
 /* ── Convert to monthly ────────────────────────────────────
