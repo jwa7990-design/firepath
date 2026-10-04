@@ -22,7 +22,6 @@
   <script src="js/calculations.js"></script>
   <script src="js/financial-engine.js"></script>
   <script src="js/interactions.js"></script>
-  <script src="js/firepath_onboarding.js"></script>
   <script src="js/tax-engine.js"></script>
 <style>
   /* ============================================================
@@ -388,15 +387,6 @@
   .profile-error-title { font-size: 13.5px; color: var(--negative); font-weight: 500; margin-bottom: 6px; }
   .profile-error-detail { font-size: 11px; color: var(--ink-2); font-family: monospace; margin-bottom: 10px; word-break: break-word; }
 
-  /* Cinematic reveal overlay — full-screen, covers the shell on purpose */
-  #cinematic-stage {
-    position: fixed; inset: 0; z-index: 9999; flex-direction: column; align-items: center; justify-content: center;
-    padding: 100px 24px 40px; text-align: center; overflow-y: auto;
-    background:
-      radial-gradient(ellipse 900px 700px at 50% 38%, rgba(249,168,37,0.14), transparent 60%),
-      radial-gradient(ellipse 600px 500px at 50% 38%, rgba(244,98,42,0.10), transparent 55%),
-      linear-gradient(140deg, var(--espresso), var(--espresso-2));
-  }
 </style>
 </head>
 <body class="app" data-shell="app" data-active="money">
@@ -719,45 +709,6 @@
   <!-- ═══════════════════════════════════════════════
        SCREEN 3 — Results (unchanged from your file)
        ═══════════════════════════════════════════════ -->
-  <!-- ═══════════════════════════════════════════════
-       CINEMATIC REVEAL — plays before results are shown
-       ═══════════════════════════════════════════════ -->
-  <div id="cinematic-stage" style="display:none;">
-    <div id="cin-mondays" style="max-width:320px;margin-top:20px;margin-bottom:0;opacity:0;transition:opacity 0.9s ease, margin-bottom 0.9s ease;">
-      <div id="cin-mondays-text" style="font-family:var(--font-display);font-size:clamp(24px,6vw,32px);color:var(--bg);line-height:1.35;"></div>
-    </div>
-
-    <div id="cin-eyebrow" style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.55);margin-bottom:16px;opacity:0;transition:opacity 0.8s ease;">You could be free in</div>
-
-    <div id="cin-number" style="font-family:var(--font-display);font-variant-numeric:tabular-nums lining-nums;font-size:64px;font-weight:700;color:var(--amber);line-height:1;opacity:0;transform:translateY(12px);transition:opacity 0.8s ease, transform 0.8s ease;margin-bottom:12px;">—</div>
-
-    <div id="cin-sub" style="font-size:14px;color:rgba(255,255,255,0.6);font-weight:400;opacity:0;transition:opacity 0.8s ease;margin-bottom:28px;max-width:280px;line-height:1.6;"></div>
-
-    <div id="cin-freedomage" style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:400;opacity:0;transition:opacity 0.8s ease;margin-bottom:40px;"></div>
-
-    <div id="cin-unless" style="opacity:0;transition:opacity 0.8s ease;margin-bottom:40px;">
-      <div style="font-family:var(--font-display);font-style:italic;color:var(--amber);font-size:18px;margin-bottom:16px;">Unless…</div>
-      <button onclick="cinematicApplyLever()" id="cin-lever-btn" class="btn" style="background:transparent;border-color:var(--amber);color:var(--amber);height:44px;padding:0 22px;">Save an extra $50/week</button>
-      <div id="cin-lever-result" style="margin-top:12px;font-size:12px;color:#7CB97E;min-height:16px;"></div>
-
-      <div id="cin-shock-wrap" style="margin-top:24px;opacity:0;max-height:0;overflow:hidden;transition:opacity 0.6s ease, max-height 0.6s ease;">
-        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:var(--r-lg);padding:22px 20px;max-width:280px;margin:0 auto;text-align:left;">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#7CB97E;margin-bottom:10px;">Milestone reached</div>
-          <div style="font-family:var(--font-display);font-size:19px;color:var(--bg);line-height:1.35;margin-bottom:16px;">You just reclaimed <em id="cin-shock-days" style="color:var(--amber);font-style:italic;">— days</em>.</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:rgba(255,255,255,0.4);">
-            <span style="font-family:var(--font-display);font-style:italic;color:rgba(255,255,255,0.7);">FirePath</span>
-            <span onclick="cinematicShareResult()" id="cin-share-btn" style="cursor:pointer;color:var(--amber);">Share this →</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="cin-cta" style="opacity:0;transition:opacity 0.8s ease;">
-      <div style="font-size:13px;color:rgba(255,255,255,0.55);margin-bottom:16px;">here's what that means</div>
-      <button onclick="closeCinematicStage()" class="btn btn-ember btn-lg">Show me the full picture →</button>
-    </div>
-  </div>
-
   <div class="screen" id="screen3" style="display:none;">
     <button class="back-btn" onclick="obShowScreen(2)">← Recalculate</button>
 
@@ -899,7 +850,7 @@
   function toMonthly(n){if(selectedCycle==='weekly')return n*52/12;if(selectedCycle==='fortnightly')return n*26/12;return n;}
 
   // ═══════════════════════════════════════════════
-  // LIFE UNLOCKED + CINEMATIC REVEAL
+  // LIFE UNLOCKED
   // Reuses the same `persona` values already set at onboarding
   // (beginner / building / fire) — no new question needed.
   // ═══════════════════════════════════════════════
@@ -962,200 +913,12 @@
     card.style.display='block';
   }
 
-  // ── Cinematic reveal state — set right before each showScreen(3) call ──
-  let _cinMondaysText='';
-  let _cinFreedomAgeText='';
-  let _cinLever={fireNum:0,savings:0,mSav:0,y07:null,age:0,used:false};
-  let _cinShockDaysText='';
-
-  function prepareCinematicReveal(fireNum,savings,mSav,y07,age){
-    const alreadyFree=savings>=fireNum&&fireNum>0;
-    _cinFreedomAgeText=(age>0&&y07!==null&&!alreadyFree)
-      ?`${getPersonaCopy().freedomAgeLabel}: ${Math.round(age+y07)} — ${fmt(y07)} to go`
-      :'';
-
-    // ── Compare against this account's last calculation (from Supabase, via
-    //    loadSavedInputs() on page load) to show real progress instead of a
-    //    repeated cold-open. Works across devices, since it's tied to the account.
-    const newFreedomYearAbsolute=(y07!==null&&!alreadyFree)?(currentYear+y07):null;
-    let usedReturningCopy=false;
-
-    if(priorFreedomYears!=null&&priorCalcCreatedAt&&newFreedomYearAbsolute){
-      const priorDate=new Date(priorCalcCreatedAt);
-      const daysSinceLastVisit=Math.floor((Date.now()-priorDate.getTime())/86400000);
-      // Only treat this as a meaningful "return visit" if at least a day has genuinely
-      // passed — recalculating twice in one sitting isn't real progress to report.
-      if(daysSinceLastVisit>=1){
-        const oldFreedomYearAbsolute=priorDate.getFullYear()+priorFreedomYears;
-        const yearsMovedCloser=oldFreedomYearAbsolute-newFreedomYearAbsolute;
-        const daysMovedCloser=Math.round(yearsMovedCloser*365.25);
-        const lastVisitDateStr=priorDate.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
-
-        if(Math.abs(daysMovedCloser)>=1){
-          _cinMondaysText=daysMovedCloser>0
-            ?`Since ${lastVisitDateStr}, you've moved <strong style="color:var(--amber)">${daysMovedCloser.toLocaleString()} days</strong> closer to free.`
-            :`Since ${lastVisitDateStr}, your date has slipped <strong style="color:var(--amber)">${Math.abs(daysMovedCloser).toLocaleString()} days</strong> — still worth a look at what changed.`;
-          usedReturningCopy=true;
-        }else{
-          _cinMondaysText=`Welcome back — checked in ${daysSinceLastVisit} day${daysSinceLastVisit!==1?'s':''} ago. Your date hasn't moved much since then.`;
-          usedReturningCopy=true;
-        }
-      }
-    }
-
-    // First-ever visit, or same-day recalculation — fall back to the cold-open framing
-    if(!usedReturningCopy){
-      _cinMondaysText=(y07!==null&&!alreadyFree)
-        ?(()=>{const mondaysLeft=Math.round((y07*365.25)/7);return `You have <strong style="color:var(--amber)">${mondaysLeft.toLocaleString()}</strong> Mondays left until you're free.`;})()
-        :'';
-    }
-
-    _cinLever.fireNum=fireNum;
-    _cinLever.savings=savings;
-    _cinLever.mSav=mSav;
-    _cinLever.y07=y07;
-    _cinLever.age=age;
-    _cinLever.used=false;
-  }
-
-  function runCinematicReveal(){
-    const stage=document.getElementById('cinematic-stage');
-    const mondays=document.getElementById('cin-mondays');
-    const mondaysText=document.getElementById('cin-mondays-text');
-    const eyebrow=document.getElementById('cin-eyebrow');
-    const number=document.getElementById('cin-number');
-    const sub=document.getElementById('cin-sub');
-    const freedomAge=document.getElementById('cin-freedomage');
-    const unless=document.getElementById('cin-unless');
-    const leverBtn=document.getElementById('cin-lever-btn');
-    const leverResult=document.getElementById('cin-lever-result');
-    const shockWrap=document.getElementById('cin-shock-wrap');
-    const cta=document.getElementById('cin-cta');
-    if(!stage||!mondays)return;
-
-    const yearsText=document.getElementById('yearsOut').textContent;
-    const subText=document.getElementById('resultSub').textContent;
-
-    mondays.style.transition='none';
-    mondays.style.opacity='0';
-    mondays.style.display=_cinMondaysText?'block':'none';
-    mondays.style.marginBottom=_cinMondaysText?'32px':'0';
-    mondaysText.style.fontSize='';
-    mondays.getBoundingClientRect();
-    mondays.style.transition='opacity 0.9s ease, margin-bottom 0.9s ease';
-
-    eyebrow.style.opacity='0';
-    number.style.opacity='0';
-    number.style.transform='translateY(12px)';
-    sub.style.opacity='0';
-    freedomAge.style.opacity='0';
-    unless.style.opacity='0';
-    cta.style.opacity='0';
-    if(leverBtn){leverBtn.disabled=false;leverBtn.textContent='Save an extra $50/week';leverBtn.style.opacity='1';leverBtn.style.cursor='pointer';}
-    if(leverResult)leverResult.textContent='';
-    if(shockWrap){shockWrap.style.opacity='0';shockWrap.style.maxHeight='0';}
-
-    mondaysText.innerHTML=_cinMondaysText;
-    number.textContent=yearsText;
-    sub.textContent=subText;
-    freedomAge.textContent=_cinFreedomAgeText;
-    const showUnless=_cinLever.y07!==null;
-
-    stage.style.display='flex';
-    document.body.style.overflow='hidden';
-
-    if(_cinMondaysText){
-      setTimeout(()=>{mondays.style.opacity='1';},300);
-      setTimeout(()=>{
-        mondaysText.style.transition='font-size 0.7s ease';
-        mondaysText.style.fontSize='15px';
-        mondays.style.opacity='0.55';
-        mondays.style.marginBottom='18px';
-      },2600);
-      setTimeout(()=>{eyebrow.style.opacity='1';},3100);
-      setTimeout(()=>{number.style.opacity='1';number.style.transform='translateY(0)';},3550);
-      setTimeout(()=>{sub.style.opacity='1';},4150);
-      setTimeout(()=>{if(_cinFreedomAgeText)freedomAge.style.opacity='1';},4800);
-      setTimeout(()=>{if(showUnless)unless.style.opacity='1';},5700);
-      setTimeout(()=>{cta.style.opacity='1';},showUnless?6600:5200);
-    }else{
-      setTimeout(()=>{eyebrow.style.opacity='1';},300);
-      setTimeout(()=>{number.style.opacity='1';number.style.transform='translateY(0)';},750);
-      setTimeout(()=>{sub.style.opacity='1';},1350);
-      setTimeout(()=>{if(_cinFreedomAgeText)freedomAge.style.opacity='1';},2000);
-      setTimeout(()=>{if(showUnless)unless.style.opacity='1';},2900);
-      setTimeout(()=>{cta.style.opacity='1';},showUnless?3800:2500);
-    }
-  }
-
-  function closeCinematicStage(){
-    const stage=document.getElementById('cinematic-stage');
-    if(!stage)return;
-    stage.style.transition='opacity 0.5s ease';
-    stage.style.opacity='0';
-    document.body.style.overflow='';
-    setTimeout(()=>{stage.style.display='none';stage.style.opacity='1';stage.style.transition='';},500);
-  }
-
-  function cinematicApplyLever(){
-    if(_cinLever.used||_cinLever.y07===null)return;
-    const mSavPlus=_cinLever.mSav+(50*52/12);
-    const yPlus=yearsToGoal(_cinLever.fireNum,_cinLever.savings,mSavPlus,0.07);
-    if(yPlus===null)return;
-
-    const numberEl=document.getElementById('cin-number');
-    const resultEl=document.getElementById('cin-lever-result');
-    const btn=document.getElementById('cin-lever-btn');
-    const freedomAgeEl=document.getElementById('cin-freedomage');
-    const diffYears=Math.round((_cinLever.y07-yPlus)*10)/10;
-
-    numberEl.style.transition='opacity 0.3s ease';
-    numberEl.style.opacity='0.3';
-    setTimeout(()=>{numberEl.textContent=fmt(yPlus);numberEl.style.opacity='1';},300);
-
-    if(freedomAgeEl&&_cinLever.age>0){
-      const newFreedomAge=Math.round(_cinLever.age+yPlus);
-      freedomAgeEl.style.transition='opacity 0.3s ease';
-      freedomAgeEl.style.opacity='0.3';
-      setTimeout(()=>{
-        freedomAgeEl.textContent=`${getPersonaCopy().freedomAgeLabel}: ${newFreedomAge} — ${fmt(yPlus)} to go`;
-        freedomAgeEl.style.opacity='1';
-      },300);
-    }
-
-    if(resultEl)resultEl.textContent=diffYears>0?`− ${fmt(diffYears)} — that's real time back.`:`Locked in.`;
-    if(btn){btn.textContent='Saved for good';btn.disabled=true;btn.style.opacity='0.6';btn.style.cursor='default';}
-    _cinLever.used=true;
-
-    if(diffYears>0.1){
-      const diffDays=Math.round(diffYears*365.25);
-      _cinShockDaysText=`${diffDays.toLocaleString()} days`;
-      const shockWrap=document.getElementById('cin-shock-wrap');
-      const shockDaysEl=document.getElementById('cin-shock-days');
-      if(shockDaysEl)shockDaysEl.textContent=_cinShockDaysText;
-      if(shockWrap)setTimeout(()=>{shockWrap.style.opacity='1';shockWrap.style.maxHeight='200px';},700);
-    }
-  }
-
-  function cinematicShareResult(){
-    const text=`I just found out I could reclaim ${_cinShockDaysText} of my life by adjusting my savings — check your own number at firepath.pro`;
-    if(navigator.share){
-      navigator.share({text,url:'https://www.firepath.pro'}).catch(()=>{});
-    }else if(navigator.clipboard){
-      navigator.clipboard.writeText(text).then(()=>{
-        const btn=document.getElementById('cin-share-btn');
-        if(btn){const original=btn.textContent;btn.textContent='Copied!';setTimeout(()=>{btn.textContent=original;},1800);}
-      });
-    }
-  }
-
   // showScreen override — routes to onboarding
   function showScreen(n) {
     if (n === 3) {
       document.getElementById('pro-onboarding').style.display = 'none';
       document.getElementById('screen3').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      runCinematicReveal();
     } else if (n === 2) {
       document.getElementById('screen3').style.display = 'none';
       document.getElementById('pro-onboarding').style.display = 'flex';
@@ -1402,7 +1165,6 @@
     buildNeedleCard(fireNum, savings, mSav, y07);
     buildWhatsNextTab({ fireNum, savings, mSav, fy, fyear, freedomAge, sRate, superBal, debt, mortgage, age, isZeroSavings, alreadyFree, isPro });
     buildLifeUnlockedCard(fireNum, savings, mSav, y07, age);
-    prepareCinematicReveal(fireNum, savings, mSav, y07, age);
 
     document.getElementById('aiInsightText').innerHTML = cachedInsight;
     renderInsightMeta();
@@ -1994,7 +1756,6 @@ async function saveProfile() {
         isPro: localStorage.getItem('fp_is_pro') === 'true'
       });
       buildLifeUnlockedCard(fireNum, savings, mSav, y07, age);
-      prepareCinematicReveal(fireNum, savings, mSav, y07, age);
       localStorage.setItem('fp_last_calc', JSON.stringify({fireNum: calcData.fireNum, savings: calcData.savings, mSav: calcData.mSav, sRate: calcData.sRate}));
       await saveProfile();
       showScreen(3);
