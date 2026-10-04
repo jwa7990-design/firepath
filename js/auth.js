@@ -49,6 +49,17 @@ function isLoggedIn() {
   return getToken() !== null && getUserId() !== null;
 }
 
+/* ── AI request headers ────────────────────────────────────
+   Every call to FirePath AI must carry the signed-in user's session — the
+   Worker checks it (and Pro status) before anything reaches Anthropic.
+──────────────────────────────────────────────────────────── */
+function aiHeaders() {
+  const token = getToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 /* ── Sign out ──────────────────────────────────────────────
    Clears all auth state and redirects to auth page.
 ──────────────────────────────────────────────────────────── */
@@ -93,7 +104,7 @@ async function upgradeToPro() {
   try {
     const res  = await fetch(`${WORKER_URL}/stripe/checkout`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
       body: JSON.stringify({ userId, email })
     });
     const data = await res.json();

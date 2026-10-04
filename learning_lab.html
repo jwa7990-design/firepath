@@ -437,7 +437,7 @@
     try {
       const res = await fetch(WORKER_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: aiHeaders(),
         body: JSON.stringify({
           model: 'claude-sonnet-4-5',
           max_tokens: 300,
@@ -892,7 +892,7 @@ Output the COMPLETE article HTML back, unchanged except for that one example-box
   async function callClaude(system, userMessage, maxTokens) {
     const res = await fetch(WORKER_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: aiHeaders(),
       body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: maxTokens, system, messages: [{ role: 'user', content: userMessage }] })
     });
     const data = await res.json();
@@ -999,7 +999,7 @@ Respond with a short, specific, actionable list of fixes — quote the exact phr
       const age = userData.age || 'unknown';
       const res = await fetch(WORKER_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: aiHeaders(),
         body: JSON.stringify({
           model: 'claude-sonnet-4-5', max_tokens: 600,
           system: `You are the FirePath Learning Lab — educational, not financial advice.

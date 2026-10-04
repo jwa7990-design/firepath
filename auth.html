@@ -330,7 +330,7 @@
         const uid = getStore('fp_user_id');
         const email = getStore('fp_email');
         fetch(`${WORKER_URL}/stripe/checkout`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getStore('fp_access_token')}` },
           body: JSON.stringify({ userId: uid, email })
         }).then(r => r.json()).then(data => {
           if (data.url) window.location.href = data.url;

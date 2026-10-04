@@ -1,0 +1,25 @@
+# FirePath API Worker — deploy with:  cd worker && npx wrangler deploy
+# Secrets live in Cloudflare (dashboard → Workers → firepath-api → Settings →
+# Variables and Secrets), never in this repo. See the header of src/index.js.
+
+name = "firepath-api"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+# Keep the variables already configured in the dashboard on every deploy —
+# without this, `wrangler deploy` would remove any not listed here.
+keep_vars = true
+
+# Per-user limit on AI requests (10 a minute). The Worker skips the check if
+# this binding is missing, e.g. when the code is pasted into the dashboard.
+[[ratelimits]]
+name = "AI_LIMITER"
+namespace_id = "2001"
+
+  [ratelimits.simple]
+  limit = 10
+  period = 60
+
+[observability]
+enabled = true
