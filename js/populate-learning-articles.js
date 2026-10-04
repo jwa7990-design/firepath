@@ -1,34 +1,41 @@
 /**
- * Populate learning_articles table from existing /learn/ HTML files.
+ * Populate the learning_articles table from the /learn/ article pages.
  * ====================================================================
- * Run this ONCE (and again whenever you edit an article) to sync the
- * static file content into Supabase, so Learning Lab can serve it from
- * the database instead of fetching + regex-parsing live HTML.
+ * Run once, and again whenever you edit an article, so Learning Lab serves
+ * lessons from the database instead of fetching + parsing the public pages.
+ * Safe to re-run: rows are upserted by topic_id.
  *
- * This talks to Supabase DIRECTLY using a service role key — NOT through
- * the client-facing Worker — because this is an admin/content task, not
- * something end users should be able to trigger.
+ * Which lessons get which article comes from STATIC_TOPIC_MAP in
+ * learning_lab.html — the same list the page uses — so the two can't drift.
  *
- * Usage:
- *   SUPABASE_SERVICE_ROLE_KEY=your_key node populate-learning-articles.js
+ * Talks to Supabase directly with the service role key (an admin task, never
+ * exposed to users). The key is read from the environment and never stored.
  *
- * Get the service role key from: Supabase dashboard → Project Settings → API
- * NEVER put this key in client-side code or commit it to git.
+ * Usage (from the repo root):
+ *   node js/populate-learning-articles.js --dry-run            # check every article, upload nothing
+ *   SUPABASE_URL=https://<project>.supabase.co \
+ *   SUPABASE_SERVICE_ROLE_KEY=<service role key> \
+ *   node js/populate-learning-articles.js                       # upload
+ *
+ * Both values: Supabase dashboard → Project Settings → API.
+ * NEVER put the service role key in client-side code or commit it to git.
  */
 
 const fs = require('fs');
 const path = require('path');
 
-const SUPABASE_URL = 'https://qwlkpfrpzpswvedtcclj.supabase.co';
+const ROOT = path.join(__dirname, '..');
+const LEARN_DIR = path.join(ROOT, 'learn');
+const DRY_RUN = process.argv.includes('--dry-run');
+const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const LEARN_DIR = path.join(__dirname, 'learn'); // adjust if your /learn/ folder lives elsewhere
 
-if (!SERVICE_ROLE_KEY) {
-  console.error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable. Aborting.');
+if (!DRY_RUN && (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(SUPABASE_URL) || !SERVICE_ROLE_KEY)) {
+  console.error('Set SUPABASE_URL (https://<project>.supabase.co) and SUPABASE_SERVICE_ROLE_KEY, or use --dry-run. Aborting.');
   process.exit(1);
 }
 
-// slug -> { topicId, track }  — same mapping as STATIC_TOPIC_MAP in learning_lab.html, reversed
+// Track (foundation / life / …) per article, used only as a label in the table.
 const SLUG_TO_TOPIC = {
   'what-is-fire-australia': { topicId: 'what-is-fire', track: 'foundation' },
   'how-compound-interest-works': { topicId: 'compounding', track: 'foundation' },
@@ -80,11 +87,36 @@ function extractField(html, regex) {
   return m ? m[1].trim() : null;
 }
 
+// topic_id -> article slug, read straight from learning_lab.html.
+function loadTopicMap() {
+  const page = fs.readFileSync(path.join(ROOT, 'learning_lab.html'), 'utf-8');
+  const block = page.match(/const STATIC_TOPIC_MAP\s*=\s*\{([\s\S]*?)\};/);
+  if (!block) throw new Error('STATIC_TOPIC_MAP not found in learning_lab.html');
+  const map = {};
+  for (const [, topic, slug] of block[1].matchAll(/'([a-z0-9-]+)'\s*:\s*'([a-z0-9-]+)'/g)) map[topic] = slug;
+  return map;
+}
+
+// Inner HTML of the first <div class="article-body">, matching nested divs —
+// works for every article layout (some end in .cta-box, newer ones in .cta-row).
+function extractArticleBody(html) {
+  const start = html.indexOf('<div class="article-body">');
+  if (start === -1) return null;
+  const open = start + '<div class="article-body">'.length;
+  const tag = /<(\/?)div\b[^>]*>/g;
+  tag.lastIndex = open;
+  let depth = 1, m;
+  while ((m = tag.exec(html))) {
+    depth += m[1] ? -1 : 1;
+    if (depth === 0) return html.slice(open, m.index).trim();
+  }
+  return null;
+}
+
 function parseArticle(slug, html) {
-  const title = extractField(html, /<title>([^<]*?)\s*\|\s*FirePath<\/title>/);
+  const title = extractField(html, /<title>([^<]*?)(?:\s*(?:\||—)\s*FirePath)?\s*<\/title>/);
   const metaDescription = extractField(html, /<meta name="description" content="([^"]*)"/);
-  const bodyMatch = html.match(/<div class="article-body">([\s\S]*?)<\/div>\s*<div class="cta-box">/);
-  const bodyHtml = bodyMatch ? bodyMatch[1].trim() : null;
+  const bodyHtml = extractArticleBody(html);
 
   if (!title || !bodyHtml) {
     throw new Error(`Could not parse required fields from ${slug}.html — title: ${!!title}, body: ${!!bodyHtml}`);
@@ -93,7 +125,7 @@ function parseArticle(slug, html) {
 }
 
 async function upsertRow(row) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/learning_articles`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/learning_articles?on_conflict=topic_id`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -109,44 +141,41 @@ async function upsertRow(row) {
 }
 
 async function main() {
-  const slugs = Object.keys(SLUG_TO_TOPIC);
-  console.log(`Populating ${slugs.length} articles into learning_articles...\n`);
+  const topics = Object.entries(loadTopicMap());
+  console.log(`${DRY_RUN ? 'Checking' : 'Populating'} ${topics.length} lessons${DRY_RUN ? ' (dry run — nothing uploaded)' : ' into learning_articles'}...\n`);
+  let success = 0, failed = 0;
 
-  let success = 0;
-  let failed = 0;
-
-  for (const slug of slugs) {
+  for (const [topicId, slug] of topics) {
     const filePath = path.join(LEARN_DIR, `${slug}.html`);
     try {
-      if (!fs.existsSync(filePath)) {
-        throw new Error(`File not found: ${filePath}`);
-      }
-      const html = fs.readFileSync(filePath, 'utf-8');
-      const { title, metaDescription, bodyHtml } = parseArticle(slug, html);
-      const { topicId, track } = SLUG_TO_TOPIC[slug];
-
-      await upsertRow({
+      if (!fs.existsSync(filePath)) throw new Error(`File not found: learn/${slug}.html`);
+      const { title, metaDescription, bodyHtml } = parseArticle(slug, fs.readFileSync(filePath, 'utf-8'));
+      const row = {
         topic_id: topicId,
         slug,
         title,
         meta_description: metaDescription,
-        track,
+        track: SLUG_TO_TOPIC[slug] ? SLUG_TO_TOPIC[slug].track : null,
         body_html: bodyHtml,
         updated_at: new Date().toISOString(),
-      });
-
-      console.log(`  ✓ ${slug} -> topic_id: ${topicId}`);
+      };
+      if (!DRY_RUN) await upsertRow(row);
+      console.log(`  ✓ ${topicId.padEnd(26)} ← learn/${slug}.html  (${bodyHtml.length.toLocaleString()} chars)`);
       success++;
     } catch (err) {
-      console.error(`  ✗ FAILED: ${slug} — ${err.message}`);
+      console.error(`  ✗ ${topicId}: ${err.message}`);
       failed++;
     }
   }
 
-  console.log(`\nDone. ${success} succeeded, ${failed} failed.`);
+  console.log(`\nDone. ${success} ${DRY_RUN ? 'parsed' : 'upserted'}, ${failed} failed.`);
   if (failed > 0) {
     console.log('Fix the failures above and re-run — this script is safe to run multiple times (upserts by topic_id).');
+    process.exit(1);
   }
 }
 
-main();
+main().catch(err => {
+  console.error('Fatal error:', err);
+  process.exit(1);
+});

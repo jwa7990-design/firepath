@@ -181,6 +181,19 @@
     .glossary-deep-btn:hover { border-color: var(--ember); color: var(--ember-ink); }
     .glossary-deep-result { margin-top: 12px; font-size: 14px; color: var(--ink-2); line-height: 1.7; background: var(--surface-2); border-radius: var(--r-sm); padding: 14px 16px; }
     .glossary-loading { font-size: 13px; color: var(--ink-2); font-style: italic; }
+  /* Boxes used by the tax & super lessons (same look as css/article.css on the public pages) */
+  #articleBody .steps-box, #articleBody .table-box { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1); border-radius: var(--r-md); padding: 18px 20px; margin: 20px 0; }
+  #articleBody .steps-box ol { margin: 0; padding-left: 1.2em; }
+  #articleBody .warning-box { background: var(--negative-wash); border: 1px solid rgba(196, 72, 15, 0.2); border-radius: var(--r-md); padding: 18px 20px; margin: 20px 0; color: var(--ink); }
+  #articleBody .ex-label { display: block; margin-bottom: 6px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+  #articleBody .table-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+  #articleBody .table-row:first-child { border-top: none; padding-top: 0; }
+  #articleBody .table-row:last-child { padding-bottom: 0; }
+  #articleBody .table-row .label { color: var(--ink-2); }
+  #articleBody .table-row .value { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  #articleBody table.savings-table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 20px 0; }
+  #articleBody table.savings-table th, #articleBody table.savings-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  #articleBody table.savings-table th { background: var(--surface-2); color: var(--ink); font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
   </style>
 </head>
 <body class="app" data-shell="app" data-active="learn">
@@ -834,6 +847,9 @@
     'rent-or-buy': 'rent-or-buy', 'renting-forever': 'renting-forever-retirement',
     'pay-rise-impact': 'pay-rise-retirement-impact', 'extra-50-a-week': 'extra-50-a-week-impact',
     'redundancy-okay': 'redundancy-would-i-be-okay',
+    // Lessons that used to be AI-written on every view but have a matching article.
+    'acronyms': 'fire-glossary-australia', 'franking-credits': 'franking-credits-australia',
+    'etf-intro': 'etfs-how-to-buy', 'super-vehicle': 'super-vs-outside-investing',
   };
 
   async function fetchArticleFromDB(topicId) {
@@ -867,13 +883,16 @@ Output the COMPLETE article HTML back, unchanged except for that one example-box
     return result;
   }
 
+  // Reads the article text out of the public /learn/ page. Uses the browser's own
+  // HTML parser, so it works for every article layout (the newer tax and super
+  // articles end in a different call-to-action block, which a regex missed).
   async function fetchStaticArticleBody(slug) {
     const res = await fetch(`/learn/${slug}.html`);
     if (!res.ok) throw new Error(`Static article not found: ${slug}`);
-    const html = await res.text();
-    const match = html.match(/<div class="article-body">([\s\S]*?)<\/div>\s*<div class="cta-box">/);
-    if (!match) throw new Error(`Could not parse article body for: ${slug}`);
-    return match[1].trim();
+    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+    const body = doc.querySelector('.article-body');
+    if (!body || !body.innerHTML.trim()) throw new Error(`Could not parse article body for: ${slug}`);
+    return body.innerHTML.trim();
   }
 
   function buildPersonalizationSnapshot() {
