@@ -472,7 +472,7 @@ async function handleFeedbackNotify(request, env) {
   const r = data.record || {};
   const clip = v => String(v ?? '-').slice(0, 2000);
   await sendEmail(env, '🔥 New FirePath feedback',
-    `Rating: ${clip(r.rating || 'not rated')}\n\nWhat was missing: ${clip(r.gaps)}\n\nConfusing bits: ${clip(r.confusing)}\n\nWould bring them back: ${clip(r.bring_back)}\n\nAnything else: ${clip(r.other)}\n\nEmail: ${clip(r.email || 'not provided')}\n\nSubmitted: ${clip(r.submitted_at || 'unknown')}`);
+    `Rating: ${clip(r.rating || 'not rated')}\n\nWhat was missing: ${clip(r.gaps)}\n\nConfusing bits: ${clip(r.confusing)}\n\nWould bring them back: ${clip(r.bring_back)}\n\nInterest in Pro: ${clip(r.pro_interest)}\n\nAnything else: ${clip(r.other)}\n\nEmail: ${clip(r.email || 'not provided')}\nOn Pro: ${r.is_pro === true ? 'yes' : r.is_pro === false ? 'no' : 'unknown'}\nPage: ${clip(r.page_url || 'feedback page')}\nSubmitted: ${clip(r.submitted_at || 'unknown')}`);
   return json({ ok: true });
 }
 

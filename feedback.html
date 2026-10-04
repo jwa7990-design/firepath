@@ -50,6 +50,7 @@
 
   .cta-btn { margin-top: 10px; }
   .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .feedback-error { margin-top: 12px; font-size: 13.5px; color: var(--negative); text-align: center; }
   .disclaimer { font-size: 13px; color: var(--ink-2); text-align: center; line-height: 1.5; margin-top: 14px; }
 
   .success-card { display: none; background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-xl); padding: 40px 24px; text-align: center; color: var(--bg); box-shadow: var(--shadow-3); }
@@ -136,6 +137,7 @@
     </div>
 
     <button class="btn btn-primary btn-lg btn-block cta-btn" id="submitBtn" onclick="submitFeedback()">Send feedback</button>
+    <p class="feedback-error" id="feedbackError" role="alert" hidden>Sorry — that didn't send. Please try again in a moment.</p>
 
     <p class="disclaimer">Everything you share stays between us and goes straight into making FirePath better.</p>
   </div>
@@ -193,7 +195,7 @@
       const userId = typeof getUserId === 'function' ? getUserId() : null;
 
       if (token && userId) {
-        await fetch(`${WORKER_URL}/db/feedback`, {
+        const res = await fetch(`${WORKER_URL}/db/feedback`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -202,9 +204,15 @@
           },
           body: JSON.stringify({ ...payload, user_id: userId }),
         });
+        if (!res.ok) throw new Error(`Feedback save failed (${res.status})`);
       }
     } catch (e) {
+      // Only thank people once their feedback is actually saved; keep what they wrote.
       console.log('Feedback save error:', e);
+      document.getElementById('feedbackError').hidden = false;
+      btn.textContent = 'Send feedback';
+      btn.disabled = false;
+      return;
     }
 
     document.getElementById('formArea').style.display = 'none';

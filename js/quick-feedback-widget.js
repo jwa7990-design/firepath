@@ -193,7 +193,7 @@
       const workerUrl = typeof WORKER_URL !== 'undefined' ? WORKER_URL : null;
 
       if (token && userId && workerUrl) {
-        await fetch(`${workerUrl}/db/feedback`, {
+        const res = await fetch(`${workerUrl}/db/feedback`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -202,10 +202,14 @@
           },
           body: JSON.stringify({ ...payload, user_id: userId }),
         });
+        if (!res.ok) throw new Error(`Quick feedback save failed (${res.status})`);
       }
     } catch (e) {
+      // Only show "thanks" once it's actually saved; keep their text so they can retry.
       console.log('Quick feedback save failed', e);
-      // Still show success — a failed background save shouldn't block the person's experience
+      submitBtn.textContent = "Didn't send — try again";
+      submitBtn.disabled = false;
+      return;
     }
 
     document.getElementById('qfw-form-area').style.display = 'none';
