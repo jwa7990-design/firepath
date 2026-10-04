@@ -19,7 +19,8 @@
  *   STRIPE_WEBHOOK_SECRET, SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY,
  *   FEEDBACK_WEBHOOK_SECRET (new — also set as a header on the Supabase webhook),
  *   ADMIN_SECRET (new, optional — enables /assumptions/clear-cache).
- * Bindings (wrangler.toml): AI_LIMITER, FEEDBACK_LIMITER (rate limits; skipped if absent).
+ * Bindings (wrangler.toml): LIMITER — the RateLimiter Durable Object (exact per-minute
+ *   and per-day caps). If it's missing (e.g. code pasted into the dashboard) limits are skipped.
  */
 
 const SITE = 'https://www.firepath.pro';
@@ -161,6 +162,47 @@ async function isPro(userId, env) {
   return rows[0]?.is_pro === true;
 }
 
+// ── Rate limiting ─────────────────────────────────────────
+// Exact counts per key (a user for AI, a connection for feedback), kept in a
+// Durable Object so every request for that key is counted in one place.
+const RATE_LIMITS = {
+  ai: [{ limit: 10, windowMs: 60_000 }, { limit: 100, windowMs: 86_400_000 }],
+  feedback: [{ limit: 3, windowMs: 60_000 }, { limit: 20, windowMs: 86_400_000 }]
+};
+
+export class RateLimiter {
+  constructor(state) { this.state = state; }
+
+  async fetch(request) {
+    const { rules } = await request.json();
+    const now = Date.now();
+    const longest = Math.max(...rules.map(r => r.windowMs));
+    const hits = ((await this.state.storage.get('hits')) || []).filter(t => now - t < longest);
+    const allowed = rules.every(r => hits.filter(t => now - t < r.windowMs).length < r.limit);
+    if (allowed) hits.push(now);
+    await this.state.storage.put('hits', hits);
+    // Forget this key once its longest window has passed with no activity.
+    await this.state.storage.setAlarm(now + longest);
+    return new Response(JSON.stringify({ allowed }), { headers: { 'Content-Type': 'application/json' } });
+  }
+
+  async alarm() { await this.state.storage.deleteAll(); }
+}
+
+// true = go ahead. AI fails closed if the limiter errors (it costs money);
+// feedback fails open (honeypot and validation still apply).
+async function rateLimit(env, bucket, key) {
+  if (!env.LIMITER) return true;
+  try {
+    const stub = env.LIMITER.get(env.LIMITER.idFromName(`${bucket}:${key}`));
+    const res = await stub.fetch('https://limiter/check', { method: 'POST', body: JSON.stringify({ rules: RATE_LIMITS[bucket] }) });
+    return (await res.json()).allowed === true;
+  } catch (e) {
+    console.error('Rate limiter error', e && e.message);
+    return bucket === 'feedback';
+  }
+}
+
 // ── AI (Anthropic) ────────────────────────────────────────
 
 function textLength(content) {
@@ -201,9 +243,8 @@ async function handleAi(request, env) {
   const user = await getUser(request, env);
   if (!user) return json({ error: 'Please sign in to use FirePath AI.' }, 401);
   if (!(await isPro(user.id, env))) return json({ error: 'FirePath AI is part of FirePath Pro.' }, 403);
-  if (env.AI_LIMITER) {
-    const { success } = await env.AI_LIMITER.limit({ key: user.id });
-    if (!success) return json({ error: "You're going a bit fast — try again in a minute." }, 429);
+  if (!(await rateLimit(env, 'ai', user.id))) {
+    return json({ error: "You've reached the AI limit for now — please try again a bit later." }, 429);
   }
   const { data, error } = await readJson(request, AI.maxBodyBytes);
   if (error) return json({ error: error === 'too_large' ? 'Request too long.' : 'Invalid request.' }, error === 'too_large' ? 413 : 400);
@@ -228,7 +269,7 @@ async function handleAi(request, env) {
 // ── Feedback (open to everyone, so it gets its own spam protection) ──
 //   1. Honeypot: a hidden "website" field people never see; bots that fill it
 //      get a normal-looking success and nothing is saved.
-//   2. Rate limit per connection (FEEDBACK_LIMITER, 3 a minute).
+//   2. Rate limit per connection (3 a minute, 20 a day — see RATE_LIMITS).
 //   3. Rebuilt server-side from an allow-list with length limits; user_id comes
 //      from the verified session (or stays empty), never from the form.
 const FEEDBACK_TEXT_FIELDS = ['gaps', 'confusing', 'bring_back', 'other', 'pro_interest'];
@@ -260,10 +301,9 @@ function sanitiseFeedback(input) {
 }
 
 async function handleFeedback(request, env) {
-  if (env.FEEDBACK_LIMITER) {
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    const { success } = await env.FEEDBACK_LIMITER.limit({ key: `feedback:${ip}` });
-    if (!success) return json({ error: 'Thanks — that\'s plenty for now. Please try again in a minute.' }, 429);
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!(await rateLimit(env, 'feedback', ip))) {
+    return json({ error: "Thanks — that's plenty for now. Please try again a bit later." }, 429);
   }
   const { data, error } = await readJson(request, 32 * 1024);
   if (error) return json({ error: 'Invalid feedback.' }, error === 'too_large' ? 413 : 400);
@@ -628,4 +668,4 @@ export default {
 };
 
 // Exposed for tests only.
-export const _internal = { sanitiseFeedback, sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, AI };
+export const _internal = { RATE_LIMITS, sanitiseFeedback, sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, AI };

@@ -5,7 +5,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import worker, { _internal } from '../src/index.js';
+import worker, { _internal, RateLimiter } from '../src/index.js';
 
 const SUPABASE = 'https://db.example.supabase.co';
 const ANON = 'anon.anon.anon';
@@ -105,11 +105,36 @@ test('AI: oversized or malformed requests are rejected', async () => {
   assert.equal((await send(req('/', { token: PRO_TOKEN, body: '{not json' }))).status, 400);
 });
 
-test('AI: the rate limiter is applied per user', async () => {
-  const limited = { ...env, AI_LIMITER: { limit: async ({ key }) => ({ success: key !== 'user-pro' }) } };
+// A working stand-in for the Durable Object binding: one real RateLimiter per key,
+// backed by an in-memory store.
+function limiterNamespace() {
+  const objects = new Map();
+  return {
+    idFromName: name => name,
+    get: name => {
+      if (!objects.has(name)) {
+        const data = new Map();
+        const storage = { get: async k => data.get(k), put: async (k, v) => { data.set(k, v); }, setAlarm: async () => {}, deleteAll: async () => data.clear() };
+        objects.set(name, new RateLimiter({ storage }));
+      }
+      const obj = objects.get(name);
+      return { fetch: (url, init) => obj.fetch(new Request(url, init)) };
+    }
+  };
+}
+
+test('AI: limited to 10 a minute per user, counted exactly', async () => {
+  const limited = { ...env, LIMITER: limiterNamespace() };
+  const statuses = [];
+  for (let i = 0; i < 12; i++) { calls = []; statuses.push((await worker.fetch(req('/', { token: PRO_TOKEN, body: aiBody }), limited)).status); }
+  assert.deepEqual(statuses, [...Array(10).fill(200), 429, 429]);
+});
+
+test('AI: the limiter failing blocks AI rather than letting it through', async () => {
+  const broken = { ...env, LIMITER: { idFromName: n => n, get: () => ({ fetch: async () => { throw new Error('down'); } }) } };
   calls = [];
-  const res = await worker.fetch(req('/', { token: PRO_TOKEN, body: aiBody }), limited);
-  assert.equal(res.status, 429);
+  assert.equal((await worker.fetch(req('/', { token: PRO_TOKEN, body: aiBody }), broken)).status, 429);
+  assert.equal(outbound('https://api.anthropic.com').length, 0);
 });
 
 // ── Database proxy ──
@@ -272,10 +297,33 @@ test('Feedback: only known fields are kept, with limits', async () => {
   assert.equal(feedbackWrites().length, 0);
 });
 
-test('Feedback: rate limited per connection', async () => {
-  const limited = { ...env, FEEDBACK_LIMITER: { limit: async ({ key }) => ({ success: key !== 'feedback:203.0.113.9' }) } };
-  calls = [];
-  const res = await worker.fetch(req('/db/feedback', { body: { other: 'hi' }, headers: { 'CF-Connecting-IP': '203.0.113.9' } }), limited);
-  assert.equal(res.status, 429);
-  assert.equal(feedbackWrites().length, 0);
+test('Feedback: 3 a minute per connection; other visitors unaffected', async () => {
+  const limited = { ...env, LIMITER: limiterNamespace() };
+  const send1 = async ip => { calls = []; return (await worker.fetch(req('/db/feedback', { body: { other: 'hi' }, headers: { 'CF-Connecting-IP': ip } }), limited)).status; };
+  const a = [];
+  for (let i = 0; i < 5; i++) a.push(await send1('203.0.113.9'));
+  assert.deepEqual(a, [201, 201, 201, 429, 429]);
+  assert.equal(await send1('198.51.100.7'), 201);
+});
+
+test('RateLimiter: daily cap applies after the minute window, and keys are forgotten later', async () => {
+  const data = new Map();
+  const storage = { get: async k => data.get(k), put: async (k, v) => { data.set(k, v); }, setAlarm: async () => {}, deleteAll: async () => data.clear() };
+  const rl = new RateLimiter({ storage });
+  const rules = [{ limit: 3, windowMs: 60_000 }, { limit: 5, windowMs: 86_400_000 }];
+  const realNow = Date.now; let t = 1_000_000;
+  Date.now = () => t;
+  try {
+    const ask = async () => (await (await rl.fetch(new Request('https://l', { method: 'POST', body: JSON.stringify({ rules }) }))).json()).allowed;
+    const results = [];
+    for (let i = 0; i < 3; i++) results.push(await ask());   // 3 allowed
+    results.push(await ask());                                // 4th blocked (per-minute)
+    t += 61_000;
+    results.push(await ask(), await ask());                   // 2 more allowed (5 today)
+    t += 61_000;
+    results.push(await ask());                                // blocked (daily cap)
+    assert.deepEqual(results, [true, true, true, false, true, true, false]);
+    await rl.alarm();
+    assert.equal(data.size, 0);
+  } finally { Date.now = realNow; }
 });

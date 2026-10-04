@@ -6,30 +6,23 @@ name = "firepath-api"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
 workers_dev = true
+# No per-version preview URLs — the API is only reachable at its one address.
+preview_urls = false
 
 # Keep the variables already configured in the dashboard on every deploy —
 # without this, `wrangler deploy` would remove any not listed here.
 keep_vars = true
 
-# Per-user limit on AI requests (10 a minute). The Worker skips the check if
-# this binding is missing, e.g. when the code is pasted into the dashboard.
-[[ratelimits]]
-name = "AI_LIMITER"
-namespace_id = "2001"
+# Rate limiting: a Durable Object keeps exact per-minute and per-day counts
+# (AI: 10/min + 100/day per user; feedback: 3/min + 20/day per connection).
+# Limits live in RATE_LIMITS in src/index.js. Durable Objects work on the free plan.
+[[durable_objects.bindings]]
+name = "LIMITER"
+class_name = "RateLimiter"
 
-  [ratelimits.simple]
-  limit = 10
-  period = 60
-
-# Per-connection limit on feedback submissions (3 a minute) — feedback is open
-# to signed-out visitors, so this is part of its spam protection.
-[[ratelimits]]
-name = "FEEDBACK_LIMITER"
-namespace_id = "2002"
-
-  [ratelimits.simple]
-  limit = 3
-  period = 60
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RateLimiter"]
 
 [observability]
 enabled = true
