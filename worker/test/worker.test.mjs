@@ -143,7 +143,7 @@ test('DB: only allowed tables and methods; no deletes, no RPC', async () => {
 });
 
 test('DB: anonymous feedback and article reads are allowed', async () => {
-  assert.equal((await send(req('/db/feedback', { body: { rating: 5 } }))).status, 200);
+  assert.equal((await send(req('/db/feedback', { body: { rating: 5 } }))).status, 201);
   assert.equal((await send(req('/db/learning_articles?select=body_html', { method: 'GET' }))).status, 200);
 });
 
@@ -236,4 +236,46 @@ test('Unknown routes 404 and errors never leak internals', async () => {
   const res = await send(req('/anything', { method: 'GET' }));
   assert.equal(res.status, 404);
   assert.equal(res.headers.get('X-Content-Type-Options'), 'nosniff');
+});
+
+// ── Feedback spam protection ──
+const feedbackWrites = () => outbound(`${SUPABASE}/rest/v1/feedback`).map(c => ({ auth: c.headers.Authorization, row: JSON.parse(c.body) }));
+
+test('Feedback: signed-out visitors can send it, saved with no user_id', async () => {
+  const res = await send(req('/db/feedback', { body: { rating: 4, other: 'Love it', user_id: 'someone-else' } }));
+  assert.equal(res.status, 201);
+  const [w] = feedbackWrites();
+  assert.equal(w.row.user_id, null);                      // spoofed id ignored
+  assert.equal(w.auth, `Bearer ${ANON}`);
+});
+
+test('Feedback: signed-in users are attributed from their verified session', async () => {
+  await send(req('/db/feedback', { token: FREE_TOKEN, body: { other: 'hi', user_id: 'someone-else' } }));
+  const [w] = feedbackWrites();
+  assert.equal(w.row.user_id, 'user-free');
+  assert.equal(w.auth, `Bearer ${FREE_TOKEN}`);
+});
+
+test('Feedback: honeypot submissions look successful but save nothing', async () => {
+  const res = await send(req('/db/feedback', { body: { other: 'buy cheap stuff', website: 'http://spam.example' } }));
+  assert.equal(res.status, 201);
+  assert.equal(feedbackWrites().length, 0);
+});
+
+test('Feedback: only known fields are kept, with limits', async () => {
+  await send(req('/db/feedback', { body: { rating: 9, other: 'ok', is_admin: true, page_url: 'https://evil.example', email: 'me@example.com' } }));
+  const { row } = feedbackWrites()[0];
+  assert.deepEqual(Object.keys(row).sort(), ['email', 'other', 'submitted_at', 'user_id']);
+  assert.equal((await send(req('/db/feedback', { body: { other: 'x'.repeat(5000) } }))).status, 400);
+  assert.equal((await send(req('/db/feedback', { body: { other: 'hi', email: 'not-an-email' } }))).status, 400);
+  assert.equal((await send(req('/db/feedback', { body: { is_pro: true } }))).status, 400);   // nothing written
+  assert.equal(feedbackWrites().length, 0);
+});
+
+test('Feedback: rate limited per connection', async () => {
+  const limited = { ...env, FEEDBACK_LIMITER: { limit: async ({ key }) => ({ success: key !== 'feedback:203.0.113.9' }) } };
+  calls = [];
+  const res = await worker.fetch(req('/db/feedback', { body: { other: 'hi' }, headers: { 'CF-Connecting-IP': '203.0.113.9' } }), limited);
+  assert.equal(res.status, 429);
+  assert.equal(feedbackWrites().length, 0);
 });

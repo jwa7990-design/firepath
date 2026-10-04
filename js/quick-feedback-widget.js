@@ -125,6 +125,7 @@
             </button>`).join('')}
           </div>
           <textarea id="qfw-textarea" placeholder="Anything you want to add? (optional)"></textarea>
+          <div style="position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden" aria-hidden="true"><input type="text" id="qfw-website" name="website" tabindex="-1" autocomplete="off"/></div>
           <div id="qfw-actions">
             <button id="qfw-close">Not now</button>
             <button id="qfw-submit" disabled>Send</button>
@@ -185,25 +186,18 @@
       is_pro: (typeof localStorage !== 'undefined' && localStorage.getItem('fp_is_pro') === 'true'),
       submitted_at: new Date().toISOString(),
       page_url: window.location.pathname,
+      website: document.getElementById('qfw-website').value,   // honeypot — stays empty for people
     };
 
     try {
+      // Everyone can send it — signed in or not. The Worker attributes it from the
+      // session when there is one and applies the spam protection.
       const token = typeof getToken === 'function' ? getToken() : null;
-      const userId = typeof getUserId === 'function' ? getUserId() : null;
-      const workerUrl = typeof WORKER_URL !== 'undefined' ? WORKER_URL : null;
-
-      if (token && userId && workerUrl) {
-        const res = await fetch(`${workerUrl}/db/feedback`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'Prefer': 'return=minimal',
-          },
-          body: JSON.stringify({ ...payload, user_id: userId }),
-        });
-        if (!res.ok) throw new Error(`Quick feedback save failed (${res.status})`);
-      }
+      const workerUrl = typeof WORKER_URL !== 'undefined' ? WORKER_URL : 'https://firepath-api.jwa7990.workers.dev';
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${workerUrl}/db/feedback`, { method: 'POST', headers, body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error(`Quick feedback save failed (${res.status})`);
     } catch (e) {
       // Only show "thanks" once it's actually saved; keep their text so they can retry.
       console.log('Quick feedback save failed', e);

@@ -19,7 +19,7 @@
  *   STRIPE_WEBHOOK_SECRET, SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY,
  *   FEEDBACK_WEBHOOK_SECRET (new — also set as a header on the Supabase webhook),
  *   ADMIN_SECRET (new, optional — enables /assumptions/clear-cache).
- * Bindings (wrangler.toml): AI_LIMITER (rate limit; skipped if absent).
+ * Bindings (wrangler.toml): AI_LIMITER, FEEDBACK_LIMITER (rate limits; skipped if absent).
  */
 
 const SITE = 'https://www.firepath.pro';
@@ -225,7 +225,73 @@ async function handleAi(request, env) {
 
 // ── Database proxy (Supabase PostgREST, caller's own session → RLS applies) ──
 
+// ── Feedback (open to everyone, so it gets its own spam protection) ──
+//   1. Honeypot: a hidden "website" field people never see; bots that fill it
+//      get a normal-looking success and nothing is saved.
+//   2. Rate limit per connection (FEEDBACK_LIMITER, 3 a minute).
+//   3. Rebuilt server-side from an allow-list with length limits; user_id comes
+//      from the verified session (or stays empty), never from the form.
+const FEEDBACK_TEXT_FIELDS = ['gaps', 'confusing', 'bring_back', 'other', 'pro_interest'];
+const FEEDBACK_MAX_TEXT = 4000;
+
+function sanitiseFeedback(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) return { error: 'Invalid feedback.' };
+  if (typeof input.website === 'string' && input.website.trim() !== '') return { honeypot: true };
+  const out = {};
+  for (const f of FEEDBACK_TEXT_FIELDS) {
+    const v = input[f];
+    if (v == null || v === '') continue;
+    if (typeof v !== 'string') return { error: 'Invalid feedback.' };
+    if (v.length > FEEDBACK_MAX_TEXT) return { error: 'That message is too long.' };
+    out[f] = v.trim();
+  }
+  const rating = parseInt(input.rating, 10);
+  if (rating >= 1 && rating <= 5) out.rating = rating;
+  if (typeof input.email === 'string' && input.email.trim()) {
+    const email = input.email.trim();
+    if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: 'That email address looks wrong.' };
+    out.email = email;
+  }
+  if (typeof input.page_url === 'string' && input.page_url.startsWith('/')) out.page_url = input.page_url.slice(0, 300);
+  if (typeof input.is_pro === 'boolean') out.is_pro = input.is_pro;
+  if (Object.keys(out).filter(k => k !== 'is_pro' && k !== 'page_url').length === 0) return { error: 'Please write something first.' };
+  out.submitted_at = new Date().toISOString();
+  return { feedback: out };
+}
+
+async function handleFeedback(request, env) {
+  if (env.FEEDBACK_LIMITER) {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const { success } = await env.FEEDBACK_LIMITER.limit({ key: `feedback:${ip}` });
+    if (!success) return json({ error: 'Thanks — that\'s plenty for now. Please try again in a minute.' }, 429);
+  }
+  const { data, error } = await readJson(request, 32 * 1024);
+  if (error) return json({ error: 'Invalid feedback.' }, error === 'too_large' ? 413 : 400);
+  const clean = sanitiseFeedback(data);
+  if (clean.honeypot) return new Response(null, { status: 201 });
+  if (clean.error) return json({ error: clean.error }, 400);
+
+  const user = bearer(request) ? await getUser(request, env) : null;
+  const row = { ...clean.feedback, user_id: user ? user.id : null };
+  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/feedback`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: env.SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${user ? user.token : env.SUPABASE_ANON_KEY}`,
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(row)
+  });
+  if (!res.ok) {
+    console.error('Feedback insert failed', res.status, await res.text().catch(() => ''));
+    return json({ error: "Couldn't save feedback right now." }, 502);
+  }
+  return new Response(null, { status: 201 });
+}
+
 async function handleDb(request, env, url) {
+  if (url.pathname === '/db/feedback' && request.method === 'POST') return handleFeedback(request, env);
   const m = url.pathname.match(/^\/db\/([a-z_]+)$/);         // no rpc, no nested paths
   const table = m && m[1];
   const allowed = table && DB_RULES[table];
@@ -562,4 +628,4 @@ export default {
 };
 
 // Exposed for tests only.
-export const _internal = { sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, AI };
+export const _internal = { sanitiseFeedback, sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, AI };
