@@ -28,12 +28,35 @@ const ROOT = path.join(__dirname, '..');
 const LEARN_DIR = path.join(ROOT, 'learn');
 const DRY_RUN = process.argv.includes('--dry-run');
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
-const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
 
 if (!DRY_RUN && (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(SUPABASE_URL) || !SERVICE_ROLE_KEY)) {
   console.error('Set SUPABASE_URL (https://<project>.supabase.co) and SUPABASE_SERVICE_ROLE_KEY, or use --dry-run. Aborting.');
   process.exit(1);
 }
+
+// Works out what kind of key was supplied — without ever printing it — so a
+// wrong key gets a clear message instead of 47 "Invalid API key" errors.
+//   sb_secret_…      new-style secret key   → sent in the apikey header only
+//   eyJ… (JWT)       legacy key              → role/project read from its claims
+function describeKey(key, url) {
+  if (key.startsWith('sb_secret_')) return { ok: true, kind: 'new-style secret key', headers: { apikey: key } };
+  if (key.startsWith('sb_publishable_')) return { ok: false, why: 'That is the publishable key. Use the SECRET key (starts with sb_secret_) from Project Settings → API Keys.' };
+  const parts = key.split('.');
+  if (parts.length === 3) {
+    let claims = {};
+    try { claims = JSON.parse(Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')); } catch {}
+    const projectRef = (url.match(/^https:\/\/([a-z0-9-]+)\.supabase\.co$/) || [])[1];
+    if (claims.role === 'anon') return { ok: false, why: 'That is the anon (public) key. Use the service_role key, or the new secret key (sb_secret_…).' };
+    if (claims.role !== 'service_role') return { ok: false, why: `That key's role is "${claims.role || 'unknown'}", not service_role.` };
+    if (projectRef && claims.ref && claims.ref !== projectRef) return { ok: false, why: `That key belongs to a different Supabase project (${claims.ref}), not ${projectRef}.` };
+    return { ok: true, kind: 'legacy service_role key', headers: { apikey: key, Authorization: `Bearer ${key}` } };
+  }
+  return { ok: false, why: `That doesn't look like a Supabase key (${key.length} characters). Check nothing extra was pasted.` };
+}
+const KEY = DRY_RUN ? null : describeKey(SERVICE_ROLE_KEY, SUPABASE_URL);
+if (KEY && !KEY.ok) { console.error(`Key problem: ${KEY.why}`); process.exit(1); }
+if (KEY) console.log(`Using a ${KEY.kind} for ${SUPABASE_URL}`);
 
 // Track (foundation / life / …) per article, used only as a label in the table.
 const SLUG_TO_TOPIC = {
@@ -129,8 +152,7 @@ async function upsertRow(row) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'apikey': SERVICE_ROLE_KEY,
-      'Authorization': `Bearer ${SERVICE_ROLE_KEY}`,
+      ...KEY.headers,
       'Prefer': 'resolution=merge-duplicates',
     },
     body: JSON.stringify(row),
