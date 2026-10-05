@@ -337,3 +337,106 @@ button.chip { font-family: var(--font-ui); }
 .prose table { width: 100%; border-collapse: collapse; font-size: 15px; }
 .prose th, .prose td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
 .prose th { color: var(--ink); font-weight: 600; background: var(--surface-2); }
+
+/* ============================================================
+   Motion layer — quiet, premium movement shared by every page.
+   Everything here is progressive: browsers that don't support a
+   feature simply show the page without that movement, and anyone
+   with "reduce motion" switched on gets no movement at all (the
+   reduced-motion rule near the top of this file, plus the guards
+   below).
+   ============================================================ */
+
+/* 1. Page-to-page transitions. The content fades and rises while the
+      navigation (rail, tab bar, top nav) stays perfectly still. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  html { scroll-behavior: smooth; }
+}
+::view-transition { background: var(--bg); }
+::view-transition-old(root) { animation: fp-vt-out 160ms ease both; }
+::view-transition-new(root) { animation: fp-vt-in 420ms var(--ease) 40ms both; }
+@keyframes fp-vt-out { to { opacity: 0; } }
+@keyframes fp-vt-in  { from { opacity: 0; transform: translateY(10px); } }
+::view-transition-group(*) { animation-duration: 420ms; animation-timing-function: var(--ease); }
+
+.desktop-rail  { view-transition-name: fp-rail; }
+.mobile-tabbar { view-transition-name: fp-tabbar; }
+.ask-pill      { view-transition-name: fp-ask; }
+.site-nav      { view-transition-name: fp-sitenav; }
+
+/* 2. The "you are here" highlight glides from the old item to the new one. */
+.desktop-rail-item, .mobile-tabbar-item, .site-link { position: relative; isolation: isolate; }
+.nav-indicator { position: absolute; z-index: -1; pointer-events: none; }
+.desktop-rail-item.active { background: none; box-shadow: none; }
+.desktop-rail-item .nav-indicator {
+  inset: 0; border-radius: inherit; background: rgba(253, 246, 238, 0.08); box-shadow: inset 2px 0 0 var(--ember);
+  view-transition-name: fp-rail-indicator;
+}
+.mobile-tabbar-item.active { background: none; }
+.mobile-tabbar-item .nav-indicator { inset: 0; border-radius: inherit; background: var(--ember-wash); view-transition-name: fp-tab-indicator; }
+.site-link .nav-indicator {
+  left: 0; right: 0; bottom: -7px; height: 2px; border-radius: 2px; background: var(--ember);
+  view-transition-name: fp-site-indicator;
+}
+
+/* 3. Cards and article boxes ease in as they scroll into view.
+      js/shell.js only adds .fp-pending to things below the fold, so
+      nothing on screen at load ever blinks or waits. */
+.fp-pending { opacity: 0; transform: translateY(14px); }
+.fp-pending.fp-shown {
+  opacity: 1; transform: none;
+  transition: opacity 600ms var(--ease), transform 700ms var(--ease);
+  transition-delay: var(--fp-delay, 0ms);
+}
+
+/* 4. Finishing touches */
+/* Ember buttons: a soft sheen sweeps across on hover */
+.btn-ember {
+  background-image: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.28) 50%, transparent 65%), linear-gradient(135deg, var(--ember), var(--amber));
+  background-size: 250% 100%, 100% 100%;
+  background-position: 130% 0, 0 0;
+  transition: background-position 800ms var(--ease), box-shadow var(--dur-base) var(--ease), transform var(--dur-fast) ease;
+}
+.btn-ember:hover { background-position: -30% 0, 0 0; box-shadow: 0 10px 24px -10px rgba(244, 98, 42, 0.55); }
+.btn-primary { transition: background var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), transform var(--dur-fast) ease; }
+.btn-primary:hover { box-shadow: 0 10px 24px -12px rgba(43, 29, 20, 0.45); }
+
+/* Linked cards lift with a warm edge */
+.card-link:hover { transform: translateY(-2px); border-color: rgba(244, 98, 42, 0.22); box-shadow: var(--shadow-3); }
+
+/* Top-nav links: an underline slides in from the left */
+.site-link::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -7px; height: 1px; background: var(--line-strong);
+  transform: scaleX(0); transform-origin: left; transition: transform var(--dur-base) var(--ease);
+}
+.site-link:hover::after { transform: scaleX(1); }
+.site-link[aria-current="page"]::after { display: none; }
+
+/* Tab bar items give a little under the thumb */
+.mobile-tabbar-item { transition: color var(--dur-base) var(--ease), transform var(--dur-fast) ease; }
+.mobile-tabbar-item:active { transform: scale(0.94); }
+
+/* Mobile menu opens smoothly, links following one after another */
+.site-drawer.open { animation: fp-drawer-in 320ms var(--ease) both; }
+.site-drawer.open > * { animation: fp-drawer-item 420ms var(--ease) both; }
+.site-drawer.open > :nth-child(2) { animation-delay: 30ms; }
+.site-drawer.open > :nth-child(3) { animation-delay: 60ms; }
+.site-drawer.open > :nth-child(4) { animation-delay: 90ms; }
+.site-drawer.open > :nth-child(5) { animation-delay: 120ms; }
+.site-drawer.open > :nth-child(n+6) { animation-delay: 150ms; }
+@keyframes fp-drawer-in { from { opacity: 0; } }
+@keyframes fp-drawer-item { from { opacity: 0; transform: translateY(-6px); } }
+
+/* Articles: a slim reading-progress line under the top nav */
+.fp-progress { position: fixed; left: 0; right: 0; top: 0; height: 2px; z-index: 101; pointer-events: none; display: none; }
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .fp-progress {
+      display: block; transform-origin: left; background: linear-gradient(90deg, var(--ember), var(--amber));
+      animation: fp-progress linear both; animation-duration: auto; animation-timeline: scroll(root);
+    }
+  }
+}
+@keyframes fp-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media print { .fp-pending { opacity: 1 !important; transform: none !important; } .fp-progress { display: none !important; } }
