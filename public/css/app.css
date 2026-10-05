@@ -255,22 +255,86 @@ button.chip { font-family: var(--font-ui); }
 .site-logo { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--ink); text-decoration: none; letter-spacing: -0.01em; }
 .site-logo svg { color: var(--ember); }
 .site-logo em { font-style: normal; color: var(--ember); }
-.site-links { display: none; align-items: center; gap: 28px; }
-.site-link { font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none; transition: color var(--dur-fast) ease; }
-.site-link:hover, .site-link[aria-current="page"] { color: var(--ink); }
 .site-actions { display: flex; align-items: center; gap: 8px; }
-.site-signin { display: none; }
-.site-menu-btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: none; background: none; color: var(--ink); border-radius: 50%; cursor: pointer; }
-.site-menu-btn:hover { background: rgba(43, 29, 20, 0.05); }
-@media (min-width: 900px) {
-  .site-links, .site-signin { display: flex; }
-  .site-menu-btn { display: none; }
+.site-signin { display: none; padding: 0 10px; font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none; transition: color var(--dur-fast) ease; }
+.site-signin:hover { color: var(--ink); }
+.site-signin:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; border-radius: 6px; }
+@media (min-width: 720px) { .site-signin { display: inline-flex; } }
+@media (max-width: 380px) { .site-cta { padding: 0 12px; } }
+
+/* Explore: the button in the header, and the full-screen panel it opens */
+.explore-btn {
+  display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px 0 12px; border-radius: 999px;
+  border: 1px solid var(--line-strong); background: rgba(255, 255, 255, 0.6); color: var(--ink);
+  font: 500 13.5px/1 var(--font-ui); cursor: pointer;
+  transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease);
 }
-.site-drawer { position: fixed; inset: var(--nav-h) 0 0 0; z-index: 99; background: var(--bg); padding: 24px 16px 40px; display: none; flex-direction: column; gap: 4px; overflow-y: auto; }
-.site-drawer.open { display: flex; }
-.site-drawer a { padding: 14px 4px; font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--line); }
-.site-drawer .btn { margin-top: 20px; height: 48px; font-family: var(--font-ui); font-size: 15px; border-bottom: none; padding: 0 20px; }
-@media (min-width: 900px) { .site-drawer { display: none !important; } }
+.explore-btn svg { color: var(--ember); transition: transform var(--dur-slow) var(--ease); }
+.explore-btn:hover { border-color: rgba(244, 98, 42, 0.35); background: var(--surface); box-shadow: var(--shadow-2); }
+.explore-btn:hover svg { transform: rotate(90deg) scale(1.08); }
+.explore-btn:focus-visible, .explore-close:focus-visible, .explore-link:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+@media (max-width: 420px) { .explore-btn span { display: none; } .explore-btn { padding: 0; width: 38px; justify-content: center; } }
+
+html.explore-open { overflow: hidden; }
+.explore {
+  position: fixed; inset: 0; z-index: 200; overflow-y: auto; overscroll-behavior: contain;
+  background:
+    radial-gradient(55% 60% at 100% 0%, rgba(249, 168, 37, 0.18), transparent 70%),
+    radial-gradient(50% 60% at 0% 100%, rgba(244, 98, 42, 0.14), transparent 70%),
+    var(--bg);
+  opacity: 0; transition: opacity 260ms ease;
+}
+.explore.open { opacity: 1; }
+.explore[hidden] { display: none; }
+.explore-inner { max-width: 1120px; min-height: 100%; margin: 0 auto; padding: 0 16px 40px; display: flex; flex-direction: column; }
+@media (min-width: 768px) { .explore-inner { padding: 0 32px 56px; } }
+.explore-top { display: flex; align-items: center; justify-content: space-between; height: var(--nav-h); }
+.explore-kicker { font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ember-ink); }
+.explore-close {
+  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer;
+  transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease);
+}
+.explore-close:hover { transform: rotate(90deg); box-shadow: var(--shadow-2); }
+.explore-grid { flex: 1; display: grid; gap: 32px; align-content: center; padding: 24px 0; }
+@media (min-width: 960px) { .explore-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 64px; align-items: center; } }
+
+.explore-links { display: grid; }
+.explore-link {
+  position: relative; display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 16px;
+  padding: 20px 4px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink);
+}
+.explore-link:first-child { border-top: 1px solid var(--line); }
+@media (min-width: 768px) { .explore-link { grid-template-columns: 64px 1fr auto; padding: 26px 8px; } }
+.explore-num { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: var(--ink-3); font-variant-numeric: tabular-nums; transition: color var(--dur-fast) ease; }
+.explore-text { display: grid; gap: 4px; transition: transform var(--dur-slow) var(--ease); }
+.explore-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 6vw, 56px); line-height: 1.02; letter-spacing: -0.02em; }
+.explore-desc { font-size: 14.5px; color: var(--ink-2); }
+.explore-arrow { color: var(--ember); opacity: 0; transform: translateX(-10px); transition: opacity var(--dur-base) ease, transform var(--dur-slow) var(--ease); }
+.explore-link:hover .explore-num, .explore-link[aria-current="page"] .explore-num { color: var(--ember-ink); }
+.explore-link:hover .explore-text, .explore-link:focus-visible .explore-text { transform: translateX(8px); }
+.explore-link:hover .explore-arrow, .explore-link:focus-visible .explore-arrow { opacity: 1; transform: none; }
+.explore-link[aria-current="page"] .explore-title::after { content: ''; display: inline-block; width: 8px; height: 8px; margin-left: 12px; border-radius: 50%; background: var(--ember); vertical-align: middle; }
+
+.explore-card {
+  padding: 28px; border-radius: var(--r-xl); color: var(--bg);
+  background: radial-gradient(80% 120% at 100% 0%, rgba(244, 98, 42, 0.35), transparent 60%), var(--espresso);
+  box-shadow: var(--shadow-3);
+}
+@media (min-width: 768px) { .explore-card { padding: 36px; } }
+.explore-card-kicker { font-size: 11.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); }
+.explore-card-title { margin: 12px 0 22px; font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 3vw, 32px); line-height: 1.15; }
+.explore-card-title em { color: var(--amber); }
+.explore-card .btn { width: 100%; }
+.explore-card-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(253, 246, 238, 0.12); }
+.explore-card-links a { font-size: 13.5px; color: rgba(253, 246, 238, 0.7); text-decoration: none; }
+.explore-card-links a:hover { color: var(--bg); }
+
+/* Entrance: links rise in one after another */
+@media (prefers-reduced-motion: no-preference) {
+  .explore.open .explore-link, .explore.open .explore-card { animation: fp-explore-in 560ms var(--ease) both; animation-delay: calc(var(--i, 0) * 55ms + 60ms); }
+}
+@keyframes fp-explore-in { from { opacity: 0; transform: translateY(18px); } }
 
 .site-main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
 @media (min-width: 768px) { .site-main { padding: 56px 32px 96px; } }
@@ -366,7 +430,7 @@ button.chip { font-family: var(--font-ui); }
 .site-nav      { view-transition-name: fp-sitenav; }
 
 /* 2. The "you are here" highlight glides from the old item to the new one. */
-.desktop-rail-item, .mobile-tabbar-item, .site-link { position: relative; isolation: isolate; }
+.desktop-rail-item, .mobile-tabbar-item { position: relative; isolation: isolate; }
 .nav-indicator { position: absolute; z-index: -1; pointer-events: none; }
 .desktop-rail-item.active { background: none; box-shadow: none; }
 .desktop-rail-item .nav-indicator {
@@ -375,10 +439,6 @@ button.chip { font-family: var(--font-ui); }
 }
 .mobile-tabbar-item.active { background: none; }
 .mobile-tabbar-item .nav-indicator { inset: 0; border-radius: inherit; background: var(--ember-wash); view-transition-name: fp-tab-indicator; }
-.site-link .nav-indicator {
-  left: 0; right: 0; bottom: -7px; height: 2px; border-radius: 2px; background: var(--ember);
-  view-transition-name: fp-site-indicator;
-}
 
 /* 3. Cards and article boxes ease in as they scroll into view.
       js/shell.js only adds .fp-pending to things below the fold, so
@@ -405,28 +465,11 @@ button.chip { font-family: var(--font-ui); }
 /* Linked cards lift with a warm edge */
 .card-link:hover { transform: translateY(-2px); border-color: rgba(244, 98, 42, 0.22); box-shadow: var(--shadow-3); }
 
-/* Top-nav links: an underline slides in from the left */
-.site-link::after {
-  content: ''; position: absolute; left: 0; right: 0; bottom: -7px; height: 1px; background: var(--line-strong);
-  transform: scaleX(0); transform-origin: left; transition: transform var(--dur-base) var(--ease);
-}
-.site-link:hover::after { transform: scaleX(1); }
-.site-link[aria-current="page"]::after { display: none; }
 
 /* Tab bar items give a little under the thumb */
 .mobile-tabbar-item { transition: color var(--dur-base) var(--ease), transform var(--dur-fast) ease; }
 .mobile-tabbar-item:active { transform: scale(0.94); }
 
-/* Mobile menu opens smoothly, links following one after another */
-.site-drawer.open { animation: fp-drawer-in 320ms var(--ease) both; }
-.site-drawer.open > * { animation: fp-drawer-item 420ms var(--ease) both; }
-.site-drawer.open > :nth-child(2) { animation-delay: 30ms; }
-.site-drawer.open > :nth-child(3) { animation-delay: 60ms; }
-.site-drawer.open > :nth-child(4) { animation-delay: 90ms; }
-.site-drawer.open > :nth-child(5) { animation-delay: 120ms; }
-.site-drawer.open > :nth-child(n+6) { animation-delay: 150ms; }
-@keyframes fp-drawer-in { from { opacity: 0; } }
-@keyframes fp-drawer-item { from { opacity: 0; transform: translateY(-6px); } }
 
 /* Articles: a slim reading-progress line under the top nav */
 .fp-progress { position: fixed; left: 0; right: 0; top: 0; height: 2px; z-index: 101; pointer-events: none; display: none; }
