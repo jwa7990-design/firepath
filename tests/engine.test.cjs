@@ -1,4 +1,4 @@
-// FirePath calculation tests — run with:  node tests/engine.test.js
+// FirePath calculation tests — run with:  npm test  (or node tests/engine.test.cjs)
 // Loads the real browser scripts (tax-engine.js, financial-engine.js, calculations.js)
 // into one sandbox, the same way a page does, then checks them against worked examples.
 // Expected values are worked by hand from the published ATO / Services Australia rules
@@ -24,7 +24,7 @@ function load(date) {
   // exactly like classic <script> tags, when run in the same context.
   const src = ['tax-engine.js', 'calculations.js', 'financial-engine.js']
     .map(f => fs.readFileSync(path.join(__dirname, '..', 'public', 'js', f), 'utf8')).join('\n;\n')
-    + '\n;this.__api = { TAX_YEARS, TAX_CONFIG, AGE_PENSION, getCurrentTaxYear, calculateTax, deemedIncome, calculateAgePension, fmtM, fmtDollars };';
+    + '\n;this.__api = { TAX_YEARS, TAX_CONFIG, AGE_PENSION, getCurrentTaxYear, calculateTax, calculateMarginalRate, calculateSalarySacrifice, estimateGrossFromNet, deemedIncome, calculateAgePension, fmtM, fmtDollars, fmt, yearsToGoal, monthlyRate, compoundWithContributions, FP_ASSUMPTIONS, realRate };';
   vm.runInContext(src, ctx);
   return Object.assign({}, ctx.__api, { Engine: ctx.FirePathEngine });
 }
@@ -188,4 +188,97 @@ test('fmtDollars shows exact amounts, compacting only millions', () => {
   assert.equal(E.fmtDollars(1500000), '$1.5M');
   assert.equal(E.fmtDollars(1500000, { compact: false }), '$1,500,000');
   assert.equal(E.fmtDollars(NaN), '—');
+});
+
+// ── Accuracy fixes (Oct 2026 maths audit) ─────────────────
+test('7% a year compounds to exactly 7% — not 7.23% from 7%/12', () => {
+  near(Math.pow(1 + E.monthlyRate(0.07), 12) - 1, 0.07, 1e-12);
+  // $100k, no contributions, 30 years → 100k × 1.07^30 = $761,226
+  near(E.Engine.projectPortfolio(100000, 0, 30), 761226, 1);
+  near(E.compoundWithContributions(100000, 0, 0.07, 30), 761226, 1);
+  // $1,000/month for 1 year at 0%: exactly $12,000; half-months round consistently
+  assert.equal(E.compoundWithContributions(0, 1000, 0, 1), 12000);
+  assert.equal(E.compoundWithContributions(0, 100, 0, 0.51), E.Engine.projectPortfolio(0, 100, 0.51, 0));
+});
+
+test('year/month and dollar formatting never shows "12mo" or "$1000K"', () => {
+  assert.equal(E.fmt(12.97), '13 yrs');
+  assert.equal(E.fmt(12.5), '12yr 6mo');
+  assert.equal(E.fmt(0.5), '6 months');
+  assert.equal(E.fmtM(999600), '$1.0M');
+  assert.equal(E.fmtM(999400), '$999K');
+  assert.equal(E.Engine.fmtM(999999), '$1.0M');
+});
+
+test('yearsToGoal: already there beats "not saving"', () => {
+  assert.equal(E.yearsToGoal(1000000, 1200000, 0, 0.07), 0);
+  assert.equal(E.yearsToGoal(1000000, 0, 0, 0.07), null);
+  // No new savings, but $1M growing at 7% reaches $1.5M on its own: ln(1.5)/ln(1.07) = 5.99 yrs
+  near(E.yearsToGoal(1500000, 1000000, 0, 0.07), 6, 0.01);
+});
+
+test('true marginal rate includes LITO withdrawal and Medicare phase-in (2026-27)', () => {
+  near(E.calculateMarginalRate(15000), 0, 1e-9);        // under tax-free threshold
+  near(E.calculateMarginalRate(20000), 0, 1e-9);        // LITO still wipes the tax
+  near(E.calculateMarginalRate(30000), 0.25, 1e-9);     // 15% + 10c Medicare phase-in
+  near(E.calculateMarginalRate(40000), 0.22, 1e-9);     // 15% + 5c LITO + 2%
+  near(E.calculateMarginalRate(50000), 0.335, 1e-9);    // 30% + 1.5c LITO + 2%
+  near(E.calculateMarginalRate(100000), 0.32, 1e-9);
+  near(E.calculateMarginalRate(250000), 0.47, 1e-9);
+});
+
+test('salary sacrifice: employer SG uses up part of the $32,500 cap', () => {
+  // $100k: SG $12,000, so only $20,500 of a $32,500 sacrifice is concessional; the
+  // $12,000 excess is taxed at 32% less a 15% offset.
+  const r = E.calculateSalarySacrifice(100000, 32500);
+  assert.equal(r.sgContrib, 12000);
+  assert.equal(r.capRoom, 20500);
+  assert.equal(r.excess, 12000);
+  // before: 20,520 + 2,000 = 22,520. after: tax on 79,500 = 4,020 + 10,350 = 14,370 + 1,590
+  // Medicare = 15,960, less 15% × 12,000 = 1,800 offset → 14,160. Saved 8,360.
+  assert.equal(r.taxSaved, 8360);
+  assert.equal(r.takehomeCost, 24140);
+  assert.equal(r.atCapWarning, true);
+});
+
+test('salary sacrifice: Division 293 and LISTO', () => {
+  // $260k: SG capped at the cap ÷ 12% base → $31,200; room $1,300. Income + contributions
+  // already over $250k, so the sacrifice attracts an extra 15% (Div 293) → 30% in total.
+  const hi = E.calculateSalarySacrifice(260000, 1300);
+  assert.equal(hi.sgContrib, 31200);
+  assert.equal(hi.div293, 195);
+  assert.equal(hi.superTax, 390);
+  // $20k: LISTO refunds the 15% contributions tax (up to $500) → net $10 super tax on $1,000.
+  const lo = E.calculateSalarySacrifice(20000, 1000);
+  assert.equal(lo.superTax, 10);
+  assert.equal(lo.taxSaved, 0);   // no income tax to save below the LITO zero-tax point
+});
+
+test('Age Pension: nil at the published cut-off; couples use couple rates', () => {
+  assert.equal(E.calculateAgePension(745800, 0, true, false).annualPension, 0);
+  assert.ok(E.calculateAgePension(800000, 0, true, true).annualPension > 20000);
+  const p = E.Engine.computeFreedomPicture({ portfolio: 800000, annualSpend: 60000, isHomeowner: true, isCouple: true });
+  assert.ok(p.pensionAnnual > 20000);
+});
+
+test('freedom age: super unlocks at 60 and is means-tested at 67', () => {
+  // Age 55, $150k invested, no saving, spend $40k, $400k super. Super alone grows to
+  // 400k × 1.0595^5 ≈ $535k at 60; (150k×1.07^5 + 535k) × 4% ≈ $29.8k < $40k, so not
+  // free at 60. Freedom comes before 67 with no pension once both have grown enough.
+  const r = E.Engine.solveFreedomAge(55, 150000, 0, 40000, true, 0.07, false, 400000);
+  assert.ok(r.age > 60 && r.age < 67, `age ${r.age}`);
+  assert.equal(r.pensionIncome, 0);
+  // Ignoring super would wrongly wait for the pension at 67.
+  assert.equal(E.Engine.solveFreedomAge(55, 150000, 0, 40000, true, 0.07, false, 0).age, 67);
+});
+
+test('freedom %: 99.6% funded is not shown as 100%', () => {
+  const p = E.Engine.computeFreedomPicture({ portfolio: 995000, annualSpend: 40000, isHomeowner: true });
+  assert.equal(p.freedomPct, 99);
+});
+
+test('live rates: real returns use (1+n)/(1+i)−1 and can be negative', () => {
+  near(E.realRate(4.8, 3.9), 0.008662, 1e-6);
+  assert.ok(E.realRate(2, 3.9) < 0);
+  near(E.FP_ASSUMPTIONS.offsetRealReturn, (1.062 / 1.039) - 1, 1e-9);
 });

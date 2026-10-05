@@ -23,7 +23,7 @@ window.FirePathEngine = (function () {
     if (n == null || isNaN(n)) return '—';
     const sign = n < 0 ? '-' : '';
     const a = Math.abs(n);
-    if (a >= 1000000) return sign + '$' + (a / 1000000).toFixed(1) + 'M';
+    if (a >= 999500) return sign + '$' + (a / 1000000).toFixed(1) + 'M';   // 999,600 → $1.0M, not $1000K
     if (a >= 1000) return sign + '$' + Math.round(a / 1000) + 'K';
     return sign + '$' + Math.round(a);
   }
@@ -40,11 +40,17 @@ window.FirePathEngine = (function () {
     return Math.ceil(rawHours);
   }
  
+  // The monthly rate that compounds to `annualRate` over a year. (annualRate / 12
+  // compounds to more: 7% / 12 monthly is 7.23% a year, which overstates every projection.)
+  function monthlyRate(annualRate) {
+    return Math.pow(1 + annualRate, 1 / 12) - 1;
+  }
+
   // Compounds a starting portfolio forward with ongoing monthly contributions.
   function projectPortfolio(startPortfolio, monthlySavings, years, rate) {
     rate = rate == null ? 0.07 : rate;
     let bal = startPortfolio;
-    const r = rate / 12;
+    const r = monthlyRate(rate);
     for (let m = 0; m < Math.round(years * 12); m++) { bal = bal * (1 + r) + monthlySavings; }
     return bal;
   }
@@ -62,7 +68,7 @@ window.FirePathEngine = (function () {
   // same "don't pretend to know" convention as solveFreedomAge's 90-year ceiling.
   function solveMonthsToTarget(startPortfolio, monthlySavings, targetSpend, rate) {
     rate = rate == null ? 0.07 : rate;
-    const r = rate / 12;
+    const r = monthlyRate(rate);
     let portfolio = startPortfolio;
     for (let m = 0; m <= 40 * 12; m++) {
       if (portfolio * 0.04 >= targetSpend) return m;
@@ -97,6 +103,7 @@ window.FirePathEngine = (function () {
  
   // Finds the youngest age (from currentAge) at which portfolio income — plus the Age
   // Pension once age 67 is reached — covers targetSpend. Returns null if not reached by 90.
+  // isCouple: use couple pension rates and limits (portfolio and spend are the couple's combined).
   let warnedNoPension = false;
   function pensionAvailable() {
     if (typeof calculateAgePension === 'function') return true;
@@ -105,20 +112,28 @@ window.FirePathEngine = (function () {
     return false;
   }
 
-  function solveFreedomAge(currentAge, startPortfolio, monthlySavings, targetSpend, homeowner, rate) {
+  // superBalance: today's super. It grows at the after-earnings-tax super return, counts
+  // towards spendable income only from preservation age (60), and is means-tested for
+  // the Age Pension from 67 like everything else.
+  const PRESERVATION_AGE = 60, PENSION_AGE = 67;
+  const SUPER_RETURN = 0.07 * (1 - 0.15);   // 7% real less 15% earnings tax in accumulation
+
+  function solveFreedomAge(currentAge, startPortfolio, monthlySavings, targetSpend, homeowner, rate, isCouple, superBalance) {
     rate = rate == null ? 0.07 : rate;
     const CEILING_AGE = 90;
     for (let age = Math.ceil(currentAge); age <= CEILING_AGE; age++) {
       const yearsOut = age - currentAge;
       const portfolio = projectPortfolio(startPortfolio, monthlySavings, yearsOut, rate);
-      const portfolioIncome = portfolio * 0.04;
+      const superBal = superBalance > 0 ? projectPortfolio(superBalance, 0, yearsOut, SUPER_RETURN) : 0;
+      const accessible = portfolio + (age >= PRESERVATION_AGE ? superBal : 0);
+      const portfolioIncome = accessible * 0.04;
       let pensionIncome = 0;
-      if (age >= 67 && pensionAvailable()) {
+      if (age >= PENSION_AGE && pensionAvailable()) {
         // Other income 0: Centrelink deems the portfolio rather than counting drawdowns.
-        try { pensionIncome = calculateAgePension(portfolio, 0, homeowner, false).annualPension || 0; } catch (e) {}
+        try { pensionIncome = calculateAgePension(portfolio + superBal, 0, homeowner, !!isCouple).annualPension || 0; } catch (e) {}
       }
       if (portfolioIncome + pensionIncome >= targetSpend) {
-        return { age, portfolio: Math.round(portfolio), portfolioIncome: Math.round(portfolioIncome), pensionIncome: Math.round(pensionIncome) };
+        return { age, portfolio: Math.round(portfolio), superBalance: Math.round(superBal), portfolioIncome: Math.round(portfolioIncome), pensionIncome: Math.round(pensionIncome) };
       }
     }
     return null;
@@ -127,21 +142,25 @@ window.FirePathEngine = (function () {
   // The "today's snapshot" — portfolio income, gap, pension estimate, gap after pension,
   // and freedom percentage — all derived consistently from the same inputs. Both Freedom
   // Gap and Freedom Options need this exact bundle; previously each derived it separately.
+  //   pensionAssets: what Centrelink would assess at pension age (portfolio + super, ideally
+  //   projected to 67). Defaults to today's portfolio. Callers decide whether the pension
+  //   applies yet — it's only paid from 67.
   function computeFreedomPicture(inputs) {
-    const { portfolio, annualSpend, isHomeowner, withdrawalRate } = inputs;
+    const { portfolio, annualSpend, isHomeowner, withdrawalRate, isCouple, pensionAssets } = inputs;
     const rate = withdrawalRate == null ? 0.04 : withdrawalRate;
     const portfolioIncome = portfolio * rate;
     const gap = Math.max(0, annualSpend - portfolioIncome);
     let pensionAnnual = 0, pensionWeekly = 0;
     if (pensionAvailable()) {
       try {
-        const pension = calculateAgePension(portfolio, 0, isHomeowner, false);
+        const pension = calculateAgePension(pensionAssets == null ? portfolio : pensionAssets, 0, isHomeowner, !!isCouple);
         pensionAnnual = pension.annualPension || 0;
         pensionWeekly = pension.weeklyPension || 0;
       } catch (e) {}
     }
     const gapAfterPension = Math.max(0, gap - pensionAnnual);
-    const freedomPct = annualSpend > 0 ? Math.min(100, Math.round((portfolioIncome / annualSpend) * 100)) : 0;
+    // floor, not round: 99.6% funded must not read as "100% — your portfolio funds it".
+    const freedomPct = annualSpend > 0 ? Math.min(100, Math.floor((portfolioIncome / annualSpend) * 100)) : 0;
     return { portfolioIncome, gap, pensionAnnual, pensionWeekly, gapAfterPension, freedomPct };
   }
  
@@ -177,5 +196,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, PRESERVATION_AGE, PENSION_AGE, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();

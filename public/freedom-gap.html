@@ -373,7 +373,22 @@
   }
 
   let isHomeowner = true;
+  let isCouple = false;   // set from the profile's partner details — couple pension rates and limits
+  let partnerSuper = 0;   // a couple is means-tested on both partners' super
   let lastGapCalc = null;
+
+  // What Centrelink would assess at pension age: the portfolio from the scenario age,
+  // left to grow to 67, plus super grown from today. Today's dollars (7% is real).
+  // If the scenario is already 67 or later, assess at that age instead.
+  function pensionAssetsAt(portfolioAtScenario, superBalance, currentAge, scenarioAge) {
+    const E = window.FirePathEngine;
+    const assessAge = Math.max(E.PENSION_AGE, scenarioAge || 0);
+    const portfolioYears = Math.max(0, assessAge - (scenarioAge || 0));
+    const superYears = Math.max(0, assessAge - (currentAge || scenarioAge || 0));
+    const supers = superBalance + (isCouple ? partnerSuper : 0);
+    return E.projectPortfolio(portfolioAtScenario, 0, portfolioYears)
+      + (supers > 0 ? E.projectPortfolio(supers, 0, superYears, E.SUPER_RETURN) : 0);
+  }
 
   function setHomeowner(val) {
     isHomeowner = val;
@@ -396,7 +411,9 @@
     // assumed); it's simply netted off today's starting point before anything else runs.
     const netPortfolio = Math.max(0, portfolio - debt);
 
-    if (netPortfolio <= 0 || annualSpend <= 0) {
+    // Nothing invested yet still has an answer if you're saving each month (0% today,
+    // and a projection if you set a target age), so only bail when there's truly nothing.
+    if (annualSpend <= 0 || (netPortfolio <= 0 && monthlySavings <= 0)) {
       document.getElementById('results').style.display = 'none';
       return;
     }
@@ -426,8 +443,13 @@
       document.getElementById('resetTargetAgeBtn').style.display = 'none';
     }
 
-    const freedomPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: effectivePortfolio, annualSpend, isHomeowner });
+    const scenarioAge = targetAge || currentAge;
+    const pensionAssets = pensionAssetsAt(effectivePortfolio, superBalance, currentAge, scenarioAge);
+    const freedomPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: effectivePortfolio, annualSpend, isHomeowner, isCouple, pensionAssets });
     const { portfolioIncome, gap, pensionAnnual, pensionWeekly, gapAfterPension, freedomPct } = freedomPicture;
+    // The pension is only paid from 67 — before that, the gap work has to close is the full gap.
+    const pensionApplies = scenarioAge >= 67;
+    const gapNow = pensionApplies ? gapAfterPension : gap;
 
     document.getElementById('g-annualSpend').textContent = fmtM(annualSpend);
     document.getElementById('g-gapAmount').textContent = fmtM(gap) + '/yr';
@@ -438,7 +460,7 @@
       pensionBox.innerHTML = `Estimated entitlement: <strong>${fmtM(pensionAnnual)}/yr</strong> (~${fmtM(pensionWeekly)}/week), based on the assets and income tests.`;
     } else {
       pensionBox.className = 'pension-box nil';
-      pensionBox.innerHTML = `At your asset level, Age Pension entitlement at 67 would be minimal or nil. Your portfolio is doing the heavy lifting.`;
+      pensionBox.innerHTML = `At your projected assets at 67 (including super), Age Pension entitlement would be minimal or nil. Your portfolio is doing the heavy lifting.`;
     }
     document.getElementById('g-gapAfterPension').textContent = fmtM(gapAfterPension) + '/yr';
 
@@ -463,16 +485,16 @@
 
     // Your Freedom Story — a deterministic, always-visible summary. No AI call needed to
     // get the page's core insight; the AI outlook below is an optional deeper layer on top.
-    const hoursToCloseAfterPension = hourlyRate > 0 ? niceHours(gapAfterPension / hourlyRate / 52) : null;
+    const hoursToCloseAfterPension = hourlyRate > 0 ? niceHours(gapNow / hourlyRate / 52) : null;
     let story = `Your investments already cover <strong>${freedomPct}%</strong> of your annual spending — ${fmtM(portfolioIncome)} of the ${fmtM(annualSpend)} you expect to need.`;
     if (pensionAnnual > 0) {
       story += ` At 67, the Age Pension could reduce the remaining gap to around <strong>${fmtM(gapAfterPension)}/yr</strong>.`;
     }
     if (hoursToCloseAfterPension !== null) {
       if (hoursToCloseAfterPension <= 0) {
-        story += ` Your portfolio${pensionAnnual > 0 ? ' and pension' : ''} already cover it — no work income needed to close the gap.`;
+        story += ` Your portfolio${pensionApplies && pensionAnnual > 0 ? ' and pension' : ''} already cover it — no work income needed to close the gap.`;
       } else {
-        story += ` Working just <strong>${hoursToCloseAfterPension} hour${hoursToCloseAfterPension !== 1 ? 's' : ''} a week</strong> would close what's left.`;
+        story += ` Working just <strong>${hoursToCloseAfterPension} hour${hoursToCloseAfterPension !== 1 ? 's' : ''} a week</strong> would close what's left${pensionAnnual > 0 && !pensionApplies ? ' until then' : ''}.`;
       }
     }
     story += ` You may be closer to freedom than your portfolio balance alone makes it seem — and this isn't a fixed number. Every pay rise, investment return, or dollar you save moves it higher.`;
@@ -523,8 +545,9 @@
     }
 
     lastGapCalc = {
-      inputs: { portfolio: effectivePortfolio, annualSpend, hourlyRate, currentAge, scenarioAge: targetAge || currentAge },
+      inputs: { portfolio: effectivePortfolio, annualSpend, hourlyRate, currentAge, scenarioAge },
       freedomPicture: freedomPicture,
+      gapNow, pensionApplies,
       targetAge: targetAge || null,
       workBonusHours: null
     };
@@ -541,9 +564,9 @@
     // "what if" exploration carried into its starting point — it starts fresh from today's
     // real (net-of-debt) numbers and finds its own future scenarios independently.
     try {
-      const todayPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: netPortfolio, annualSpend, isHomeowner });
+      const todayPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: netPortfolio, annualSpend, isHomeowner, isCouple, pensionAssets: pensionAssetsAt(netPortfolio, superBalance, currentAge, currentAge) });
       localStorage.setItem('fp_freedom_model', JSON.stringify({
-        inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner },
+        inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance: superBalance + (isCouple ? partnerSuper : 0) },   // household super for a couple
         picture: todayPicture,
         savedAt: new Date().toISOString()
       }));
@@ -584,7 +607,8 @@
     if (!lastGapCalc) return;
     const hours = parseInt(document.getElementById('g-hours').value);
     document.getElementById('g-hoursVal').textContent = hours + ' hrs/wk';
-    const { gap } = lastGapCalc.freedomPicture;
+    // Same basis as the story above: the pension only counts once the scenario is 67+.
+    const { gapNow: gap, pensionApplies } = lastGapCalc;
     const { hourlyRate } = lastGapCalc.inputs;
     const weeklyWorkIncome = hours * hourlyRate;
     const annualWorkIncome = weeklyWorkIncome * 52;
@@ -610,7 +634,7 @@
     }
 
     if (hours === 0) {
-      resultEl.innerHTML = `Not working at all — your portfolio and Age Pension cover what they can.` + bonusNote;
+      resultEl.innerHTML = `Not working at all — your portfolio${pensionApplies ? ' and Age Pension' : ''} cover${pensionApplies ? '' : 's'} what ${pensionApplies ? 'they' : 'it'} can.` + bonusNote;
     } else if (remainingGap <= 0) {
       resultEl.innerHTML = `<strong>${hours} hrs/week</strong> at ~$${hourlyRate}/hr fully covers the gap. You don't need to touch your portfolio beyond the 4% withdrawal.` + bonusNote;
     } else {
@@ -699,6 +723,9 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
           }
           if (p.savings_monthly) document.getElementById('g-monthlySavings').value = Math.round(p.savings_monthly);
           if (p.take_home_income) document.getElementById('g-rate').value = Math.round((p.take_home_income * 12) / 52 / 38);
+          // A partner on the profile means couple pension rates and limits.
+          isCouple = !!(p.partner_age || p.partner_income > 0 || p.partner_super > 0);
+          partnerSuper = Math.max(0, p.partner_super || 0);
           if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
         }
       }

@@ -586,32 +586,72 @@ async function handleFeedbackNotify(request, env) {
 
 const ASSUMPTIONS_CACHE_KEY = 'https://firepath.pro/assumptions-cache';
 
+// Each figure is read from the RBA's published statistics by its series ID (not by
+// column position, which the RBA occasionally reshuffles). Fallbacks are the latest
+// published values and are only used if the RBA can't be reached.
+const RBA_SERIES = {
+  cashRate:     { table: 'f1', id: 'FIRMMCRTD',   fallback: 4.60 },  // Cash rate target
+  cpi:          { table: 'g1', id: 'GCPIAGYP',    fallback: 3.9 },   // CPI, year-ended % change
+  savingsRate:  { table: 'f4', id: 'FRDIRSAB10K', fallback: 4.80 },  // Banks' bonus savings accounts, $10k
+  mortgageRate: { table: 'f6', id: 'FLRHOOVA',    fallback: 6.2 },   // Outstanding owner-occupier variable loans
+};
+
+// RBA tables date their rows either "31/08/2026" (monthly/quarterly) or "01-Oct-2026" (daily).
+const MONTHS = { Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06', Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12' };
+function rbaDate(cell) {
+  let m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(cell);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  m = /^(\d{2})-([A-Z][a-z]{2})-(\d{4})$/.exec(cell);
+  return m && MONTHS[m[2]] ? `${m[3]}-${MONTHS[m[2]]}-${m[1]}` : null;
+}
+
+// Latest non-empty value (and its date) for one series in an RBA statistics CSV.
+// Values outside a plausible range (e.g. an error page parsed as numbers) are ignored.
+function latestRbaValue(csvText, seriesId, min = -10, max = 30) {
+  const lines = csvText.replace(/\r/g, '').trim().split('\n');
+  const idRow = lines.find(l => l.startsWith('Series ID,'));
+  if (!idRow) return null;
+  const col = idRow.split(',').indexOf(seriesId);
+  if (col < 1) return null;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const cells = lines[i].split(',');
+    const asAt = rbaDate(cells[0]);
+    if (!asAt) continue;
+    const v = parseFloat(cells[col]);
+    if (!isNaN(v)) return v >= min && v <= max ? { value: v, asAt } : null;
+  }
+  return null;
+}
+
 async function handleAssumptions() {
   const cache = caches.default;
   const cacheKey = new Request(ASSUMPTIONS_CACHE_KEY);
   const cached = await cache.match(cacheKey);
   if (cached) return json(await cached.json());
 
-  let cashRate = 4.35, cpi = 3.7, source = 'fallback';
-  try {
-    const text = await (await fetch('https://www.rba.gov.au/statistics/tables/csv/f1-data.csv')).text();
-    const lines = text.trim().split('\n');
-    for (let i = lines.length - 1; i >= 0; i--) { const v = parseFloat(lines[i].split(',')[1]); if (!isNaN(v)) { cashRate = v; break; } }
-    source = 'rba';
-  } catch (e) { console.log('RBA cash rate fetch failed:', e.message); }
-  try {
-    const text = await (await fetch('https://www.rba.gov.au/statistics/tables/csv/g1-data.csv')).text();
-    const rows = text.trim().split('\n').map(l => parseFloat(l.split(',')[1])).filter(v => !isNaN(v));
-    if (rows.length >= 5) {
-      const latest = rows[rows.length - 1], yearAgo = rows[rows.length - 5];
-      cpi = Math.round(((latest - yearAgo) / yearAgo) * 1000) / 10;
-    }
-    source = source === 'rba' ? 'rba' : 'partial';
-  } catch (e) { console.log('RBA CPI fetch failed:', e.message); }
+  const tables = {};
+  await Promise.all([...new Set(Object.values(RBA_SERIES).map(s => s.table))].map(async t => {
+    try {
+      const res = await fetch(`https://www.rba.gov.au/statistics/tables/csv/${t}-data.csv`);
+      if (res.ok) tables[t] = await res.text();
+    } catch (e) { console.log(`RBA table ${t} fetch failed:`, e.message); }
+  }));
 
-  const assumptions = { cashRate, cpi, sgRate: 12, preservationAge: 60, source, fetchedAt: new Date().toISOString() };
+  const assumptions = { sgRate: 12, preservationAge: 60, asAt: {} };
+  let live = 0;
+  for (const [key, s] of Object.entries(RBA_SERIES)) {
+    const found = tables[s.table] ? latestRbaValue(tables[s.table], s.id) : null;
+    assumptions[key] = found ? found.value : s.fallback;
+    assumptions.asAt[key] = found ? found.asAt : null;
+    if (found) live++;
+  }
+  const total = Object.keys(RBA_SERIES).length;
+  assumptions.source = live === total ? 'rba' : live > 0 ? 'partial' : 'fallback';
+  assumptions.fetchedAt = new Date().toISOString();
+
   const response = new Response(JSON.stringify(assumptions), {
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=86400' }
+    // 12 hours: the RBA publishes monthly/quarterly, and a rate decision shows within half a day.
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=43200' }
   });
   await cache.put(cacheKey, response.clone());
   return response;
@@ -668,4 +708,4 @@ export default {
 };
 
 // Exposed for tests only.
-export const _internal = { RATE_LIMITS, sanitiseFeedback, sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, AI };
+export const _internal = { RATE_LIMITS, sanitiseFeedback, sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, AI, latestRbaValue, RBA_SERIES };

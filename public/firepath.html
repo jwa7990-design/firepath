@@ -693,21 +693,23 @@
   function togglePartner(){const f=document.getElementById('partnerFields'),i=document.getElementById('partnerToggleIcon'),v=f.style.display!=='none';f.style.display=v?'none':'block';i.textContent=v?'+':'−';}
 
   function setCycle(btn) { document.querySelectorAll('.cycle-btn[data-cycle]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); selectedCycle = btn.dataset.cycle; updateSavingsHint(); const w=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';const pl=document.getElementById('partnerCycleLabel'),pl2=document.getElementById('partnerCycleLabel2');if(pl)pl.textContent=w;if(pl2)pl2.textContent=w; }
-  function toMonthly(n) { if (selectedCycle === 'weekly') return n * 52 / 12; if (selectedCycle === 'fortnightly') return n * 26 / 12; return n; }
+  // toMonthly, yearsToGoal, fmt and fmtM come from js/calculations.js (loaded below).
 
-  function yearsToGoal(goal, current, mSaving, rate) {
-    if (mSaving <= 0) return null; if (current >= goal) return 0;
-    const r = rate / 12; let bal = current, months = 0;
-    while (bal < goal && months < 1200) { bal = bal * (1 + r) + mSaving; months++; }
-    return months < 1200 ? months / 12 : null;
+  // What money earns where it sits today — real returns built from the live RBA rates.
+  function currentReturns() {
+    const a = FP_ASSUMPTIONS, pct = x => (x * 100).toFixed(1);
+    return {
+      rate: { cash: a.bankRealReturn, etfs: 0.07, offset: a.offsetRealReturn, mix: a.mixRealReturn },
+      note: {
+        cash: `(${pct(a.bankRealReturn)}% real — bonus saver ${a.savingsRate}% less ${a.cpi}% inflation)`,
+        etfs: '(7% real return — already invested)',
+        offset: `(${pct(a.offsetRealReturn)}% real — mortgage rate ${a.mortgageRate}% less ${a.cpi}% inflation)`,
+        mix: `(${pct(a.mixRealReturn)}% real — an even blend of bank, offset and invested)`
+      }
+    };
   }
-  function yearsToGoalCapped(goal, current, mSaving, rate) {
-    if (mSaving <= 0) return 9999; if (current >= goal) return 0;
-    const r = rate / 12; let bal = current, months = 0;
-    while (bal < goal && months < 1200) { bal = bal * (1 + r) + mSaving; months++; }
-    return months / 12;
-  }
-  function fmt(y) { if (y === null) return '100+ yrs'; if (y === 0) return 'Already there!'; const yr = Math.floor(y), mo = Math.round((y - yr) * 12); if (yr === 0) return mo + ' months'; if (mo === 0) return yr + ' yr' + (yr !== 1 ? 's' : ''); return yr + 'yr ' + mo + 'mo'; }
+  // A calendar year for a years-to-go figure: null = out of reach, 0 = already there.
+  function yearLabel(y, cy) { return y === null ? '100+ yrs' : y === 0 ? 'Now' : cy + Math.round(y); }
 
   function updateSavingsHint() {
     const income = parseFloat(document.getElementById('income').value) || 0;
@@ -733,13 +735,14 @@
     const errEl = document.getElementById('errorMsg');
     if (income <= 0) { errEl.textContent = 'Please enter your income first.'; errEl.style.display = 'block'; return; }
     if (age <= 0) { errEl.textContent = 'Please enter your age.'; errEl.style.display = 'block'; return; }
-    errEl.style.display = 'none';
-
     const pI = parseFloat(document.getElementById('partnerIncome').value)||0;
     const pS = parseFloat(document.getElementById('partnerSavings').value)||0;
+    if (savingPerCycle > income || pS > pI) { errEl.textContent = "Savings can't be more than take-home pay."; errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
+
     const mI = toMonthly(income + pI), mSav = toMonthly(savingPerCycle + pS);
     const mS = mI - mSav, fireNum = mS * 12 * 25 * retirementSpendMultiplier;
-    const sRate = income > 0 ? Math.round((savingPerCycle / income) * 100) : 0;
+    const sRate = Math.round(((savingPerCycle + pS) / (income + pI)) * 100);
     const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
     const cycleStatLabel = selectedCycle === 'weekly' ? 'Saved / week' : selectedCycle === 'fortnightly' ? 'Saved / fortnight' : 'Saved / month';
     const cycleSaving = selectedCycle === 'weekly' ? mSav * 12 / 52 : selectedCycle === 'fortnightly' ? mSav * 12 / 26 : mSav;
@@ -768,9 +771,9 @@
       const cy = new Date().getFullYear();
       const mSavPlus = mSav + (50 * 52 / 12);
       const yPlus = yearsToGoal(fireNum, savings, mSavPlus, 0.07);
-      const currentRate = { cash: FP_ASSUMPTIONS.bankRealReturn, etfs: 0.07, offset: 0.05, mix: 0.04 }[savingsType] || FP_ASSUMPTIONS.bankRealReturn;
+      const currentRate = currentReturns().rate[savingsType] ?? FP_ASSUMPTIONS.bankRealReturn;
       const yReality = yearsToGoal(fireNum, savings, mSav, currentRate);
-      const realityNote = savingsType !== 'etfs' && yReality && y07 && yReality - y07 > 0.5
+      const realityNote = savingsType !== 'etfs' && yReality !== null && yReality - y07 > 0.5
         ? ` Right now your money is ${savingsType === 'cash' ? 'in a bank' : savingsType === 'offset' ? 'in your offset' : 'spread across different places'} — if it was invested at 7%, you could get there <strong>${fmt(yReality - y07)} sooner</strong>.`
         : savingsType === 'etfs' ? ` Your money is already invested — you're on the right track.` : '';
       const plusNote = yPlus && y07 && y07 - yPlus > 0.3
@@ -814,7 +817,7 @@
       }
       recCard.style.display = 'flex';
     }
-    buildNeedleCard(fireNum, savings, mSav, y07);
+    buildNeedleCard(fireNum, savings, mSav, y07, mS);
     buildWithdrawalCard(savings, mSav, mI, fireNum, mS, y07, age);
     buildTaxNudge(savings, mSav, sRate, savingsType);
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
@@ -1070,21 +1073,20 @@
     const el = document.getElementById('rangeCard');
     const rows = document.getElementById('rangeRows');
     if (!el || !rows) return;
-    if (!FP_ASSUMPTIONS || !FP_ASSUMPTIONS.bankRealReturn) return;
+    if (typeof FP_ASSUMPTIONS === 'undefined' || FP_ASSUMPTIONS.bankRealReturn == null) return;   // real returns can be 0 or negative
     const cy = new Date().getFullYear();
-    const rateMap = { cash: FP_ASSUMPTIONS.bankRealReturn, etfs: 0.07, offset: 0.05, mix: 0.04 };
+    const { rate: rateMap, note: noteMap } = currentReturns();
     const labelMap = { cash: 'Your money in the bank', etfs: 'Your money in ETFs/shares', offset: 'Your money in offset', mix: 'Your current mix' };
-    const noteMap = { cash: `(${(FP_ASSUMPTIONS.bankRealReturn*100).toFixed(1)}% real return)`, etfs: '(7% real return — already invested)', offset: '(~5% — saving on mortgage interest)', mix: '(~4% blended estimate)' };
-    const currentRate = rateMap[savingsType] || FP_ASSUMPTIONS.bankRealReturn;
+    const currentRate = rateMap[savingsType] ?? FP_ASSUMPTIONS.bankRealReturn;
     const yCurrentReality = yearsToGoal(fireNum, savings, mSav, currentRate);
-    const fmtReality = yCurrentReality ? cy + Math.round(yCurrentReality) : '100+ yrs';
-    const fmt7 = y07 ? cy + Math.round(y07) : '100+ yrs';
-    const diffReality = yCurrentReality && y07 ? Math.round(yCurrentReality - y07) : null;
+    const fmtReality = yearLabel(yCurrentReality, cy);
+    const fmt7 = yearLabel(y07, cy);
+    const diffReality = yCurrentReality !== null && y07 !== null ? Math.round(yCurrentReality - y07) : null;
     const extraLabel = sRate === 0 ? 'if you started saving $50/week' : 'if you found an extra $50/week';
     const mSavPlus = mSav + (50 * 52 / 12);
     const yPlus = yearsToGoal(fireNum, savings, mSavPlus, 0.07);
-    const fmtPlus = yPlus ? cy + Math.round(yPlus) : '100+ yrs';
-    const diffPlus = y07 && yPlus ? Math.round(y07 - yPlus) : null;
+    const fmtPlus = yearLabel(yPlus, cy);
+    const diffPlus = y07 !== null && yPlus !== null ? Math.round(y07 - yPlus) : null;
     const alreadyInvested = savingsType === 'etfs';
     rows.innerHTML = !alreadyInvested ? `
       <div class="range-row"><span class="range-label"><strong>${labelMap[savingsType]}</strong><br/><span style="font-size:11px">${noteMap[savingsType]}</span></span><span class="range-value conservative">${fmtReality}</span></div>
@@ -1099,15 +1101,16 @@
     if (sqRangeStat) sqRangeStat.textContent = diffPlus && diffPlus > 0 ? `Up to ${diffPlus}yr sooner` : `See your 3 scenarios`;
   }
 
-  function buildNeedleCard(fireNum, savings, mSav, y07) {
+  function buildNeedleCard(fireNum, savings, mSav, y07, mSpend) {
     const el = document.getElementById('needleCard');
     if (!el || !y07) return;
     const cy = new Date().getFullYear();
     const base = cy + Math.round(y07);
     const levers = [{ label: 'Save an extra $50/week', mSavNew: mSav + (50*52/12) },{ label: 'Save an extra $100/week', mSavNew: mSav + (100*52/12) },{ label: 'Save an extra $200/week', mSavNew: mSav + (200*52/12) }];
-    const leverRows = levers.map(l => { const y = yearsToGoal(fireNum, savings, l.mSavNew, 0.07); const yr = y ? cy + Math.round(y) : null; const diff = y && y07 ? Math.round(y07 - y) : 0; return `<div class="needle-row"><span class="needle-label">${l.label}</span><span class="needle-result better">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : '') : '100+ yrs'}</span></div>`; }).join('');
+    const leverRows = levers.map(l => { const y = yearsToGoal(fireNum, savings, l.mSavNew, 0.07); const diff = y !== null ? Math.round(y07 - y) : 0; return `<div class="needle-row"><span class="needle-label">${l.label}</span><span class="needle-result better">${yearLabel(y, cy)}${diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : ''}</span></div>`; }).join('');
     const headwinds = [{ label: 'Spending up 15%', mult: 1.15 },{ label: 'Spending up 30%', mult: 1.30 },{ label: 'Spending up 50%', mult: 1.50 }];
-    const headwindRows = headwinds.map(h => { const newFireNum = fireNum * h.mult; const y = yearsToGoal(newFireNum, savings, mSav, 0.07); const yr = y ? cy + Math.round(y) : null; const diff = y && y07 ? Math.round(y - y07) : 0; return `<div class="needle-row"><span class="needle-label">${h.label}</span><span class="needle-result worse">${yr ? yr + (diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : '') : '100+ yrs'}</span></div>`; }).join('');
+    // Spending more raises the number AND comes straight out of what you save each month.
+    const headwindRows = headwinds.map(h => { const newFireNum = fireNum * h.mult; const newMSav = Math.max(0, mSav - (h.mult - 1) * mSpend); const y = yearsToGoal(newFireNum, savings, newMSav, 0.07); const diff = y !== null ? Math.round(y - y07) : 0; return `<div class="needle-row"><span class="needle-label">${h.label}</span><span class="needle-result worse">${yearLabel(y, cy)}${diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : ''}</span></div>`; }).join('');
     el.innerHTML = `<div class="needle-tabs">
         <div class="needle-tab active" onclick="switchNeedleTab('forward',this)">What moves it forward</div>
         <div class="needle-tab" onclick="switchNeedleTab('back',this)">What pushes it back</div>

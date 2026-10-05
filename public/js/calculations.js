@@ -3,14 +3,24 @@
    /js/calculations.js
    ============================================================ */
 
+/* ── Monthly rate ──────────────────────────────────────────
+   The monthly rate that compounds to annualRate over a year.
+   (annualRate / 12 compounds to more: 7%/12 → 7.23% a year.)
+──────────────────────────────────────────────────────────── */
+function monthlyRate(annualRate) {
+  return Math.pow(1 + annualRate, 1 / 12) - 1;
+}
+
 /* ── Time to goal ──────────────────────────────────────────
    Returns years to reach a savings goal.
    Returns null if mSaving <= 0 or goal unreachable in 100 years.
 ──────────────────────────────────────────────────────────── */
 function yearsToGoal(goal, current, mSaving, rate) {
-  if (mSaving <= 0) return null;
   if (current >= goal) return 0;
-  const r = rate / 12;
+  // Nothing going in and nothing to grow: it never gets there. (With a balance and a
+  // positive return it can still get there on growth alone, so keep going.)
+  if (mSaving <= 0 && (current <= 0 || rate <= 0)) return null;
+  const r = monthlyRate(rate);
   let bal = current, months = 0;
   while (bal < goal && months < 1200) {
     bal = bal * (1 + r) + mSaving;
@@ -24,15 +34,15 @@ function yearsToGoal(goal, current, mSaving, rate) {
    Returns 9999 if unreachable — useful for comparisons.
 ──────────────────────────────────────────────────────────── */
 function yearsToGoalCapped(goal, current, mSaving, rate) {
-  if (mSaving <= 0) return 9999;
   if (current >= goal) return 0;
-  const r = rate / 12;
+  if (mSaving <= 0 && (current <= 0 || rate <= 0)) return 9999;
+  const r = monthlyRate(rate);
   let bal = current, months = 0;
   while (bal < goal && months < 1200) {
     bal = bal * (1 + r) + mSaving;
     months++;
   }
-  return months / 12;
+  return months < 1200 ? months / 12 : 9999;
 }
 
 /* ── Format years ──────────────────────────────────────────
@@ -42,8 +52,9 @@ function yearsToGoalCapped(goal, current, mSaving, rate) {
 function fmt(y) {
   if (y === null) return '100+ yrs';
   if (y === 0) return 'Already there!';
-  const yr = Math.floor(y);
-  const mo = Math.round((y - yr) * 12);
+  const months = Math.round(y * 12);           // round once, so 12.97 years is "13 yrs", never "12yr 12mo"
+  const yr = Math.floor(months / 12);
+  const mo = months % 12;
   if (yr === 0) return mo + ' months';
   if (mo === 0) return yr + ' yr' + (yr !== 1 ? 's' : '');
   return yr + 'yr ' + mo + 'mo';
@@ -57,7 +68,7 @@ function fmtM(n) {
   if (n == null || isNaN(n)) return '—';
   const sign = n < 0 ? '-' : '';
   const a = Math.abs(n);
-  if (a >= 1000000) return sign + '$' + (a / 1000000).toFixed(1) + 'M';
+  if (a >= 999500) return sign + '$' + (a / 1000000).toFixed(1) + 'M';   // 999,600 → $1.0M, not $1000K
   if (a >= 1000) return sign + '$' + Math.round(a / 1000) + 'K';
   return sign + '$' + Math.round(a);
 }
@@ -99,8 +110,8 @@ function compoundGrowth(principal, annualRate, years) {
    plus an initial lump sum, compounded monthly.
 ──────────────────────────────────────────────────────────── */
 function compoundWithContributions(principal, monthlyContrib, annualRate, years) {
-  const r = annualRate / 12;
-  const months = years * 12;
+  const r = monthlyRate(annualRate);
+  const months = Math.round(years * 12);
   let bal = principal;
   for (let m = 0; m < months; m++) {
     bal = bal * (1 + r) + monthlyContrib;
@@ -128,32 +139,62 @@ function safeWithdrawal(portfolio, rate) {
    Fetches live data from the Worker and stores globally.
    Falls back to hardcoded values if fetch fails.
 ──────────────────────────────────────────────────────────── */
+/* Two kinds of figures:
+   • Today's rates (live from the RBA via the Worker): cash rate, CPI, what a bonus
+     savings account pays, and the average variable mortgage rate. Used for anything
+     about money's return *now* — cash savings, offset accounts.
+   • Long-run planning figures (fixed): 7% real return, 2.5% inflation (the middle of
+     the RBA's 2–3% target), used for projections over decades, where today's
+     inflation would mislead.
+   Real returns use the exact form (1 + nominal) / (1 + inflation) − 1, and may be
+   negative — cash really can lose ground to inflation. All returns are before tax,
+   the same basis as the 7%. */
 const FP_ASSUMPTIONS = {
-  cashRate: 4.35,
-  cpi: 3.7,
+  cashRate: 4.60,          // RBA cash rate target, %
+  cpi: 3.9,                // CPI, year-ended %, latest quarter
+  savingsRate: 4.80,       // banks' bonus savings accounts, %
+  mortgageRate: 6.2,       // outstanding owner-occupier variable loans, %
   sgRate: 12 / 100,
   preservationAge: 60,
-  bankRealReturn: 0.0075,
-  investReturn: 0.07,
+  investReturn: 0.07,      // long-run real return on growth assets
+  superReturn: 0.07 * (1 - 0.15),  // same, less 15% earnings tax in accumulation
+  longRunInflation: 0.025, // for converting long projections into future dollars
+  bankRealReturn: 0,       // derived below
+  offsetRealReturn: 0,     // derived below
+  mixRealReturn: 0,        // derived below
+  asAt: {},
   source: 'fallback'
 };
+
+function realRate(nominalPct, inflationPct) {
+  return (1 + nominalPct / 100) / (1 + inflationPct / 100) - 1;
+}
+
+// Recompute the "today" returns from the current rates.
+function deriveAssumptions() {
+  const a = FP_ASSUMPTIONS;
+  a.bankRealReturn = realRate(a.savingsRate, a.cpi);
+  a.offsetRealReturn = realRate(a.mortgageRate, a.cpi);   // an offset saves mortgage interest, tax-free
+  // "A mix" of savings: an even blend of cash, offset and invested money.
+  a.mixRealReturn = (a.bankRealReturn + a.offsetRealReturn + a.investReturn) / 3;
+}
+deriveAssumptions();
 
 async function loadAssumptions() {
   try {
     const res = await fetch(`${WORKER_URL}/assumptions`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    if (data.cashRate) FP_ASSUMPTIONS.cashRate = data.cashRate;
-    if (data.cpi) {
-      FP_ASSUMPTIONS.cpi = data.cpi;
-      // Real bank return = cash rate minus inflation
-      FP_ASSUMPTIONS.bankRealReturn = Math.max(0.001, Math.round((data.cashRate - data.cpi) * 10) / 1000);
+    for (const k of ['cashRate', 'cpi', 'savingsRate', 'mortgageRate']) {
+      if (typeof data[k] === 'number' && isFinite(data[k])) FP_ASSUMPTIONS[k] = data[k];
     }
     if (data.sgRate) FP_ASSUMPTIONS.sgRate = data.sgRate / 100;
     if (data.preservationAge) FP_ASSUMPTIONS.preservationAge = data.preservationAge;
+    if (data.asAt) FP_ASSUMPTIONS.asAt = data.asAt;
     FP_ASSUMPTIONS.source = data.source || 'rba';
-    console.log('✅ Assumptions loaded:', FP_ASSUMPTIONS);
   } catch (e) {
-    console.log('⚠️ Assumptions fetch failed, using fallback:', e.message);
+    console.log('Assumptions fetch failed, using built-in figures:', e.message);
   }
+  deriveAssumptions();
 }
 

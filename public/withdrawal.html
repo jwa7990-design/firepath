@@ -162,7 +162,7 @@
   <div class="card">
     <div class="card-label">Assumptions</div>
     <div class="input-row">
-      <label class="input-label-text" for="w-returnRate">Annual investment return</label>
+      <label class="input-label-text" for="w-returnRate">Annual investment return (after inflation)</label>
       <div class="slider-row">
         <input type="range" class="dark-slider" id="w-returnRate" min="3" max="12" value="7" oninput="document.getElementById('w-returnRateVal').textContent=this.value+'%';calcWithdrawal()"/>
         <span class="slider-val" id="w-returnRateVal">7%</span>
@@ -183,13 +183,13 @@
       </div>
     </div>
     <div class="input-row">
-      <label class="input-label-text" for="w-inflation">Expected inflation rate</label>
+      <label class="input-label-text" for="w-inflation">Expected inflation rate (only used to show future dollars)</label>
       <div class="slider-row">
         <input type="range" class="dark-slider" id="w-inflation" min="1" max="6" value="3" step="0.5" oninput="document.getElementById('w-inflationVal').textContent=this.value+'%';calcWithdrawal()"/>
         <span class="slider-val" id="w-inflationVal">3%</span>
       </div>
     </div>
-    <p id="w-rateExplainer" class="callout rate-explainer">The 4% rule is based on decades of research showing a 4% annual withdrawal has historically never depleted a diversified portfolio over 30+ years.</p>
+    <p id="w-rateExplainer" class="callout rate-explainer">The 4% rule comes from research showing a 4% annual withdrawal lasted 30 years in most historical periods for a diversified portfolio — most, not all.</p>
   </div>
   </div>
 
@@ -219,7 +219,7 @@
     <div class="card callout-ember magic-card">
       <div class="magic-title" id="w-magicTitle"><svg class="icon" style="width:16px;height:16px;"><use href="/icons.svg#icon-featured"/></svg> <span id="w-magicTitleText">The magic of this</span></div>
       <div id="w-magicFlow" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
-        <div class="magic-step" id="w-step1" style="opacity:0;transition:opacity 0.4s ease;">This year, your portfolio earns <strong id="w-stepEarn" style="color:var(--positive);">—</strong></div>
+        <div class="magic-step" id="w-step1" style="opacity:0;transition:opacity 0.4s ease;">In your first year, your portfolio earns <strong id="w-stepEarn" style="color:var(--positive);">—</strong></div>
         <div class="magic-step" id="w-step2" style="opacity:0;transition:opacity 0.4s ease;">You withdraw <strong id="w-stepWithdraw" style="color:var(--ember-ink);">—</strong> to live on</div>
         <div class="magic-step" id="w-step3" style="opacity:0;transition:opacity 0.4s ease;"><strong id="w-stepNet" style="color:var(--positive);">—</strong> stays invested and keeps growing</div>
       </div>
@@ -228,21 +228,21 @@
 
     <!-- One-year story — a single readable flow instead of scanning a table -->
     <div class="card portfolio-card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> This year, step by step</div>
+      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your first year of withdrawals, step by step</div>
       <div class="data-row"><span class="data-label">Start of year</span><span class="data-value" id="w-yearStart">—</span></div>
-      <div class="data-row"><span class="data-label">↓ Investment returns</span><span class="data-value up" id="w-yearReturn">—</span></div>
       <div class="data-row"><span class="data-label">↓ Income paid to you</span><span class="data-value out" id="w-yearPaid">—</span></div>
+      <div class="data-row"><span class="data-label">↓ Investment returns</span><span class="data-value up" id="w-yearReturn">—</span></div>
       <div class="data-row total"><span class="data-label">End of year</span><span class="data-value up" id="w-yearEnd">—</span></div>
     </div>
 
     <div class="card portfolio-card">
       <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Looking further ahead</div>
       <div class="data-row">
-        <span class="data-label">Portfolio in 10 years</span>
+        <span class="data-label">10 years after you start withdrawing</span>
         <span class="data-value" id="w-10yr">—</span>
       </div>
       <div class="data-row">
-        <span class="data-label">Portfolio in 20 years</span>
+        <span class="data-label">20 years after you start withdrawing</span>
         <span class="data-value" id="w-20yr">—</span>
       </div>
     </div>
@@ -257,7 +257,7 @@
     <!-- ── Longevity + AI Outlook ── -->
     <div class="card longevity-card">
       <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Will your money last?</div>
-      <div class="card-sub">This first grows your portfolio for the years you said you'll keep working, then models a fixed real withdrawal over a <strong>30-year retirement</strong> from that point — the standard test behind the 4% rule. The withdrawal grows with inflation each year to keep the same buying power. This is a different (usually harder) test than the percentage-of-portfolio numbers above.</div>
+      <div class="card-sub">This first grows your portfolio for the years you said you'll keep working, then models a fixed real withdrawal over a <strong>30-year retirement</strong> from that point — the standard test behind the 4% rule. The withdrawal keeps the same buying power every year — all figures are in today's money.</div>
       <div id="w-confidenceBadge" class="confidence">
         <div class="confidence-left">
           <div id="w-confidenceDot" class="confidence-dot"></div>
@@ -313,21 +313,29 @@
 <script>
 
   // Simulates a classic fixed-real-withdrawal strategy (the actual mechanism the
-  // 4% rule describes): withdraw a fixed dollar amount in year 1, then increase
-  // that withdrawal each year with inflation to preserve purchasing power, while
-  // the portfolio grows at the assumed return. Returns years until depletion,
-  // or null if the portfolio survives the full simulated horizon.
-  function simulateSWR(portfolio, returnRate, withdrawRate, inflation, maxYears = 30) {
+  // 4% rule describes). Everything is in today's money: the return is a real
+  // (after-inflation) return, so a withdrawal that keeps the same buying power is
+  // simply the same number every year — no separate inflation step. Each year's
+  // income comes out at the START of the year (the 4% rule convention), then the
+  // rest grows. yearsLasted = number of full years the portfolio could pay for.
+  function simulateSWR(portfolio, returnRate, withdrawRate, maxYears = 30) {
     let balance = portfolio;
-    let withdrawal = portfolio * withdrawRate;
+    const withdrawal = portfolio * withdrawRate;
     const series = [Math.round(balance)];
     for (let year = 1; year <= maxYears; year++) {
-      balance = balance * (1 + returnRate) - withdrawal;
-      if (balance <= 0) { series.push(0); return { yearsLasted: year, depleted: true, endingBalance: 0, series }; }
+      if (balance < withdrawal * (1 - 1e-9)) { series.push(0); return { yearsLasted: year - 1, depleted: true, endingBalance: 0, series }; }
+      balance = (balance - withdrawal) * (1 + returnRate);
       series.push(Math.round(balance));
-      withdrawal *= (1 + inflation);
     }
     return { yearsLasted: maxYears, depleted: false, endingBalance: Math.round(balance), series };
+  }
+
+  // Balance n years into withdrawals, taking a fixed (today's money) amount W out at the
+  // start of each year: P(1+r)^n − W(1+r)((1+r)^n − 1)/r, floored at zero.
+  function balanceAfterWithdrawals(P, r, W, n) {
+    const g = Math.pow(1 + r, n);
+    const paid = r === 0 ? W * n : W * (1 + r) * (g - 1) / r;
+    return Math.max(0, P * g - paid);
   }
 
   let lastLongevity = null;
@@ -344,24 +352,28 @@
 
     document.getElementById('results').style.display = 'block';
 
-    const annualIncome    = portfolio * withdrawRate;
-    const annualReturn    = portfolio * returnRate;
+    // Everything here is in today's money: the return slider is a real (after-inflation)
+    // return. Grow today's portfolio to the point withdrawals start, then take the income.
+    const years = parseFloat(document.getElementById('w-years').value) || 25;
+    const inflation = parseFloat(document.getElementById('w-inflation').value) / 100 || 0.03;
+    const portfolioAtStart = portfolio * Math.pow(1 + returnRate, years);
+    const annualIncome    = portfolioAtStart * withdrawRate;
+    // Income comes out at the start of the year; the rest earns the return
+    const annualReturn    = (portfolioAtStart - annualIncome) * returnRate;
     const netGrowth       = annualReturn - annualIncome;
-    const growthRate      = returnRate - withdrawRate;
 
     // Income breakdown
     document.getElementById('w-annual').textContent      = fmtM(annualIncome);
-    const years = parseFloat(document.getElementById('w-years').value) || 25;
-    const inflation = parseFloat(document.getElementById('w-inflation').value) / 100 || 0.03;
-    const todayValue = annualIncome / Math.pow(1 + inflation, years);
-    document.getElementById('w-sub').textContent = `${fmtM(annualIncome)}/year in ${years} years — worth about ${fmtM(todayValue)} in today's money`;
+    // Inflation is only used to show the same income as a future-dollar figure
+    const futureValue = annualIncome * Math.pow(1 + inflation, years);
+    document.getElementById('w-sub').textContent = `${fmtM(annualIncome)}/year in today's money, starting in ${years} years — about ${fmtM(futureValue)} in future dollars at ${(inflation * 100).toFixed(1).replace(/\.0$/, '')}% inflation`;
 
     document.getElementById('w-monthly').textContent     = fmtM(annualIncome / 12);
     document.getElementById('w-fortnightly').textContent = fmtM(annualIncome / 26);
     document.getElementById('w-weekly').textContent      = fmtM(annualIncome / 52);
 
     const growthNoteEl = document.getElementById('w-growthNote');
-    if (annualReturn > annualIncome) {
+    if (netGrowth > 0) {
       growthNoteEl.innerHTML = `<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Your portfolio is expected to keep growing while paying you this income.`;
       growthNoteEl.style.color = '#81C784';
     } else {
@@ -370,14 +382,14 @@
     }
 
     // One-year story
-    document.getElementById('w-yearStart').textContent  = fmtM(portfolio);
+    document.getElementById('w-yearStart').textContent  = fmtM(portfolioAtStart);
     document.getElementById('w-yearReturn').textContent = '+' + fmtM(annualReturn);
     document.getElementById('w-yearPaid').textContent   = '-' + fmtM(annualIncome);
-    document.getElementById('w-yearEnd').textContent    = fmtM(portfolio + netGrowth);
+    document.getElementById('w-yearEnd').textContent    = fmtM(portfolioAtStart + netGrowth);
 
-    // Portfolio in 10/20 years
-    const p10 = portfolio * Math.pow(1 + growthRate, 10);
-    const p20 = portfolio * Math.pow(1 + growthRate, 20);
+    // Portfolio 10/20 years into withdrawals (same fixed income every year, in today's money)
+    const p10 = balanceAfterWithdrawals(portfolioAtStart, returnRate, annualIncome, 10);
+    const p20 = balanceAfterWithdrawals(portfolioAtStart, returnRate, annualIncome, 20);
     document.getElementById('w-10yr').textContent = fmtM(p10);
     document.getElementById('w-20yr').textContent = fmtM(p20);
 
@@ -387,7 +399,7 @@
       2.5: 'Very conservative — maximum portfolio growth, lower income.',
       3: 'Conservative — your portfolio grows comfortably while providing a solid income.',
       3.5: 'Moderate — a good balance of income and portfolio growth.',
-      4: 'The FIRE benchmark — based on the Trinity Study showing 4% has historically never depleted a diversified portfolio over 30+ years.',
+      4: 'The FIRE benchmark — based on the Trinity Study, where 4% lasted 30 years in most (not all) historical periods for a diversified portfolio.',
       4.5: 'Slightly above benchmark — works well if returns are strong.',
       5: 'Comfortable — portfolio may grow slowly or stay flat depending on returns.',
       5.5: 'Higher lifestyle — portfolio growth slows significantly.',
@@ -408,11 +420,11 @@
     document.getElementById('w-stepWithdraw').textContent = fmtM(annualIncome);
     document.getElementById('w-stepNet').textContent = fmtM(netGrowth);
 
-    if (withdrawRate < returnRate) {
+    if (netGrowth > 0.5) {
       magicIconWrap.setAttribute('href', '/icons.svg#icon-featured');
       magicTitleText.textContent = 'The magic moment';
       magicText.innerHTML = `You haven't touched the principal — and your wealth is still increasing.`;
-    } else if (withdrawRate === returnRate) {
+    } else if (netGrowth > -0.5) {
       magicIconWrap.setAttribute('href', '/icons.svg#icon-balance');
       magicTitleText.textContent = 'Breaking even';
       magicText.innerHTML = `Your principal stays the same forever. You could theoretically do this indefinitely, but there's no buffer if returns dip.`;
@@ -432,11 +444,12 @@
     const rates = [3, 4, 5, 6];
     const container = document.getElementById('w-rateComparison');
     container.innerHTML = rates.map(rate => {
-      const income = portfolio * (rate / 100);
-      const growth = returnRate - (rate / 100);
+      const income = portfolioAtStart * (rate / 100);
+      // First-year growth, with the income taken out at the start of the year
+      const growth = (1 - rate / 100) * (1 + returnRate) - 1;
       const isActive = Math.abs(rate - rateKey) < 0.3;
       const growthClass = growth > 0.02 ? 'positive' : growth > 0 ? 'warning' : 'danger';
-      const growthText = growth > 0 ? `Portfolio grows ${(growth * 100).toFixed(1)}%/yr` : growth === 0 ? 'Portfolio holds steady' : `Portfolio shrinks ${Math.abs(growth * 100).toFixed(1)}%/yr`;
+      const growthText = Math.abs(growth) < 0.0005 ? 'Portfolio holds steady' : growth > 0 ? `Portfolio grows ${(growth * 100).toFixed(1)}% in year one` : `Portfolio shrinks ${Math.abs(growth * 100).toFixed(1)}% in year one`;
       const desc = rate === 3 ? 'Conservative' : rate === 4 ? 'FIRE benchmark' : rate === 5 ? 'Comfortable' : 'Aggressive';
       return `
         <div class="rate-row ${isActive ? 'active' : ''}">
@@ -454,9 +467,8 @@
     // ── Longevity simulation (fixed real withdrawal, inflation-adjusted) ──
     // Grow the portfolio through the deferral years first — the longevity test needs to
     // reflect the balance at the point withdrawals actually start, not today's balance.
-    const portfolioAtStart = portfolio * Math.pow(1 + returnRate, years);
-    const base = simulateSWR(portfolioAtStart, returnRate, withdrawRate, inflation);
-    const good = simulateSWR(portfolioAtStart, returnRate + 0.02, withdrawRate, inflation);
+    const base = simulateSWR(portfolioAtStart, returnRate, withdrawRate);
+    const good = simulateSWR(portfolioAtStart, returnRate + 0.02, withdrawRate);
     lastLongevity = { portfolio: portfolioAtStart, portfolioToday: portfolio, yearsToRetirement: years, returnRate, withdrawRate, inflation, base, good };
 
     const baseYearsEl = document.getElementById('w-longevityBaseYears');
@@ -513,7 +525,9 @@
     if (base.depleted) {
       takeawayEl.innerHTML = `Based on today's assumptions, this withdrawal rate doesn't quite make it through a full 30-year retirement. Small adjustments — a slightly lower withdrawal rate, or a few more years of growth first — tend to make an outsized difference over decades of compounding.`;
     } else {
-      takeawayEl.innerHTML = `Based on today's assumptions, your investments don't just support your retirement — they keep working the entire time, growing faster than you're drawing them down. That's the power of disciplined investing paired with a sustainable withdrawal rate.`;
+      takeawayEl.innerHTML = base.endingBalance >= portfolioAtStart
+        ? `On a steady ${(returnRate * 100).toFixed(0)}% path, your investments don't just support your retirement — they keep working the entire time, growing faster than you're drawing them down. That's the power of disciplined investing paired with a sustainable withdrawal rate.`
+        : `On a steady ${(returnRate * 100).toFixed(0)}% path, your investments last the full 30 years, though the balance slowly shrinks along the way. Real returns won't be steady, so a thinner margin like this deserves a closer look.`;
     }
 
     // Reset AI outlook when inputs change — the cached narrative no longer matches
@@ -573,7 +587,7 @@
     loading.classList.add('visible');
     textEl.style.display = 'none';
 
-    const { portfolio, portfolioToday, yearsToRetirement, returnRate, withdrawRate, inflation, base, good } = lastLongevity;
+    const { portfolio, portfolioToday, yearsToRetirement, returnRate, withdrawRate, base, good } = lastLongevity;
     const baseDesc = base.depleted ? `runs out around year ${base.yearsLasted} of a 30-year retirement` : `comfortably lasts the full 30-year retirement test, ending with roughly ${fmtM(base.endingBalance)} still invested`;
     const goodDesc = good.depleted ? `runs out around year ${good.yearsLasted}` : `also lasts the full 30 years, ending with roughly ${fmtM(good.endingBalance)} — an even larger buffer`;
 
@@ -582,7 +596,7 @@
     const outlierNote = (multipleForAI > 15 && totalHorizonForAI > 40)
       ? ` Note: this assumes ${(returnRate*100).toFixed(0)}% returns sustained for ${totalHorizonForAI} straight years (${yearsToRetirement} to retirement plus 30 in retirement) — flag this clearly as an aggressive assumption over an unusually long horizon, not a realistic forecast.`
       : '';
-    const userInput = `Portfolio today: ${fmtM(portfolioToday)}. This person plans to keep working and growing it for ${yearsToRetirement} more years before retiring, at which point the portfolio is projected to be roughly ${fmtM(portfolio)}. Assumed return: ${(returnRate*100).toFixed(1)}%. Withdrawal rate at retirement: ${(withdrawRate*100).toFixed(1)}% (${fmtM(portfolio*withdrawRate)}/yr in the first year of retirement, then increased with inflation each year to preserve purchasing power). Inflation assumption: ${(inflation*100).toFixed(1)}%. Simulation result on current settings (30-year retirement horizon starting from the projected retirement balance — the standard Trinity Study test): ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.${outlierNote}`;
+    const userInput = `Portfolio today: ${fmtM(portfolioToday)}. This person plans to keep working and growing it for ${yearsToRetirement} more years before retiring, at which point the portfolio is projected to be roughly ${fmtM(portfolio)} in today's money. Assumed return: ${(returnRate*100).toFixed(1)}% a year after inflation (all figures are in today's money). Withdrawal rate at retirement: ${(withdrawRate*100).toFixed(1)}% (${fmtM(portfolio*withdrawRate)}/yr in today's money, taken at the start of each year and kept at the same buying power throughout). Simulation result on current settings (30-year retirement horizon starting from the projected retirement balance — the standard Trinity Study test): ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.${outlierNote}`;
 
     try {
       const res = await fetch(WORKER_URL, {
@@ -612,16 +626,15 @@ Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what 
     }
   }
 
-  // Auto-fill from compound calculator, or from a portfolio value passed via URL
-  // (e.g. the Pro dashboard linking here with a person's actual saved savings)
+  // Auto-fill from a portfolio value passed via URL (e.g. the Pro dashboard linking here
+  // with a person's actual saved savings). The compound calculator's saved figure is
+  // deliberately not used: it's already a projected age-60 value, and this page grows
+  // today's value forward itself.
   document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const urlPortfolio = params.get('portfolio');
-    const savedPortfolio = localStorage.getItem('fp_compound_portfolio');
     if (urlPortfolio) {
       document.getElementById('w-portfolio').value = urlPortfolio;
-    } else if (savedPortfolio) {
-      document.getElementById('w-portfolio').value = savedPortfolio;
     }
     calcWithdrawal();
   });

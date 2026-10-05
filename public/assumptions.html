@@ -135,7 +135,7 @@
     <h2 class="section-title">Fixed assumptions</h2>
     <div class="fixed-list">
       <div class="fixed-row">
-        <div class="fixed-label"><strong>Investment return</strong><br/>The rate used for your freedom date calculation</div>
+        <div class="fixed-label"><strong>Investment return</strong><br/>The rate used for your freedom date calculation. Compounded monthly at the rate that adds up to exactly 7% a year (0.565% a month — not 7% ÷ 12, which would overstate it)</div>
         <div class="fixed-val">7% real<br/><span class="fixed-sub">after inflation</span></div>
       </div>
       <div class="fixed-row">
@@ -143,15 +143,15 @@
         <div class="fixed-val">25× annual<br/><span class="fixed-sub">spending</span></div>
       </div>
       <div class="fixed-row">
-        <div class="fixed-label"><strong>Super growth rate</strong><br/>Applied to your projected super balance</div>
-        <div class="fixed-val">7% nominal</div>
+        <div class="fixed-label"><strong>Super growth rate</strong><br/>7% real, less the 15% tax super funds pay on earnings while you're working. Contributions are also taxed 15% on the way in</div>
+        <div class="fixed-val">5.95% real<br/><span class="fixed-sub">after earnings tax</span></div>
       </div>
       <div class="fixed-row">
-        <div class="fixed-label"><strong>Gross income estimate</strong><br/>Used to calculate employer super contributions</div>
-        <div class="fixed-val">Net ÷ 0.72</div>
+        <div class="fixed-label"><strong>Gross income estimate</strong><br/>Worked backwards from your take-home pay through the actual tax brackets, LITO and Medicare levy — used for employer super contributions</div>
+        <div class="fixed-val">Exact<br/><span class="fixed-sub">from tax tables</span></div>
       </div>
       <div class="fixed-row">
-        <div class="fixed-label"><strong>Inflation assumption</strong><br/>Used in nominal projections and inflation toggle</div>
+        <div class="fixed-label"><strong>Inflation assumption</strong><br/>For turning long projections into future dollars. Today's inflation (shown above, live) is used for anything about returns right now — but over decades the RBA's target is the better guide</div>
         <div class="fixed-val">2.5%<br/><span class="fixed-sub">RBA long-run target</span></div>
       </div>
       <div class="fixed-row">
@@ -351,9 +351,12 @@ async function renderLiveData() {
   const a = FP_ASSUMPTIONS;
   const grid = document.getElementById('liveGrid');
   const rows = [
-    { label: 'RBA Cash Rate', value: a.cashRate.toFixed(2) + '%', source: 'Reserve Bank of Australia', url: 'https://www.rba.gov.au/statistics/tables/csv/f1-data.csv', live: true },
-    { label: 'CPI Inflation (year-on-year)', value: a.cpi.toFixed(1) + '%', source: 'Reserve Bank of Australia', url: 'https://www.rba.gov.au/statistics/tables/csv/g1-data.csv', live: true },
-    { label: 'Bank real return', value: (a.bankRealReturn * 100).toFixed(2) + '%', source: 'Calculated: cash rate minus CPI', url: null, live: true },
+    { label: 'RBA Cash Rate', value: a.cashRate.toFixed(2) + '%', source: 'Reserve Bank of Australia', url: 'https://www.rba.gov.au/statistics/tables/csv/f1-data.csv', live: true, asAt: a.asAt && a.asAt.cashRate },
+    { label: 'CPI Inflation (year-on-year)', value: a.cpi.toFixed(1) + '%', source: 'Reserve Bank of Australia', url: 'https://www.rba.gov.au/statistics/tables/csv/g1-data.csv', live: true, asAt: a.asAt && a.asAt.cpi },
+    { label: 'Bonus savings account rate', value: a.savingsRate.toFixed(2) + '%', source: 'Reserve Bank of Australia (F4)', url: 'https://www.rba.gov.au/statistics/tables/csv/f4-data.csv', live: true, asAt: a.asAt && a.asAt.savingsRate },
+    { label: 'Average variable mortgage rate', value: a.mortgageRate.toFixed(2) + '%', source: 'Reserve Bank of Australia (F6)', url: 'https://www.rba.gov.au/statistics/tables/csv/f6-data.csv', live: true, asAt: a.asAt && a.asAt.mortgageRate },
+    { label: 'Cash savings, real return', value: (a.bankRealReturn * 100).toFixed(2) + '%', source: 'Calculated: savings rate after inflation', url: null, live: true },
+    { label: 'Offset account, real return', value: (a.offsetRealReturn * 100).toFixed(2) + '%', source: 'Calculated: mortgage rate after inflation', url: null, live: true },
     { label: 'Super Guarantee rate', value: (a.sgRate * 100).toFixed(1) + '%', source: 'Australian Taxation Office', url: 'https://www.ato.gov.au/tax-rates-and-codes/key-superannuation-rates-and-thresholds/super-guarantee', live: false },
     { label: 'Super preservation age', value: a.preservationAge, source: 'MoneySmart — ASIC', url: 'https://moneysmart.gov.au/how-super-works/getting-your-super', live: false }
   ];
@@ -362,7 +365,7 @@ async function renderLiveData() {
       <div class="live-row-left">
         <span class="live-label">${r.label}</span>
         <span class="live-source">${r.url ? `<a href="${r.url}" target="_blank">${r.source} ↗</a>` : r.source}</span>
-        ${r.live ? `<span class="live-badge">Live</span>` : `<span style="font-size:10px;color:var(--soft-grey);margin-top:2px;">Updated annually</span>`}
+        ${r.live ? `<span class="live-badge">Live</span>${r.asAt ? ` <span style="font-size:10px;color:var(--soft-grey);">as at ${new Date(r.asAt + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</span>` : ''}` : `<span style="font-size:10px;color:var(--soft-grey);margin-top:2px;">Updated annually</span>`}
       </div>
       <span class="live-value">${r.value}</span>
     </div>

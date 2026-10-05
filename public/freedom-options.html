@@ -147,7 +147,7 @@
 
   // No input form on this page — numbers come exclusively from the Freedom Gap handoff.
   // This is the single place that data lives before generateOptions() reads it.
-  let currentInputs = null; // { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner }
+  let currentInputs = null; // { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance }
   let userPersona = 'building'; // beginner / building / fire — inherited from FirePath Pro onboarding
 
   // ── Option types — each has a relevance score (0 = don't show) and a compute() that
@@ -156,11 +156,11 @@
     {
       id: 'stay_course', always: true,
       compute(inp) {
-        const rawHrs = inp.hourlyRate > 0 ? Math.max(0, inp.gapAfterPensionToday) / inp.hourlyRate / 52 : null;
+        const rawHrs = inp.hourlyRate > 0 ? Math.max(0, inp.gapNow) / inp.hourlyRate / 52 : null;
         return { id: 'stay_course', facts: {
           freedomPctToday: inp.freedomPctToday,
           hoursPerWeekNow: rawHrs !== null ? niceHours(rawHrs) : null,
-          gapAfterPensionToday: Math.round(inp.gapAfterPensionToday)
+          gapToday: Math.round(inp.gapNow)
         }};
       }
     },
@@ -179,7 +179,7 @@
       id: 'reduce_spend',
       relevance(inp) {
         if (!inp.fullStopSolve) return 0;
-        const reduced = solveFreedomAge(inp.age, inp.portfolio, inp.monthlySavings, Math.max(0, inp.annualSpend - 5000), inp.isHomeowner);
+        const reduced = solveFreedomAge(inp.age, inp.portfolio, inp.monthlySavings, Math.max(0, inp.annualSpend - 5000), inp.isHomeowner, 0.07, inp.isCouple, inp.superBalance);
         inp._reducedSolve = reduced;
         return reduced && reduced.age < inp.fullStopSolve.age ? 2 : 0;
       },
@@ -193,7 +193,7 @@
     {
       id: 'coast',
       relevance(inp) {
-        const c = solveFreedomAge(inp.age, inp.portfolio, 0, inp.annualSpend, inp.isHomeowner);
+        const c = solveFreedomAge(inp.age, inp.portfolio, 0, inp.annualSpend, inp.isHomeowner, 0.07, inp.isCouple, inp.superBalance);
         inp._coastSolve = c;
         return c && c.age <= 67 && inp.monthlySavings > 0 ? 2 : 0;
       },
@@ -206,7 +206,7 @@
       id: 'semi_retire_now',
       relevance(inp) {
         if (inp.hourlyRate <= 0) return 0;
-        const hrs = Math.max(0, inp.gapAfterPensionToday) / inp.hourlyRate / 52;
+        const hrs = Math.max(0, inp.gapNow) / inp.hourlyRate / 52;
         inp._hoursNow = hrs;
         return hrs > 0 && hrs <= 15 ? 2 : 0;
       },
@@ -250,7 +250,7 @@
       }
     },
     retire_full_stop: {
-      desc: 'The age at which the portfolio alone (plus the pension once eligible) covers everything, with no work income at all.',
+      desc: 'The age at which the portfolio (plus super from 60 and the Age Pension from 67) covers everything, with no work income at all.',
       headline: (f) => `Retire completely at ${f.targetAge}`,
       gainBack: (f) => `${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} from full freedom`
     },
@@ -281,22 +281,28 @@
 
   async function generateOptions() {
     if (!currentInputs) return; // shouldn't be callable without a handoff, but stay safe
-    const { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner } = currentInputs;
+    const { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance } = currentInputs;
 
     document.getElementById('foGenerateBtn').disabled = true;
     document.getElementById('optionsWrap').innerHTML = '';
     document.getElementById('foDisclaimer').style.display = 'none';
     document.getElementById('foLoading').classList.add('visible');
 
-    const picture = window.FirePathEngine.computeFreedomPicture({ portfolio, annualSpend, isHomeowner });
+    // Pension means test at 67: today's portfolio left to grow, plus super grown from today.
+    const E = window.FirePathEngine;
+    const y67 = Math.max(0, E.PENSION_AGE - age);
+    const pensionAssets = projectPortfolio(portfolio, 0, y67) + (superBalance > 0 ? projectPortfolio(superBalance, 0, y67, E.SUPER_RETURN) : 0);
+    const picture = E.computeFreedomPicture({ portfolio, annualSpend, isHomeowner, isCouple, pensionAssets });
     const portfolioIncomeToday = picture.portfolioIncome;
     const gapToday = picture.gap;
     const pensionAnnualToday = picture.pensionAnnual;
     const gapAfterPensionToday = picture.gapAfterPension;
+    // The pension isn't paid until 67, so anything "starting today" uses the full gap before then.
+    const gapNow = age >= E.PENSION_AGE ? gapAfterPensionToday : gapToday;
     const freedomPctToday = picture.freedomPct;
-    const fullStopSolve = solveFreedomAge(age, portfolio, monthlySavings, annualSpend, isHomeowner);
+    const fullStopSolve = solveFreedomAge(age, portfolio, monthlySavings, annualSpend, isHomeowner, 0.07, isCouple, superBalance);
 
-    const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, freedomPctToday, fullStopSolve };
+    const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, gapNow, freedomPctToday, fullStopSolve };
     const options = selectOptions(inp);
 
     try {
@@ -372,7 +378,7 @@ Absolute rules:
           ? `Right now your portfolio covers ${f.freedomPctToday}% of your spending — working about ${f.hoursPerWeekNow} hrs/week would close the rest.`
           : `Your portfolio already covers your full spending today.` };
       case 'retire_full_stop':
-        return { blurb: `That's ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} away — by then your portfolio alone is projected to cover everything, no work income needed.` };
+        return { blurb: `That's ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} away — by then your portfolio (with super and any Age Pension) is projected to cover everything, no work income needed.` };
       case 'reduce_spend':
         return { blurb: `Trimming spending by ${fmtM(f.reductionPerYear)}/year could move your full retirement forward by ${f.yearsSooner} year${f.yearsSooner !== 1 ? 's' : ''}, to age ${f.targetAge}.` };
       case 'coast':
@@ -386,15 +392,20 @@ Absolute rules:
     }
   }
 
-  // "Most realistic" = whichever non-baseline option is achievable soonest — smallest
-  // years-away, or smallest hours/week for the immediate-start options. A simple,
-  // deterministic stand-in for "which path is closest to your reach right now."
-  function findStrongestId(options) {
+  // "Most realistic" = whichever non-baseline option is achievable soonest, measured in
+  // one unit: years until that path is open to you. Starting-now options are 0 years away.
+  // (Comparing hours a week against years, or "years sooner" against "years away", mixed units.)
+  // A simple, deterministic stand-in for "which path is closest to your reach right now."
+  function findStrongestId(options, age) {
     let best = null, bestScore = Infinity;
     options.forEach(o => {
       if (o.id === 'stay_course') return;
       const f = o.facts;
-      const score = f.yearsAway ?? f.yearsSooner ?? f.hoursPerWeek ?? f.yearsToPension ?? Infinity;
+      const score = o.id === 'semi_retire_now' ? 0
+        : f.yearsAway != null ? f.yearsAway
+        : f.yearsToPension != null ? f.yearsToPension
+        : f.targetAge != null && age ? f.targetAge - Math.floor(age)
+        : Infinity;
       if (score < bestScore) { bestScore = score; best = o.id; }
     });
     return best;
@@ -404,7 +415,7 @@ Absolute rules:
     const wrap = document.getElementById('optionsWrap');
     const narratedMap = {};
     if (narrated) { narrated.forEach(n => { narratedMap[n.id] = n; }); }
-    const strongestId = findStrongestId(options);
+    const strongestId = findStrongestId(options, currentInputs && currentInputs.age);
 
     wrap.innerHTML = options.map(o => {
       const meta = OPTION_META[o.id];
@@ -413,7 +424,7 @@ Absolute rules:
       const isStrongest = o.id === strongestId;
       const gainBack = meta.gainBack ? meta.gainBack(o.facts) : null;
       const statsHtml = Object.entries(o.facts).filter(([k, v]) => v !== null && v !== undefined).slice(0, 3).map(([k, v]) => {
-        const label = { freedomPctToday: 'Covered today', hoursPerWeekNow: 'Hrs/week', gapAfterPensionToday: 'Gap/yr', targetAge: 'Target age', yearsAway: 'Years away', projectedPortfolioIncome: 'Portfolio income', projectedPensionIncome: 'Pension income', reductionPerYear: 'Less spending', yearsSooner: 'Years sooner', hoursPerWeek: 'Hrs/week', yearsToPension: 'To pension' }[k] || k;
+        const label = { freedomPctToday: 'Covered today', hoursPerWeekNow: 'Hrs/week', gapToday: 'Gap/yr', gapAfterPensionToday: 'Gap after pension', targetAge: 'Target age', yearsAway: 'Years away', projectedPortfolioIncome: 'Portfolio income', projectedPensionIncome: 'Pension income', reductionPerYear: 'Less spending', yearsSooner: 'Years sooner', hoursPerWeek: 'Hrs/week', yearsToPension: 'To pension' }[k] || k;
         const val = typeof v === 'number' && (k.toLowerCase().includes('income') || k.toLowerCase().includes('gap') || k === 'reductionPerYear') ? fmtM(v) : (k.toLowerCase().includes('pct') ? v + '%' : v);
         return `<div class="option-stat"><div class="option-stat-value">${val}</div><div class="option-stat-label">${label}</div></div>`;
       }).join('');
@@ -466,7 +477,8 @@ Absolute rules:
     if (hasCompleteHandoff) {
       currentInputs = {
         portfolio: inp2.portfolio, annualSpend: inp2.annualSpend, age: inp2.age,
-        monthlySavings: inp2.monthlySavings || 0, hourlyRate: inp2.hourlyRate || 0, isHomeowner: inp2.isHomeowner
+        monthlySavings: inp2.monthlySavings || 0, hourlyRate: inp2.hourlyRate || 0, isHomeowner: inp2.isHomeowner,
+        isCouple: !!inp2.isCouple, superBalance: inp2.superBalance || 0
       };
 
       // Reuse the exact picture Freedom Gap already calculated for the intro line, rather

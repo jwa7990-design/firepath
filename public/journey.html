@@ -460,7 +460,8 @@
     yearEl.textContent = m.freedomYear != null ? m.freedomYear : '40+ yrs';
     const parts = [];
     if (m.months != null) {
-      if (m.age) parts.push(`Age <strong>${Math.floor(m.age + m.months / 12)}</strong>`);
+      // Rounded up, like Freedom Options: you're free at the first birthday on or after the date.
+      if (m.age) parts.push(`Age <strong>${Math.ceil(m.age + m.months / 12)}</strong>`);
       parts.push(`<strong>${duration(m.months)}</strong> from now`);
     } else {
       parts.push('Beyond 40 years at your current pace');
@@ -480,7 +481,7 @@
     const persona = Persona.get();
     const list = [];
     if (m.age && m.age < 58) {
-      const coastPct = Math.round(100 / Math.pow(1 + RATE, 60 - m.age));
+      const coastPct = Math.round(100 / Engine.projectPortfolio(1, 0, 60 - m.age, RATE));
       if (coastPct >= 3 && coastPct <= 85) list.push({ at: coastPct, name: Persona.copy('coastTerm'), hint: persona === 'beginner' ? 'Grows on its own by 60' : 'FI by 60 without saving more' });
     }
     list.push({ at: 50, name: persona === 'fire' ? '50% FI' : 'Halfway', hint: money(m.freedomNumber / 2) });
@@ -915,7 +916,9 @@
             const monthsThen = Engine.solveMonthsToTarget(oi.savings, oi.monthlySavings, annualSpend);
             const monthsNow = Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
             const elapsed = Math.round((Date.now() - new Date(oldest.created_at).getTime()) / (864e5 * 30.44));
-            const bought = Math.max(0, (monthsThen - elapsed) - monthsNow);
+            // Either side beyond the 40-year horizon (null) means there's no honest figure
+            // to show (x - null would quietly count as x - 0).
+            const bought = (monthsThen == null || monthsNow == null) ? 0 : Math.max(0, (monthsThen - elapsed) - monthsNow);
             if (bought > 0) {
               const years = Math.floor(bought / 12), months = Math.floor(bought % 12);
               const oldDate = new Date(oldest.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });

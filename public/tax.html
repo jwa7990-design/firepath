@@ -210,7 +210,7 @@
       <div class="result-row"><span class="result-label">Net super gain</span><span class="result-value green" id="t2NetSuper">—</span></div>
       <div class="result-row"><span class="result-label">Real cost to your take-home</span><span class="result-value" id="t2TakeHomeCost">—</span></div>
       <div class="result-row"><span class="result-label">Concessional cap remaining</span><span class="result-value" id="t2CapRemaining">—</span></div>
-      <div id="t2CapWarning" class="warning-box" style="display:none;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;flex-shrink:0;"><use href="/icons.svg#icon-alert"/></svg> <span>You're approaching the concessional cap. Contributions above the cap are taxed at your marginal rate.</span></div>
+      <div id="t2CapWarning" class="warning-box" style="display:none;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;flex-shrink:0;"><use href="/icons.svg#icon-alert"/></svg> <span id="t2CapWarningText"></span></div>
       <div class="pro-insight" id="t2ProInsight" style="display:none;">
         <div class="pro-insight-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-super"/></svg> Impact on your super at 60</div>
         <div id="t2SuperCompare" class="comparison-box" style="margin-top:0;margin-bottom:12px;"></div>
@@ -244,7 +244,7 @@
         </div>
         <div class="comparison-item" id="t3InvestBox">
           <div class="comparison-rate green" id="t3InvestRate">—</div>
-          <div class="comparison-label">Investing after tax<br/>(7% × (1 - marginal rate))</div>
+          <div class="comparison-label">Investing after tax<br/>(~9.7% before tax: 7% real + 2.5% inflation)</div>
         </div>
       </div>
       <div id="t3Verdict" class="verdict"></div>
@@ -277,7 +277,7 @@
     </div>
   </div>
 
-  <p class="page-foot">Based on <span id="taxYearLabel"></span> ATO tax rates. Educational only — not financial advice. <a href="assumptions.html">Our assumptions →</a></p>
+  <p class="page-foot">Based on <span id="taxYearLabel"></span> ATO tax rates. Take-home includes income tax, the low income tax offset and the Medicare levy; it doesn't include HELP repayments or the Medicare levy surcharge (for higher earners without private hospital cover). Educational only — not financial advice. <a href="assumptions.html">Our assumptions →</a></p>
 
 </div>
 </main>
@@ -496,10 +496,10 @@
     const t1Insight = document.getElementById('t1ProInsight');
     const t1Text = document.getElementById('t1ProInsightText');
     if (proProfile && proProfile.freedom_number) {
-      const pct = Math.round((r.takeHome / proProfile.freedom_number) * 100);
+      const pct = Math.round((r.takeHome / (proProfile.freedom_number * 0.04)) * 100);   // freedom number ÷ 25 = the yearly income it pays
       const sRate = proProfile.savings_rate || 0;
       const towardFreedom = Math.round(r.takeHome * sRate / 100 / 52);
-      t1Text.innerHTML = `Your take-home covers <strong>${pct}%</strong> of your freedom number (${fmtDollars(proProfile.freedom_number)}). At your current savings rate of ${sRate}%, that's <strong>${fmtDollars(towardFreedom)}/week</strong> actually moving toward freedom — the rest funds today.`;
+      t1Text.innerHTML = `Your take-home is <strong>${pct}%</strong> of the yearly income your freedom number (${fmtDollars(proProfile.freedom_number)}) is built to pay you (${fmtDollars(proProfile.freedom_number * 0.04)}/yr). At your current savings rate of ${sRate}%, that's <strong>${fmtDollars(towardFreedom)}/week</strong> actually moving toward freedom — the rest funds today.`;
       t1Insight.style.display = 'block';
     } else {
       t1Insight.style.display = 'none';
@@ -521,10 +521,16 @@
     document.getElementById('t2SuperTax').textContent = '-' + fmtDollars(r.superTax);
     document.getElementById('t2NetSuper').textContent = fmtDollars(r.netSuperGain) + ' into super';
     document.getElementById('t2TakeHomeCost').textContent = fmtDollars(r.takehomeCost) + '/yr (' + fmtDollars(Math.round(r.takehomeCost/52)) + '/week)';
-    const sgContrib = Math.round(gross * TAX_CONFIG.sgRate);
-    const capRemaining = Math.max(0, TAX_CONFIG.concessionalCap - sacrifice - sgContrib);
+    const capRemaining = Math.max(0, r.capRoom - r.sacrificeAmount);
     document.getElementById('t2CapRemaining').textContent = fmtDollars(capRemaining);
-    document.getElementById('t2CapWarning').style.display = r.atCapWarning ? 'flex' : 'none';
+    // What changes the answer for this person: going over the cap, a 0% tax rate, Div 293, LISTO.
+    const notes = [];
+    if (r.excess > 0) notes.push(`Your employer's ${fmtDollars(r.sgContrib)} super guarantee already counts towards the ${fmtDollars(TAX_CONFIG.concessionalCap)} cap, so ${fmtDollars(r.excess)} of this is over it. The excess is added back to your taxable income (less a 15% offset), so it saves you nothing.`);
+    if (calculateMarginalRate(gross) < TAX_CONFIG.superTaxRate) notes.push(`At this income your tax rate is below the 15% super tax, so salary sacrifice doesn't save you income tax.`);
+    if (r.div293 > 0) notes.push(`Division 293 applies at your income: an extra ${fmtDollars(r.div293)} tax on these contributions (included above).`);
+    if (r.listo > 0) notes.push(`The low income super tax offset refunds ${fmtDollars(r.listo)} of the contributions tax (included above).`);
+    document.getElementById('t2CapWarningText').textContent = notes.join(' ');
+    document.getElementById('t2CapWarning').style.display = notes.length ? 'flex' : 'none';
 
     const t2Insight = document.getElementById('t2ProInsight');
     const t2Text = document.getElementById('t2ProInsightText');
@@ -583,7 +589,7 @@
       verdict.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;color:#2E7D32;flex-shrink:0;"><use href="/icons.svg#icon-result"/></svg> <span><strong>Your offset is winning</strong> — ${fmtPct(r.offsetReturn)} tax-free vs ${fmtPct(r.investReturnAfterTax)} after tax from investing.</span></div>`;
     } else {
       investBox.classList.add('winner'); offsetBox.classList.remove('winner');
-      verdict.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);flex-shrink:0;"><use href="/icons.svg#icon-insight"/></svg> <span><strong>Investing has the edge</strong> — ${fmtPct(r.investReturnAfterTax)} after tax vs ${fmtPct(r.offsetReturn)} from the offset. The offset still reduces risk though.</span></div>`;
+      verdict.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);flex-shrink:0;"><use href="/icons.svg#icon-insight"/></svg> <span><strong>Investing has the edge</strong> — ${fmtPct(r.investReturnAfterTax)} after tax vs ${fmtPct(r.offsetReturn)} from the offset. The offset's saving is guaranteed though — investing returns aren't, and can be negative for years at a time.</span></div>`;
     }
 
     const t3Insight = document.getElementById('t3ProInsight');
@@ -643,7 +649,7 @@
 The person has ALREADY seen on this page: their exact take-home breakdown, marginal and effective tax rates, a specific salary sacrifice calculation with real dollar figures, and an offset-vs-invest comparison. Do NOT repeat, re-explain, or re-derive any of those numbers — that information is already visible to them. Repeating it is a failure condition for this response.
 
 Your job is to surface ONE Australian tax angle they have not yet seen on this page, chosen ONLY if it's genuinely relevant to their actual numbers. Each angle has a short tag in brackets — you MUST use one of these exact tags at the very end of your response:
-- Catch-up (carry-forward) concessional contributions [catch-up] — if their super balance is relatively low for their age, they may be able to contribute well above the standard $30k cap in one year using unused prior-year cap.
+- Catch-up (carry-forward) concessional contributions [catch-up] — if their super balance is relatively low for their age, they may be able to contribute well above the standard ${fmtDollars(TAX_CONFIG.concessionalCap)} cap in one year using unused prior-year cap.
 - The government super co-contribution [co-contribution] — if their income is under roughly $60,400 and they could make a personal after-tax contribution.
 - Spousal contribution tax offset [spouse] — only if a partner or spouse is mentioned in their situation.
 - The 50% CGT discount [cgt] — if they're investing in ETFs/shares outside super and holding for over 12 months.
@@ -720,6 +726,10 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
     if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
     document.getElementById('taxYearLabel').textContent = TAX_CONFIG.year;
     await loadProContext();
+    // No saved mortgage rate? Suggest today's average variable rate (live from the RBA).
+    await loadAssumptions();
+    const mr = document.getElementById('t3MortgageRate');
+    if (mr && !mr.value) mr.placeholder = `e.g. ${FP_ASSUMPTIONS.mortgageRate.toFixed(2)} (today's average)`;
   });
 </script>
 

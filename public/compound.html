@@ -166,27 +166,27 @@
     <div class="card glass-card">
       <div class="eyebrow card-label">💸 The cost of waiting</div>
       <p class="card-note card-note-lead">Same amount. Same rate. The only difference is when you start.</p>
-      <div class="waiting-grid">
+      <div class="waiting-grid" id="w-grid">
         <div class="waiting-tile now">
           <div class="waiting-label">Start now</div>
           <div class="waiting-value" id="w-now">—</div>
           <div class="waiting-sub">at age 60</div>
         </div>
-        <div class="waiting-tile">
+        <div class="waiting-tile" id="w-tile5">
           <div class="waiting-label">Start in 5 yrs</div>
           <div class="waiting-value" id="w-5">—</div>
           <div class="waiting-sub">at age 60</div>
         </div>
-        <div class="waiting-tile">
+        <div class="waiting-tile" id="w-tile10">
           <div class="waiting-label">Start in 10 yrs</div>
           <div class="waiting-value" id="w-10">—</div>
           <div class="waiting-sub">at age 60</div>
         </div>
       </div>
-      <div class="cost-banner">
+      <div class="cost-banner" id="w-costBanner">
         <div class="cost-banner-label">Waiting 5 years costs you</div>
         <div class="cost-banner-value" id="w-cost5">—</div>
-        <div class="cost-banner-sub">at age 60 — from the same weekly investment</div>
+        <div class="cost-banner-sub">at age 60 — from the same investment</div>
       </div>
     </div>
     <div class="next-card" onclick="window.location.href='withdrawal.html'">
@@ -225,21 +225,14 @@
   }
 
 
-  function toMonthly(n) {
-    if (selectedCycle === 'weekly') return n * 52 / 12;
-    if (selectedCycle === 'fortnightly') return n * 26 / 12;
-    return n;
-  }
-
-
   function calcAtYear(years, monthlyStart, existing, returnRate, contribIncreaseRate) {
     let portfolio = existing;
-    const monthlyRate = returnRate / 12;
+    const mr = monthlyRate(returnRate);
     let currentMonthly = monthlyStart;
 
     for (let y = 0; y < years; y++) {
       for (let m = 0; m < 12; m++) {
-        portfolio = portfolio * (1 + monthlyRate) + currentMonthly;
+        portfolio = portfolio * (1 + mr) + currentMonthly;
       }
       if (contributionMode === 'growing') {
         currentMonthly *= (1 + contribIncreaseRate);
@@ -264,7 +257,9 @@
     if (years <= 5) return `You've done most of the work so far — compounding is just getting started.`;
     if (years <= 10) return `Compounding is now adding ${compoundPct}% of your total. It's finding its rhythm.`;
     if (years <= 15) return `Compounding has now added ${fmtM(total - contributed)} on top of your ${fmtM(contributed)} invested. It's accelerating.`;
-    if (years <= 20) return `Compounding has now overtaken you — it's doing more work than you are.`;
+    if (years <= 20) return total - contributed > contributed
+      ? `Compounding has now overtaken you — it's doing more work than you are.`
+      : `Compounding has added ${compoundPct}% of your total.`;
     if (years <= 30) return `You invested ${fmtM(contributed)}. Compounding turned it into ${fmtM(total)}. That's ${ratio}x your money.`;
     return `For every $1 you invested, compounding added $${(ratio - 1).toFixed(1)}. Time was your greatest asset.`;
   }
@@ -273,8 +268,10 @@
     const age        = parseInt(document.getElementById('c-age').value) || 0;
     const amount     = parseFloat(document.getElementById('c-amount').value) || 0;
     const existing   = parseFloat(document.getElementById('c-existing').value) || 0;
-    const returnRate = parseFloat(document.getElementById('c-returnRate').value) / 100 || 0.07;
-    const contribInc = parseFloat(document.getElementById('c-contribIncrease').value) / 100 || 0.03;
+    const returnPct  = parseFloat(document.getElementById('c-returnRate').value);
+    const contribPct = parseFloat(document.getElementById('c-contribIncrease').value);
+    const returnRate = isNaN(returnPct) ? 0.07 : returnPct / 100;
+    const contribInc = isNaN(contribPct) ? 0.03 : contribPct / 100;
 
     if (age <= 0 || amount <= 0) {
       document.getElementById('results').style.display = 'none';
@@ -283,7 +280,7 @@
 
     document.getElementById('results').style.display = 'block';
 
-    const monthlyAmount = toMonthly(amount);
+    const monthlyAmount = toMonthly(amount, selectedCycle);
     const milestoneYears = [5, 10, 15, 20, 30, 40];
     const container = document.getElementById('milestonesContainer');
     container.innerHTML = '';
@@ -323,11 +320,18 @@
     // Cost of waiting
     const yearsTo60 = Math.max(0, 60 - age);
     const wNow  = calcAtYear(yearsTo60,      monthlyAmount, existing, returnRate, contribInc);
-    const existingAt5  = existing * Math.pow(1 + returnRate, 5);
-    const existingAt10 = existing * Math.pow(1 + returnRate, 10);
+    // Waiting doesn't stop what you already have from growing — compound it the same monthly way
+    const existingAt5  = calcAtYear(5,  0, existing, returnRate, contribInc);
+    const existingAt10 = calcAtYear(10, 0, existing, returnRate, contribInc);
     const w5  = calcAtYear(Math.max(0, yearsTo60 - 5),  monthlyAmount, existingAt5,  returnRate, contribInc);
     const w10 = calcAtYear(Math.max(0, yearsTo60 - 10), monthlyAmount, existingAt10, returnRate, contribInc);
     const cost5 = Math.max(0, wNow - w5);
+    // "Start in 5/10 yrs" only means something if there are at least that many years to 60
+    const show5 = yearsTo60 >= 5, show10 = yearsTo60 >= 10;
+    document.getElementById('w-tile5').style.display  = show5  ? '' : 'none';
+    document.getElementById('w-tile10').style.display = show10 ? '' : 'none';
+    document.getElementById('w-costBanner').style.display = show5 ? '' : 'none';
+    document.getElementById('w-grid').style.gridTemplateColumns = `repeat(${1 + show5 + show10}, minmax(0, 1fr))`;
 
     document.getElementById('w-now').textContent  = fmtM(wNow);
     document.getElementById('w-5').textContent    = fmtM(w5);
