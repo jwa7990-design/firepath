@@ -17,6 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
   <script src="js/persona.js"></script>
+<script src="js/safe-html.js"></script>
   <style>
     .lab { max-width: 760px; }
     .icon { width: 20px; height: 20px; flex-shrink: 0; vertical-align: -4px; }
@@ -459,7 +460,7 @@
         })
       });
       const data = await res.json();
-      deepEl.innerHTML = `<div class="glossary-deep-result">${data.content[0].text.replace(/\n/g, '<br/>')}</div>`;
+      deepEl.innerHTML = `<div class="glossary-deep-result">${FirePathSafe.aiText(data.content[0].text)}</div>`;
     } catch(e) {
       deepEl.innerHTML = `<div class="glossary-deep-result" style="color:var(--negative);">Something went wrong. Please try again.</div>`;
     }
@@ -812,7 +813,7 @@
       } else {
         article = await generateArticle(topicId, track, title, isPro);
       }
-      document.getElementById('articleBody').innerHTML = article;
+      document.getElementById('articleBody').innerHTML = FirePathSafe.html(article);
       document.getElementById('proSection').innerHTML = '';
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('articleContent').style.display = 'block';
@@ -1042,21 +1043,25 @@ Respond ONLY with valid JSON:
       const result = JSON.parse(data.content[0].text.replace(/```json|```/gi, '').trim());
       const r = result.research;
       const next = result.next;
+      // AI-written fields: escape for display; only safe characters inside the onclick code.
+      const esc = FirePathSafe.escape;
+      const safeId = v => /^[a-z0-9-]{1,60}$/.test(String(v || '')) ? v : '';
+      const safeTitle = String(next.title || '').replace(/[^\w\s—–\-,.?!:()]/g, '').slice(0, 120);
       nextEl.innerHTML = `
         <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);padding:24px;margin-top:16px;margin-bottom:12px;">
           <div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ember-ink);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div>
-          <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--warm-brown);margin-bottom:6px;line-height:1.4;">${r.headline}</div>
-          <div style="font-size:12px;color:var(--soft-grey);font-weight:400;margin-bottom:20px;font-style:italic;">${r.disclaimer}</div>
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--warm-brown);margin-bottom:6px;line-height:1.4;">${esc(r.headline)}</div>
+          <div style="font-size:12px;color:var(--soft-grey);font-weight:400;margin-bottom:20px;font-style:italic;">${esc(r.disclaimer)}</div>
           <div style="display:flex;flex-direction:column;gap:12px;">
-            ${r.steps.map((s,i) => `<div style="background:var(--surface-2);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:14px 16px;border-left:3px solid var(--ember);"><div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:4px;">${i+1}. ${s.title}</div><div style="font-size:12px;color:var(--soft-grey);font-weight:400;line-height:1.6;">${s.description}</div></div>`).join('')}
+            ${r.steps.map((s,i) => `<div style="background:var(--surface-2);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:14px 16px;border-left:3px solid var(--ember);"><div style="font-size:13px;font-weight:500;color:var(--warm-brown);margin-bottom:4px;">${i+1}. ${esc(s.title)}</div><div style="font-size:12px;color:var(--soft-grey);font-weight:400;line-height:1.6;">${esc(s.description)}</div></div>`).join('')}
           </div>
         </div>
         <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);padding:24px;margin-bottom:12px;">
           <div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ember-ink);margin-bottom:8px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-learn"/></svg> Continue learning</div>
-          <div style="font-size:15px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">${next.title}</div>
-          <div style="font-size:13px;color:var(--soft-grey);font-weight:400;line-height:1.6;margin-bottom:16px;">${next.why}</div>
+          <div style="font-size:15px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">${esc(next.title)}</div>
+          <div style="font-size:13px;color:var(--soft-grey);font-weight:400;line-height:1.6;margin-bottom:16px;">${esc(next.why)}</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <div onclick="openArticle('${next.topicId}','${next.track}','${next.title}')" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
+            <div onclick="openArticle('${safeId(next.topicId)}','${safeId(next.track)}','${safeTitle}')" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
             <div onclick="showTopicView()" style="display:inline-flex;align-items:center;gap:8px;color:var(--soft-grey);font-size:13px;cursor:pointer;padding:12px 0;">Back to all topics</div>
           </div>
         </div>`;

@@ -17,6 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
   <script src="js/persona.js"></script>
+<script src="js/safe-html.js"></script>
   <script src="js/tax-engine.js"></script>
   <style>
     /* ── Layout ── */
@@ -446,7 +447,7 @@
     if (proProfile.tax_insight_text) {
       cachedTaxInsight = proProfile.tax_insight_text;
       cachedTaxInsightAt = proProfile.tax_insight_generated_at || null;
-      document.getElementById('aiTaxInsightText').innerHTML = cachedTaxInsight.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      document.getElementById('aiTaxInsightText').innerHTML = FirePathSafe.aiText(cachedTaxInsight);
       document.getElementById('aiTaxInsightCard').style.display = 'block';
       renderTaxInsightMeta();
     }
@@ -662,7 +663,7 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
       const tagMatch = insight.match(/\[(catch-up|co-contribution|spouse|cgt|franking|fhsss|division293)\]\s*$/);
       const topicTag = tagMatch ? tagMatch[1] : null;
       insight = insight.replace(/\[(catch-up|co-contribution|spouse|cgt|franking|fhsss|division293)\]\s*$/, '').trim();
-      document.getElementById('aiTaxInsightText').innerHTML = insight.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      document.getElementById('aiTaxInsightText').innerHTML = FirePathSafe.aiText(insight);
 
       const learnMoreEl = document.getElementById('aiTaxLearnMore');
       const topicMap = {

@@ -1,0 +1,17 @@
+# Cloudflare Pages: security headers for every page and file.
+#
+# Content-Security-Policy is in Report-Only mode first: browsers log anything
+# it would block (DevTools → Console) without blocking it. Once the live site
+# shows no violations, rename the header to Content-Security-Policy to enforce.
+# Allowed outside services: Google Fonts, Google Analytics/Tag Manager, the
+# firepath-api Worker and Supabase. Inline scripts are still allowed because the
+# pages use them; tightening that is part of the Astro move.
+
+/*
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()
+  Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://firepath-api.jwa7990.workers.dev https://eeicdaxfrahzgjywrlgs.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests

@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/visual-system.css"/>
   <script src="js/persona.js"></script>
+<script src="js/safe-html.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/calculations.js"></script>
   <script src="js/financial-engine.js"></script>
@@ -1166,7 +1167,7 @@
     buildWhatsNextTab({ fireNum, savings, mSav, fy, fyear, freedomAge, sRate, superBal, debt, mortgage, age, isZeroSavings, alreadyFree, isPro });
     buildLifeUnlockedCard(fireNum, savings, mSav, y07, age);
 
-    document.getElementById('aiInsightText').innerHTML = cachedInsight;
+    document.getElementById('aiInsightText').innerHTML = FirePathSafe.html(cachedInsight);
     renderInsightMeta();
 
     // "Your freedom date moved forward X days" — compares the PROJECTED calendar date
@@ -1724,7 +1725,7 @@ async function saveProfile() {
       }
       const y07=yearsToGoal(fireNum,savings,mSav,0.07);
       storedCalc={fireNum,savings,mSav};
-      document.getElementById('aiInsightText').innerHTML=insight.replace(/\n/g,'<br/>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+      document.getElementById('aiInsightText').innerHTML=FirePathSafe.aiText(insight);
       document.getElementById('aiLoading').classList.remove('visible');stopLoadingMessages();document.getElementById('analyseBtn').style.display='block';
       const isRenting = housingStatus === 'renting';
       await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy?Math.round(fy*10)/10:null,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||'',savings_type:savingsType||'cash',retirement_spend:retirementSpendMultiplier||1.0,dependants:dependants||0,housing_status:housingStatus||'renting',persona:persona||'building',debt_total:mDebt||0,mortgage_remaining:mMort||0});

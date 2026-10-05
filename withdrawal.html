@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/app.css"/>
 <script src="js/persona.js"></script>
+<script src="js/safe-html.js"></script>
 <style>
   /* ── Layout: settings on the left, results on the right (desktop) ── */
   .page-head-sub { max-width: 60ch; }
@@ -598,7 +599,7 @@ Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what 
       });
       const data = await res.json();
       const insight = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-      textEl.innerHTML = insight.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      textEl.innerHTML = FirePathSafe.aiText(insight);
       textEl.style.display = 'block';
     } catch(e) {
       textEl.innerHTML = 'Something went wrong connecting to the AI. Please try again.';
