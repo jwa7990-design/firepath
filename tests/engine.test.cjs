@@ -23,7 +23,7 @@ function load(date) {
   // Top-level const/function declarations share one global lexical scope across scripts,
   // exactly like classic <script> tags, when run in the same context.
   const src = ['tax-engine.js', 'calculations.js', 'financial-engine.js']
-    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8')).join('\n;\n')
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'public', 'js', f), 'utf8')).join('\n;\n')
     + '\n;this.__api = { TAX_YEARS, TAX_CONFIG, AGE_PENSION, getCurrentTaxYear, calculateTax, deemedIncome, calculateAgePension, fmtM, fmtDollars };';
   vm.runInContext(src, ctx);
   return Object.assign({}, ctx.__api, { Engine: ctx.FirePathEngine });

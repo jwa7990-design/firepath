@@ -12,10 +12,10 @@
  * exposed to users). The key is read from the environment and never stored.
  *
  * Usage (from the repo root):
- *   node js/populate-learning-articles.js --dry-run            # check every article, upload nothing
+ *   node scripts/populate-learning-articles.cjs --dry-run            # check every article, upload nothing
  *   SUPABASE_URL=https://<project>.supabase.co \
  *   SUPABASE_SERVICE_ROLE_KEY=<service role key> \
- *   node js/populate-learning-articles.js                       # upload
+ *   node scripts/populate-learning-articles.cjs                       # upload
  *
  * Both values: Supabase dashboard → Project Settings → API.
  * NEVER put the service role key in client-side code or commit it to git.
@@ -24,7 +24,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.join(__dirname, '..');
+const ROOT = path.join(__dirname, '..', 'public');
 const LEARN_DIR = path.join(ROOT, 'learn');
 const DRY_RUN = process.argv.includes('--dry-run');
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');

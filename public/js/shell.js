@@ -42,6 +42,9 @@
   const svg = (name, size, stroke) =>
     `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke || 1.8}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name]}</svg>`;
   const current = key => key === active ? ' active" aria-current="page' : '';
+  // The "you are here" highlight. It carries a view-transition name (css/app.css),
+  // so on page change it glides from the old item to the new one.
+  const indicator = key => key === active ? '<span class="nav-indicator" aria-hidden="true"></span>' : '';
 
   // ── App shell ──────────────────────────────────────────
   const APP_TABS = [
@@ -56,7 +59,7 @@
 <nav class="desktop-rail" aria-label="Primary">
   <a href="${url('journey.html')}" class="desktop-rail-logo">${svg('flame', 20)}FirePath</a>
   <div class="desktop-rail-nav">
-    ${APP_TABS.map(([k, label, href]) => `<a href="${url(href)}" class="desktop-rail-item${current(k)}">${svg(k, 18)}${label}</a>`).join('')}
+    ${APP_TABS.map(([k, label, href]) => `<a href="${url(href)}" class="desktop-rail-item${current(k)}">${indicator(k)}${svg(k, 18)}${label}</a>`).join('')}
   </div>
   <a href="${url('ask-firepath.html')}" class="desktop-rail-ask${current('ask')}">${svg('ask', 15)}Ask FirePath</a>
   <div class="desktop-rail-footer">
@@ -67,12 +70,12 @@
 </nav>`;
     const tabbar = `
 <nav class="mobile-tabbar" aria-label="Primary">
-  ${APP_TABS.map(([k, label, href]) => `<a href="${url(href)}" class="mobile-tabbar-item${current(k)}">${svg(k, 20)}${label}</a>`).join('')}
+  ${APP_TABS.map(([k, label, href]) => `<a href="${url(href)}" class="mobile-tabbar-item${current(k)}">${indicator(k)}${svg(k, 20)}${label}</a>`).join('')}
 </nav>`;
     const ask = active === 'ask' ? '' : `<a href="${url('ask-firepath.html')}" class="ask-pill">${svg('ask', 14, 2)}Ask FirePath</a>`;
-    body.insertAdjacentHTML('afterbegin', rail);
-    const addEnd = () => body.insertAdjacentHTML('beforeend', ask + tabbar);
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addEnd); else addEnd();
+    // All drawn straight away (not at the end of the page) so they're on screen in the
+    // very first frame — page transitions keep them still instead of blinking them.
+    body.insertAdjacentHTML('afterbegin', rail + tabbar + ask);
   }
 
   // ── Site shell ─────────────────────────────────────────
@@ -88,7 +91,7 @@
 <header class="site-nav" id="siteNav">
   <a href="${url('index.html')}" class="site-logo">${svg('flame', 20)}<span>Fire<em>Path</em></span></a>
   <nav class="site-links" aria-label="Primary">
-    ${SITE_LINKS.map(([k, label, href]) => `<a href="${url(href)}" class="site-link"${k === active ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
+    ${SITE_LINKS.map(([k, label, href]) => `<a href="${url(href)}" class="site-link"${k === active ? ' aria-current="page"' : ''}>${indicator(k)}${label}</a>`).join('')}
   </nav>
   <div class="site-actions">
     <a href="${url('auth.html')}" class="btn btn-quiet site-signin">Sign in</a>
@@ -154,6 +157,36 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addFooter); else addFooter();
   }
 
+  // ── Motion ─────────────────────────────────────────────
+  // Cards and article boxes below the fold ease in as they're scrolled to. Only
+  // things off-screen at load are touched, so nothing visible ever blinks, and
+  // content added later by a page's own script simply appears as normal.
+  const REVEAL = '.app-main .card, .site-main .card, main .card, .article-body > [class$="-box"], .article .cta-box, [data-reveal]';
+  function initMotion() {
+    if (document.querySelector('.article')) body.insertAdjacentHTML('afterbegin', '<div class="fp-progress" aria-hidden="true"></div>');
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
+    const fold = window.innerHeight;
+    const targets = Array.from(document.querySelectorAll(REVEAL)).filter(el =>
+      !el.closest('.rise, .fp-reveal, [data-no-reveal], dialog, [role="dialog"]') &&
+      el.getBoundingClientRect().top > fold);
+    if (!targets.length) return;
+    let batch = 0, batchTimer;
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        io.unobserve(el);
+        el.style.setProperty('--fp-delay', Math.min(batch++, 4) * 70 + 'ms');   // gentle stagger within one scroll
+        el.classList.add('fp-shown');
+        // Hand the element back to its own styles (hover lifts etc.) once it has arrived.
+        setTimeout(() => { el.classList.remove('fp-pending', 'fp-shown'); el.style.removeProperty('--fp-delay'); }, 1100);
+      });
+      clearTimeout(batchTimer); batchTimer = setTimeout(() => { batch = 0; }, 120);
+    }, { rootMargin: '0px 0px -8% 0px' });
+    targets.forEach(el => { el.classList.add('fp-pending'); io.observe(el); });
+  }
+
   if (kind === 'app') renderApp();
   else if (kind === 'site') renderSite();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initMotion); else initMotion();
 })();
