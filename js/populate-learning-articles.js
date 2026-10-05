@@ -52,7 +52,15 @@ function describeKey(key, url) {
     if (projectRef && claims.ref && claims.ref !== projectRef) return { ok: false, why: `That key belongs to a different Supabase project (${claims.ref}), not ${projectRef}.` };
     return { ok: true, kind: 'legacy service_role key', headers: { apikey: key, Authorization: `Bearer ${key}` } };
   }
-  return { ok: false, why: `That doesn't look like a Supabase key (${key.length} characters). Check nothing extra was pasted.` };
+  // Describe the shape only — never the key itself.
+  const dots = (key.match(/\./g) || []).length;
+  const shape =
+    key.startsWith('sbp_') ? 'a personal access token (sbp_…) — that is for the Supabase CLI, not the API' :
+    key.startsWith('eyJ') ? `starts like a JWT but has ${dots} dot(s) instead of 2 — part of it may be missing` :
+    /\s/.test(key) ? 'it contains spaces or line breaks — something extra was pasted' :
+    /^[A-Za-z0-9+/=]+$/.test(key) ? 'a plain random string — that looks like the JWT secret or database password, not an API key' :
+    'an unrecognised format';
+  return { ok: false, why: `That isn't an API key (${key.length} characters; ${shape}). Use the secret key that starts with sb_secret_ (Project Settings → API Keys).` };
 }
 const KEY = DRY_RUN ? null : describeKey(SERVICE_ROLE_KEY, SUPABASE_URL);
 if (KEY && !KEY.ok) { console.error(`Key problem: ${KEY.why}`); process.exit(1); }
