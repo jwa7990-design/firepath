@@ -1,0 +1,101 @@
+---
+/**
+ * Long-form page (Privacy, Terms): hero band, optional "at a glance" summary,
+ * sticky contents that follows your reading, numbered sections, contact card.
+ *
+ * Usage:
+ *   <DocLayout title=… sections={[{ id: 'collect', title: 'What we collect' }, …]} glance={[…]}>
+ *     <section id="collect" data-doc-section> … </section>
+ *   </DocLayout>
+ * The contents list is built from `sections`, so it can't drift from the page.
+ */
+import Base from './Base.astro';
+import Icon from '../components/Icon.astro';
+import '../styles/doc.css';
+
+interface Glance { icon: string; title: string; text: string; }
+interface Props {
+  title: string;            // <title>
+  heading: string;          // on-page h1
+  accent?: string;          // italic ember word(s) after the heading
+  eyebrow: string;
+  lead: string;
+  description: string;
+  path: string;
+  updated: string;
+  readMins: number;
+  sections: { id: string; title: string }[];
+  glance?: Glance[];
+  glanceNote?: string;
+}
+const { title, heading, accent, eyebrow, lead, description, path, updated, readMins, sections, glance, glanceNote } = Astro.props;
+const num = (i: number) => String(i + 1).padStart(2, '0');
+---
+<Base title={title} description={description} path={path}>
+  <main id="main">
+  <header class:list={["doc-hero", { "has-glance": glance }]}>
+    <div class="doc-hero-inner">
+      <span class="doc-eyebrow">{eyebrow}</span>
+      <h1 class="doc-title">{heading}{accent && <> <span class="accent">{accent}</span></>}</h1>
+      <p class="doc-lead">{lead}</p>
+      <div class="doc-meta">
+        <span class="doc-chip"><Icon name="calendar" size={14}/>Updated {updated}</span>
+        <span class="doc-chip"><Icon name="clock" size={14}/>{readMins} min read</span>
+        <span class="doc-chip"><Icon name="book" size={14}/>Plain English</span>
+      </div>
+    </div>
+  </header>
+
+  {glance && (
+    <section class="doc-glance" aria-labelledby="glance-title">
+      <div class="doc-glance-card">
+      <div class="doc-glance-head">
+        <h2 id="glance-title" class="doc-glance-title">At a glance</h2>
+        {glanceNote && <p class="doc-glance-note">{glanceNote}</p>}
+      </div>
+      <ul class="doc-glance-grid">
+        {glance.map(g => (
+          <li class="doc-glance-item">
+            <span class="doc-glance-icon"><Icon name={g.icon} size={18}/></span>
+            <strong>{g.title}</strong>
+            <span>{g.text}</span>
+          </li>
+        ))}
+      </ul>
+      </div>
+    </section>
+  )}
+
+  <div class="doc-body">
+    <nav class="doc-toc" aria-label="On this page">
+      <details class="doc-toc-mobile">
+        <summary>On this page <Icon name="chevron" size={14} stroke={2.2}/></summary>
+        <ol>{sections.map((s, i) => <li><a href={`#${s.id}`}><span class="doc-toc-num">{num(i)}</span>{s.title}</a></li>)}</ol>
+      </details>
+      <div class="doc-toc-desktop">
+        <p class="doc-toc-label">On this page</p>
+        <ol>{sections.map((s, i) => <li><a href={`#${s.id}`} data-toc={s.id}><span class="doc-toc-num">{num(i)}</span>{s.title}</a></li>)}</ol>
+      </div>
+    </nav>
+
+    <article class="doc-content">
+      <slot/>
+      <aside class="doc-contact">
+        <span class="doc-contact-icon"><Icon name="mail" size={20}/></span>
+        <div>
+          <h2>Still have a question?</h2>
+          <p>FirePath is built by one person in Australia. Email and you'll get a real reply, usually within a day.</p>
+        </div>
+        <a href="mailto:hello@firepath.pro" class="btn btn-ember">Email hello@firepath.pro</a>
+      </aside>
+    </article>
+  </div>
+
+  </main>
+  <script>
+    import { followSections } from '../scripts/toc';
+    followSections();
+    // Close the phone contents menu after choosing a section.
+    document.querySelectorAll('.doc-toc-mobile a').forEach(a => a.addEventListener('click', () => a.closest('details')?.removeAttribute('open')));
+  </script>
+</Base>
