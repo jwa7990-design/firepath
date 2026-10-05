@@ -1,0 +1,196 @@
+/* ============================================================
+   FirePath — long-form pages (Privacy, Terms, FAQ)
+   Hierarchy: hero band → raised summary card → contents + numbered
+   sections → contact card. Uses the tokens from public/css/app.css.
+   ============================================================ */
+
+/* ── Hero band ─────────────────────────────────────────── */
+.doc-hero {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(60% 90% at 88% 0%, rgba(249, 168, 37, 0.16), transparent 70%),
+    radial-gradient(50% 80% at 8% 100%, rgba(244, 98, 42, 0.10), transparent 70%),
+    linear-gradient(180deg, var(--surface-2), var(--bg));
+  border-bottom: 1px solid var(--line);
+}
+.doc-hero::after {   /* faint dot texture for depth */
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+  background-image: radial-gradient(rgba(43, 29, 20, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, transparent, #000 30%, #000 60%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 60%, transparent);
+}
+.doc-hero-inner { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; padding: 48px 16px 56px; }
+@media (min-width: 768px) { .doc-hero-inner { padding: 80px 32px 88px; } }
+.doc-hero.has-glance .doc-hero-inner { padding-bottom: 96px; }
+@media (min-width: 768px) { .doc-hero.has-glance .doc-hero-inner { padding-bottom: 128px; } }
+
+.doc-eyebrow {
+  display: inline-flex; align-items: center; height: 26px; padding: 0 12px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ember-ink);
+}
+.doc-title {
+  margin-top: 18px; max-width: 16ch;
+  font-family: var(--font-display); font-weight: 700; color: var(--ink);
+  font-size: clamp(38px, 6.4vw, 64px); line-height: 1.04; letter-spacing: -0.025em;
+}
+.doc-lead { margin-top: 18px; max-width: 58ch; font-size: clamp(16px, 1.7vw, 19px); line-height: 1.6; color: var(--ink-2); }
+.doc-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+.doc-chip {
+  display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 12px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7); border: 1px solid var(--line); color: var(--ink-2); font-size: 12.5px; font-weight: 500;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.doc-chip svg { color: var(--ember-ink); }
+
+/* ── At a glance: a raised card overlapping the hero ───── */
+.doc-glance {
+  position: relative; z-index: 2; max-width: 1120px; margin: -64px auto 0; padding: 0 16px;
+}
+@media (min-width: 768px) { .doc-glance { margin-top: -88px; padding: 0 32px; } }
+.doc-glance-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl);
+  box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04), 0 30px 60px -24px rgba(43, 29, 20, 0.22);
+  padding: 22px;
+}
+@media (min-width: 768px) { .doc-glance-card { padding: 28px; } }
+.doc-glance-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; margin-bottom: 18px; }
+.doc-glance-title { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--ink); }
+.doc-glance-note { font-size: 12.5px; color: var(--ink-3); }
+.doc-glance-grid { list-style: none; display: grid; gap: 10px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .doc-glance-grid { grid-template-columns: 1fr 1fr; gap: 12px; } }
+@media (min-width: 1000px) { .doc-glance-grid { grid-template-columns: repeat(4, 1fr); } }
+.doc-glance-item {
+  display: grid; gap: 4px; align-content: start; padding: 16px; border-radius: var(--r-md);
+  background: linear-gradient(180deg, var(--surface-2), rgba(248, 240, 231, 0.4));
+  border: 1px solid rgba(237, 227, 218, 0.7);
+  font-size: 13.5px; line-height: 1.5; color: var(--ink-2);
+}
+.doc-glance-item strong { font-size: 15px; font-weight: 600; color: var(--ink); }
+.doc-glance-icon {
+  display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; margin-bottom: 8px;
+  border-radius: 11px; background: var(--surface); color: var(--ember-ink);
+  box-shadow: var(--shadow-1), inset 0 0 0 1px rgba(244, 98, 42, 0.16);
+}
+
+/* ── Body: contents + sections ─────────────────────────── */
+.doc-body { max-width: 1120px; margin: 0 auto; padding: 40px 16px 80px; display: grid; gap: 24px; }
+@media (min-width: 768px) { .doc-body { padding: 56px 32px 112px; } }
+@media (min-width: 1024px) { .doc-body { grid-template-columns: 240px minmax(0, 1fr); gap: 64px; } }
+
+/* Contents — fold-out on phones, sticky column on desktop */
+.doc-toc ol { list-style: none; }
+.doc-toc a { display: flex; gap: 12px; align-items: baseline; text-decoration: none; color: var(--ink-2); font-size: 14px; line-height: 1.4; }
+.doc-toc-num { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-3); font-variant-numeric: tabular-nums; min-width: 18px; }
+.doc-toc-mobile {
+  position: sticky; top: calc(var(--nav-h) + 8px); z-index: 5;
+  background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--shadow-2);
+}
+.doc-toc-mobile summary {
+  display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; list-style: none;
+  font-size: 14px; font-weight: 600; color: var(--ink);
+}
+.doc-toc-mobile summary::-webkit-details-marker { display: none; }
+.doc-toc-mobile summary svg { transition: transform var(--dur-base) var(--ease); color: var(--ink-3); }
+.doc-toc-mobile[open] summary svg { transform: rotate(180deg); }
+.doc-toc-mobile ol { padding: 0 16px 12px; max-height: 55vh; overflow-y: auto; }
+.doc-toc-mobile a { padding: 10px 0; border-top: 1px solid var(--line); }
+.doc-toc-desktop { display: none; }
+@media (min-width: 1024px) {
+  .doc-toc-mobile { display: none; }
+  .doc-toc-desktop { display: block; position: sticky; top: calc(var(--nav-h) + 32px); }
+  .doc-toc { align-self: start; position: sticky; top: calc(var(--nav-h) + 32px); }
+}
+.doc-toc-label { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 14px; }
+.doc-toc-desktop ol { border-left: 1px solid var(--line); }
+.doc-toc-desktop a {
+  position: relative; padding: 8px 0 8px 16px; margin-left: -1px; border-left: 2px solid transparent;
+  transition: color var(--dur-fast) ease, border-color var(--dur-base) var(--ease);
+}
+.doc-toc-desktop a:hover { color: var(--ink); }
+.doc-toc-desktop a[aria-current] { color: var(--ink); font-weight: 500; border-left-color: var(--ember); }
+.doc-toc-desktop a[aria-current] .doc-toc-num { color: var(--ember-ink); }
+
+/* Sections */
+.doc-content { min-width: 0; max-width: 720px; counter-reset: doc-section; }
+.doc-section { counter-increment: doc-section; scroll-margin-top: calc(var(--nav-h) + 24px); padding: 8px 0 40px; }
+.doc-section + .doc-section { padding-top: 40px; border-top: 1px solid var(--line); }
+.doc-section > h2 {
+  display: flex; align-items: baseline; gap: 14px; margin-bottom: 16px;
+  font-family: var(--font-display); font-weight: 700; color: var(--ink);
+  font-size: clamp(24px, 3vw, 30px); line-height: 1.2; letter-spacing: -0.01em;
+}
+.doc-section > h2::before {
+  content: counter(doc-section, decimal-leading-zero);
+  font-family: var(--font-ui); font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ember-ink);
+  font-variant-numeric: tabular-nums; transform: translateY(-3px);
+}
+.doc-section p, .doc-section li { font-size: 16.5px; line-height: 1.75; color: var(--ink-2); }
+.doc-section > * + * { margin-top: 1em; }
+.doc-section strong { color: var(--ink); font-weight: 600; }
+.doc-section a { color: var(--ember-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+.doc-section ul:not([class]) { padding-left: 1.2em; }
+.doc-section ul:not([class]) li + li { margin-top: 0.45em; }
+.doc-section ul:not([class]) li::marker { color: var(--ember); }
+
+/* Check / cross lists */
+.doc-list { list-style: none; display: grid; gap: 12px; }
+.doc-list li { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; font-size: 15.5px; line-height: 1.6; }
+.doc-list-mark { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; margin-top: 1px; }
+.doc-list.is-yes .doc-list-mark { background: var(--positive-wash); color: var(--positive); }
+.doc-list.is-no .doc-list-mark { background: var(--negative-wash); color: var(--negative); }
+
+/* Side-by-side panels */
+.doc-compare { display: grid; gap: 14px; }
+@media (min-width: 720px) { .doc-compare { grid-template-columns: 1fr 1fr; } }
+.doc-panel { padding: 22px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
+.doc-panel h3 { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 16px; }
+.doc-panel.is-muted { background: var(--surface-2); box-shadow: none; }
+
+/* Provider / fact cards */
+.doc-cards { display: grid; gap: 12px; }
+@media (min-width: 640px) { .doc-cards { grid-template-columns: 1fr 1fr; } }
+.doc-card {
+  position: relative; padding: 20px; border-radius: var(--r-lg); background: var(--surface);
+  border: 1px solid var(--line); box-shadow: var(--shadow-1);
+}
+.doc-card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.doc-card-name { font-size: 16px; font-weight: 600; color: var(--ink); }
+.doc-card-role { font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ember-ink); background: var(--ember-wash); padding: 3px 9px; border-radius: 999px; }
+.doc-card p { font-size: 14.5px !important; line-height: 1.6 !important; }
+
+/* The one dark, "this matters" surface */
+.doc-notice {
+  position: relative; overflow: hidden; padding: 26px; border-radius: var(--r-lg);
+  background: radial-gradient(80% 120% at 100% 0%, rgba(244, 98, 42, 0.28), transparent 60%), var(--espresso);
+  color: rgba(253, 246, 238, 0.82); box-shadow: var(--shadow-3);
+}
+.doc-notice-label { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber); margin-bottom: 10px; }
+.doc-notice p { color: rgba(253, 246, 238, 0.82) !important; font-size: 16px !important; }
+.doc-notice strong { color: var(--bg) !important; }
+
+/* Quiet aside callout */
+.doc-aside { padding: 16px 18px; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--line); }
+.doc-aside p { font-size: 15px !important; }
+
+/* Contact card */
+.doc-contact {
+  margin-top: 48px; padding: 28px; border-radius: var(--r-xl);
+  display: grid; gap: 18px; align-items: center;
+  background:
+    radial-gradient(70% 140% at 100% 0%, rgba(249, 168, 37, 0.22), transparent 60%),
+    radial-gradient(60% 120% at 0% 100%, rgba(244, 98, 42, 0.22), transparent 60%),
+    var(--espresso);
+  color: var(--bg); box-shadow: var(--shadow-3);
+}
+@media (min-width: 720px) { .doc-contact { grid-template-columns: auto 1fr auto; padding: 32px; } }
+.doc-contact-icon { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 14px; background: rgba(253, 246, 238, 0.08); color: var(--amber); box-shadow: inset 0 0 0 1px rgba(253, 246, 238, 0.12); }
+.doc-contact h2 { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--bg); }
+.doc-contact p { margin-top: 4px; font-size: 14.5px; line-height: 1.6; color: rgba(253, 246, 238, 0.7); max-width: 46ch; }
+/* Phones: icon beside the text so the summary stays compact */
+@media (max-width: 639px) {
+  .doc-glance-item { grid-template-columns: 36px 1fr; column-gap: 14px; padding: 14px; }
+  .doc-glance-icon { grid-row: span 2; margin-bottom: 0; }
+}

@@ -1,0 +1,134 @@
+---
+import DocLayout from '../layouts/DocLayout.astro';
+import Icon from '../components/Icon.astro';
+
+const sections = [
+  { id: 'collect', title: 'What we collect' },
+  { id: 'use', title: 'How we use your data' },
+  { id: 'sharing', title: 'Who we share data with' },
+  { id: 'security', title: 'Data storage and security' },
+  { id: 'rights', title: 'Your rights' },
+  { id: 'cookies', title: 'Cookies and local storage' },
+  { id: 'learning-lab', title: 'Learning Lab data' },
+  { id: 'children', title: 'Children' },
+  { id: 'changes', title: 'Changes to this policy' },
+  { id: 'contact', title: 'Contact' },
+];
+const glance = [
+  { icon: 'shield', title: 'Never sold', text: "We don't sell your data or use it to profile you for advertising." },
+  { icon: 'card', title: 'No card details', text: 'Payments are handled by Stripe. We never see or store your card.' },
+  { icon: 'spark', title: "AI doesn't train on you", text: 'Your inputs go to Anthropic only to write your insight — not to train their models.' },
+  { icon: 'trash', title: 'Delete any time', text: "Email us and we'll remove your account and data within 30 days." },
+];
+const providers = [
+  { name: 'Supabase', role: 'Database', text: 'Our database and authentication provider. Your data is stored securely on Supabase infrastructure.' },
+  { name: 'Stripe', role: 'Payments', text: 'Payment processing for FirePath Pro subscriptions. We never see or store your card details.' },
+  { name: 'Anthropic', role: 'AI insights', text: "The AI that powers FirePath's personalised insights. Your financial inputs are sent to Anthropic's API to generate your insight and are not used to train their models." },
+  { name: 'Resend', role: 'Email', text: 'Email delivery for account and notification emails.' },
+];
+---
+<DocLayout
+  title="Privacy Policy — FirePath"
+  description="How FirePath collects, uses and protects your information — in plain English. We never sell your data."
+  path="/privacy"
+  eyebrow="Legal"
+  heading="Privacy"
+  accent="Policy"
+  lead="FirePath is built by an individual developer based in Australia. This policy explains what information we collect, how we use it, and how we protect it. We've written it in plain English because we think you deserve to actually understand it."
+  updated="June 2026"
+  readMins={3}
+  sections={sections}
+  glance={glance}
+  glanceNote="A quick summary — the full policy below is what applies."
+>
+  <section class="doc-section" id="collect" data-doc-section>
+    <h2>What we collect</h2>
+    <p>When you use FirePath, we may collect:</p>
+    <div class="doc-compare">
+      <div class="doc-panel" data-reveal>
+        <h3>What we collect</h3>
+        <ul class="doc-list is-yes">
+          <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Account information</strong> — your email address when you sign up or log in.</span></li>
+          <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Financial inputs</strong> — the numbers you enter into the calculator (income, savings, super balance, age, debt). These are used only to generate your results and are not verified, audited, or shared.</span></li>
+          <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Usage data</strong> — which features you use, your persona selection, pay cycle, and general behaviour in the app. This helps us understand what's working and what isn't.</span></li>
+          <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Feedback</strong> — if you submit feedback through the feedback form, we collect your responses and optionally your email.</span></li>
+        </ul>
+      </div>
+      <div class="doc-panel is-muted" data-reveal>
+        <h3>What we don't collect</h3>
+        <ul class="doc-list is-no">
+          <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We do not collect your name, address, phone number, or any government identifiers.</span></li>
+          <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We do not collect payment card details — payments are handled securely by Stripe.</span></li>
+          <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We do not use advertising trackers or sell your data to third parties. Ever.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="doc-section" id="use" data-doc-section>
+    <h2>How we use your data</h2>
+    <ul class="doc-list is-yes">
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>To generate your personalised FirePath results and AI insights.</span></li>
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>To save your inputs so you don't have to re-enter them on your next visit.</span></li>
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>To send you account-related emails (sign-up confirmation, password reset).</span></li>
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>To improve the product based on how people use it.</span></li>
+    </ul>
+    <div class="doc-aside"><p>We do not use your financial inputs to make decisions about you, profile you for advertising, or share them with any third party.</p></div>
+  </section>
+
+  <section class="doc-section" id="sharing" data-doc-section>
+    <h2>Who we share data with</h2>
+    <p>We use a small number of trusted third-party services to run FirePath:</p>
+    <div class="doc-cards">
+      {providers.map(p => (
+        <div class="doc-card" data-reveal>
+          <div class="doc-card-top"><span class="doc-card-name">{p.name}</span><span class="doc-card-role">{p.role}</span></div>
+          <p>{p.text}</p>
+        </div>
+      ))}
+    </div>
+    <p><strong>No other third parties have access to your data.</strong></p>
+  </section>
+
+  <section class="doc-section" id="security" data-doc-section>
+    <h2>Data storage and security</h2>
+    <p>Your data is stored in Supabase, which uses industry-standard encryption at rest and in transit. We use row-level security so your data is only accessible to your own account. We take reasonable steps to protect your information but no system is 100% secure — please use a strong password.</p>
+  </section>
+
+  <section class="doc-section" id="rights" data-doc-section>
+    <h2>Your rights</h2>
+    <p>You can request deletion of your account and all associated data at any time by emailing us. We'll action this within 30 days. You can also update or correct your information by logging in to your account.</p>
+  </section>
+
+  <section class="doc-section" id="cookies" data-doc-section>
+    <h2>Cookies and local storage</h2>
+    <p>FirePath uses browser local storage to remember your session and preferences (such as your persona selection and commitment tracker). We do not use advertising cookies or third-party tracking cookies.</p>
+  </section>
+
+  <section class="doc-section" id="learning-lab" data-doc-section>
+    <h2>Learning Lab data</h2>
+    <p>If you are a Pro user, FirePath saves your Learning Lab activity to your account — including which articles you have read and any articles you have saved. This data is:</p>
+    <ul class="doc-list is-yes">
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>Stored securely in Supabase against your account only</span></li>
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>Used only to personalise your learning experience and sync it across devices</span></li>
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>Never sold, shared, or used for any purpose outside of FirePath</span></li>
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>Deletable on request — email us at <a href="mailto:hello@firepath.pro">hello@firepath.pro</a></span></li>
+    </ul>
+    <p>Free users' Learning Lab activity is stored only in their browser's local storage and is not sent to our servers.</p>
+  </section>
+
+  <section class="doc-section" id="children" data-doc-section>
+    <h2>Children</h2>
+    <p>FirePath is not intended for use by anyone under the age of 18. We do not knowingly collect information from minors.</p>
+  </section>
+
+  <section class="doc-section" id="changes" data-doc-section>
+    <h2>Changes to this policy</h2>
+    <p>If we make material changes to this policy, we'll update the date at the top of this page. Continued use of FirePath after changes constitutes acceptance of the updated policy.</p>
+  </section>
+
+  <section class="doc-section" id="contact" data-doc-section>
+    <h2>Contact</h2>
+    <p>Questions about this policy? Email us at <a href="mailto:hello@firepath.pro">hello@firepath.pro</a></p>
+  </section>
+</DocLayout>

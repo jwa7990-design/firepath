@@ -1,0 +1,85 @@
+/* ============================================================
+   FirePath — FAQ (builds on doc.css)
+   ============================================================ */
+
+/* Search sits in the hero, raised like an input you can't miss */
+.faq-search {
+  position: relative; display: flex; align-items: center; gap: 12px; margin-top: 30px; max-width: 560px;
+  height: 58px; padding: 0 18px; border-radius: 18px;
+  background: var(--surface); border: 1px solid var(--line-strong);
+  box-shadow: 0 1px 2px rgba(43, 29, 20, 0.05), 0 18px 40px -18px rgba(43, 29, 20, 0.28);
+  color: var(--ink-3); transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease);
+}
+.faq-search:focus-within { border-color: var(--ember); box-shadow: 0 0 0 4px var(--ember-wash), 0 18px 40px -18px rgba(43, 29, 20, 0.28); color: var(--ember-ink); }
+.faq-search input {
+  flex: 1; min-width: 0; height: 100%; border: none; outline: none; background: none;
+  font: 400 16px var(--font-ui); color: var(--ink);
+}
+.faq-search input::placeholder { color: var(--ink-3); }
+.faq-search input::-webkit-search-cancel-button { cursor: pointer; }
+.faq-search-count { font-size: 12.5px; font-weight: 600; color: var(--ember-ink); white-space: nowrap; }
+
+.faq-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.faq-chip {
+  display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 8px 0 12px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72); border: 1px solid var(--line); color: var(--ink); text-decoration: none;
+  font-size: 13px; font-weight: 500; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: border-color var(--dur-fast) ease, transform var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease);
+}
+.faq-chip svg { color: var(--ember-ink); }
+.faq-chip span { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); font-size: 11.5px; font-weight: 600; }
+.faq-chip:hover { border-color: rgba(244, 98, 42, 0.3); box-shadow: var(--shadow-2); transform: translateY(-1px); }
+
+/* Topic groups: an icon tile, a title, and the questions in one raised card */
+.faq-group { scroll-margin-top: calc(var(--nav-h) + 24px); }
+.faq-group + .faq-group { margin-top: 44px; }
+.faq-group-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.faq-group-head h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.6vw, 26px); color: var(--ink); line-height: 1.2; }
+.faq-group-icon {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(244, 98, 42, 0.14), rgba(249, 168, 37, 0.14)); color: var(--ember-ink);
+  box-shadow: inset 0 0 0 1px rgba(244, 98, 42, 0.14);
+}
+.faq-group-count { margin-left: auto; font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
+
+.faq-list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-2); overflow: hidden; }
+.faq-item { position: relative; scroll-margin-top: calc(var(--nav-h) + 24px); }
+.faq-item + .faq-item { border-top: 1px solid var(--line); }
+.faq-item::before {   /* ember edge on the open question */
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, var(--ember), var(--amber));
+  transform: scaleY(0); transform-origin: top; transition: transform var(--dur-slow) var(--ease);
+}
+.faq-item.open::before { transform: scaleY(1); }
+.faq-item.open { background: linear-gradient(180deg, #FFFBF7, var(--surface)); }
+.faq-item h3 { margin: 0; }
+.faq-q {
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 18px 20px; border: none; background: none; cursor: pointer; text-align: left;
+  font: 500 16px/1.45 var(--font-ui); color: var(--ink); -webkit-tap-highlight-color: transparent;
+}
+@media (min-width: 768px) { .faq-q { padding: 20px 24px; } }
+.faq-q:hover > span:first-child, .faq-item.open .faq-q > span:first-child { color: var(--ember-ink); }
+.faq-q > span:first-child { transition: color var(--dur-fast) ease; }
+.faq-q:focus-visible { outline: 2px solid var(--ember); outline-offset: -2px; border-radius: var(--r-md); }
+.faq-chev {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--surface-2); color: var(--ink-2);
+  transition: transform var(--dur-base) var(--ease), background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.faq-item.open .faq-chev { transform: rotate(180deg); background: var(--ember-wash); color: var(--ember-ink); }
+
+/* Smooth open/close: the answer's row grows from 0 to its natural height */
+.faq-a { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-slow) var(--ease); }
+.faq-item.open .faq-a { grid-template-rows: 1fr; }
+.faq-a-inner { overflow: hidden; visibility: hidden; transition: visibility 0s linear var(--dur-slow); }
+.faq-item.open .faq-a-inner { visibility: visible; transition-delay: 0s; }
+.faq-a p { padding: 0 64px 22px 20px; font-size: 15.5px; line-height: 1.75; color: var(--ink-2); }
+@media (min-width: 768px) { .faq-a p { padding: 0 72px 24px 24px; } }
+@media (max-width: 480px) { .faq-a p { padding-right: 20px; } }
+.faq-a strong { color: var(--ink); font-weight: 600; }
+.faq-a a { color: var(--ember-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+
+.faq-empty { padding: 32px; text-align: center; border: 1px dashed var(--line-strong); border-radius: var(--r-lg); background: var(--surface-2); }
+.faq-empty strong { display: block; font-size: 16px; color: var(--ink); }
+.faq-empty p { margin-top: 6px; font-size: 14.5px; color: var(--ink-2); }
+.faq-group[hidden], .faq-item[hidden], .faq-empty[hidden] { display: none; }
