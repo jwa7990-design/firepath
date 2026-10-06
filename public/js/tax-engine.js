@@ -5,8 +5,8 @@
 //   TAX_YEARS    — income tax, Medicare levy, LITO, super caps. Change each 1 July.
 //   AGE_PENSION  — pension rates and means-test limits. Change 20 March, 1 July
 //                  and 20 September. Update `effectiveFrom` when you update them.
-// tests/engine.test.js checks the calculations against worked examples — run it
-// after changing any figure:  node tests/engine.test.js
+// tests/engine.test.cjs checks the calculations against worked examples — run it
+// after changing any figure:  npm test
 
 const TAX_YEARS = {
   '2025-26': {
@@ -27,7 +27,13 @@ const TAX_YEARS = {
     concessionalCap: 30000,
     nonConcessionalCap: 120000,
     superTaxRate: 0.15,
-    sgRate: 0.12
+    sgRate: 0.12,
+    // HELP/HECS (marginal system from 2025-26): 15c per $ over `start`; from `mid`, a
+    // fixed amount + 17c per $ over it; from `top`, 10% of all repayment income.
+    help: { start: 67000, mid: 125000, midBase: 8700, top: 179285 },
+    // Medicare levy surcharge for singles without private hospital cover (income for
+    // MLS purposes = taxable income + reportable super contributions, among others).
+    mls: [{ from: 101000, rate: 0.01 }, { from: 118000, rate: 0.0125 }, { from: 158000, rate: 0.015 }]
   },
   '2026-27': {
     year: '2026-27',
@@ -47,7 +53,9 @@ const TAX_YEARS = {
     concessionalCap: 32500,
     nonConcessionalCap: 130000,
     superTaxRate: 0.15,
-    sgRate: 0.12
+    sgRate: 0.12,
+    help: { start: 69528, mid: 129717, midBase: 9028, top: 186050 },
+    mls: [{ from: 105000, rate: 0.01 }, { from: 123000, rate: 0.0125 }, { from: 164000, rate: 0.015 }]
   }
 };
 
@@ -115,7 +123,8 @@ function lowIncomeOffset(grossIncome, cfg) {
   const l = cfg.lito;
   if (grossIncome <= l.fullOffsetTo) return l.maxOffset;
   if (grossIncome <= l.phaseOut1End) return l.maxOffset - (grossIncome - l.fullOffsetTo) * 0.05;
-  if (grossIncome <= l.phaseOut2End) return Math.max(0, 325 - (grossIncome - l.phaseOut2Start) * 0.015);
+  const atPhaseOut2 = l.maxOffset - (l.phaseOut1End - l.fullOffsetTo) * 0.05;   // $325
+  if (grossIncome <= l.phaseOut2End) return Math.max(0, atPhaseOut2 - (grossIncome - l.phaseOut2Start) * 0.015);
   return 0;
 }
 
@@ -126,24 +135,62 @@ function medicareLevy(grossIncome, cfg) {
   return Math.min((grossIncome - cfg.medicareLevyThreshold) * 0.10, grossIncome * cfg.medicareLevy);
 }
 
-function calculateTax(grossIncome, cfg) {
+// Total tax on a taxable income, unrounded: bracket tax less LITO, plus Medicare levy.
+function totalTaxRaw(grossIncome, c) {
+  return Math.max(0, incomeTax(grossIncome, c) - lowIncomeOffset(grossIncome, c)) + medicareLevy(grossIncome, c);
+}
+
+// Compulsory HELP repayment for the year on `repaymentIncome` (taxable income plus
+// reportable super contributions such as salary sacrifice, among other items).
+function helpRepayment(repaymentIncome, cfg) {
+  const h = (cfg || TAX_CONFIG).help;
+  const r = Number(repaymentIncome);
+  if (!h || !Number.isFinite(r) || r <= h.start) return 0;
+  if (r > h.top) return r * 0.10;
+  if (r > h.mid) return h.midBase + (r - h.mid) * 0.17;
+  return (r - h.start) * 0.15;
+}
+
+// Medicare levy surcharge (single, no private hospital cover). The rate applies to
+// the whole MLS income, not just the part over the threshold.
+function medicareLevySurcharge(mlsIncome, cfg) {
+  const tiers = (cfg || TAX_CONFIG).mls || [];
+  const i = Number(mlsIncome);
+  if (!Number.isFinite(i)) return 0;
+  let rate = 0;
+  for (const t of tiers) if (i > t.from) rate = t.rate;
+  return i * rate;
+}
+
+// calculateTax(gross, cfg, { help: true, noPrivateCover: true, reportableSuper })
+//  • help — has a HELP/HECS debt: the compulsory repayment comes out of take-home.
+//  • noPrivateCover — no private hospital cover: Medicare levy surcharge applies.
+//  • reportableSuper — salary sacrifice etc., which counts towards HELP and MLS income
+//    even though it isn't taxable income.
+function calculateTax(grossIncome, cfg, opts) {
   const c = cfg || TAX_CONFIG;
-  if (!grossIncome || grossIncome <= 0) return { tax: 0, medicare: 0, lito: 0, total: 0, takeHome: 0, effectiveRate: 0 };
+  grossIncome = Number(grossIncome);
+  if (!Number.isFinite(grossIncome) || grossIncome <= 0) return { tax: 0, medicare: 0, lito: 0, total: 0, takeHome: 0, effectiveRate: 0 };
+  const o = opts || {};
   const lito = lowIncomeOffset(grossIncome, c);
   const tax = Math.max(0, incomeTax(grossIncome, c) - lito);
   const medicare = medicareLevy(grossIncome, c);
-  const total = tax + medicare;
-  const takeHome = grossIncome - total;
-  return { tax: Math.round(tax), medicare: Math.round(medicare), lito: Math.round(lito), total: Math.round(total), takeHome: Math.round(takeHome), effectiveRate: total / grossIncome };
+  const extraIncome = Math.max(0, Number(o.reportableSuper) || 0);
+  const mls = o.noPrivateCover ? medicareLevySurcharge(grossIncome + extraIncome, c) : 0;
+  const help = o.help ? helpRepayment(grossIncome + extraIncome, c) : 0;
+  const total = tax + medicare + mls;          // tax proper; HELP is a loan repayment, shown separately
+  const takeHome = grossIncome - total - help;
+  return { tax: Math.round(tax), medicare: Math.round(medicare), lito: Math.round(lito), mls: Math.round(mls), help: Math.round(help), total: Math.round(total), takeHome: Math.round(takeHome), effectiveRate: total / grossIncome };
 }
 
-function calculateMarginalRate(grossIncome) {
-  for (let i = TAX_CONFIG.brackets.length - 1; i >= 0; i--) {
-    if (grossIncome > TAX_CONFIG.brackets[i].min) {
-      return TAX_CONFIG.brackets[i].rate + TAX_CONFIG.medicareLevy;
-    }
-  }
-  return 0;
+// Tax on the next dollar earned — the true marginal rate, including the LITO being
+// withdrawn (5c then 1.5c per dollar) and the Medicare levy phasing in (10c per dollar),
+// not just the bracket rate. Measured over the next $100 so it's exact at any income.
+function calculateMarginalRate(grossIncome, cfg) {
+  const c = cfg || TAX_CONFIG;
+  grossIncome = Number(grossIncome);
+  if (!Number.isFinite(grossIncome) || grossIncome < 0) return 0;
+  return Math.max(0, totalTaxRaw(grossIncome + 100, c) - totalTaxRaw(grossIncome, c)) / 100;
 }
 
 // Inverse of calculateTax — finds the annual gross income that produces a given
@@ -172,24 +219,66 @@ function estimateGrossFromNet(targetTakeHome, maxIterations = 60) {
   return Math.round((low + high) / 2);
 }
 
-function calculateSalarySacrifice(grossIncome, sacrificeAmount) {
-  if (!sacrificeAmount || sacrificeAmount <= 0) return null;
-  const cappedSacrifice = Math.min(sacrificeAmount, TAX_CONFIG.concessionalCap);
-  const newGross = Math.max(0, grossIncome - cappedSacrifice);
-  const before = calculateTax(grossIncome);
-  const after = calculateTax(newGross);
-  const taxSaved = before.total - after.total;
-  const superTax = cappedSacrifice * TAX_CONFIG.superTaxRate;
-  const netSuperGain = cappedSacrifice - superTax;
-  const takehomeCost = cappedSacrifice - taxSaved;
-  const sgContrib = grossIncome * TAX_CONFIG.sgRate;
-  const atCapWarning = (sacrificeAmount + sgContrib) > TAX_CONFIG.concessionalCap;
-  return { grossIncome, sacrificeAmount: cappedSacrifice, newGross, taxSaved: Math.round(taxSaved), superTax: Math.round(superTax), netSuperGain: Math.round(netSuperGain), takehomeCost: Math.round(takehomeCost), atCapWarning };
+// Salary sacrifice, following the ATO rules that change the answer:
+//  • Employer SG counts towards the concessional cap. SG is paid on salary before
+//    sacrifice, up to the maximum contribution base (= cap ÷ SG rate, so SG alone
+//    never exceeds the cap). Only the room left (cap − SG) gets the tax concession.
+//  • Anything over the cap is excess: it's added back to your taxable income at your
+//    marginal rate, with a 15% offset for the tax the fund already paid.
+//  • Division 293: income + concessional contributions over $250k → extra 15% on the
+//    contributions above that line.
+//  • LISTO: if taxable income is $37,000 or less, the government refunds the 15%
+//    contributions tax, up to $500.
+//  • Carry-forward: unused cap from the previous 5 years can be used this year if your
+//    total super balance was under $500k on 30 June last year (pass `carryForward`).
+const DIV293_THRESHOLD = 250000;
+const LISTO = { incomeLimit: 37000, max: 500 };
+const CARRY_FORWARD_BALANCE_LIMIT = 500000;
+function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg, carryForward) {
+  const c = cfg || TAX_CONFIG;
+  const extraCap = Math.max(0, Number(carryForward) || 0);
+  grossIncome = Math.max(0, Number(grossIncome) || 0);
+  sacrificeAmount = Math.min(Number(sacrificeAmount) || 0, grossIncome);
+  if (sacrificeAmount <= 0) return null;
+  const sgContrib = Math.min(grossIncome * c.sgRate, c.concessionalCap);
+  const capRoom = Math.max(0, c.concessionalCap + extraCap - sgContrib);
+  const effective = Math.min(sacrificeAmount, capRoom);       // gets the concession
+  const excess = sacrificeAmount - effective;                  // taxed at marginal rate
+  const newGross = grossIncome - effective;                    // taxable income after sacrifice
+
+  const before = totalTaxRaw(grossIncome, c);
+  const after = totalTaxRaw(newGross, c) - excess * c.superTaxRate;   // 15% excess offset
+  const taxSaved = before - after;
+
+  const div293 = (income, contribs) => 0.15 * Math.min(contribs, Math.max(0, income + contribs - DIV293_THRESHOLD));
+  const extraDiv293 = div293(newGross, Math.min(c.concessionalCap + extraCap, sgContrib + sacrificeAmount)) - div293(grossIncome, sgContrib);
+  const listo = (income, contribs) => income <= LISTO.incomeLimit ? Math.min(LISTO.max, contribs * c.superTaxRate) : 0;
+  const listoGain = listo(newGross, sgContrib + sacrificeAmount) - listo(grossIncome, sgContrib);
+  const superTax = sacrificeAmount * c.superTaxRate + extraDiv293 - listoGain;
+
+  return {
+    grossIncome, sacrificeAmount, effectiveSacrifice: effective, excess, newGross,
+    sgContrib: Math.round(sgContrib), capRoom: Math.round(capRoom),
+    taxSaved: Math.round(taxSaved), superTax: Math.round(superTax),
+    div293: Math.round(extraDiv293), listo: Math.round(listoGain),
+    netSuperGain: Math.round(sacrificeAmount - superTax), takehomeCost: Math.round(sacrificeAmount - taxSaved),
+    carryForwardUsed: Math.round(Math.max(0, Math.min(extraCap, sgContrib + effective - c.concessionalCap))),
+    atCapWarning: sgContrib + sacrificeAmount > c.concessionalCap + extraCap
+  };
 }
 
+// Offset vs investing, both as NOMINAL yearly returns (a mortgage rate is nominal):
+//  • Offset: every dollar saves the mortgage rate in interest — tax-free and certain.
+//  • Investing: 7% real + 2.5% long-run inflation ≈ 9.7% a year, before tax. Roughly 40%
+//    of a diversified share return arrives as income (taxed at your marginal rate) and
+//    60% as growth (taxed at half your rate thanks to the 50% CGT discount, and only when
+//    sold) — so the effective tax is about 70% of your marginal rate. Franking credits
+//    would lower it further; that's left out, so the comparison leans slightly to the offset.
+const INVEST_NOMINAL_RETURN = (1 + 0.07) * (1 + 0.025) - 1;
+const INVEST_TAX_SHARE = 0.4 + 0.6 * 0.5;
 function calculateOffsetBenefit(mortgageRate, offsetBalance, marginalRate) {
   const offsetReturn = mortgageRate;
-  const investReturnAfterTax = 0.07 * (1 - marginalRate);
+  const investReturnAfterTax = INVEST_NOMINAL_RETURN * (1 - marginalRate * INVEST_TAX_SHARE);
   const offsetBetter = offsetReturn > investReturnAfterTax;
   const annualSaving = offsetBalance * mortgageRate;
   const annualInvestGain = offsetBalance * investReturnAfterTax;
@@ -218,7 +307,8 @@ function calculateAgePension(assets, otherIncome = 0, isHomeowner = true, isCoup
 
   const limits = P.assets[isCouple ? 'couple' : 'single'][isHomeowner ? 'homeowner' : 'nonHomeowner'];
   const assetsReduction = Math.max(0, (assets || 0) - limits.full) * P.assets.taperPerDollarFortnight * 26;
-  const pensionAfterAssets = Math.max(0, maxPension - assetsReduction);
+  // Past the published cut-off no pension is paid, even where the taper leaves a few dollars.
+  const pensionAfterAssets = (assets || 0) >= limits.nil ? 0 : Math.max(0, maxPension - assetsReduction);
 
   const deemed = deemedIncome(financialAssets == null ? assets : financialAssets, isCouple);
   const assessableIncome = deemed + Math.max(0, otherIncome || 0);

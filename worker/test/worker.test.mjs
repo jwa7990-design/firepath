@@ -327,3 +327,20 @@ test('RateLimiter: daily cap applies after the minute window, and keys are forgo
     assert.equal(data.size, 0);
   } finally { Date.now = realNow; }
 });
+
+test('RBA figures: read by series ID from both date styles, latest non-empty value wins', () => {
+  const daily = [
+    'F1 INTEREST RATES', 'Title,Cash Rate Target,Other', 'Series ID,FIRMMCRTD,FIRMMCCRT',
+    '30-Sep-2026,4.60,0.25', '01-Oct-2026,,'
+  ].join('\r\n');
+  assert.deepEqual(_internal.latestRbaValue(daily, 'FIRMMCRTD'), { value: 4.6, asAt: '2026-09-30' });
+  const monthly = ['Series ID,X,FLRHOOVA', '30/06/2026,1,6.1', '31/07/2026,1,6.2'].join('\n');
+  assert.deepEqual(_internal.latestRbaValue(monthly, 'FLRHOOVA'), { value: 6.2, asAt: '2026-07-31' });
+});
+
+test('RBA figures: missing series, error pages and implausible values are rejected', () => {
+  assert.equal(_internal.latestRbaValue('Series ID,A\n01/01/2026,1', 'FLRHOOVA'), null);
+  assert.equal(_internal.latestRbaValue('<html>Service unavailable</html>', 'FIRMMCRTD'), null);
+  assert.equal(_internal.latestRbaValue('Series ID,FIRMMCRTD\n01/01/2026,460', 'FIRMMCRTD'), null);
+  for (const s of Object.values(_internal.RBA_SERIES)) assert.ok(s.fallback > 0 && s.fallback < 15);
+});

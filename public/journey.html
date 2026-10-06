@@ -56,6 +56,7 @@
   .hero-year-row .chip { margin-top: 8px; }
   .hero-meta { margin-top: 12px; font-size: 15px; color: var(--ink-2); }
   .hero-meta strong { color: var(--ink); font-weight: 600; }
+  .hero-range { margin-top: 4px; font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
   .hero-narrative { margin-top: 18px; font-size: 14px; line-height: 1.6; color: var(--ink-2); max-width: 44ch; }
 
   /* Progress toward the freedom number, with milestones on the track */
@@ -228,6 +229,7 @@
             <span class="chip" id="heroDelta" hidden></span>
           </div>
           <div class="hero-meta" id="heroMeta">&nbsp;</div>
+          <div class="hero-range" id="heroRange" hidden></div>
           <p class="hero-narrative" id="heroNarrative"></p>
 
           <div class="progress" id="progressBlock">
@@ -407,8 +409,16 @@
     const annualSpend = freedomNumber > 0 ? freedomNumber / 25 : 0;
     const months = annualSpend > 0 ? Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend, RATE) : null;
     const now = new Date();
+    // Markets don't return 7% every year: 2,000 random-return futures with the same
+    // typical return give a realistic early (1 in 10) to late (1 in 10) window for the
+    // same target. Built once per model, not on every re-render.
+    let range = null;
+    if (months != null && Engine.simulateTimeToTarget) {
+      const sim = Engine.simulateTimeToTarget({ startPortfolio: savings, monthlySavings, target: annualSpend / 0.04, median: RATE });
+      if (sim.early != null) range = { early: yearAfter(now, sim.early), late: sim.late != null ? yearAfter(now, sim.late) : null };
+    }
     return {
-      p, savings, superBal, debt, mortgage, offset, freedomNumber, monthlySavings, annualSpend, months,
+      p, savings, superBal, debt, mortgage, offset, freedomNumber, monthlySavings, annualSpend, months, range,
       // Net worth — savings, super and offset, minus everything owed (formula version 3).
       netWorth: (savings + superBal + offset) - (debt + mortgage),
       pct: freedomNumber > 0 ? Math.min(100, Math.round((savings / freedomNumber) * 100)) : 0,
@@ -460,12 +470,22 @@
     yearEl.textContent = m.freedomYear != null ? m.freedomYear : '40+ yrs';
     const parts = [];
     if (m.months != null) {
-      if (m.age) parts.push(`Age <strong>${Math.floor(m.age + m.months / 12)}</strong>`);
+      // Rounded up, like Freedom Options: you're free at the first birthday on or after the date.
+      if (m.age) parts.push(`Age <strong>${Math.ceil(m.age + m.months / 12)}</strong>`);
       parts.push(`<strong>${duration(m.months)}</strong> from now`);
     } else {
       parts.push('Beyond 40 years at your current pace');
     }
     $('heroMeta').innerHTML = parts.join(' · ');
+    const rangeEl = $('heroRange');
+    if (m.range) {
+      rangeEl.textContent = m.range.late != null
+        ? (m.range.early === m.range.late ? `Realistically around ${m.range.early}, as markets rise and fall` : `Realistically between ${m.range.early} and ${m.range.late}, as markets rise and fall`)
+        : `Realistically from ${m.range.early}, or later if markets are weak for a long stretch`;
+      rangeEl.hidden = false;
+    } else {
+      rangeEl.hidden = true;
+    }
     $('heroNarrative').textContent = narrative(m);
 
     $('progressPct').textContent = `${m.pct}%`;
@@ -480,7 +500,7 @@
     const persona = Persona.get();
     const list = [];
     if (m.age && m.age < 58) {
-      const coastPct = Math.round(100 / Math.pow(1 + RATE, 60 - m.age));
+      const coastPct = Math.round(100 / Engine.projectPortfolio(1, 0, 60 - m.age, RATE));
       if (coastPct >= 3 && coastPct <= 85) list.push({ at: coastPct, name: Persona.copy('coastTerm'), hint: persona === 'beginner' ? 'Grows on its own by 60' : 'FI by 60 without saving more' });
     }
     list.push({ at: 50, name: persona === 'fire' ? '50% FI' : 'Halfway', hint: money(m.freedomNumber / 2) });
@@ -915,7 +935,9 @@
             const monthsThen = Engine.solveMonthsToTarget(oi.savings, oi.monthlySavings, annualSpend);
             const monthsNow = Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
             const elapsed = Math.round((Date.now() - new Date(oldest.created_at).getTime()) / (864e5 * 30.44));
-            const bought = Math.max(0, (monthsThen - elapsed) - monthsNow);
+            // Either side beyond the 40-year horizon (null) means there's no honest figure
+            // to show (x - null would quietly count as x - 0).
+            const bought = (monthsThen == null || monthsNow == null) ? 0 : Math.max(0, (monthsThen - elapsed) - monthsNow);
             if (bought > 0) {
               const years = Math.floor(bought / 12), months = Math.floor(bought % 12);
               const oldDate = new Date(oldest.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });

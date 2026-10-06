@@ -64,6 +64,14 @@
     .cycle-group.segmented > .cycle-btn:hover:not(.active) { color: var(--ink); }
     .cycle-group.segmented > .cycle-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
 
+    /* HELP / private cover toggles — pill checkboxes in the same look as the pay-cycle toggle */
+    .opt-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+    .opt-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); font: 500 13px var(--font-ui); color: var(--ink-2); cursor: pointer; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
+    .opt-toggle:hover { color: var(--ink); }
+    .opt-toggle input { margin: 0; width: 15px; height: 15px; accent-color: var(--ember); cursor: pointer; }
+    .opt-toggle:has(input:checked) { background: var(--surface); color: var(--ink); border-color: var(--line-strong); box-shadow: var(--shadow-1); }
+    .opt-toggle:has(input:focus-visible) { outline: 2px solid var(--ember); outline-offset: 1px; }
+
     /* ── Results ── */
     .results-box { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 18px; margin-top: 16px; display: none; }
     .result-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
@@ -71,6 +79,7 @@
     .result-row.total { border-top: 1px solid var(--line-strong); margin-top: 4px; padding-top: 12px; }
     .result-row.total .result-label { font-weight: 600; color: var(--ink); }
     .result-label { color: var(--ink-2); }
+    .result-sublabel { display: block; font-size: 12px; line-height: 1.45; margin-top: 2px; }
     .result-value { font-weight: 600; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums lining-nums; }
     .result-value.highlight { color: var(--ember-ink); }
     .result-value.green { color: var(--positive); }
@@ -168,6 +177,13 @@
       <input type="number" class="input" id="t1Gross" placeholder="e.g. 85000" oninput="runTool1()"/>
       <span class="input-hint" id="t1GrossHint">Annual salary before any deductions</span>
     </div>
+    <div class="input-row" role="group" aria-labelledby="t1TogglesLabel">
+      <span id="t1TogglesLabel" class="input-hint">Tick any that apply to you</span>
+      <div class="opt-toggles">
+        <label class="opt-toggle"><input type="checkbox" id="t1Help" onchange="setTaxToggle('help', this.checked)"/> I have a HELP / HECS debt</label>
+        <label class="opt-toggle"><input type="checkbox" id="t1NoCover" onchange="setTaxToggle('noCover', this.checked)"/> I don't have private hospital cover</label>
+      </div>
+    </div>
     <div class="results-box" id="t1Results">
       <div id="t1PlainEnglish" class="plain-english" style="display:none;">
         <div class="plain-english-label"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-insight"/></svg> In plain English</div>
@@ -178,6 +194,8 @@
         <div class="result-row"><span class="result-label">Income tax</span><span class="result-value red" id="t1TaxOut">—</span></div>
         <div class="result-row"><span class="result-label">Low income tax offset (LITO)</span><span class="result-value green" id="t1LitoOut">—</span></div>
         <div class="result-row"><span class="result-label">Medicare levy (2%)</span><span class="result-value red" id="t1MedicareOut">—</span></div>
+        <div class="result-row" id="t1MlsRow" style="display:none;"><span class="result-label">Medicare levy surcharge<span class="result-sublabel" id="t1MlsNote"></span></span><span class="result-value red" id="t1MlsOut">—</span></div>
+        <div class="result-row" id="t1HelpRow" style="display:none;"><span class="result-label">HELP repayment<span class="result-sublabel" id="t1HelpNote"></span></span><span class="result-value red" id="t1HelpOut">—</span></div>
         <div class="result-row total"><span class="result-label">Take-home pay</span><span class="result-value highlight" id="t1TakeHomeOut">—</span></div>
         <div class="result-row"><span class="result-label">Effective tax rate</span><span class="result-value" id="t1EffectiveOut">—</span></div>
         <div class="result-row"><span class="result-label">Marginal tax rate</span><span class="result-value" id="t1MarginalOut">—</span></div>
@@ -204,13 +222,18 @@
       <input type="number" class="input" id="t2Sacrifice" placeholder="e.g. 10000" oninput="runTool2();debounceSaveTaxField('last_sacrifice_amount', this.value)"/>
       <span class="input-hint">This reduces your taxable income and goes into super at 15% tax instead of your marginal rate</span>
     </div>
+    <div class="input-row">
+      <label for="t2CarryForward">Unused cap from the last 5 years (carry-forward)</label>
+      <input type="number" class="input" id="t2CarryForward" placeholder="Optional, e.g. 15000" oninput="runTool2()"/>
+      <span class="input-hint" id="t2CarryHint">Only if your super balance was under $500,000 on 30 June last year. Check myGov → ATO → Super → Carry-forward.</span>
+    </div>
     <div class="results-box" id="t2Results">
       <div class="result-row"><span class="result-label">Tax saved per year</span><span class="result-value green" id="t2TaxSaved">—</span></div>
       <div class="result-row"><span class="result-label">Super tax on contribution (15%)</span><span class="result-value red" id="t2SuperTax">—</span></div>
       <div class="result-row"><span class="result-label">Net super gain</span><span class="result-value green" id="t2NetSuper">—</span></div>
       <div class="result-row"><span class="result-label">Real cost to your take-home</span><span class="result-value" id="t2TakeHomeCost">—</span></div>
-      <div class="result-row"><span class="result-label">Concessional cap remaining</span><span class="result-value" id="t2CapRemaining">—</span></div>
-      <div id="t2CapWarning" class="warning-box" style="display:none;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;flex-shrink:0;"><use href="/icons.svg#icon-alert"/></svg> <span>You're approaching the concessional cap. Contributions above the cap are taxed at your marginal rate.</span></div>
+      <div class="result-row"><span class="result-label">Concessional cap remaining<span class="result-sublabel" id="t2CarryUsed" style="display:none;"></span></span><span class="result-value" id="t2CapRemaining">—</span></div>
+      <div id="t2CapWarning" class="warning-box" style="display:none;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;flex-shrink:0;"><use href="/icons.svg#icon-alert"/></svg> <span id="t2CapWarningText"></span></div>
       <div class="pro-insight" id="t2ProInsight" style="display:none;">
         <div class="pro-insight-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-super"/></svg> Impact on your super at 60</div>
         <div id="t2SuperCompare" class="comparison-box" style="margin-top:0;margin-bottom:12px;"></div>
@@ -244,7 +267,7 @@
         </div>
         <div class="comparison-item" id="t3InvestBox">
           <div class="comparison-rate green" id="t3InvestRate">—</div>
-          <div class="comparison-label">Investing after tax<br/>(7% × (1 - marginal rate))</div>
+          <div class="comparison-label">Investing after tax<br/>(~9.7% before tax: 7% real + 2.5% inflation)</div>
         </div>
       </div>
       <div id="t3Verdict" class="verdict"></div>
@@ -277,7 +300,7 @@
     </div>
   </div>
 
-  <p class="page-foot">Based on <span id="taxYearLabel"></span> ATO tax rates. Educational only — not financial advice. <a href="assumptions.html">Our assumptions →</a></p>
+  <p class="page-foot">Based on <span id="taxYearLabel"></span> ATO tax rates. Take-home includes income tax, the low income tax offset and the Medicare levy — plus HELP repayments and the Medicare levy surcharge (for higher earners without private hospital cover) when you tick those options in Tool 1. The surcharge uses the singles thresholds; families have higher ones. Educational only — not financial advice. <a href="assumptions.html">Our assumptions →</a></p>
 
 </div>
 </main>
@@ -338,6 +361,40 @@
       bar.style.display = 'none';
       if (btn) btn.textContent = 'Get my tax insight';
     }
+  }
+
+  // HELP debt / no private hospital cover. Kept in this browser (localStorage): fp_profiles has
+  // no columns for them yet, and an upsert with an unknown column would fail the whole save.
+  const TAX_TOGGLE_KEYS = { help: 'fp_has_help_debt', noCover: 'fp_no_private_cover' };
+  const taxToggles = { help: false, noCover: false };
+  function initTaxToggles() {
+    for (const k of Object.keys(TAX_TOGGLE_KEYS)) {
+      let stored = null;
+      try { stored = localStorage.getItem(TAX_TOGGLE_KEYS[k]); } catch(e) {}
+      taxToggles[k] = stored === 'true';
+    }
+    document.getElementById('t1Help').checked = taxToggles.help;
+    document.getElementById('t1NoCover').checked = taxToggles.noCover;
+  }
+  function setTaxToggle(key, on) {
+    taxToggles[key] = !!on;
+    try { localStorage.setItem(TAX_TOGGLE_KEYS[key], on ? 'true' : 'false'); } catch(e) {}
+    runTool1();
+    runTool2();
+  }
+  function taxOpts(reportableSuper) {
+    return { help: taxToggles.help, noPrivateCover: taxToggles.noCover, reportableSuper: reportableSuper || 0 };
+  }
+  // Gross salary that gives this annual take-home, with HELP / surcharge taken out if ticked.
+  function estimateOwnGross(annualTakeHome) {
+    if (!(annualTakeHome > 0)) return 0;
+    let low = 0, high = annualTakeHome * 2.5;
+    while (calculateTax(high, undefined, taxOpts()).takeHome < annualTakeHome && high < 1e8) high *= 2;
+    for (let i = 0; i < 60 && high - low > 0.5; i++) {
+      const mid = (low + high) / 2;
+      if (calculateTax(mid, undefined, taxOpts()).takeHome < annualTakeHome) low = mid; else high = mid;
+    }
+    return Math.round(high);
   }
 
   let taxCycle = 'annually';
@@ -423,10 +480,19 @@
 
   function prefillFromProfile() {
     if (!proProfile) return;
-    if (proProfile.take_home_income) {
-      const savedCycle = ['weekly','fortnightly','monthly'].includes(proProfile.pay_cycle) ? proProfile.pay_cycle : 'annually';
-      const annualTakeHome = proProfile.take_home_income * (savedCycle === 'annually' ? 1 : TAX_CYCLE_MULT[savedCycle]);
-      const approxAnnualGross = proProfile.gross_income || estimateGrossFromNet(annualTakeHome);
+    // take_home_income is a MONTHLY figure and, for couples, the household total. Tax is per
+    // person, so estimate gross from your own share: household − partner (partner_income is per pay_cycle).
+    const savedCycle = ['weekly','fortnightly','monthly'].includes(proProfile.pay_cycle) ? proProfile.pay_cycle : 'annually';
+    const ownMonthlyTakeHome = proProfile.take_home_income
+      ? Math.max(0, proProfile.take_home_income - toMonthly(proProfile.partner_income || 0, savedCycle === 'annually' ? 'monthly' : savedCycle))
+      : 0;
+    // A saved gross_income wins only if it roughly matches that take-home: earlier versions of this
+    // page saved a gross estimated from the household figure (or a monthly figure × pay cycles).
+    const ownAnnualTakeHome = ownMonthlyTakeHome * 12;
+    const savedGross = proProfile.gross_income || 0;
+    const savedFits = savedGross > 0 && (!ownAnnualTakeHome || Math.abs(calculateTax(savedGross, undefined, taxOpts()).takeHome - ownAnnualTakeHome) <= ownAnnualTakeHome * 0.15);
+    const approxAnnualGross = savedFits ? savedGross : estimateOwnGross(ownAnnualTakeHome);
+    if (approxAnnualGross > 0) {
       taxCycle = savedCycle;
       document.querySelectorAll('.cycle-btn[data-taxcycle]').forEach(b => b.classList.toggle('active', b.dataset.taxcycle === savedCycle));
       document.getElementById('t1GrossLabel').textContent = TAX_CYCLE_LABELS[savedCycle][0];
@@ -437,6 +503,9 @@
     }
     if (proProfile.last_sacrifice_amount) {
       document.getElementById('t2Sacrifice').value = proProfile.last_sacrifice_amount;
+    }
+    if ((proProfile.super_balance || 0) >= CARRY_FORWARD_BALANCE_LIMIT) {
+      document.getElementById('t2CarryHint').textContent = `Your saved super balance is ${fmtDollars(proProfile.super_balance)}, so carry-forward probably isn't available to you — it needs a balance under ${fmtDollars(CARRY_FORWARD_BALANCE_LIMIT)} on 30 June last year. Check myGov → ATO → Super → Carry-forward.`;
     }
     if (proProfile.last_mortgage_rate) {
       document.getElementById('t3MortgageRate').value = proProfile.last_mortgage_rate;
@@ -461,11 +530,13 @@
     const gross = Math.round(entered * TAX_CYCLE_MULT[taxCycle]);
     if (gross < 1000) { document.getElementById('t1Results').style.display = 'none'; return; }
     debounceSaveGrossIncome(gross);
-    const r = calculateTax(gross);
+    const r = calculateTax(gross, undefined, taxOpts());
     const marginal = calculateMarginalRate(gross);
     const persona = proProfile ? proProfile.persona : (localStorage.getItem('fp_persona') || 'building');
     const fortnightly = Math.round(r.takeHome / 26);
     const weekly = Math.round(r.takeHome / 52);
+    const whatsTaken = r.mls > 0 ? 'income tax, Medicare and the Medicare levy surcharge' : 'income tax and Medicare';
+    const helpLine = r.help > 0 ? `<br/><br/>Another <strong>${fmtDollars(r.help)}</strong> goes to your HELP debt — that's a loan repayment, not tax.` : '';
 
     document.getElementById('t1Results').style.display = 'block';
 
@@ -476,9 +547,9 @@
     } else {
       plainEnglish.style.display = 'block';
       if (persona === 'beginner') {
-        plainText.innerHTML = `You earn <strong>${fmtDollars(gross)}</strong> a year before tax.<br/><br/>The government takes <strong>${fmtDollars(r.total)}</strong> — income tax and Medicare.<br/><br/>You keep <strong>${fmtDollars(r.takeHome)}</strong>. That's <strong>${fmtDollars(fortnightly)} per fortnight</strong> or <strong>${fmtDollars(weekly)} per week</strong>.<br/><br/>Your highest tax rate is <strong>${(marginal*100).toFixed(0)}%</strong> — but only on the dollars at the top. Your first $18,200 is tax-free.`;
+        plainText.innerHTML = `You earn <strong>${fmtDollars(gross)}</strong> a year before tax.<br/><br/>The government takes <strong>${fmtDollars(r.total)}</strong> — ${whatsTaken}.${helpLine}<br/><br/>You keep <strong>${fmtDollars(r.takeHome)}</strong>. That's <strong>${fmtDollars(fortnightly)} per fortnight</strong> or <strong>${fmtDollars(weekly)} per week</strong>.<br/><br/>Your highest tax rate is <strong>${(marginal*100).toFixed(0)}%</strong> — but only on the dollars at the top. Your first $18,200 is tax-free.`;
       } else {
-        plainText.innerHTML = `On <strong>${fmtDollars(gross)}</strong> gross you take home <strong>${fmtDollars(r.takeHome)}/yr</strong> — <strong>${fmtDollars(fortnightly)}/fn</strong> after tax and Medicare.<br/><br/>Your marginal rate is <strong>${(marginal*100).toFixed(0)}%</strong> — every extra dollar earned or sacrificed is worth ${(marginal*100).toFixed(0)} cents in tax difference.`;
+        plainText.innerHTML = `On <strong>${fmtDollars(gross)}</strong> gross you take home <strong>${fmtDollars(r.takeHome)}/yr</strong> — <strong>${fmtDollars(fortnightly)}/fn</strong> after ${['tax', 'Medicare'].concat(r.mls > 0 ? ['the surcharge'] : [], r.help > 0 ? ['HELP'] : []).join(', ').replace(/, ([^,]*)$/, ' and $1')}.<br/><br/>Your marginal rate is <strong>${(marginal*100).toFixed(0)}%</strong> — every extra dollar earned or sacrificed is worth ${(marginal*100).toFixed(0)} cents in tax difference.`;
       }
     }
 
@@ -486,20 +557,31 @@
     document.getElementById('t1TaxOut').textContent = '-' + fmtDollars(r.tax);
     document.getElementById('t1LitoOut').textContent = '+' + fmtDollars(r.lito);
     document.getElementById('t1MedicareOut').textContent = '-' + fmtDollars(r.medicare);
+    // Surcharge and HELP rows show only when ticked; $0 explains the threshold instead.
+    document.getElementById('t1MlsRow').style.display = taxToggles.noCover ? 'flex' : 'none';
+    document.getElementById('t1MlsOut').textContent = '-' + fmtDollars(r.mls || 0);
+    document.getElementById('t1MlsNote').textContent = r.mls > 0
+      ? 'Because you don\'t have private hospital cover'
+      : `Nothing to pay — it starts above ${fmtDollars(TAX_CONFIG.mls[0].from)} (singles)`;
+    document.getElementById('t1HelpRow').style.display = taxToggles.help ? 'flex' : 'none';
+    document.getElementById('t1HelpOut').textContent = '-' + fmtDollars(r.help || 0);
+    document.getElementById('t1HelpNote').textContent = r.help > 0
+      ? 'A loan repayment, not tax — it reduces your debt'
+      : `Nothing to repay — repayments start above ${fmtDollars(TAX_CONFIG.help.start)}`;
     document.getElementById('t1TakeHomeOut').textContent = fmtDollars(r.takeHome) + '/yr (' + fmtDollars(fortnightly) + '/fn)';
-    document.getElementById('t1EffectiveOut').textContent = fmtPct(r.effectiveRate);
+    document.getElementById('t1EffectiveOut').textContent = fmtPct(r.effectiveRate);   // tax only: HELP isn't tax
     document.getElementById('t1MarginalOut').textContent = fmtPct(marginal);
-    document.getElementById('t1KeepOut').textContent = '$' + Math.round((1 - r.effectiveRate) * 100);
+    document.getElementById('t1KeepOut').textContent = '$' + Math.round(r.takeHome / gross * 100);
 
     document.getElementById('t1FirePathNote').innerHTML = `<svg class="icon" style="width:12px;height:12px;color:var(--icon-orange,#E25D29);"><use href="/icons.svg#icon-insight"/></svg> <strong>FirePath tip:</strong> Enter <strong>${fmtDollars(fortnightly)}/fortnight</strong> as your income in FirePath — that's your actual take-home after tax.`;
 
     const t1Insight = document.getElementById('t1ProInsight');
     const t1Text = document.getElementById('t1ProInsightText');
     if (proProfile && proProfile.freedom_number) {
-      const pct = Math.round((r.takeHome / proProfile.freedom_number) * 100);
+      const pct = Math.round((r.takeHome / (proProfile.freedom_number * 0.04)) * 100);   // freedom number ÷ 25 = the yearly income it pays
       const sRate = proProfile.savings_rate || 0;
       const towardFreedom = Math.round(r.takeHome * sRate / 100 / 52);
-      t1Text.innerHTML = `Your take-home covers <strong>${pct}%</strong> of your freedom number (${fmtDollars(proProfile.freedom_number)}). At your current savings rate of ${sRate}%, that's <strong>${fmtDollars(towardFreedom)}/week</strong> actually moving toward freedom — the rest funds today.`;
+      t1Text.innerHTML = `Your take-home is <strong>${pct}%</strong> of the yearly income your freedom number (${fmtDollars(proProfile.freedom_number)}) is built to pay you (${fmtDollars(proProfile.freedom_number * 0.04)}/yr). At your current savings rate of ${sRate}%, that's <strong>${fmtDollars(towardFreedom)}/week</strong> actually moving toward freedom — the rest funds today.`;
       t1Insight.style.display = 'block';
     } else {
       t1Insight.style.display = 'none';
@@ -514,17 +596,32 @@
     const gross = parseFloat(document.getElementById('t2Gross').value) || 0;
     const sacrifice = parseFloat(document.getElementById('t2Sacrifice').value) || 0;
     if (gross < 1000 || sacrifice <= 0) { document.getElementById('t2Results').style.display = 'none'; return; }
-    const r = calculateSalarySacrifice(gross, sacrifice);
+    const carryForward = Math.max(0, parseFloat(document.getElementById('t2CarryForward').value) || 0);
+    const r = calculateSalarySacrifice(gross, sacrifice, undefined, carryForward);
     if (!r) return;
     document.getElementById('t2Results').style.display = 'block';
     document.getElementById('t2TaxSaved').textContent = '+' + fmtDollars(r.taxSaved) + '/yr';
     document.getElementById('t2SuperTax').textContent = '-' + fmtDollars(r.superTax);
     document.getElementById('t2NetSuper').textContent = fmtDollars(r.netSuperGain) + ' into super';
     document.getElementById('t2TakeHomeCost').textContent = fmtDollars(r.takehomeCost) + '/yr (' + fmtDollars(Math.round(r.takehomeCost/52)) + '/week)';
-    const sgContrib = Math.round(gross * TAX_CONFIG.sgRate);
-    const capRemaining = Math.max(0, TAX_CONFIG.concessionalCap - sacrifice - sgContrib);
+    const capRemaining = Math.max(0, r.capRoom - r.sacrificeAmount);   // capRoom already includes carry-forward
     document.getElementById('t2CapRemaining').textContent = fmtDollars(capRemaining);
-    document.getElementById('t2CapWarning').style.display = r.atCapWarning ? 'flex' : 'none';
+    const carryUsedEl = document.getElementById('t2CarryUsed');
+    carryUsedEl.textContent = r.carryForwardUsed > 0 ? `Uses ${fmtDollars(r.carryForwardUsed)} of your carried-forward cap` : '';
+    carryUsedEl.style.display = r.carryForwardUsed > 0 ? 'block' : 'none';
+    // What changes the answer for this person: going over the cap, a 0% tax rate, Div 293, LISTO.
+    const notes = [];
+    const capText = carryForward > 0
+      ? `${fmtDollars(TAX_CONFIG.concessionalCap)} cap plus your ${fmtDollars(carryForward)} carry-forward`
+      : `${fmtDollars(TAX_CONFIG.concessionalCap)} cap`;
+    if (r.excess > 0) notes.push(`Your employer's ${fmtDollars(r.sgContrib)} super guarantee already counts towards the ${capText}, so ${fmtDollars(r.excess)} of this is over it. The excess is added back to your taxable income (less a 15% offset), so it saves you nothing.`);
+    if (carryForward > 0 && proProfile && (proProfile.super_balance || 0) >= CARRY_FORWARD_BALANCE_LIMIT) notes.push(`Your saved super balance is ${fmtDollars(proProfile.super_balance)}. Carry-forward is only allowed if your total super was under ${fmtDollars(CARRY_FORWARD_BALANCE_LIMIT)} on 30 June last year, so it probably isn't available to you.`);
+    if (taxToggles.help || taxToggles.noCover) notes.push(`Salary sacrifice still counts towards your HELP and Medicare levy surcharge income, so it doesn't reduce those.`);
+    if (calculateMarginalRate(gross) < TAX_CONFIG.superTaxRate) notes.push(`At this income your tax rate is below the 15% super tax, so salary sacrifice doesn't save you income tax.`);
+    if (r.div293 > 0) notes.push(`Division 293 applies at your income: an extra ${fmtDollars(r.div293)} tax on these contributions (included above).`);
+    if (r.listo > 0) notes.push(`The low income super tax offset refunds ${fmtDollars(r.listo)} of the contributions tax (included above).`);
+    document.getElementById('t2CapWarningText').textContent = notes.join(' ');
+    document.getElementById('t2CapWarning').style.display = notes.length ? 'flex' : 'none';
 
     const t2Insight = document.getElementById('t2ProInsight');
     const t2Text = document.getElementById('t2ProInsightText');
@@ -583,7 +680,7 @@
       verdict.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;color:#2E7D32;flex-shrink:0;"><use href="/icons.svg#icon-result"/></svg> <span><strong>Your offset is winning</strong> — ${fmtPct(r.offsetReturn)} tax-free vs ${fmtPct(r.investReturnAfterTax)} after tax from investing.</span></div>`;
     } else {
       investBox.classList.add('winner'); offsetBox.classList.remove('winner');
-      verdict.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);flex-shrink:0;"><use href="/icons.svg#icon-insight"/></svg> <span><strong>Investing has the edge</strong> — ${fmtPct(r.investReturnAfterTax)} after tax vs ${fmtPct(r.offsetReturn)} from the offset. The offset still reduces risk though.</span></div>`;
+      verdict.innerHTML = `<div style="display:flex;align-items:center;gap:8px;"><svg class="icon" style="width:16px;height:16px;color:var(--icon-orange,#E25D29);flex-shrink:0;"><use href="/icons.svg#icon-insight"/></svg> <span><strong>Investing has the edge</strong> — ${fmtPct(r.investReturnAfterTax)} after tax vs ${fmtPct(r.offsetReturn)} from the offset. The offset's saving is guaranteed though — investing returns aren't, and can be negative for years at a time.</span></div>`;
     }
 
     const t3Insight = document.getElementById('t3ProInsight');
@@ -621,15 +718,17 @@
     loading.classList.add('visible');
     card.style.display = 'none';
 
-    const r = calculateTax(gross);
+    const r = calculateTax(gross, undefined, taxOpts());
     const marginal = calculateMarginalRate(gross);
+    const helpStatus = taxToggles.help ? `HELP/HECS debt: yes — compulsory repayment ${fmtDollars(r.help)}/yr, already taken out of take-home` : 'HELP/HECS debt: none';
+    const coverStatus = taxToggles.noCover ? `Private hospital cover: none — Medicare levy surcharge ${fmtDollars(r.mls)}/yr, included in take-home` : 'Private hospital cover: has cover (or not stated), so no Medicare levy surcharge';
     const sacrifice = parseFloat(document.getElementById('t2Sacrifice').value) || 0;
     const offsetBalance = parseFloat(document.getElementById('t3OffsetBalance').value) || 0;
     const mortgageRate = parseFloat(document.getElementById('t3MortgageRate').value) || 0;
 
     const profileSummary = proProfile ? `Age: ${proProfile.age || 'unknown'}. Freedom number: ${fmtDollars(proProfile.freedom_number || 0)}. Current savings: ${fmtDollars(proProfile.current_savings || 0)}. Super balance: ${fmtDollars(proProfile.super_balance || 0)}. Savings rate: ${proProfile.savings_rate || 0}%. Savings type: ${proProfile.savings_type || 'unknown'}. Persona: ${proProfile.persona || 'building'}.` : 'No saved profile available.';
 
-    const userInput = `Gross income: ${fmtDollars(gross)}/yr. Take-home: ${fmtDollars(r.takeHome)}/yr. Marginal tax rate: ${(marginal*100).toFixed(0)}%. Effective tax rate: ${(r.effectiveRate*100).toFixed(1)}%. Salary sacrifice considered: ${fmtDollars(sacrifice)}/yr. Offset balance: ${fmtDollars(offsetBalance)}, mortgage rate: ${mortgageRate}%. User profile — ${profileSummary}`;
+    const userInput = `Gross income: ${fmtDollars(gross)}/yr. Take-home: ${fmtDollars(r.takeHome)}/yr. Marginal tax rate: ${(marginal*100).toFixed(0)}%. Effective tax rate: ${(r.effectiveRate*100).toFixed(1)}%. ${helpStatus}. ${coverStatus}. Salary sacrifice considered: ${fmtDollars(sacrifice)}/yr. Offset balance: ${fmtDollars(offsetBalance)}, mortgage rate: ${mortgageRate}%. User profile — ${profileSummary}`;
 
     try {
       const res = await fetch(WORKER_URL, {
@@ -643,7 +742,7 @@
 The person has ALREADY seen on this page: their exact take-home breakdown, marginal and effective tax rates, a specific salary sacrifice calculation with real dollar figures, and an offset-vs-invest comparison. Do NOT repeat, re-explain, or re-derive any of those numbers — that information is already visible to them. Repeating it is a failure condition for this response.
 
 Your job is to surface ONE Australian tax angle they have not yet seen on this page, chosen ONLY if it's genuinely relevant to their actual numbers. Each angle has a short tag in brackets — you MUST use one of these exact tags at the very end of your response:
-- Catch-up (carry-forward) concessional contributions [catch-up] — if their super balance is relatively low for their age, they may be able to contribute well above the standard $30k cap in one year using unused prior-year cap.
+- Catch-up (carry-forward) concessional contributions [catch-up] — if their super balance is relatively low for their age, they may be able to contribute well above the standard ${fmtDollars(TAX_CONFIG.concessionalCap)} cap in one year using unused prior-year cap.
 - The government super co-contribution [co-contribution] — if their income is under roughly $60,400 and they could make a personal after-tax contribution.
 - Spousal contribution tax offset [spouse] — only if a partner or spouse is mentioned in their situation.
 - The 50% CGT discount [cgt] — if they're investing in ETFs/shares outside super and holding for over 12 months.
@@ -719,7 +818,12 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
   document.addEventListener('DOMContentLoaded', async function() {
     if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
     document.getElementById('taxYearLabel').textContent = TAX_CONFIG.year;
+    initTaxToggles();
     await loadProContext();
+    // No saved mortgage rate? Suggest today's average variable rate (live from the RBA).
+    await loadAssumptions();
+    const mr = document.getElementById('t3MortgageRate');
+    if (mr && !mr.value) mr.placeholder = `e.g. ${FP_ASSUMPTIONS.mortgageRate.toFixed(2)} (today's average)`;
   });
 </script>
 

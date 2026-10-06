@@ -23,7 +23,7 @@ window.FirePathEngine = (function () {
     if (n == null || isNaN(n)) return '—';
     const sign = n < 0 ? '-' : '';
     const a = Math.abs(n);
-    if (a >= 1000000) return sign + '$' + (a / 1000000).toFixed(1) + 'M';
+    if (a >= 999500) return sign + '$' + (a / 1000000).toFixed(1) + 'M';   // 999,600 → $1.0M, not $1000K
     if (a >= 1000) return sign + '$' + Math.round(a / 1000) + 'K';
     return sign + '$' + Math.round(a);
   }
@@ -40,11 +40,17 @@ window.FirePathEngine = (function () {
     return Math.ceil(rawHours);
   }
  
+  // The monthly rate that compounds to `annualRate` over a year. (annualRate / 12
+  // compounds to more: 7% / 12 monthly is 7.23% a year, which overstates every projection.)
+  function monthlyRate(annualRate) {
+    return Math.pow(1 + annualRate, 1 / 12) - 1;
+  }
+
   // Compounds a starting portfolio forward with ongoing monthly contributions.
   function projectPortfolio(startPortfolio, monthlySavings, years, rate) {
     rate = rate == null ? 0.07 : rate;
     let bal = startPortfolio;
-    const r = rate / 12;
+    const r = monthlyRate(rate);
     for (let m = 0; m < Math.round(years * 12); m++) { bal = bal * (1 + r) + monthlySavings; }
     return bal;
   }
@@ -62,7 +68,7 @@ window.FirePathEngine = (function () {
   // same "don't pretend to know" convention as solveFreedomAge's 90-year ceiling.
   function solveMonthsToTarget(startPortfolio, monthlySavings, targetSpend, rate) {
     rate = rate == null ? 0.07 : rate;
-    const r = rate / 12;
+    const r = monthlyRate(rate);
     let portfolio = startPortfolio;
     for (let m = 0; m <= 40 * 12; m++) {
       if (portfolio * 0.04 >= targetSpend) return m;
@@ -97,6 +103,7 @@ window.FirePathEngine = (function () {
  
   // Finds the youngest age (from currentAge) at which portfolio income — plus the Age
   // Pension once age 67 is reached — covers targetSpend. Returns null if not reached by 90.
+  // isCouple: use couple pension rates and limits (portfolio and spend are the couple's combined).
   let warnedNoPension = false;
   function pensionAvailable() {
     if (typeof calculateAgePension === 'function') return true;
@@ -105,43 +112,148 @@ window.FirePathEngine = (function () {
     return false;
   }
 
-  function solveFreedomAge(currentAge, startPortfolio, monthlySavings, targetSpend, homeowner, rate) {
+  // superBalance: today's super. It grows at the after-earnings-tax super return, counts
+  // towards spendable income only from preservation age (60), and is means-tested for
+  // the Age Pension from 67 like everything else.
+  const PRESERVATION_AGE = 60, PENSION_AGE = 67;
+  // Super grows at 7% real less the extra fees a typical super fund charges over a
+  // low-cost index fund (median MySuper ≈ 0.85% a year vs ≈ 0.2%: APRA heatmap), then
+  // less 15% tax on earnings in accumulation. (0.07 − 0.0065) × 0.85 ≈ 5.40%.
+  const SUPER_EXTRA_FEES = 0.0065;
+  const SUPER_RETURN = (0.07 - SUPER_EXTRA_FEES) * (1 - 0.15);
+
+  // partner (optional): { superBalance, age } — the partner's super unlocks when *they*
+  // reach 60, which can be years before or after you.
+  function solveFreedomAge(currentAge, startPortfolio, monthlySavings, targetSpend, homeowner, rate, isCouple, superBalance, partner) {
     rate = rate == null ? 0.07 : rate;
     const CEILING_AGE = 90;
+    const pSuper = partner && partner.superBalance > 0 ? partner.superBalance : 0;
+    const pAgeGap = partner && partner.age ? partner.age - currentAge : 0;   // partner is this much older
     for (let age = Math.ceil(currentAge); age <= CEILING_AGE; age++) {
       const yearsOut = age - currentAge;
       const portfolio = projectPortfolio(startPortfolio, monthlySavings, yearsOut, rate);
-      const portfolioIncome = portfolio * 0.04;
+      const ownSuper = superBalance > 0 ? projectPortfolio(superBalance, 0, yearsOut, SUPER_RETURN) : 0;
+      const partnerSuper = pSuper ? projectPortfolio(pSuper, 0, yearsOut, SUPER_RETURN) : 0;
+      const superBal = ownSuper + partnerSuper;
+      const accessible = portfolio + (age >= PRESERVATION_AGE ? ownSuper : 0)
+        + (age + pAgeGap >= PRESERVATION_AGE ? partnerSuper : 0);
+      const portfolioIncome = accessible * 0.04;
       let pensionIncome = 0;
-      if (age >= 67 && pensionAvailable()) {
+      if (age >= PENSION_AGE && pensionAvailable()) {
         // Other income 0: Centrelink deems the portfolio rather than counting drawdowns.
-        try { pensionIncome = calculateAgePension(portfolio, 0, homeowner, false).annualPension || 0; } catch (e) {}
+        try { pensionIncome = calculateAgePension(portfolio + superBal, 0, homeowner, !!isCouple).annualPension || 0; } catch (e) {}
       }
       if (portfolioIncome + pensionIncome >= targetSpend) {
-        return { age, portfolio: Math.round(portfolio), portfolioIncome: Math.round(portfolioIncome), pensionIncome: Math.round(pensionIncome) };
+        return { age, portfolio: Math.round(portfolio), superBalance: Math.round(superBal), portfolioIncome: Math.round(portfolioIncome), pensionIncome: Math.round(pensionIncome) };
       }
     }
     return null;
   }
  
+  // ── Monte Carlo ──────────────────────────────────────────
+  // Real markets don't return 7% every year. These simulate many possible futures:
+  // each year's real return is drawn from a lognormal distribution whose median is 7%
+  // (the long-run compound rate) with 15% volatility — roughly a growth portfolio of
+  // mostly shares. Seeded, so the same inputs always give the same answer.
+  const MC = { paths: 2000, median: 0.07, volatility: 0.15 };
+
+  function seededRandom(seed) {          // mulberry32
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function normalFrom(rand) {            // Box–Muller
+    let u = 0; while (u === 0) u = rand();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rand());
+  }
+  function returnSampler(seed, median, volatility) {
+    const rand = seededRandom(seed);
+    const mu = Math.log(1 + (median == null ? MC.median : median));
+    const sigma = volatility == null ? MC.volatility : volatility;
+    return () => Math.exp(mu + sigma * normalFrom(rand)) - 1;
+  }
+  const percentile = (sorted, p) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.floor(p * (sorted.length - 1))))];
+
+  // How likely is the money to last? Withdraws `annualSpend` (today's dollars) at the
+  // start of each year for `years`, then applies that year's return. Returns the share
+  // of paths that never run out, plus 10th/50th/90th percentile ending balances and the
+  // year money runs out in a bad (10th percentile) path.
+  function simulateDrawdown({ portfolio, annualSpend, years, paths, seed, median, volatility, otherIncomeByYear }) {
+    paths = paths || MC.paths;
+    const next = returnSampler(seed == null ? 1 : seed, median, volatility);
+    let survived = 0;
+    const endings = [], depletedYears = [];
+    for (let p = 0; p < paths; p++) {
+      let bal = portfolio, depleted = null;
+      for (let y = 0; y < years; y++) {
+        const other = otherIncomeByYear ? otherIncomeByYear(y, bal) || 0 : 0;
+        bal -= Math.max(0, annualSpend - other);
+        if (bal <= 0) { bal = 0; depleted = y; break; }
+        bal *= 1 + next();
+      }
+      if (depleted === null) survived++;
+      endings.push(bal);
+      depletedYears.push(depleted === null ? Infinity : depleted);
+    }
+    endings.sort((a, b) => a - b);
+    depletedYears.sort((a, b) => a - b);
+    const bad = percentile(depletedYears, 0.10);
+    return {
+      successRate: survived / paths,
+      p10: percentile(endings, 0.10), p50: percentile(endings, 0.50), p90: percentile(endings, 0.90),
+      badCaseRunsOutYear: Number.isFinite(bad) ? bad : null
+    };
+  }
+
+  // When might savings reach the target? Simulates monthly saving with yearly random
+  // returns (each year's return spread evenly over its months) and reports the 10th,
+  // 50th and 90th percentile time, in months, to reach `target`. null = not within 50 years.
+  function simulateTimeToTarget({ startPortfolio, monthlySavings, target, paths, seed, median, volatility }) {
+    paths = paths || MC.paths;
+    const next = returnSampler(seed == null ? 2 : seed, median, volatility);
+    const MAX = 50 * 12;
+    const months = [];
+    for (let p = 0; p < paths; p++) {
+      let bal = startPortfolio, m = 0, r = 0;
+      while (bal < target && m < MAX) {
+        if (m % 12 === 0) r = monthlyRate(next());
+        bal = bal * (1 + r) + monthlySavings;
+        m++;
+      }
+      months.push(bal >= target ? m : Infinity);
+    }
+    months.sort((a, b) => a - b);
+    const out = q => { const v = percentile(months, q); return Number.isFinite(v) ? v : null; };
+    return { early: out(0.10), likely: out(0.50), late: out(0.90), reachedShare: months.filter(Number.isFinite).length / paths };
+  }
+
   // The "today's snapshot" — portfolio income, gap, pension estimate, gap after pension,
   // and freedom percentage — all derived consistently from the same inputs. Both Freedom
   // Gap and Freedom Options need this exact bundle; previously each derived it separately.
+  //   pensionAssets: what Centrelink would assess at pension age (portfolio + super, ideally
+  //   projected to 67). Defaults to today's portfolio. Callers decide whether the pension
+  //   applies yet — it's only paid from 67.
   function computeFreedomPicture(inputs) {
-    const { portfolio, annualSpend, isHomeowner, withdrawalRate } = inputs;
+    const { portfolio, annualSpend, isHomeowner, withdrawalRate, isCouple, pensionAssets } = inputs;
     const rate = withdrawalRate == null ? 0.04 : withdrawalRate;
     const portfolioIncome = portfolio * rate;
     const gap = Math.max(0, annualSpend - portfolioIncome);
     let pensionAnnual = 0, pensionWeekly = 0;
     if (pensionAvailable()) {
       try {
-        const pension = calculateAgePension(portfolio, 0, isHomeowner, false);
+        const pension = calculateAgePension(pensionAssets == null ? portfolio : pensionAssets, 0, isHomeowner, !!isCouple);
         pensionAnnual = pension.annualPension || 0;
         pensionWeekly = pension.weeklyPension || 0;
       } catch (e) {}
     }
     const gapAfterPension = Math.max(0, gap - pensionAnnual);
-    const freedomPct = annualSpend > 0 ? Math.min(100, Math.round((portfolioIncome / annualSpend) * 100)) : 0;
+    // floor, not round: 99.6% funded must not read as "100% — your portfolio funds it".
+    const freedomPct = annualSpend > 0 ? Math.min(100, Math.floor((portfolioIncome / annualSpend) * 100)) : 0;
     return { portfolioIncome, gap, pensionAnnual, pensionWeekly, gapAfterPension, freedomPct };
   }
  
@@ -177,5 +289,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();

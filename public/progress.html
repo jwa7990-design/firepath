@@ -353,8 +353,8 @@
       document.getElementById('progressPct').textContent = pct + '%';
       document.getElementById('accPortfolio').textContent = fmtM(calcData.savings || 0);
       const fy = yearsToGoal(calcData.fireNum, calcData.savings || 0, calcData.mSav || 0, 0.07);
-      document.getElementById('accYearsToGo').textContent = fy ? Math.round(fy) + ' yrs' : '—';
-      document.getElementById('accFreedomDate').textContent = fy ? currentYear + Math.round(fy) : '100+ yrs';
+      document.getElementById('accYearsToGo').textContent = yearsToGoLabel(fy);
+      document.getElementById('accFreedomDate').textContent = freedomDateLabel(fy);
       document.getElementById('ci-savings').value = calcData.savings || 0;
       renderMilestones(calcData.fireNum, calcData.savings || 0, calcData.mSav || 0);
       renderSuggestChipLabels();
@@ -364,9 +364,28 @@
     loadCommitment();
   });
 
-  // ── Helpers (mirrors main app) ──
-  function fmt(y) { if(y===null)return'100+ yrs';if(y===0)return'Already there!';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo'; }
-  function yearsToGoal(goal,cur,ms,rate) { if(ms<=0)return null;if(cur>=goal)return 0;const r=rate/12;let b=cur,m=0;while(b<goal&&m<1200){b=b*(1+r)+ms;m++;}return m<1200?m/12:null; }
+  // ── Helpers ──
+  // fmt() and yearsToGoal() come from js/calculations.js (loaded in <head>), which
+  // compounds at the true monthly rate and returns 0 (not null) once the goal is reached.
+
+  // Years-to-go and freedom-date labels. 0 means already there — not "unknown".
+  function yearsToGoLabel(y) { return y === null ? '—' : y === 0 ? 'Now' : Math.round(y) + ' yrs'; }
+  function freedomDateLabel(y) { return y === null ? '100+ yrs' : y === 0 ? 'Now' : currentYear + Math.round(y); }
+
+  // A commitment's total impact spread over every check-in between now and the (new)
+  // freedom date — the extra saving has to keep going that long to buy those days back.
+  // Returns days per flame, or null when it rounds to less than a day.
+  function perFlameDaysFor(cd) {
+    const checkinsPerYear = cd.cycle === 'weekly' ? 52 : cd.cycle === 'fortnightly' ? 26 : 12;
+    let yrs = cd.yearsToFreedom;
+    if (yrs == null) {
+      // Older commitments didn't store this — rebuild it from today's numbers.
+      const commitMonthly = cd.cycle === 'weekly' ? cd.amount*52/12 : cd.cycle === 'fortnightly' ? cd.amount*26/12 : cd.amount;
+      yrs = calcData.fireNum ? yearsToGoal(calcData.fireNum, calcData.savings || 0, (calcData.mSav || 0) + commitMonthly, 0.07) : null;
+    }
+    const days = (cd.totalDaysOff || 0) / Math.max(1, (yrs || 0) * checkinsPerYear);
+    return days >= 1 ? Math.round(days * 10) / 10 : null;
+  }
 
   // How many freedom-date years a given weekly amount is worth, sustained from now.
   function yearsSavedFromWeekly(weeklyAmount) {
@@ -511,6 +530,7 @@
       streak: 0, hits: [],
       impactText: diff && diff > 0.1 ? `Moves freedom date to ${newDate} — ${fmt(diff)} sooner` : '',
       totalDiffYears: diff || 0,
+      yearsToFreedom: newYrs,   // how long the extra saving runs — spreads totalDaysOff per flame
       totalDaysOff: days || 0,
     };
     localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
@@ -553,19 +573,19 @@
     if (impactEl) impactEl.textContent = impactText || '';
 
     // Per-flame math: the total sustained impact (computed once at commit time),
-    // spread evenly across every possible check-in this cycle — an honest average,
+    // spread evenly across every check-in until the freedom date — an honest average,
     // not a claim about any single flame's exact contribution.
     const totalDaysOff = commitmentData.totalDaysOff || 0;
-    const perFlameDays = totalPossible > 0 ? Math.round(totalDaysOff / totalPossible) : 0;
+    const perFlameDays = perFlameDaysFor(commitmentData);
     const perFlameEl = document.getElementById('commitPerFlameLine');
     if (perFlameEl) {
-      perFlameEl.textContent = perFlameDays > 0 ? `🔥 Each flame you earn is worth roughly ${perFlameDays} day${perFlameDays === 1 ? '' : 's'} closer to freedom` : '';
+      perFlameEl.textContent = perFlameDays ? `🔥 Each flame you earn is worth roughly ${perFlameDays} day${perFlameDays === 1 ? '' : 's'} closer to freedom` : '';
     }
     const cumulativeEl = document.getElementById('commitCumulativeLine');
     if (cumulativeEl) {
-      if (hitsDisplay > 0 && perFlameDays > 0) {
+      if (hitsDisplay > 0 && perFlameDays) {
         // Cap cumulative at the total sustained impact — can't exceed what the commitment is actually worth
-        const cumulativeDays = Math.min(perFlameDays * hitsDisplay, totalDaysOff);
+        const cumulativeDays = Math.round(Math.min(perFlameDays * hitsDisplay, totalDaysOff));
         cumulativeEl.textContent = `So far: ${hitsDisplay} 🔥 = roughly ${cumulativeDays} days closer to freedom`;
       } else {
         cumulativeEl.textContent = '';
@@ -595,7 +615,9 @@
       alert("You've already logged a check-in today — come back tomorrow to log the next one.");
       return;
     }
+    const prevCheckinAt = commitmentData.lastCheckinAt || null;
     commitmentData.lastCheckinDate = today;
+    commitmentData.lastCheckinAt = new Date().toISOString();
     commitmentData.streak = (commitmentData.streak || 0) + 1;
     if (hit) commitmentData.hits.push(new Date().toISOString());
     localStorage.setItem('fp_commitment', JSON.stringify(commitmentData));
@@ -615,13 +637,20 @@
       document.getElementById('pathFill').style.width = pct + '%';
       document.getElementById('progressPct').textContent = pct + '%';
       document.getElementById('accPortfolio').textContent = fmtM(newSavings);
-      document.getElementById('accYearsToGo').textContent = ny ? Math.round(ny) + ' yrs' : '—';
-      document.getElementById('accFreedomDate').textContent = ny ? currentYear + Math.round(ny) : '100+ yrs';
+      document.getElementById('accYearsToGo').textContent = yearsToGoLabel(ny);
+      document.getElementById('accFreedomDate').textContent = freedomDateLabel(ny);
       const oy = yearsToGoal(fireNum, calcData.savings, mSav, 0.07);
+      // Time passing on plan isn't progress: the old projection already expected to be
+      // this much closer by today. Only the part beyond that counts as "moved closer".
+      // If we don't know when the old balance was recorded, don't claim a figure.
+      const asOf = calcData.savingsAsOf || prevCheckinAt;
+      const elapsedYrs = asOf ? Math.max(0, (Date.now() - new Date(asOf).getTime()) / (365.25 * 864e5)) : null;
+      const closer = (oy != null && ny != null && elapsedYrs != null) ? oy - ny - elapsedYrs : null;
       calcData.savings = newSavings;
+      calcData.savingsAsOf = new Date().toISOString();
       localStorage.setItem('fp_last_calc', JSON.stringify(calcData));
       renderMilestones(fireNum, newSavings, mSav);
-      if (hit && oy != null && ny != null) showMilestone(oy - ny, pct);
+      if (hit) showMilestone(closer, pct);
     }
 
     // The check-in itself always gets logged — whether or not a balance was entered.
@@ -630,12 +659,11 @@
     checkinHistory = checkinHistory.slice(0, 20); // cap the session list so it can't grow unbounded
     renderHistory();
 
-    const totalDaysOff = commitmentData.totalDaysOff || 0;
-    const perFlameDays = hit && totalPossible > 0 ? Math.round(totalDaysOff / totalPossible) : 0;
+    const perFlameDays = hit ? perFlameDaysFor(commitmentData) : null;
 
     const feedbackEl = document.createElement('div');
     feedbackEl.innerHTML = hit
-      ? `<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame!${perFlameDays > 0 ? ` That's roughly <strong>${perFlameDays} day${perFlameDays === 1 ? '' : 's'}</strong> closer to freedom.` : ' Keep going.'}</div>`
+      ? `<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">🔥 You earned a flame!${perFlameDays ? ` That's roughly <strong>${perFlameDays} day${perFlameDays === 1 ? '' : 's'}</strong> closer to freedom.` : ' Keep going.'}</div>`
       : '<div style="background:#FFF7F3;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:var(--warm-brown);font-weight:500;margin-bottom:12px;">No worries — next one is yours.</div>';
     const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
     if (checkinCard) checkinCard.insertAdjacentElement('afterend', feedbackEl);
@@ -645,10 +673,12 @@
   function showMilestone(diff, pct) {
     const m = document.getElementById('milestone'), e = document.getElementById('milestoneEmoji'), t = document.getElementById('milestoneText');
     let msg = '';
+    // Only claim movement that rounds to at least a month — never "0 months" or a negative.
+    const moved = diff != null && diff * 12 >= 0.5;
     if (pct >= 100) { e.textContent = '🎉'; msg = `<strong>You've done it!</strong> Your portfolio has hit your freedom number.`; }
-    else if (pct >= 75) { e.textContent = '🔥'; msg = `<strong>75% of the way there!</strong> Your freedom date moved <strong>${fmt(diff)} closer</strong>.`; }
-    else if (pct >= 50) { e.textContent = '💪'; msg = `<strong>Halfway to freedom!</strong> Your date moved <strong>${fmt(diff)} closer</strong>.`; }
-    else if (diff > 0) { e.textContent = '✨'; msg = `Your freedom date moved <strong>${fmt(diff)} closer</strong>. Every period compounds.`; }
+    else if (pct >= 75) { e.textContent = '🔥'; msg = `<strong>75% of the way there!</strong>` + (moved ? ` Your freedom date moved <strong>${fmt(diff)} closer</strong>.` : ''); }
+    else if (pct >= 50) { e.textContent = '💪'; msg = `<strong>Halfway to freedom!</strong>` + (moved ? ` Your date moved <strong>${fmt(diff)} closer</strong>.` : ''); }
+    else if (moved) { e.textContent = '✨'; msg = `Your freedom date moved <strong>${fmt(diff)} closer</strong>. Every period compounds.`; }
     if (msg) { t.innerHTML = msg; m.classList.add('visible'); setTimeout(() => m.classList.remove('visible'), 8000); }
   }
 
