@@ -1,0 +1,134 @@
+---
+/**
+ * Homepage. Promise → proof → why → learn → act. The example numbers all describe one
+ * example saver ($185K saved, $3,200 a month, $1.5M goal) and are written as "in N years"
+ * so they never date. Jay's letter comes word for word from src/data/letter.ts.
+ */
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { LETTER, HOME_DESCRIPTION } from '../data/letter';
+import { ARTICLES, FIRST_READS, type Article } from '../lib/learn';
+import '../styles/doc.css';
+import '../styles/home.css';
+
+const firstReads = FIRST_READS.map(s => ARTICLES.find(a => a.slug === s)).filter((a): a is Article => !!a);
+const STEPS = [
+  { n: 1, title: 'Your date', big: '15 yrs', text: 'until work could become optional — an actual date, not a someday.', tool: 'Free calculator', href: '/firepath' },
+  { n: 2, title: 'What moves it', big: '1 yr sooner', text: 'from saving an extra $500 a month. Every lever, shown in years.', tool: 'Free calculator', href: '/firepath' },
+  { n: 3, title: 'Will it last?', big: '94%', text: 'of 2,000 market futures last 30 years at a 4% withdrawal.', tool: 'FirePath Pro', href: '/pricing' },
+];
+---
+<Base title="FirePath — Money shouldn't feel confusing" description={HOME_DESCRIPTION} path="/">
+  <main id="main">
+    <header class="doc-hero home-hero">
+      <div class="doc-hero-inner home-hero-inner">
+        <div class="home-hero-copy">
+          <span class="doc-eyebrow">Built for everyday Australians</span>
+          <h1 class="doc-title home-title">Money shouldn’t feel <span class="accent">confusing.</span></h1>
+          <p class="doc-lead">FirePath helps everyday Australians understand tax, super, investing and the financial decisions that shape their future — in plain English. One of the first things you’ll discover is when work could become optional.</p>
+          <div class="home-cta">
+            <a href="/firepath" class="btn btn-ember btn-lg"><Icon name="flame" size={16}/>Find my path</a>
+            <p>Free. Takes 2 minutes. No sign-up. · <a href="/pricing">See Pro</a></p>
+          </div>
+        </div>
+
+        <figure class="home-preview" aria-label="Example result">
+          <div class="home-preview-card">
+            <span class="home-preview-kicker">Work becomes optional in</span>
+            <p class="home-preview-big">15 years</p>
+            <p class="home-preview-range">Realistically <strong>10–21 years</strong>, as markets rise and fall</p>
+            <div class="home-preview-bar" aria-hidden="true"><span class="home-preview-fill"></span><span class="home-preview-mark"></span></div>
+            <ul class="home-preview-levers">
+              <li><span>Save $500 more a month</span><strong>1 yr sooner</strong></li>
+              <li><span>Money lasts 30 years (4% rule)</span><strong>94% of futures</strong></li>
+            </ul>
+          </div>
+          <figcaption>Example: $185K saved, $3,200 a month, $1.5M goal.</figcaption>
+        </figure>
+      </div>
+    </header>
+
+    <p class="home-trust">
+      <span><Icon name="scale" size={14}/>Current ATO and Centrelink rates</span>
+      <span><Icon name="bars" size={14}/>Live Reserve Bank figures</span>
+      <span><Icon name="flame" size={14}/>Built in Australia</span>
+      <span><Icon name="lock" size={14}/>Your data is never sold</span>
+    </p>
+
+    <section class="home-bridge" aria-label="Why FirePath exists">
+      <p class="home-bridge-1">Nobody teaches us</p>
+      <p class="home-bridge-2">how money works.</p>
+      <p class="home-bridge-3">We’re changing that.</p>
+    </section>
+
+    <section class="home-steps" aria-labelledby="steps-title">
+      <div class="home-head">
+        <span class="doc-eyebrow">What you’ll find out</span>
+        <h2 id="steps-title" class="home-h2">From “someday” to an actual plan.</h2>
+      </div>
+      <ol class="home-steps-grid">
+        {STEPS.map(s => (
+          <li class="home-step" data-reveal>
+            <span class="home-step-n">{s.n}</span>
+            <p class="home-step-title">{s.title}</p>
+            <p class="home-step-big">{s.big}</p>
+            <p class="home-step-text">{s.text}</p>
+            <a href={s.href} class="home-step-tool">{s.tool} <Icon name="arrow" size={14}/></a>
+          </li>
+        ))}
+      </ol>
+      <p class="home-steps-note">Same example saver throughout. Yours will use your own numbers.</p>
+    </section>
+
+    <section class="home-letter" id="why" aria-labelledby="letter-title">
+      <div class="home-letter-inner">
+        <span class="doc-eyebrow" id="letter-title">Why I built this</span>
+        <blockquote class="home-letter-quote">{LETTER.opener}</blockquote>
+        <div class="home-letter-body">
+          {LETTER.paragraphs.map(p => <p set:html={p}/>)}
+        </div>
+        <p class="home-letter-sig">
+          <span>Thanks for stopping by.</span>
+          <strong>— {LETTER.name}</strong>
+          <span>{LETTER.role}</span>
+        </p>
+      </div>
+    </section>
+
+    <section class="home-learn" aria-labelledby="learn-title">
+      <div class="home-head">
+        <span class="doc-eyebrow">Learning Lab</span>
+        <h2 id="learn-title" class="home-h2">Start with three short reads.</h2>
+        <p class="home-sub">{ARTICLES.length} free guides in plain English — from what FIRE means to super and tax.</p>
+      </div>
+      <ol class="home-learn-grid">
+        {firstReads.map((a, i) => (
+          <li><a href={`/learn/${a.slug}`} class="home-learn-card" data-reveal>
+            <span class="home-learn-n">{i + 1}</span>
+            <span class="home-learn-title">{a.heading}</span>
+            <span class="home-learn-meta">{a.readMins} min read <Icon name="arrow" size={14}/></span>
+          </a></li>
+        ))}
+      </ol>
+      <a href="/learn/" class="home-more">Browse the Learning Lab <Icon name="arrow" size={14}/></a>
+    </section>
+
+    <section class="home-plans" aria-label="Plans">
+      <div class="home-plans-inner">
+        <p><strong>Free forever</strong> to find your number. <strong>Pro is $6 a month</strong> for the full plan — tax and super, every what-if, and whether your money lasts.</p>
+        <a href="/pricing" class="btn btn-quiet">Compare plans <Icon name="arrow" size={14}/></a>
+      </div>
+    </section>
+
+    <section class="home-final">
+      <div class="home-final-inner">
+        <h2>You’re not lost anymore.</h2>
+        <p>Find out where you actually stand. Free, in 2 minutes, no sign-up needed.</p>
+        <div class="home-final-actions">
+          <a href="/firepath" class="btn btn-ember btn-lg"><Icon name="flame" size={16}/>Find my path</a>
+          <a href="/auth" class="home-final-link">Try Pro free for 7 days</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</Base>
