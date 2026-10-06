@@ -6,6 +6,6 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://www.firepath.pro',
   output: 'static',
-  build: { format: 'file' },   // src/pages/foo.astro -> dist/foo.html (same as today's files)
+  build: { format: 'preserve' },   // foo.astro -> foo.html, foo/index.astro -> foo/index.html
   trailingSlash: 'ignore',
 });

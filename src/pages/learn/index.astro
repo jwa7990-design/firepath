@@ -1,0 +1,122 @@
+---
+/**
+ * Learning Lab hub (/learn/). Built from the article collection (src/lib/learn.ts),
+ * so it can only ever list articles that exist — add an article and it appears here.
+ */
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { ARTICLES, FIRST_READS, shelve, type Article } from '../../lib/learn';
+import '../../styles/doc.css';
+import '../../styles/learn-hub.css';
+
+const shelves = shelve();
+const firstReads = FIRST_READS.map(s => ARTICLES.find(a => a.slug === s)).filter((a): a is Article => !!a);
+const totalMins = ARTICLES.reduce((n, a) => n + a.readMins, 0);
+const schema = {
+  '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'FirePath Learning Lab',
+  url: 'https://www.firepath.pro/learn/',
+  hasPart: ARTICLES.map(a => ({ '@type': 'Article', headline: a.heading, url: `https://www.firepath.pro/learn/${a.slug}` })),
+};
+---
+<Base
+  title="FirePath Learning Lab — Australian FIRE & Investing Education"
+  description="Free Australian financial independence education. Learn how FIRE works, how to invest, how super fits in, and how to calculate your freedom number."
+  path="/learn/"
+  active="learn"
+>
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
+
+  <main id="main">
+    <header class="doc-hero hub-hero">
+      <div class="doc-hero-inner">
+        <span class="doc-eyebrow">Learning Lab</span>
+        <h1 class="doc-title">Money, explained in <span class="accent">plain English</span>.</h1>
+        <p class="doc-lead">Free guides to financial independence for everyday Australians — from the basics of FIRE to super, investing and tax. No jargon, no sales pitch.</p>
+        <div class="doc-meta">
+          <span class="doc-chip"><Icon name="book" size={14}/>{ARTICLES.length} guides</span>
+          <span class="doc-chip"><Icon name="clock" size={14}/>{Math.round(totalMins / 60)} hours of reading</span>
+          <span class="doc-chip"><Icon name="scale" size={14}/>Australian rules</span>
+        </div>
+        <div class="faq-search hub-search">
+          <Icon name="search" size={18}/>
+          <input id="hubSearch" type="search" placeholder={`Search ${ARTICLES.length} guides…`} aria-label="Search the Learning Lab" autocomplete="off"/>
+          <span class="faq-search-count" id="hubCount" aria-live="polite"></span>
+        </div>
+        <nav class="hub-chips" aria-label="Shelves">
+          {shelves.map(s => <a href={`#${s.id}`} class="hub-chip"><Icon name={s.icon} size={14}/>{s.title}<span>{s.count}</span></a>)}
+        </nav>
+      </div>
+    </header>
+
+    <div class="hub">
+      <section class="hub-first" aria-labelledby="first-title" data-hub-hide-on-search>
+        <h2 id="first-title" class="hub-first-title">New here? Your first three reads</h2>
+        <ol class="hub-first-list">
+          {firstReads.map((a, i) => (
+            <li><a href={`/learn/${a.slug}`} class="hub-first-card">
+              <span class="hub-first-num">{i + 1}</span>
+              <span class="hub-first-text"><strong>{a.heading}</strong><span>{a.readMins} min read</span></span>
+              <Icon name="arrow" size={18}/>
+            </a></li>
+          ))}
+        </ol>
+      </section>
+
+      {shelves.map(s => (
+        <section class="hub-shelf" id={s.id} aria-labelledby={`${s.id}-title`} data-hub-shelf>
+          <div class="hub-shelf-head">
+            <span class="faq-group-icon"><Icon name={s.icon} size={18}/></span>
+            <div>
+              <h2 id={`${s.id}-title`}>{s.title}</h2>
+              <p>{s.intro}</p>
+            </div>
+            <span class="hub-shelf-count">{s.count} guides</span>
+          </div>
+          {s.articles.length > 0 && (
+            <div class="hub-grid">{s.articles.map(a => <a href={`/learn/${a.slug}`} class="hub-card" data-hub-card data-reveal><span class="hub-card-title">{a.heading}</span><span class="hub-card-desc">{a.description}</span><span class="hub-card-meta">{a.readMins} min read <Icon name="arrow" size={14}/></span></a>)}</div>
+          )}
+          {s.themes.map(t => (
+            <div class="hub-theme" data-hub-theme>
+              <h3>{t.title}</h3>
+              <div class="hub-grid">{t.articles.map(a => <a href={`/learn/${a.slug}`} class="hub-card" data-hub-card data-reveal><span class="hub-card-title">{a.heading}</span><span class="hub-card-desc">{a.description}</span><span class="hub-card-meta">{a.readMins} min read <Icon name="arrow" size={14}/></span></a>)}</div>
+            </div>
+          ))}
+        </section>
+      ))}
+
+      <div class="faq-empty" id="hubEmpty" hidden>
+        <strong>No guides match that yet.</strong>
+        <p>Try a different word — or <a href="/feedback">tell us what you'd like explained</a>.</p>
+      </div>
+
+      <aside class="doc-contact hub-cta">
+        <span class="doc-contact-icon"><Icon name="flame" size={20}/></span>
+        <div>
+          <h2>Put it to work on your own numbers</h2>
+          <p>Find the year work could become optional — free, in about 2 minutes, no sign-up.</p>
+        </div>
+        <a href="/firepath" class="btn btn-ember">Find my freedom date</a>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    // Search: filters cards as you type; hides empty themes and shelves.
+    const input = document.getElementById('hubSearch') as HTMLInputElement;
+    const count = document.getElementById('hubCount')!;
+    const empty = document.getElementById('hubEmpty')!;
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-hub-card]'));
+    const text = new Map(cards.map(c => [c, (c.textContent || '').toLowerCase()]));
+    const hideOnSearch = document.querySelectorAll<HTMLElement>('[data-hub-hide-on-search]');
+    input.addEventListener('input', () => {
+      const words = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      cards.forEach(c => { const ok = words.every(w => text.get(c)!.includes(w)); c.hidden = !ok; if (ok) shown++; });
+      document.querySelectorAll<HTMLElement>('[data-hub-theme]').forEach(t => { t.hidden = !t.querySelector('[data-hub-card]:not([hidden])'); });
+      document.querySelectorAll<HTMLElement>('[data-hub-shelf]').forEach(s => { s.hidden = !s.querySelector('[data-hub-card]:not([hidden])'); });
+      hideOnSearch.forEach(el => { el.hidden = words.length > 0; });
+      empty.hidden = shown > 0;
+      count.textContent = words.length ? `${shown} ${shown === 1 ? 'guide' : 'guides'}` : '';
+    });
+  </script>
+</Base>
