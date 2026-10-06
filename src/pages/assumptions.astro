@@ -1,0 +1,215 @@
+---
+/**
+ * How FirePath calculates — every assumption, where each figure comes from, and what's
+ * modelled. Tax, super and pension figures are read in the browser straight from
+ * js/tax-engine.js (the file the calculators use), so this page can't fall out of date;
+ * live RBA figures come from the Worker, as on every other page.
+ */
+import DocLayout from '../layouts/DocLayout.astro';
+
+const sections = [
+  { id: 'your-number', title: 'Your number, step by step' },
+  { id: 'live', title: 'Live figures' },
+  { id: 'long-run', title: 'Long-run assumptions' },
+  { id: 'rates', title: 'Tax, super and pension rates' },
+  { id: 'why-7', title: 'Why 7%' },
+  { id: 'modelled', title: 'What FirePath models' },
+  { id: 'sources', title: 'Official sources' },
+];
+const glance = [
+  { icon: 'bars', title: 'Live from the RBA', text: 'Cash rate, inflation, savings and mortgage rates — refreshed daily.' },
+  { icon: 'flame', title: '7% after inflation', text: 'The long-run return on growth assets, compounded properly.' },
+  { icon: 'scale', title: 'Current ATO rates', text: 'Tax, super and Age Pension figures for this financial year.' },
+  { icon: 'spark', title: '2,000 market futures', text: 'Ranges and odds that allow for good and bad years.' },
+];
+const LONG_RUN = [
+  ['Investment return', 'Growth assets (mostly shares), after inflation. Compounded monthly at 0.565% — the rate that adds up to exactly 7% a year (7% ÷ 12 would overstate it).', '7%', 'a year, real'],
+  ['Freedom number', 'Enough invested that 4% a year covers your spending — the 4% rule, from the Trinity Study.', '25×', 'yearly spending'],
+  ['Market ups and downs', "For ranges and \"will it last\" odds: 2,000 simulated futures, each year's return random around a 7% median. Seeded, so your result doesn't change on reload.", '15%', 'volatility'],
+  ['Super growth', "7% less the extra fees a typical super fund charges over an index fund (median MySuper ≈ 0.85% a year, APRA), then less 15% tax on earnings while you're working.", '5.4%', 'a year, real'],
+  ['Gross income', 'Worked backwards from your take-home pay through the actual tax brackets, LITO and Medicare levy — used for employer super.', 'Exact', 'from tax tables'],
+  ['Inflation for long projections', "For showing long projections in future dollars. Today's inflation (live, above) is used for anything about returns right now; over decades, the RBA's 2–3% target is the better guide.", '2.5%', 'RBA target'],
+  ['Projection horizon', 'The longest timeline modelled before we say "more than".', '100 yrs', 'maximum'],
+];
+const WHY_7 = [
+  ['Shiller dataset', '150+ years of US share returns', '~7%'],
+  ['MSCI World Index', 'Long-run global share average', '~7%'],
+  ['Trinity Study (1998)', 'The academic basis for the 4% rule', '7% assumed'],
+  ['Vanguard Australia', 'Long-run Australian share research', '~7–8%'],
+];
+const MODELLED: [string, boolean][] = [
+  ['Income tax, LITO and Medicare levy (2025-26 and 2026-27)', true],
+  ['HELP repayments and the Medicare levy surcharge', true],
+  ['Salary sacrifice, the concessional cap, Division 293 and LISTO', true],
+  ['Carry-forward (unused) concessional contributions', true],
+  ['Tax inside super and tax-free withdrawals after 60', true],
+  ['Super fund fees (median MySuper fund)', true],
+  ['Super locked until 60 — and a partner’s at their own 60', true],
+  ['Age Pension: assets and income tests, deeming, couples', true],
+  ['Offset account vs investing', true],
+  ['Withdrawal rates and how long money lasts', true],
+  ['Market ups and downs — 2,000 simulated futures', true],
+  ['Live RBA cash, inflation, savings and mortgage rates', true],
+  ['Insurance premiums inside super', false],
+  ['Family-tier Medicare levy surcharge thresholds', false],
+];
+const done = MODELLED.filter(([, d]) => d).length;
+const SOURCES = [
+  ['Reserve Bank of Australia', 'Cash rate, inflation, savings and mortgage rates', 'https://www.rba.gov.au/statistics/', 'rba.gov.au'],
+  ['Australian Taxation Office', 'Tax brackets, offsets, super guarantee, contribution caps, HELP', 'https://www.ato.gov.au', 'ato.gov.au'],
+  ['Services Australia', 'Age Pension rates, means tests and deeming', 'https://www.servicesaustralia.gov.au/age-pension', 'servicesaustralia.gov.au'],
+  ['APRA', 'Super fund fees (MySuper heatmap)', 'https://www.apra.gov.au/mysuper-product-performance', 'apra.gov.au'],
+  ['MoneySmart (ASIC)', 'Preservation age and general financial education', 'https://moneysmart.gov.au', 'moneysmart.gov.au'],
+];
+---
+<DocLayout
+  title="How FirePath calculates — data sources & assumptions"
+  description="Every number behind FirePath: live RBA data, current ATO and Age Pension rates, the 7% real return, and what we model — in plain English."
+  path="/assumptions"
+  eyebrow="How we calculate"
+  heading="Every number,"
+  accent="out in the open"
+  lead="FirePath is built on real Australian data. This page shows exactly what we use, where it comes from, and what we're still working on. No hidden assumptions."
+  updated="October 2026"
+  readMins={4}
+  sections={sections}
+  glance={glance}
+  glanceNote="The details for each are below."
+>
+  <section class="doc-section" id="your-number" data-doc-section>
+    <h2>Your number, step by step</h2>
+    <p id="chainIntro">An example. <a href="/auth">Sign in</a> to see this built from your own numbers.</p>
+    <div class="doc-chain" id="chain"></div>
+  </section>
+
+  <section class="doc-section" id="live" data-doc-section>
+    <h2>Live figures</h2>
+    <p>Pulled from the Reserve Bank's published statistics and refreshed every day. They drive anything about what money earns <em>right now</em> — cash savings, offset accounts.</p>
+    <ul class="doc-facts" id="liveFacts"><li class="doc-fact"><span class="doc-fact-label">Loading today's figures…</span></li></ul>
+  </section>
+
+  <section class="doc-section" id="long-run" data-doc-section>
+    <h2>Long-run assumptions</h2>
+    <p>For projections over years and decades, we use long-run figures rather than today's — a single year's inflation or interest rate would mislead over 30 years.</p>
+    <ul class="doc-facts">
+      {LONG_RUN.map(([l, sub, v, unit]) => (
+        <li class="doc-fact"><span class="doc-fact-label">{l}<span class="doc-fact-sub">{sub}</span></span><span class="doc-fact-val">{v}<small>{unit}</small></span></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="doc-section" id="rates" data-doc-section>
+    <h2>Tax, super and pension rates</h2>
+    <p>Read straight from the file our calculators use, so what you see here is exactly what they apply. Tax figures switch over automatically on 1 July.</p>
+    <ul class="doc-facts" id="rateFacts"><li class="doc-fact"><span class="doc-fact-label">Loading…</span></li></ul>
+  </section>
+
+  <section class="doc-section" id="why-7" data-doc-section>
+    <h2>Why 7%</h2>
+    <p>A 7% real return (after inflation) is the most widely used assumption in financial independence planning, grounded in over a century of market data.</p>
+    <ul class="doc-facts">
+      {WHY_7.map(([l, sub, v]) => (
+        <li class="doc-fact"><span class="doc-fact-label">{l}<span class="doc-fact-sub">{sub}</span></span><span class="doc-fact-val">{v}<small>real</small></span></li>
+      ))}
+    </ul>
+    <div class="doc-aside"><p>Past returns don't guarantee future results. 7% is a planning assumption, not a prediction — which is why we also show the range across 2,000 market futures.</p></div>
+  </section>
+
+  <section class="doc-section" id="modelled" data-doc-section>
+    <h2>What FirePath models</h2>
+    <p>We'd rather tell you what we're still working on than pretend it's done.</p>
+    <div class="doc-progress">
+      <div class="doc-progress-bar"><span style={`width:${Math.round(done / MODELLED.length * 100)}%`}></span></div>
+      <p><strong>{done} of {MODELLED.length}</strong> live</p>
+    </div>
+    <ul class="doc-facts">
+      {MODELLED.map(([l, d]) => (
+        <li class="doc-fact"><span class="doc-fact-label" style="font-weight:500">{l}</span><span class={`doc-tag ${d ? 'is-done' : 'is-soon'}`}>{d ? 'Live' : 'Coming'}</span></li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="doc-section" id="sources" data-doc-section>
+    <h2>Official sources</h2>
+    <ul class="doc-facts">
+      {SOURCES.map(([n, sub, href, label]) => (
+        <li class="doc-fact"><span class="doc-fact-label">{n}<span class="doc-fact-sub">{sub}</span></span><span class="doc-fact-val"><a href={href} target="_blank" rel="noopener noreferrer">{label} ↗</a></span></li>
+      ))}
+    </ul>
+    <p>FirePath is an educational tool, not financial advice. Projections are illustrative and based on the numbers you enter.</p>
+  </section>
+
+  <script is:inline src="/js/auth.js"></script>
+  <script is:inline src="/js/tax-engine.js"></script>
+  <script is:inline src="/js/calculations.js"></script>
+  <script is:inline>
+  (function () {
+    const $ = id => document.getElementById(id);
+    const money = n => '$' + Math.round(n).toLocaleString('en-AU');
+    const pct = (n, d) => (n * 100).toFixed(d == null ? 0 : d).replace(/\.0+$/, '') + '%';
+    const fact = (label, sub, val, unit, live) =>
+      `<li class="doc-fact"><span class="doc-fact-label">${label}${live ? '<span class="doc-live">Live</span>' : ''}<span class="doc-fact-sub">${sub}</span></span><span class="doc-fact-val">${val}${unit ? `<small>${unit}</small>` : ''}</span></li>`;
+    const asAt = d => d ? 'as at ' + new Date(d + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : 'built-in figure';
+
+    // Live figures (Worker → RBA)
+    loadAssumptions().then(() => {
+      const a = FP_ASSUMPTIONS, at = a.asAt || {}, live = a.source === 'rba' || a.source === 'partial';
+      $('liveFacts').innerHTML = [
+        fact('RBA cash rate', 'The Reserve Bank’s official rate · ' + asAt(at.cashRate), a.cashRate.toFixed(2) + '%', '', live),
+        fact('Inflation (CPI)', 'Prices over the last 12 months · ' + asAt(at.cpi), a.cpi.toFixed(1) + '%', '', live),
+        fact('Bonus savings accounts', 'What banks pay on bonus savers · ' + asAt(at.savingsRate), a.savingsRate.toFixed(2) + '%', '', live),
+        fact('Variable mortgage rate', 'What owner-occupiers actually pay, on average · ' + asAt(at.mortgageRate), a.mortgageRate.toFixed(2) + '%', '', live),
+        fact('Cash savings, after inflation', 'Bonus saver rate less inflation (before tax)', pct(a.bankRealReturn, 2), 'real'),
+        fact('Offset account, after inflation', 'An offset saves mortgage interest, tax-free', pct(a.offsetRealReturn, 2), 'real'),
+      ].join('');
+    });
+
+    // Tax, super and pension — straight from js/tax-engine.js
+    const c = TAX_CONFIG, P = AGE_PENSION;
+    const brackets = c.brackets.map(b => pct(b.rate)).join(' / ');
+    $('rateFacts').innerHTML = [
+      fact('Income tax brackets ' + c.year, brackets + ' — tax-free up to ' + money(c.brackets[0].max), c.year, 'financial year'),
+      fact('Medicare levy', 'Phases in above ' + money(c.medicareLevyThreshold) + ' (single)', pct(c.medicareLevy), 'of income'),
+      fact('Low income tax offset', 'Phases out completely at ' + money(c.lito.phaseOut2End), money(c.lito.maxOffset), 'maximum'),
+      fact('HELP / HECS repayments', '15c per dollar above ' + money(c.help.start) + ' (optional on the Tax page)', money(c.help.start), 'threshold'),
+      fact('Medicare levy surcharge', 'Without private hospital cover, singles above ' + money(c.mls[0].from) + ' (optional)', pct(c.mls[0].rate, 1) + '–' + pct(c.mls[c.mls.length - 1].rate, 1), 'of income'),
+      fact('Super guarantee', 'What employers pay into your super', pct(c.sgRate), 'of salary'),
+      fact('Concessional cap', 'Employer super + salary sacrifice + personal deductible', money(c.concessionalCap), 'a year'),
+      fact('Non-concessional cap', 'After-tax contributions', money(c.nonConcessionalCap), 'a year'),
+      fact('Contributions tax', 'Taxed inside super on the way in (30% above $250k: Division 293)', pct(c.superTaxRate), ''),
+      fact('Age Pension age', 'Services Australia', P.eligibilityAge, 'years'),
+      fact('Age Pension (maximum)', 'Single, incl. supplements · couple ' + money(P.coupleFortnight) + ' combined · from ' + new Date(P.effectiveFrom + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }), '$' + P.singleFortnight.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), 'a fortnight'),
+      fact('Assets test (homeowner)', 'Full pension up to this; reduces $3 a fortnight per $1,000 over · couple ' + money(P.assets.couple.homeowner.full), money(P.assets.single.homeowner.full), 'single'),
+      fact('Deeming rates', 'What Centrelink assumes investments earn: ' + pct(P.deeming.lowerRate, 2) + ' up to ' + money(P.deeming.threshold.single) + ', then ' + pct(P.deeming.upperRate, 2), pct(P.deeming.lowerRate, 2) + ' / ' + pct(P.deeming.upperRate, 2), ''),
+    ].join('');
+
+    // Your number, step by step — your own if signed in, else an example
+    function renderChain(spendToday, mult, fireNum, isReal) {
+      const steps = [
+        ['What you spend in a year', isReal ? 'Your take-home pay less what you save' : 'Example', money(spendToday)],
+      ];
+      if (Math.abs(mult - 1) > 0.001) steps.push(['In retirement', mult < 1 ? 'Spending ' + Math.round((1 - mult) * 100) + '% less once work costs and the mortgage are gone' : 'Spending ' + Math.round((mult - 1) * 100) + '% more on travel and lifestyle', money(spendToday * mult)]);
+      steps.push(['× 25', 'So that 4% a year covers it — the 4% rule', '25×']);
+      steps.push([isReal ? 'Your freedom number' : 'A freedom number', 'Invested at 7% real, this pays your spending indefinitely', money(fireNum)]);
+      $('chain').innerHTML = steps.map((s, i) => `<div class="doc-chain-step${i === steps.length - 1 ? ' is-result' : ''}"><span class="doc-chain-num">${i === steps.length - 1 ? '=' : i + 1}</span><span class="doc-chain-label">${s[0]}<small>${s[1]}</small></span><span class="doc-chain-val">${s[2]}</span></div>`).join('');
+    }
+    renderChain(56000, 1, 56000 * 25, false);
+    (async () => {
+      try {
+        const token = typeof getToken === 'function' ? getToken() : null;
+        const userId = typeof getUserId === 'function' ? getUserId() : null;
+        if (!token || !userId) return;
+        const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const rows = await res.json();
+        const p = Array.isArray(rows) ? rows[0] : null;
+        if (!p || !(p.freedom_number > 0)) return;
+        // Worked back from the saved freedom number, so every step adds up exactly.
+        const mult = p.retirement_spend_multiplier || 1;
+        const spendToday = p.freedom_number / 25 / mult;
+        $('chainIntro').innerHTML = 'Built from your saved numbers. <a href="/firepath_pro">Update them</a> any time.';
+        renderChain(spendToday, mult, p.freedom_number, true);
+      } catch (e) { console.log('Profile load failed — showing the example', e); }
+    })();
+  })();
+  </script>
+</DocLayout>
