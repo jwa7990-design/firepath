@@ -5,7 +5,9 @@ import Icon from '../components/Icon.astro';
 const sections = [
   { id: 'collect', title: 'What we collect' },
   { id: 'use', title: 'How we use your data' },
+  { id: 'analytics', title: 'Website analytics' },
   { id: 'sharing', title: 'Who we share data with' },
+  { id: 'overseas', title: 'Where your data goes' },
   { id: 'security', title: 'Data storage and security' },
   { id: 'rights', title: 'Your rights' },
   { id: 'cookies', title: 'Cookies and local storage' },
@@ -25,6 +27,9 @@ const providers = [
   { name: 'Stripe', role: 'Payments', text: 'Payment processing for FirePath Pro subscriptions. We never see or store your card details.' },
   { name: 'Anthropic', role: 'AI insights', text: "The AI that powers FirePath's personalised insights. Your financial inputs are sent to Anthropic's API to generate your insight and are not used to train their models." },
   { name: 'Resend', role: 'Email', text: 'Email delivery for account and notification emails.' },
+  { name: 'Google Analytics', role: 'Analytics', text: 'Counts visits and which pages are used, so we know what to improve. It never receives the numbers you enter. See "Website analytics" above.' },
+  { name: 'Cloudflare', role: 'Hosting', text: 'Hosts the website and runs our server code. Like any web host it sees your IP address and browser details, which it uses to deliver pages and block abuse.' },
+  { name: 'Google Fonts', role: 'Fonts', text: "Supplies the typefaces the site uses. Loading them sends your IP address and browser details to Google, as with any web font." },
 ];
 ---
 <DocLayout
@@ -35,8 +40,8 @@ const providers = [
   heading="Privacy"
   accent="Policy"
   lead="FirePath is built by an individual developer based in Australia. This policy explains what information we collect, how we use it, and how we protect it. We've written it in plain English because we think you deserve to actually understand it."
-  updated="June 2026"
-  readMins={3}
+  updated="October 2026"
+  readMins={4}
   sections={sections}
   glance={glance}
   glanceNote="A quick summary — the full policy below is what applies."
@@ -52,6 +57,7 @@ const providers = [
           <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Financial inputs</strong> — the numbers you enter into the calculator (income, savings, super balance, age, debt). These are used only to generate your results and are not verified, audited, or shared.</span></li>
           <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Usage data</strong> — which features you use, your persona selection, pay cycle, and general behaviour in the app. This helps us understand what's working and what isn't.</span></li>
           <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Feedback</strong> — if you submit feedback through the feedback form, we collect your responses and optionally your email.</span></li>
+          <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Website analytics</strong> — anonymous visit statistics from Google Analytics, such as which pages are viewed and roughly where visitors are. See "Website analytics" below.</span></li>
         </ul>
       </div>
       <div class="doc-panel is-muted" data-reveal>
@@ -60,6 +66,7 @@ const providers = [
           <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We do not collect your name, address, phone number, or any government identifiers.</span></li>
           <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We do not collect payment card details — payments are handled securely by Stripe.</span></li>
           <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We do not use advertising trackers or sell your data to third parties. Ever.</span></li>
+          <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>Our analytics never receive the financial numbers you enter or the questions you type.</span></li>
         </ul>
       </div>
     </div>
@@ -76,6 +83,17 @@ const providers = [
     <div class="doc-aside"><p>We do not use your financial inputs to make decisions about you, profile you for advertising, or share them with any third party.</p></div>
   </section>
 
+  <section class="doc-section" id="analytics" data-doc-section>
+    <h2>Website analytics</h2>
+    <p>We use <strong>Google Analytics</strong> to understand how FirePath is used — which pages people visit, how they arrived, what kind of device and browser they use, and roughly where they are (city or country, worked out from their IP address). This helps us see what's working and what to improve.</p>
+    <ul class="doc-list is-yes">
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>We send Google only the name of the page you're on. Anything after it in the address — a question you've typed into Ask FirePath, or a sign-in link's code — is removed first.</span></li>
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>The financial numbers you enter, your results and your AI insights are never sent to Google Analytics.</span></li>
+      <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>Google's advertising features are switched off: your visits aren't linked to your Google account or used for ad personalisation.</span></li>
+    </ul>
+    <p>Google Analytics uses cookies (named <code>_ga</code>) to tell one visit from the next. They don't contain your name or email and last up to two years. You can block or delete them in your browser settings, or install Google's <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer">Analytics opt-out add-on</a> — FirePath works exactly the same either way.</p>
+  </section>
+
   <section class="doc-section" id="sharing" data-doc-section>
     <h2>Who we share data with</h2>
     <p>We use a small number of trusted third-party services to run FirePath:</p>
@@ -90,6 +108,11 @@ const providers = [
     <p><strong>No other third parties have access to your data.</strong></p>
   </section>
 
+  <section class="doc-section" id="overseas" data-doc-section>
+    <h2>Where your data goes</h2>
+    <p>Some of the services above store or process information outside Australia — mainly in the United States (Google, Anthropic and Stripe, for example) — and Cloudflare serves the site from data centres around the world. We choose established providers with strong security and privacy commitments, and we only share what each one needs to do its job.</p>
+  </section>
+
   <section class="doc-section" id="security" data-doc-section>
     <h2>Data storage and security</h2>
     <p>Your data is stored in Supabase, which uses industry-standard encryption at rest and in transit. We use row-level security so your data is only accessible to your own account. We take reasonable steps to protect your information but no system is 100% secure — please use a strong password.</p>
@@ -102,7 +125,8 @@ const providers = [
 
   <section class="doc-section" id="cookies" data-doc-section>
     <h2>Cookies and local storage</h2>
-    <p>FirePath uses browser local storage to remember your session and preferences (such as your persona selection and commitment tracker). We do not use advertising cookies or third-party tracking cookies.</p>
+    <p>FirePath uses your browser's local storage to keep you signed in and remember your preferences (such as your persona selection, commitment tracker, and tax page choices like whether you have a HELP debt). This stays on your device.</p>
+    <p>The only cookies are Google Analytics' visit-counting cookies described above. We don't use advertising cookies.</p>
   </section>
 
   <section class="doc-section" id="learning-lab" data-doc-section>
@@ -129,6 +153,7 @@ const providers = [
 
   <section class="doc-section" id="contact" data-doc-section>
     <h2>Contact</h2>
-    <p>Questions about this policy? Email us at <a href="mailto:hello@firepath.pro">hello@firepath.pro</a></p>
+    <p>Questions about this policy, or want to see, correct or delete your information? Email us at <a href="mailto:hello@firepath.pro">hello@firepath.pro</a> and we'll respond within 30 days.</p>
+    <p>If you're not happy with how we've handled a privacy concern, you can contact the Office of the Australian Information Commissioner at <a href="https://www.oaic.gov.au" target="_blank" rel="noopener noreferrer">oaic.gov.au</a>.</p>
   </section>
 </DocLayout>
