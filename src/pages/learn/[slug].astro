@@ -1,0 +1,102 @@
+---
+/**
+ * One Learning Lab article. All 69 are built from this template and the files in
+ * src/content/learn/. The body keeps its `<div class="article-body">` wrapper because
+ * Learning Lab (learning_lab.html) and scripts/populate-learning-articles.cjs read it.
+ */
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { ARTICLES, relatedTo, type Article } from '../../lib/learn';
+import '../../styles/doc.css';
+import '../../styles/article-page.css';
+
+export function getStaticPaths() {
+  return ARTICLES.map(a => ({ params: { slug: a.slug }, props: { article: a } }));
+}
+const { article: a } = Astro.props as { article: Article };
+const related = relatedTo(a);
+const showToc = a.sections.length >= 3;
+const cleanHref = (h: string) => h.replace(/\.html$/, '');
+const tryLinks = a.cta?.links?.length ? a.cta.links : [{ href: '/firepath', label: 'Calculate my freedom number' }];
+const schema = {
+  '@context': 'https://schema.org', '@type': 'Article',
+  headline: a.heading, description: a.description,
+  mainEntityOfPage: `https://www.firepath.pro/learn/${a.slug}`,
+  author: { '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro' },
+  publisher: { '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro' },
+  articleSection: a.badge, inLanguage: 'en-AU',
+};
+---
+<Base title={a.title} description={a.description} path={`/learn/${a.slug}`} active="learn" ogType="article" keywords={a.keywords}>
+  <link slot="head" rel="stylesheet" href="/css/article.css"/>
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
+
+  <main id="main" data-progress>
+    <header class="doc-hero art-hero">
+      <div class="doc-hero-inner">
+        <nav class="art-crumbs" aria-label="Breadcrumb"><a href="/learn/">Learning Lab</a><span aria-hidden="true">/</span><span>{a.badge}</span></nav>
+        <h1 class="doc-title art-title">{a.heading}</h1>
+        <p class="doc-lead">{a.sub || a.description}</p>
+        <div class="doc-meta">
+          <span class="doc-chip"><Icon name="clock" size={14}/>{a.readMins} min read</span>
+          <span class="doc-chip"><Icon name="book" size={14}/>{a.badge}</span>
+          <span class="doc-chip"><Icon name="shield" size={14}/>Educational, not advice</span>
+        </div>
+      </div>
+    </header>
+
+    <div class:list={['doc-body', 'art-body', { 'no-toc': !showToc }]}>
+      {showToc && (
+        <nav class="doc-toc" aria-label="In this article">
+          <details class="doc-toc-mobile">
+            <summary>In this article <Icon name="chevron" size={14} stroke={2.2}/></summary>
+            <ol>{a.sections.map((s, i) => <li><a href={`#${s.id}`}><span class="doc-toc-num">{String(i + 1).padStart(2, '0')}</span>{s.title}</a></li>)}</ol>
+          </details>
+          <div class="doc-toc-desktop">
+            <p class="doc-toc-label">In this article</p>
+            <ol>{a.sections.map((s, i) => <li><a href={`#${s.id}`} data-toc={s.id}><span class="doc-toc-num">{String(i + 1).padStart(2, '0')}</span>{s.title}</a></li>)}</ol>
+          </div>
+        </nav>
+      )}
+
+      <article class="doc-content art-content">
+        <div class="article-body" set:html={a.body}></div>
+
+        <aside class="art-try">
+          <span class="art-try-kicker">Try it with your numbers</span>
+          <h2>{a.cta?.heading || 'See how this applies to you'}</h2>
+          <p>{a.cta?.text || 'FirePath works out your own numbers — free, in about 2 minutes.'}</p>
+          <div class="art-try-actions">
+            {tryLinks.map((l, i) => <a href={cleanHref(l.href)} class={i === 0 ? 'btn btn-ember btn-lg' : 'art-try-link'}>{l.label.replace(/\s*→$/, '')} {i === 0 && <Icon name="arrow" size={16}/>}</a>)}
+          </div>
+        </aside>
+
+        {a.seeAlso && (
+          <p class="art-seealso">See also: {a.seeAlso.map((l, i) => <>{i > 0 && ' · '}<a href={cleanHref(l.href)}>{l.label}</a></>)}</p>
+        )}
+
+        <section class="art-related" aria-labelledby="related-title">
+          <h2 id="related-title">Keep reading</h2>
+          <div class="art-related-grid">
+            {related.map(r => (
+              <a href={`/learn/${r.slug}`} class="art-related-card" data-reveal>
+                <span class="art-related-badge">{r.badge}</span>
+                <span class="art-related-title">{r.heading}</span>
+                <span class="art-related-meta">{r.readMins} min read <Icon name="arrow" size={14}/></span>
+              </a>
+            ))}
+          </div>
+          <a href="/learn/" class="art-all">Browse all of the Learning Lab <Icon name="arrow" size={14}/></a>
+        </section>
+
+        <p class="art-disclaimer">FirePath is an educational tool. Nothing on this page is financial advice. Always consider your personal circumstances and consult a licensed financial adviser for advice specific to you.</p>
+      </article>
+    </div>
+  </main>
+
+  <script>
+    import { followSections } from '../../scripts/toc';
+    followSections();
+    document.querySelectorAll('.doc-toc-mobile a').forEach(el => el.addEventListener('click', () => el.closest('details')?.removeAttribute('open')));
+  </script>
+</Base>

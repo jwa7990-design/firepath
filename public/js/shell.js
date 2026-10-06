@@ -203,7 +203,7 @@
   // content added later by a page's own script simply appears as normal.
   const REVEAL = '.app-main .card, .site-main .card, main .card, .article-body > [class$="-box"], .article .cta-box, [data-reveal]';
   function initMotion() {
-    if (document.querySelector('.article')) body.insertAdjacentHTML('afterbegin', '<div class="fp-progress" aria-hidden="true"></div>');
+    if (document.querySelector('.article, [data-progress]')) body.insertAdjacentHTML('afterbegin', '<div class="fp-progress" aria-hidden="true"></div>');
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
     const fold = window.innerHeight;
     const targets = Array.from(document.querySelectorAll(REVEAL)).filter(el =>
