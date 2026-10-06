@@ -194,3 +194,40 @@
   .doc-glance-item { grid-template-columns: 36px 1fr; column-gap: 14px; padding: 14px; }
   .doc-glance-icon { grid-row: span 2; margin-bottom: 0; }
 }
+
+/* Fact rows: a label (with a line of detail) on the left, the figure on the right */
+.doc-facts { list-style: none; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); box-shadow: var(--shadow-1); overflow: hidden; }
+.doc-fact { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 16px 20px; }
+.doc-fact + .doc-fact { border-top: 1px solid var(--line); }
+.doc-fact-label { font-size: 15px !important; line-height: 1.5 !important; color: var(--ink) !important; font-weight: 600; }
+.doc-fact-sub { display: block; margin-top: 2px; font-size: 13.5px; font-weight: 400; color: var(--ink-2); line-height: 1.55; }
+.doc-fact-val { text-align: right; font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums lining-nums; }
+.doc-fact-val small { display: block; font-family: var(--font-ui); font-size: 11.5px; font-weight: 500; color: var(--ink-3); }
+.doc-fact-val a { font-family: var(--font-ui); font-size: 13.5px; font-weight: 600; }
+.doc-live { display: inline-flex; align-items: center; gap: 5px; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--positive-wash); color: var(--positive); font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; vertical-align: 2px; }
+.doc-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+@media (prefers-reduced-motion: no-preference) { .doc-live::before { animation: fp-live 2s ease-in-out infinite; } }
+@keyframes fp-live { 50% { opacity: 0.35; } }
+@media (max-width: 520px) { .doc-fact { grid-template-columns: 1fr; gap: 6px; } .doc-fact-val { text-align: left; } }
+
+/* A worked chain of steps (how a number is built) */
+.doc-chain { display: grid; gap: 10px; counter-reset: chain; }
+.doc-chain-step { display: grid; grid-template-columns: 36px 1fr auto; gap: 14px; align-items: center; padding: 16px 18px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
+.doc-chain-num { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 10px; background: var(--surface-2); color: var(--ink-2); font-size: 13px; font-weight: 700; }
+.doc-chain-label { font-size: 15px !important; color: var(--ink) !important; }
+.doc-chain-label small { display: block; font-size: 13px; color: var(--ink-2); }
+.doc-chain-val { font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--ink); white-space: nowrap; }
+.doc-chain-step.is-result { background: radial-gradient(80% 140% at 100% 0%, rgba(244, 98, 42, 0.3), transparent 60%), var(--espresso); border-color: transparent; box-shadow: var(--shadow-3); }
+.doc-chain-step.is-result .doc-chain-num { background: rgba(249, 168, 37, 0.18); color: var(--amber); }
+.doc-chain-step.is-result .doc-chain-label { color: var(--bg) !important; }
+.doc-chain-step.is-result .doc-chain-label small { color: rgba(253, 246, 238, 0.65); }
+.doc-chain-step.is-result .doc-chain-val { color: var(--amber); font-size: 28px; }
+
+/* Progress of what's modelled */
+.doc-progress { display: flex; align-items: center; gap: 16px; padding: 16px 18px; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--line); }
+.doc-progress-bar { flex: 1; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.doc-progress-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--ember), var(--amber)); }
+.doc-progress p { font-size: 14px !important; color: var(--ink-2) !important; white-space: nowrap; }
+.doc-tag { font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.doc-tag.is-done { background: var(--positive-wash); color: var(--positive); }
+.doc-tag.is-soon { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
