@@ -134,6 +134,7 @@
     const token = getToken();
     const userId = getUserId();
     if (!token || !userId) { window.location.href = 'auth.html'; return; }
+    if (!(await requirePro())) return;   // accounts are part of Pro
 
     const card = document.getElementById('networthCard');
     const revealCard = () => requestAnimationFrame(() => card.classList.add('in-view'));

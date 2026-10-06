@@ -1,0 +1,117 @@
+---
+/**
+ * Features — a tour of every FirePath tool, grouped by the question it answers, each
+ * marked Free (no account) or Pro. Keep the Free/Pro labels in step with
+ * src/data/plans.ts and the page gates (Pro pages call requirePro()).
+ */
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { FREE_FEATURES, PRO_FEATURES, TRIAL_FINE_PRINT } from '../data/plans';
+import '../styles/doc.css';
+import '../styles/tour.css';
+
+type Tool = { name: string; plan: 'Free' | 'Pro'; href: string; icon: string; line: string; points: string[] };
+const GROUPS: { id: string; title: string; intro: string; tools: Tool[] }[] = [
+  { id: 'plan', title: 'Your plan', intro: 'When could work become optional — and what does your whole picture look like?', tools: [
+    { name: 'Freedom calculator', plan: 'Free', href: '/firepath', icon: 'flame', line: 'Your freedom date in about two minutes.',
+      points: ['A real year, not a someday', 'A realistic range across 2,000 market futures', 'Add your partner’s income and savings'] },
+    { name: 'Full Analysis', plan: 'Pro', href: '/upgrade', icon: 'bars', line: 'Your whole plan, saved — with super and an AI insight.',
+      points: ['Two timelines: what you can reach now, and what unlocks at 60', 'Your partner’s super, unlocking at their own 60', 'An AI insight written around your situation'] },
+    { name: 'Journey dashboard', plan: 'Pro', href: '/upgrade', icon: 'calendar', line: 'Your plan at a glance, every time you come back.',
+      points: ['Net worth and your freedom date', 'What’s changed since your last check-in', 'Weekly check-ins and milestones'] },
+  ]},
+  { id: 'what-if', title: 'What if…?', intro: 'Big decisions, modelled in years — before you make them.', tools: [
+    { name: 'Scenario explorer', plan: 'Free', href: '/hearmeout', icon: 'spark', line: 'Run the big life decisions through your numbers.',
+      points: ['Sell the house, downsize or rent vs invest', 'A lump sum, an inheritance or a redundancy payout', 'Paying off a loan, and the cost of waiting to invest'] },
+    { name: 'Freedom gap', plan: 'Free', href: '/freedom-gap', icon: 'scale', line: 'How close are you — and how could part-time work close the rest?',
+      points: ['What your portfolio pays today', 'The Age Pension at 67, means-tested properly', 'The hours a week that would close the gap'] },
+    { name: 'Compounding', plan: 'Free', href: '/compound', icon: 'bars', line: 'See what regular investing grows into.',
+      points: ['Weekly, fortnightly or monthly amounts', 'How much is your money vs growth', 'What waiting five or ten years really costs'] },
+  ]},
+  { id: 'retirement', title: 'Will it last?', intro: 'Once you stop work, how long does the money go?', tools: [
+    { name: 'Withdrawal stress test', plan: 'Free', href: '/withdrawal', icon: 'shield', line: 'Test a withdrawal rate the way markets really behave.',
+      points: ['30 years across 2,000 market futures', 'What a bad run early on does (sequence risk)', 'Your income in today’s money'] },
+    { name: 'Lasts to 95', plan: 'Pro', href: '/upgrade', icon: 'clock', line: 'The odds your own plan lasts — with the pension and part-time work.',
+      points: ['Odds your money lasts to 95', 'The Age Pension from 67, on your real assets', 'A slider for a few days’ work a week'] },
+  ]},
+  { id: 'tax', title: 'Tax and super', intro: 'The Australian rules that move your date — worked out at current ATO rates.', tools: [
+    { name: 'Tax tools', plan: 'Pro', href: '/upgrade', icon: 'card', line: 'Every dollar, connected to your plan.',
+      points: ['Take-home pay, with HELP and the Medicare levy surcharge if they apply', 'Salary sacrifice — the cap, Division 293, carry-forward', 'Your offset account vs investing'] },
+  ]},
+  { id: 'learn', title: 'Learn', intro: 'Understand the why, in plain English.', tools: [
+    { name: 'Learning Lab', plan: 'Free', href: '/learn/', icon: 'book', line: 'Plain-English guides to FIRE, investing, super and tax.',
+      points: ['Real questions, answered with real numbers', 'Australian rules throughout', 'Search, or start with three short reads'] },
+    { name: 'Ask FirePath', plan: 'Free', href: '/ask-firepath', icon: 'chat', line: 'Quick what-ifs, answered with a calculation.',
+      points: ['“What if I saved $500 more a month?”', '“Could I retire at 50?”', 'With Pro, it answers with your own numbers'] },
+    { name: 'Learning Lab, tracked', plan: 'Pro', href: '/upgrade', icon: 'star', line: 'Keep your place and get pointed to what’s next.',
+      points: ['Save articles and track what you’ve read', 'Synced across your devices', 'AI-suggested next steps'] },
+  ]},
+];
+const count = (p: 'Free' | 'Pro') => GROUPS.flatMap(g => g.tools).filter(t => t.plan === p).length;
+---
+<Base
+  title="FirePath features — every tool, free and Pro"
+  description="Every FirePath tool in one place: your freedom date, a realistic market range, scenario explorer, withdrawal stress test, Age Pension and part-time gap, tax and super tools — most free, no account needed."
+  path="/features"
+  active="features"
+>
+  <main id="main">
+    <header class="doc-hero tour-hero">
+      <div class="doc-hero-inner">
+        <span class="doc-eyebrow">The tools</span>
+        <h1 class="doc-title">Every tool, <span class="accent">in one place</span>.</h1>
+        <p class="doc-lead">Most of FirePath is free, with no account — you type your numbers in. Pro saves your plan and builds everything around it.</p>
+        <div class="doc-meta">
+          <span class="doc-chip tour-chip-free"><Icon name="check" size={14} stroke={2.4}/>{count('Free')} free tools</span>
+          <span class="doc-chip tour-chip-pro"><Icon name="star" size={14}/>{count('Pro')} more with Pro</span>
+        </div>
+        <nav class="hub-chips tour-jump" aria-label="Tool groups">
+          {GROUPS.map(g => <a href={`#${g.id}`} class="hub-chip">{g.title}<span>{g.tools.length}</span></a>)}
+        </nav>
+      </div>
+    </header>
+
+    <div class="tour">
+      {GROUPS.map(g => (
+        <section class="tour-group" id={g.id} aria-labelledby={`${g.id}-title`}>
+          <div class="tour-group-head">
+            <h2 id={`${g.id}-title`}>{g.title}</h2>
+            <p>{g.intro}</p>
+          </div>
+          <div class="tour-grid">
+            {g.tools.map(t => (
+              <a href={t.href} class:list={['tour-card', { 'is-pro': t.plan === 'Pro' }]} data-reveal>
+                <div class="tour-card-top">
+                  <span class="tour-icon"><Icon name={t.icon} size={18}/></span>
+                  <span class:list={['tour-plan', { 'is-pro': t.plan === 'Pro' }]}>{t.plan === 'Free' ? 'Free · no account' : 'Pro'}</span>
+                </div>
+                <h3>{t.name}</h3>
+                <p class="tour-line">{t.line}</p>
+                <ul>{t.points.map(p => <li>{p}</li>)}</ul>
+                <span class="tour-go">{t.plan === 'Free' ? 'Open the tool' : 'Part of Pro — try 7 days free'} <Icon name="arrow" size={14}/></span>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
+
+      <section class="tour-compare" aria-labelledby="compare-title">
+        <h2 id="compare-title">Free or Pro?</h2>
+        <div class="tour-compare-grid">
+          <div class="tour-compare-col">
+            <p class="tour-compare-name">Free <span>no account</span></p>
+            <ul>{FREE_FEATURES.map(f => <li><Icon name="check" size={13} stroke={2.6}/>{f}</li>)}</ul>
+            <a href="/firepath" class="btn btn-quiet btn-block">Start with the free calculator</a>
+          </div>
+          <div class="tour-compare-col is-pro">
+            <p class="tour-compare-name">Pro <span>$6 a month · 7-day free trial</span></p>
+            <ul>{PRO_FEATURES.map(([t]) => <li><Icon name="check" size={13} stroke={2.6}/>{t}</li>)}</ul>
+            <a href="/upgrade" class="btn btn-ember btn-block">Try Pro free for 7 days</a>
+            <p class="tour-fine">{TRIAL_FINE_PRINT}</p>
+          </div>
+        </div>
+        <p class="tour-more"><a href="/pricing">See pricing and questions</a></p>
+      </section>
+    </div>
+  </main>
+</Base>

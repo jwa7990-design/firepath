@@ -213,7 +213,7 @@
     <div class="lab-hero">
       <div class="eyebrow" style="margin-bottom:8px;">Learning Lab</div>
       <h1>What's your <span class="accent">return goal?</span></h1>
-      <p>Choose your track and we'll show you the education that matches — explained in plain English, using your actual numbers.</p>
+      <p>Choose your track and we'll show you the education that matches — explained in plain English. Every article is free to read.</p>
     </div>
     <div id="userContext" class="callout callout-ember lab-note" style="display:none;"></div>
 
@@ -239,8 +239,8 @@
     <div class="track-card track-card-featured" onclick="selectTrack('life')">
       <div class="track-flag">Start here</div>
       <div class="track-header"><span class="track-badge tlife">You</span><span class="track-name">Real Questions</span></div>
-      <div class="track-desc">The questions people actually type into Google, answered honestly — using your real numbers, no jargon, no judgement.</div>
-      <div class="track-risk life">⬤ Straight answers, with your numbers</div>
+      <div class="track-desc">The questions people actually type into Google, answered honestly — in plain English, no jargon, no judgement.</div>
+      <div class="track-risk life">⬤ Straight answers, plain English</div>
     </div>
 
     <div class="section-label" style="justify-content:space-between;">
@@ -306,7 +306,7 @@
 
     <!-- GLOSSARY VIEW — shown instead of article for acronyms topic -->
     <div id="glossaryContent" style="display:none;">
-      <div class="glossary-intro">Tap any term to see what it means in plain English. Tap "Go deeper" to get an AI explanation tailored to your situation.</div>
+      <div class="glossary-intro">Tap any term to see what it means in plain English. Pro members can tap "Explain this more deeply" for a longer AI explanation.</div>
       <div class="glossary-filter-bar" id="glossaryFilterBar"></div>
       <div class="glossary-grid" id="glossaryGrid"></div>
       <p class="disclaimer" style="margin-top:16px;">FirePath Learning Lab is educational only — not financial advice.</p>
@@ -329,7 +329,8 @@
     fireNum: parseFloat(localStorage.getItem('ap_fireNum')) || 0,
     monthlySav: parseFloat(localStorage.getItem('ap_monthlySav')) || 0,
   };
-  const isPro = localStorage.getItem('fp_is_pro') === 'true';
+  // Pro = a signed-in member with Pro (accounts are part of Pro). Reading is free for everyone.
+  const isPro = localStorage.getItem('fp_is_pro') === 'true' && typeof isLoggedIn === 'function' && isLoggedIn();
 
   const currentYear = new Date().getFullYear();
   const freedomYear = userData.freedomYrs ? currentYear + Math.round(userData.freedomYrs) : null;
@@ -448,8 +449,13 @@
     chev.classList.toggle('open', !isOpen);
   }
 
+  // The deeper AI explanation is part of Pro — the Worker refuses AI calls from anyone
+  // else, so free readers see a short note about Pro instead of an error.
+  const PRO_DEEP_CARD = `<div class="glossary-deep-result" style="border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:12px 14px;"><strong style="color:var(--ink);">AI explanation — part of Pro.</strong> Pro writes this around your own plan. <a href="/upgrade" style="color:var(--ember);font-weight:600;white-space:nowrap;">Try 7 days free →</a></div>`;
+
   async function goDeeper(term, full, i) {
     const deepEl = document.getElementById(`gdeep-${i}`);
+    if (!isPro) { deepEl.innerHTML = PRO_DEEP_CARD; return; }
     deepEl.innerHTML = `<div class="glossary-deep-result glossary-loading">Generating deeper explanation...</div>`;
     const persona = userData.persona || 'building';
     const tone = persona === 'beginner' ? 'warm, simple, plain English' : persona === 'fire' ? 'direct, analytical, peer-level' : 'clear, practical';
@@ -465,10 +471,12 @@
           messages: [{ role: 'user', content: `Explain ${term} in more depth with practical Australian context.` }]
         })
       });
+      if (res.status === 401 || res.status === 403) { deepEl.innerHTML = PRO_DEEP_CARD; return; }   // Pro has lapsed
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       deepEl.innerHTML = `<div class="glossary-deep-result">${FirePathSafe.aiText(data.content[0].text)}</div>`;
     } catch(e) {
-      deepEl.innerHTML = `<div class="glossary-deep-result" style="color:var(--negative);">Something went wrong. Please try again.</div>`;
+      deepEl.innerHTML = `<div class="glossary-deep-result">Couldn't load the AI explanation just now — the explanation above is complete.</div>`;
     }
   }
 
@@ -535,7 +543,7 @@
   function showProGateSave() {
     const nextEl = document.getElementById('whatsNextSection');
     nextEl.style.display = 'block';
-    nextEl.innerHTML = `<div style="background:linear-gradient(140deg,var(--espresso),var(--espresso-2));border-radius:var(--r-lg);padding:24px;color:var(--bg);text-align:center;margin-top:16px;"><div style="margin-bottom:8px;color:var(--fire-amber);"><svg class="icon" style="width:20px;height:20px;"><use href="/icons.svg#icon-bookmark"/></svg></div><div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Save articles with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:400;line-height:1.6;margin-bottom:16px;">Pro members can save articles to read again, track progress across devices, and get AI-suggested next lessons.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
+    nextEl.innerHTML = `<div style="background:linear-gradient(140deg,var(--espresso),var(--espresso-2));border-radius:var(--r-lg);padding:24px;color:var(--bg);text-align:center;margin-top:16px;"><div style="margin-bottom:8px;color:var(--fire-amber);"><svg class="icon" style="width:20px;height:20px;"><use href="/icons.svg#icon-bookmark"/></svg></div><div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Save articles with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:400;line-height:1.6;margin-bottom:16px;">Pro members can save articles, track what they've read across devices, and get AI-suggested next steps.</div><a href="/upgrade" style="color:var(--bg);text-decoration:none;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</a></div>`;
   }
 
   function renderSavedArticles() {
@@ -564,7 +572,7 @@
 
   const foundationTopics = [
     { id: 'what-is-fire', icon: '🔥', title: 'What is FIRE and is it realistic for me?', sub: 'The basics of financial independence', track: 'foundation' },
-    { id: 'compounding', icon: '📈', title: 'How compound interest actually works', sub: 'With your actual numbers', track: 'foundation' },
+    { id: 'compounding', icon: '📈', title: 'How compound interest actually works', sub: 'With real numbers', track: 'foundation' },
     { id: 'saving-vs-investing', icon: '💡', title: 'The difference between saving and investing', sub: 'Why it matters for your timeline', track: 'foundation' },
     { id: 'two-phase', icon: '🦘', title: 'Your two-phase freedom timeline', sub: 'Savings now, super at 60', track: 'foundation' },
     { id: 'acronyms', icon: '🔤', title: 'The FIRE glossary — every acronym explained', sub: 'PPOR, DINK, ETF, SWR and every term you see in forums', track: 'foundation' },
@@ -612,27 +620,27 @@
       { id: 'balanced-funds', icon: '⚖️', title: 'Balanced funds explained', sub: 'A bit of everything, less risk' },
       { id: 'diversification', icon: '🌐', title: 'What diversification actually means', sub: "Don't put all your eggs in one basket" },
       { id: 'inflation', icon: '📊', title: 'Why inflation is your silent enemy', sub: 'The number eroding your savings right now' },
-      { id: 'etf-intro', icon: '🧺', title: 'Introduction to ETFs', sub: 'The conservative starting point', pro: true },
-      { id: 'risk-reward', icon: '🎯', title: 'How to think about risk vs reward', sub: 'Finding your comfort zone', pro: true },
+      { id: 'etf-intro', icon: '🧺', title: 'Introduction to ETFs', sub: 'The conservative starting point' },
+      { id: 'risk-reward', icon: '🎯', title: 'How to think about risk vs reward', sub: 'Finding your comfort zone' },
     ],
     '7': [
       { id: 'index-funds', icon: '📊', title: 'What is an index fund and why it works', sub: 'The FIRE community favourite' },
       { id: 'etf-how', icon: '🧺', title: 'ETFs — how to buy, what they cost', sub: 'The practical guide' },
       { id: 'compounding-numbers', icon: '📈', title: 'Compounding with your actual numbers', sub: 'Seeing it in real terms' },
-      { id: 'dca', icon: '🔄', title: 'Dollar cost averaging', sub: 'What it is and why it works', pro: true },
-      { id: 'aus-vs-global', icon: '🌏', title: 'Australian shares vs global shares', sub: 'Where should your money live?', pro: true },
-      { id: 'super-vehicle', icon: '🦘', title: 'Superannuation as an investment vehicle', sub: 'More than just a retirement fund', pro: true },
-      { id: 'four-percent', icon: '🎯', title: 'The 4% rule — where it comes from', sub: 'The foundation of FIRE', pro: true },
-      { id: 'tax-basics', icon: '🧾', title: 'Tax and investing basics in Australia', sub: 'What you need to know', pro: true },
+      { id: 'dca', icon: '🔄', title: 'Dollar cost averaging', sub: 'What it is and why it works' },
+      { id: 'aus-vs-global', icon: '🌏', title: 'Australian shares vs global shares', sub: 'Where should your money live?' },
+      { id: 'super-vehicle', icon: '🦘', title: 'Superannuation as an investment vehicle', sub: 'More than just a retirement fund' },
+      { id: 'four-percent', icon: '🎯', title: 'The 4% rule — where it comes from', sub: 'The foundation of FIRE' },
+      { id: 'tax-basics', icon: '🧾', title: 'Tax and investing basics in Australia', sub: 'What you need to know' },
     ],
     '10': [
       { id: 'individual-shares', icon: '📉', title: 'Individual shares — how they work', sub: 'Higher risk, higher potential' },
       { id: 'property', icon: '🏠', title: 'Property investing explained', sub: 'Leverage, equity, cash flow' },
       { id: 'arbitrage', icon: '⚡', title: 'Arbitrage explained simply', sub: 'Finding the gap between prices' },
-      { id: 'growth-vs-value', icon: '📊', title: 'Growth vs value investing', sub: 'Two very different approaches', pro: true },
-      { id: 'dividends', icon: '💸', title: 'Dividends vs capital growth', sub: 'Income now or wealth later?', pro: true },
-      { id: 'franking', icon: '🇦🇺', title: 'Franking credits in Australia', sub: 'A uniquely Australian advantage', pro: true },
-      { id: 'volatility', icon: '🎢', title: 'Volatility — the emotional side', sub: 'How to handle the ride', pro: true },
+      { id: 'growth-vs-value', icon: '📊', title: 'Growth vs value investing', sub: 'Two very different approaches' },
+      { id: 'dividends', icon: '💸', title: 'Dividends vs capital growth', sub: 'Income now or wealth later?' },
+      { id: 'franking', icon: '🇦🇺', title: 'Franking credits in Australia', sub: 'A uniquely Australian advantage' },
+      { id: 'volatility', icon: '🎢', title: 'Volatility — the emotional side', sub: 'How to handle the ride' },
     ]
   };
 
@@ -675,14 +683,14 @@
   function selectTrack(track) {
     currentTrack = track;
     const trackInfo = {
-      'life': { name: 'Real Questions', badge: 'tlife', label: 'You', desc: 'The questions people actually ask — not textbook theory. Personal, honest, and grounded in your real numbers.', risk: 'Straight answers, with your numbers', noPercent: true },
+      'life': { name: 'Real Questions', badge: 'tlife', label: 'You', desc: 'The questions people actually ask — not textbook theory. Personal, honest, and grounded in real numbers.', risk: 'Straight answers, plain English', noPercent: true },
       '5': { name: 'Build Wealth Slowly', badge: 't5', label: 'Steady', desc: 'Conservative growth with lower risk — around a 5% target return. These articles explain the building blocks of safer investing.', risk: 'Lower risk · Suitable for cautious investors or shorter timelines', noPercent: true },
       '7': { name: 'The FIRE Standard', badge: 't7', label: 'Standard', desc: 'The benchmark used by the FIRE community — around a 7% target return. Index investing, compounding, and the maths behind financial independence.', risk: 'Moderate risk · The most commonly used FIRE assumption', noPercent: true },
       '10': { name: 'Grow Faster', badge: 't10', label: 'Growth', desc: 'Higher potential returns — 10%+ target — require understanding higher risk. These articles explain the growth-focused approaches.', risk: 'Higher risk · Requires long timelines and strong risk tolerance', noPercent: true },
     };
     const info = trackInfo[track];
     const topics = trackTopics[track];
-    const realTopics = topics.filter(t => !t.header && !(t.pro && !isPro));
+    const realTopics = topics.filter(t => !t.header);
     const completedCount = realTopics.filter(t => readTopics.includes(t.id)).length;
     const totalCount = realTopics.length;
     const pct = totalCount ? Math.round((completedCount / totalCount) * 100) : 0;
@@ -710,14 +718,13 @@
       }
       const isRead = readTopics.includes(t.id);
       const isSaved = savedTopics.some(s => s.id === t.id);
-      const locked = t.pro && !isPro;
       return `
-        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" onclick="${locked ? `showProGate('${t.title.replace(/'/g, "\\'")}')` : `openArticle('${t.id}', '${track}', '${t.title.replace(/'/g, "\\'")}')`}">
+        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" onclick="openArticle('${t.id}', '${track}', '${t.title.replace(/'/g, "\\'")}')">
           <div class="topic-left">
             <span class="topic-icon">${t.icon}</span>
             <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
           </div>
-          ${locked ? '<span class="pro-lock">Pro</span>' : isRead ? '<span class="read-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-result"/></svg> Read</span>' : isSaved ? '<span class="saved-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved</span>' : '<span class="topic-arrow">→</span>'}
+          ${isRead ? '<span class="read-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-result"/></svg> Read</span>' : isSaved ? '<span class="saved-badge" style="display:inline-flex;align-items:center;gap:3px;"><svg class="icon" style="width:11px;height:11px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved</span>' : '<span class="topic-arrow">→</span>'}
         </div>`;
     }).join('');
     showTopicView();
@@ -742,12 +749,9 @@
   function showProGateMarkAsRead() {
     const nextEl = document.getElementById('whatsNextSection');
     nextEl.style.display = 'block';
-    nextEl.innerHTML = `<div style="background:linear-gradient(140deg,var(--espresso),var(--espresso-2));border-radius:var(--r-lg);padding:24px;color:var(--bg);text-align:center;margin-top:16px;"><div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Track your progress with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:400;line-height:1.6;margin-bottom:16px;">Pro members get personalised research pathways, AI-suggested next articles and progress tracking.</div><div onclick="window.location.href='auth.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</div></div>`;
+    nextEl.innerHTML = `<div style="background:linear-gradient(140deg,var(--espresso),var(--espresso-2));border-radius:var(--r-lg);padding:24px;color:var(--bg);text-align:center;margin-top:16px;"><div style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;">Track your progress with Pro</div><div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:400;line-height:1.6;margin-bottom:16px;">Pro members can save articles, track what they've read across devices, and get AI-suggested next steps.</div><a href="/upgrade" style="color:var(--bg);text-decoration:none;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:12px 24px;cursor:pointer;font-size:13px;font-weight:500;display:inline-block;">Try Pro free for 7 days →</a></div>`;
   }
 
-  function showProGate(title) {
-    alert(`"${title}" is a Pro article. Upgrade to FirePath Pro to unlock all in-depth personalised articles.`);
-  }
 
   async function openArticle(topicId, track, title) {
     currentTopic = { id: topicId, track, title };
@@ -763,7 +767,7 @@
     document.getElementById('articleBadge').className = `article-track-badge ${badgeClass}`;
     document.getElementById('articleBadge').textContent = badgeLabel;
     document.getElementById('articleTitle').textContent = title;
-    document.getElementById('articleMeta').textContent = topicId === 'acronyms' ? 'Interactive glossary · Free' : isPro ? 'Personalised to your FirePath numbers · Pro' : 'Introductory article · Free';
+    document.getElementById('articleMeta').textContent = topicId === 'acronyms' ? 'Interactive glossary · Free' : 'Article · Free to read';
     document.getElementById('articleBackBtn').onclick = (track === 'foundation' || track === 'tax') ? showTrackView : showTopicView;
 
     if (topicId === 'acronyms') {
@@ -825,7 +829,7 @@
       document.getElementById('articleContent').style.display = 'block';
     } catch(e) {
       console.error(e);
-      document.getElementById('loadingState').innerHTML = '<p style="color:var(--negative);">Something went wrong generating this article. Please try again.</p>';
+      document.getElementById('loadingState').innerHTML = '<p>Couldn\'t load this article just now. Please try again in a moment.</p>';
     }
   }
 

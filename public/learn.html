@@ -426,6 +426,7 @@
     const token = getToken();
     const userId = getUserId();
     if (!token || !userId) { window.location.href = 'auth.html'; return; }
+    if (!(await requirePro())) return;   // accounts are part of Pro
 
     const email = localStorage.getItem('fp_email') || '';
     const initial = email ? email[0].toUpperCase() : '·';

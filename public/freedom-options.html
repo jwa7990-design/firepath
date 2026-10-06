@@ -315,8 +315,12 @@
     const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, partner, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, gapNow, freedomPctToday, fullStopSolve };
     const options = selectOptions(inp);
 
+    // The AI-written "what this could feel like" lines are part of Pro (the Worker
+    // refuses everyone else). Free visitors get the same options in plain text built
+    // from the same numbers — no AI call, nothing missing.
+    const pro = fpIsPro();
     try {
-      const narrated = await narrateOptions(options);
+      const narrated = pro ? await narrateOptions(options) : null;
       renderOptions(options, narrated);
     } catch (e) {
       console.log('Narration failed, showing plain facts', e);
@@ -326,7 +330,15 @@
     document.getElementById('foLoading').classList.remove('visible');
     document.getElementById('foDisclaimer').style.display = 'block';
     document.getElementById('foGenerateBtn').disabled = false;
-    document.getElementById('foGenerateBtn').style.display = 'block';
+    // "Different wording" only means anything when the AI wrote the wording.
+    document.getElementById('foGenerateBtn').style.display = pro ? 'block' : 'none';
+  }
+
+  function fpIsPro() {
+    try {
+      if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return false;
+      return (typeof getStore === 'function' ? getStore('fp_is_pro') : localStorage.getItem('fp_is_pro')) === 'true';
+    } catch (e) { return false; }
   }
 
   // Sends only the pre-computed facts for each selected option — the AI's only job is to
@@ -373,6 +385,7 @@ Absolute rules:
         messages: [{ role: 'user', content: JSON.stringify(payload) }]
       })
     });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const raw = data.content[0].text.replace(/```json|```/gi, '').trim();
     return JSON.parse(raw);

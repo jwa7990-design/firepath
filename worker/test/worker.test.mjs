@@ -164,7 +164,9 @@ test('DB: only allowed tables and methods; no deletes, no RPC', async () => {
   assert.equal((await send(req('/db/users', { method: 'PATCH', token: PRO_TOKEN, body: { is_pro: true } }))).status, 405);
   assert.equal((await send(req('/db/rpc/anything', { token: PRO_TOKEN, body: {} }))).status, 404);
   assert.equal((await send(req('/db/secret_table', { method: 'GET', token: PRO_TOKEN }))).status, 404);
-  assert.equal((await send(req('/db/checkins', { token: PRO_TOKEN, body: {} }))).status, 405);
+  // Check-ins can be saved (Progress page) but never edited afterwards.
+  assert.equal((await send(req('/db/checkins', { method: 'PATCH', token: PRO_TOKEN, body: {} }))).status, 405);
+  assert.notEqual((await send(req('/db/checkins', { token: PRO_TOKEN, body: { streak: 1 } }))).status, 405);
 });
 
 test('DB: anonymous feedback and article reads are allowed', async () => {

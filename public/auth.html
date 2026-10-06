@@ -72,13 +72,13 @@
   <div class="card auth-card">
     <div class="tabs" role="tablist">
       <button type="button" class="tab active" id="loginTab" onclick="showTab('login')">Sign in</button>
-      <button type="button" class="tab" id="signupTab" onclick="showTab('signup')">Create account</button>
+      <button type="button" class="tab" id="signupTab" onclick="showTab('signup')">Start free trial</button>
     </div>
 
     <!-- Login -->
     <div id="loginForm">
       <h1 class="card-title">Welcome back</h1>
-      <p class="card-sub">Sign in to see your freedom date and track your progress.</p>
+      <p class="card-sub">Sign in to your FirePath Pro account. <a href="/firepath">The free calculator</a> needs no account.</p>
       <div class="input-group">
         <label class="input-label" for="loginEmail">Email</label>
         <input class="input" type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"/>
@@ -99,8 +99,8 @@
 
     <!-- Signup -->
     <div id="signupForm" style="display:none">
-      <h1 class="card-title">Create your account</h1>
-      <p class="card-sub">Free to start. Your data stays private and secure.</p>
+      <h1 class="card-title">Start your 7-day free trial</h1>
+      <p class="card-sub">Create your account, confirm your email, then add a card. Nothing is charged until day 8 — cancel before then and you pay nothing.</p>
       <div class="input-group">
         <label class="input-label" for="signupEmail">Email</label>
         <input class="input" type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email"/>
@@ -112,9 +112,9 @@
           <button type="button" class="eye-btn" onclick="toggleEye('signupPassword', this)" tabindex="-1" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
       </div>
-      <button class="btn btn-primary btn-lg btn-block cta-btn" id="signupBtn" onclick="signup()">Create account →</button>
+      <button class="btn btn-primary btn-lg btn-block cta-btn" id="signupBtn" onclick="signup()">Create account and start trial →</button>
       <p class="error-msg" id="signupError"></p>
-      <p class="success-msg" id="signupSuccess">Check your email to confirm your account!</p>
+      <p class="success-msg" id="signupSuccess">Check your email and tap the link to confirm — it takes you straight to your free trial.</p>
     </div>
 
     <!-- Reset Password -->
@@ -194,7 +194,7 @@
       setStore('fp_email', data.user.email);
       const persona = await getUserPersona(data.user.id, data.access_token);
       if (persona) setStore('fp_persona', persona);
-      window.location.href = landingUrl();
+      window.location.href = (await isProUser(data.user.id, data.access_token)) ? landingUrl() : 'upgrade.html';
     } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Sign in →'; }
   }
 
@@ -213,15 +213,26 @@
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-      if (data.error || data.error_code || data.code) { showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error || 'Could not create account.')); btn.disabled = false; btn.textContent = 'Create account →'; return; }
+      if (data.error || data.error_code || data.code) { showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error || 'Could not create account.')); btn.disabled = false; btn.textContent = 'Create account and start trial →'; return; }
       success.style.display = 'block'; btn.textContent = 'Check your email';
-    } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Create account →'; }
+    } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Create account and start trial →'; }
   }
 
   // Signed-in landing: each persona has its own starting page; anyone who hasn't
   // picked one yet goes to the welcome page first.
   function landingUrl() {
     return FirePathPersona.hasChosen() ? FirePathPersona.startUrl() : 'welcome.html';
+  }
+
+  // Accounts are part of Pro: signed-in people without it go to the upgrade page.
+  async function isProUser(userId, token) {
+    try {
+      const res = await fetch(`${WORKER_URL}/db/users?id=eq.${userId}&select=is_pro`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      const pro = data[0]?.is_pro === true;
+      setStore('fp_is_pro', pro ? 'true' : 'false');
+      return pro;
+    } catch { return getStore('fp_is_pro') === 'true'; }
   }
 
   async function getUserPersona(userId, token) {
@@ -296,12 +307,9 @@
     }
   }
 
-  function continueAsGuest() {
-    removeStore('fp_access_token'); removeStore('fp_user_id');
-    setStore('fp_guest', 'true'); window.location.href = 'firepath_pro.html';
-  }
 
   function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+  if (new URLSearchParams(window.location.search).get('start') === 'trial') showTab('signup');
 
   const hash = new URLSearchParams(window.location.hash.slice(1));
   const accessToken = hash.get('access_token');
@@ -344,10 +352,10 @@
           body: JSON.stringify({ userId: uid, email })
         }).then(r => r.json()).then(data => {
           if (data.url) window.location.href = data.url;
-          else window.location.href = landingUrl();
-        }).catch(() => window.location.href = landingUrl());
+          else window.location.href = 'upgrade.html';
+        }).catch(() => window.location.href = 'upgrade.html');
       } else {
-        window.location.href = landingUrl();
+        isProUser(getStore('fp_user_id'), getStore('fp_access_token')).then(pro => { window.location.href = pro ? landingUrl() : 'upgrade.html'; });
       }
     } else {
       removeStore('fp_access_token'); removeStore('fp_user_id');

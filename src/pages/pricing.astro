@@ -10,27 +10,13 @@ import '../styles/doc.css';
 import '../styles/pricing.css';
 import { faqItems } from '../data/faq';
 
-const FREE = [
-  'Your freedom date, in about 2 minutes',
-  'What moves it: saving more, spending less',
-  'Bank savings vs investing, side by side',
-  'Plain-English guides in the Learning Lab',
-  'No sign-up needed',
-];
-const PRO = [
-  ['Your full plan, with a realistic range', 'Not one guess: the spread across 2,000 possible market futures.'],
-  ['Will your money last?', 'The odds it lasts to 95, with the Age Pension from 67.'],
-  ['Tax and super, worked out', 'Take-home, salary sacrifice, HELP, offset vs investing — at current ATO rates.'],
-  ['Every "what if"', 'Sell the house, a lump sum, part-time, rent vs buy, paying off a loan.'],
-  ['Built for couples', "Plan together — both incomes, both supers, couple pension rates."],
-  ['Ask about your own numbers', 'Ask FirePath and personalised insights, plus progress tracking.'],
-];
+import { FREE_FEATURES as FREE, FREE_NOTE, PRO_FEATURES as PRO, TRIAL_FINE_PRINT } from '../data/plans';
 const PROOF = [
-  { icon: 'shield', q: 'Will my money last?', big: '94%', text: 'of 2,000 market futures last 30 years at a 4% withdrawal.', eg: 'Example: $1M, spending $40K a year' },
-  { icon: 'calendar', q: 'When, realistically?', big: '10–21 yrs', text: '8 in 10 market futures reach the goal within this window.', eg: 'Example: $185K saved, $3,200 a month, $1.5M goal' },
-  { icon: 'scale', q: 'What does salary sacrifice really save?', big: '$8,360', text: 'a year in tax — after your employer’s 12% counts towards the cap.', eg: 'Example: $100K salary, 2026-27 rates' },
+  { icon: 'calendar', plan: 'Free', q: 'When, realistically?', big: '10–21 yrs', text: '8 in 10 market futures reach the goal within this window.', eg: 'Example: $185K saved, $3,200 a month, $1.5M goal' },
+  { icon: 'shield', plan: 'Free', q: 'Will my money last?', big: '94%', text: 'of 2,000 market futures last 30 years at a 4% withdrawal.', eg: 'Example: $1M, spending $40K a year' },
+  { icon: 'scale', plan: 'Pro', q: 'What does salary sacrifice really save?', big: '$8,360', text: 'a year in tax — after your employer’s 12% counts towards the cap.', eg: 'Example: $100K salary, 2026-27 rates' },
 ];
-const QUESTIONS = faqItems('trial', 'cancel', 'data-after-cancel', 'advice');
+const QUESTIONS = faqItems('account-needed', 'trial', 'cancel', 'advice');
 ---
 <Base
   title="FirePath — Pricing: Free vs Pro"
@@ -51,8 +37,8 @@ const QUESTIONS = faqItems('trial', 'cancel', 'data-after-cancel', 'advice');
       <article class="plan plan-free">
         <h2 class="plan-name">Free</h2>
         <p class="plan-price"><span class="plan-amount">$0</span><span class="plan-per">forever</span></p>
-        <p class="plan-sub">No card. No catch.</p>
-        <a href="/firepath" class="btn btn-quiet btn-lg btn-block">Find my freedom date <Icon name="arrow" size={16}/></a>
+        <p class="plan-sub">{FREE_NOTE}</p>
+        <a href="/firepath" class="btn btn-quiet btn-lg btn-block">Start with the free calculator <Icon name="arrow" size={16}/></a>
         <ul class="plan-list">
           {FREE.map(f => <li><span class="plan-tick"><Icon name="check" size={12} stroke={2.6}/></span>{f}</li>)}
         </ul>
@@ -64,9 +50,9 @@ const QUESTIONS = faqItems('trial', 'cancel', 'data-after-cancel', 'advice');
           <span class="plan-chip">7-day free trial</span>
         </div>
         <p class="plan-price"><span class="plan-amount">$6</span><span class="plan-per">a month (AUD)</span></p>
-        <p class="plan-sub">Less than a coffee. Everything in Free, plus:</p>
-        <a href="/auth" class="btn btn-ember btn-lg btn-block">Try Pro free for 7 days <Icon name="arrow" size={16}/></a>
-        <p class="plan-fine">Card needed to start. You won’t be charged until day 8 — cancel before then and you pay nothing.</p>
+        <p class="plan-sub">Less than a coffee. Every free tool, plus an account that’s built around you:</p>
+        <a href="/upgrade" class="btn btn-ember btn-lg btn-block">Try Pro free for 7 days <Icon name="arrow" size={16}/></a>
+        <p class="plan-fine">{TRIAL_FINE_PRINT}</p>
         <ul class="plan-list">
           {PRO.map(([t, d]) => <li><span class="plan-tick"><Icon name="check" size={12} stroke={2.6}/></span><span><strong>{t}</strong><span class="plan-desc">{d}</span></span></li>)}
         </ul>
@@ -81,14 +67,14 @@ const QUESTIONS = faqItems('trial', 'cancel', 'data-after-cancel', 'advice');
 
     <section class="proof" aria-labelledby="proof-title">
       <div class="proof-head">
-        <span class="doc-eyebrow">What $6 a month gets you</span>
+        <span class="doc-eyebrow">What you’ll find out</span>
         <h2 id="proof-title" class="proof-title">Real answers, not a feature list.</h2>
-        <p class="proof-lead">A few results from the Pro tools — yours will use your own numbers.</p>
+        <p class="proof-lead">A few example results. The free tools work with any numbers you type in; Pro fills in your own and keeps them.</p>
       </div>
       <div class="proof-grid">
         {PROOF.map(p => (
           <div class="proof-card" data-reveal>
-            <span class="proof-icon"><Icon name={p.icon} size={18}/></span>
+            <div class="proof-top"><span class="proof-icon"><Icon name={p.icon} size={18}/></span><span class:list={['proof-plan', { 'is-pro': p.plan === 'Pro' }]}>{p.plan}</span></div>
             <p class="proof-q">{p.q}</p>
             <p class="proof-big">{p.big}</p>
             <p class="proof-text">{p.text}</p>
@@ -115,10 +101,10 @@ const QUESTIONS = faqItems('trial', 'cancel', 'data-after-cancel', 'advice');
       <div class="price-close-inner">
         <div>
           <h2>Try Pro free for 7 days.</h2>
-          <p>Or start with the free calculator — no sign-up needed.</p>
+          <p>Or use every tool free — no account needed.</p>
         </div>
         <div class="price-close-actions">
-          <a href="/auth" class="btn btn-ember btn-lg">Start my free trial <Icon name="arrow" size={16}/></a>
+          <a href="/upgrade" class="btn btn-ember btn-lg">Start my free trial <Icon name="arrow" size={16}/></a>
           <a href="/firepath" class="price-close-link">Try the free calculator first</a>
         </div>
       </div>

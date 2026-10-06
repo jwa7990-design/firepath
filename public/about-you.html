@@ -212,6 +212,7 @@
     const token = getToken();
     const userId = getUserId();
     if (!token || !userId) { window.location.href = 'auth.html'; return; }
+    if (!(await requirePro())) return;   // accounts are part of Pro
 
     try {
       const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });

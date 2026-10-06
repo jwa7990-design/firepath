@@ -1,0 +1,84 @@
+---
+/**
+ * Upgrade — where every "Pro needed" path lands. Accounts are part of Pro, so this
+ * explains that and starts the trial: signed in → Stripe checkout (upgradeToPro in
+ * js/auth.js); signed out → create an account first. Also handles coming back from
+ * Stripe (?upgraded=true: waits for Pro to land) and cancelling (?cancelled=true).
+ */
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { PRO_FEATURES, PRO_PRICE, TRIAL_FINE_PRINT } from '../data/plans';
+import '../styles/doc.css';
+import '../styles/upgrade.css';
+---
+<Base title="Start FirePath Pro — 7-day free trial" description="FirePath accounts are part of Pro. Start your 7-day free trial — your plan saved, the AI insight, super, tax and your Journey dashboard." path="/upgrade">
+  <script slot="head" is:inline src="/js/auth.js"></script>
+  <main id="main" class="up">
+    <section class="up-card" aria-labelledby="up-title">
+      <div class="up-status up-waiting" id="upWaiting" hidden>
+        <span class="up-spinner" aria-hidden="true"></span>
+        <div><strong>Finishing setting up your Pro account…</strong><span id="upWaitingText">This usually takes a few seconds.</span></div>
+      </div>
+      <div class="up-status up-note" id="upCancelled" hidden>
+        <Icon name="check" size={16} stroke={2.4}/><span>No problem — you haven’t been charged. You can start your trial whenever you’re ready.</span>
+      </div>
+
+      <span class="doc-eyebrow">FirePath Pro</span>
+      <h1 id="up-title" class="up-title">Your account is part of <span class="accent">Pro</span>.</h1>
+      <p class="up-lead" id="upLead">Every tool is free without an account. An account is for Pro — it saves your plan and builds everything around your own numbers.</p>
+
+      <ul class="up-list">
+        {PRO_FEATURES.map(([t, d]) => <li><span class="up-tick"><Icon name="check" size={12} stroke={2.6}/></span><span><strong>{t}</strong><span>{d}</span></span></li>)}
+      </ul>
+
+      <div class="up-price">
+        <p><span class="up-amount">{PRO_PRICE.amount}</span> {PRO_PRICE.per} · {PRO_PRICE.trialDays}-day free trial</p>
+        <button class="btn btn-ember btn-lg btn-block" id="upStart" type="button">Start my 7-day free trial <Icon name="arrow" size={16}/></button>
+        <p class="up-fine">{TRIAL_FINE_PRINT}</p>
+      </div>
+
+      <div class="up-foot">
+        <a href="/firepath">Keep using the free tools</a>
+        <span id="upWho"></span>
+      </div>
+    </section>
+  </main>
+
+  <script is:inline>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var signedIn = typeof isLoggedIn === 'function' && isLoggedIn();
+    var btn = document.getElementById('upStart');
+    var who = document.getElementById('upWho');
+
+    if (signedIn) {
+      var email = getEmail();
+      who.innerHTML = (email ? 'Signed in as ' + email.replace(/[<>&"]/g, '') + ' · ' : '') + '<a href="/auth?action=signout">Sign out</a>';
+      btn.addEventListener('click', function () { btn.disabled = true; btn.textContent = 'Opening secure checkout…'; upgradeToPro(); });
+    } else {
+      document.getElementById('up-title').innerHTML = 'Make FirePath <span class="accent">yours</span>.';
+      document.getElementById('upLead').textContent = 'Every tool is free without an account. A FirePath account is part of Pro — it saves your plan and builds everything around your own numbers.';
+      who.innerHTML = 'Already a member? <a href="/auth">Sign in</a>';
+      btn.addEventListener('click', function () { location.href = '/auth?start=trial'; });
+    }
+
+    if (q.get('cancelled') === 'true') document.getElementById('upCancelled').hidden = false;
+
+    // Back from Stripe: Pro is switched on by a message from Stripe that can take a few
+    // seconds. Wait for it, then go to Journey.
+    if (q.get('upgraded') === 'true' && signedIn) {
+      var waiting = document.getElementById('upWaiting');
+      waiting.hidden = false; btn.hidden = true;
+      var tries = 0;
+      (function poll() {
+        checkProStatus().then(function (pro) {
+          if (pro) { location.href = '/journey?upgraded=true'; return; }
+          if (++tries < 20) { setTimeout(poll, 2000); return; }
+          document.getElementById('upWaitingText').innerHTML = 'Your payment went through, but Pro is taking longer than usual to switch on. Refresh in a minute — or email <a href="mailto:hello@firepath.pro">hello@firepath.pro</a> and we’ll sort it.';
+          waiting.querySelector('.up-spinner').hidden = true;
+        });
+      })();
+    }
+  })();
+  </script>
+</Base>

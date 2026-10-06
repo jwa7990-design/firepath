@@ -167,6 +167,7 @@
       <label class="input-label-text" for="w-portfolio">Total portfolio value today</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="w-portfolio" placeholder="1000000" oninput="calcWithdrawal()"/></div>
     </div>
+    <p class="card-note fp-plan-note" id="fpPlanNote" style="display:none;">Filled in from your saved plan — change any number.</p>
     <p class="card-note">This is the total invested portfolio you have <strong>right now</strong> — not including property or super unless accessible. Enter today's value, not a projected future one — the "years until you start withdrawing" setting below already grows it forward for you.</p>
   </div>
 
@@ -308,6 +309,7 @@
         <div class="ai-outlook-loading-text">Reading your numbers...</div>
       </div>
       <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
+      <div id="aiProCard" style="display:none;"></div>
       </div>
     </div>
 
@@ -556,8 +558,32 @@
 
     // Reset AI outlook when inputs change — the cached narrative no longer matches
     document.getElementById('aiOutlookText').style.display = 'none';
-    document.getElementById('aiOutlookBtn').style.display = 'block';
-    document.getElementById('aiOutlookBtn').textContent = 'Get my AI outlook';
+    showAiOutlookEntry();
+  }
+
+  // ── Pro ──
+  // Every tool here is free with no account. Pro (which is what an account is) adds the
+  // AI explanation and fills in your saved plan. The Worker refuses AI calls from anyone
+  // else, so free visitors see a short note about Pro instead of a button that can't work.
+  function fpIsPro() {
+    try {
+      if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return false;
+      return (typeof getStore === 'function' ? getStore('fp_is_pro') : localStorage.getItem('fp_is_pro')) === 'true';
+    } catch (e) { return false; }
+  }
+  const FP_PRO_AI_CARD = `<div style="border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:14px 16px;font-size:13.5px;line-height:1.6;color:var(--ink-2);"><strong style="color:var(--ink);">AI explanation — part of Pro.</strong> Pro writes this around your own plan. <a href="/upgrade" style="color:var(--ember);font-weight:600;white-space:nowrap;">Try 7 days free →</a></div>`;
+  function showAiOutlookEntry() {
+    const btn = document.getElementById('aiOutlookBtn');
+    const card = document.getElementById('aiProCard');
+    if (fpIsPro()) {
+      card.style.display = 'none';
+      btn.style.display = 'block';
+      btn.textContent = 'Get my AI outlook';
+    } else {
+      btn.style.display = 'none';
+      card.innerHTML = FP_PRO_AI_CARD;
+      card.style.display = 'block';
+    }
   }
 
   // Monte Carlo result: share of 2,000 seeded random-return futures in which the money
@@ -626,6 +652,7 @@
 
   async function getAiOutlook() {
     if (!lastLongevity) return;
+    if (!fpIsPro()) { showAiOutlookEntry(); return; }
     const btn = document.getElementById('aiOutlookBtn');
     const loading = document.getElementById('aiOutlookLoading');
     const textEl = document.getElementById('aiOutlookText');
@@ -659,19 +686,53 @@ Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what 
           messages: [{ role: 'user', content: userInput }]
         })
       });
+      // Pro has lapsed since the last check — show the Pro note, not an error.
+      if (res.status === 401 || res.status === 403) {
+        try { if (typeof setStore === 'function') setStore('fp_is_pro', 'false'); } catch (e) {}
+        loading.classList.remove('visible');
+        showAiOutlookEntry();
+        return;
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       const insight = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      if (!insight) throw new Error('Empty AI response');
       textEl.innerHTML = FirePathSafe.aiText(insight);
       textEl.style.display = 'block';
+      btn.textContent = 'Refresh my AI outlook';
     } catch(e) {
-      textEl.innerHTML = 'Something went wrong connecting to the AI. Please try again.';
+      textEl.innerHTML = 'Couldn\'t load the AI explanation just now — your numbers above are complete.';
       textEl.style.display = 'block';
+      btn.textContent = 'Try the AI outlook again';
       console.error(e);
     } finally {
       loading.classList.remove('visible');
-      btn.style.display = 'block';
-      btn.textContent = 'Refresh my AI outlook';
+      if (fpIsPro()) btn.style.display = 'block';
     }
+  }
+
+  // Pro: fill in the saved plan — only into fields not typed in during this visit.
+  const fpTyped = new Set();
+  document.addEventListener('input', e => { if (e.target && e.target.id) fpTyped.add(e.target.id); }, true);
+
+  async function fpPrefillFromPlan({ skip = [] } = {}) {
+    try {
+      if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return;
+      if (!(await checkProStatus())) { showAiOutlookEntry(); return; }
+      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${getUserId()}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+      if (!res.ok) return;
+      const rows = await res.json();
+      const p = Array.isArray(rows) ? rows[0] : null;
+      if (!p) return;
+      let filled = false;
+      const el = document.getElementById('w-portfolio');
+      if (!skip.includes('w-portfolio') && !fpTyped.has('w-portfolio') && el.value === '' && p.current_savings > 0) {
+        el.value = Math.round(p.current_savings);
+        filled = true;
+      }
+      if (filled) document.getElementById('fpPlanNote').style.display = 'block';
+      calcWithdrawal();
+    } catch (e) { console.log('Saved plan prefill skipped', e); }
   }
 
   // Auto-fill from a portfolio value passed via URL (e.g. the Pro dashboard linking here
@@ -685,6 +746,7 @@ Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what 
       document.getElementById('w-portfolio').value = urlPortfolio;
     }
     calcWithdrawal();
+    fpPrefillFromPlan({ skip: urlPortfolio ? ['w-portfolio'] : [] });
   });
 
 </script>
