@@ -6,7 +6,13 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-Q2QZ662MJ9');
+    gtag('config', 'G-Q2QZ662MJ9', Object.assign({
+      // Privacy: send only the page's address, never what follows it (a question typed
+      // into Ask FirePath, a sign-in link's code), and keep Google's ad features off.
+      page_location: location.origin + location.pathname,
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false
+    }, document.referrer ? { page_referrer: document.referrer.split(/[?#]/)[0] } : {}));
   </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
