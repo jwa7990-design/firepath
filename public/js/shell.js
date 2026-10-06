@@ -96,7 +96,6 @@
   <a href="${url('index.html')}" class="site-logo">${svg('flame', 20)}<span>Fire<em>Path</em></span></a>
   <div class="site-actions">
     <a href="${url('auth.html')}" class="site-signin">Sign in</a>
-    <a href="${url('firepath.html')}" class="btn btn-primary site-cta">Find my path</a>
     <button class="explore-btn" id="exploreBtn" aria-expanded="false" aria-controls="explorePanel">${svg('explore', 16)}<span>Explore</span></button>
   </div>
 </header>
