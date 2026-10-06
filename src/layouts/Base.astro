@@ -11,8 +11,10 @@ interface Props {
   shell?: 'site' | 'app';
   active?: string;              // highlighted nav item (see js/shell.js)
   footer?: boolean;
+  ogType?: 'website' | 'article';
+  keywords?: string | null;
 }
-const { title, description, path, shell = 'site', active, footer = true } = Astro.props;
+const { title, description, path, shell = 'site', active, footer = true, ogType = 'website', keywords } = Astro.props;
 const url = new URL(path, 'https://www.firepath.pro').href;
 ---
 <!DOCTYPE html>
@@ -39,7 +41,8 @@ const url = new URL(path, 'https://www.firepath.pro').href;
   <meta property="og:title" content={title}/>
   {description && <meta property="og:description" content={description}/>}
   <meta property="og:url" content={url}/>
-  <meta property="og:type" content="website"/>
+  <meta property="og:type" content={ogType}/>
+  {keywords && <meta name="keywords" content={keywords}/>}
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>

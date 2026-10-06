@@ -1,5 +1,5 @@
 /**
- * Populate the learning_articles table from the /learn/ article pages.
+ * Populate the learning_articles table from the Learning Lab articles.
  * ====================================================================
  * Run once, and again whenever you edit an article, so Learning Lab serves
  * lessons from the database instead of fetching + parsing the public pages.
@@ -25,7 +25,8 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..', 'public');
-const LEARN_DIR = path.join(ROOT, 'learn');
+// Article sources: a <!--meta {...} --> header + the article body (see src/lib/learn.ts).
+const LEARN_DIR = path.join(__dirname, '..', 'src', 'content', 'learn');
 const DRY_RUN = process.argv.includes('--dry-run');
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/+$/, '');
 const SERVICE_ROLE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
@@ -117,11 +118,6 @@ const SLUG_TO_TOPIC = {
   'redundancy-would-i-be-okay': { topicId: 'redundancy-okay', track: 'life' },
 };
 
-function extractField(html, regex) {
-  const m = html.match(regex);
-  return m ? m[1].trim() : null;
-}
-
 // topic_id -> article slug, read straight from learning_lab.html.
 function loadTopicMap() {
   const page = fs.readFileSync(path.join(ROOT, 'learning_lab.html'), 'utf-8');
@@ -132,31 +128,18 @@ function loadTopicMap() {
   return map;
 }
 
-// Inner HTML of the first <div class="article-body">, matching nested divs —
-// works for every article layout (some end in .cta-box, newer ones in .cta-row).
-function extractArticleBody(html) {
-  const start = html.indexOf('<div class="article-body">');
-  if (start === -1) return null;
-  const open = start + '<div class="article-body">'.length;
-  const tag = /<(\/?)div\b[^>]*>/g;
-  tag.lastIndex = open;
-  let depth = 1, m;
-  while ((m = tag.exec(html))) {
-    depth += m[1] ? -1 : 1;
-    if (depth === 0) return html.slice(open, m.index).trim();
-  }
-  return null;
-}
-
-function parseArticle(slug, html) {
-  const title = extractField(html, /<title>([^<]*?)(?:\s*(?:\||—)\s*FirePath)?\s*<\/title>/);
-  const metaDescription = extractField(html, /<meta name="description" content="([^"]*)"/);
-  const bodyHtml = extractArticleBody(html);
-
+// Article source → { title, metaDescription, bodyHtml }. The body is everything after the
+// meta header — exactly what the site wraps in <div class="article-body">.
+function parseArticle(slug, source) {
+  const m = source.match(/^<!--meta ([\s\S]*?) -->\n?/);
+  if (!m) throw new Error(`${slug}.html has no <!--meta --> header`);
+  const meta = JSON.parse(m[1]);
+  const title = (meta.title || '').replace(/\s*(?:\||—)\s*FirePath\s*$/, '').trim();
+  const bodyHtml = source.slice(m[0].length).trim();
   if (!title || !bodyHtml) {
     throw new Error(`Could not parse required fields from ${slug}.html — title: ${!!title}, body: ${!!bodyHtml}`);
   }
-  return { title, metaDescription, bodyHtml };
+  return { title, metaDescription: meta.description || null, bodyHtml };
 }
 
 async function upsertRow(row) {
@@ -182,7 +165,7 @@ async function main() {
   for (const [topicId, slug] of topics) {
     const filePath = path.join(LEARN_DIR, `${slug}.html`);
     try {
-      if (!fs.existsSync(filePath)) throw new Error(`File not found: learn/${slug}.html`);
+      if (!fs.existsSync(filePath)) throw new Error(`File not found: src/content/learn/${slug}.html`);
       const { title, metaDescription, bodyHtml } = parseArticle(slug, fs.readFileSync(filePath, 'utf-8'));
       const row = {
         topic_id: topicId,
