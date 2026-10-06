@@ -62,3 +62,44 @@ export function relatedTo(a: Article, n = 3): Article[] {
   }
   return out;
 }
+
+/**
+ * How the hub (/learn/) groups articles. Any article not listed in a theme is placed
+ * by its track badge, so a new article always appears somewhere.
+ */
+export interface Shelf { id: string; title: string; intro: string; icon: string; themes?: { title: string; slugs: string[] }[]; badges?: string[]; }
+export const FIRST_READS = ['what-is-fire-australia', 'how-compound-interest-works', 'two-phase-freedom-timeline'];
+export const SHELVES: Shelf[] = [
+  { id: 'start', title: 'Start here', icon: 'flame', intro: 'The ideas everything else builds on — what FIRE is, how compounding works, and how much is enough.', badges: ['Foundation'] },
+  { id: 'questions', title: 'Real questions', icon: 'chat', intro: 'Honest answers to the things people actually wonder about money — no judgement, real numbers.', themes: [
+    { title: 'Where you stand', slugs: ['am-i-behind-financially', 'savings-by-age', 'am-i-on-track-retirement', 'how-much-is-enough', 'why-do-i-feel-behind', 'no-savings-in-your-30s'] },
+    { title: 'Time and freedom', slugs: ['how-long-do-i-have-to-work', 'what-is-coast-fire', 'can-i-work-less', 'retire-early-average-income'] },
+    { title: 'Money and mindset', slugs: ['money-anxiety', 'everyone-else-figured-out', 'bad-with-money-or-underpaid'] },
+    { title: 'Home and renting', slugs: ['rent-or-buy', 'renting-cheaper-than-owning', 'renting-forever-retirement', 'house-delays-fi', 'what-if-sold-house', 'retire-early-bought-house-late'] },
+    { title: 'What if…', slugs: ['pay-rise-retirement-impact', 'pay-cut-happier-job', 'redundancy-would-i-be-okay', 'extra-50-a-week-impact', 'too-late-to-invest-at-40'] },
+    { title: 'Your life stage', slugs: ['kids-and-retirement-timeline', 'retire-early-single-parent'] },
+  ], badges: ['Real Questions', 'Freedom Timeline'] },
+  { id: 'toolkit', title: 'The FIRE toolkit', icon: 'bars', intro: 'Index funds, ETFs, the 4% rule and the tax basics — the core of investing for independence.', badges: ['FIRE Standard'] },
+  { id: 'growth', title: 'Growth investing', icon: 'spark', intro: 'Shares, property, dividends and the emotional side of watching markets move.', badges: ['Growth Focused'] },
+  { id: 'steady', title: 'Playing it steady', icon: 'shield', intro: 'Savings accounts, bonds, balanced funds and diversification — managing risk sensibly.', badges: ['Steady & Safe'] },
+  { id: 'super-tax', title: 'Super and tax', icon: 'scale', intro: 'Salary sacrifice, catch-up contributions, Division 293, the CGT discount and more — the Australian rules that move the needle.', badges: ['Super', 'Tax & Strategy · Superannuation', 'Tax & Strategy · Investing', 'Tax & Strategy · Property'] },
+];
+
+/** Articles for each shelf (and theme), in reading order. Every article lands exactly once. */
+export function shelve() {
+  const bySlug = new Map(ARTICLES.map(a => [a.slug, a]));
+  const placed = new Set<string>();
+  const shelves = SHELVES.map(s => {
+    const themes = (s.themes || []).map(t => ({ title: t.title, articles: t.slugs.map(x => bySlug.get(x)).filter((a): a is Article => !!a) }));
+    themes.forEach(t => t.articles.forEach(a => placed.add(a.slug)));
+    return { ...s, themes, articles: [] as Article[] };
+  });
+  for (const a of ARTICLES) {
+    if (placed.has(a.slug)) continue;
+    const shelf = shelves.find(s => s.badges?.includes(a.badge)) || shelves[0];
+    if (shelf.themes.length) { (shelf.themes.find(t => t.title === 'More') || (shelf.themes.push({ title: 'More', articles: [] }), shelf.themes[shelf.themes.length - 1])).articles.push(a); }
+    else shelf.articles.push(a);
+    placed.add(a.slug);
+  }
+  return shelves.map(s => ({ ...s, count: s.articles.length + s.themes.reduce((n, t) => n + t.articles.length, 0) }));
+}
