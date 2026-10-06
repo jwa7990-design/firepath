@@ -37,6 +37,8 @@
     learn: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/>',
     ask: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
     menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    explore: '<path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6z"/><path d="M19 3v4M17 5h4"/>',
+    arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
     close: '<path d="M6 6l12 12M18 6L6 18"/>'
   };
   const svg = (name, size, stroke) =>
@@ -79,42 +81,81 @@
   }
 
   // ── Site shell ─────────────────────────────────────────
+  // The header stays quiet — logo, sign in, the one action, and an Explore button.
+  // Explore opens a full-screen panel with the site's sections as big numbered links.
   const SITE_LINKS = [
-    ['features', 'Features', 'features.html'],
-    ['pricing', 'Pricing', 'pricing.html'],
-    ['learn', 'Learning Lab', 'learn/index.html'],
-    ['faq', 'FAQ', 'faq.html']
+    ['features', 'Features', 'features.html', 'Everything FirePath works out for you'],
+    ['pricing', 'Pricing', 'pricing.html', 'Free forever · Pro $6 a month'],
+    ['learn', 'Learning Lab', 'learn/index.html', 'Plain-English guides to super, tax and investing'],
+    ['faq', 'Questions', 'faq.html', 'Straight answers to what people ask most']
   ];
 
   function renderSite() {
     const nav = `
 <header class="site-nav" id="siteNav">
   <a href="${url('index.html')}" class="site-logo">${svg('flame', 20)}<span>Fire<em>Path</em></span></a>
-  <nav class="site-links" aria-label="Primary">
-    ${SITE_LINKS.map(([k, label, href]) => `<a href="${url(href)}" class="site-link"${k === active ? ' aria-current="page"' : ''}>${indicator(k)}${label}</a>`).join('')}
-  </nav>
   <div class="site-actions">
-    <a href="${url('auth.html')}" class="btn btn-quiet site-signin">Sign in</a>
-    <a href="${url('firepath.html')}" class="btn btn-primary">Find my path</a>
-    <button class="site-menu-btn" id="siteMenuBtn" aria-label="Menu" aria-expanded="false" aria-controls="siteDrawer">${svg('menu', 22)}</button>
+    <a href="${url('auth.html')}" class="site-signin">Sign in</a>
+    <a href="${url('firepath.html')}" class="btn btn-primary site-cta">Find my path</a>
+    <button class="explore-btn" id="exploreBtn" aria-expanded="false" aria-controls="explorePanel">${svg('explore', 16)}<span>Explore</span></button>
   </div>
 </header>
-<div class="site-drawer" id="siteDrawer">
-  ${SITE_LINKS.map(([, label, href]) => `<a href="${url(href)}">${label}</a>`).join('')}
-  <a href="${url('auth.html')}">Sign in</a>
-  <a href="${url('firepath.html')}" class="btn btn-ember">Find my path →</a>
+<div class="explore" id="explorePanel" role="dialog" aria-modal="true" aria-label="Explore FirePath" hidden>
+  <div class="explore-inner">
+    <div class="explore-top">
+      <span class="explore-kicker">Explore FirePath</span>
+      <button class="explore-close" id="exploreClose" aria-label="Close">${svg('close', 22)}</button>
+    </div>
+    <div class="explore-grid">
+      <nav class="explore-links" aria-label="Primary">
+        ${SITE_LINKS.map(([k, label, href, desc], i) => `
+        <a href="${url(href)}" class="explore-link"${k === active ? ' aria-current="page"' : ''} style="--i:${i}">
+          <span class="explore-num">0${i + 1}</span>
+          <span class="explore-text"><span class="explore-title">${label}</span><span class="explore-desc">${desc}</span></span>
+          <span class="explore-arrow">${svg('arrow', 22)}</span>
+        </a>`).join('')}
+      </nav>
+      <aside class="explore-card" style="--i:4">
+        <span class="explore-card-kicker">Free · 2 minutes</span>
+        <p class="explore-card-title">See the year work could become <em>optional</em>.</p>
+        <a href="${url('firepath.html')}" class="btn btn-ember btn-lg">Find my path ${svg('arrow', 16)}</a>
+        <div class="explore-card-links">
+          <a href="${url('auth.html')}">Sign in</a>
+          <a href="${url('assumptions.html')}">How we calculate</a>
+          <a href="${url('feedback.html')}">Feedback</a>
+        </div>
+      </aside>
+    </div>
+  </div>
 </div>`;
     body.insertAdjacentHTML('afterbegin', nav);
 
-    const btn = document.getElementById('siteMenuBtn');
-    const drawer = document.getElementById('siteDrawer');
-    btn.addEventListener('click', () => {
-      const open = !drawer.classList.contains('open');
-      drawer.classList.toggle('open', open);
+    const btn = document.getElementById('exploreBtn');
+    const panel = document.getElementById('explorePanel');
+    const close = document.getElementById('exploreClose');
+    const setOpen = open => {
+      if (open) { panel.hidden = false; requestAnimationFrame(() => panel.classList.add('open')); }
+      else { panel.classList.remove('open'); setTimeout(() => { if (!panel.classList.contains('open')) panel.hidden = true; }, 260); }
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      btn.innerHTML = svg(open ? 'close' : 'menu', 22);
-      document.body.style.overflow = open ? 'hidden' : '';
+      document.documentElement.classList.toggle('explore-open', open);
+      if (open) setTimeout(() => panel.querySelector('.explore-link').focus(), 60); else btn.focus();
+    };
+    btn.addEventListener('click', () => setOpen(panel.hidden));
+    close.addEventListener('click', () => setOpen(false));
+    panel.addEventListener('click', e => { if (e.target === panel) setOpen(false); });
+    document.addEventListener('keydown', e => {
+      if (panel.hidden) return;
+      if (e.key === 'Escape') { e.preventDefault(); setOpen(false); }
+      if (e.key === 'Tab') {   // keep focus inside the panel while it's open
+        const f = panel.querySelectorAll('a, button');
+        const first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     });
+    // Leaving the page with the panel open shouldn't leave it open on "back".
+    window.addEventListener('pageshow', () => { if (!panel.hidden) { panel.hidden = true; panel.classList.remove('open'); document.documentElement.classList.remove('explore-open'); btn.setAttribute('aria-expanded', 'false'); } });
+
     const navEl = document.getElementById('siteNav');
     const onScroll = () => navEl.classList.toggle('scrolled', window.scrollY > 4);
     window.addEventListener('scroll', onScroll, { passive: true });
