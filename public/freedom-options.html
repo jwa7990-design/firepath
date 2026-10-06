@@ -147,7 +147,7 @@
 
   // No input form on this page — numbers come exclusively from the Freedom Gap handoff.
   // This is the single place that data lives before generateOptions() reads it.
-  let currentInputs = null; // { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance }
+  let currentInputs = null; // { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, partnerSuper, partnerAge }
   let userPersona = 'building'; // beginner / building / fire — inherited from FirePath Pro onboarding
 
   // ── Option types — each has a relevance score (0 = don't show) and a compute() that
@@ -179,7 +179,7 @@
       id: 'reduce_spend',
       relevance(inp) {
         if (!inp.fullStopSolve) return 0;
-        const reduced = solveFreedomAge(inp.age, inp.portfolio, inp.monthlySavings, Math.max(0, inp.annualSpend - 5000), inp.isHomeowner, 0.07, inp.isCouple, inp.superBalance);
+        const reduced = solveFreedomAge(inp.age, inp.portfolio, inp.monthlySavings, Math.max(0, inp.annualSpend - 5000), inp.isHomeowner, 0.07, inp.isCouple, inp.superBalance, inp.partner);
         inp._reducedSolve = reduced;
         return reduced && reduced.age < inp.fullStopSolve.age ? 2 : 0;
       },
@@ -193,7 +193,7 @@
     {
       id: 'coast',
       relevance(inp) {
-        const c = solveFreedomAge(inp.age, inp.portfolio, 0, inp.annualSpend, inp.isHomeowner, 0.07, inp.isCouple, inp.superBalance);
+        const c = solveFreedomAge(inp.age, inp.portfolio, 0, inp.annualSpend, inp.isHomeowner, 0.07, inp.isCouple, inp.superBalance, inp.partner);
         inp._coastSolve = c;
         return c && c.age <= 67 && inp.monthlySavings > 0 ? 2 : 0;
       },
@@ -281,7 +281,9 @@
 
   async function generateOptions() {
     if (!currentInputs) return; // shouldn't be callable without a handoff, but stay safe
-    const { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance } = currentInputs;
+    const { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, partnerSuper, partnerAge } = currentInputs;
+    // A partner's super is tracked separately: it unlocks when *they* turn 60.
+    const partner = isCouple && partnerSuper > 0 ? { superBalance: partnerSuper, age: partnerAge || age } : null;
 
     document.getElementById('foGenerateBtn').disabled = true;
     document.getElementById('optionsWrap').innerHTML = '';
@@ -291,7 +293,9 @@
     // Pension means test at 67: today's portfolio left to grow, plus super grown from today.
     const E = window.FirePathEngine;
     const y67 = Math.max(0, E.PENSION_AGE - age);
-    const pensionAssets = projectPortfolio(portfolio, 0, y67) + (superBalance > 0 ? projectPortfolio(superBalance, 0, y67, E.SUPER_RETURN) : 0);
+    // A couple is means-tested on both partners' super.
+    const supers = (superBalance || 0) + (partner ? partnerSuper : 0);
+    const pensionAssets = projectPortfolio(portfolio, 0, y67) + (supers > 0 ? projectPortfolio(supers, 0, y67, E.SUPER_RETURN) : 0);
     const picture = E.computeFreedomPicture({ portfolio, annualSpend, isHomeowner, isCouple, pensionAssets });
     const portfolioIncomeToday = picture.portfolioIncome;
     const gapToday = picture.gap;
@@ -300,9 +304,9 @@
     // The pension isn't paid until 67, so anything "starting today" uses the full gap before then.
     const gapNow = age >= E.PENSION_AGE ? gapAfterPensionToday : gapToday;
     const freedomPctToday = picture.freedomPct;
-    const fullStopSolve = solveFreedomAge(age, portfolio, monthlySavings, annualSpend, isHomeowner, 0.07, isCouple, superBalance);
+    const fullStopSolve = solveFreedomAge(age, portfolio, monthlySavings, annualSpend, isHomeowner, 0.07, isCouple, superBalance, partner);
 
-    const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, gapNow, freedomPctToday, fullStopSolve };
+    const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, partner, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, gapNow, freedomPctToday, fullStopSolve };
     const options = selectOptions(inp);
 
     try {
@@ -478,7 +482,8 @@ Absolute rules:
       currentInputs = {
         portfolio: inp2.portfolio, annualSpend: inp2.annualSpend, age: inp2.age,
         monthlySavings: inp2.monthlySavings || 0, hourlyRate: inp2.hourlyRate || 0, isHomeowner: inp2.isHomeowner,
-        isCouple: !!inp2.isCouple, superBalance: inp2.superBalance || 0
+        isCouple: !!inp2.isCouple, superBalance: inp2.superBalance || 0,
+        partnerSuper: inp2.partnerSuper || 0, partnerAge: inp2.partnerAge || null
       };
 
       // Reuse the exact picture Freedom Gap already calculated for the intro line, rather

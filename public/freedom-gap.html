@@ -375,6 +375,7 @@
   let isHomeowner = true;
   let isCouple = false;   // set from the profile's partner details — couple pension rates and limits
   let partnerSuper = 0;   // a couple is means-tested on both partners' super
+  let partnerAge = null;  // the partner's super unlocks at *their* 60 (used by Freedom Options)
   let lastGapCalc = null;
 
   // What Centrelink would assess at pension age: the portfolio from the scenario age,
@@ -566,7 +567,7 @@
     try {
       const todayPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: netPortfolio, annualSpend, isHomeowner, isCouple, pensionAssets: pensionAssetsAt(netPortfolio, superBalance, currentAge, currentAge) });
       localStorage.setItem('fp_freedom_model', JSON.stringify({
-        inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance: superBalance + (isCouple ? partnerSuper : 0) },   // household super for a couple
+        inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance: superBalance || 0, partnerSuper: isCouple ? partnerSuper : 0, partnerAge: isCouple ? partnerAge : null },   // partner's super kept separate: it unlocks at their 60, not yours
         picture: todayPicture,
         savedAt: new Date().toISOString()
       }));
@@ -722,10 +723,21 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
             document.getElementById('g-useProfileSpend').style.display = 'block';
           }
           if (p.savings_monthly) document.getElementById('g-monthlySavings').value = Math.round(p.savings_monthly);
-          if (p.take_home_income) document.getElementById('g-rate').value = Math.round((p.take_home_income * 12) / 52 / 38);
+          // take_home_income is the household's monthly take-home; the partner's own pay is
+          // partner_income per pay_cycle. The hourly estimate should be *your* rate, so take
+          // the partner's share out first (a 38-hour week).
+          if (p.take_home_income) {
+            const cycle = p.pay_cycle || 'monthly';
+            const partnerMonthly = p.partner_income > 0
+              ? (cycle === 'weekly' ? p.partner_income * 52 / 12 : cycle === 'fortnightly' ? p.partner_income * 26 / 12 : p.partner_income)
+              : 0;
+            const ownMonthly = p.take_home_income - partnerMonthly;
+            if (ownMonthly > 0) document.getElementById('g-rate').value = Math.round((ownMonthly * 12) / 52 / 38);
+          }
           // A partner on the profile means couple pension rates and limits.
           isCouple = !!(p.partner_age || p.partner_income > 0 || p.partner_super > 0);
           partnerSuper = Math.max(0, p.partner_super || 0);
+          partnerAge = p.partner_age > 0 ? p.partner_age : null;
           if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
         }
       }

@@ -157,7 +157,7 @@ const FP_ASSUMPTIONS = {
   sgRate: 12 / 100,
   preservationAge: 60,
   investReturn: 0.07,      // long-run real return on growth assets
-  superReturn: 0.07 * (1 - 0.15),  // same, less 15% earnings tax in accumulation
+  superReturn: (0.07 - 0.0065) * (1 - 0.15),  // less typical super fund fees above an index fund, then 15% earnings tax
   longRunInflation: 0.025, // for converting long projections into future dollars
   bankRealReturn: 0,       // derived below
   offsetRealReturn: 0,     // derived below

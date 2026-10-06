@@ -56,6 +56,7 @@
   .hero-year-row .chip { margin-top: 8px; }
   .hero-meta { margin-top: 12px; font-size: 15px; color: var(--ink-2); }
   .hero-meta strong { color: var(--ink); font-weight: 600; }
+  .hero-range { margin-top: 4px; font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
   .hero-narrative { margin-top: 18px; font-size: 14px; line-height: 1.6; color: var(--ink-2); max-width: 44ch; }
 
   /* Progress toward the freedom number, with milestones on the track */
@@ -228,6 +229,7 @@
             <span class="chip" id="heroDelta" hidden></span>
           </div>
           <div class="hero-meta" id="heroMeta">&nbsp;</div>
+          <div class="hero-range" id="heroRange" hidden></div>
           <p class="hero-narrative" id="heroNarrative"></p>
 
           <div class="progress" id="progressBlock">
@@ -407,8 +409,16 @@
     const annualSpend = freedomNumber > 0 ? freedomNumber / 25 : 0;
     const months = annualSpend > 0 ? Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend, RATE) : null;
     const now = new Date();
+    // Markets don't return 7% every year: 2,000 random-return futures with the same
+    // typical return give a realistic early (1 in 10) to late (1 in 10) window for the
+    // same target. Built once per model, not on every re-render.
+    let range = null;
+    if (months != null && Engine.simulateTimeToTarget) {
+      const sim = Engine.simulateTimeToTarget({ startPortfolio: savings, monthlySavings, target: annualSpend / 0.04, median: RATE });
+      if (sim.early != null) range = { early: yearAfter(now, sim.early), late: sim.late != null ? yearAfter(now, sim.late) : null };
+    }
     return {
-      p, savings, superBal, debt, mortgage, offset, freedomNumber, monthlySavings, annualSpend, months,
+      p, savings, superBal, debt, mortgage, offset, freedomNumber, monthlySavings, annualSpend, months, range,
       // Net worth — savings, super and offset, minus everything owed (formula version 3).
       netWorth: (savings + superBal + offset) - (debt + mortgage),
       pct: freedomNumber > 0 ? Math.min(100, Math.round((savings / freedomNumber) * 100)) : 0,
@@ -467,6 +477,15 @@
       parts.push('Beyond 40 years at your current pace');
     }
     $('heroMeta').innerHTML = parts.join(' · ');
+    const rangeEl = $('heroRange');
+    if (m.range) {
+      rangeEl.textContent = m.range.late != null
+        ? (m.range.early === m.range.late ? `Realistically around ${m.range.early}, as markets rise and fall` : `Realistically between ${m.range.early} and ${m.range.late}, as markets rise and fall`)
+        : `Realistically from ${m.range.early}, or later if markets are weak for a long stretch`;
+      rangeEl.hidden = false;
+    } else {
+      rangeEl.hidden = true;
+    }
     $('heroNarrative').textContent = narrative(m);
 
     $('progressPct').textContent = `${m.pct}%`;

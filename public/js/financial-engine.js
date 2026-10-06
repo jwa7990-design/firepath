@@ -116,16 +116,27 @@ window.FirePathEngine = (function () {
   // towards spendable income only from preservation age (60), and is means-tested for
   // the Age Pension from 67 like everything else.
   const PRESERVATION_AGE = 60, PENSION_AGE = 67;
-  const SUPER_RETURN = 0.07 * (1 - 0.15);   // 7% real less 15% earnings tax in accumulation
+  // Super grows at 7% real less the extra fees a typical super fund charges over a
+  // low-cost index fund (median MySuper ≈ 0.85% a year vs ≈ 0.2%: APRA heatmap), then
+  // less 15% tax on earnings in accumulation. (0.07 − 0.0065) × 0.85 ≈ 5.40%.
+  const SUPER_EXTRA_FEES = 0.0065;
+  const SUPER_RETURN = (0.07 - SUPER_EXTRA_FEES) * (1 - 0.15);
 
-  function solveFreedomAge(currentAge, startPortfolio, monthlySavings, targetSpend, homeowner, rate, isCouple, superBalance) {
+  // partner (optional): { superBalance, age } — the partner's super unlocks when *they*
+  // reach 60, which can be years before or after you.
+  function solveFreedomAge(currentAge, startPortfolio, monthlySavings, targetSpend, homeowner, rate, isCouple, superBalance, partner) {
     rate = rate == null ? 0.07 : rate;
     const CEILING_AGE = 90;
+    const pSuper = partner && partner.superBalance > 0 ? partner.superBalance : 0;
+    const pAgeGap = partner && partner.age ? partner.age - currentAge : 0;   // partner is this much older
     for (let age = Math.ceil(currentAge); age <= CEILING_AGE; age++) {
       const yearsOut = age - currentAge;
       const portfolio = projectPortfolio(startPortfolio, monthlySavings, yearsOut, rate);
-      const superBal = superBalance > 0 ? projectPortfolio(superBalance, 0, yearsOut, SUPER_RETURN) : 0;
-      const accessible = portfolio + (age >= PRESERVATION_AGE ? superBal : 0);
+      const ownSuper = superBalance > 0 ? projectPortfolio(superBalance, 0, yearsOut, SUPER_RETURN) : 0;
+      const partnerSuper = pSuper ? projectPortfolio(pSuper, 0, yearsOut, SUPER_RETURN) : 0;
+      const superBal = ownSuper + partnerSuper;
+      const accessible = portfolio + (age >= PRESERVATION_AGE ? ownSuper : 0)
+        + (age + pAgeGap >= PRESERVATION_AGE ? partnerSuper : 0);
       const portfolioIncome = accessible * 0.04;
       let pensionIncome = 0;
       if (age >= PENSION_AGE && pensionAvailable()) {
@@ -139,6 +150,88 @@ window.FirePathEngine = (function () {
     return null;
   }
  
+  // ── Monte Carlo ──────────────────────────────────────────
+  // Real markets don't return 7% every year. These simulate many possible futures:
+  // each year's real return is drawn from a lognormal distribution whose median is 7%
+  // (the long-run compound rate) with 15% volatility — roughly a growth portfolio of
+  // mostly shares. Seeded, so the same inputs always give the same answer.
+  const MC = { paths: 2000, median: 0.07, volatility: 0.15 };
+
+  function seededRandom(seed) {          // mulberry32
+    let a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function normalFrom(rand) {            // Box–Muller
+    let u = 0; while (u === 0) u = rand();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rand());
+  }
+  function returnSampler(seed, median, volatility) {
+    const rand = seededRandom(seed);
+    const mu = Math.log(1 + (median == null ? MC.median : median));
+    const sigma = volatility == null ? MC.volatility : volatility;
+    return () => Math.exp(mu + sigma * normalFrom(rand)) - 1;
+  }
+  const percentile = (sorted, p) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.floor(p * (sorted.length - 1))))];
+
+  // How likely is the money to last? Withdraws `annualSpend` (today's dollars) at the
+  // start of each year for `years`, then applies that year's return. Returns the share
+  // of paths that never run out, plus 10th/50th/90th percentile ending balances and the
+  // year money runs out in a bad (10th percentile) path.
+  function simulateDrawdown({ portfolio, annualSpend, years, paths, seed, median, volatility, otherIncomeByYear }) {
+    paths = paths || MC.paths;
+    const next = returnSampler(seed == null ? 1 : seed, median, volatility);
+    let survived = 0;
+    const endings = [], depletedYears = [];
+    for (let p = 0; p < paths; p++) {
+      let bal = portfolio, depleted = null;
+      for (let y = 0; y < years; y++) {
+        const other = otherIncomeByYear ? otherIncomeByYear(y, bal) || 0 : 0;
+        bal -= Math.max(0, annualSpend - other);
+        if (bal <= 0) { bal = 0; depleted = y; break; }
+        bal *= 1 + next();
+      }
+      if (depleted === null) survived++;
+      endings.push(bal);
+      depletedYears.push(depleted === null ? Infinity : depleted);
+    }
+    endings.sort((a, b) => a - b);
+    depletedYears.sort((a, b) => a - b);
+    const bad = percentile(depletedYears, 0.10);
+    return {
+      successRate: survived / paths,
+      p10: percentile(endings, 0.10), p50: percentile(endings, 0.50), p90: percentile(endings, 0.90),
+      badCaseRunsOutYear: Number.isFinite(bad) ? bad : null
+    };
+  }
+
+  // When might savings reach the target? Simulates monthly saving with yearly random
+  // returns (each year's return spread evenly over its months) and reports the 10th,
+  // 50th and 90th percentile time, in months, to reach `target`. null = not within 50 years.
+  function simulateTimeToTarget({ startPortfolio, monthlySavings, target, paths, seed, median, volatility }) {
+    paths = paths || MC.paths;
+    const next = returnSampler(seed == null ? 2 : seed, median, volatility);
+    const MAX = 50 * 12;
+    const months = [];
+    for (let p = 0; p < paths; p++) {
+      let bal = startPortfolio, m = 0, r = 0;
+      while (bal < target && m < MAX) {
+        if (m % 12 === 0) r = monthlyRate(next());
+        bal = bal * (1 + r) + monthlySavings;
+        m++;
+      }
+      months.push(bal >= target ? m : Infinity);
+    }
+    months.sort((a, b) => a - b);
+    const out = q => { const v = percentile(months, q); return Number.isFinite(v) ? v : null; };
+    return { early: out(0.10), likely: out(0.50), late: out(0.90), reachedShare: months.filter(Number.isFinite).length / paths };
+  }
+
   // The "today's snapshot" — portfolio income, gap, pension estimate, gap after pension,
   // and freedom percentage — all derived consistently from the same inputs. Both Freedom
   // Gap and Freedom Options need this exact bundle; previously each derived it separately.
@@ -196,5 +289,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, PRESERVATION_AGE, PENSION_AGE, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();

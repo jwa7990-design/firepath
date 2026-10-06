@@ -27,7 +27,13 @@ const TAX_YEARS = {
     concessionalCap: 30000,
     nonConcessionalCap: 120000,
     superTaxRate: 0.15,
-    sgRate: 0.12
+    sgRate: 0.12,
+    // HELP/HECS (marginal system from 2025-26): 15c per $ over `start`; from `mid`, a
+    // fixed amount + 17c per $ over it; from `top`, 10% of all repayment income.
+    help: { start: 67000, mid: 125000, midBase: 8700, top: 179285 },
+    // Medicare levy surcharge for singles without private hospital cover (income for
+    // MLS purposes = taxable income + reportable super contributions, among others).
+    mls: [{ from: 101000, rate: 0.01 }, { from: 118000, rate: 0.0125 }, { from: 158000, rate: 0.015 }]
   },
   '2026-27': {
     year: '2026-27',
@@ -47,7 +53,9 @@ const TAX_YEARS = {
     concessionalCap: 32500,
     nonConcessionalCap: 130000,
     superTaxRate: 0.15,
-    sgRate: 0.12
+    sgRate: 0.12,
+    help: { start: 69528, mid: 129717, midBase: 9028, top: 186050 },
+    mls: [{ from: 105000, rate: 0.01 }, { from: 123000, rate: 0.0125 }, { from: 164000, rate: 0.015 }]
   }
 };
 
@@ -132,16 +140,47 @@ function totalTaxRaw(grossIncome, c) {
   return Math.max(0, incomeTax(grossIncome, c) - lowIncomeOffset(grossIncome, c)) + medicareLevy(grossIncome, c);
 }
 
-function calculateTax(grossIncome, cfg) {
+// Compulsory HELP repayment for the year on `repaymentIncome` (taxable income plus
+// reportable super contributions such as salary sacrifice, among other items).
+function helpRepayment(repaymentIncome, cfg) {
+  const h = (cfg || TAX_CONFIG).help;
+  const r = Number(repaymentIncome);
+  if (!h || !Number.isFinite(r) || r <= h.start) return 0;
+  if (r > h.top) return r * 0.10;
+  if (r > h.mid) return h.midBase + (r - h.mid) * 0.17;
+  return (r - h.start) * 0.15;
+}
+
+// Medicare levy surcharge (single, no private hospital cover). The rate applies to
+// the whole MLS income, not just the part over the threshold.
+function medicareLevySurcharge(mlsIncome, cfg) {
+  const tiers = (cfg || TAX_CONFIG).mls || [];
+  const i = Number(mlsIncome);
+  if (!Number.isFinite(i)) return 0;
+  let rate = 0;
+  for (const t of tiers) if (i > t.from) rate = t.rate;
+  return i * rate;
+}
+
+// calculateTax(gross, cfg, { help: true, noPrivateCover: true, reportableSuper })
+//  • help — has a HELP/HECS debt: the compulsory repayment comes out of take-home.
+//  • noPrivateCover — no private hospital cover: Medicare levy surcharge applies.
+//  • reportableSuper — salary sacrifice etc., which counts towards HELP and MLS income
+//    even though it isn't taxable income.
+function calculateTax(grossIncome, cfg, opts) {
   const c = cfg || TAX_CONFIG;
   grossIncome = Number(grossIncome);
   if (!Number.isFinite(grossIncome) || grossIncome <= 0) return { tax: 0, medicare: 0, lito: 0, total: 0, takeHome: 0, effectiveRate: 0 };
+  const o = opts || {};
   const lito = lowIncomeOffset(grossIncome, c);
   const tax = Math.max(0, incomeTax(grossIncome, c) - lito);
   const medicare = medicareLevy(grossIncome, c);
-  const total = tax + medicare;
-  const takeHome = grossIncome - total;
-  return { tax: Math.round(tax), medicare: Math.round(medicare), lito: Math.round(lito), total: Math.round(total), takeHome: Math.round(takeHome), effectiveRate: total / grossIncome };
+  const extraIncome = Math.max(0, Number(o.reportableSuper) || 0);
+  const mls = o.noPrivateCover ? medicareLevySurcharge(grossIncome + extraIncome, c) : 0;
+  const help = o.help ? helpRepayment(grossIncome + extraIncome, c) : 0;
+  const total = tax + medicare + mls;          // tax proper; HELP is a loan repayment, shown separately
+  const takeHome = grossIncome - total - help;
+  return { tax: Math.round(tax), medicare: Math.round(medicare), lito: Math.round(lito), mls: Math.round(mls), help: Math.round(help), total: Math.round(total), takeHome: Math.round(takeHome), effectiveRate: total / grossIncome };
 }
 
 // Tax on the next dollar earned — the true marginal rate, including the LITO being
@@ -190,17 +229,19 @@ function estimateGrossFromNet(targetTakeHome, maxIterations = 60) {
 //    contributions above that line.
 //  • LISTO: if taxable income is $37,000 or less, the government refunds the 15%
 //    contributions tax, up to $500.
-// Carry-forward of unused cap (balances under $500k) isn't modelled — results are
-// conservative for people who have it.
+//  • Carry-forward: unused cap from the previous 5 years can be used this year if your
+//    total super balance was under $500k on 30 June last year (pass `carryForward`).
 const DIV293_THRESHOLD = 250000;
 const LISTO = { incomeLimit: 37000, max: 500 };
-function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg) {
+const CARRY_FORWARD_BALANCE_LIMIT = 500000;
+function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg, carryForward) {
   const c = cfg || TAX_CONFIG;
+  const extraCap = Math.max(0, Number(carryForward) || 0);
   grossIncome = Math.max(0, Number(grossIncome) || 0);
   sacrificeAmount = Math.min(Number(sacrificeAmount) || 0, grossIncome);
   if (sacrificeAmount <= 0) return null;
   const sgContrib = Math.min(grossIncome * c.sgRate, c.concessionalCap);
-  const capRoom = Math.max(0, c.concessionalCap - sgContrib);
+  const capRoom = Math.max(0, c.concessionalCap + extraCap - sgContrib);
   const effective = Math.min(sacrificeAmount, capRoom);       // gets the concession
   const excess = sacrificeAmount - effective;                  // taxed at marginal rate
   const newGross = grossIncome - effective;                    // taxable income after sacrifice
@@ -210,7 +251,7 @@ function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg) {
   const taxSaved = before - after;
 
   const div293 = (income, contribs) => 0.15 * Math.min(contribs, Math.max(0, income + contribs - DIV293_THRESHOLD));
-  const extraDiv293 = div293(newGross, Math.min(c.concessionalCap, sgContrib + sacrificeAmount)) - div293(grossIncome, sgContrib);
+  const extraDiv293 = div293(newGross, Math.min(c.concessionalCap + extraCap, sgContrib + sacrificeAmount)) - div293(grossIncome, sgContrib);
   const listo = (income, contribs) => income <= LISTO.incomeLimit ? Math.min(LISTO.max, contribs * c.superTaxRate) : 0;
   const listoGain = listo(newGross, sgContrib + sacrificeAmount) - listo(grossIncome, sgContrib);
   const superTax = sacrificeAmount * c.superTaxRate + extraDiv293 - listoGain;
@@ -221,7 +262,8 @@ function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg) {
     taxSaved: Math.round(taxSaved), superTax: Math.round(superTax),
     div293: Math.round(extraDiv293), listo: Math.round(listoGain),
     netSuperGain: Math.round(sacrificeAmount - superTax), takehomeCost: Math.round(sacrificeAmount - taxSaved),
-    atCapWarning: sgContrib + sacrificeAmount > c.concessionalCap
+    carryForwardUsed: Math.round(Math.max(0, Math.min(extraCap, sgContrib + effective - c.concessionalCap))),
+    atCapWarning: sgContrib + sacrificeAmount > c.concessionalCap + extraCap
   };
 }
 

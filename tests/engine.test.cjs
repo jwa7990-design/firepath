@@ -24,7 +24,7 @@ function load(date) {
   // exactly like classic <script> tags, when run in the same context.
   const src = ['tax-engine.js', 'calculations.js', 'financial-engine.js']
     .map(f => fs.readFileSync(path.join(__dirname, '..', 'public', 'js', f), 'utf8')).join('\n;\n')
-    + '\n;this.__api = { TAX_YEARS, TAX_CONFIG, AGE_PENSION, getCurrentTaxYear, calculateTax, calculateMarginalRate, calculateSalarySacrifice, estimateGrossFromNet, deemedIncome, calculateAgePension, fmtM, fmtDollars, fmt, yearsToGoal, monthlyRate, compoundWithContributions, FP_ASSUMPTIONS, realRate };';
+    + '\n;this.__api = { TAX_YEARS, TAX_CONFIG, AGE_PENSION, getCurrentTaxYear, calculateTax, helpRepayment, medicareLevySurcharge, calculateMarginalRate, calculateSalarySacrifice, estimateGrossFromNet, deemedIncome, calculateAgePension, fmtM, fmtDollars, fmt, yearsToGoal, monthlyRate, compoundWithContributions, FP_ASSUMPTIONS, realRate };';
   vm.runInContext(src, ctx);
   return Object.assign({}, ctx.__api, { Engine: ctx.FirePathEngine });
 }
@@ -281,4 +281,68 @@ test('live rates: real returns use (1+n)/(1+i)−1 and can be negative', () => {
   near(E.realRate(4.8, 3.9), 0.008662, 1e-6);
   assert.ok(E.realRate(2, 3.9) < 0);
   near(E.FP_ASSUMPTIONS.offsetRealReturn, (1.062 / 1.039) - 1, 1e-9);
+});
+
+// ── HELP, Medicare levy surcharge, carry-forward (2026-27) ──
+test('HELP repayment: 2026-27 marginal system', () => {
+  assert.equal(E.helpRepayment(69528), 0);
+  near(E.helpRepayment(80000), 1570.8, 0.01);                    // 15% × 10,472
+  near(E.helpRepayment(140000), 9028 + 0.17 * 10283, 0.01);       // second band
+  near(E.helpRepayment(200000), 20000, 0.01);                     // 10% of all income
+  const r = E.calculateTax(80000, undefined, { help: true });
+  assert.equal(r.help, 1571);
+  assert.equal(r.takeHome, 80000 - r.total - 1571);
+});
+
+test('Medicare levy surcharge applies to the whole income, by tier', () => {
+  assert.equal(E.medicareLevySurcharge(105000), 0);
+  near(E.medicareLevySurcharge(110000), 1100, 0.01);              // 1% of all of it
+  near(E.medicareLevySurcharge(150000), 1875, 0.01);              // 1.25%
+  near(E.medicareLevySurcharge(200000), 3000, 0.01);              // 1.5%
+  // Salary sacrifice still counts towards MLS income.
+  assert.equal(E.calculateTax(100000, undefined, { noPrivateCover: true, reportableSuper: 10000 }).mls, 1100);
+});
+
+test('salary sacrifice: carry-forward unused cap lifts the limit', () => {
+  // $100k: SG $12,000. With $15,000 carried forward the room is 32,500 + 15,000 − 12,000.
+  const r = E.calculateSalarySacrifice(100000, 32500, undefined, 15000);
+  assert.equal(r.capRoom, 35500);
+  assert.equal(r.excess, 0);
+  assert.equal(r.carryForwardUsed, 12000);
+  assert.equal(r.atCapWarning, false);
+});
+
+// ── Monte Carlo ───────────────────────────────────────────
+test('Monte Carlo: with no volatility it matches the plain calculation', () => {
+  const mc = E.Engine.simulateTimeToTarget({ startPortfolio: 185000, monthlySavings: 3200, target: 1500000, volatility: 0, paths: 50 });
+  assert.equal(mc.likely, 180);             // the hand-worked 15 years
+  assert.equal(mc.early, 180);
+  const d = E.Engine.simulateDrawdown({ portfolio: 1000000, annualSpend: 40000, years: 30, volatility: 0, paths: 10 });
+  assert.equal(d.successRate, 1);
+});
+
+test('Monte Carlo: the 4% rule over 30 years succeeds most, but not all, of the time', () => {
+  const d = E.Engine.simulateDrawdown({ portfolio: 1000000, annualSpend: 40000, years: 30 });
+  assert.ok(d.successRate > 0.85 && d.successRate < 0.99, `success ${d.successRate}`);
+  assert.ok(d.p10 < d.p50 && d.p50 < d.p90);
+  // Same inputs → same answer (seeded).
+  assert.equal(E.Engine.simulateDrawdown({ portfolio: 1000000, annualSpend: 40000, years: 30 }).successRate, d.successRate);
+  // Spending 7% a year fails far more often.
+  assert.ok(E.Engine.simulateDrawdown({ portfolio: 1000000, annualSpend: 70000, years: 30 }).successRate < 0.6);
+});
+
+test('Monte Carlo: freedom date range brackets the steady-7% answer', () => {
+  const mc = E.Engine.simulateTimeToTarget({ startPortfolio: 185000, monthlySavings: 3200, target: 1500000 });
+  assert.ok(mc.early < 180 && mc.late > 180, JSON.stringify(mc));
+  assert.ok(Math.abs(mc.likely - 180) <= 12, `median ${mc.likely}`);
+});
+
+test('partner super unlocks at the partner\'s own 60', () => {
+  // You 50, partner 58 with $600k super: their super is spendable in 2 years, not 10.
+  const withOlderPartner = E.Engine.solveFreedomAge(50, 300000, 1000, 60000, true, 0.07, true, 0, { superBalance: 600000, age: 58 });
+  const sameAge = E.Engine.solveFreedomAge(50, 300000, 1000, 60000, true, 0.07, true, 0, { superBalance: 600000, age: 50 });
+  assert.ok(withOlderPartner.age < sameAge.age, `${withOlderPartner.age} vs ${sameAge.age}`);
+  // Older partner: free at 58 — (642k invested + 914k partner super) × 4% = $62.2k ≥ $60k.
+  assert.equal(withOlderPartner.age, 58);
+  assert.equal(sameAge.age, 60);
 });

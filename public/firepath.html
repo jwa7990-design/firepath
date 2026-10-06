@@ -1069,6 +1069,21 @@
     return { topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?' };
   }
 
+  // A realistic spread for the freedom date: 2,000 random-market futures (js/financial-engine.js).
+  // Returns an HTML block, or '' when there's nothing to show. Called once per calculation.
+  function marketRangeHTML(fireNum,savings,mSav){
+    if(typeof FirePathEngine==='undefined'||!FirePathEngine.simulateTimeToTarget)return '';
+    if(!(fireNum>0)||savings>=fireNum||(mSav<=0&&savings<=0))return '';
+    const mc=FirePathEngine.simulateTimeToTarget({startPortfolio:savings,monthlySavings:Math.max(0,mSav),target:fireNum});
+    const cy=new Date().getFullYear(),yr=m=>cy+Math.round(m/12);
+    const missPct=Math.round((1-mc.reachedShare)*100);
+    let line;
+    if(mc.early===null)line=`At this rate it takes more than 50 years in most futures.`;
+    else if(mc.likely===null)line=`Could be as early as <strong>${yr(mc.early)}</strong>, but in most futures it takes more than 50 years.`;
+    else line=`8 in 10 market futures land between <strong>${yr(mc.early)}</strong> and <strong>${mc.late===null?'50+ years away':yr(mc.late)}</strong>.`;
+    const miss=missPct>=10&&mc.likely!==null?` In ${Math.round(missPct/10)} in 10 futures it takes more than 50 years.`:missPct>0&&mc.likely!==null?` In ${missPct} in 100 futures it takes more than 50 years.`:'';
+    return `<div class="range-mc" style="margin-top:12px;padding:12px 14px;background:var(--surface-2);border-radius:10px;font-size:13px;line-height:1.6;color:var(--ink);"><div style="font-weight:600;margin-bottom:4px;">When markets are bumpy</div><div style="color:var(--ink-2);margin-bottom:6px;">Markets don't return 7% every year. We ran 2,000 possible futures to show the realistic spread.</div><div>${line}${miss}</div></div>`;
+  }
   function buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate) {
     const el = document.getElementById('rangeCard');
     const rows = document.getElementById('rangeRows');
@@ -1094,6 +1109,7 @@
       <div class="range-row"><span class="range-label"><strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>` : `
       <div class="range-row base"><span class="range-label"><strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span><span class="range-value base">${fmt7}</span></div>
       <div class="range-row"><span class="range-label"><strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>`;
+    rows.innerHTML += marketRangeHTML(fireNum, savings, mSav);
     el.style.display = 'block';
     const sqRange = document.getElementById('sq-range');
     const sqRangeStat = document.getElementById('sqRangeStat');
@@ -1279,6 +1295,7 @@
 
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
+<script src="js/financial-engine.js"></script>
 <script src="js/interactions.js"></script>
 <script>
   loadAssumptions();
