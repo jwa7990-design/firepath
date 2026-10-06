@@ -1,45 +1,14 @@
 ---
 /**
- * FAQ — one list of questions drives the page, the category chips, the search
- * and the FAQPage data Google reads. To add a question, add it to FAQ below.
- * Answers are trusted HTML written here (links, <strong>), never user input.
+ * FAQ — the question list (src/data/faq.ts) drives the page, the category chips, the
+ * search and the FAQPage data Google reads. To add a question, add it there.
  */
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import '../styles/doc.css';
 import '../styles/faq.css';
+import { FAQ } from '../data/faq';
 
-const FAQ = [
-  { id: 'billing', title: 'Billing', icon: 'card', items: [
-    { id: 'cancel', q: 'How do I cancel my subscription?', a: `You can cancel anytime — no lock-in, no questions asked. Go to <a href="/account">Settings</a> and choose <strong>Cancel Pro subscription</strong>. You'll keep Pro until the end of the period you've paid for. Prefer to ask a person? Email <a href="mailto:hello@firepath.pro">hello@firepath.pro</a> and we'll cancel it for you.` },
-    { id: 'trial', q: 'Will I be charged after the free trial?', a: `Yes — after your 7-day free trial, your card will be charged <strong>$6/month AUD</strong>. You'll receive an email before the trial ends. If you don't want to continue, cancel from <a href="/account">Settings</a> (or email <a href="mailto:hello@firepath.pro">hello@firepath.pro</a>) before the trial is up and you won't be charged.` },
-    { id: 'refund', q: 'Can I get a refund?', a: `If you've been charged and feel it wasn't fair, email <a href="mailto:hello@firepath.pro">hello@firepath.pro</a> and we'll sort it out. FirePath is a small product built by one person — we'd rather give a refund than leave someone unhappy.` },
-    { id: 'data-after-cancel', q: 'What happens to my data if I cancel?', a: `Your data stays in your account. You'll drop back to the free plan and lose access to Pro features, but your numbers and history won't be deleted. If you want your data removed entirely, email us and we'll take care of it.` },
-  ]},
-  { id: 'calculator', title: 'The calculator', icon: 'flame', items: [
-    { id: 'number-high', q: 'Why is my freedom number so high?', a: `Your freedom number is <strong>25× your annual spending</strong> — the amount that, invested at 7% real returns, generates enough to cover your lifestyle indefinitely without touching the principal. If it feels high, it usually means one of two things: your spending is higher than you realise, or you're planning to spend the same in retirement as you do now. Try selecting <strong>Less</strong> on the spending toggle — most people's costs drop significantly once the mortgage is paid and kids are grown.` },
-    { id: 'seven-percent', q: 'What does 7% return mean — is that realistic?', a: `FirePath uses <strong>7% real return after inflation</strong> — meaning inflation is already stripped out. This is the most widely used assumption in financial independence planning, grounded in 150+ years of global equity market data (Shiller dataset, MSCI World, Vanguard Australia research). It's a planning assumption, not a guarantee. Past returns don't predict future results. See <a href="/assumptions">How we calculate →</a>` },
-    { id: 'property', q: "Why doesn't FirePath include my property value?", a: `Property is complicated — it's illiquid, has holding costs, and your family home isn't something most people plan to sell to fund retirement. FirePath focuses on your <strong>investable assets</strong> (savings, ETFs, super) rather than total net worth. The Hear Me Out calculator does let you model what selling a property or receiving a lump sum would do to your timeline.` },
-    { id: 'savings-vs-super', q: "What's the difference between my savings and my super?", a: `Your <strong>savings</strong> are accessible now — bank accounts, shares, ETFs, offset accounts. Your <strong>super</strong> is locked until age 60 (preservation age). FirePath treats them separately because they're on different timelines. Super is shown as a separate timeline card because it unlocks at a fixed date regardless of when you reach your freedom number.` },
-    { id: 'spending-toggle', q: 'Why does my freedom date change when I select Less/Same/More spending?', a: `Your freedom number is calculated from your expected retirement spending. <strong>Less</strong> (80% of current spending) assumes your costs drop once the mortgage is paid, kids leave home, and work costs disappear. <strong>More</strong> (120%) assumes travel and lifestyle upgrades. Each changes your target, which changes your timeline. Most people are surprised how much selecting Less moves the date.` },
-  ]},
-  { id: 'super', title: 'Superannuation', icon: 'star', items: [
-    { id: 'super-separate', q: 'Why is my super shown separately?', a: `Super is locked until age 60 (preservation age). It's real wealth that's working for you, but you can't access it on demand. FirePath shows it separately so you can see your two-phase timeline clearly — what you can access before 60, and what unlocks at 60 when super joins the picture.` },
-    { id: 'super-at-60', q: 'What happens to my super at 60?', a: `At age 60 your super becomes fully accessible and withdrawals are generally <strong>tax-free</strong>. FirePath's super timeline card shows your projected super balance at 60 — including employer contributions growing at 7% — and how it combines with your other savings to hit your freedom number. This is educational only, not financial advice.` },
-    { id: 'employer-super', q: 'Does FirePath include my employer super contributions?', a: `Yes — the super timeline card projects your super balance at 60 using the current <strong>Super Guarantee rate (12%)</strong> applied to your gross income, with 15% contributions tax deducted. We update it each 1 July when the ATO's rates change. (The cash rate, inflation, savings and mortgage rates FirePath uses are pulled live from the Reserve Bank.)` },
-  ]},
-  { id: 'account', title: 'Account', icon: 'user', items: [
-    { id: 'password', q: 'I forgot my password — how do I reset it?', a: `Go to the <a href="/auth">sign in page</a> and tap <strong>Forgot password</strong>. You'll receive a reset link at your email address. If you don't receive it within a few minutes, check your spam folder or email <a href="mailto:hello@firepath.pro">hello@firepath.pro</a>.` },
-    { id: 'partner', q: 'Can I use FirePath with my partner?', a: `Yes — the calculator has a partner section where you can add their income, savings, super, and age. FirePath combines your numbers to show a shared freedom date. Both free and Pro versions include partner inputs.` },
-    { id: 'secure', q: 'Is my data secure?', a: `Your data is stored securely using Supabase with row-level security — only you can access your numbers. We don't sell your data, we don't share it, and we don't use it for advertising. See our <a href="/privacy">Privacy Policy</a> for full details.` },
-    { id: 'advice', q: 'Does FirePath give financial advice?', a: `No. FirePath is an <strong>educational tool</strong> — it shows you projections and helps you understand the maths behind financial independence. Nothing on FirePath is financial advice. For advice specific to your circumstances, consider speaking with a licensed financial adviser. We frame everything as questions worth exploring, not instructions to follow.` },
-  ]},
-  { id: 'number', title: 'Your number', icon: 'bars', items: [
-    { id: 'number-size', q: 'My number seems too big or too small — why?', a: `Your freedom number is driven entirely by your spending — not your income. If it seems too big, check what you entered as income vs savings. FirePath calculates spending as <strong>income minus savings</strong>, so if your savings amount is low, your implied spending (and therefore your freedom number) will be high. Try adjusting the spending toggle to <strong>Less</strong> to see how it changes.` },
-    { id: 'vs-adviser', q: "What's the difference between FirePath and seeing a financial adviser?", a: `FirePath shows you the maths — your freedom number, your timeline, what changes it. A licensed financial adviser gives you <strong>personalised advice</strong> accounting for your tax situation, estate planning, insurance, and specific product recommendations. FirePath is a great starting point to understand your position before (or instead of) seeing an adviser — but it doesn't replace one for complex situations.` },
-    { id: 'twenty-five', q: 'Why does FirePath use 25× my spending?', a: `25× annual spending comes from the <strong>4% rule</strong> — the finding from the Trinity Study (1998) that a portfolio can sustain a 4% annual withdrawal rate over 30+ years without running out. 1 ÷ 4% = 25. So if you spend $60K/year, you need $1.5M invested. This is the most widely used framework in financial independence planning. See <a href="/assumptions">How we calculate →</a>` },
-  ]},
-];
 const total = FAQ.reduce((n, c) => n + c.items.length, 0);
 const schema = {
   '@context': 'https://schema.org', '@type': 'FAQPage',

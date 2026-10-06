@@ -141,6 +141,10 @@
 </div>
 </main>
 <script>
+  // Supabase rejects passwords that have appeared in known data breaches.
+  const WEAK_PASSWORD_MSG = "That password has shown up in a known data breach, so it isn't safe to use. Please choose a different one — a short phrase of a few words works well.";
+  const isWeakPassword = d => d && (d.error_code === 'weak_password' || d.code === 'weak_password' || !!d.weak_password);
+
   const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
   const SUPABASE_URL = 'https://eeicdaxfrahzgjywrlgs.supabase.co';
 
@@ -209,7 +213,7 @@
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-      if (data.error) { showError(err, data.msg || data.error || 'Could not create account.'); btn.disabled = false; btn.textContent = 'Create account →'; return; }
+      if (data.error || data.error_code || data.code) { showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error || 'Could not create account.')); btn.disabled = false; btn.textContent = 'Create account →'; return; }
       success.style.display = 'block'; btn.textContent = 'Check your email';
     } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Create account →'; }
   }
@@ -273,7 +277,7 @@
       console.log('Reset response:', data);
 
       if (data.error || !data.id) {
-        showError(err, data.msg || data.error_description || data.error || 'Something went wrong.');
+        showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error_description || data.error || 'Something went wrong.'));
         btn.disabled = false; btn.textContent = 'Save new password →';
         return;
       }
