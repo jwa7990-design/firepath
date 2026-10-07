@@ -30,6 +30,7 @@
   <script src="js/financial-engine.js"></script>
   <script src="js/interactions.js"></script>
   <script src="js/tax-engine.js"></script>
+  <script src="js/moves.js"></script>
 <style>
   /* ============================================================
      FirePath Pro — page styles on top of css/app.css.
@@ -1119,6 +1120,16 @@
     el.parentNode.insertBefore(card, el);
   }
 
+  // The person as an fp_profiles row (same fields saveProfile() writes) — what
+  // FirePathMoves.situationFromProfile reads, so this page ranks moves exactly like Journey.
+  function movesProfile(){
+    const cd=calcData||{},num=id=>{const el=document.getElementById(id);return el?parseFloat(el.value)||0:0;};
+    return {persona,pay_cycle:selectedCycle,take_home_income:cd.mIncome||0,savings_monthly:cd.mSav||0,current_savings:cd.savings||0,savings_type:savingsType||'cash',super_balance:cd.superBal||0,age:cd.age||null,housing_status:housingStatus||'renting',mortgage_remaining:cd.mortgage||0,debt_total:cd.debt||0,dependants:dependants||0,retirement_spend_multiplier:retirementSpendMultiplier||1,partner_income:num('partnerIncome'),partner_age:parseInt((document.getElementById('partnerAge')||{}).value)||null,partner_super:num('partnerSuper'),freedom_number:cd.fireNum||0,has_emergency_fund:hasEmergencyFund};
+  }
+  function rankedMoves(){
+    if(!window.FirePathMoves)return null;
+    try{return FirePathMoves.rank(FirePathMoves.situationFromProfile(movesProfile()));}catch(e){console.log('Moves ranking failed',e);return null;}
+  }
   function saveHMOData(){localStorage.setItem('hmo_fireNum',calcData.fireNum||0);localStorage.setItem('hmo_monthlySav',calcData.mSav||0);localStorage.setItem('hmo_propVal',calcData.propVal||0);}
   function saveActionPlanData(scenario){localStorage.setItem('ap_fireNum',calcData.fireNum||0);localStorage.setItem('ap_monthlySav',calcData.mSav||0);localStorage.setItem('ap_income',calcData.mIncome||0);localStorage.setItem('ap_savings',calcData.savings||0);localStorage.setItem('ap_super',calcData.superBal||0);localStorage.setItem('ap_age',calcData.age||0);localStorage.setItem('ap_sRate',calcData.sRate||0);localStorage.setItem('ap_context',calcData.context||'');localStorage.setItem('ap_persona',persona||'building');localStorage.setItem('ap_cycle',selectedCycle||'fortnightly');localStorage.setItem('ap_scenario',scenario||'save_more');const fyAP=yearsToGoal(calcData.fireNum,calcData.savings,calcData.mSav,0.07);localStorage.setItem('ap_freedomYrs',fyAP===null?'':fyAP);/* '' = out of reach (not 0, which means already there) */localStorage.removeItem('ap_saved_plan');}
   function setRetirementSpend(btn){document.querySelectorAll('[data-spend]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');retirementSpendMultiplier=parseFloat(btn.dataset.spend);}
@@ -1897,7 +1908,8 @@ async function saveProfile() {
       await dbInsert('calculations',{pay_cycle:selectedCycle,income_monthly:Math.round(mI),savings_rate:sRate,current_savings:savings,super_balance:superBal||0,freedom_number:Math.round(fireNum),freedom_years:fy===null?null:Math.round(fy*10)/10,renting_mentioned:isRenting,caring_mentioned:/care|caring|carer|elderly|father|mother|parent/i.test(context)||dependants>0,age_group:!age?'unknown':age<40?'young':age<55?'mid':'senior',age:age||null,context:context||'',savings_type:savingsType||'cash',retirement_spend:retirementSpendMultiplier||1.0,dependants:dependants||0,housing_status:housingStatus||'renting',persona:persona||'building',debt_total:mDebt||0,mortgage_remaining:mMort||0});
       buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt);
 
-      const nextStep = recommendNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund);
+      // The shared recommendation (financial-engine.js → FirePathMoves), so this card agrees with Journey.
+      const nextStep = FirePathEngine.recommendNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund, movesProfile());
       const recCard = document.getElementById('recommendedCard');
       const recTitle = document.getElementById('recommendedTitle');
       const recReason = document.getElementById('recommendedReason');
@@ -1905,12 +1917,12 @@ async function saveProfile() {
       if (recCard && recTitle && recReason && recBtn) {
         if (nextStep.type === 'learn') {
           recTitle.textContent = nextStep.title;
-          recReason.textContent = nextStep.reason;
-          const labUrl = `learning_lab.html?topic=${nextStep.topic}&track=${nextStep.track}&title=${encodeURIComponent(nextStep.title)}`;
+          recReason.textContent = nextStep.reason + (nextStep.impact ? ` (${nextStep.impact})` : '');
+          const labUrl = nextStep.url || `learning_lab.html?topic=${nextStep.topic}&track=${nextStep.track}&title=${encodeURIComponent(nextStep.title)}`;
           recBtn.onclick = () => { localStorage.setItem('ap_persona', persona); localStorage.setItem('ap_sRate', sRate); window.location.href = labUrl; };
         } else {
-          recTitle.textContent = nextStep.name;
-          recReason.textContent = nextStep.reason;
+          recTitle.textContent = nextStep.moveId ? nextStep.headline : nextStep.name;
+          recReason.textContent = nextStep.reason + (nextStep.impact ? ` (${nextStep.impact})` : '');
           recBtn.onclick = () => { window.location.href = nextStep.url; };
         }
         recCard.style.display = 'block';
@@ -1924,6 +1936,8 @@ async function saveProfile() {
       });
       buildLifeUnlockedCard(fireNum, savings, mSav, y07, age);
       localStorage.setItem('fp_last_calc', JSON.stringify({fireNum: calcData.fireNum, savings: calcData.savings, mSav: calcData.mSav, sRate: calcData.sRate}));
+      // Learning Lab personalisation and the Discover action plan read these ap_* values.
+      if (localStorage.getItem('fp_is_pro') === 'true') saveActionPlanData();
       await saveProfile();
       showScreen(3);
       renderInsightMeta();
@@ -1936,30 +1950,6 @@ async function saveProfile() {
       const errEl=document.getElementById('errorMsg');
       if(errEl){errEl.textContent='Something went wrong working that out. Please try again in a minute.';errEl.style.display='block';}
     }
-  }
-
-  // Unified recommendation — replaces the earlier date-alternating pair. Each condition
-  // now deliberately picks the destination type that actually fits the situation, rather
-  // than the same condition producing two options and date choosing between them. This
-  // is the real version of the "priority engine" idea: foundational understanding gaps
-  // go to Learning Lab, testable "what happens if" situations go to Ask FirePath
-  // (matched against its actual verified question types, not guessed), genuine
-  // comparisons between paths go to Scenario Explorer, advanced stress-testing goes to
-  // Withdrawal Modeling. Deliberately does NOT include an "emergency fund missing"
-  // condition — nothing in this project tracks that, and faking a condition with no
-  // real data behind it would be the same category of problem as everything else this
-  // session has been careful to avoid.
-  function recommendNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund) {
-    if (sRate === 0) return { type: 'learn', topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', reason: 'You\'re not saving yet — this is worth understanding before anything else.' };
-    if (hasEmergencyFund === false) return { type: 'learn', topic: 'emergency-fund', track: 'foundation', title: 'Why an emergency fund comes before investing', reason: 'You told us you don\'t have money set aside for emergencies yet — worth understanding why this usually comes before optimising anything else.' };
-    if (persona === 'fire') return { type: 'tool', name: 'Withdrawal Modeling', url: 'withdrawal.html', reason: 'Worth stress-testing how long your portfolio actually lasts once you stop working.' };
-    if (debt > 0 && superBal > 0) return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', reason: `Ask what happens if you paid down debt faster, or salary sacrificed more into super.` };
-    if (superBal > 0 && age && age < 45) return { type: 'learn', topic: 'two-phase', track: 'foundation', title: 'Your two-phase freedom timeline', reason: `With super locked until 60, understanding how your two timelines interact is worth exploring.` };
-    if (savingsType === 'cash') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', reason: 'Ask what happens if that cash was invested instead — a real, calculated answer.' };
-    if (savingsType === 'etfs') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', reason: 'Ask what happens if you saved a bit more each month.' };
-    if (savingsType === 'offset') return { type: 'explore', name: 'Scenario Explorer', url: 'hearmeout.html?scenario=loan', reason: 'Compare what your offset is really doing against investing that same money.' };
-    if (savingsType === 'mix') return { type: 'learn', topic: 'diversification', track: '5', title: 'What diversification actually means', reason: 'With a mix of savings types, this explores how to think about what you\'re holding and why.' };
-    return { type: 'learn', topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', reason: 'The single most important concept behind your freedom number — worth really understanding.' };
   }
 
   function buildRangeCard(fireNum, savings, mSav, y07, sRate, age, superBal, debt) {
@@ -2261,6 +2251,9 @@ async function saveProfile() {
   function buildZeroSavingsCard(mI, fireNum, isPro) {
     const el = document.getElementById('zeroSavingsCard');
     if (!el) return;
+    // Not saving because they're living off what they've built — not "not saving yet".
+    const cd = calcData || {};
+    if ((fireNum > 0 && (cd.savings || 0) >= fireNum) || (cd.age >= 60 && (cd.savings || 0) > 0)) { el.style.display = 'none'; el.innerHTML = ''; return; }
     const weeklyIncome = Math.round(mI * 12 / 52), smallSave = 50, medSave = Math.round(weeklyIncome * 0.05);
     const smallYrs = yearsToGoal(fireNum, 0, smallSave * 52 / 12, 0.07), medYrs = yearsToGoal(fireNum, 0, medSave * 52 / 12, 0.07);
     const smallDate = smallYrs ? currentYear + Math.round(smallYrs) : null, medDate = medYrs ? currentYear + Math.round(medYrs) : null;
@@ -2285,25 +2278,36 @@ async function saveProfile() {
     const you = isPartner ? 'you two' : 'you', your = isPartner ? 'your combined' : 'your';
     const cy = new Date().getFullYear(), blocks = [];
     if (alreadyFree) { blocks.push(`<div style="background:var(--positive-wash);border:2px solid rgba(46,125,50,0.25);border-radius:20px;padding:24px;margin-bottom:16px;"><div style="font-size:28px;margin-bottom:10px;"></div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--positive);margin-bottom:8px;line-height:1.3;">You're already there.</div><div style="font-size:14px;color:var(--positive);font-weight:400;line-height:1.7;">Your savings already cover ${your} freedom number. The focus now shifts from building to protecting — making sure ${your} money lasts and works as hard as you did to earn it.</div></div>`); }
+    else if (isZeroSavings && age >= 60 && savings > 0) { blocks.push(`<div style="background:var(--ember-wash);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;"><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px;line-height:1.3;">Making ${your} savings last.</div><div style="font-size:14px;color:var(--ink-2);font-weight:400;line-height:1.7;">${isPartner ? 'You two are' : 'You\'re'} living on what you\'ve built rather than adding to it. The question now is how long ${your} ${fmtM(savings)} lasts, and what super and the Age Pension add.</div></div>`); }
     else if (isZeroSavings) { blocks.push(`<div style="background:var(--ember-wash);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;"><div style="font-size:28px;margin-bottom:10px;"></div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px;line-height:1.3;">Every journey starts somewhere.</div><div style="font-size:14px;color:var(--ink-2);font-weight:400;line-height:1.7;">${isPartner ? 'You two have' : 'You have'} the number now. The next step is finding even a small amount to put to work — because the earlier it starts, the harder it compounds.</div></div>`); }
     else if (fy !== null && fy <= 10) { blocks.push(`<div style="background:var(--positive-wash);border:2px solid rgba(46,125,50,0.25);border-radius:20px;padding:24px;margin-bottom:16px;"><div style="font-size:28px;margin-bottom:10px;"></div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--positive);margin-bottom:8px;line-height:1.3;">${fyear ? fyear + ' is close.' : 'Freedom is close.'}</div><div style="font-size:14px;color:var(--positive);font-weight:400;line-height:1.7;">${isPartner ? 'You two are' : 'You\'re'} ${fmt(fy)} away${freedomAge ? ' — freedom age ' + freedomAge : ''}. At this stage, staying the course matters more than finding new levers. The compounding is doing the work.</div></div>`); }
     else if (fy !== null && fy <= 20) { blocks.push(`<div style="background:var(--ember-wash);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;"><div style="font-size:28px;margin-bottom:10px;"></div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px;line-height:1.3;">${isPartner ? 'You two are' : 'You\'re'} building something real.</div><div style="font-size:14px;color:var(--ink-2);font-weight:400;line-height:1.7;">${fmt(fy)} to freedom${freedomAge ? ' at age ' + freedomAge : ''}. ${your.charAt(0).toUpperCase() + your.slice(1)} savings rate of ${sRate}% is ${sRate >= 20 ? 'strong' : 'a solid start'} — the levers below show what moves the date.</div></div>`); }
     else { blocks.push(`<div style="background:var(--ember-wash);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;"><div style="font-size:28px;margin-bottom:10px;"></div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px;line-height:1.3;">The path is long — but it's visible now.</div><div style="font-size:14px;color:var(--ink-2);font-weight:400;line-height:1.7;">${isPartner ? 'You two have' : 'You have'} ${your} number. ${fy ? fmt(fy) + ' is a long road' : 'The timeline is long'}, but knowing where ${you} stand is the thing most people never bother to find out. That's already further ahead than most.</div></div>`); }
-    if (!alreadyFree && !isZeroSavings && fy) {
+    // Biggest lever: the top move from FirePathMoves — the same pick Journey shows.
+    const ranked = rankedMoves(), topMove = ranked && ranked.moves[0];
+    if (topMove) {
+      const go = topMove.tool ? topMove.tool : topMove.article ? { href: '/learn/' + topMove.article, label: 'Read why' } : null;
+      const leverMsg = `<strong>${topMove.title}.</strong> ${topMove.why}${topMove.impact && topMove.impact.text ? `<div style="margin-top:8px;font-size:13px;font-weight:600;color:var(--ember-ink);">${topMove.impact.text}</div>` : ''}${go ? `<a href="${go.href}" style="display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:var(--ember-ink);text-decoration:none;">${go.label} →</a>` : ''}`;
+      blocks.push(`<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ember-ink);margin-bottom:10px;"> Your biggest lever right now</div><div style="font-size:14px;color:var(--ink);font-weight:400;line-height:1.7;">${leverMsg}</div></div>`);
+    } else if (!ranked && !alreadyFree && !isZeroSavings && fy) {
+      // Fallback if moves.js didn't load.
       const extraWeekly = 50, newMSav = mSav + (extraWeekly * 52 / 12), newFy = yearsToGoal(fireNum, savings, newMSav, 0.07), diff = newFy && fy ? Math.round(fy - newFy) : null;
       let leverMsg = '';
-      if (savingsType === 'cash' && savings > 0) { leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} savings are in cash. The single biggest question worth exploring: what happens if that money is invested instead? The My Date tab shows the exact difference.`; }
-      else if (debt > 0) { leverMsg = `${isPartner ? 'You two have' : 'You have'} ${fmtM(debt)} in debt. Once that's gone, the repayments become savings — and that changes the date.`; }
-      else if (sRate < 15) { leverMsg = diff && diff > 0 ? `Saving an extra $${extraWeekly}/week could move ${your} freedom date by ${diff} year${diff !== 1 ? 's' : ''}. Small, but compounding turns small into significant.` : `${your.charAt(0).toUpperCase() + your.slice(1)} savings rate has room to grow. Even small increases compound into years of difference.`; }
-      else if (superBal > 0 && age && age < 55) { leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} super is quietly compounding in the background. The Super tab shows how it connects to ${your} freedom date at 60.`; }
-      else { leverMsg = diff && diff > 0 ? `An extra $${extraWeekly}/week could bring ${your} freedom date forward by ${diff} year${diff !== 1 ? 's' : ''}. The My Date tab has the full picture.` : `${your.charAt(0).toUpperCase() + your.slice(1)} plan is solid. The My Date tab shows what would move it further.`; }
+      if (debt > 0) { leverMsg = `${isPartner ? 'You two have' : 'You have'} ${fmtM(debt)} in debt. Once that's gone, the repayments become savings — and that changes the date.`; }
+      else if (savingsType === 'cash' && savings > 0) { leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} savings are in cash. The single biggest question worth exploring: what happens if that money is invested instead? The "If your money was invested" comparison in your results shows the exact difference.`; }
+      else { leverMsg = diff && diff > 0 ? `An extra $${extraWeekly}/week could bring ${your} freedom date forward by ${diff} year${diff !== 1 ? 's' : ''}. "See what moves ${your} date" below has the full picture.` : `${your.charAt(0).toUpperCase() + your.slice(1)} plan is solid. "See what moves ${your} date" below shows what would move it further.`; }
       blocks.push(`<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ember-ink);margin-bottom:10px;"> Your biggest lever right now</div><div style="font-size:14px;color:var(--ink);font-weight:400;line-height:1.7;">${leverMsg}</div></div>`);
     }
     const steps = [];
     steps.push(`<div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--positive-wash);border-radius:var(--r-md);border:1px solid rgba(46,125,50,0.25);"><div style="font-size:20px"></div><div><div style="font-size:14px;font-weight:500;color:var(--positive);">Know ${your} number</div><div style="font-size:12px;color:var(--ink-2);font-weight:400;">${your.charAt(0).toUpperCase() + your.slice(1)} freedom number is ${fmtM(fireNum)}. That's the foundation everything else builds on.</div></div></div>`);
     if (!alreadyFree) { steps.push(`<div onclick="document.getElementById('needleCard').scrollIntoView({behavior:'smooth',block:'start'})" style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--ember-wash);border-radius:var(--r-md);border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px"></div><div><div style="font-size:14px;font-weight:500;color:var(--ember-ink);">See what moves ${your} date</div><div style="font-size:12px;color:var(--ink-2);font-weight:400;">Scroll down — exactly what each lever does to ${your} freedom year, in real numbers.</div></div></div>`); }
     if (persona === 'beginner' || persona === 'building') { steps.push(`<div onclick="window.location.href='learning_lab.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--ember-wash);border-radius:var(--r-md);border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px"></div><div><div style="font-size:14px;font-weight:500;color:var(--ember-ink);">${persona === 'beginner' ? 'Understand the basics' : 'Go deeper on the concepts'}</div><div style="font-size:12px;color:var(--ink-2);font-weight:400;">${persona === 'beginner' ? 'The Learning Lab explains how this all works — in plain language, no jargon.' : 'The Learning Lab covers compounding, ETFs, super, and the 4% rule — in your language.'}</div></div></div>`); }
-    steps.push(`<div onclick="saveHMOData();window.location.href='hearmeout.html';" style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--ember-wash);border-radius:var(--r-md);border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px"></div><div><div style="font-size:14px;font-weight:500;color:var(--ember-ink);">Run a "what if"</div><div style="font-size:12px;color:var(--ink-2);font-weight:400;">What if ${you} sold the house? Got a lump sum? Hear Me Out lets ${you} model the big moves.</div></div></div>`);
+    // A "what if" that fits: selling the house only for owners; renters get rent vs invest.
+    const ownsHome = housingStatus && housingStatus !== 'renting';
+    const whatIf = ownsHome
+      ? { scenario: 'home', text: `What if ${you} sold the house? Got a lump sum? Hear Me Out lets ${you} model the big moves.` }
+      : { scenario: 'rentvest', text: `What if ${you} keep renting and invest the difference? Got a lump sum? Hear Me Out lets ${you} model the big moves.` };
+    steps.push(`<div onclick="saveHMOData();window.location.href='hearmeout.html?scenario=${whatIf.scenario}';" style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--ember-wash);border-radius:var(--r-md);border:1.5px solid rgba(244,98,42,0.3);cursor:pointer;"><div style="font-size:20px"></div><div><div style="font-size:14px;font-weight:500;color:var(--ember-ink);">Run a "what if"</div><div style="font-size:12px;color:var(--ink-2);font-weight:400;">${whatIf.text}</div></div></div>`);
     blocks.push(`<div style="background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:16px;"><div style="font-family:var(--font-display);font-size:16px;font-weight:700;margin-bottom:14px;">${isPartner ? 'Your next steps together' : 'Your next steps'} </div><div style="display:flex;flex-direction:column;gap:10px;">${steps.join('')}</div></div>`);
     if (superBal > 0 && age && age < 60 && !alreadyFree) { blocks.push(`<div onclick="switchResultTab('super', document.getElementById('superTabBtn'))" style="background:var(--positive-wash);border:1.5px solid rgba(46,125,50,0.25);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;cursor:pointer;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--positive);margin-bottom:8px;"> Don't forget your super</div><div style="font-size:14px;color:var(--positive);font-weight:400;line-height:1.6;">${isPartner ? 'You two have' : 'You have'} ${fmtM(superBal)} compounding in the background. The Super tab shows how it fits ${your} freedom plan at 60. →</div></div>`); }
     el.innerHTML = blocks.join('');

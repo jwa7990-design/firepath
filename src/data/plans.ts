@@ -19,6 +19,7 @@ export const FREE_NOTE = 'No account needed — you type your numbers into each 
 export const PRO_FEATURES: [string, string][] = [
   ['Your plan, saved', 'Every tool fills in your own numbers automatically — no retyping.'],
   ['An AI insight about you', 'Written around your income, savings, super, debts and goals.'],
+  ['Ask FirePath', 'Ask anything about your own plan — answered by AI, with FirePath’s maths doing the sums.'],
   ['Your full plan, with super', 'Two timelines — what you can reach now and what unlocks at 60 — including your partner’s super.'],
   ['Tax, worked out', 'Take-home, HELP, salary sacrifice and offset vs investing, at current ATO rates.'],
   ['Will it last to 95?', 'The odds across market futures, with the Age Pension and a part-time slider.'],

@@ -77,25 +77,51 @@ window.FirePathEngine = (function () {
     return null;
   }
  
-  // Picks the single highest-value thing for this person to do next — one ranked
-  // pass through the possible reasons, first match wins. Was previously only defined
-  // as a page-local copy inside firepath_pro.html; journey.html already assumed it
-  // lived here (calls it as window.FirePathEngine.recommendNextStep). Same function,
-  // just promoted so both pages share one copy instead of drifting apart.
+  // Picks the single highest-value thing for this person to do next.
   //
-  // `headline` is a short, imperative framing of the same recommendation — "Build
-  // your emergency buffer." rather than a generic "Why this matters" label — meant
-  // to be the first thing a person reads on the Next Move card, with `reason` as the
-  // supporting sentence underneath it. Added alongside `type`/`reason`, not replacing
-  // them, so any older cached call site that only reads `reason` still works.
-  function recommendNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund) {
+  // When js/moves.js is loaded (window.FirePathMoves), this is just the top-ranked move
+  // for this person, so Journey, Full Analysis and every other page agree. Pass the
+  // person's fp_profiles row (or anything situationFromProfile accepts) as `profile`
+  // for the full picture; without it, a minimal profile is built from the positional
+  // arguments. The rules further down are only a fallback for pages that don't load
+  // moves.js.
+  //
+  // Return shape (unchanged for older callers): { type, name | title, url | topic,
+  // headline, reason }. type 'tool' → open `url`; type 'learn' → read `url` (an
+  // article at /learn/<slug>) or, for legacy fallbacks without a url, the Learning Lab
+  // `topic`/`track`. Moves also add { moveId, impact (text), article (slug) }.
+  function recommendNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund, profile) {
+    const M = typeof window !== 'undefined' ? window.FirePathMoves : null;
+    if (M && typeof M.rank === 'function') {
+      try {
+        const p = profile || { savings_type: savingsType, persona, super_balance: superBal, debt_total: debt, age, has_emergency_fund: hasEmergencyFund };
+        const s = p.stage ? p : M.situationFromProfile(p);
+        const { moves } = M.rank(s);
+        const top = moves[0];
+        if (top) return fromMove(top);
+        if (s.alreadyFree) return { type: 'tool', name: 'Run the stress test', url: '/withdrawal', headline: 'Stress-test your withdrawals.', reason: "You've reached your number. Check your plan survives a bad run of markets in the first years of drawing down.", impact: null };
+      } catch (e) { /* fall through to the simple rules */ }
+    }
+    return legacyNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund);
+  }
+
+  function fromMove(m) {
+    const base = { moveId: m.id, headline: m.title, reason: m.why, impact: m.impact && m.impact.text ? m.impact.text : null, article: m.article || null, plan: m.plan };
+    if (m.tool) return Object.assign(base, { type: 'tool', name: m.tool.label, title: m.title, url: m.tool.href });
+    if (m.article) return Object.assign(base, { type: 'learn', title: m.title, topic: m.article, url: '/learn/' + m.article });
+    return Object.assign(base, { type: 'learn', title: m.title, topic: null, url: null });
+  }
+
+  // Simple rules for pages without moves.js. Questions go to tools or articles that
+  // actually answer them (Ask FirePath can't model debt payoff or cash vs investing).
+  function legacyNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund) {
     if (sRate === 0) return { type: 'learn', topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', headline: 'Understand what FIRE actually means for you.', reason: 'You\'re not saving yet — this is worth understanding before anything else.' };
     if (hasEmergencyFund === false) return { type: 'learn', topic: 'emergency-fund', track: 'foundation', title: 'Why an emergency fund comes before investing', headline: 'Build your emergency buffer.', reason: 'You told us you don\'t have money set aside for emergencies yet — worth understanding why this usually comes before optimising anything else.' };
+    if (debt > 0) return { type: 'learn', topic: 'debt-vs-invest', url: '/learn/debt-vs-invest', title: 'Should I pay off debt or invest first?', headline: 'Clear high-interest debt first.', reason: 'Cards and personal loans usually cost more than any investment reliably earns — paying them off is a guaranteed return.' };
     if (persona === 'fire') return { type: 'tool', name: 'Withdrawal Modeling', url: 'withdrawal.html', headline: 'Stress-test how long your money lasts.', reason: 'Worth stress-testing how long your portfolio actually lasts once you stop working.' };
-    if (debt > 0 && superBal > 0) return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', headline: 'Weigh paying down debt against super.', reason: `Ask what happens if you paid down debt faster, or salary sacrificed more into super.` };
     if (superBal > 0 && age && age < 45) return { type: 'learn', topic: 'two-phase', track: 'foundation', title: 'Your two-phase freedom timeline', headline: 'See how your two timelines interact.', reason: `With super locked until 60, understanding how your two timelines interact is worth exploring.` };
-    if (savingsType === 'cash') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', headline: 'See what your cash could be doing instead.', reason: 'Ask what happens if that cash was invested instead — a real, calculated answer.' };
-    if (savingsType === 'etfs') return { type: 'ask', name: 'Ask FirePath', url: 'ask-firepath.html', headline: 'Find out what a bit more each month buys you.', reason: 'Ask what happens if you saved a bit more each month.' };
+    if (savingsType === 'cash') return { type: 'learn', topic: 'what-is-an-index-fund', url: '/learn/what-is-an-index-fund', title: 'What is an index fund?', headline: 'See what your cash could be doing instead.', reason: 'Money in the bank barely keeps up with inflation. Above your emergency buffer, this explains the simplest way most people invest.' };
+    if (savingsType === 'etfs') return { type: 'tool', name: 'Scenario Explorer', url: 'hearmeout.html', headline: 'Find out what a bit more each month buys you.', reason: 'Try different saving amounts and see how each one moves your date.' };
     if (savingsType === 'offset') return { type: 'explore', name: 'Scenario Explorer', url: 'hearmeout.html?scenario=loan', headline: 'Compare your offset against investing.', reason: 'Compare what your offset is really doing against investing that same money.' };
     if (savingsType === 'mix') return { type: 'learn', topic: 'diversification', track: '5', title: 'What diversification actually means', headline: 'Understand what you\'re actually holding.', reason: 'With a mix of savings types, this explores how to think about what you\'re holding and why.' };
     return { type: 'learn', topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', headline: 'Get the one concept that changes everything.', reason: 'The single most important concept behind your freedom number — worth really understanding.' };

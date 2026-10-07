@@ -9,6 +9,10 @@ export interface ArticleMeta {
   sub?: string | null;
   cta?: { heading?: string | null; text?: string | null; links: ArticleLink[] };
   seeAlso?: ArticleLink[];
+  /** Who it's for — articles that only suit some people. Checked by FirePathMoves.articleFits
+   *  (public/js/moves.js) so an article is never recommended to someone it doesn't fit.
+   *  ages [min, max] · housing ['renting'|'mortgage'|'owner'] · partner · kids · minGross · maxGross · maxSuper */
+  for?: { ages?: [number, number]; housing?: string[]; partner?: boolean; kids?: boolean; minGross?: number; maxGross?: number; maxSuper?: number };
 }
 export interface Article extends ArticleMeta {
   slug: string; body: string; readMins: number; sections: { id: string; title: string }[];

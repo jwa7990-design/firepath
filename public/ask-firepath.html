@@ -10,7 +10,11 @@
 <link rel="stylesheet" href="css/app.css"/>
 <script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/safe-html.js"></script>
 <script src="js/calculations.js"></script>
+<script src="js/tax-engine.js"></script>
+<script src="js/financial-engine.js"></script>
+<script src="js/moves.js"></script>
 <script src="js/interactions.js"></script>
 <style>
   /* ── Chat layout: page header + scrolling thread + input bar pinned to the bottom.
@@ -24,6 +28,11 @@
   }
   @media (min-width: 768px) { .ask-main { padding-bottom: 0; } }
   @media (min-width: 1024px) { .ask-main { padding-bottom: 0; padding-top: 40px; } }
+  /* Visitors get the site shell (js/shell.js, data-public): a top nav instead of the
+     rail and tab bar, so the column fits under the nav and the bar needs no tab-bar lift. */
+  body.site .ask-main { height: calc(100vh - var(--nav-h)); height: calc(100dvh - var(--nav-h)); }
+  body.site .chat-input-bar { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+  @media (min-width: 1024px) { body.site .chat-input-bar { padding-bottom: 28px; } }
   .ask-main .page-head { flex-shrink: 0; margin-bottom: 0; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 
   .chat-thread {
@@ -123,7 +132,7 @@
   .chat-send:disabled { opacity: 0.35; cursor: default; }
 </style>
 </head>
-<body class="app" data-shell="app" data-active="ask">
+<body class="app" data-shell="app" data-footer="none" data-active="ask">
 <script src="js/shell.js"></script>
 
 <main class="app-main ask-main">
@@ -131,7 +140,7 @@
   <header class="page-head">
     <div>
       <h1 class="page-head-title">Ask FirePath</h1>
-      <p class="page-head-sub">Quick what-if answers, worked out from the numbers.</p>
+      <p class="page-head-sub">Ask anything about your plan — answered by AI, with FirePath’s maths doing the sums.</p>
     </div>
   </header>
 
@@ -141,7 +150,7 @@
       <button class="pill-chip" data-q="What if I save an extra $250 a month?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I save an extra $250 a month?</button>
       <button class="pill-chip" data-q="What if I spend $150 less a week?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I spend $150 less a week?</button>
       <button class="pill-chip" data-q="What if I retire at 40?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I retire at 40?</button>
-      <button class="pill-chip" data-q="What if I sell my investment property?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I sell my investment property?</button>
+      <button class="pill-chip" data-q="Should I pay off debt or invest first?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I sell my investment property?</button>
     </div>
   </div>
 
@@ -155,277 +164,197 @@
 </main>
 
 <script>
-  // Answers are calculated (no AI) from a Pro member's saved plan. Everyone else — and a
-  // Pro member who hasn't saved a plan yet — gets an example saver, and the card says so.
-  const EXAMPLE = { portfolio: 520000, monthlySavings: 2600, annualSpend: 65000, age: 35, isExample: true };
-  let PERSON = EXAMPLE;
+  // Ask FirePath (Pro). The AI explains; FirePath's own engines do the sums.
+  // Each question is sent with: the member's saved plan, figures the engines worked out
+  // (freedom date and realistic range, ranked moves with their impact), the exact result
+  // of any what-if the calculator can answer, and the only links it may suggest. Answers
+  // go through FirePathSafe before display. Requests go via the Worker, which checks Pro
+  // and applies the AI rate limits.
 
-  async function loadPerson() {
+  const MODEL = 'claude-sonnet-4-6';
+  const HISTORY_TURNS = 4;            // the last 4 questions and answers travel with each request
+  let PLAN = null;                    // { situation, moves, range, profile } once loaded
+  let ARTICLES = [];                  // [{ slug, heading, for }]
+  const history = [];                 // [{ role, content }]
+
+  const money = n => '$' + Math.round(n).toLocaleString('en-AU');
+  const escapeHtml = s => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+
+  // ── The member's plan ────────────────────────────────────
+  async function loadPlan() {
     try {
-      const token = typeof getToken === 'function' ? getToken() : null;
-      const userId = typeof getUserId === 'function' ? getUserId() : null;
-      if (!token || !userId) return;
-      if (typeof checkProStatus === 'function' && !(await checkProStatus())) return;
-      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${getUserId()}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
       const rows = await res.json();
       const p = Array.isArray(rows) ? rows[0] : null;
-      if (!p || !(p.freedom_number > 0) || p.savings_monthly == null) return;
-      PERSON = {
-        portfolio: Math.max(0, p.current_savings || 0),
-        monthlySavings: Math.max(0, p.savings_monthly || 0),
-        annualSpend: p.freedom_number / 25,          // the yearly spending the freedom number pays for
-        age: p.age || null,
-        isExample: false
-      };
-    } catch (e) { console.log('Profile load failed — using the example saver', e); }
+      if (!p || !(p.freedom_number > 0)) return null;
+      const ranked = FirePathMoves.rank(FirePathMoves.situationFromProfile(p), { limit: 5 });
+      const s = ranked.situation;
+      let range = null;
+      if (!s.alreadyFree && s.freedomNumber > 0) {
+        const mc = FirePathEngine.simulateTimeToTarget({ startPortfolio: s.accessibleSavings, monthlySavings: s.savingsMonthly || 0, target: s.freedomNumber });
+        range = mc;
+      }
+      return { profile: p, situation: s, moves: ranked.moves, range };
+    } catch (e) { console.log('Plan load failed', e); return null; }
   }
 
-  function solveMonthsToTarget(startPortfolio, monthlySavings, targetSpend, rate) {
-    rate = rate == null ? 0.07 : rate;
-    const r = monthlyRate(rate);
-    let portfolio = startPortfolio;
-    for (let m = 0; m <= 40 * 12; m++) {
-      if (portfolio * 0.04 >= targetSpend) return m;
-      portfolio = portfolio * (1 + r) + monthlySavings;
+  async function loadArticles() {
+    try { ARTICLES = await (await fetch('/learn/articles.json')).json(); } catch (e) { ARTICLES = []; }
+  }
+
+  // ── What-ifs the calculator can answer exactly ───────────
+  // "save $500 a month", "spend $100 less a week", "retire at 50"
+  const AMOUNT = String.raw`\$?(\d[\d,]*(?:\.\d+)?)\s*(k)?`;
+  const parseAmount = (num, k) => parseFloat(num.replace(/,/g, '')) * (k ? 1000 : 1);
+  const perMonth = (amount, unit) => unit === 'week' ? amount * 52 / 12 : unit === 'fortnight' ? amount * 26 / 12 : amount;
+  const yrs = y => y == null ? 'more than 100 years' : y < 1 ? `${Math.round(y * 12)} months` : `${Math.round(y * 10) / 10} years`;
+
+  function calculate(question) {
+    if (!PLAN) return null;
+    const s = PLAN.situation, q = question.toLowerCase();
+    const base = s.yearsToFree;
+    let m = q.match(new RegExp(`save.*?${AMOUNT}\\s*(a|per|each|every)?\\s*(week|fortnight|month)`));
+    if (m) {
+      const extra = perMonth(parseAmount(m[1], m[2]), m[4]);
+      const after = FirePathMoves.yearsTo(s.freedomNumber, s.accessibleSavings, (s.savingsMonthly || 0) + extra, 0.07);
+      return `Saving an extra ${money(extra)} a month: freedom in ${yrs(after)} instead of ${yrs(base)} (7% real return, today's dollars).`;
+    }
+    m = q.match(new RegExp(`spend.*?${AMOUNT}\\s*less\\s*(a|per|each|every)?\\s*(week|fortnight|month)`));
+    if (m) {
+      const cut = perMonth(parseAmount(m[1], m[2]), m[4]);
+      const newTarget = Math.max(0, s.freedomNumber - cut * 12 * 25 * (s.retirementSpendMultiplier || 1));
+      const after = FirePathMoves.yearsTo(newTarget, s.accessibleSavings, (s.savingsMonthly || 0) + cut, 0.07);
+      return `Spending ${money(cut)} a month less (and saving it): freedom number ${money(newTarget)}, reached in ${yrs(after)} instead of ${yrs(base)}.`;
+    }
+    m = q.match(/retire.*?\b(\d{2})\b|\b(\d{2})\b.*?(retire|retirement)/);
+    if (m && s.age) {
+      const target = parseInt(m[1] || m[2], 10), years = target - s.age;
+      if (years > 0 && years < 60) {
+        const at = FirePathEngine.projectPortfolio(s.accessibleSavings, s.savingsMonthly || 0, years, 0.07);
+        const income = at * 0.04, spend = s.freedomNumber / 25;
+        return `Retiring at ${target} (in ${years} years): savings outside super reach about ${money(at)}, paying ${money(income)} a year at 4% vs ${money(spend)} needed — ${income >= spend ? 'enough' : 'a shortfall of ' + money(spend - income) + ' a year'}.` + (target < 60 && s.superBalance > 0 ? ' Super stays locked until 60, so it can\'t help before then.' : '');
+      }
     }
     return null;
   }
-  function projectPortfolio(startPortfolio, monthlySavings, years, rate) {
-    rate = rate == null ? 0.07 : rate;
-    const r = monthlyRate(rate);
-    let portfolio = startPortfolio;
-    for (let m = 0; m < Math.round(years * 12); m++) portfolio = portfolio * (1 + r) + monthlySavings;
-    return portfolio;
-  }
 
-  const baselineMonths = () => solveMonthsToTarget(PERSON.portfolio, PERSON.monthlySavings, PERSON.annualSpend);
-  // "$500", "$1,500", "1.5k" → dollars
-  const parseAmount = (num, k) => parseFloat(num.replace(/,/g, '')) * (k ? 1000 : 1);
-  const AMOUNT = String.raw`\$?(\d[\d,]*(?:\.\d+)?)\s*(k)?`;
-
-  // ── Classification — three tiers, matching the boundary already agreed: does a
-  //    validated calculation exist for this question, not just "do we have data." ──
-  const GUIDED_KEYWORDS = [
-    { pattern: /propert(y|ies)|sell.*(house|home)|downsiz/i, name: 'selling or downsizing property', why: 'it requires modelling capital gains tax, selling costs, and reinvestment assumptions' },
-    { pattern: /redundan|payout|severance/i, name: 'a redundancy payout', why: 'it requires modelling how a lump sum interacts with tax, timing, and your ongoing income' },
-    { pattern: /child|kids?|baby|pregnan/i, name: 'having a child', why: 'it requires modelling cost-of-living changes and government payments like Family Tax Benefit' },
-    { pattern: /inherit/i, name: 'an inheritance', why: 'it requires modelling how a lump sum changes your timeline alongside your existing plan' },
+  // ── What the AI is told ──────────────────────────────────
+  const TOOL_LINKS = [
+    ['/firepath_pro', 'Full Analysis'], ['/journey', 'Your Journey'], ['/strategy', 'Strategy'], ['/tax_pro', 'Tax tools'],
+    ['/hearmeout', 'Scenario explorer'], ['/withdrawal', 'Withdrawal stress test'], ['/freedom-gap', 'Freedom gap'],
+    ['/compound', 'Compounding'], ['/progress', 'Check in'],
   ];
 
-  function classifyAndAnswer(question) {
-    const q = question.toLowerCase();
-
-    // Guided tier — honest, specific reason, not a generic failure
-    for (const g of GUIDED_KEYWORDS) {
-      if (g.pattern.test(q)) {
-        return { tier: 'guided', name: g.name, why: g.why };
-      }
+  function systemPrompt() {
+    const lines = [
+      'You are Ask FirePath, the assistant inside FirePath Pro, an Australian financial-independence planner. You help one member understand their own plan.',
+      'Rules:',
+      '- Educational only, not financial advice. Explain, compare options and show trade-offs; never tell them what they must do, and never recommend specific products, funds, providers or shares.',
+      '- Australian context: super (locked until preservation age 60), the Age Pension from 67, ATO rules, AUD.',
+      '- Numbers: only use the figures below or a CALCULATED note in the question. If you need another figure, give a clearly labelled rough estimate and how you got it. Never invent their numbers.',
+      '- If something depends on facts you do not have (e.g. an interest rate), say what it depends on.',
+      '- Plain English, under 150 words, short paragraphs. Use **bold** for key numbers.',
+      '- If the question is not about money or their plan, say briefly what you can help with.',
+      '- Finish with exactly one next step as [[link:/path|Short label]], choosing the path ONLY from ALLOWED LINKS.',
+      '',
+    ];
+    if (PLAN) {
+      const s = PLAN.situation, p = PLAN.profile;
+      const rng = PLAN.range;
+      lines.push('MEMBER (household, today\'s dollars):');
+      lines.push(`- Age ${s.age ?? 'unknown'}${s.hasPartner ? `, with a partner${s.partnerAge ? ` aged ${s.partnerAge}` : ''}` : ''}${s.dependants > 0 ? `, ${s.dependants} dependant(s)` : ''}. Housing: ${s.housing || 'unknown'}${s.mortgageRemaining > 0 ? `, ${money(s.mortgageRemaining)} mortgage` : ''}.`);
+      lines.push(`- Take-home ${money(s.takeHomeMonthly || 0)}/month; saving ${money(s.savingsMonthly || 0)}/month${s.savingsRate != null ? ` (${Math.round(s.savingsRate * 100)}% savings rate)` : ''}.`);
+      lines.push(`- Savings outside super ${money(s.currentSavings || 0)} held as ${s.savingsType || 'unknown'}; super ${money(s.superBalance || 0)}${s.partnerSuper > 0 ? `; partner's super ${money(s.partnerSuper)}` : ''}; consumer debt ${money(s.consumerDebt || 0)}.`);
+      if (s.grossIncome) lines.push(`- Estimated own gross income ${money(s.grossIncome)}${s.marginalRate != null ? `, marginal tax rate about ${Math.round(s.marginalRate * 100)}%` : ''}.`);
+      lines.push(`- Freedom number ${money(s.freedomNumber)} (25 × yearly spending in retirement).`);
+      lines.push(s.alreadyFree ? '- Already free: accessible savings cover the freedom number.'
+        : `- At 7% real: free in ${yrs(s.yearsToFree)}${s.freedomAge ? ` (around age ${Math.round(s.freedomAge)})` : ''}.` + (rng && rng.early != null ? ` Across 2,000 market futures, 8 in 10 land between ${yrs(rng.early / 12)} and ${rng.late != null ? yrs(rng.late / 12) : 'over 50 years'}.` : ''));
+      if (p.context) lines.push(`- In their words: "${String(p.context).slice(0, 300)}"`);
+      lines.push('', 'FIREPATH\'S RANKED MOVES FOR THEM (best first, from its own engine):');
+      PLAN.moves.forEach((m, i) => lines.push(`${i + 1}. ${m.title} — ${m.impact.text}. ${m.why}`));
+      if (!PLAN.moves.length) lines.push('(none — nothing would clearly improve their outcome right now)');
+    } else {
+      lines.push('MEMBER: no saved plan yet. Answer generally and suggest running Full Analysis (/firepath_pro) to get answers built on their own numbers.');
     }
-
-    // Supported tier — savings increase
-    let m = q.match(new RegExp(`save.*?${AMOUNT}\\s*(a|per)?\\s*(week|fortnight|month)`));
-    if (m) {
-      const amount = parseAmount(m[1], m[2]);
-      const unit = m[4];
-      const extraMonthly = unit === 'week' ? amount * 52 / 12 : unit === 'fortnight' ? amount * 26 / 12 : amount;
-      const base = baselineMonths();
-      const newMonths = solveMonthsToTarget(PERSON.portfolio, PERSON.monthlySavings + extraMonthly, PERSON.annualSpend);
-      const movedBy = base != null && newMonths != null ? base - newMonths : null;
-      return { tier: 'supported', type: 'savings', extraMonthly, movedBy, newMonths };
-    }
-
-    // Supported tier — spending decrease
-    m = q.match(new RegExp(`spend.*?${AMOUNT}\\s*less\\s*(a|per)?\\s*(week|fortnight|month)`));
-    if (m) {
-      const amount = parseAmount(m[1], m[2]);
-      const unit = m[4];
-      const extraMonthly = unit === 'week' ? amount * 52 / 12 : unit === 'fortnight' ? amount * 26 / 12 : amount;
-      const newAnnualSpend = Math.max(0, PERSON.annualSpend - extraMonthly * 12);
-      const base = baselineMonths();
-      const newMonths = solveMonthsToTarget(PERSON.portfolio, PERSON.monthlySavings + extraMonthly, newAnnualSpend);
-      const movedBy = base != null && newMonths != null ? base - newMonths : null;
-      return { tier: 'supported', type: 'spending', extraMonthly, movedBy, newMonths };
-    }
-
-    // Supported tier — retirement age target
-    m = q.match(/retire.*?(\d{2})|(\d{2}).*?(retire|retirement)/);
-    if (m) {
-      const targetAge = parseInt(m[1] || m[2], 10);
-      if (!PERSON.age) return { tier: 'unsupported' };   // can't project to an age without knowing theirs
-      const yearsToTarget = targetAge - PERSON.age;
-      if (yearsToTarget <= 0) return { tier: 'unsupported' };
-      const projected = projectPortfolio(PERSON.portfolio, PERSON.monthlySavings, yearsToTarget);
-      const income = projected * 0.04;
-      const gap = PERSON.annualSpend - income;
-      return { tier: 'supported', type: 'retireAge', targetAge, yearsToTarget, projected, income, gap };
-    }
-
-    return { tier: 'unsupported' };
+    const fits = PLAN ? ARTICLES.filter(a => FirePathMoves.articleFits(a.for, PLAN.situation)) : ARTICLES;
+    lines.push('', 'ALLOWED LINKS:');
+    TOOL_LINKS.forEach(([h, l]) => lines.push(`${h} | ${l}`));
+    fits.forEach(a => lines.push(`/learn/${a.slug} | ${a.heading}`));
+    return lines.join('\n').slice(0, 11800);
   }
 
-  // Escapes user-typed text before it goes into innerHTML — the question itself is
-  // arbitrary input rendered straight into the thread, so this closes a real (if
-  // minor, single-user) XSS gap the previous version had.
-  function escapeHtml(s) {
-    const div = document.createElement('div');
-    div.textContent = s;
-    return div.innerHTML;
+  // ── Showing an answer safely ─────────────────────────────
+  function allowedHref(href) {
+    return TOOL_LINKS.some(([h]) => h === href) || (/^\/learn\/[a-z0-9-]+$/.test(href) && ARTICLES.some(a => '/learn/' + a.slug === href));
   }
-
-  function movedHeadline(result) {
-    if (result.movedBy == null) return `On these numbers your freedom date is still more than 40 years out.`;
-    const total = Math.round(result.movedBy);
-    if (total <= 0) return `That change is too small to move your freedom date meaningfully.`;
-    const years = Math.floor(total / 12), months = total % 12;
-    const parts = [years ? `${years} year${years > 1 ? 's' : ''}` : '', months ? `${months} month${months > 1 ? 's' : ''}` : ''].filter(Boolean);
-    return `That moves your freedom date <strong>${parts.join(', ')} closer</strong>.`;
+  function renderAnswer(text) {
+    const links = [];
+    const body = String(text || '').replace(/\[\[link:([^|\]]+)\|([^\]]+)\]\]/g, (_, href, label) => {
+      href = href.trim();
+      if (allowedHref(href)) links.push({ href, label: label.trim() });
+      return '';
+    }).trim();
+    const linkHtml = links.slice(0, 2).map(l => `<a href="${l.href}" class="chat-learn-link"><span>${escapeHtml(l.label)}</span><span>→</span></a>`).join('');
+    return `<div class="chat-card chat-card-supported">
+      <span class="chat-tag">${PLAN ? '✓ Built on your saved plan' : 'General answer — save a plan in Full Analysis for answers about your numbers'}</span>
+      <div class="chat-body">${FirePathSafe.aiText(body)}</div>${linkHtml}</div>`;
   }
+  const notice = (tag, text, link) => `<div class="chat-card chat-card-guided"><span class="chat-tag">${tag}</span><div class="chat-body">${text}</div>${link || ''}</div>`;
 
-  function buildCardHtml(result) {
-    if (result.tier === 'supported') {
-      let headline = '', body = '', statHtml = '';
-      const LEARN_TOPICS = {
-        savings: { title: 'The power of compounding', topic: 'compounding' },
-        spending: { title: 'The real impact of annual spending', topic: 'spending' },
-        retireAge: { title: 'How safe withdrawal rates work', topic: 'four-percent' },
-      };
-      if (result.type === 'savings') {
-        headline = movedHeadline(result);
-        body = result.newMonths == null
-          ? `Saving an extra ${fmtDollars(result.extraMonthly)} a month helps, but on these numbers freedom is still more than 40 years away.`
-          : `Saving an extra ${fmtDollars(result.extraMonthly)} a month, on top of what you're already putting away, brings your projected time to freedom down to about ${(result.newMonths / 12).toFixed(1)} years.`;
-      } else if (result.type === 'spending') {
-        headline = movedHeadline(result);
-        body = `Spending less both reduces what you need to fund in retirement and frees up more to save today — a double effect, which is why it moves the date further than an equivalent savings increase.`;
-      } else if (result.type === 'retireAge') {
-        const shortfall = result.gap > 0;
-        if (shortfall) {
-          headline = `At age ${result.targetAge}, your portfolio would fall short by about <strong>${fmtDollars(result.gap)} a year</strong>.`;
-          body = `Projecting your current savings forward ${result.yearsToTarget} years gets you to roughly ${fmtDollars(result.projected)} — enough to fund ${fmtDollars(result.income)} a year at a 4% withdrawal rate, against ${fmtDollars(PERSON.annualSpend)} you'd actually need.`;
-        } else {
-          headline = `Age ${result.targetAge} looks achievable on your current numbers.`;
-          body = `Projecting forward ${result.yearsToTarget} years puts your portfolio around ${fmtDollars(result.projected)} — comfortably covering ${fmtDollars(PERSON.annualSpend)} a year at a 4% withdrawal rate.`;
-        }
-        // The mockup's "what it would take" stat callout — a real number pulled out
-        // of the paragraph above, not a chart (no render pass built for that yet).
-        statHtml = `
-          <div class="chat-stat-row">
-            <div>
-              <div class="chat-stat-title">Retire at ${result.targetAge}</div>
-              <div class="chat-stat-label">What it would take</div>
-            </div>
-            <div class="chat-stat-value">${shortfall ? 'Shortfall' : 'Buffer'} ${fmtDollars(Math.abs(result.gap))}</div>
-          </div>`;
-      }
-      const learn = LEARN_TOPICS[result.type];
-      return `
-        <div class="chat-card chat-card-supported">
-          <span class="chat-tag">${PERSON.isExample
-            ? 'Calculated for an example saver ($520K saved, $2,600/month, $65K/yr spending, age 35) — <a href="/firepath">run your own numbers</a> in the free calculator'
-            : '✓ Calculated from your saved financial profile'}</span>
-          <div class="chat-headline">${headline}</div>
-          <div class="chat-body">${body}</div>
-          ${statHtml}
-          <a href="learning_lab.html?topic=${learn.topic}" class="chat-learn-link">
-            <span>Worth exploring: ${learn.title}</span>
-            <span>→</span>
-          </a>
-        </div>`;
-    } else if (result.tier === 'guided') {
-      return `
-        <div class="chat-card chat-card-guided">
-          <span class="chat-tag">Can't calculate this accurately yet</span>
-          <div class="chat-headline">FirePath can't accurately calculate ${result.name} yet.</div>
-          <div class="chat-body">That's because ${result.why}. This is a scenario we're planning to support — for now, the Scenario Explorer has a curated walkthrough for some decisions like this.</div>
-          <a href="hearmeout.html" class="chat-learn-link">
-            <span>Browse Scenario Explorer</span>
-            <span>→</span>
-          </a>
-        </div>`;
-    }
-    return `
-      <div class="chat-card chat-card-unsupported">
-        <span class="chat-tag">Can't answer this yet</span>
-        <div class="chat-headline">I'm not able to model that accurately from what you've asked.</div>
-        <div class="chat-body">Try asking about a specific savings amount, spending change, or retirement age — those are the questions FirePath can calculate precisely today.</div>
-      </div>`;
-  }
+  // ── The conversation ─────────────────────────────────────
+  const thread = document.getElementById('chatThread');
+  let busy = false;
 
-  // Offers question TYPES different from the one just answered, so tapping through
-  // a thread feels like exploring different levers, not repeating the same one.
-  function buildFollowupsHtml(result) {
-    if (result.tier !== 'supported') return '';
-    const FOLLOW_UPS = {
-      savings: ['What if I spend $100 less a week?', 'What if I retire at 45?'],
-      spending: ['What if I save an extra $300 a month?', 'What if I retire at 50?'],
-      retireAge: ['What if I save an extra $250 a month?', 'What if I spend $150 less a week?'],
-    };
-    const suggestions = FOLLOW_UPS[result.type] || [];
-    if (!suggestions.length) return '';
-    const chipIcon = '<span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>';
-    return `<div class="chat-followups">${suggestions.map(s => `<button class="pill-chip" data-q="${escapeHtml(s)}">${chipIcon}${escapeHtml(s)}</button>`).join('')}</div>`;
-  }
-
-  // One turn = the user's bubble plus FirePath's card reply, appended to the thread
-  // and scrolled into view — this is the whole "messaging interface" behavior: every
-  // question becomes a new turn instead of replacing a single answer block in place.
-  function appendTurn(question, result) {
-    const thread = document.getElementById('chatThread');
-    const starters = document.getElementById('chatStarters');
-    if (starters) starters.remove();
-
+  async function ask(question) {
+    if (busy || !question) return;
+    busy = true; setSending(true);
+    document.getElementById('chatStarters')?.remove();
     const turn = document.createElement('div');
     turn.className = 'chat-turn';
-    turn.innerHTML = `
-      <div class="chat-bubble-user">${escapeHtml(question)}</div>
-      ${buildCardHtml(result)}
-      ${buildFollowupsHtml(result)}
-    `;
-    thread.appendChild(turn);
-    wireChips(turn);
-    thread.scrollTop = thread.scrollHeight;
-  }
+    turn.innerHTML = `<div class="chat-bubble-user">${escapeHtml(question)}</div><div class="chat-card chat-card-supported"><span class="chat-tag">Thinking…</span><div class="chat-body">Working through your numbers…</div></div>`;
+    thread.appendChild(turn); thread.scrollTop = thread.scrollHeight;
+    const reply = turn.lastElementChild;
 
-  function wireChips(scopeEl) {
-    scopeEl.querySelectorAll('.pill-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const q = chip.dataset.q;
-        appendTurn(q, classifyAndAnswer(q));
-      });
-    });
+    const calc = calculate(question);
+    const userContent = calc ? `${question}\n\nCALCULATED by FirePath for this question: ${calc}` : question;
+    const messages = history.slice(-HISTORY_TURNS * 2).concat([{ role: 'user', content: userContent }]);
+    try {
+      const res = await fetch(WORKER_URL, { method: 'POST', headers: aiHeaders(), body: JSON.stringify({ model: MODEL, max_tokens: 700, system: systemPrompt(), messages }) });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401 || res.status === 403) { reply.outerHTML = notice('Part of Pro', 'Ask FirePath is part of FirePath Pro.', '<a href="/upgrade" class="chat-learn-link"><span>See Pro</span><span>→</span></a>'); return; }
+      if (res.status === 429) { reply.outerHTML = notice('Taking a breather', escapeHtml(data.error || "You've asked a lot of questions in a short time — please try again in a little while.")); return; }
+      const text = res.ok && data.content && data.content[0] && data.content[0].text;
+      if (!text) throw new Error('No answer');
+      history.push({ role: 'user', content: userContent }, { role: 'assistant', content: text });
+      reply.outerHTML = renderAnswer(text);
+    } catch (e) {
+      reply.outerHTML = notice('Try again', 'Ask FirePath couldn’t answer just now. Please try again in a minute.');
+    } finally {
+      busy = false; setSending(false);
+      thread.scrollTop = thread.scrollHeight;
+    }
   }
-
-  wireChips(document.getElementById('chatStarters'));
 
   const askInput = document.getElementById('askInput');
   const askSubmit = document.getElementById('askSubmit');
-
-  function autoGrow() {
-    askInput.style.height = 'auto';
-    askInput.style.height = Math.min(askInput.scrollHeight, 100) + 'px';
-  }
-  function submitQuestion() {
-    const q = askInput.value.trim();
-    if (!q) return;
-    appendTurn(q, classifyAndAnswer(q));
-    askInput.value = '';
-    askSubmit.disabled = true;
-    autoGrow();
-  }
-  askInput.addEventListener('input', () => {
-    askSubmit.disabled = askInput.value.trim().length === 0;
-    autoGrow();
-  });
-  // Enter sends, Shift+Enter still makes a new line — standard messaging-app behavior.
-  askInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitQuestion(); }
-  });
+  function setSending(on) { askSubmit.disabled = on || askInput.value.trim().length === 0; askInput.disabled = on; }
+  function autoGrow() { askInput.style.height = 'auto'; askInput.style.height = Math.min(askInput.scrollHeight, 100) + 'px'; }
+  function submitQuestion() { const q = askInput.value.trim().slice(0, 1000); if (!q || busy) return; askInput.value = ''; autoGrow(); ask(q); }
+  askInput.addEventListener('input', () => { askSubmit.disabled = busy || askInput.value.trim().length === 0; autoGrow(); });
+  askInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitQuestion(); } });
   askSubmit.addEventListener('click', submitQuestion);
+  document.querySelectorAll('#chatStarters .pill-chip').forEach(chip => chip.addEventListener('click', () => ask(chip.dataset.q)));
 
-  // Deep-linked from Learning Lab's search ("Ask FirePath about '{query}'") — opens
-  // straight into a turn instead of leaving the thread empty.
-  const deepLinkQ = new URLSearchParams(window.location.search).get('q');
-  loadPerson().then(() => { if (deepLinkQ) appendTurn(deepLinkQ, classifyAndAnswer(deepLinkQ)); });
+  // Pro only. Then load the plan and article list; a ?q= deep link (Learning Lab search) asks straight away.
+  (async () => {
+    if (!(await requirePro())) return;
+    await Promise.all([loadArticles(), loadAssumptions().catch(() => {})]);
+    PLAN = await loadPlan();
+    if (!PLAN) thread.insertAdjacentHTML('afterbegin', notice('No saved plan yet', 'Answers are general until you save your plan — run Full Analysis once and Ask FirePath will use your own numbers.', '<a href="/firepath_pro" class="chat-learn-link"><span>Run Full Analysis</span><span>→</span></a>'));
+    const q = new URLSearchParams(location.search).get('q');
+    if (q) ask(q.slice(0, 1000));
+  })();
 </script>
+
 </body>
 </html>

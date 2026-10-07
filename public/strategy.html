@@ -11,6 +11,8 @@
 <script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/financial-engine.js"></script>
+<script src="js/tax-engine.js"></script>
+<script src="js/moves.js"></script>
 <style>
   .strategy-wrap { max-width: 1000px; }
   .strategy-wrap > .fp-why, .strategy-wrap > .fp-tldr { margin: -12px 0 24px; }
@@ -39,6 +41,10 @@
   .levers-skeleton { color: var(--ink-2); font-size: 13.5px; padding: 4px 0 16px; }
   .levers-cta { display: block; text-align: right; padding: 14px 0 12px; border-top: 1px solid var(--line); font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
   .levers-cta:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .lever-row.move { align-items: flex-start; text-decoration: none; }
+  .lever-row.move .lever-label small { display: block; font-size: 12.5px; font-weight: 400; color: var(--ink-2); line-height: 1.5; margin-top: 2px; }
+  .more-ideas { display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
+  .more-ideas:hover { text-decoration: underline; text-underline-offset: 3px; }
 
   /* ── Tool cards (card + card-link, like Journey's tiles); .in-view is added by the
        IntersectionObserver below. ── */
@@ -100,7 +106,7 @@
         Tools
       </h2>
     </div>
-    <div class="fp-consider" data-persona-show="beginner building">Whether your employer lets you salary sacrifice into super? For many people it's the simplest legal way to pay less tax — the tax tool shows what it would mean for you.</div>
+    <div class="fp-consider" id="sacrificeConsider" data-persona-show="beginner building" style="display:none">Whether your employer lets you salary sacrifice into super? For many people it's the simplest legal way to pay less tax — the tax tool shows what it would mean for you.</div>
     <div class="hub-cards" id="hubCards" data-tool-list>
       <a href="tax_pro.html" class="card card-link hub-card" data-tool="tax-tools">
         <span class="hub-card-icon blue">
@@ -133,6 +139,7 @@
         <span class="hub-card-arrow" aria-hidden="true">→</span>
       </a>
     </div>
+    <a href="discover.html" class="more-ideas">More ideas: your step-by-step action plan →</a>
   </section>
 
   <footer class="app-footer">
@@ -189,10 +196,38 @@
       const monthlySavings = p.savings_monthly || 0;
       const freedomNumber = p.freedom_number || 0;
       const annualSpend = freedomNumber > 0 ? freedomNumber / 25 : 0;
+      // The shared moves engine: what genuinely applies to this person.
+      let ranked = null;
+      if (window.FirePathMoves) {
+        try { ranked = window.FirePathMoves.rank(window.FirePathMoves.situationFromProfile(p), { limit: 3 }); } catch (e) { ranked = null; }
+      }
+      // Salary sacrifice tip only when it actually pays for this person.
+      if (ranked && ranked.all.some(m => m.id === 'salary-sacrifice')) document.getElementById('sacrificeConsider').style.display = '';
       if (annualSpend <= 0) { leversCard.style.display = 'none'; return; }
 
       const baseMonths = window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
-      if (baseMonths == null) { leversCard.style.display = 'none'; return; }
+      if (baseMonths == null) {
+        // Out of reach at today's pace: the standard levers can't show "years sooner",
+        // so show the moves that do apply — they handle "out of reach" themselves.
+        if (!ranked || !ranked.moves.length) { leversCard.style.display = 'none'; return; }
+        const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        document.querySelector('#leversCard .levers-question').textContent = 'What would make the biggest difference?';
+        document.querySelector('#leversCard .levers-caption').textContent = 'Picked for your situation, in the order worth tackling them.';
+        document.getElementById('leversList').innerHTML = ranked.moves.map(m => {
+          const href = m.tool ? m.tool.href : m.article ? '/learn/' + m.article : null;
+          const inner = `
+              <span class="lever-icon increase">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>
+              </span>
+              <span class="lever-label">${esc(m.title)}<small>${esc(m.why)}</small></span>
+              ${m.impact && m.impact.text ? `<span class="lever-value increase" style="white-space:normal;max-width:9em">${esc(m.impact.text)}</span>` : ''}
+              ${href ? '<span class="lever-arrow">→</span>' : ''}`;
+          return href ? `<a class="lever-row move" href="${href}">${inner}</a>` : `<div class="lever-row move">${inner}</div>`;
+        }).join('');
+        if (prefersReducedMotion) { leversCard.classList.add('in-view'); }
+        else { requestAnimationFrame(() => leversCard.classList.add('in-view')); }
+        return;
+      }
       const baseYears = baseMonths / 12;
 
       // Each lever changes exactly one named thing, holding everything else at
