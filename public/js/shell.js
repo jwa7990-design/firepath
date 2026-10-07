@@ -69,7 +69,7 @@
 
   // ── App shell ──────────────────────────────────────────
   const APP_TABS = [
-    ['journey', 'Journey', 'journey.html'],
+    ['journey', 'Your Path', 'journey.html'],
     ['money', 'Money', 'money.html'],
     ['strategy', 'Strategy', 'strategy.html'],
     ['learn', 'Learn', 'learn.html']

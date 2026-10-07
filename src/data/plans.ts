@@ -2,7 +2,7 @@
  * What Free and Pro include — the single source for the upgrade page, Pricing, the
  * homepage and the tool tour. Keep it true: Free = the calculators and the Learning Lab,
  * no account, you type your numbers in; Pro = an account that saves your plan and fills
- * it in everywhere, plus super, tax, Ask FirePath, the AI read, the Journey dashboard,
+ * it in everywhere, plus super, tax, Ask FirePath, the AI read, the Your Path dashboard,
  * the Withdrawal planner to age 95 and saved reading.
  */
 export const FREE_FEATURES: string[] = [
@@ -25,7 +25,7 @@ export const PRO_FEATURES: [string, string][] = [
   ['Your full plan, with super', 'Two timelines: what you can use now, and what you can get to from 60. Includes your partner’s super.'],
   ['Tax, worked out', 'Take-home pay, HELP, salary sacrifice and offset vs investing, at current ATO rates.'],
   ['Withdrawal planner, to age 95', 'The odds your money lasts, with the Age Pension and a part-time slider.'],
-  ['Your Journey dashboard', 'Net worth and progress since your last check-in.'],
+  ['Your Path dashboard', 'Net worth and progress since your last check-in.'],
   ['Your reading, saved', 'Save articles, see what you’ve read, and get AI ideas for what to read next.'],
 ];
 export const PRO_PRICE = { amount: '$6', per: 'a month (AUD)', trialDays: 7 };
