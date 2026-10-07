@@ -33,8 +33,9 @@ window.FirePathNext = (function () {
 .fp-next-item-title { font-size: 14.5px; font-weight: 600; color: var(--ink); }
 .fp-next-impact { font-size: 13px; color: var(--ink-2); margin-top: 2px; line-height: 1.5; }
 .fp-next-links { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 6px; }
-.fp-next-links a, .fp-next-cta, .fp-next-all { font-size: 13.5px; font-weight: 600; color: var(--ember-ink); text-decoration: none; }
-.fp-next-links a:hover, .fp-next-cta:hover, .fp-next-all:hover { text-decoration: underline; }
+.fp-next-links a, .fp-next-here, .fp-next-cta, .fp-next-all { font-size: 13.5px; font-weight: 600; color: var(--ember-ink); text-decoration: none; }
+.fp-next-links a:hover, .fp-next-here:hover, .fp-next-cta:hover, .fp-next-all:hover { text-decoration: underline; }
+.fp-next-here { background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; }
 .fp-next-pill { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 99px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--ember-ink); background: var(--ember-wash, rgba(244, 98, 42, 0.08)); vertical-align: 1px; }
 .fp-next-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; padding-top: 12px; border-top: 1px solid var(--line); }
 .fp-device-clear { background: none; border: 0; padding: 0; font: inherit; color: var(--ember-ink); text-decoration: underline; cursor: pointer; }
@@ -77,14 +78,16 @@ window.FirePathNext = (function () {
   };
   GENERAL.default = GENERAL['/withdrawal'];
 
-  function linksHtml(tool, plan, article) {
+  function linksHtml(tool, plan, article, here) {
     const out = [];
-    if (tool && tool.href) out.push(`<a href="${esc(tool.href)}"${tool.label ? ` title="${esc(tool.label)}"` : ''}>Model it →</a>${plan === 'Pro' ? '<span class="fp-next-pill">Pro</span>' : ''}`);
+    if (here && tool && tool.href) out.push(`<button type="button" class="fp-next-here" data-href="${esc(tool.href)}">Try it here ↑</button>`);
+    else if (tool && tool.href) out.push(`<a href="${esc(tool.href)}"${tool.label ? ` title="${esc(tool.label)}"` : ''}>Model it →</a>${plan === 'Pro' ? '<span class="fp-next-pill">Pro</span>' : ''}`);
     if (article) out.push(`<a href="/learn/${esc(article)}">Read →</a>`);
     return out.length ? `<div class="fp-next-links">${out.map(h => `<span>${h}</span>`).join('')}</div>` : '';
   }
 
   // The person's moves, best first, minus any for the tool they're already on.
+  // With opts.here, moves for this page stay and open in place (opts.onHere) instead.
   function personalMoves(situation, exclude) {
     const m = M();
     if (!m || !situation) return [];
@@ -102,7 +105,9 @@ window.FirePathNext = (function () {
       const saved = M().recall();
       if (saved) { try { situation = M().situationFromInputs(saved); source = 'device'; } catch (e) { situation = null; } }
     }
-    const moves = personalMoves(situation, opts.exclude);
+    const here = opts.onHere ? opts.exclude : null;
+    const moves = personalMoves(situation, here ? null : opts.exclude);
+    const isHere = mv => !!(here && mv.tool && mv.tool.href && mv.tool.href.indexOf(here) === 0);
     let html;
     if (moves.length) {
       const sub = source === 'plan' ? 'Based on your saved plan.' : 'Based on your free calculator results on this device.';
@@ -112,7 +117,7 @@ window.FirePathNext = (function () {
         <ul class="fp-next-list">${moves.map(mv => `<li class="fp-next-item" data-move="${esc(mv.id)}">
           <div class="fp-next-item-title">${esc(mv.title)}</div>
           ${mv.impact && mv.impact.text ? `<div class="fp-next-impact">${esc(mv.impact.text)}</div>` : ''}
-          ${linksHtml(mv.tool, mv.plan, mv.article)}</li>`).join('')}</ul>
+          ${linksHtml(mv.tool, mv.plan, mv.article, isHere(mv))}</li>`).join('')}</ul>
         <div class="fp-next-foot"><a class="fp-next-all" href="/features">All tools →</a></div>`;
     } else {
       const steps = GENERAL[opts.exclude] || GENERAL.default;
@@ -125,6 +130,7 @@ window.FirePathNext = (function () {
         <div class="fp-next-foot"><a class="fp-next-cta" href="${esc(CALC.href)}">Get personal suggestions — run the free calculator (2 minutes) →</a><a class="fp-next-all" href="/features">All tools →</a></div>`;
     }
     el.innerHTML = `<section class="fp-next" aria-label="What next">${html}</section>`;
+    el.querySelectorAll('.fp-next-here').forEach(b => { b.onclick = () => opts.onHere(b.getAttribute('data-href')); });
     el.style.display = '';
   }
 

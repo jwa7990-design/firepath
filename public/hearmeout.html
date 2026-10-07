@@ -269,7 +269,15 @@
     if (!window.FirePathNext) return;
     let situation = null;
     try { if (fpPlanProfile && window.FirePathMoves) situation = FirePathMoves.situationFromProfile(fpPlanProfile); } catch (e) {}
-    FirePathNext.render(document.getElementById('fpNextSteps'), { exclude: '/hearmeout', situation });
+    // Moves for this page (e.g. paying off debt → the loan scenario) open here rather than reload it.
+    FirePathNext.render(document.getElementById('fpNextSteps'), { exclude: '/hearmeout', situation, onHere: href => {
+      const sc = new URL(href, location.origin).searchParams.get('scenario');
+      if (!sc) return;
+      const select = document.getElementById('scenarioSelect');
+      if (select) select.value = sc;
+      switchScenario(sc);
+      (select || document.body).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } });
   }
 
   // ── Pro: your saved plan fills in the inputs ──
@@ -314,6 +322,8 @@
       };
       // Invested savings today (current_savings) — the starting pot in each scenario.
       fill(['lo-savings', 'l-existing', 'r-existing', 'c-existing', 'w-portfolio'], p.current_savings);
+      // Debts other than the mortgage (cards, personal and car loans) — the loan payoff balance.
+      fill(['lo-balance'], p.debt_total);
       // Freedom number (yearly retirement spend × 25).
       fill(['h-fireNum', 'l-fireNum', 'd-fireNum', 'r-fireNum', 'lo-fireNum'], p.freedom_number);
       // Household savings per month, shown in this page's savings cycle.
