@@ -311,7 +311,7 @@
             <label class="ob-label">In retirement, how much do you expect to spend?</label>
             <span class="ob-hint spaced">This adjusts your freedom number to your actual retirement lifestyle.</span>
             <div class="cycle-group">
-              <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less<span class="cycle-btn-note">Mortgage paid, kids grown</span></button>
+              <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less<span class="cycle-btn-note">Work costs gone, kids grown — most people spend less</span></button>
               <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same<span class="cycle-btn-note">Similar lifestyle</span></button>
               <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More<span class="cycle-btn-note">Travel, experiences</span></button>
             </div>
@@ -749,6 +749,23 @@
     const mI = toMonthly(income + pI), mSav = toMonthly(savingPerCycle + pS);
     const mS = mI - mSav, fireNum = mS * 12 * 25 * retirementSpendMultiplier;
     const sRate = Math.round(((savingPerCycle + pS) / (income + pI)) * 100);
+
+    // What's worth doing next comes from the shared moves engine (js/moves.js), built
+    // from exactly the numbers typed here — household, monthly, today's dollars.
+    const pAge = parseInt(document.getElementById('partnerAge').value) || null;
+    const pSuper = parseFloat(document.getElementById('partnerSuper').value) || 0;
+    const hasPartner = pI > 0 || pS > 0 || pAge > 0 || pSuper > 0;
+    const situationInputs = {
+      age, takeHomeMonthly: mI, savingsMonthly: mSav, currentSavings: savings, savingsType,
+      superBalance: superBal, partnerSuper: pSuper, hasPartner, partnerAge: pAge,
+      partnerTakeHomeMonthly: hasPartner ? toMonthly(pI) : null, dependants,
+      housing: housingStatus, mortgageRemaining: mortgage, consumerDebt: debt,
+      retirementSpendMultiplier, freedomNumber: fireNum
+    };
+    const moveList = window.FirePathMoves ? FirePathMoves.rank(FirePathMoves.situationFromInputs(situationInputs), { limit: 20 }).all : [];
+    const debtMove = moveList.find(m => m.id === 'clear-debt') || null;
+    const debtFirst = debtMove ? ` Clear your <strong>${fmtM(debt)}</strong> debt first — it's a guaranteed 15–20% return.` : '';
+    if (window.FirePathMoves) FirePathMoves.remember(situationInputs);   // this device only — lets the other free tools start from these numbers
     const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
     const cycleStatLabel = selectedCycle === 'weekly' ? 'Saved / week' : selectedCycle === 'fortnightly' ? 'Saved / fortnight' : 'Saved / month';
     const cycleSaving = selectedCycle === 'weekly' ? mSav * 12 / 52 : selectedCycle === 'fortnightly' ? mSav * 12 / 26 : mSav;
@@ -779,15 +796,16 @@
       const yPlus = yearsToGoal(fireNum, savings, mSavPlus, 0.07);
       const currentRate = currentReturns().rate[savingsType] ?? FP_ASSUMPTIONS.bankRealReturn;
       const yReality = yearsToGoal(fireNum, savings, mSav, currentRate);
-      const realityNote = savingsType !== 'etfs' && yReality !== null && yReality - y07 > 0.5
+      const realityNote = debtMove ? debtFirst
+        : savingsType !== 'etfs' && yReality !== null && yReality - y07 > 0.5
         ? ` Right now your money is ${savingsType === 'cash' ? 'in a bank' : savingsType === 'offset' ? 'in your offset' : 'spread across different places'} — if it was invested at 7%, you could get there <strong>${fmt(yReality - y07)} sooner</strong>.`
         : savingsType === 'etfs' ? ` Your money is already invested — you're on the right track.` : '';
-      const plusNote = yPlus && y07 && y07 - yPlus > 0.3
+      const plusNote = !debtMove && yPlus && y07 && y07 - yPlus > 0.3
         ? ` Find an extra $50/week on top of that and it moves to <strong>${cy + Math.round(yPlus)}</strong>.`
         : '';
-      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's what it costs to never have to work again.${savings > 0 ? ` You currently have <strong>${fmtM(savings)}</strong>, leaving a gap of <strong>${fmtM(gap)}</strong>.` : ''} At <strong>${weeklyAmt}/week</strong> you're on track to get there in <strong>${fmt(y07)}</strong>.${realityNote}${plusNote} The article above is the best place to start understanding how that works.`;
+      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's what it costs to never have to work again.${savings > 0 ? ` You currently have <strong>${fmtM(savings)}</strong>, leaving a gap of <strong>${fmtM(gap)}</strong>.` : ''} At <strong>${weeklyAmt}/week</strong> you're on track to get there in <strong>${fmt(y07)}</strong>.${realityNote}${plusNote} The article below is the best place to start understanding how that works.`;
     } else {
-      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's 25× your annual spending, the amount that means you never have to work again.<br/><br/>Right now your savings rate is low, which means the timeline is long. But every extra dollar you save each week shortens that gap — because of compounding. FirePath Pro can show you exactly what moves the needle most for your situation.`;
+      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong> — that's 25× your annual spending, the amount that means you never have to work again.<br/><br/>Right now your savings rate is low, which means the timeline is long.${debtFirst} ${debtFirst ? 'After that, every' : 'But every'} extra dollar you save each week shortens that gap — because of compounding. FirePath Pro can show you exactly what moves the needle most for your situation.`;
     }
     document.getElementById('whatThisMeansText').innerHTML = gapText;
     const sqMeaning = document.getElementById('sq-meaning');
@@ -799,24 +817,27 @@
         : `Gap: ${fmtM(gap)}`;
     }
 
-    buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate);
+    buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate, debtMove ? debt : 0);
 
-    const rec = recommendArticle(savingsType, persona, sRate);
+    const rec = recommendArticle(moveList);
     const recCard = document.getElementById('recommendedCard');
     const recTitle = document.getElementById('recommendedTitle');
     const recReason = document.getElementById('recommendedReason');
     const recBtn = document.getElementById('recommendedBtn');
     if (recCard && recTitle && recReason && recBtn) {
       recTitle.textContent = rec.title;
-      const reasonMap = { 'cash': 'Your money is in the bank — this is the most important thing to understand next.', 'etfs': 'You\'re already investing — here\'s how to think about what happens next.', 'offset': 'Your offset is working hard — here\'s how it compares to investing.', 'mix': 'With a mix of savings types, this will help you think about the full picture.' };
-      recReason.textContent = sRate === 0 ? 'You\'re not saving yet — start here.' : persona === 'fire' ? 'Based on your FIRE journey, this is the next level.' : (reasonMap[savingsType] || 'Based on your situation, this is where to start.');
-      const labUrl = `learning_lab.html?topic=${rec.topic}&track=${rec.track}&title=${encodeURIComponent(rec.title)}`;
-      recBtn.onclick = () => { localStorage.setItem('ap_persona', persona); localStorage.setItem('ap_sRate', sRate); window.location.href = labUrl; };
+      recReason.textContent = rec.reason;
+      recBtn.onclick = () => { window.location.href = '/learn/' + rec.slug; };
       recBtn.textContent = 'Read this article →';
+      // The real heading, once the article list arrives (falls back to the name above).
+      fetch('/learn/articles.json').then(r => r.ok ? r.json() : null).then(list => {
+        const a = list && list.find(x => x.slug === rec.slug);
+        if (a && a.heading) recTitle.textContent = a.heading;
+      }).catch(() => {});
       if (!document.getElementById('browseLabBtn')) {
         const browseBtn = document.createElement('div');
         browseBtn.id = 'browseLabBtn';
-        browseBtn.onclick = () => window.location.href = 'learning_lab.html';
+        browseBtn.onclick = () => window.location.href = '/learn/';
         browseBtn.textContent = 'Browse all topics →';
         browseBtn.style.cssText = 'display:inline-flex;align-items:center;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:9px 14px;border-radius:var(--radius-pill,50px);font-size:12px;font-weight:500;cursor:pointer;margin-top:8px;';
         recBtn.parentNode.appendChild(browseBtn);
@@ -825,7 +846,7 @@
     }
     buildNeedleCard(fireNum, savings, mSav, y07, mS);
     buildWithdrawalCard(savings, mSav, mI, fireNum, mS, y07, age);
-    buildTaxNudge(savings, mSav, sRate, savingsType);
+    buildTaxNudge(sRate, moveList);
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
     buildLifeUnlockedCard(fireNum, savings, mSav, y07, age);
 
@@ -1064,15 +1085,30 @@
     </div>`;
   }
 
-  function recommendArticle(savingsType, persona, sRate) {
-    if (sRate === 0) return { topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?' };
-    if (persona === 'fire') return { topic: 'four-percent', track: '7', title: 'The 4% rule — where it comes from' };
-    if (savingsType === 'cash' && persona === 'beginner') return { topic: 'saving-vs-investing', track: 'foundation', title: 'The difference between saving and investing' };
-    if (savingsType === 'cash') return { topic: 'index-funds', track: '7', title: 'What is an index fund and why it works' };
-    if (savingsType === 'etfs') return { topic: 'compounding-numbers', track: '7', title: 'Compounding with your actual numbers' };
-    if (savingsType === 'offset') return { topic: 'saving-vs-investing', track: 'foundation', title: 'The difference between saving and investing' };
-    if (savingsType === 'mix') return { topic: 'diversification', track: '5', title: 'What diversification actually means' };
-    return { topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?' };
+  // The article for this person's best next move (js/moves.js): the top move's article,
+  // or the next move down that has one. Titles here are a fallback until
+  // /learn/articles.json gives the real heading.
+  const ARTICLE_NAMES = {
+    'debt-vs-invest': 'Should I Pay Off Debt or Invest First?',
+    'what-is-an-index-fund': 'What is an index fund and why the FIRE community loves it',
+    'good-savings-rate': "What's a Good Savings Rate for My Income?",
+    'extra-50-a-week-impact': 'How Much Does an Extra $50 a Week Change Things?',
+    'how-much-is-enough': 'How Much Money Is Actually "Enough"?',
+    'salary-sacrifice-explained': 'How Does Salary Sacrifice Actually Work?',
+    'what-is-coast-fire': 'What Is Coast FIRE — and Could I Already Be There?',
+    'before-super-access': 'What Happens to Your Money Before You Can Access Super?',
+    'four-percent-rule-australia': 'The 4% rule — where it comes from and does it work in Australia?',
+    'is-my-super-enough': 'Is My Super Enough to Retire On?',
+    'spouse-contribution-offset': 'Spouse contribution tax offset',
+    'what-is-fire-australia': 'What is FIRE and is it realistic for Australians?'
+  };
+  function recommendArticle(moveList) {
+    const m = (moveList || []).find(x => x.article);
+    const slug = m ? m.article : 'what-is-fire-australia';
+    const reason = !m ? 'New to all this? Start here.'
+      : m.id === 'clear-debt' ? 'You have debt costing more than investing reliably earns — start here.'
+      : `Your best next move: ${m.title.charAt(0).toLowerCase() + m.title.slice(1)}. This explains why.`;
+    return { slug, title: ARTICLE_NAMES[slug] || slug.replace(/-/g, ' '), reason };
   }
 
   // A realistic spread for the freedom date: 2,000 random-market futures (js/financial-engine.js).
@@ -1090,7 +1126,7 @@
     const miss=missPct>=10&&mc.likely!==null?` In ${Math.round(missPct/10)} in 10 futures it takes more than 50 years.`:missPct>0&&mc.likely!==null?` In ${missPct} in 100 futures it takes more than 50 years.`:'';
     return `<div class="range-mc" style="margin-top:12px;padding:12px 14px;background:var(--surface-2);border-radius:10px;font-size:13px;line-height:1.6;color:var(--ink);"><div style="font-weight:600;margin-bottom:4px;">When markets are bumpy</div><div style="color:var(--ink-2);margin-bottom:6px;">Markets don't return 7% every year. We ran 2,000 possible futures to show the realistic spread.</div><div>${line}${miss}</div></div>`;
   }
-  function buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate) {
+  function buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate, debtFirst) {
     const el = document.getElementById('rangeCard');
     const rows = document.getElementById('rangeRows');
     if (!el || !rows) return;
@@ -1115,12 +1151,18 @@
       <div class="range-row"><span class="range-label"><strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>` : `
       <div class="range-row base"><span class="range-label"><strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span><span class="range-value base">${fmt7}</span></div>
       <div class="range-row"><span class="range-label"><strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>`;
+    // High-interest debt comes before investing: lead with that, and don't sell the
+    // invested scenario as "sooner" until it's cleared.
+    if (debtFirst > 0) {
+      rows.innerHTML = `<div class="range-row base"><span class="range-label"><strong>Clear your ${fmtM(debtFirst)} debt first</strong><br/><span style="font-size:11px">It's a guaranteed 15–20% return — more than investing reliably earns</span></span><span class="range-value base">First</span></div>`
+        + rows.innerHTML.replace(/ <span style="font-size:11px;font-weight:300;color:var\(--soft-grey\)">\(\d+yr sooner\)<\/span>/g, '');
+    }
     rows.innerHTML += marketRangeHTML(fireNum, savings, mSav);
     el.style.display = 'block';
     const sqRange = document.getElementById('sq-range');
     const sqRangeStat = document.getElementById('sqRangeStat');
     if (sqRange) sqRange.style.display = 'flex';
-    if (sqRangeStat) sqRangeStat.textContent = diffPlus && diffPlus > 0 ? `Up to ${diffPlus}yr sooner` : `See your 3 scenarios`;
+    if (sqRangeStat) sqRangeStat.textContent = debtFirst > 0 ? 'Clear your debt first' : diffPlus && diffPlus > 0 ? `Up to ${diffPlus}yr sooner` : `See your 3 scenarios`;
   }
 
   function buildNeedleCard(fireNum, savings, mSav, y07, mSpend) {
@@ -1182,15 +1224,18 @@
     if (sqWithdrawalStat) sqWithdrawalStat.textContent = `${fmtM(portfolioIncome)}/year already`;
   }
 
-  function buildTaxNudge(savings, mSav, sRate, savingsType) {
+  // Only says what applies to this person (js/moves.js): salary sacrifice only when the
+  // tax saving is real for their income, offset-vs-invest only with a mortgage.
+  function buildTaxNudge(sRate, moveList) {
     const el = document.getElementById('taxNudgeCard');
     const txt = document.getElementById('taxNudgeText');
     if (!el || !txt) return;
+    const sacrifice = (moveList || []).find(m => m.id === 'salary-sacrifice');
+    const offset = (moveList || []).find(m => m.id === 'offset-vs-invest');
     let message = '';
-    if (savingsType === 'cash') { message = `Your money is sitting in the bank. FirePath Pro's tax tools show your real take-home pay, how salary sacrifice could boost your super, and whether your money would work harder invested.`; }
-    else if (savingsType === 'offset') { message = `You're using an offset account — smart. But is it beating investing? Pro's offset vs invest tool works it out from your mortgage rate and tax rate.`; }
-    else if (sRate < 15) { message = `Your savings rate is ${sRate}%. Pro's tax tools show your real take-home pay and whether salary sacrifice could free up more — without touching your lifestyle.`; }
-    else { message = `Know what you actually keep from every dollar you earn? Pro's tax tools show your take-home, your marginal rate, and where your next dollar should go.`; }
+    if (sacrifice) { message = `<strong>Salary sacrifice could suit you.</strong> ${sacrifice.why} ${sacrifice.impact.text}. Pro's tax tools work out the exact amount for your pay.`; }
+    else if (offset) { message = `You have a mortgage — so is your spare cash better in the offset or invested? ${offset.why} Pro's offset vs invest tool works it out from your mortgage rate and tax rate.`; }
+    else { message = `Know what you actually keep from every dollar you earn? Pro's tax tools show your take-home pay and your marginal tax rate.`; }
     txt.innerHTML = message;
     const sqTax = document.getElementById('sq-tax');
     const sqTaxStat = document.getElementById('sqTaxStat');
@@ -1289,7 +1334,7 @@
     const hint = document.getElementById('ob-ageHint');
     if (!hint) return;
     if (age >= 16 && age < 60) {
-      hint.textContent = `Super unlocks in ${60 - age} years — we'll factor that into your timeline.`;
+      hint.textContent = `Super unlocks in ${60 - age} years. This free timeline uses your savings outside super — Pro maps both timelines.`;
       hint.style.color = 'var(--fire-orange)';
     } else if (age >= 60) {
       hint.textContent = 'Super is already accessible — great.';
@@ -1303,6 +1348,8 @@
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
 <script src="js/financial-engine.js"></script>
+<script src="js/tax-engine.js"></script>
+<script src="js/moves.js"></script>
 <script src="js/interactions.js"></script>
 <script>
   loadAssumptions();

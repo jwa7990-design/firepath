@@ -17,6 +17,13 @@
  * data-active: journey | money | strategy | learn | ask   (app)
  *              features | pricing | learn | faq            (site)
  * data-footer="none" on a site page skips the footer (e.g. the calculator flow).
+ *
+ * data-public="true" marks a free tool that anyone can use. A signed-in Pro member
+ * gets the app shell as written; everyone else gets the site shell (body class
+ * switched to "site", no active tab), because the app tabs are Pro-only and would
+ * just bounce a visitor to sign in. Mark links that only make sense inside the app
+ * with data-app-only and their visitor equivalents with data-site-only — the shell
+ * hides whichever set doesn't match the shell drawn.
  * Styles live in css/app.css. Works from subfolders (learn/…) — links are resolved
  * against this script's own location.
  */
@@ -25,9 +32,21 @@
   const root = script ? script.src.replace(/js\/shell\.js(\?.*)?$/, '') : '/';
   const url = path => root + path;
   const body = document.body;
-  const kind = body.getAttribute('data-shell');
-  const active = body.getAttribute('data-active') || '';
+  let kind = body.getAttribute('data-shell');
   if (!kind) return;
+  const read = k => { try { const v = localStorage.getItem(k); if (v) return v; } catch (e) {} try { return sessionStorage.getItem(k); } catch (e) { return null; } };
+  const token = read('fp_access_token');
+  const isPro = !!token && token !== 'undefined' && token !== 'null' && read('fp_is_pro') === 'true';
+  if (body.getAttribute('data-public') === 'true' && kind === 'app' && !isPro) {
+    kind = 'site';
+    body.classList.remove('app'); body.classList.add('site');
+    body.setAttribute('data-shell', 'site');
+    body.removeAttribute('data-active');
+  }
+  const active = body.getAttribute('data-active') || '';
+  // Hide the links that belong to the other shell. Injected as a rule (not per element)
+  // because this runs before the rest of the page is parsed.
+  document.head.insertAdjacentHTML('beforeend', `<style>[${kind === 'app' ? 'data-site-only' : 'data-app-only'}]{display:none!important}</style>`);
 
   const ICON = {
     flame: '<path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/>',

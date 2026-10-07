@@ -10,6 +10,9 @@
 <link rel="stylesheet" href="css/app.css"/>
 <script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/financial-engine.js"></script>
+<script src="js/tax-engine.js"></script>
+<script src="js/moves.js"></script>
 <style>
   :root {
     /* Page motion names, mapped onto app.css tokens. */
@@ -414,7 +417,30 @@
       { id: 'volatility', title: 'Volatility — the emotional side', sub: 'How to handle the ride without derailing your own plan' },
     ]},
   ];
-  const TOTAL_LESSONS = STAGES.reduce((n, s) => n + s.lessons.length, 0);
+  let TOTAL_LESSONS = STAGES.reduce((n, s) => n + s.lessons.length, 0);
+
+  // Lessons that are also Learn articles with "who it's for" tags. Most lesson ids are
+  // the article slug already; this maps the few that aren't.
+  const LESSON_SLUG = { 'what-is-fire': 'what-is-fire-australia', 'compounding': 'how-compound-interest-works', 'saving-vs-investing': 'difference-saving-investing', 'two-phase': 'two-phase-freedom-timeline', 'acronyms': 'fire-glossary-australia', 'franking-credits': 'franking-credits-australia', 'four-percent': 'four-percent-rule-australia' };
+  // Hide lessons that don't fit this person (e.g. the spouse offset for a single person,
+  // Division 293 for a modest income). Unknown facts never hide anything.
+  async function personaliseStages(token, userId) {
+    if (!window.FirePathMoves) return;
+    try {
+      const [artRes, profRes] = await Promise.all([
+        fetch('/learn/articles.json'),
+        fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+      if (!artRes.ok || !profRes.ok) return;
+      const articles = await artRes.json(), rows = await profRes.json();
+      const p = Array.isArray(rows) && rows.length ? rows[0] : null;
+      if (!p || !Array.isArray(articles)) return;
+      const s = window.FirePathMoves.situationFromProfile(p);
+      const tagsFor = id => { const a = articles.find(x => x.slug === (LESSON_SLUG[id] || id)); return a ? a.for : null; };
+      STAGES.forEach(stage => { stage.lessons = stage.lessons.filter(l => window.FirePathMoves.articleFits(tagsFor(l.id), s)); });
+      TOTAL_LESSONS = STAGES.reduce((n, st) => n + st.lessons.length, 0);
+    } catch (e) { console.log('Lesson personalisation failed', e); }
+  }
 
   function lessonUrl(track, id, title) {
     return `learning_lab.html?topic=${encodeURIComponent(id)}&track=${encodeURIComponent(track)}&title=${encodeURIComponent(title)}`;
@@ -432,6 +458,8 @@
     const initial = email ? email[0].toUpperCase() : '·';
     const avatarEl = document.getElementById('avatarInitial');
     if (avatarEl) avatarEl.textContent = initial;
+
+    const personalised = personaliseStages(token, userId);   // runs alongside the progress fetch
 
     let readIds = new Set();
     let readDates = [];
@@ -453,6 +481,7 @@
         });
       }
     } catch (e) { console.log('Learning progress fetch failed', e); }
+    await personalised;
 
     const LOCK_ICON = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
     // Draws itself the instant a lesson is marked complete (see completeLesson()
