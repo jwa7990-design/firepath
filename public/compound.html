@@ -21,7 +21,7 @@
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="Compound interest calculator Australia — regular investing | FirePath"/>
 <meta property="og:description" content="See what regular weekly, fortnightly or monthly investing grows into — how much is your money and how much is growth, and what waiting really costs. Free."/>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Compound interest calculator","url":"https://www.firepath.pro/compound","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"inLanguage":"en-AU"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Compound interest","url":"https://www.firepath.pro/compound","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"inLanguage":"en-AU"}</script>
 <!-- seo:end -->
 <meta name="description" content="See what regular weekly, fortnightly or monthly investing grows into — how much is your money and how much is growth, and what waiting really costs. Free."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -113,9 +113,9 @@
 
   <header class="compound-head">
     <a href="/firepath" class="section-link back-link">← Back to FirePath</a>
-    <div class="eyebrow">The most powerful force in finance</div>
-    <h1 class="display-lg">The Compounding Effect 🌱</h1>
-    <p class="lead">You don't need to invest more. You need to start sooner. See what time does to your money.</p>
+    <div class="eyebrow">What time does to your money</div>
+    <h1 class="display-lg">Compound interest 🌱</h1>
+    <p class="lead">Starting sooner often matters more than investing more. Have a play and see.</p>
   </header>
 
 
@@ -149,7 +149,7 @@
   </div>
 
   <div class="card glass-card">
-    <div class="eyebrow card-label">Contribution mode</div>
+    <div class="eyebrow card-label">How you add money</div>
     <div class="segmented mode-toggle">
       <button class="mode-btn active" id="fixedBtn" onclick="setMode('fixed')">📌 Fixed amount</button>
       <button class="mode-btn" id="growingBtn" onclick="setMode('growing')">📈 Growing amount</button>
@@ -157,7 +157,7 @@
     <p id="modeExplainer" class="card-note">You invest the same amount every cycle — simple and consistent.</p>
     <div id="growingOptions" style="display:none;">
       <div class="input-row input-row-growing">
-        <div class="input-label-text">Annual contribution increase %</div>
+        <div class="input-label-text">Raise it each year by (%)</div>
         <div class="slider-row">
           <input type="range" class="dark-slider" id="c-contribIncrease" min="0" max="10" value="3" oninput="document.getElementById('c-contribIncreaseVal').textContent=this.value+'%';calcCompound()"/>
           <span class="slider-val" id="c-contribIncreaseVal">3%</span>
@@ -180,13 +180,13 @@
   <div id="results" style="display:none;">
 
     <div class="card glass-card">
-      <div class="eyebrow card-label">Your compounding journey 🔥</div>
+      <div class="eyebrow card-label">How it grows, year by year 🔥</div>
       <div class="milestones" id="milestonesContainer"></div>
     </div>
 
     <div class="card glass-card">
       <div class="eyebrow card-label">💸 The cost of waiting</div>
-      <p class="card-note card-note-lead">Same amount. Same rate. The only difference is when you start.</p>
+      <p class="card-note card-note-lead">Same amount, same return. The only difference is when you start.</p>
       <div class="waiting-grid" id="w-grid">
         <div class="waiting-tile now">
           <div class="waiting-label">Start now</div>
@@ -212,13 +212,13 @@
     </div>
     <div class="next-card" onclick="window.location.href='withdrawal.html'">
       <div class="next-card-emoji">🏖️</div>
-      <div class="next-card-title">Now here's the best part.</div>
-      <div class="next-card-sub">You've spent years building this. Now imagine never having to touch it — and still living an incredible life. That's what withdrawal mode shows you.</div>
-      <div class="btn btn-ember btn-lg">See how to live off your wealth →</div>
+      <div class="next-card-title">So what could it pay you?</div>
+      <div class="next-card-sub">Once it’s built, how much could it pay you each year, and would it last? The Withdrawal planner works that out.</div>
+      <div class="btn btn-ember btn-lg">Open the Withdrawal planner →</div>
     </div>
     <!-- What next for you — filled by js/next-steps.js -->
     <div id="fpNextSteps"></div>
-    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections assume consistent returns — real returns vary year to year.</p>
+    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections assume steady returns. Actual returns vary from year to year.</p>
   </div>
 
 </main>
@@ -342,13 +342,13 @@
     const compoundPct = Math.round(((total - contributed) / total) * 100);
     const ratio = (total / contributed).toFixed(1);
     if (years <= 5) return `You've done most of the work so far — compounding is just getting started.`;
-    if (years <= 10) return `Compounding is now adding ${compoundPct}% of your total. It's finding its rhythm.`;
+    if (years <= 10) return `Compounding is now adding ${compoundPct}% of your total. It's starting to pull its weight.`;
     if (years <= 15) return `Compounding has now added ${fmtM(total - contributed)} on top of your ${fmtM(contributed)} invested. It's accelerating.`;
     if (years <= 20) return total - contributed > contributed
       ? `Compounding has now overtaken you — it's doing more work than you are.`
       : `Compounding has added ${compoundPct}% of your total.`;
     if (years <= 30) return `You invested ${fmtM(contributed)}. Compounding turned it into ${fmtM(total)}. That's ${ratio}x your money.`;
-    return `For every $1 you invested, compounding added $${(ratio - 1).toFixed(1)}. Time was your greatest asset.`;
+    return `For every $1 you invested, compounding added $${(ratio - 1).toFixed(1)}. Time did most of the heavy lifting.`;
   }
 
   function calcCompound() {

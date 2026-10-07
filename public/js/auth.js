@@ -123,9 +123,9 @@ async function upgradeToPro() {
     });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
-    else alert('Something went wrong. Please try again.');
+    else alert('We couldn’t open checkout just now. Please try again in a minute.');
   } catch(e) {
-    alert('Something went wrong. Please try again.');
+    alert('We couldn’t open checkout just now. Please try again in a minute.');
   }
 }
 
@@ -160,7 +160,7 @@ function resetInactivityTimer() {
   _inactivityTimer = setTimeout(() => {
     if (getToken()) {
       ['fp_access_token', 'fp_user_id', 'fp_email', 'fp_persona', 'fp_guest', 'fp_is_pro'].forEach(k => removeStore(k));
-      alert('You\'ve been signed out due to inactivity.');
+      alert('You’ve been signed out because you were away for a while.');
       window.location.href = 'auth.html';
     }
   }, 20 * 60 * 1000);

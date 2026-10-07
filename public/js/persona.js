@@ -69,7 +69,7 @@ window.FirePathPersona = (function () {
         freedomShort: 'freedom',
         // Onboarding form
         obEyebrow: 'Just getting started',
-        obSub: "No judgment here — just share what you know and we'll handle the rest.",
+        obSub: "No judgement here. Just share what you know and we'll do the rest.",
         incomeLabel: 'Money coming in (after tax)',
         savingsLabel: 'Current savings & investments',
         savingsRateLabel: 'How much do you put aside each cycle?',
@@ -97,7 +97,7 @@ window.FirePathPersona = (function () {
         freedomNumberLabel: 'Freedom number',
         freedomShort: 'freedom',
         obEyebrow: 'Building your plan',
-        obSub: 'Enter your numbers and add context — the AI picks up on what matters most.',
+        obSub: 'Enter your numbers and add any context. The AI picks up on what matters most.',
         incomeLabel: 'Take-home income',
         savingsLabel: 'Current savings & investments',
         savingsRateLabel: 'How much do you put aside each cycle?',
@@ -107,12 +107,12 @@ window.FirePathPersona = (function () {
         concessionalTerm: 'concessional (before-tax) contributions',
         preservationTerm: 'preservation age',
         indexFundTerm: 'index fund',
-        levelPromise: "Clear numbers with the key terms explained once. We'll flag the levers most likely to move your date."
+        levelPromise: "Clear numbers with the key terms explained once. We'll flag the changes most likely to move your date."
       }
     },
     fire: {
       id: 'fire',
-      name: 'Deep in the FIRE journey',
+      name: 'Deep into FIRE',
       desc: 'I know my SWR, my FI number, and I want the full picture — no hand-holding',
       icon: '<path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/>',
       aiTone: 'direct, analytical, peer-level',
@@ -123,7 +123,7 @@ window.FirePathPersona = (function () {
         freedomNumberLabel: 'FI number',
         freedomShort: 'FI',
         obEyebrow: 'Running your numbers',
-        obSub: 'Give me the full picture — portfolio, goals, timeline, nuance.',
+        obSub: 'The full picture: portfolio, goals, timeline, the lot.',
         incomeLabel: 'Net income',
         savingsLabel: 'Current portfolio value',
         savingsRateLabel: 'Amount saved per cycle',
@@ -159,9 +159,9 @@ window.FirePathPersona = (function () {
       url: 'firepath_pro.html', level: 1,
       primer: { title: 'What is FIRE, and is it realistic?', url: 'learn/what-is-fire-australia.html' },
       copy: {
-        beginner: { title: 'Your full picture', desc: 'Where you are today, and when work could become optional' },
-        building: { title: 'Full Analysis', desc: 'Your complete picture, including super' },
-        fire: { title: 'Full Analysis', desc: 'FI number, super bridge, Age Pension overlay' }
+        beginner: { title: 'Your full plan', desc: 'Where you are today, and when work could become optional' },
+        building: { title: 'Your full plan', desc: 'Your whole picture, including super' },
+        fire: { title: 'Your full plan', desc: 'FI number, super bridge, Age Pension overlay' }
       }
     },
     'freedom-gap': {
@@ -169,8 +169,8 @@ window.FirePathPersona = (function () {
       primer: { title: 'How much money is actually "enough"?', url: 'learn/how-much-is-enough.html' },
       copy: {
         beginner: { title: 'How far away am I?', desc: 'The gap between what you spend and what your savings could pay you' },
-        building: { title: 'Freedom Gap', desc: 'Where your age, spend, and portfolio come from' },
-        fire: { title: 'Freedom Gap', desc: 'Portfolio income vs spend at 4% SWR, pension-adjusted' }
+        building: { title: 'Freedom gap', desc: 'How much of your spending your savings already cover' },
+        fire: { title: 'Freedom gap', desc: 'Portfolio income vs spend at 4% SWR, pension-adjusted' }
       }
     },
     'scenarios': {
@@ -178,8 +178,8 @@ window.FirePathPersona = (function () {
       primer: { title: 'What an extra $50 a week really changes', url: 'learn/extra-50-a-week-impact.html' },
       copy: {
         beginner: { title: 'What if…?', desc: 'Try a decision — like a pay rise or selling a car — and see what changes' },
-        building: { title: 'Scenario Explorer', desc: 'Test real financial decisions before you make them' },
-        fire: { title: 'Scenario Explorer', desc: 'Model lump sums, property sales, debt vs invest' }
+        building: { title: 'What if…?', desc: 'Test real financial decisions before you make them' },
+        fire: { title: 'What if…?', desc: 'Model lump sums, property sales, debt vs invest' }
       }
     },
     'tax-tools': {
@@ -195,9 +195,9 @@ window.FirePathPersona = (function () {
       url: 'withdrawal.html', level: 3,
       primer: { title: 'The 4% rule, explained for Australians', url: 'learn/four-percent-rule-australia.html' },
       copy: {
-        beginner: { title: 'Will my money last?', desc: 'How long savings last once you stop working' },
-        building: { title: 'Withdrawal Modeling', desc: 'Stress-test how long your money lasts' },
-        fire: { title: 'Withdrawal Modeling', desc: 'SWR stress tests, sequence risk, drawdown order' }
+        beginner: { title: 'Withdrawal planner', desc: 'See if your money will last once you stop working' },
+        building: { title: 'Withdrawal planner', desc: 'See how long your money lasts, in good years and bad' },
+        fire: { title: 'Withdrawal planner', desc: 'SWR stress tests, sequence risk, drawdown order' }
       }
     }
   };
@@ -398,7 +398,7 @@ window.FirePathPersona = (function () {
     const opts = options || {};
     container.classList.add('ob-persona-list', 'fp-persona-picker');
     container.setAttribute('role', 'radiogroup');
-    container.setAttribute('aria-label', 'Where are you on your journey?');
+    container.setAttribute('aria-label', 'How much do you know about money?');
     container.innerHTML = ORDER.map(id => {
       const p = PERSONAS[id];
       return `<div class="ob-persona" data-persona="${id}" role="radio" tabindex="0" aria-checked="false">
@@ -434,8 +434,8 @@ window.FirePathPersona = (function () {
     modalEl.className = 'fp-persona-modal';
     modalEl.innerHTML = `<div class="fp-persona-dialog" role="dialog" aria-modal="true" aria-labelledby="fpPersonaTitle">
         <button type="button" class="fp-persona-close" aria-label="Close">×</button>
-        <h2 id="fpPersonaTitle">Where are you on your journey?</h2>
-        <p>FirePath adjusts its language, explanations and tools to match. You can change this any time.</p>
+        <h2 id="fpPersonaTitle">How much do you know about money?</h2>
+        <p>We’ll explain things at the right level for you. You can change this any time.</p>
         <div class="fp-persona-modal-list"></div>
       </div>`;
     document.body.appendChild(modalEl);

@@ -164,7 +164,7 @@
       <button class="pill-chip" data-q="What if I save an extra $250 a month?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I save an extra $250 a month?</button>
       <button class="pill-chip" data-q="What if I spend $150 less a week?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I spend $150 less a week?</button>
       <button class="pill-chip" data-q="What if I retire at 40?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I retire at 40?</button>
-      <button class="pill-chip" data-q="Should I pay off debt or invest first?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I sell my investment property?</button>
+      <button class="pill-chip" data-q="Should I pay off debt or invest first?"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>Should I pay off debt or invest first?</button>
     </div>
   </div>
 
@@ -231,7 +231,7 @@
     if (m) {
       const extra = perMonth(parseAmount(m[1], m[2]), m[4]);
       const after = FirePathMoves.yearsTo(s.freedomNumber, s.accessibleSavings, (s.savingsMonthly || 0) + extra, 0.07);
-      return `Saving an extra ${money(extra)} a month: freedom in ${yrs(after)} instead of ${yrs(base)} (7% real return, today's dollars).`;
+      return `Saving an extra ${money(extra)} a month: freedom in ${yrs(after)} instead of ${yrs(base)} (7% a year after inflation, today's dollars).`;
     }
     m = q.match(new RegExp(`spend.*?${AMOUNT}\\s*less\\s*(a|per|each|every)?\\s*(week|fortnight|month)`));
     if (m) {
@@ -254,9 +254,9 @@
 
   // ── What the AI is told ──────────────────────────────────
   const TOOL_LINKS = [
-    ['/firepath_pro', 'Full Analysis'], ['/journey', 'Your Journey'], ['/strategy', 'Strategy'], ['/tax_pro', 'Tax tools'],
-    ['/hearmeout', 'Scenario explorer'], ['/withdrawal', 'Withdrawal stress test'], ['/freedom-gap', 'Freedom gap'],
-    ['/compound', 'Compounding'], ['/progress', 'Check in'],
+    ['/firepath_pro', 'Your full plan'], ['/journey', 'Journey'], ['/strategy', 'Strategy'], ['/tax_pro', 'Tax tools'],
+    ['/hearmeout', 'What if…?'], ['/withdrawal', 'Withdrawal planner'], ['/freedom-gap', 'Freedom gap'],
+    ['/compound', 'Compound interest'], ['/progress', 'Check in'],
   ];
 
   function systemPrompt() {
@@ -282,13 +282,13 @@
       if (s.grossIncome) lines.push(`- Estimated own gross income ${money(s.grossIncome)}${s.marginalRate != null ? `, marginal tax rate about ${Math.round(s.marginalRate * 100)}%` : ''}.`);
       lines.push(`- Freedom number ${money(s.freedomNumber)} (25 × yearly spending in retirement).`);
       lines.push(s.alreadyFree ? '- Already free: accessible savings cover the freedom number.'
-        : `- At 7% real: free in ${yrs(s.yearsToFree)}${s.freedomAge ? ` (around age ${Math.round(s.freedomAge)})` : ''}.` + (rng && rng.early != null ? ` Across 2,000 market futures, 8 in 10 land between ${yrs(rng.early / 12)} and ${rng.late != null ? yrs(rng.late / 12) : 'over 50 years'}.` : ''));
+        : `- At 7% real: free in ${yrs(s.yearsToFree)}${s.freedomAge ? ` (around age ${Math.round(s.freedomAge)})` : ''}.` + (rng && rng.early != null ? ` Across 2,000 possible market outcomes, 8 in 10 land between ${yrs(rng.early / 12)} and ${rng.late != null ? yrs(rng.late / 12) : 'over 50 years'}.` : ''));
       if (p.context) lines.push(`- In their words: "${String(p.context).slice(0, 300)}"`);
       lines.push('', 'FIREPATH\'S RANKED MOVES FOR THEM (best first, from its own engine):');
       PLAN.moves.forEach((m, i) => lines.push(`${i + 1}. ${m.title} — ${m.impact.text}. ${m.why}`));
       if (!PLAN.moves.length) lines.push('(none — nothing would clearly improve their outcome right now)');
     } else {
-      lines.push('MEMBER: no saved plan yet. Answer generally and suggest running Full Analysis (/firepath_pro) to get answers built on their own numbers.');
+      lines.push('MEMBER: no saved plan yet. Answer generally and suggest filling in Your full plan (/firepath_pro) to get answers built on their own numbers.');
     }
     const fits = PLAN ? ARTICLES.filter(a => FirePathMoves.articleFits(a.for, PLAN.situation)) : ARTICLES;
     lines.push('', 'ALLOWED LINKS:');
@@ -310,7 +310,7 @@
     }).trim();
     const linkHtml = links.slice(0, 2).map(l => `<a href="${l.href}" class="chat-learn-link"><span>${escapeHtml(l.label)}</span><span>→</span></a>`).join('');
     return `<div class="chat-card chat-card-supported">
-      <span class="chat-tag">${PLAN ? '✓ Built on your saved plan' : 'General answer — save a plan in Full Analysis for answers about your numbers'}</span>
+      <span class="chat-tag">${PLAN ? '✓ Built on your saved plan' : 'General answer. Save your full plan to get answers about your own numbers'}</span>
       <div class="chat-body">${FirePathSafe.aiText(body)}</div>${linkHtml}</div>`;
   }
   const notice = (tag, text, link) => `<div class="chat-card chat-card-guided"><span class="chat-tag">${tag}</span><div class="chat-body">${text}</div>${link || ''}</div>`;
@@ -364,7 +364,7 @@
     if (!(await requirePro())) return;
     await Promise.all([loadArticles(), loadAssumptions().catch(() => {})]);
     PLAN = await loadPlan();
-    if (!PLAN) thread.insertAdjacentHTML('afterbegin', notice('No saved plan yet', 'Answers are general until you save your plan — run Full Analysis once and Ask FirePath will use your own numbers.', '<a href="/firepath_pro" class="chat-learn-link"><span>Run Full Analysis</span><span>→</span></a>'));
+    if (!PLAN) thread.insertAdjacentHTML('afterbegin', notice('No saved plan yet', 'Answers are general until you save your plan. Fill in your full plan once and Ask FirePath will use your own numbers.', '<a href="/firepath_pro" class="chat-learn-link"><span>Open Your full plan</span><span>→</span></a>'));
     const q = new URLSearchParams(location.search).get('q');
     if (q) ask(q.slice(0, 1000));
   })();

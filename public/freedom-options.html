@@ -16,7 +16,7 @@
   </script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>Your Freedom Options — FirePath</title>
+<title>Your freedom options — FirePath</title>
 <!-- seo:start -->
 <meta property="og:site_name" content="FirePath"/>
 <meta property="og:locale" content="en_AU"/>
@@ -109,17 +109,17 @@
     <div>
       <a data-app-only href="strategy.html" class="section-link page-back">← Strategy</a>
       <a href="features.html" class="section-link page-back" data-site-only>← All tools</a>
-      <div class="eyebrow">Not one answer. A few real ones.</div>
-      <h1 class="page-head-title">Your Freedom Options</h1>
-      <p class="page-head-sub">Not "when can I retire." A few different, real versions of your life — built from your actual numbers.</p>
+      <div class="eyebrow">A few ways it could play out</div>
+      <h1 class="page-head-title">Your freedom options</h1>
+      <p class="page-head-sub">A few different ways your life could look, worked out from your own numbers.</p>
     </div>
   </header>
 
 <div class="fo-col">
 
   <div class="card callout-ember handoff" id="handoffIntro" style="display:none;">
-    <div class="handoff-title">Based on your Freedom Gap...</div>
-    <div class="handoff-text">We're finding a few realistic ways you could use where you already stand.</div>
+    <div class="handoff-title">Based on your Freedom gap...</div>
+    <div class="handoff-text">We're working out a few ways you could use what you've already got.</div>
   </div>
 
   <div class="card fp-reveal" id="summaryBar" style="display:none;">
@@ -131,8 +131,8 @@
 
   <div class="card no-handoff" id="noHandoffCard" style="display:none;">
     <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> Your numbers live in one place</div>
-    <p>Freedom Options builds on what Freedom Gap already knows about your situation. Start there first.</p>
-    <a href="freedom-gap.html" class="cta-btn">Go to Freedom Gap →</a>
+    <p>This page builds on what the Freedom gap tool already knows about you. Start there first.</p>
+    <a href="freedom-gap.html" class="cta-btn">Go to Freedom gap →</a>
   </div>
 
   <div class="loading-wrap" id="foLoading">
@@ -146,7 +146,7 @@
     <button type="button" class="cta-btn quiet" id="foGenerateBtn" onclick="generateOptions()" style="display:none;max-width:280px;">Show me different wording →</button>
   </div>
 
-  <p class="disclaimer" id="foDisclaimer" style="display:none;">Portfolio income based on a 4% withdrawal rate. Age Pension estimates use the assets and income tests (with deeming) under current rules — actual entitlement depends on your full financial picture. Educational only, not financial advice.</p>
+  <p class="disclaimer" id="foDisclaimer" style="display:none;">Investment income based on a 4% withdrawal rate. Age Pension estimates use the assets and income tests (with deeming) under current rules — actual entitlement depends on your full financial picture. Educational only, not financial advice.</p>
 
   <!-- What next for you — filled by js/next-steps.js -->
   <div id="fpNextSteps"></div>
@@ -300,7 +300,7 @@
     pension_assist: {
       desc: 'How close the Age Pension alone gets to closing the gap once it becomes available.',
       headline: (f) => `Let time do some of the work`,
-      gainBack: (f) => `The pension arrives in ${f.yearsToPension} year${f.yearsToPension !== 1 ? 's' : ''} — worth counting on`
+      gainBack: (f) => `The pension arrives in ${f.yearsToPension} year${f.yearsToPension !== 1 ? 's' : ''} — worth knowing about`
     }
   };
 
@@ -417,16 +417,16 @@ Absolute rules:
     switch (o.id) {
       case 'stay_course':
         return { blurb: f.hoursPerWeekNow > 0
-          ? `Right now your portfolio covers ${f.freedomPctToday}% of your spending — working about ${f.hoursPerWeekNow} hrs/week would close the rest.`
-          : `Your portfolio already covers your full spending today.` };
+          ? `Right now your investments cover ${f.freedomPctToday}% of your spending — working about ${f.hoursPerWeekNow} hrs/week would close the rest.`
+          : `Your investments already cover all your spending today.` };
       case 'retire_full_stop':
-        return { blurb: `That's ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} away — by then your portfolio (with super and any Age Pension) is projected to cover everything, no work income needed.` };
+        return { blurb: `That's ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} away — by then your investments (with super and any Age Pension) should cover everything, with no work income needed.` };
       case 'reduce_spend':
         return { blurb: `Trimming spending by ${fmtM(f.reductionPerYear)}/year could move your full retirement forward by ${f.yearsSooner} year${f.yearsSooner !== 1 ? 's' : ''}, to age ${f.targetAge}.` };
       case 'coast':
         return { blurb: `If you stopped contributing anything more today, compounding alone gets you there by age ${f.targetAge} — ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} from now.` };
       case 'semi_retire_now':
-        return { blurb: `Not a countdown to an end date — just ${f.hoursPerWeek} hours a week, indefinitely, while your portfolio covers the rest.` };
+        return { blurb: `Just ${f.hoursPerWeek} hours a week, for as long as you like, while your investments cover the rest.` };
       case 'pension_assist':
         return { blurb: `The Age Pension becomes available in ${f.yearsToPension} year${f.yearsToPension !== 1 ? 's' : ''} — worth knowing before assuming the whole gap is on you.` };
       default:
@@ -466,7 +466,7 @@ Absolute rules:
       const isStrongest = o.id === strongestId;
       const gainBack = meta.gainBack ? meta.gainBack(o.facts) : null;
       const statsHtml = Object.entries(o.facts).filter(([k, v]) => v !== null && v !== undefined).slice(0, 3).map(([k, v]) => {
-        const label = { freedomPctToday: 'Covered today', hoursPerWeekNow: 'Hrs/week', gapToday: 'Gap/yr', gapAfterPensionToday: 'Gap after pension', targetAge: 'Target age', yearsAway: 'Years away', projectedPortfolioIncome: 'Portfolio income', projectedPensionIncome: 'Pension income', reductionPerYear: 'Less spending', yearsSooner: 'Years sooner', hoursPerWeek: 'Hrs/week', yearsToPension: 'To pension' }[k] || k;
+        const label = { freedomPctToday: 'Covered today', hoursPerWeekNow: 'Hrs/week', gapToday: 'Gap/yr', gapAfterPensionToday: 'Gap after pension', targetAge: 'Target age', yearsAway: 'Years away', projectedPortfolioIncome: 'Investment income', projectedPensionIncome: 'Pension income', reductionPerYear: 'Less spending', yearsSooner: 'Years sooner', hoursPerWeek: 'Hrs/week', yearsToPension: 'To pension' }[k] || k;
         const val = typeof v === 'number' && (k.toLowerCase().includes('income') || k.toLowerCase().includes('gap') || k === 'reductionPerYear') ? fmtM(v) : (k.toLowerCase().includes('pct') ? v + '%' : v);
         return `<div class="option-stat"><div class="option-stat-value">${val}</div><div class="option-stat-label">${label}</div></div>`;
       }).join('');
@@ -536,12 +536,12 @@ Absolute rules:
       // Reuse the exact picture Freedom Gap already calculated for the intro line, rather
       // than silently recomputing it — it should say the same thing the person just saw.
       if (handoff.picture) {
-        document.getElementById('handoffIntro').innerHTML = `<div class="handoff-title">Based on your Freedom Gap...</div><div class="handoff-text">Your investments already fund <strong>${handoff.picture.freedomPct}%</strong> of your lifestyle. Here are a few different ways you could use that.</div>`;
+        document.getElementById('handoffIntro').innerHTML = `<div class="handoff-title">Based on your Freedom gap...</div><div class="handoff-text">Your investments already fund <strong>${handoff.picture.freedomPct}%</strong> of your lifestyle. Here are a few different ways you could use that.</div>`;
       }
       document.getElementById('handoffIntro').style.display = 'block';
 
       const summaryBar = document.getElementById('summaryBar');
-      document.getElementById('summaryText').textContent = `${fmtM(currentInputs.portfolio)} portfolio  •  ${fmtM(currentInputs.annualSpend)}/yr spending  •  age ${currentInputs.age}`;
+      document.getElementById('summaryText').textContent = `${fmtM(currentInputs.portfolio)} invested  •  ${fmtM(currentInputs.annualSpend)}/yr spending  •  age ${currentInputs.age}`;
       summaryBar.style.display = 'block';
 
       generateOptions();

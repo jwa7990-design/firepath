@@ -17,7 +17,7 @@ const { article: a } = Astro.props as { article: Article };
 const related = relatedTo(a);
 const showToc = a.sections.length >= 3;
 const cleanHref = (h: string) => h.replace(/\.html$/, '');
-const tryLinks = a.cta?.links?.length ? a.cta.links : [{ href: '/firepath', label: 'Calculate my freedom number' }];
+const tryLinks = a.cta?.links?.length ? a.cta.links : [{ href: '/firepath', label: 'Find my freedom date' }];
 // Pages behind a Pro account (js/auth.js requirePro sends everyone else to /upgrade).
 // Label them so a free reader isn't surprised, and offer the free calculator alongside.
 const isProHref = (h: string) => /^\/?(tax_pro|tax|firepath_pro|journey|strategy|money)(\.html)?([?#].*)?$/.test(h);
@@ -76,14 +76,14 @@ const breadcrumbs = {
         <aside class="art-try">
           <span class="art-try-kicker">Try it with your numbers</span>
           <h2>{a.cta?.heading || 'See how this applies to you'}</h2>
-          <p>{a.cta?.text || 'FirePath works out your own numbers — free, in about 2 minutes.'}</p>
+          <p>{a.cta?.text || 'FirePath works out your own numbers. Free, in about 2 minutes.'}</p>
           <div class="art-try-actions">
             {tryLinks.map((l, i) => <>
               <a href={cleanHref(l.href)} class={i === 0 ? 'btn btn-ember btn-lg' : 'art-try-link'}>{l.label.replace(/\s*→$/, '')} {i === 0 && <Icon name="arrow" size={16}/>}</a>
               {isProHref(l.href) && <span class="art-try-pro">Pro</span>}
             </>)}
           </div>
-          {hasProLink && <p class="art-try-pro-note">Part of FirePath Pro — or <a href="/firepath">try the free calculator</a>.</p>}
+          {hasProLink && <p class="art-try-pro-note">Part of FirePath Pro. Or <a href="/firepath">try the free calculator</a>.</p>}
         </aside>
 
         {a.seeAlso && (
@@ -104,7 +104,7 @@ const breadcrumbs = {
           <a href="/learn/" class="art-all">Browse all of the Learning Lab <Icon name="arrow" size={14}/></a>
         </section>
 
-        <p class="art-disclaimer">FirePath is an educational tool. Nothing on this page is financial advice. Always consider your personal circumstances and consult a licensed financial adviser for advice specific to you.</p>
+        <p class="art-disclaimer">FirePath is here to help you learn. Nothing on this page is financial advice. Everyone’s situation is different, so for advice on yours, talk to a licensed financial adviser.</p>
       </article>
     </div>
   </main>

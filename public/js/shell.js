@@ -104,7 +104,7 @@
   // Explore opens a full-screen panel with the site's sections as big numbered links.
   const SITE_LINKS = [
     ['features', 'Features', 'features.html', 'Everything FirePath works out for you'],
-    ['pricing', 'Pricing', 'pricing.html', 'Free forever · Pro $6 a month'],
+    ['pricing', 'Pricing', 'pricing.html', 'Free tools, no account needed · Pro $6 a month'],
     ['learn', 'Learning Lab', 'learn/index.html', 'Plain-English guides to super, tax and investing'],
     ['faq', 'Questions', 'faq.html', 'Straight answers to what people ask most']
   ];
@@ -136,7 +136,7 @@
       <aside class="explore-card" style="--i:4">
         <span class="explore-card-kicker">Free · 2 minutes</span>
         <p class="explore-card-title">See the year work could become <em>optional</em>.</p>
-        <a href="${url('firepath.html')}" class="btn btn-ember btn-lg">Find my path ${svg('arrow', 16)}</a>
+        <a href="${url('firepath.html')}" class="btn btn-ember btn-lg">Find my freedom date ${svg('arrow', 16)}</a>
         <div class="explore-card-links">
           <a href="${url('auth.html')}">Sign in</a>
           <a href="${url('assumptions.html')}">How we calculate</a>

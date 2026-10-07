@@ -17,19 +17,19 @@ const sections = [
   { id: 'sources', title: 'Official sources' },
 ];
 const glance = [
-  { icon: 'bars', title: 'Live from the RBA', text: 'Cash rate, inflation, savings and mortgage rates — refreshed daily.' },
-  { icon: 'flame', title: '7% after inflation', text: 'The long-run return on growth assets, compounded properly.' },
+  { icon: 'bars', title: 'Live from the RBA', text: 'Cash rate, inflation, savings and mortgage rates, refreshed daily.' },
+  { icon: 'flame', title: '7% after inflation', text: 'A long-run return for shares, worked out month by month.' },
   { icon: 'scale', title: 'Current ATO rates', text: 'Tax, super and Age Pension figures for this financial year.' },
-  { icon: 'spark', title: '2,000 market futures', text: 'Ranges and odds that allow for good and bad years.' },
+  { icon: 'spark', title: '2,000 possible market outcomes', text: 'Ranges and odds that allow for good and bad years.' },
 ];
 const LONG_RUN = [
-  ['Investment return', 'Growth assets (mostly shares), after inflation. Compounded monthly at 0.565% — the rate that adds up to exactly 7% a year (7% ÷ 12 would overstate it).', '7%', 'a year, real'],
-  ['Freedom number', 'Enough invested that 4% a year covers your spending — the 4% rule, from the Trinity Study.', '25×', 'yearly spending'],
-  ['Market ups and downs', "For ranges and \"will it last\" odds: 2,000 simulated futures, each year's return random around a 7% median. Seeded, so your result doesn't change on reload.", '15%', 'volatility'],
-  ['Super growth', "7% less the extra fees a typical super fund charges over an index fund (median MySuper ≈ 0.85% a year, APRA), then less 15% tax on earnings while you're working.", '5.4%', 'a year, real'],
-  ['Gross income', 'Worked backwards from your take-home pay through the actual tax brackets, LITO and Medicare levy — used for employer super.', 'Exact', 'from tax tables'],
+  ['Investment return', 'Growth investments (mostly shares), after inflation. Grown monthly at 0.565%, the rate that adds up to exactly 7% a year (7% ÷ 12 would overstate it).', '7%', 'a year, after inflation'],
+  ['Freedom number', 'Enough invested that taking 4% a year covers your spending, drawing it down slowly. That’s the 4% rule, from the Trinity Study.', '25×', 'yearly spending'],
+  ['Market ups and downs', "For ranges and \"will it last\" odds: 2,000 simulated markets, each year's return random around a 7% median. Fixed, so your result stays the same when you reload.", '15%', 'volatility'],
+  ['Super growth', "7% less the extra fees a typical super fund charges over an index fund (median MySuper ≈ 0.85% a year, APRA), then less 15% tax on earnings while you're working.", '5.4%', 'a year, after inflation'],
+  ['Gross income', 'Worked backwards from your take-home pay through the tax brackets, LITO and Medicare levy. Used for employer super.', 'Exact', 'from tax tables'],
   ['Inflation for long projections', "For showing long projections in future dollars. Today's inflation (live, above) is used for anything about returns right now; over decades, the RBA's 2–3% target is the better guide.", '2.5%', 'RBA target'],
-  ['Projection horizon', 'The longest timeline modelled before we say "more than".', '100 yrs', 'maximum'],
+  ['Longest projection', 'How far ahead we look before we just say "more than".', '100 yrs', 'maximum'],
 ];
 const WHY_7 = [
   ['Shiller dataset', '150+ years of US share returns', '~7%'],
@@ -44,11 +44,11 @@ const MODELLED: [string, boolean][] = [
   ['Carry-forward (unused) concessional contributions', true],
   ['Tax inside super and tax-free withdrawals after 60', true],
   ['Super fund fees (median MySuper fund)', true],
-  ['Super locked until 60 — and a partner’s at their own 60', true],
+  ['Super locked until 60, and a partner’s until their own 60', true],
   ['Age Pension: assets and income tests, deeming, couples', true],
   ['Offset account vs investing', true],
   ['Withdrawal rates and how long money lasts', true],
-  ['Market ups and downs — 2,000 simulated futures', true],
+  ['Market ups and downs: 2,000 possible market outcomes', true],
   ['Live RBA cash, inflation, savings and mortgage rates', true],
   ['Insurance premiums inside super', false],
   ['Family-tier Medicare levy surcharge thresholds', false],
@@ -63,8 +63,8 @@ const SOURCES = [
 ];
 ---
 <DocLayout
-  title="How FirePath calculates — data sources & assumptions"
-  description="Every number behind FirePath: live RBA data, current ATO and Age Pension rates, the 7% real return, and what we model — in plain English."
+  title="How we calculate: sources and assumptions | FirePath"
+  description="Every number behind FirePath: live RBA data, current ATO and Age Pension rates, the 7% return after inflation, and what we model, in plain English."
   path="/assumptions"
   eyebrow="How we calculate"
   heading="Every number,"
@@ -84,13 +84,13 @@ const SOURCES = [
 
   <section class="doc-section" id="live" data-doc-section>
     <h2>Live figures</h2>
-    <p>Pulled from the Reserve Bank's published statistics and refreshed every day. They drive anything about what money earns <em>right now</em> — cash savings, offset accounts.</p>
+    <p>Pulled from the Reserve Bank's published statistics and refreshed every day. They drive anything about what money earns <em>right now</em>, like cash savings and offset accounts.</p>
     <ul class="doc-facts" id="liveFacts"><li class="doc-fact"><span class="doc-fact-label">Loading today's figures…</span></li></ul>
   </section>
 
   <section class="doc-section" id="long-run" data-doc-section>
     <h2>Long-run assumptions</h2>
-    <p>For projections over years and decades, we use long-run figures rather than today's — a single year's inflation or interest rate would mislead over 30 years.</p>
+    <p>For projections over years and decades, we use long-run figures rather than today's. A single year's inflation or interest rate would mislead over 30 years.</p>
     <ul class="doc-facts">
       {LONG_RUN.map(([l, sub, v, unit]) => (
         <li class="doc-fact"><span class="doc-fact-label">{l}<span class="doc-fact-sub">{sub}</span></span><span class="doc-fact-val">{v}<small>{unit}</small></span></li>
@@ -106,13 +106,13 @@ const SOURCES = [
 
   <section class="doc-section" id="why-7" data-doc-section>
     <h2>Why 7%</h2>
-    <p>A 7% real return (after inflation) is the most widely used assumption in financial independence planning, grounded in over a century of market data.</p>
+    <p>A 7% return after inflation is the most common assumption in financial independence planning, based on more than a century of share market history.</p>
     <ul class="doc-facts">
       {WHY_7.map(([l, sub, v]) => (
-        <li class="doc-fact"><span class="doc-fact-label">{l}<span class="doc-fact-sub">{sub}</span></span><span class="doc-fact-val">{v}<small>real</small></span></li>
+        <li class="doc-fact"><span class="doc-fact-label">{l}<span class="doc-fact-sub">{sub}</span></span><span class="doc-fact-val">{v}<small>after inflation</small></span></li>
       ))}
     </ul>
-    <div class="doc-aside"><p>Past returns don't guarantee future results. 7% is a planning assumption, not a prediction — which is why we also show the range across 2,000 market futures.</p></div>
+    <div class="doc-aside"><p>Past returns don't guarantee future results. 7% is a planning assumption, not a prediction. That’s why we also show the range across 2,000 possible market outcomes.</p></div>
   </section>
 
   <section class="doc-section" id="modelled" data-doc-section>
@@ -158,9 +158,9 @@ const SOURCES = [
         fact('RBA cash rate', 'The Reserve Bank’s official rate · ' + asAt(at.cashRate), a.cashRate.toFixed(2) + '%', '', live),
         fact('Inflation (CPI)', 'Prices over the last 12 months · ' + asAt(at.cpi), a.cpi.toFixed(1) + '%', '', live),
         fact('Bonus savings accounts', 'What banks pay on bonus savers · ' + asAt(at.savingsRate), a.savingsRate.toFixed(2) + '%', '', live),
-        fact('Variable mortgage rate', 'What owner-occupiers actually pay, on average · ' + asAt(at.mortgageRate), a.mortgageRate.toFixed(2) + '%', '', live),
-        fact('Cash savings, after inflation', 'Bonus saver rate less inflation (before tax)', pct(a.bankRealReturn, 2), 'real'),
-        fact('Offset account, after inflation', 'An offset saves mortgage interest, tax-free', pct(a.offsetRealReturn, 2), 'real'),
+        fact('Variable mortgage rate', 'What owner-occupiers pay, on average · ' + asAt(at.mortgageRate), a.mortgageRate.toFixed(2) + '%', '', live),
+        fact('Cash savings, after inflation', 'Bonus saver rate less inflation (before tax)', pct(a.bankRealReturn, 2), 'after inflation'),
+        fact('Offset account, after inflation', 'An offset saves mortgage interest, tax-free', pct(a.offsetRealReturn, 2), 'after inflation'),
       ].join('');
     });
 
@@ -189,8 +189,8 @@ const SOURCES = [
         ['What you spend in a year', isReal ? 'Your take-home pay less what you save' : 'Example', money(spendToday)],
       ];
       if (Math.abs(mult - 1) > 0.001) steps.push(['In retirement', mult < 1 ? 'Spending ' + Math.round((1 - mult) * 100) + '% less once work costs and the mortgage are gone' : 'Spending ' + Math.round((mult - 1) * 100) + '% more on travel and lifestyle', money(spendToday * mult)]);
-      steps.push(['× 25', 'So that 4% a year covers it — the 4% rule', '25×']);
-      steps.push([isReal ? 'Your freedom number' : 'A freedom number', 'Invested at 7% real, this pays your spending indefinitely', money(fireNum)]);
+      steps.push(['× 25', 'So that taking 4% a year covers it: the 4% rule', '25×']);
+      steps.push([isReal ? 'Your freedom number' : 'A freedom number', 'Drawn down slowly, this lasted 30+ years in most historical markets', money(fireNum)]);
       $('chain').innerHTML = steps.map((s, i) => `<div class="doc-chain-step${i === steps.length - 1 ? ' is-result' : ''}"><span class="doc-chain-num">${i === steps.length - 1 ? '=' : i + 1}</span><span class="doc-chain-label">${s[0]}<small>${s[1]}</small></span><span class="doc-chain-val">${s[2]}</span></div>`).join('');
     }
     renderChain(56000, 1, 56000 * 25, false);

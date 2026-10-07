@@ -74,8 +74,8 @@ export function relatedTo(a: Article, n = 3): Article[] {
 export interface Shelf { id: string; title: string; intro: string; icon: string; themes?: { title: string; slugs: string[] }[]; badges?: string[]; }
 export const FIRST_READS = ['what-is-fire-australia', 'how-compound-interest-works', 'two-phase-freedom-timeline'];
 export const SHELVES: Shelf[] = [
-  { id: 'start', title: 'Start here', icon: 'flame', intro: 'The ideas everything else builds on — what FIRE is, how compounding works, and how much is enough.', badges: ['Foundation'] },
-  { id: 'questions', title: 'Real questions', icon: 'chat', intro: 'Honest answers to the things people actually wonder about money — no judgement, real numbers.', themes: [
+  { id: 'start', title: 'Start here', icon: 'flame', intro: 'The ideas everything else builds on: what FIRE is, how compounding works, and how much is enough.', badges: ['Foundation'] },
+  { id: 'questions', title: 'Real questions', icon: 'chat', intro: 'Honest answers to the things people wonder about money. No judgement, real numbers.', themes: [
     { title: 'Where you stand', slugs: ['am-i-behind-financially', 'savings-by-age', 'am-i-on-track-retirement', 'how-much-is-enough', 'why-do-i-feel-behind', 'no-savings-in-your-30s'] },
     { title: 'Time and freedom', slugs: ['how-long-do-i-have-to-work', 'what-is-coast-fire', 'can-i-work-less', 'retire-early-average-income'] },
     { title: 'Money and mindset', slugs: ['money-anxiety', 'everyone-else-figured-out', 'bad-with-money-or-underpaid'] },
@@ -83,10 +83,10 @@ export const SHELVES: Shelf[] = [
     { title: 'What if…', slugs: ['pay-rise-retirement-impact', 'pay-cut-happier-job', 'redundancy-would-i-be-okay', 'extra-50-a-week-impact', 'too-late-to-invest-at-40'] },
     { title: 'Your life stage', slugs: ['kids-and-retirement-timeline', 'retire-early-single-parent'] },
   ], badges: ['Real Questions', 'Freedom Timeline'] },
-  { id: 'toolkit', title: 'The FIRE toolkit', icon: 'bars', intro: 'Index funds, ETFs, the 4% rule and the tax basics — the core of investing for independence.', badges: ['FIRE Standard'] },
+  { id: 'toolkit', title: 'The FIRE toolkit', icon: 'bars', intro: 'Index funds, ETFs, the 4% rule and the tax basics. The core of investing for independence.', badges: ['FIRE Standard'] },
   { id: 'growth', title: 'Growth investing', icon: 'spark', intro: 'Shares, property, dividends and the emotional side of watching markets move.', badges: ['Growth Focused'] },
-  { id: 'steady', title: 'Playing it steady', icon: 'shield', intro: 'Savings accounts, bonds, balanced funds and diversification — managing risk sensibly.', badges: ['Steady & Safe'] },
-  { id: 'super-tax', title: 'Super and tax', icon: 'scale', intro: 'Salary sacrifice, catch-up contributions, Division 293, the CGT discount and more — the Australian rules that move the needle.', badges: ['Super', 'Tax & Strategy · Superannuation', 'Tax & Strategy · Investing', 'Tax & Strategy · Property'] },
+  { id: 'steady', title: 'Playing it steady', icon: 'shield', intro: 'Savings accounts, bonds, balanced funds and spreading your risk sensibly.', badges: ['Steady & Safe'] },
+  { id: 'super-tax', title: 'Super and tax', icon: 'scale', intro: 'Salary sacrifice, catch-up contributions, Division 293, the CGT discount and more. The Australian rules that change your date.', badges: ['Super', 'Tax & Strategy · Superannuation', 'Tax & Strategy · Investing', 'Tax & Strategy · Property'] },
 ];
 
 /** Articles for each shelf (and theme), in reading order. Every article lands exactly once. */

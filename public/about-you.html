@@ -102,11 +102,11 @@
       <div class="block-note" id="achvNote"></div>
     </section>
     <section class="card section-block">
-      <div class="section-head"><h2 class="section-label">Journey timeline</h2></div>
+      <div class="section-head"><h2 class="section-label">Your timeline</h2></div>
       <div class="timeline" id="timeline"></div>
     </section>
     <section class="card section-block">
-      <div class="section-head"><h2 class="section-label">Financial DNA</h2></div>
+      <div class="section-head"><h2 class="section-label">How you handle money</h2></div>
       <div class="dna-type" id="dnaType"></div>
       <div id="dnaRows"></div>
       <div class="block-note" id="dnaNote"></div>
@@ -123,14 +123,14 @@
       badgeCoast: 'Halfway cushion', badgeLean: 'Covers the basics', badgeFI: 'Work becomes optional',
       tlCoast: 'Saved enough that growth alone could carry you one day (rough estimate)',
       tlLean: 'Close to covering your basic living costs without working (rough estimate)',
-      tlFI: 'Financial independence calculated',
-      note: 'A rough guide based on your savings vs. your freedom number — not an exact calculation yet.'
+      tlFI: 'Enough saved that work is optional',
+      note: 'A rough guide based on your savings compared with your freedom number. It’s not an exact calculation yet.'
     },
     default: {
-      badgeCoast: 'Coast Achieved', badgeLean: 'Lean FIRE', badgeFI: 'Financial Independence',
-      tlCoast: 'Coast FIRE calculated (rough estimate)', tlLean: 'Lean FIRE calculated (rough estimate)',
-      tlFI: 'Freedom Number Achieved',
-      note: 'Based on current savings vs. your freedom number — a rough guide, not the full Coast/Lean FIRE calc yet.'
+      badgeCoast: 'Coast FIRE reached', badgeLean: 'Lean FIRE', badgeFI: 'Work is optional',
+      tlCoast: 'Reached Coast FIRE (rough estimate)', tlLean: 'Reached Lean FIRE (rough estimate)',
+      tlFI: 'Hit your freedom number',
+      note: 'Based on your savings compared with your freedom number. It’s a rough guide, not the full Coast/Lean FIRE sum yet.'
     }
   };
 
@@ -170,11 +170,11 @@
       </div>`).join('');
 
     let dnaType = 'The Steady Starter';
-    if (saverScore >= 7 && investorScore >= 7) dnaType = 'The Wealth Architect';
+    if (saverScore >= 7 && investorScore >= 7) dnaType = 'The All-Rounder';
     else if (saverScore >= 7) dnaType = 'The Quiet Builder';
-    else if (investorScore >= 7) dnaType = 'The Growth Seeker';
+    else if (investorScore >= 7) dnaType = 'The Investor';
     document.getElementById('dnaType').textContent = dnaType;
-    document.getElementById('dnaNote').textContent = "A first-pass score from your saved numbers — not a full financial personality model yet, and doesn't include income growth (needs history we don't track yet).";
+    document.getElementById('dnaNote').textContent = "A rough score from your saved numbers. It doesn’t count pay rises yet, because we don’t keep your history.";
   }
 
   function renderAchievementsAndTimeline(savings, freedomNumber, persona){
@@ -182,8 +182,8 @@
     const ratio = freedomNumber > 0 ? savings / freedomNumber : 0;
     const badges = [
       { label: 'First $10k',    unlocked: savings >= 10000, target: 10000 },
-      { label: 'First Six Figures',   unlocked: savings >= 100000, target: 100000 },
-      { label: 'Quarter Free', unlocked: ratio >= 0.25, target: freedomNumber * 0.25 },
+      { label: 'First six figures',   unlocked: savings >= 100000, target: 100000 },
+      { label: 'Quarter free', unlocked: ratio >= 0.25, target: freedomNumber * 0.25 },
       { label: copy.badgeCoast, unlocked: ratio >= 0.4, target: freedomNumber * 0.4 },
       { label: copy.badgeLean,  unlocked: ratio >= 0.7, target: freedomNumber * 0.7 },
       { label: copy.badgeFI,    unlocked: ratio >= 1.0, target: freedomNumber }
@@ -207,7 +207,7 @@
       { label: copy.tlCoast, done: ratio >= 0.4, target: freedomNumber * 0.4 },
       { label: copy.tlLean, done: ratio >= 0.7, target: freedomNumber * 0.7 },
       { label: copy.tlFI, done: ratio >= 1.0, target: freedomNumber },
-      { label: 'Reached Fat FIRE', done: ratio >= 1.5, target: freedomNumber * 1.5 }
+      { label: 'Reached 1.5× your freedom number', done: ratio >= 1.5, target: freedomNumber * 1.5 }
     ];
     const nextTlIdx = timeline.findIndex(t => !t.done);
     document.getElementById('timeline').innerHTML = timeline.map((t, i) => {

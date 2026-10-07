@@ -161,8 +161,8 @@
     <div>
       <a href="strategy.html" class="section-link">← Strategy</a>
       <div class="eyebrow"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-money"/></svg> Tax & Strategy — Pro</div>
-      <h1 class="page-head-title">Every dollar, connected to your freedom date.</h1>
-      <p class="page-head-sub">These tools use your saved profile — savings, super, age, and freedom number — to show real impact, not generic ranges.</p>
+      <h1 class="page-head-title">How tax affects your freedom date</h1>
+      <p class="page-head-sub">These tools use your saved plan (savings, super, age and freedom number) to show what tax means for you.</p>
     </div>
   </header>
 
@@ -276,7 +276,7 @@
         </div>
         <div class="comparison-item" id="t3InvestBox">
           <div class="comparison-rate green" id="t3InvestRate">—</div>
-          <div class="comparison-label">Investing after tax<br/>(~9.7% before tax: 7% real + 2.5% inflation)</div>
+          <div class="comparison-label">Investing after tax<br/>(~9.7% before tax: 7% after inflation + 2.5% inflation)</div>
         </div>
       </div>
       <div id="t3Verdict" class="verdict"></div>
@@ -302,7 +302,7 @@
     </div>
     <div id="aiTaxInsightCard" style="display:none;margin-top:16px;">
       <div class="ai-insight-card">
-        <div class="ai-insight-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> AI Insight — just for you</div>
+        <div class="ai-insight-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> What the AI says</div>
         <div class="ai-insight-text" id="aiTaxInsightText"></div>
         <div id="aiTaxLearnMore" class="ai-learn-more" style="display:none;"></div>
       </div>
@@ -590,7 +590,7 @@
       const pct = Math.round((r.takeHome / (proProfile.freedom_number * 0.04)) * 100);   // freedom number ÷ 25 = the yearly income it pays
       const sRate = proProfile.savings_rate || 0;
       const towardFreedom = Math.round(r.takeHome * sRate / 100 / 52);
-      t1Text.innerHTML = `Your take-home is <strong>${pct}%</strong> of the yearly income your freedom number (${fmtDollars(proProfile.freedom_number)}) is built to pay you (${fmtDollars(proProfile.freedom_number * 0.04)}/yr). At your current savings rate of ${sRate}%, that's <strong>${fmtDollars(towardFreedom)}/week</strong> actually moving toward freedom — the rest funds today.`;
+      t1Text.innerHTML = `Your take-home is <strong>${pct}%</strong> of the yearly income your freedom number (${fmtDollars(proProfile.freedom_number)}) is built to pay you (${fmtDollars(proProfile.freedom_number * 0.04)}/yr). At your current savings rate of ${sRate}%, that's <strong>${fmtDollars(towardFreedom)}/week</strong> going towards freedom — the rest funds today.`;
       t1Insight.style.display = 'block';
     } else {
       t1Insight.style.display = 'none';
@@ -658,7 +658,7 @@
       t2Insight.style.display = 'block';
     } else if (proProfile && proProfile.age >= 60) {
       if (t2Compare) t2Compare.innerHTML = '';
-      t2Text.innerHTML = `You're past preservation age — sacrificing now still saves tax, but the super is already accessible rather than compounding toward a future unlock date.`;
+      t2Text.innerHTML = `You're over 60, so salary sacrifice still saves tax, and you may already be able to get to your super.`;
       if (t2Link) t2Link.style.display = 'none';
       t2Insight.style.display = 'block';
     } else {
@@ -702,12 +702,12 @@
       const diffYrs = (baseY !== null && newY !== null) ? baseY - newY : null;
       if (r.offsetBetter) {
         t3Text.innerHTML = diffYrs !== null
-          ? `Switching your ${fmtDollars(offsetBalance)} offset to investing would push your freedom date back by roughly <strong>${fmtYrs(Math.abs(diffYrs))}</strong> at today's rates. Your offset is doing the right job for now.`
-          : `Your offset is currently the stronger move — keep it as is for now.`;
+          ? `Switching your ${fmtDollars(offsetBalance)} offset to investing would push your freedom date back by roughly <strong>${fmtYrs(Math.abs(diffYrs))}</strong> at today's rates. Your offset is doing better for now.`
+          : `Your offset is doing better for now.`;
       } else {
         t3Text.innerHTML = diffYrs !== null
           ? `Redirecting your ${fmtDollars(offsetBalance)} offset into investing could bring your freedom date forward by roughly <strong>${fmtYrs(diffYrs)}</strong>.`
-          : `Investing this balance looks like the stronger long-term move based on your numbers.`;
+          : `On your numbers, investing this balance comes out ahead over the long run.`;
       }
       t3Insight.style.display = 'block';
     } else {
@@ -809,7 +809,7 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
         } catch(e) { console.log('Tax insight save failed', e); }
       }
     } catch(e) {
-      document.getElementById('aiTaxInsightText').innerHTML = 'Something went wrong connecting to the AI. Please try again.';
+      document.getElementById('aiTaxInsightText').innerHTML = 'We couldn’t get your AI insight just now. Please try again in a minute.';
       card.style.display = 'block';
       console.error(e);
     } finally {

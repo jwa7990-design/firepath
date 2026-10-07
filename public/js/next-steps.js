@@ -56,23 +56,23 @@ window.FirePathNext = (function () {
   const CALC = { href: '/firepath', label: 'Run the free calculator' };
   const GENERAL = {
     '/withdrawal': [
-      { title: 'See your freedom gap', text: 'How much of your life your investments already pay for — and what fills the rest.', tool: { href: '/freedom-gap', label: 'Open Freedom gap' } },
+      { title: 'See your freedom gap', text: 'How much of your life your savings already pay for, and what fills the rest.', tool: { href: '/freedom-gap', label: 'Open Freedom gap' } },
       { title: 'The 4% rule, in Australia', text: 'Where the rule comes from, and how super and the Age Pension change it here.', article: 'four-percent-rule-australia' },
-      { title: 'Bridge the years before super', text: 'If you stop before 60, your savings outside super carry you until it unlocks.', article: 'before-super-access' },
+      { title: 'Bridge the years before super', text: 'If you stop before 60, your savings outside super carry you until you can get to it.', article: 'before-super-access' },
     ],
     '/hearmeout': [
-      { title: 'Watch compounding work', text: 'What a regular amount grows into — and the cost of waiting five years.', tool: { href: '/compound', label: 'Open Compounding' } },
-      { title: 'Pay off debt or invest?', text: 'When clearing a loan beats investing, and when it doesn\'t.', article: 'debt-vs-invest' },
-      { title: 'Stress-test your withdrawals', text: 'Check a portfolio survives a bad run of markets when you start drawing on it.', tool: { href: '/withdrawal', label: 'Run the stress test' } },
+      { title: 'Watch compounding work', text: 'What a regular amount grows into, and what waiting five years costs.', tool: { href: '/compound', label: 'Open Compound interest' } },
+      { title: 'Pay off debt or invest?', text: 'When clearing a loan beats investing, and when it doesn’t.', article: 'debt-vs-invest' },
+      { title: 'See if your money will last', text: 'Check your savings hold up if markets have a bad run when you start drawing on them.', tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' } },
     ],
     '/compound': [
-      { title: 'Living off what you\'ve built', text: 'How much a portfolio can pay you each year, and whether it lasts.', tool: { href: '/withdrawal', label: 'Open Withdrawal' } },
-      { title: 'How compound interest works', text: 'Why time matters more than the amount — in plain English.', article: 'how-compound-interest-works' },
+      { title: 'Living off what you’ve built', text: 'How much your savings can pay you each year, and whether they’ll last.', tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' } },
+      { title: 'How compound interest works', text: 'Why time matters more than the amount, in plain English.', article: 'how-compound-interest-works' },
       { title: 'What an extra $50 a week does', text: 'A small change, worked through with real numbers.', article: 'extra-50-a-week-impact' },
     ],
     '/freedom-gap': [
-      { title: 'Stress-test your withdrawals', text: 'Check your portfolio survives a bad run of markets in the first years.', tool: { href: '/withdrawal', label: 'Run the stress test' } },
-      { title: 'Could you work less now?', text: 'Coast FIRE: when your savings can grow on their own and part-time work covers today.', article: 'what-is-coast-fire' },
+      { title: 'See if your money will last', text: 'Check your savings hold up if markets have a bad run in the first years.', tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' } },
+      { title: 'Could you work less now?', text: 'When your savings can grow on their own and part-time work covers today’s costs.', article: 'what-is-coast-fire' },
       { title: 'Is your super enough?', text: 'What super and the Age Pension add once you reach 60 and 67.', article: 'is-my-super-enough' },
     ],
   };
@@ -139,7 +139,7 @@ window.FirePathNext = (function () {
   function showDeviceNote(noteEl) {
     if (!noteEl) return;
     injectCss();
-    noteEl.textContent = 'Filled in from your free calculator results on this device — change any number. ';
+    noteEl.textContent = 'Filled in from your free calculator results on this device. Change any number you like. ';
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'fp-device-clear';

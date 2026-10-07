@@ -12,20 +12,20 @@ const SITE = 'https://www.firepath.pro';
 // Free tools people search for. Title ≤ ~60 characters, description ≤ ~155.
 const TOOLS = {
   'firepath.html': { path: '/firepath', title: 'FIRE Calculator Australia — find your freedom date | FirePath',
-    description: 'Free Australian FIRE calculator: find the year work could become optional, see a realistic range across 2,000 market futures, and the moves that bring it closer. No sign-up.',
+    description: 'Free Australian FIRE calculator. Find the year work could become optional, see a realistic range, and the moves that bring it closer. No account needed.',
     app: 'FirePath freedom calculator' },
   'withdrawal.html': { path: '/withdrawal', title: 'Will my money last? Retirement withdrawal calculator | FirePath',
-    description: 'Test a retirement withdrawal rate the way markets really behave: the odds your money lasts 30 years across 2,000 market futures, in today’s dollars. Free, Australian.',
-    app: 'Retirement withdrawal stress test' },
+    description: 'Will your money last? Test a withdrawal rate the way markets really behave: the odds it lasts 30 years, in today’s dollars. Free and Australian.',
+    app: 'Withdrawal planner' },
   'hearmeout.html': { path: '/hearmeout', title: 'Money what-if calculator — sell the house, lump sums & more | FirePath',
-    description: 'Run life’s big money decisions through your numbers: sell or downsize the house, a lump sum or redundancy, paying off a loan, renting vs buying. Free, no sign-up.',
-    app: 'FirePath scenario explorer' },
+    description: 'Run life’s big money decisions through your numbers: sell or downsize the house, a lump sum or redundancy, paying off a loan, renting vs buying. Free, no account needed.',
+    app: 'What if…? money scenarios' },
   'freedom-gap.html': { path: '/freedom-gap', title: 'Coast FIRE & part-time freedom calculator Australia | FirePath',
     description: 'How close is your portfolio to paying your way? See your freedom gap, what the Age Pension adds from 67, and how many hours of part-time work would close it.',
-    app: 'Freedom gap calculator' },
+    app: 'Freedom gap' },
   'compound.html': { path: '/compound', title: 'Compound interest calculator Australia — regular investing | FirePath',
     description: 'See what regular weekly, fortnightly or monthly investing grows into — how much is your money and how much is growth, and what waiting really costs. Free.',
-    app: 'Compound interest calculator' },
+    app: 'Compound interest' },
 };
 
 function block(file, html) {

@@ -99,7 +99,7 @@ window.FirePathEngine = (function () {
         const { moves } = M.rank(s);
         const top = moves[0];
         if (top) return fromMove(top);
-        if (s.alreadyFree) return { type: 'tool', name: 'Run the stress test', url: '/withdrawal', headline: 'Stress-test your withdrawals.', reason: "You've reached your number. Check your plan survives a bad run of markets in the first years of drawing down.", impact: null };
+        if (s.alreadyFree) return { type: 'tool', name: 'Open the Withdrawal planner', url: '/withdrawal', headline: 'See if your money will last.', reason: "You've reached your number. Check your plan holds up if markets have a bad run in your first years of drawing down.", impact: null };
       } catch (e) { /* fall through to the simple rules */ }
     }
     return legacyNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund);
@@ -115,16 +115,16 @@ window.FirePathEngine = (function () {
   // Simple rules for pages without moves.js. Questions go to tools or articles that
   // actually answer them (Ask FirePath can't model debt payoff or cash vs investing).
   function legacyNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund) {
-    if (sRate === 0) return { type: 'learn', topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', headline: 'Understand what FIRE actually means for you.', reason: 'You\'re not saving yet — this is worth understanding before anything else.' };
-    if (hasEmergencyFund === false) return { type: 'learn', topic: 'emergency-fund', track: 'foundation', title: 'Why an emergency fund comes before investing', headline: 'Build your emergency buffer.', reason: 'You told us you don\'t have money set aside for emergencies yet — worth understanding why this usually comes before optimising anything else.' };
-    if (debt > 0) return { type: 'learn', topic: 'debt-vs-invest', url: '/learn/debt-vs-invest', title: 'Should I pay off debt or invest first?', headline: 'Clear high-interest debt first.', reason: 'Cards and personal loans usually cost more than any investment reliably earns — paying them off is a guaranteed return.' };
-    if (persona === 'fire') return { type: 'tool', name: 'Withdrawal Modeling', url: 'withdrawal.html', headline: 'Stress-test how long your money lasts.', reason: 'Worth stress-testing how long your portfolio actually lasts once you stop working.' };
-    if (superBal > 0 && age && age < 45) return { type: 'learn', topic: 'two-phase', track: 'foundation', title: 'Your two-phase freedom timeline', headline: 'See how your two timelines interact.', reason: `With super locked until 60, understanding how your two timelines interact is worth exploring.` };
-    if (savingsType === 'cash') return { type: 'learn', topic: 'what-is-an-index-fund', url: '/learn/what-is-an-index-fund', title: 'What is an index fund?', headline: 'See what your cash could be doing instead.', reason: 'Money in the bank barely keeps up with inflation. Above your emergency buffer, this explains the simplest way most people invest.' };
-    if (savingsType === 'etfs') return { type: 'tool', name: 'Scenario Explorer', url: 'hearmeout.html', headline: 'Find out what a bit more each month buys you.', reason: 'Try different saving amounts and see how each one moves your date.' };
-    if (savingsType === 'offset') return { type: 'explore', name: 'Scenario Explorer', url: 'hearmeout.html?scenario=loan', headline: 'Compare your offset against investing.', reason: 'Compare what your offset is really doing against investing that same money.' };
-    if (savingsType === 'mix') return { type: 'learn', topic: 'diversification', track: '5', title: 'What diversification actually means', headline: 'Understand what you\'re actually holding.', reason: 'With a mix of savings types, this explores how to think about what you\'re holding and why.' };
-    return { type: 'learn', topic: 'compounding', track: 'foundation', title: 'How compound interest actually works', headline: 'Get the one concept that changes everything.', reason: 'The single most important concept behind your freedom number — worth really understanding.' };
+    if (sRate === 0) return { type: 'learn', topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', headline: 'See what FIRE could mean for you.', reason: 'You’re not saving yet, so this is a good place to start.' };
+    if (hasEmergencyFund === false) return { type: 'learn', topic: 'emergency-fund', track: 'foundation', title: 'Why an emergency fund comes before investing', headline: 'Build your emergency buffer.', reason: 'You told us you don\'t have money set aside for emergencies yet — here’s why that usually comes before anything else.' };
+    if (debt > 0) return { type: 'learn', topic: 'debt-vs-invest', url: '/learn/debt-vs-invest', title: 'Should I pay off debt or invest first?', headline: 'Clear high-interest debt first.', reason: 'Cards and personal loans usually cost more than investing reliably earns. Every dollar you pay off saves that interest, guaranteed.' };
+    if (persona === 'fire') return { type: 'tool', name: 'Withdrawal planner', url: 'withdrawal.html', headline: 'See if your money will last.', reason: 'Worth checking how long your savings last once you stop working.' };
+    if (superBal > 0 && age && age < 45) return { type: 'learn', topic: 'two-phase', track: 'foundation', title: 'Your savings now, your super at 60', headline: 'See how your savings and super fit together.', reason: `You can’t get to your super until 60, so it’s worth seeing how your savings carry you until then.` };
+    if (savingsType === 'cash') return { type: 'learn', topic: 'what-is-an-index-fund', url: '/learn/what-is-an-index-fund', title: 'What is an index fund?', headline: 'See what your cash could be doing instead.', reason: 'Money in the bank barely keeps up with inflation. Past your emergency buffer, this explains the simplest way most people invest.' };
+    if (savingsType === 'etfs') return { type: 'tool', name: 'What if…?', url: 'hearmeout.html', headline: 'See what a bit more each month does for you.', reason: 'Try different saving amounts and see how each one moves your date.' };
+    if (savingsType === 'offset') return { type: 'explore', name: 'What if…?', url: 'hearmeout.html?scenario=loan', headline: 'Compare your offset against investing.', reason: 'See what your offset saves you compared with investing the same money.' };
+    if (savingsType === 'mix') return { type: 'learn', topic: 'diversification', track: '5', title: 'What diversification means', headline: 'Get to know what you’re holding.', reason: 'You’ve got a mix of savings, so this helps you think about what you’re holding and why.' };
+    return { type: 'learn', topic: 'compounding', track: 'foundation', title: 'How compound interest works', headline: 'Get your head around compound interest.', reason: 'It’s the idea behind your freedom number, so it’s worth knowing well.' };
   }
  
   // Finds the youngest age (from currentAge) at which portfolio income — plus the Age

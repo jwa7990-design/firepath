@@ -202,7 +202,7 @@
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-      if (data.error) { showError(err, data.error_description || 'Invalid email or password.'); btn.disabled = false; btn.textContent = 'Sign in →'; return; }
+      if (data.error) { showError(err, data.error_description || 'That email and password don’t match. Have another go.'); btn.disabled = false; btn.textContent = 'Sign in →'; return; }
       setStore('fp_access_token', data.access_token);
       setStore('fp_user_id', data.user.id);
       setStore('fp_email', data.user.email);
@@ -227,7 +227,7 @@
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
-      if (data.error || data.error_code || data.code) { showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error || 'Could not create account.')); btn.disabled = false; btn.textContent = 'Create account and start trial →'; return; }
+      if (data.error || data.error_code || data.code) { showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error || 'We couldn’t create your account. Please try again.')); btn.disabled = false; btn.textContent = 'Create account and start trial →'; return; }
       success.style.display = 'block'; btn.textContent = 'Check your email';
     } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Create account and start trial →'; }
   }
@@ -284,7 +284,7 @@
       const token = hashParams.get('access_token');
 
       if (!token) {
-        showError(err, 'Session expired. Please request a new password reset email.');
+        showError(err, 'That reset link has run out. Ask for a new one and try again.');
         btn.disabled = false; btn.textContent = 'Save new password →';
         return;
       }
@@ -302,7 +302,7 @@
       console.log('Reset response:', data);
 
       if (data.error || !data.id) {
-        showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error_description || data.error || 'Something went wrong.'));
+        showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error_description || data.error || 'Something went wrong. Please try again.'));
         btn.disabled = false; btn.textContent = 'Save new password →';
         return;
       }

@@ -133,7 +133,7 @@
         </div>
         <div id="qfw-success">
           <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto;display:block;"><path d="M20 6L9 17l-5-5"/></svg>
-          <div id="qfw-success-text">Thanks — genuinely.</div>
+          <div id="qfw-success-text">Thanks so much.</div>
         </div>
         <a href="/feedback.html" id="qfw-deeper">Want to share more detail? →</a>
       </div>
