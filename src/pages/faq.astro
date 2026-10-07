@@ -1,7 +1,7 @@
 ---
 /**
- * FAQ — the question list (src/data/faq.ts) drives the page, the category chips, the
- * search and the FAQPage data Google reads. To add a question, add it there.
+ * FAQ — the question list (src/data/faq.ts) drives the page, the topic list and the
+ * FAQPage data Google reads. To add a question, add it there.
  */
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
@@ -9,7 +9,6 @@ import '../styles/doc.css';
 import '../styles/faq.css';
 import { FAQ } from '../data/faq';
 
-const total = FAQ.reduce((n, c) => n + c.items.length, 0);
 const schema = {
   '@context': 'https://schema.org', '@type': 'FAQPage',
   mainEntity: FAQ.flatMap(c => c.items.map(i => ({ '@type': 'Question', name: i.q, acceptedAnswer: { '@type': 'Answer', text: i.a } }))),
@@ -29,19 +28,15 @@ const schema = {
       <span class="doc-eyebrow">Help centre</span>
       <h1 class="doc-title">Common <span class="accent">questions</span></h1>
       <p class="doc-lead">Plain answers to the things people ask most. Can't find what you need? Email us and a real person will reply.</p>
-      <div class="faq-search">
-        <Icon name="search" size={18}/>
-        <input id="faqSearch" type="search" placeholder={`Search ${total} answers…`} aria-label="Search the FAQ" autocomplete="off"/>
-        <span class="faq-search-count" id="faqCount" aria-live="polite"></span>
-      </div>
-      <nav class="faq-chips" aria-label="FAQ topics">
-        {FAQ.map(c => <a href={`#${c.id}`} class="faq-chip"><Icon name={c.icon} size={14}/>{c.title}<span>{c.items.length}</span></a>)}
-      </nav>
     </div>
   </header>
 
   <div class="doc-body faq-body">
     <nav class="doc-toc" aria-label="Topics">
+      <details class="doc-toc-mobile">
+        <summary>Topics <Icon name="chevron" size={14} stroke={2.2}/></summary>
+        <ol>{FAQ.map(c => <li><a href={`#${c.id}`}><span class="doc-toc-num">{c.items.length}</span>{c.title}</a></li>)}</ol>
+      </details>
       <div class="doc-toc-desktop">
         <p class="doc-toc-label">Topics</p>
         <ol>{FAQ.map(c => <li><a href={`#${c.id}`} data-toc={c.id}><span class="doc-toc-num">{c.items.length}</span>{c.title}</a></li>)}</ol>
@@ -74,10 +69,6 @@ const schema = {
         </section>
       ))}
 
-      <div class="faq-empty" id="faqEmpty" hidden>
-        <strong>No answers match that yet.</strong>
-        <p>Try a different word, or ask us directly. Every question helps us improve this page.</p>
-      </div>
 
       <aside class="doc-contact">
         <span class="doc-contact-icon"><Icon name="mail" size={20}/></span>
@@ -111,28 +102,10 @@ const schema = {
     const target = location.hash.startsWith('#q-') ? document.getElementById(location.hash.slice(1)) : null;
     if (target) { setOpen(target, true); requestAnimationFrame(() => target.scrollIntoView({ block: 'center' })); }
 
-    // Search: filters as you type, hides topics with no matches.
-    const input = document.getElementById('faqSearch') as HTMLInputElement;
-    const count = document.getElementById('faqCount')!;
-    const empty = document.getElementById('faqEmpty')!;
-    const groups = Array.from(document.querySelectorAll<HTMLElement>('.faq-group'));
-    const text = new Map(items.map(i => [i, (i.textContent || '').toLowerCase()]));
-    input.addEventListener('input', () => {
-      const words = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
-      let shown = 0;
-      items.forEach(i => {
-        const match = words.every(w => text.get(i)!.includes(w));
-        i.hidden = !match;
-        if (match) shown++;
-        if (words.length && match && shown <= 3) setOpen(i, true);   // open the best few
-      });
-      groups.forEach(g => { g.hidden = !g.querySelector('.faq-item:not([hidden])'); });
-      empty.hidden = shown > 0;
-      count.textContent = words.length ? `${shown} ${shown === 1 ? 'answer' : 'answers'}` : '';
-      refreshToc?.();
-    });
 
-    // Topic list follows your scrolling (re-checked after each search).
-    const refreshToc = followSections();
+    // Topic list follows your scrolling.
+    followSections();
+    // Close the phone topics menu after choosing one.
+    document.querySelectorAll('.doc-toc-mobile a').forEach(a => a.addEventListener('click', () => a.closest('details')?.removeAttribute('open')));
   </script>
 </Base>
