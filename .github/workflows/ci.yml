@@ -1,0 +1,41 @@
+# Automatic checks on every push and pull request: the tests, the site build and
+# a syntax check of the inline scripts in public/*.html. Read-only: it never
+# deploys anything (Cloudflare Pages and wrangler handle that separately).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Check inline scripts
+        run: npm run check:scripts
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build

@@ -86,6 +86,29 @@
     .cancel-done { font-size: 13.5px; color: var(--ink-2); padding: 12px 0; }
 
     .signout-btn { color: var(--negative); height: 48px; }
+
+    /* Your data: download a copy, delete the account */
+    button.row-action { background: none; border: none; padding: 6px 0; font-family: inherit; cursor: pointer; }
+    button.row-action:hover { text-decoration: underline; text-underline-offset: 3px; }
+    button.row-action:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; border-radius: 4px; }
+    button.row-action:disabled { opacity: 0.6; cursor: default; text-decoration: none; }
+    .data-status { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; margin: 10px 2px 0; }
+    .data-status:empty { display: none; }
+    .data-status.is-error { color: var(--negative); }
+    .delete-confirm { margin-top: 10px; }
+    .delete-confirm h3 { font-size: 15px; font-weight: 600; color: var(--negative); margin: 0 0 8px; }
+    .delete-confirm h3:focus { outline: none; }
+    .delete-confirm ul { margin: 0 0 14px; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: var(--ink); }
+    .delete-confirm li { margin-bottom: 6px; }
+    .delete-confirm label { display: block; font-size: 13.5px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+    .delete-confirm .input { margin-bottom: 12px; text-transform: uppercase; }
+    .delete-confirm .data-status { margin: 12px 0 0; }
+    .delete-done { padding: 22px 20px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
+    .delete-done:focus { outline: none; }
+    .delete-done h2 { font-family: var(--font-display); font-size: 22px; color: var(--ink); margin: 0 0 8px; }
+    .delete-done p { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; margin: 0 0 14px; }
+    .delete-done .btn { display: inline-flex; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body class="app" data-shell="app">
@@ -203,11 +226,61 @@
     <div id="cancelDone" class="cancel-done" style="display:none;">Done. You’re still Pro until the end of the month you’ve paid for.</div>
   </div>
 
+  <section class="account-section" aria-labelledby="yourDataLabel">
+    <div class="section-head"><h2 class="section-label" id="yourDataLabel">Your data</h2></div>
+    <div class="settings-list">
+      <div class="settings-row">
+        <div class="sr-left">
+          <div class="sr-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></div>
+          <div>
+            <div class="sr-title">Download my data</div>
+            <div class="sr-value">A copy of everything saved in your account, as a file</div>
+          </div>
+        </div>
+        <button type="button" class="row-action" id="exportBtn">Download →</button>
+      </div>
+      <div class="settings-row" id="deleteRow">
+        <div class="sr-left">
+          <div class="sr-icon danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></div>
+          <div>
+            <div class="sr-title">Delete my account</div>
+            <div class="sr-value">Removes your account and everything saved in it</div>
+          </div>
+        </div>
+        <button type="button" class="row-action danger" id="deleteOpenBtn" aria-expanded="false" aria-controls="deleteConfirm">Delete →</button>
+      </div>
+    </div>
+    <p class="data-status" id="exportStatus" role="status" aria-live="polite"></p>
+
+    <div id="deleteConfirm" class="cancel-confirm delete-confirm" role="group" aria-labelledby="deleteConfirmTitle" hidden>
+      <h3 id="deleteConfirmTitle" tabindex="-1">Delete your FirePath account?</h3>
+      <ul>
+        <li>If you have Pro, it’s cancelled straight away. There’s no refund for the rest of the month, as this is a change of mind. Your rights under Australian Consumer Law aren’t affected.</li>
+        <li>Your saved plan, check-ins and Learning Lab progress are deleted for good. This can’t be undone.</li>
+        <li>Want a copy first? Use “Download my data” above before you go.</li>
+      </ul>
+      <label for="deleteConfirmInput">Type DELETE to confirm</label>
+      <input class="input" id="deleteConfirmInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="deleteStatus"/>
+      <div class="cancel-confirm-actions">
+        <button type="button" id="deleteConfirmBtn" class="btn btn-danger" disabled>Delete my account</button>
+        <button type="button" id="deleteKeepBtn" class="btn btn-quiet">Keep my account</button>
+      </div>
+      <p class="data-status" id="deleteStatus" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
   <section class="account-section">
     <div class="section-head"><h2 class="section-label">Sign out</h2></div>
     <button class="btn btn-quiet btn-block signout-btn" onclick="FirePathAuth.signOut()">Sign out of FirePath</button>
   </section>
 
+</div>
+
+<div class="account-wrap delete-done" id="deleteDone" tabindex="-1" role="status" aria-live="polite" hidden>
+  <h2>Your account’s been deleted</h2>
+  <p>Thanks for giving FirePath a go. Your account and everything saved in it are gone, any Pro subscription is cancelled, and you’re signed out on this device.</p>
+  <p>The free tools are still here whenever you want them, no account needed.</p>
+  <a href="/" class="btn btn-primary">Back to FirePath</a>
 </div>
 </main>
 
@@ -282,6 +355,127 @@ document.addEventListener('DOMContentLoaded', async function() {
       alert("We couldn’t cancel just now. Please try again, or email us at hello@firepath.pro and we’ll cancel it for you.");
       btn.textContent = 'Yes, cancel'; btn.disabled = false;
     }
+  });
+
+  /* ── Your data ── */
+  const exportBtn = document.getElementById('exportBtn');
+  const exportStatus = document.getElementById('exportStatus');
+  function setStatus(el, msg, isError) {
+    el.textContent = msg;
+    el.classList.toggle('is-error', !!isError);
+  }
+  // Short text from the Worker's JSON error, if it sent one.
+  async function serverMessage(res) {
+    try {
+      const data = await res.clone().json();
+      return data && typeof data.error === 'string' && data.error.length <= 200 ? data.error : '';
+    } catch (e) { return ''; }
+  }
+  function todayStamp() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  exportBtn.addEventListener('click', async () => {
+    const original = exportBtn.textContent;
+    exportBtn.disabled = true;
+    exportBtn.textContent = 'Preparing…';
+    setStatus(exportStatus, 'Getting your data ready…');
+    try {
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/account/export`);
+      if (!res.ok) {
+        const msg = await serverMessage(res);
+        throw new Error(msg || 'export_failed');
+      }
+      const blob = new Blob([await res.text()], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `firepath-data-${todayStamp()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      setStatus(exportStatus, `Done. Your data has downloaded as ${a.download}. Keep it somewhere safe, as it holds your money details.`);
+    } catch (err) {
+      const known = err && err.message && err.message !== 'export_failed' && !/fetch|network/i.test(err.message);
+      setStatus(exportStatus, (known ? err.message + ' ' : 'We couldn’t get your data just now. ') + 'If it keeps happening, email hello@firepath.pro and we’ll send it to you.', true);
+    } finally {
+      exportBtn.disabled = false;
+      exportBtn.textContent = original;
+    }
+  });
+
+  const deleteOpenBtn = document.getElementById('deleteOpenBtn');
+  const deleteConfirm = document.getElementById('deleteConfirm');
+  const deleteInput = document.getElementById('deleteConfirmInput');
+  const deleteBtn = document.getElementById('deleteConfirmBtn');
+  const deleteStatus = document.getElementById('deleteStatus');
+  const confirmed = () => deleteInput.value.trim().toUpperCase() === 'DELETE';
+
+  function closeDelete() {
+    deleteConfirm.hidden = true;
+    deleteOpenBtn.setAttribute('aria-expanded', 'false');
+    deleteInput.value = '';
+    deleteBtn.disabled = true;
+    setStatus(deleteStatus, '');
+    deleteOpenBtn.focus();
+  }
+  deleteOpenBtn.addEventListener('click', () => {
+    if (!deleteConfirm.hidden) { closeDelete(); return; }
+    deleteConfirm.hidden = false;
+    deleteOpenBtn.setAttribute('aria-expanded', 'true');
+    document.getElementById('deleteConfirmTitle').focus();
+  });
+  document.getElementById('deleteKeepBtn').addEventListener('click', closeDelete);
+  deleteConfirm.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !deleteBtn.dataset.busy) closeDelete();
+  });
+  deleteInput.addEventListener('input', () => { deleteBtn.disabled = !confirmed(); });
+  deleteInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && confirmed() && !deleteBtn.disabled) deleteBtn.click();
+  });
+
+  deleteBtn.addEventListener('click', async () => {
+    if (!confirmed() || deleteBtn.dataset.busy) return;
+    deleteBtn.dataset.busy = '1';
+    deleteBtn.disabled = true;
+    deleteInput.disabled = true;
+    deleteBtn.textContent = 'Deleting…';
+    setStatus(deleteStatus, 'Deleting your account. This can take a few seconds…');
+    let res = null, data = null;
+    try {
+      res = await FirePathAuth.fetch(`${WORKER_URL}/account/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: 'DELETE' })
+      });
+      try { data = await res.json(); } catch (e) {}
+    } catch (e) { res = null; }
+
+    if (res && res.ok && data && data.ok === true) {
+      // Gone: forget this device's session and money details (the same clearing
+      // as signing out), then say goodbye in place of the account page.
+      try { FirePathAuth.clearUserData(); } catch (e) {}
+      document.querySelectorAll('.app-main > .account-wrap:not(#deleteDone)').forEach(el => { el.hidden = true; });
+      const done = document.getElementById('deleteDone');
+      done.hidden = false;
+      done.focus();
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    // Didn't finish. Say what we know and how to get help; they can try again.
+    const serverMsg = data && typeof data.error === 'string' && data.error.length <= 200 ? data.error + ' ' : '';
+    const fallback = !res
+      ? 'We couldn’t reach FirePath just now, so nothing has changed. Please check your connection and try again. '
+      : 'We couldn’t finish deleting your account just now. ';
+    setStatus(deleteStatus, (serverMsg || fallback) + 'If it keeps happening, email hello@firepath.pro and we’ll delete it for you.', true);
+    delete deleteBtn.dataset.busy;
+    deleteInput.disabled = false;
+    deleteBtn.textContent = 'Delete my account';
+    deleteBtn.disabled = !confirmed();
+    deleteBtn.focus();
   });
 });
 </script>

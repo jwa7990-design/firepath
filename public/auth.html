@@ -75,6 +75,8 @@
   .terms-note a { color: var(--ember-ink); font-weight: 500; text-decoration: none; }
   .terms-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
+  .captcha-slot { display: flex; justify-content: center; margin: 4px 0 8px; }
+  .captcha-slot:empty { display: none; }
   .back-link { text-align: center; margin-top: 20px; }
   .back-link a { font-size: 13.5px; color: var(--ink-2); text-decoration: none; }
   .back-link a:hover { color: var(--ink); }
@@ -109,6 +111,7 @@
           <button type="button" class="eye-btn" onclick="toggleEye('loginPassword', this)" tabindex="-1" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
       </div>
+      <div class="captcha-slot" id="loginCaptcha"></div>
       <button class="btn btn-primary btn-lg btn-block cta-btn" id="loginBtn" onclick="login()">Sign in →</button>
       <div class="auth-forgot">
         <a href="#" onclick="forgotPassword(event)">Forgot password?</a>
@@ -131,6 +134,7 @@
           <button type="button" class="eye-btn" onclick="toggleEye('signupPassword', this)" tabindex="-1" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
       </div>
+      <div class="captcha-slot" id="signupCaptcha"></div>
       <button class="btn btn-primary btn-lg btn-block cta-btn" id="signupBtn" onclick="signup()">Create account and start trial →</button>
       <p class="terms-note">By creating an account you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy policy</a>.</p>
       <p class="error-msg" id="signupError"></p>
@@ -161,6 +165,76 @@
 </div>
 </main>
 <script>
+  // ── Cloudflare Turnstile: the "are you a person?" check ──
+  // Off while this is empty: nothing extra loads and signing in works as before.
+  // To switch it on, paste the site key from Cloudflare dashboard → Turnstile here
+  // (and give the Worker the matching secret). The widget then sits quietly on
+  // sign-in, start-free-trial and forgot-password, and only asks for a tap when
+  // Cloudflare isn't sure. Its answer goes to the Worker as captcha_token.
+  const TURNSTILE_SITE_KEY = '';
+
+  const CAPTCHA_WAIT_MSG = 'We’re just checking you’re a person, not a bot. Please wait a few seconds and try again.';
+  const fpCaptcha = (function () {
+    const enabled = !!TURNSTILE_SITE_KEY;
+    const slots = { login: 'loginCaptcha', signup: 'signupCaptcha' };
+    const widgets = {}, tokens = {};
+    let ready = null;
+
+    function load() {
+      if (!enabled) return Promise.resolve(false);
+      if (ready) return ready;
+      ready = new Promise(resolve => {
+        window.fpTurnstileLoaded = () => resolve(true);
+        const s = document.createElement('script');
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=fpTurnstileLoaded';
+        s.async = true; s.defer = true;
+        s.onerror = () => resolve(false);
+        document.head.appendChild(s);
+      });
+      return ready;
+    }
+
+    // Puts the widget in the form the first time that form is used or shown.
+    async function mount(form) {
+      if (!enabled || widgets[form] != null) return;
+      if (!(await load()) || !window.turnstile || widgets[form] != null) return;
+      const el = document.getElementById(slots[form]);
+      if (!el) return;
+      widgets[form] = window.turnstile.render(el, {
+        sitekey: TURNSTILE_SITE_KEY,
+        action: form,
+        appearance: 'interaction-only',
+        size: 'flexible',
+        callback: t => { tokens[form] = t; },
+        'expired-callback': () => { tokens[form] = null; },
+        'error-callback': () => { tokens[form] = null; }
+      });
+    }
+
+    // null when switched off (send nothing extra), the token when there is one,
+    // or false if none arrived in time (the caller asks them to try again).
+    async function token(form) {
+      if (!enabled) return null;
+      await mount(form);
+      const until = Date.now() + 8000;
+      while (!tokens[form] && Date.now() < until) await new Promise(r => setTimeout(r, 200));
+      return tokens[form] || false;
+    }
+
+    // Each token works once: get a fresh one after every attempt.
+    function reset(form) {
+      if (!enabled) return;
+      tokens[form] = null;
+      try { if (widgets[form] != null && window.turnstile) window.turnstile.reset(widgets[form]); } catch (e) {}
+    }
+
+    function body(data, t) {
+      return JSON.stringify(t ? Object.assign({}, data, { captcha_token: t }) : data);
+    }
+
+    return { enabled, mount, token, reset, body };
+  })();
+
   // Supabase rejects passwords that have appeared in known data breaches.
   const WEAK_PASSWORD_MSG = "That password has shown up in a known data breach, so it isn't safe to use. Please choose a different one — a short phrase of a few words works well.";
   const isWeakPassword = d => d && (d.error_code === 'weak_password' || d.code === 'weak_password' || !!d.weak_password);
@@ -188,6 +262,7 @@
     document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
     document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
     document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+    fpCaptcha.mount(tab);
   }
 
   async function login() {
@@ -198,10 +273,12 @@
     if (!email || !password) { showError(err, 'Please enter your email and password.'); return; }
     btn.disabled = true; btn.textContent = 'Signing in...'; err.style.display = 'none';
     try {
+      const captcha = await fpCaptcha.token('login');
+      if (captcha === false) { showError(err, CAPTCHA_WAIT_MSG); btn.disabled = false; btn.textContent = 'Sign in →'; return; }
       const res = await fetch(`${WORKER_URL}/auth/token?grant_type=password`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+        body: fpCaptcha.body({ email, password }, captcha)
+      }).finally(() => fpCaptcha.reset('login'));
       const data = await res.json();
       if (data.error) { showError(err, data.error_description || 'That email and password don’t match. Have another go.'); btn.disabled = false; btn.textContent = 'Sign in →'; return; }
       if (!data.access_token || !data.user || !data.user.id) throw new Error('No session returned');
@@ -224,10 +301,12 @@
     if (password.length < 8) { showError(err, 'Password must be at least 8 characters.'); return; }
     btn.disabled = true; btn.textContent = 'Creating account...'; err.style.display = 'none';
     try {
+      const captcha = await fpCaptcha.token('signup');
+      if (captcha === false) { showError(err, CAPTCHA_WAIT_MSG); btn.disabled = false; btn.textContent = 'Create account and start trial →'; return; }
       const res = await fetch(`${WORKER_URL}/auth/signup`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+        body: fpCaptcha.body({ email, password }, captcha)
+      }).finally(() => fpCaptcha.reset('signup'));
       const data = await res.json();
       if (data.error || data.error_code || data.code) { showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error || 'We couldn’t create your account. Please try again.')); btn.disabled = false; btn.textContent = 'Create account and start trial →'; return; }
       success.style.display = 'block'; btn.textContent = 'Check your email';
@@ -270,10 +349,12 @@
     if (!email) { showError(err, 'Enter your email address first.'); return; }
     err.style.display = 'none';
     try {
+      const captcha = await fpCaptcha.token('login');
+      if (captcha === false) { showError(err, CAPTCHA_WAIT_MSG); return; }
       const res = await fetch(`${WORKER_URL}/auth/recover`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, redirectTo: 'https://firepath.pro/auth.html' })
-      });
+        body: fpCaptcha.body({ email, redirectTo: 'https://firepath.pro/auth.html' }, captcha)
+      }).finally(() => fpCaptcha.reset('login'));
       if (!res.ok) {
         // Too many tries (429) or another problem: say so, using the server's
         // friendly words when it sends them.
@@ -404,6 +485,7 @@
       }
     } else {
       FirePathAuth.clearSession();
+      fpCaptcha.mount(document.getElementById('signupForm').style.display === 'none' ? 'login' : 'signup');
     }
   }
 </script>

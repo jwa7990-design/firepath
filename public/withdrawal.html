@@ -779,7 +779,7 @@
     const userInput = `Portfolio today: ${money(portfolioToday)}. ${startDesc} Assumed return: ${(returnRate*100).toFixed(1)}% a year after inflation (all figures are in today's money). Withdrawal rate at retirement: ${(withdrawRate*100).toFixed(1)}% (${money(portfolio*withdrawRate)}/yr in today's money, taken at the start of each year and kept at the same buying power throughout). Steady-return result on current settings (${horizon}-year retirement horizon starting from the projected retirement balance; the standard Trinity Study test uses 30): ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.${mcNote}${outlierNote}`;
 
     try {
-      const res = await fetch(WORKER_URL, {
+      const res = await FirePathAuth.fetch(WORKER_URL, {
         method: 'POST',
         headers: aiHeaders(),
         body: JSON.stringify({
@@ -790,7 +790,7 @@
 Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what surviving (or not surviving) the test practically means for someone's retirement, in warm and human terms — not clinical. 3. The market-futures (Monte Carlo) result is the main measure of safety; the steady-return result is only what smooth returns would give. Never call the plan comfortable or safe if the market-futures success rate is under 90%. If the portfolio survives with a buffer, it's fine to mention the ending balance — but frame it as what it actually enables (flexibility to spend more now and taper later, a cushion for the unexpected, something to leave behind) rather than just a number sitting there. 4. Briefly describe what the stronger-returns scenario shows and why even a small return difference compounds into a meaningful gap over decades. 5. Never say "you should" or "I recommend", and never say which option they should choose — frame as something worth understanding, not advice. 6. Never name specific products, funds, ETFs, brokers or platforms. 7. Max 2 short paragraphs. 8. Don't add a disclaimer; the page shows one under your answer. Use <strong> for bold.`,
           messages: [{ role: 'user', content: userInput }]
         })
-      });
+      }, { onExpired: 'none' });
       // Pro has lapsed since the last check — show the Pro note, not an error.
       if (res.status === 401 || res.status === 403) {
         try { if (typeof setStore === 'function') setStore('fp_is_pro', 'false'); } catch (e) {}
@@ -828,7 +828,7 @@ Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what 
     try {
       if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return null;
       if (!(await checkProStatus())) { showAiOutlookEntry(); return null; }
-      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${getUserId()}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${getUserId()}`, {}, { onExpired: 'none' });
       if (!res.ok) return null;
       const rows = await res.json();
       return Array.isArray(rows) && rows[0] ? rows[0] : null;

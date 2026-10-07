@@ -192,11 +192,12 @@
     try {
       // Everyone can send it — signed in or not. The Worker attributes it from the
       // session when there is one and applies the spam protection.
-      const token = typeof getToken === 'function' ? getToken() : null;
+      // Some pages load this without js/auth.js: then it goes without a session.
       const workerUrl = typeof WORKER_URL !== 'undefined' ? WORKER_URL : 'https://firepath-api.jwa7990.workers.dev';
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`${workerUrl}/db/feedback`, { method: 'POST', headers, body: JSON.stringify(payload) });
+      const request = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) };
+      const res = window.FirePathAuth
+        ? await FirePathAuth.fetch(`${workerUrl}/db/feedback`, request, { onExpired: 'none' })
+        : await fetch(`${workerUrl}/db/feedback`, request);
       if (!res.ok) throw new Error(`Quick feedback save failed (${res.status})`);
     } catch (e) {
       // Only show "thanks" once it's actually saved; keep their text so they can retry.

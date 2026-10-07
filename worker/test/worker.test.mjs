@@ -21,18 +21,21 @@ let calls = [];
 let stripeSubs = [];
 // Extra fake state the newer tests set (and reset with resetFakes()).
 let fake = {};
-const resetFakes = () => { fake = { subsById: {}, customers: [], customerSubs: {}, usersByEmail: {}, failProWrite: false, failDb: null, authError: null }; stripeSubs = []; };
+const resetFakes = () => { fake = { subsById: {}, customers: [], customerSubs: {}, usersByEmail: {}, failProWrite: false, failDb: null, authError: null, override: null }; stripeSubs = []; };
 resetFakes();
 globalThis.fetch = async (input, init = {}) => {
   const url = typeof input === 'string' ? input : input.url;
   const call = { url, method: init.method || 'GET', headers: init.headers || {}, body: init.body };
   calls.push(call);
   const reply = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
+  // A test can answer any call itself (return undefined to fall through).
+  if (fake.override) { const r = await fake.override(call, reply); if (r) return r; }
   if (url === `${SUPABASE}/auth/v1/user` && call.method === 'GET') {
     const token = (call.headers.Authorization || '').replace('Bearer ', '');
     const u = USERS[token];
-    return u ? reply({ id: u.id, email: u.email }) : reply({ msg: 'invalid' }, 401);
+    return u ? reply({ id: u.id, email: u.email, created_at: '2026-01-02T03:04:05Z' }) : reply({ msg: 'invalid' }, 401);
   }
+  if (fake.failProWrite && url.startsWith(`${SUPABASE}/rest/v1/users?id=eq.`) && call.method === 'PATCH') return reply({ message: 'relation "users" violates check', code: '23514' }, 500);
   if (url.startsWith(`${SUPABASE}/rest/v1/users?id=eq.`)) {
     const id = decodeURIComponent(url.split('id=eq.')[1].split('&')[0]);
     const u = Object.values(USERS).find(x => x.id === id);
@@ -62,6 +65,9 @@ globalThis.fetch = async (input, init = {}) => {
     return reply({ id: 'sub_1', current_period_end: 1800000000 });
   }
   if (url.startsWith('https://api.stripe.com/v1/billing_portal/sessions')) return reply({ url: 'https://billing.stripe.com/p' });
+  if (url.startsWith('https://api.stripe.com/v1/customers/')) return reply({ id: url.split('/customers/')[1], email: 'customer@example.com' });
+  if (url === 'https://api.stripe.com/v1/balance') return reply({ object: 'balance' });
+  if (url === 'https://www.firepath.pro') return new Response('<html></html>', { status: 200 });
   if (url === 'https://api.resend.com/emails') return reply({ id: 'email' });
   return reply({ error: 'unexpected ' + url }, 500);
 };
@@ -527,7 +533,9 @@ async function signed(payload, secret = env.STRIPE_WEBHOOK_SECRET, ts = Math.flo
   const sig = Array.from(new Uint8Array(mac)).map(b => b.toString(16).padStart(2, '0')).join('');
   return new Request('https://firepath-api.example.workers.dev/stripe/webhook', { method: 'POST', headers: { 'stripe-signature': `t=${ts},v1=${sig}` }, body });
 }
-const proWrites = () => outbound(`${SUPABASE}/rest/v1/users`).filter(c => c.method === 'POST').map(c => JSON.parse(c.body));
+// Pro on = upsert (POST); Pro off = update of an existing row only (PATCH ?id=eq.).
+const proWrites = () => outbound(`${SUPABASE}/rest/v1/users`).filter(c => c.method === 'POST' || c.method === 'PATCH')
+  .map(c => c.method === 'PATCH' ? { id: decodeURIComponent(c.url.split('id=eq.')[1]), ...JSON.parse(c.body) } : JSON.parse(c.body));
 
 test('Webhook: forged or replayed events are rejected', async () => {
   const evt = { type: 'checkout.session.completed', data: { object: { client_reference_id: 'user-free' } } };
@@ -708,4 +716,473 @@ test('RBA figures: missing series, error pages and implausible values are reject
   assert.equal(_internal.latestRbaValue('<html>Service unavailable</html>', 'FIRMMCRTD'), null);
   assert.equal(_internal.latestRbaValue('Series ID,FIRMMCRTD\n01/01/2026,460', 'FIRMMCRTD'), null);
   for (const s of Object.values(_internal.RBA_SERIES)) assert.ok(s.fallback > 0 && s.fallback < 15);
+});
+
+// ════════════════════════ Week 3 ════════════════════════
+const emails = () => outbound('https://api.resend.com/emails').map(c => ({ ...JSON.parse(c.body), headers: c.headers }));
+const ownerEmails = () => emails().filter(e => e.to === 'jwa7990@gmail.com');
+const customerEmails = () => emails().filter(e => e.to !== 'jwa7990@gmail.com');
+
+// ── Account deletion ──
+const deleteReq = (body = { confirm: 'DELETE' }, token = PRO_TOKEN, headers = {}) => req('/account/delete', { token, body, headers });
+const supabaseDeletes = () => outbound(`${SUPABASE}/rest/v1/`).filter(c => c.method === 'DELETE').map(c => c.url.replace(`${SUPABASE}/rest/v1/`, ''));
+const adminDeletes = () => outbound(`${SUPABASE}/auth/v1/admin/users/`).filter(c => c.method === 'DELETE');
+const stripeCancels = () => outbound('https://api.stripe.com/v1/subscriptions/').filter(c => c.method === 'DELETE');
+
+test('Account data: every personal table the proxy allows is covered by delete and export', () => {
+  const covered = new Set(_internal.USER_DATA_TABLES.map(([t]) => t));
+  for (const t of Object.keys(_internal.DB_RULES)) {
+    if (t === 'learning_articles') continue;                // shared content, not personal
+    assert.ok(covered.has(t), t);
+  }
+  // users and fp_profiles go last (other rows may point at them).
+  assert.deepEqual(_internal.USER_DATA_TABLES.slice(-2).map(([t]) => t), ['fp_profiles', 'users']);
+});
+
+test('Account delete: happy path — cancels Stripe now, deletes every table, then the sign-in, and tells the owner', async () => {
+  resetFakes();
+  stripeSubs = [
+    { id: 'sub_live', customer: 'cus_1', status: 'trialing', metadata: { user_id: 'user-pro' } },
+    { id: 'sub_old', customer: 'cus_1', status: 'canceled', metadata: { user_id: 'user-pro' } }
+  ];
+  fake.customers = [{ id: 'cus_2' }];
+  fake.customerSubs = { cus_2: [{ id: 'sub_email', status: 'past_due' }] };
+  const res = await send(deleteReq());
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.steps.stripe, 'cancelled');
+  assert.equal(body.steps.auth, 'deleted');
+  // Only the live subscriptions are cancelled, immediately (DELETE, not cancel_at_period_end).
+  assert.deepEqual(stripeCancels().map(c => c.url.split('/subscriptions/')[1]).sort(), ['sub_email', 'sub_live']);
+  // Every table, with the service key and the right column for this user.
+  const dels = supabaseDeletes();
+  for (const [t, col] of _internal.USER_DATA_TABLES) {
+    assert.ok(dels.includes(`${t}?${col}=eq.user-pro`), t);
+    assert.equal(body.steps.data[t], 'deleted', t);
+  }
+  for (const c of outbound(`${SUPABASE}/rest/v1/`).filter(c => c.method === 'DELETE')) assert.equal(c.headers.Authorization, 'Bearer svc.svc.svc');
+  const admin = adminDeletes();
+  assert.equal(admin.length, 1);
+  assert.equal(admin[0].url, `${SUPABASE}/auth/v1/admin/users/user-pro`);
+  assert.equal(admin[0].headers.apikey, 'svc.svc.svc');
+  // The sign-in is deleted only after every table.
+  const order = calls.map(c => c.method === 'DELETE' ? c.url : null).filter(Boolean);
+  assert.ok(order.indexOf(admin[0].url) > order.findIndex(u => u.includes('/rest/v1/users?')));
+  // Owner notice: user id only — no email address, no financial data.
+  const [notice] = ownerEmails();
+  assert.match(notice.subject, /account deleted/);
+  assert.ok(notice.text.includes('user-pro'));
+  assert.ok(!notice.text.includes('pro@example.com'));
+  assert.equal(customerEmails().length, 0);
+});
+
+test('Account delete: needs a login and {confirm: "DELETE"}', async () => {
+  resetFakes();
+  assert.equal((await send(deleteReq(undefined, null))).status, 401);
+  for (const bad of [{}, { confirm: 'delete' }, { confirm: true }, '[]', 'not json']) {
+    const res = await send(deleteReq(bad));
+    assert.equal(res.status, 400, JSON.stringify(bad));
+    assert.equal(supabaseDeletes().length + adminDeletes().length + stripeCancels().length, 0);
+  }
+});
+
+test('Account delete: if Stripe cancel fails, nothing is deleted (never charged with no account)', async () => {
+  for (const failing of ['cancel', 'search']) {
+    resetFakes();
+    stripeSubs = [{ id: 'sub_live', customer: 'cus_1', status: 'active', metadata: { user_id: 'user-pro' } }];
+    fake.override = (c, reply) => {
+      if (failing === 'cancel' && c.url.startsWith('https://api.stripe.com/v1/subscriptions/sub_live') && c.method === 'DELETE') return reply({ error: { message: 'card_declined' } }, 500);
+      if (failing === 'search' && c.url.startsWith('https://api.stripe.com/v1/subscriptions/search')) throw new TypeError('network down');
+    };
+    const res = await send(deleteReq());
+    assert.equal(res.status, 502, failing);
+    const body = await res.json();
+    assert.equal(body.ok, false);
+    assert.deepEqual(body.failed, ['stripe']);
+    assert.equal(body.steps.auth, 'not_started');
+    assert.match(body.error, /subscription/);
+    assert.equal(supabaseDeletes().length, 0, failing);
+    assert.equal(adminDeletes().length, 0, failing);
+    assert.match(ownerEmails()[0].subject, /incomplete/);
+  }
+  resetFakes();
+});
+
+test('Account delete: a table that fails keeps the sign-in so they can retry; a missing table is skipped', async () => {
+  resetFakes();
+  fake.override = (c, reply) => {
+    if (c.method !== 'DELETE') return;
+    if (c.url.includes('/rest/v1/checkins?')) return reply({ message: 'timeout' }, 500);
+    if (c.url.includes('/rest/v1/financial_learning_progress?')) return reply({ code: 'PGRST205', message: 'Could not find the table' }, 404);
+  };
+  let res = await send(deleteReq());
+  assert.equal(res.status, 502);
+  let body = await res.json();
+  assert.deepEqual(body.failed, ['data:checkins']);
+  assert.equal(body.steps.data.financial_learning_progress, 'skipped');
+  assert.equal(body.steps.data.users, 'deleted');               // the rest still went
+  assert.equal(adminDeletes().length, 0);
+  assert.ok(!JSON.stringify(body).includes('timeout'));          // no internals
+  // Retry once the table works → done (every step is safe to repeat).
+  fake.override = (c, reply) => c.method === 'DELETE' && c.url.includes('financial_learning_progress?') ? reply({ code: 'PGRST205' }, 404) : undefined;
+  res = await send(deleteReq());
+  body = await res.json();
+  assert.equal(res.status, 200);
+  assert.equal(body.steps.stripe, 'none');
+  assert.equal(body.steps.auth, 'deleted');
+  // Sign-in already gone (Supabase 404) still counts as done.
+  fake.override = (c, reply) => c.url.includes('/auth/v1/admin/users/') ? reply({ msg: 'User not found' }, 404) : undefined;
+  res = await send(deleteReq());
+  assert.equal(res.status, 200);
+  assert.equal((await res.json()).steps.auth, 'already_deleted');
+  resetFakes();
+});
+
+test('Account delete: rate-limited per connection like sign-in', async () => {
+  resetFakes();
+  const limited = { ...env, LIMITER: limiterNamespace() };
+  const statuses = [];
+  for (let i = 0; i < 11; i++) { calls = []; statuses.push((await worker.fetch(deleteReq({ confirm: 'nope' }, PRO_TOKEN, { 'CF-Connecting-IP': '203.0.113.4' }), limited)).status); }
+  assert.deepEqual(statuses, [...Array(10).fill(400), 429]);
+});
+
+test('Webhook: a cancellation after the account is gone never re-creates the users row', async () => {
+  resetFakes();
+  await send(await signed({ type: 'customer.subscription.deleted', data: { object: { object: 'subscription', status: 'canceled', metadata: { user_id: 'user-gone' } } } }));
+  const writes = outbound(`${SUPABASE}/rest/v1/users`).filter(c => c.method !== 'GET');
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0].method, 'PATCH');                         // update-only, never an upsert
+  assert.equal(writes[0].url, `${SUPABASE}/rest/v1/users?id=eq.user-gone`);
+});
+
+// ── Data export ──
+test('Account export: all of the user\'s rows, email and created date, as a download', async () => {
+  resetFakes();
+  fake.override = (c, reply) => {
+    if (c.method !== 'GET' || !c.url.startsWith(`${SUPABASE}/rest/v1/`)) return;
+    if (c.url.includes('/checkins?')) return reply([{ id: 1, user_id: 'user-pro', mood: 'good' }, { id: 2, user_id: 'user-pro' }]);
+    if (c.url.includes('/fp_profiles?')) return reply([{ id: 'user-pro', income: 90000 }]);
+  };
+  const res = await send(req('/account/export', { method: 'GET', token: PRO_TOKEN }));
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('Content-Disposition'), /^attachment; filename="firepath-data-\d{4}-\d{2}-\d{2}\.json"$/);
+  assert.equal(res.headers.get('Cache-Control'), 'no-store');
+  assert.match(res.headers.get('Access-Control-Expose-Headers'), /Content-Disposition/);
+  const out = await res.json();
+  assert.deepEqual(out.account, { id: 'user-pro', email: 'pro@example.com', created_at: '2026-01-02T03:04:05Z' });
+  assert.equal(out.tables.checkins.length, 2);
+  assert.equal(out.tables.fp_profiles[0].income, 90000);               // nothing stripped: it's theirs
+  assert.deepEqual(Object.keys(out.tables).sort(), _internal.USER_DATA_TABLES.map(([t]) => t).sort());
+  // Read with the service key, always filtered to this user.
+  for (const [t, col] of _internal.USER_DATA_TABLES) {
+    const c = outbound(`${SUPABASE}/rest/v1/${t}?`)[0];
+    assert.ok(c.url.includes(`${col}=eq.user-pro`), t);
+    assert.equal(c.headers.Authorization, 'Bearer svc.svc.svc');
+  }
+  resetFakes();
+});
+
+test('Account export: needs a login; a failed read gives an error, not a partial file', async () => {
+  resetFakes();
+  assert.equal((await send(req('/account/export', { method: 'GET' }))).status, 401);
+  fake.override = (c, reply) => c.url.includes('/rest/v1/calculations?') ? reply({ message: 'boom' }, 500) : undefined;
+  const res = await send(req('/account/export', { method: 'GET', token: PRO_TOKEN }));
+  assert.equal(res.status, 502);
+  assert.equal(res.headers.get('Content-Disposition'), null);
+  resetFakes();
+});
+
+test('Account export: a few an hour per user', async () => {
+  const limited = { ...env, LIMITER: limiterNamespace() };
+  const statuses = [];
+  for (let i = 0; i < 6; i++) { calls = []; statuses.push((await worker.fetch(req('/account/export', { method: 'GET', token: PRO_TOKEN }), limited)).status); }
+  assert.deepEqual(statuses, [...Array(5).fill(200), 429]);
+  calls = [];
+  assert.equal((await worker.fetch(req('/account/export', { method: 'GET', token: FREE_TOKEN }), limited)).status, 200);
+});
+
+test('Account routes: allowed from FirePath origins only', async () => {
+  const pre = await send(req('/account/delete', { method: 'OPTIONS' }));
+  assert.equal(pre.status, 204);
+  assert.equal(pre.headers.get('Access-Control-Allow-Origin'), ORIGIN);
+  assert.equal((await send(req('/account/export', { method: 'GET', token: PRO_TOKEN, origin: 'https://evil.example' }))).status, 403);
+  assert.equal((await send(req('/account/delete', { token: PRO_TOKEN, body: { confirm: 'DELETE' }, origin: 'https://evil.example' }))).status, 403);
+  assert.equal(outbound(SUPABASE).length, 0);
+  assert.equal((await send(req('/account/delete', { method: 'GET', token: PRO_TOKEN }))).status, 404);
+});
+
+// ── Customer emails ──
+const ON = { ...env, CUSTOMER_EMAILS: 'on' };
+const sendWith = async (e, r) => { calls = []; return worker.fetch(r, e); };
+const TRIAL_END = 1792000000;   // Thursday 15 October 2026 (Sydney)
+const trialWillEnd = (extra = {}) => ({ id: 'evt_trial', type: 'customer.subscription.trial_will_end',
+  data: { object: { object: 'subscription', id: 'sub_t', status: 'trialing', trial_end: TRIAL_END, customer: 'cus_t', metadata: { user_id: 'user-free' }, ...extra } } });
+const noMoney = text => (text.match(/\$\s?\d[\d,.]*/g) || []).every(m => m === '$6');
+
+test('Trial-ending email: sent to the customer when CUSTOMER_EMAILS is on', async () => {
+  resetFakes();
+  const res = await sendWith(ON, await signed(trialWillEnd()));
+  assert.equal(res.status, 200);
+  const [e] = customerEmails();
+  assert.equal(e.to, 'customer@example.com');                         // from Stripe
+  assert.equal(e.from, 'FirePath <noreply@firepath.pro>');
+  assert.match(e.subject, /trial ends on Thursday,? 15 October 2026/);
+  assert.match(e.text, /Your FirePath Pro trial ends on Thursday,? 15 October 2026\./);
+  assert.ok(e.text.includes("If you'd like to keep Pro, you don't need to do anything: it's $6 a month from then."));
+  assert.ok(e.text.includes('To cancel, go to Settings → Cancel Pro subscription, or reply to this email.'));
+  assert.ok(e.text.includes('https://www.firepath.pro/account.html'));
+  assert.ok(e.html.includes('href="https://www.firepath.pro/account.html"'));
+  assert.ok(e.reply_to);
+  assert.equal(e.headers['Idempotency-Key'], 'trial-ending-evt_trial');
+  assert.ok(noMoney(e.text) && noMoney(e.html));
+  assert.equal(proWrites().length, 0);                                  // email only
+  // Already cancelled → no "you don't need to do anything" email.
+  await sendWith(ON, await signed(trialWillEnd({ cancel_at_period_end: true })));
+  assert.equal(customerEmails().length, 0);
+});
+
+test('Trial-ending email: off by default', async () => {
+  resetFakes();
+  for (const e of [env, { ...env, CUSTOMER_EMAILS: 'off' }, { ...env, CUSTOMER_EMAILS: 'true' }]) {
+    const res = await sendWith(e, await signed(trialWillEnd()));
+    assert.equal(res.status, 200);
+    assert.equal(emails().length, 0);
+  }
+});
+
+const checkoutDone = (extra = {}) => ({ id: 'evt_co', type: 'checkout.session.completed',
+  data: { object: { object: 'checkout.session', id: 'cs_1', mode: 'subscription', subscription: 'sub_w', client_reference_id: 'user-free', customer_details: { email: 'new@example.com' }, ...extra } } });
+
+test('Welcome email: sent on checkout with a trial when switched on; owner notice still sent', async () => {
+  resetFakes();
+  fake.subsById = { sub_w: { id: 'sub_w', status: 'trialing', trial_end: TRIAL_END, metadata: { user_id: 'user-free' } } };
+  const res = await sendWith(ON, await signed(checkoutDone()));
+  assert.equal(res.status, 200);
+  assert.deepEqual(proWrites(), [{ id: 'user-free', is_pro: true }]);
+  assert.equal(ownerEmails().length, 1);
+  const [e] = customerEmails();
+  assert.equal(e.to, 'new@example.com');
+  assert.equal(e.subject, "Welcome to FirePath Pro: here's what you can do");
+  for (const [label, path] of [['Your full plan', 'strategy.html'], ['Your Path', 'journey.html'], ['Ask FirePath', 'ask-firepath.html']]) {
+    assert.ok(e.text.includes(label) && e.text.includes(`https://www.firepath.pro/${path}`), label);
+    assert.ok(e.html.includes(`href="https://www.firepath.pro/${path}"`), label);
+  }
+  assert.match(e.text, /trial ends on Thursday,? 15 October 2026/);
+  assert.ok(e.text.includes('Settings → Cancel Pro subscription'));
+  assert.ok(noMoney(e.text) && noMoney(e.html));
+  assert.equal(e.headers['Idempotency-Key'], 'welcome-evt_co');
+  // Switched off → owner notice only.
+  await sendWith(env, await signed(checkoutDone()));
+  assert.equal(customerEmails().length, 0);
+  assert.equal(ownerEmails().length, 1);
+  // No trial (paying from day one) → no welcome-with-trial email.
+  fake.subsById = { sub_w: { id: 'sub_w', status: 'active', metadata: { user_id: 'user-free' } } };
+  await sendWith(ON, await signed(checkoutDone()));
+  assert.equal(customerEmails().length, 0);
+  resetFakes();
+});
+
+test('Customer emails: a failing email never makes the webhook fail', async () => {
+  resetFakes();
+  fake.subsById = { sub_w: { id: 'sub_w', status: 'trialing', trial_end: TRIAL_END } };
+  for (const mode of ['500', 'throw', 'stripe-down']) {
+    fake.override = (c, reply) => {
+      if (c.url === 'https://api.resend.com/emails') { if (mode === 'throw') throw new TypeError('resend down'); if (mode === '500') return reply({ message: 'nope' }, 500); }
+      if (mode === 'stripe-down' && c.url.startsWith('https://api.stripe.com/')) throw new TypeError('stripe down');
+    };
+    assert.equal((await sendWith(ON, await signed(checkoutDone()))).status, 200, mode);
+    assert.equal((await sendWith(ON, await signed(trialWillEnd()))).status, 200, mode);
+  }
+  resetFakes();
+});
+
+// ── Health checks (cron) ──
+async function cron(e) {
+  calls = [];
+  const waits = [];
+  await worker.scheduled({ cron: '*/30 * * * *' }, e, { waitUntil: p => waits.push(p) });
+  await Promise.all(waits);
+}
+
+test('Health: a check failing twice in a row emails the owner once; recovery emails once', async () => {
+  resetFakes();
+  const e = { ...env, LIMITER: limiterNamespace() };
+  let supabaseDown = false;
+  fake.override = (c, reply) => supabaseDown && c.url.startsWith(`${SUPABASE}/rest/v1/users?select=id`) ? reply({ message: 'down' }, 503) : undefined;
+  const run = async () => { await cron(e); return ownerEmails(); };
+
+  assert.equal((await run()).length, 0);                 // all fine
+  // It checked all three: website, Supabase (service key) and Stripe.
+  assert.ok(calls.some(c => c.url === 'https://www.firepath.pro'));
+  assert.equal(calls.find(c => c.url.startsWith(`${SUPABASE}/rest/v1/users?select=id`)).headers.Authorization, 'Bearer svc.svc.svc');
+  assert.equal(calls.find(c => c.url === 'https://api.stripe.com/v1/balance').headers.Authorization, 'Bearer sk_test');
+
+  supabaseDown = true;
+  assert.equal((await run()).length, 0);                 // first failure: no email yet
+  const down = await run();                              // second in a row: one email
+  assert.equal(down.length, 1);
+  assert.match(down[0].subject, /Supabase/);
+  assert.ok(down[0].text.includes('HTTP 503'));
+  assert.equal((await run()).length, 0);                 // still down: no spam
+  assert.equal((await run()).length, 0);
+  supabaseDown = false;
+  const up = await run();                                // recovered: one email
+  assert.equal(up.length, 1);
+  assert.match(up[0].subject, /back to normal/);
+  assert.equal((await run()).length, 0);
+  resetFakes();
+});
+
+test('Health: a single blip never emails; the website and Stripe are checked too', async () => {
+  resetFakes();
+  const e = { ...env, LIMITER: limiterNamespace() };
+  let n = 0;
+  fake.override = c => {
+    if (c.url === 'https://www.firepath.pro' && n++ % 2 === 0) return new Response('', { status: 522 });  // every other run
+    if (c.url === 'https://api.stripe.com/v1/balance') throw new TypeError('connection reset');
+  };
+  await cron(e); assert.equal(ownerEmails().length, 0);
+  await cron(e);
+  const [mail] = ownerEmails();                           // Stripe failed twice; website never twice in a row
+  assert.match(mail.subject, /Stripe/);
+  assert.ok(!mail.subject.includes('website'));
+  for (let i = 0; i < 4; i++) { await cron(e); assert.equal(ownerEmails().length, 0); }
+  resetFakes();
+});
+
+test('Health: transition logic', () => {
+  const { healthTransitions } = _internal;
+  let st = {};
+  const step = r => { const out = healthTransitions(st, r); st = out.next; return [out.down, out.up]; };
+  assert.deepEqual(step({ a: { ok: false } }), [[], []]);
+  assert.deepEqual(step({ a: { ok: true } }), [[], []]);   // reset: not "twice in a row"
+  assert.deepEqual(step({ a: { ok: false } }), [[], []]);
+  assert.deepEqual(step({ a: { ok: false } }), [['a'], []]);
+  assert.deepEqual(step({ a: { ok: false } }), [[], []]);
+  assert.deepEqual(step({ a: { ok: true } }), [[], ['a']]);
+  assert.deepEqual(step({ a: { ok: true } }), [[], []]);
+});
+
+// ── AI failure alert ──
+test('AI failures: 5 within an hour email the owner once that hour', async () => {
+  resetFakes();
+  const e = { ...env, LIMITER: limiterNamespace() };
+  let failing = true;
+  fake.override = (c, reply) => failing && c.url === 'https://api.anthropic.com/v1/messages' ? reply({ type: 'error', error: { type: 'billing_error', message: 'credit' } }, 400) : undefined;
+  await withClock(2_000_000_000, async clock => {
+    const statuses = [];
+    let alerts = 0;
+    for (let i = 0; i < 9; i++) {
+      clock.t += 61_000;                                   // stay under the per-minute AI limit
+      calls = [];
+      statuses.push((await worker.fetch(req('/', { token: PRO_TOKEN, body: aiBody }), e)).status);
+      const mails = ownerEmails();
+      if (mails.length) { alerts++; assert.equal(i, 4, 'alert on the 5th failure'); assert.match(mails[0].subject, /AI/); assert.ok(mails[0].text.includes('billing_error')); }
+    }
+    assert.deepEqual(statuses, Array(9).fill(502));
+    assert.equal(alerts, 1);
+    // An hour later, still failing → one more alert once 5 more pile up.
+    clock.t += 3_600_000;
+    let later = 0;
+    for (let i = 0; i < 6; i++) { clock.t += 61_000; calls = []; await worker.fetch(req('/', { token: PRO_TOKEN, body: aiBody }), e); later += ownerEmails().length; }
+    assert.equal(later, 1);
+  });
+  // Successful calls never count.
+  failing = false;
+  const e2 = { ...env, LIMITER: limiterNamespace() };
+  for (let i = 0; i < 6; i++) { calls = []; await worker.fetch(req('/', { token: PRO_TOKEN, body: aiBody }), e2); assert.equal(ownerEmails().length, 0); }
+  resetFakes();
+});
+
+test('AI failures: a network error is a 502 too, not a crash', async () => {
+  resetFakes();
+  fake.override = c => { if (c.url === 'https://api.anthropic.com/v1/messages') throw new TypeError('network'); };
+  assert.equal((await send(req('/', { token: PRO_TOKEN, body: aiBody }))).status, 502);
+  resetFakes();
+});
+
+// ── CSP reports ──
+async function captureLogs(fn) {
+  const real = console.log; const lines = [];
+  console.log = (...a) => lines.push(a.join(' '));
+  try { await fn(); } finally { console.log = real; }
+  return lines.filter(l => l.startsWith('CSP '));
+}
+// Built directly: req() always sets Content-Type to application/json.
+const cspReq = (body, type, headers = {}, origin = ORIGIN) => new Request('https://firepath-api.example.workers.dev/csp-report', {
+  method: 'POST', headers: { 'Content-Type': type, ...(origin ? { Origin: origin } : {}), ...headers }, body: typeof body === 'string' ? body : JSON.stringify(body)
+});
+
+test('CSP report: old report-uri format is logged compactly, without query strings', async () => {
+  let res;
+  const lines = await captureLogs(async () => {
+    res = await send(cspReq({ 'csp-report': { 'document-uri': 'https://www.firepath.pro/account.html?token=secret#x', 'blocked-uri': 'https://evil.example/x.js?id=1', 'violated-directive': 'script-src-elem', 'original-policy': 'x'.repeat(500) } }, 'application/csp-report'));
+  });
+  assert.equal(res.status, 204);
+  assert.deepEqual(lines, ['CSP violated-directive=script-src-elem blocked-uri=https://evil.example/x.js document-uri=https://www.firepath.pro/account.html']);
+});
+
+test('CSP report: Reporting API format (reports+json), only csp-violation entries', async () => {
+  let res;
+  const lines = await captureLogs(async () => {
+    res = await send(cspReq([
+      { type: 'csp-violation', url: 'https://www.firepath.pro/?a=1', body: { documentURL: 'https://www.firepath.pro/journey.html?u=2', blockedURL: 'inline', effectiveDirective: 'style-src-attr' } },
+      { type: 'deprecation', body: { message: 'x' } }
+    ], 'application/reports+json'));
+  });
+  assert.equal(res.status, 204);
+  assert.deepEqual(lines, ['CSP violated-directive=style-src-attr blocked-uri=inline document-uri=https://www.firepath.pro/journey.html']);
+  assert.equal(outbound('').length, 0);                   // nothing sent anywhere
+});
+
+test('CSP report: size limit, content type, bad JSON, other sites', async () => {
+  const big = { 'csp-report': { 'document-uri': 'x'.repeat(9000) } };
+  assert.equal((await send(cspReq(big, 'application/csp-report'))).status, 413);
+  assert.equal((await send(cspReq({ a: 1 }, 'text/plain'))).status, 415);
+  assert.equal((await send(cspReq('{oops', 'application/csp-report'))).status, 400);
+  assert.equal((await send(cspReq({ 'csp-report': {} }, 'application/csp-report', {}, 'https://evil.example'))).status, 403);
+  // No Origin (some browsers) and no credentials needed.
+  assert.equal((await send(cspReq({ 'csp-report': {} }, 'application/csp-report', {}, null))).status, 204);
+  assert.equal((await send(cspReq({ 'csp-report': {} }, 'application/csp-report; charset=utf-8'))).status, 204);
+  const pre = await send(req('/csp-report', { method: 'OPTIONS' }));
+  assert.equal(pre.status, 204);
+});
+
+test('CSP report: rate-limited per connection', async () => {
+  const limited = { ...env, LIMITER: limiterNamespace() };
+  const statuses = [];
+  await captureLogs(async () => {
+    for (let i = 0; i < 22; i++) { calls = []; statuses.push((await worker.fetch(cspReq({ 'csp-report': {} }, 'application/csp-report', { 'CF-Connecting-IP': '203.0.113.8' }), limited)).status); }
+  });
+  assert.deepEqual(statuses, [...Array(20).fill(204), 429, 429]);
+});
+
+// ── CAPTCHA passthrough ──
+const sentAuthBody = path => JSON.parse(outbound(`${SUPABASE}/auth/v1${path}`)[0].body);
+
+test('Captcha: captcha_token is forwarded as gotrue_meta_security for sign-up, sign-in and reset', async () => {
+  resetFakes();
+  for (const [path, sub] of [['/auth/signup', '/signup'], ['/auth/token?grant_type=password', '/token'], ['/auth/recover', '/recover']]) {
+    await send(req(path, { body: { email: 'a@b.co', password: 'pw', captcha_token: 'turnstile-123' } }));
+    const sent = sentAuthBody(sub);
+    assert.deepEqual(sent.gotrue_meta_security, { captcha_token: 'turnstile-123' }, path);
+    assert.equal(sent.captcha_token, undefined, path);
+    assert.equal(sent.email, 'a@b.co');
+  }
+});
+
+test('Captcha: no token → body forwarded exactly as today; bad tokens are dropped', async () => {
+  resetFakes();
+  const raw = JSON.stringify({ email: 'a@b.co', password: 'pw' });
+  await send(req('/auth/signup', { body: raw }));
+  assert.equal(outbound(`${SUPABASE}/auth/v1/signup`)[0].body, raw);
+  await send(req('/auth/signup', { body: { email: 'a@b.co', captcha_token: { evil: true } } }));
+  assert.deepEqual(sentAuthBody('/signup'), { email: 'a@b.co' });
+  await send(req('/auth/signup', { body: { email: 'a@b.co', captcha_token: 'x'.repeat(5000) } }));
+  assert.deepEqual(sentAuthBody('/signup'), { email: 'a@b.co' });
+  // Token refresh is not a captcha route: untouched.
+  const refresh = JSON.stringify({ refresh_token: 'r', captcha_token: 't' });
+  await send(req('/auth/token?grant_type=refresh_token', { body: refresh }));
+  assert.equal(outbound(`${SUPABASE}/auth/v1/token`)[0].body, refresh);
 });

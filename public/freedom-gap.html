@@ -366,7 +366,7 @@
       const token = typeof getToken === 'function' ? getToken() : null;
       const userId = typeof getUserId === 'function' ? getUserId() : null;
       if (!token || !userId) return;
-      const res = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&order=created_at.desc&limit=1`, {}, { onExpired: 'none' });
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) previousSnapshot = data[0];
     } catch(e) { console.log('Snapshot load failed', e); }
@@ -385,11 +385,11 @@
         const hoursSince = (Date.now() - new Date(previousSnapshot.created_at).getTime()) / 3600000;
         if (hoursSince < 24) { snapshotSavedThisSession = true; return; }
       }
-      await fetch(`${WORKER_URL}/db/financial_snapshots`, {
+      await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
+        headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
         body: JSON.stringify({ user_id: userId, source: 'freedom-gap', inputs, picture })
-      });
+      }, { onExpired: 'none' });
       snapshotSavedThisSession = true;
     } catch(e) { console.log('Snapshot save failed', e); }
   }
@@ -755,7 +755,7 @@
     const userInput = `Portfolio: ${fmtM(portfolio)}. Annual spending target: ${fmtM(annualSpend)}. Portfolio generates: ${fmtM(portfolioIncome)}/yr at a 4% withdrawal rate. The gap: ${fmtM(gap)}/yr. Estimated Age Pension at 67: ${fmtM(pensionAnnual)}/yr. Gap after pension: ${fmtM(gapAfterPension)}/yr. Currently exploring working ${hours} hours/week at $${hourlyRate}/hr to help cover it. Age this scenario represents: ${scenarioAge || 'not provided'}. Verified fact: the Age Pension Work Bonus means the first $300/fortnight of employment income isn't counted under the income test — at this person's hourly rate, that's roughly ${roundedBonusHours || 'unknown'} hours/week before it starts affecting their pension.`;
 
     try {
-      const res = await fetch(WORKER_URL, {
+      const res = await FirePathAuth.fetch(WORKER_URL, {
         method: 'POST',
         headers: aiHeaders(),
         body: JSON.stringify({
@@ -768,7 +768,7 @@ Who this is for: ${{ beginner: 'This person is new to this — warm, simple, hum
 Rules: 1. Reference the actual numbers given to you. 2. Explain that full financial independence isn't the only version of freedom — a portfolio that covers most of your spending, topped up by some part-time work and eventually the Age Pension, is a legitimate and often much closer form of freedom. 3. Be warm and human about what working a small number of hours by choice (not necessity) actually feels like, versus a full-time job. 4. If the hours being explored are above 20/week, spend a sentence or two on what a few changes would do to those hours — e.g. what a higher hourly rate would do to the same gap, or what a lower spending target would do — worked through in this person's actual numbers. Describe them as options and their effect, never as instructions, and don't say which one they should pick. 5. If the Work Bonus hours figure was given, mention it naturally where relevant — it's real, verified information, not a guess. 6. Never say "you should" or "I recommend" — frame as something worth exploring. 7. Never name specific jobs, employers, products, funds, ETFs, brokers or platforms. 8. Max 3 short paragraphs. 9. Don't add a disclaimer; the page shows one under your answer. Use <strong> for bold.`,
           messages: [{ role: 'user', content: userInput }]
         })
-      });
+      }, { onExpired: 'none' });
       // Pro has lapsed since the last check — show the Pro note, not an error.
       if (res.status === 401 || res.status === 403) {
         try { if (typeof setStore === 'function') setStore('fp_is_pro', 'false'); } catch (e) {}
@@ -813,7 +813,7 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
       const token = typeof getToken === 'function' ? getToken() : null;
       const userId = typeof getUserId === 'function' ? getUserId() : null;
       if (token && userId && await checkProStatus()) {
-        const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, {}, { onExpired: 'none' });
         const data = res.ok ? await res.json() : null;
         if (Array.isArray(data) && data.length > 0) fpPlanProfile = data[0];
       }

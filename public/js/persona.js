@@ -278,13 +278,24 @@ window.FirePathPersona = (function () {
   }
 
   // ── Server sync ──
+  // Uses the shared FirePathAuth.fetch (js/auth.js) when the page has it, so the
+  // session is kept fresh and a lapsed one never sends anyone away ('none').
+  // Pages without js/auth.js fall back to a plain request with the stored session.
+  function apiFetch(url, options) {
+    if (window.FirePathAuth && typeof window.FirePathAuth.fetch === 'function') {
+      return window.FirePathAuth.fetch(url, options, { onExpired: 'none' });
+    }
+    const headers = Object.assign({}, options && options.headers, { 'Authorization': `Bearer ${authToken()}` });
+    return fetch(url, Object.assign({}, options, { headers }));
+  }
+
   async function saveToServer(id) {
     const token = authToken(), userId = authUserId();
     if (!token || !userId) return;
     try {
-      await fetch(`${API_URL}/db/users`, {
+      await apiFetch(`${API_URL}/db/users`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'resolution=merge-duplicates' },
+        headers: { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
         body: JSON.stringify({ id: userId, email: readStore('fp_email') || '', persona: id })
       });
     } catch (e) {
@@ -298,9 +309,7 @@ window.FirePathPersona = (function () {
     const token = authToken(), userId = authUserId();
     if (!token || !userId) return;
     try {
-      const res = await fetch(`${API_URL}/db/users?id=eq.${encodeURIComponent(userId)}&select=persona`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await apiFetch(`${API_URL}/db/users?id=eq.${encodeURIComponent(userId)}&select=persona`, {});
       if (!res.ok) return;
       const rows = await res.json();
       const remote = rows && rows[0] ? rows[0].persona : null;

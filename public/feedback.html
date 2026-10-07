@@ -215,10 +215,11 @@
     // Everyone can send feedback; the Worker attributes it from the session if
     // there is one (and handles spam protection), so no user_id is sent from here.
     try {
-      const token = typeof getToken === 'function' ? getToken() : null;
-      const headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`${WORKER_URL}/db/feedback`, { method: 'POST', headers, body: JSON.stringify(payload) });
+      // FirePathAuth.fetch adds the session when there is one; a lapsed session
+      // never sends anyone away from here ('none').
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/feedback`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      }, { onExpired: 'none' });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
         if (err && err.error) document.getElementById('feedbackError').textContent = err.error;

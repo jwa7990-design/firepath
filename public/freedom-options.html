@@ -399,7 +399,7 @@
     };
     const toneRule = personaRules[userPersona] || personaRules.building;
 
-    const res = await fetch(WORKER_URL, {
+    const res = await FirePathAuth.fetch(WORKER_URL, {
       method: 'POST',
       headers: aiHeaders(),
       body: JSON.stringify({
@@ -422,7 +422,7 @@ Absolute rules:
 [{"id": "the_option_id", "blurb": "..."}]`,
         messages: [{ role: 'user', content: JSON.stringify(payload) }]
       })
-    });
+    }, { onExpired: 'none' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const raw = data.content[0].text.replace(/```json|```/gi, '').trim();
@@ -515,7 +515,7 @@ Absolute rules:
       const token = typeof getToken === 'function' ? getToken() : null;
       const userId = typeof getUserId === 'function' ? getUserId() : null;
       if (token && userId) {
-        const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, {}, { onExpired: 'none' });
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0) profile = data[0];
       }

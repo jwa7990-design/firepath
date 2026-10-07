@@ -4,14 +4,31 @@
 # it would block (DevTools → Console) without blocking it. Once the live site
 # shows no violations, rename the header to Content-Security-Policy to enforce.
 # Allowed outside services: Google Fonts, Google Analytics/Tag Manager, the
-# firepath-api Worker and Supabase. Inline scripts are still allowed because the
-# pages use them; tightening that is part of the Astro move.
+# firepath-api Worker, Supabase and Cloudflare Turnstile (challenges.cloudflare.com,
+# the "are you a person?" check on the sign-in page: off until a site key is set
+# in auth.html, but allowed now so switching it on needs no header change).
+# Inline scripts are still allowed because the pages use them; tightening that is
+# part of the Astro move. Stripe checkout and billing are full-page redirects, so
+# they need nothing here.
+#
+# Reports: anything the policy would have blocked is sent to the Worker's
+# /csp-report route (report-uri for older browsers, report-to + Reporting-Endpoints
+# for newer ones). Plan: keep Report-Only for a clean week of reports, then rename
+# the header to Content-Security-Policy.
+#
+# HSTS: one year, subdomains included. "preload" (asking browsers to hard-code
+# HTTPS for firepath.pro) is a later decision: it's very hard to undo.
+#
+# Permissions-Policy: no page uses the microphone (the "read aloud" button only
+# speaks, which needs no permission), so microphone stays off. If voice input is
+# added, change microphone=() to microphone=(self).
 
 /*
-  Strict-Transport-Security: max-age=31536000
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://firepath-api.jwa7990.workers.dev https://eeicdaxfrahzgjywrlgs.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://firepath-api.jwa7990.workers.dev https://eeicdaxfrahzgjywrlgs.supabase.co https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; report-uri https://firepath-api.jwa7990.workers.dev/csp-report; report-to csp-endpoint
+  Reporting-Endpoints: csp-endpoint="https://firepath-api.jwa7990.workers.dev/csp-report"

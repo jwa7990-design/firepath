@@ -24,6 +24,11 @@
  *     the API, e.g. "https://redesign.firepath-e2w.pages.dev". Empty by default, so no
  *     preview build can reach the production database. See originAllowed().
  *   ALLOW_LOCALHOST — "true" lets http://localhost:<port> call the API (local dev only).
+ *   CUSTOMER_EMAILS — "on" sends customers the Pro welcome and trial-ending emails.
+ *     Anything else (or unset) = off. Owner notices are sent either way.
+ *   SUPPORT_EMAIL — Reply-To on customer emails ("or reply to this email"). Unset = the owner's address.
+ * Cron (wrangler.toml [triggers]): every 30 minutes, scheduled() checks the website,
+ *   Supabase and Stripe and emails the owner when something stays down (see Health checks).
  * Bindings (wrangler.toml): LIMITER — the RateLimiter Durable Object (exact per-minute
  *   and per-day caps). If it's missing (e.g. code pasted into the dashboard) limits are skipped.
  */
@@ -119,6 +124,7 @@ function corsHeaders(origin, env) {
     'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, Prefer',
     'Access-Control-Max-Age': '86400',
+    'Access-Control-Expose-Headers': 'Content-Disposition',
     Vary: 'Origin'
   };
 }
@@ -184,7 +190,7 @@ async function getUser(request, env) {
   });
   if (!res.ok) return null;
   const user = await res.json().catch(() => null);
-  return user && user.id ? { id: user.id, email: user.email || null, token } : null;
+  return user && user.id ? { id: user.id, email: user.email || null, createdAt: user.created_at || null, token } : null;
 }
 
 function serviceHeaders(env, extra = {}) {
@@ -213,16 +219,29 @@ const RATE_LIMITS = {
   // Sign-in, sign-up and password reset, per connection.
   authIp: [{ limit: 10, windowMs: MINUTE }, { limit: 50, windowMs: HOUR }],
   // Sign-up and password reset, per email address (each route counted separately).
-  authEmail: [{ limit: 5, windowMs: HOUR }]
+  authEmail: [{ limit: 5, windowMs: HOUR }],
+  // Account deletion, per connection (like sign-in).
+  accountDelete: [{ limit: 10, windowMs: MINUTE }, { limit: 50, windowMs: HOUR }],
+  // Data export, per user: a few an hour.
+  accountExport: [{ limit: 5, windowMs: HOUR }],
+  // CSP violation reports, per connection.
+  csp: [{ limit: 20, windowMs: MINUTE }, { limit: 300, windowMs: DAY }]
 };
-// If the limiter itself errors: AI fails closed (it costs money); feedback and
-// sign-in fail open (people must still be able to sign in; Supabase has its own limits).
-const RATE_LIMIT_FAIL_OPEN = new Set(['feedback', 'authIp', 'authEmail']);
+// If the limiter itself errors: AI fails closed (it costs money); everything else
+// fails open (people must still be able to sign in, leave or take their data).
+const RATE_LIMIT_FAIL_OPEN = new Set(['feedback', 'authIp', 'authEmail', 'accountDelete', 'accountExport', 'csp']);
 
+// The same Durable Object class also keeps two small bits of monitoring state
+// (no new class, so no migration): the health checks' "how many failures in a
+// row" (instance health:state, path /health) and recent AI failures (instance
+// aiFail:all, path /ai-failure). Rate-limit calls use any other path.
 export class RateLimiter {
   constructor(state) { this.state = state; }
 
   async fetch(request) {
+    const path = new URL(request.url).pathname;
+    if (path === '/health') return this.health(request);
+    if (path === '/ai-failure') return this.aiFailure();
     const { rules } = await request.json();
     const now = Date.now();
     const longest = Math.max(...rules.map(r => r.windowMs));
@@ -236,6 +255,50 @@ export class RateLimiter {
   }
 
   async alarm() { await this.state.storage.deleteAll(); }
+
+  // Body: { results: { name: { ok, detail } } }. Replies with the checks that have
+  // just gone down (2nd failure in a row) or just come back after an alert.
+  async health(request) {
+    const { results } = await request.json();
+    const prev = (await this.state.storage.get('health')) || {};
+    const { next, down, up } = healthTransitions(prev, results || {});
+    await this.state.storage.put('health', next);
+    return new Response(JSON.stringify({ down, up }), { headers: { 'Content-Type': 'application/json' } });
+  }
+
+  // Records one failed AI call. Replies alert: true the first time there have been
+  // AI_FAILURE_ALERT.count failures within an hour — at most once an hour.
+  async aiFailure() {
+    const now = Date.now();
+    const fails = ((await this.state.storage.get('fails')) || []).filter(t => now - t < HOUR);
+    fails.push(now);
+    const lastAlert = (await this.state.storage.get('lastAlert')) || 0;
+    const alert = fails.length >= AI_FAILURE_ALERT.count && now - lastAlert >= HOUR;
+    await this.state.storage.put('fails', fails);
+    if (alert) await this.state.storage.put('lastAlert', now);
+    await this.state.storage.setAlarm(now + 2 * HOUR);     // forget it all once things are quiet
+    return new Response(JSON.stringify({ alert, count: fails.length }), { headers: { 'Content-Type': 'application/json' } });
+  }
+}
+
+// Pure logic for the health alerts, so it can be tested on its own.
+// prev: { name: { fails, alerted } }. A check that fails twice in a row alerts once;
+// when it next passes after an alert, it reports a recovery once.
+function healthTransitions(prev, results) {
+  const next = {}, down = [], up = [];
+  for (const [name, r] of Object.entries(results)) {
+    const p = prev[name] || { fails: 0, alerted: false };
+    if (r && r.ok) {
+      if (p.alerted) up.push(name);
+      next[name] = { fails: 0, alerted: false };
+    } else {
+      const fails = p.fails + 1;
+      const alertNow = fails >= HEALTH_FAILS_BEFORE_ALERT && !p.alerted;
+      if (alertNow) down.push(name);
+      next[name] = { fails, alerted: p.alerted || alertNow };
+    }
+  }
+  return { next, down, up };
 }
 
 // true = go ahead. See RATE_LIMIT_FAIL_OPEN for what happens if the limiter errors.
@@ -321,17 +384,42 @@ async function handleAi(request, env) {
   const clean = sanitiseAiRequest(data);
   if (clean.error) return json({ error: clean.error }, 400);
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify(clean.request)
-  });
-  const out = await res.json().catch(() => null);
-  if (!res.ok || !out) {
-    console.error('Anthropic error', res.status, out && out.error);
+  let res = null, out = null;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify(clean.request)
+    });
+    out = await res.json().catch(() => null);
+  } catch (e) {
+    console.error('Anthropic request failed', e && e.message);
+  }
+  if (!res || !res.ok || !out) {
+    console.error('Anthropic error', res && res.status, out && out.error);
+    await recordAiFailure(env, res ? res.status : 'network', out && out.error && out.error.type);
     return json({ error: 'FirePath AI is unavailable right now. Please try again shortly.' }, 502);
   }
   return json(out);
+}
+
+// Anthropic failing again and again usually means a spend limit was hit or the
+// key expired. 5+ failures within an hour → one email to the owner that hour.
+const AI_FAILURE_ALERT = { count: 5 };
+
+async function recordAiFailure(env, status, type) {
+  if (!env.LIMITER) return;
+  try {
+    const stub = env.LIMITER.get(env.LIMITER.idFromName('aiFail:all'));
+    const res = await stub.fetch('https://limiter/ai-failure', { method: 'POST' });
+    const { alert, count } = await res.json();
+    if (alert) {
+      await sendEmail(env, '⚠️ FirePath AI is failing',
+        `Calls from FirePath to Anthropic have failed ${count} times in the last hour.\n\nLatest: HTTP ${status}${type ? ` (${type})` : ''}\n\nCommon causes: the monthly spend limit was reached, the API key expired or was revoked, or Anthropic is having an outage.\nCheck: https://console.anthropic.com → Settings → Limits / API keys, and https://status.anthropic.com\n\nYou won't get another email about this for an hour.\nTime: ${new Date().toISOString()}`);
+    }
+  } catch (e) {
+    console.error('AI failure tracking error', e && e.message);
+  }
 }
 
 // ── Database proxy (Supabase PostgREST, caller's own session → RLS applies) ──
@@ -466,6 +554,27 @@ async function authRateLimit(sub, url, body, ip, env) {
   return true;
 }
 
+// CAPTCHA (Cloudflare Turnstile, checked by Supabase Auth once switched on in
+// Supabase → Authentication → Attack Protection). The page sends captcha_token;
+// Supabase expects it as gotrue_meta_security.captcha_token (the format supabase-js
+// uses for sign-up, password sign-in and password reset). No token → body unchanged.
+function captchaRoute(sub, url) {
+  return sub === '/signup' || sub === '/recover' || (sub === '/token' && url.searchParams.get('grant_type') === 'password');
+}
+
+function withCaptcha(body) {
+  let data;
+  try { data = JSON.parse(body || ''); } catch { return body; }
+  if (!data || typeof data !== 'object' || Array.isArray(data) || !('captcha_token' in data)) return body;
+  const token = data.captcha_token;
+  delete data.captcha_token;
+  if (typeof token === 'string' && token && token.length <= 4096) {
+    const meta = data.gotrue_meta_security && typeof data.gotrue_meta_security === 'object' && !Array.isArray(data.gotrue_meta_security) ? data.gotrue_meta_security : {};
+    data.gotrue_meta_security = { ...meta, captcha_token: token };
+  }
+  return JSON.stringify(data);
+}
+
 async function handleAuth(request, env, url) {
   const sub = url.pathname.replace(/^\/auth/, '') || '/';
   if (!AUTH_ROUTES.has(`${request.method} ${sub}`)) return json({ error: 'Not found' }, 404);
@@ -479,6 +588,7 @@ async function handleAuth(request, env, url) {
   }
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   if (!(await authRateLimit(sub, url, body, ip, env))) return authTooMany();
+  if (body && captchaRoute(sub, url)) body = withCaptcha(body);
 
   const token = bearer(request);
   const headers = {
@@ -631,23 +741,47 @@ async function verifyStripeSignature(body, header, secret, nowSeconds = Math.flo
   return signatures.some(sig => timingSafeEqual(sig, expected));
 }
 
-async function sendEmail(env, subject, text) {
-  if (!env.RESEND_API_KEY) return;
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: 'FirePath <noreply@firepath.pro>', to: 'jwa7990@gmail.com', subject, text })
-  }).catch(e => console.error('Email failed', e && e.message));
+// ── Email (Resend) ────────────────────────────────────────
+const OWNER_EMAIL = 'jwa7990@gmail.com';
+const EMAIL_FROM = 'FirePath <noreply@firepath.pro>';
+
+// Best-effort: never throws. Returns true if Resend accepted it.
+// Without `to` it goes to the owner (notices). idempotencyKey stops Resend sending
+// the same email twice when Stripe delivers an event more than once.
+async function sendEmail(env, subject, text, { to = OWNER_EMAIL, html, replyTo, idempotencyKey } = {}) {
+  if (!env.RESEND_API_KEY) return false;
+  try {
+    const headers = { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' };
+    if (idempotencyKey) headers['Idempotency-Key'] = String(idempotencyKey).slice(0, 256);
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ from: EMAIL_FROM, to, subject, text, ...(html ? { html } : {}), ...(replyTo ? { reply_to: replyTo } : {}) })
+    });
+    if (!res.ok) console.error('Email failed', res.status, (await res.text().catch(() => '')).slice(0, 300));
+    return res.ok;
+  } catch (e) {
+    console.error('Email failed', e && e.message);
+    return false;
+  }
 }
 
 // Throws if the write fails, so the webhook answers 500 and Stripe retries —
 // otherwise someone could pay and never get Pro.
+// Switching Pro ON upserts the row. Switching it OFF only updates a row that exists,
+// so a cancellation arriving after someone deleted their account can't re-create it.
 async function setUserPro(env, userId, isProNow) {
-  const res = await fetch(`${env.SUPABASE_URL}/rest/v1/users`, {
-    method: 'POST',
-    headers: serviceHeaders(env, { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }),
-    body: JSON.stringify({ id: userId, is_pro: isProNow })
-  });
+  const res = isProNow
+    ? await fetch(`${env.SUPABASE_URL}/rest/v1/users`, {
+      method: 'POST',
+      headers: serviceHeaders(env, { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }),
+      body: JSON.stringify({ id: userId, is_pro: true })
+    })
+    : await fetch(`${env.SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(userId)}`, {
+      method: 'PATCH',
+      headers: serviceHeaders(env, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+      body: JSON.stringify({ is_pro: false })
+    });
   if (!res.ok) {
     console.error('setUserPro failed', res.status, await res.text().catch(() => ''));
     throw new Error(`setUserPro failed (${res.status})`);
@@ -696,6 +830,112 @@ async function userIdForStripeObject(env, obj) {
   return userId;
 }
 
+// ── Customer emails (welcome, trial ending) ───────────────
+// Off unless CUSTOMER_EMAILS is "on". Best-effort: a failure is logged and never
+// makes the webhook fail (only database writes should make Stripe retry).
+// No financial figures, ever — only the Pro price and dates.
+const customerEmailsOn = env => String(env.CUSTOMER_EMAILS || '').trim().toLowerCase() === 'on';
+const ACCOUNT_URL = `${SITE}/account.html`;
+const PRO_PRICE_TEXT = '$6 a month';
+
+function auDate(unixSeconds) {
+  return new Date(unixSeconds * 1000).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Australia/Sydney' });
+}
+
+const escapeHtml = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// Simple, readable HTML around plain paragraphs. Each paragraph is either text,
+// or { list: [[label, url, note]] } for links.
+function emailHtml(paragraphs) {
+  const body = paragraphs.map(p => {
+    if (typeof p === 'object' && p.list) {
+      return `<ul style="padding-left:20px;margin:0 0 16px">${p.list.map(([label, url, note]) =>
+        `<li style="margin:0 0 8px"><a href="${escapeHtml(url)}" style="color:#c2410c">${escapeHtml(label)}</a>${note ? ` — ${escapeHtml(note)}` : ''}</li>`).join('')}</ul>`;
+    }
+    if (typeof p === 'object' && p.link) return `<p style="margin:0 0 16px"><a href="${escapeHtml(p.link)}" style="color:#c2410c">${escapeHtml(p.text)}</a></p>`;
+    return `<p style="margin:0 0 16px">${escapeHtml(p)}</p>`;
+  }).join('');
+  return `<!doctype html><html><body style="margin:0;padding:24px;background:#ffffff;color:#1f2937;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.5"><div style="max-width:560px">${body}</div></body></html>`;
+}
+
+function emailText(paragraphs) {
+  return paragraphs.map(p => {
+    if (typeof p === 'object' && p.list) return p.list.map(([label, url, note]) => `- ${label}${note ? ` (${note})` : ''}: ${url}`).join('\n');
+    if (typeof p === 'object' && p.link) return `${p.text}: ${p.link}`;
+    return p;
+  }).join('\n\n');
+}
+
+function trialEndingEmail(endDate) {
+  const paragraphs = [
+    'Hi,',
+    `Your FirePath Pro trial ends on ${endDate}.`,
+    `If you'd like to keep Pro, you don't need to do anything: it's ${PRO_PRICE_TEXT} from then.`,
+    'To cancel, go to Settings → Cancel Pro subscription, or reply to this email.',
+    { text: 'Your account settings', link: ACCOUNT_URL },
+    'Thanks for giving FirePath Pro a go.\nThe FirePath team'
+  ];
+  return { subject: `Your FirePath Pro trial ends on ${endDate}`, text: emailText(paragraphs), html: emailHtml(paragraphs) };
+}
+
+function welcomeEmail(endDate) {
+  const paragraphs = [
+    'Hi,',
+    "Welcome to FirePath Pro. Here's what you can do:",
+    { list: [
+      ['Your full plan', `${SITE}/strategy.html`, 'every step of your plan in one place'],
+      ['Your Path', `${SITE}/journey.html`, 'what to do next, one step at a time'],
+      ['Ask FirePath', `${SITE}/ask-firepath.html`, 'questions answered using your own plan']
+    ] },
+    `Your free trial ends on ${endDate}. If you'd like to keep Pro after that, you don't need to do anything: it's ${PRO_PRICE_TEXT} from then.`,
+    'To cancel, go to Settings → Cancel Pro subscription, or reply to this email.',
+    { text: 'Your account settings', link: ACCOUNT_URL },
+    'Cheers,\nThe FirePath team'
+  ];
+  return { subject: "Welcome to FirePath Pro: here's what you can do", text: emailText(paragraphs), html: emailHtml(paragraphs) };
+}
+
+// The customer's email from Stripe: on the object itself, or on its customer.
+async function stripeCustomerEmail(env, obj) {
+  const direct = obj.customer_details?.email || obj.customer_email || null;
+  if (direct) return direct;
+  const customerId = typeof obj.customer === 'string' ? obj.customer : obj.customer?.id;
+  if (!customerId) return null;
+  const { ok, data } = await stripe(env, `/customers/${encodeURIComponent(customerId)}`);
+  return ok && data && !data.deleted ? data.email || null : null;
+}
+
+async function sendCustomerEmail(env, to, email, idempotencyKey) {
+  return sendEmail(env, email.subject, email.text, { to, html: email.html, replyTo: env.SUPPORT_EMAIL || OWNER_EMAIL, idempotencyKey });
+}
+
+// Runs an email step without ever throwing (a webhook must not fail over email).
+async function bestEffort(label, fn) {
+  try { await fn(); } catch (e) { console.error(`${label} failed`, e && e.message); }
+}
+
+async function sendWelcomeEmail(env, event, session) {
+  if (!customerEmailsOn(env) || session.mode !== 'subscription') return;
+  const subId = typeof session.subscription === 'string' ? session.subscription : session.subscription?.id;
+  if (!subId) return;
+  const { ok, data: sub } = await stripe(env, `/subscriptions/${encodeURIComponent(subId)}`);
+  if (!ok || !sub) { console.error('Welcome email: subscription lookup failed'); return; }
+  // Only a trial gets this email, and not if they've already cancelled.
+  if (sub.status !== 'trialing' || !sub.trial_end || sub.cancel_at_period_end) return;
+  const to = await stripeCustomerEmail(env, session);
+  if (!to) { console.error('Welcome email: no customer email'); return; }
+  await sendCustomerEmail(env, to, welcomeEmail(auDate(sub.trial_end)), `welcome-${event.id || session.id || subId}`);
+}
+
+async function sendTrialEndingEmail(env, event, sub) {
+  if (!customerEmailsOn(env)) return;
+  // Already cancelled → "you don't need to do anything to keep Pro" would be wrong.
+  if (sub.status !== 'trialing' || !sub.trial_end || sub.cancel_at_period_end || sub.cancel_at) return;
+  const to = await stripeCustomerEmail(env, sub);
+  if (!to) { console.error('Trial-ending email: no customer email'); return; }
+  await sendCustomerEmail(env, to, trialEndingEmail(auDate(sub.trial_end)), `trial-ending-${event.id || sub.id}`);
+}
+
 // Statuses in which a successful payment may switch Pro on.
 const PAYMENT_PRO_STATUSES = new Set(['active', 'trialing']);
 
@@ -726,6 +966,13 @@ async function processStripeEvent(env, event, obj) {
       const userId = await userIdForStripeObject(env, obj);
       if (userId) await setUserPro(env, userId, true);
       await sendEmail(env, '🔥 New FirePath Pro subscriber!', `Someone just upgraded to Pro!\n\nEmail: ${obj.customer_email || obj.customer_details?.email || 'unknown'}\nUser ID: ${userId || 'unknown'}\nTime: ${new Date().toISOString()}`);
+      await bestEffort('Welcome email', () => sendWelcomeEmail(env, event, obj));
+      break;
+    }
+    // Stripe sends this 3 days before a trial ends (switch it on for the webhook
+    // endpoint in Stripe). Email only — nothing in the database changes.
+    case 'customer.subscription.trial_will_end': {
+      await bestEffort('Trial-ending email', () => sendTrialEndingEmail(env, event, obj));
       break;
     }
     // Pro follows the subscription's real status — failed payments that Stripe
@@ -862,6 +1109,292 @@ async function handleClearCache(request, env) {
   return json({ ok: true, cleared: true });
 }
 
+// ── Account: delete and export (signed-in, service key) ───
+
+// Every table in DB_RULES that holds a person's own rows, and the column that
+// ties a row to them. Children first; users and fp_profiles last.
+// (learning_articles is shared content, not personal data.)
+const USER_DATA_TABLES = [
+  ['checkins', 'user_id'],
+  ['financial_snapshots', 'user_id'],
+  ['calculations', 'user_id'],
+  ['lab_progress', 'user_id'],
+  ['learn_lab', 'user_id'],
+  ['financial_learning_progress', 'user_id'],
+  ['feedback', 'user_id'],
+  ['fp_profiles', 'id'],
+  ['users', 'id']
+];
+// Subscriptions that could still charge someone, so must be cancelled on deletion.
+const CANCELLABLE_STATUSES = new Set(['active', 'trialing', 'past_due', 'unpaid', 'incomplete', 'paused']);
+
+// A table or column that doesn't exist in this database (PostgREST "not found in
+// schema cache" / Postgres undefined table or column) holds no data to delete.
+async function isMissingTable(res) {
+  if (res.status !== 404 && res.status !== 400) return false;
+  const body = await res.clone().json().catch(() => null);
+  return !!body && ['PGRST205', '42P01', '42703', 'PGRST204'].includes(body.code);
+}
+
+// Cancels, immediately, every subscription that could still charge this person:
+// those tagged with their user id, and those of any Stripe customer with their email.
+// → { status: 'none' | 'cancelled' | 'failed', cancelled: n }
+async function cancelSubscriptionsNow(user, env) {
+  try {
+    const found = await searchSubscriptions(user, env);
+    if (!found) return { status: 'failed' };
+    const subs = new Map(found.map(s => [s.id, s]));
+    if (user.email) {
+      const customers = await stripe(env, `/customers?email=${encodeURIComponent(user.email)}&limit=10`);
+      if (!customers.ok) return { status: 'failed' };
+      for (const c of (Array.isArray(customers.data.data) ? customers.data.data : [])) {
+        const r = await stripe(env, `/subscriptions?customer=${encodeURIComponent(c.id)}&status=all&limit=100`);
+        if (!r.ok) return { status: 'failed' };
+        for (const s of (Array.isArray(r.data.data) ? r.data.data : [])) subs.set(s.id, s);
+      }
+    }
+    let cancelled = 0;
+    for (const s of subs.values()) {
+      if (!CANCELLABLE_STATUSES.has(s.status)) continue;
+      // DELETE = cancel now (no proration refund). Already gone → nothing to do.
+      const { ok, data } = await stripe(env, `/subscriptions/${encodeURIComponent(s.id)}`, { method: 'DELETE' });
+      if (!ok && data?.error?.code !== 'resource_missing') {
+        console.error('Account delete: Stripe cancel failed', s.id, data?.error?.message);
+        return { status: 'failed' };
+      }
+      cancelled++;
+    }
+    return { status: cancelled ? 'cancelled' : 'none', cancelled };
+  } catch (e) {
+    console.error('Account delete: Stripe error', e && e.message);
+    return { status: 'failed' };
+  }
+}
+
+// → 'deleted' | 'skipped' (table/column doesn't exist) | 'failed'
+async function deleteUserRows(env, table, column, userId) {
+  try {
+    const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${table}?${column}=eq.${encodeURIComponent(userId)}`, {
+      method: 'DELETE',
+      headers: serviceHeaders(env, { Prefer: 'return=minimal' })
+    });
+    if (res.ok) return 'deleted';
+    if (await isMissingTable(res)) return 'skipped';
+    console.error('Account delete: rows not deleted', table, res.status, (await res.text().catch(() => '')).slice(0, 500));
+    return 'failed';
+  } catch (e) {
+    console.error('Account delete: rows not deleted', table, e && e.message);
+    return 'failed';
+  }
+}
+
+// → 'deleted' | 'already_deleted' | 'failed'
+async function deleteAuthUser(env, userId) {
+  try {
+    const res = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+      method: 'DELETE',
+      headers: serviceHeaders(env)
+    });
+    if (res.ok) return 'deleted';
+    if (res.status === 404) return 'already_deleted';
+    console.error('Account delete: auth user not deleted', res.status, (await res.text().catch(() => '')).slice(0, 500));
+    return 'failed';
+  } catch (e) {
+    console.error('Account delete: auth user not deleted', e && e.message);
+    return 'failed';
+  }
+}
+
+// POST /account/delete  body {"confirm":"DELETE"}
+// Order: cancel Stripe → delete rows → delete the sign-in. Each step is safe to
+// repeat, so if anything fails the person can simply try again.
+//   - Stripe cancel fails → stop: nothing is deleted (never an account-less charge).
+//   - Any table fails → the sign-in is kept, so they can sign in and retry.
+async function handleAccountDelete(request, env) {
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!(await rateLimit(env, 'accountDelete', ip))) return json({ error: 'Too many attempts — please wait a few minutes and try again.' }, 429);
+  const user = await getUser(request, env);
+  if (!user) return json({ error: 'Please sign in first.' }, 401);
+  const { data, error } = await readJson(request, 1024);
+  if (error || !data || typeof data !== 'object' || data.confirm !== 'DELETE') {
+    return json({ error: 'Please confirm by typing DELETE.' }, 400);
+  }
+
+  const steps = { stripe: 'not_started', data: {}, auth: 'not_started' };
+  const stripeResult = await cancelSubscriptionsNow(user, env);
+  steps.stripe = stripeResult.status;
+  if (stripeResult.status !== 'failed') {
+    for (const [table, column] of USER_DATA_TABLES) steps.data[table] = await deleteUserRows(env, table, column, user.id);
+    const dataFailed = Object.values(steps.data).includes('failed');
+    if (!dataFailed) steps.auth = await deleteAuthUser(env, user.id);
+  }
+
+  const failed = [];
+  if (steps.stripe === 'failed') failed.push('stripe');
+  for (const [t, v] of Object.entries(steps.data)) if (v === 'failed') failed.push(`data:${t}`);
+  if (steps.auth === 'failed') failed.push('auth');
+  const ok = failed.length === 0 && (steps.auth === 'deleted' || steps.auth === 'already_deleted');
+
+  // Owner notice: the user id and step results only — no email, no financial data.
+  await sendEmail(env, ok ? 'FirePath account deleted' : '⚠️ FirePath account deletion incomplete',
+    `${ok ? 'A user deleted their account.' : 'A user tried to delete their account, but not every step finished. They can retry; check the Worker logs.'}\n\nUser ID: ${user.id}\nStripe: ${steps.stripe}\nData: ${Object.entries(steps.data).map(([t, v]) => `${t}=${v}`).join(', ') || 'not started'}\nSign-in: ${steps.auth}${failed.length ? `\nFailed: ${failed.join(', ')}` : ''}\nTime: ${new Date().toISOString()}`);
+
+  if (ok) return json({ ok: true, steps });
+  return json({
+    ok: false,
+    error: steps.stripe === 'failed'
+      ? "We couldn't cancel your subscription, so nothing has been deleted yet. Please try again in a few minutes."
+      : "We couldn't finish deleting your account. Please try again in a few minutes.",
+    failed,
+    steps
+  }, 502);
+}
+
+// Reads all of one person's rows from a table (pages of 1,000).
+// → array | 'missing' (no such table/column) | null (failed)
+async function readUserRows(env, table, column, userId) {
+  const rows = [];
+  const PAGE = 1000;
+  for (let page = 0; page < 50; page++) {
+    const res = await fetch(`${env.SUPABASE_URL}/rest/v1/${table}?select=*&${column}=eq.${encodeURIComponent(userId)}&limit=${PAGE}&offset=${page * PAGE}`, { headers: serviceHeaders(env) });
+    if (!res.ok) {
+      if (await isMissingTable(res)) return 'missing';
+      console.error('Account export: read failed', table, res.status, (await res.text().catch(() => '')).slice(0, 500));
+      return null;
+    }
+    const batch = await res.json().catch(() => null);
+    if (!Array.isArray(batch)) return null;
+    rows.push(...batch);
+    if (batch.length < PAGE) return rows;
+  }
+  return rows;
+}
+
+// GET /account/export → a JSON file of everything FirePath holds about this person.
+async function handleAccountExport(request, env) {
+  const user = await getUser(request, env);
+  if (!user) return json({ error: 'Please sign in first.' }, 401);
+  if (!(await rateLimit(env, 'accountExport', user.id))) return json({ error: "You've downloaded your data a few times already — please try again in an hour." }, 429);
+  const tables = {};
+  const results = await Promise.all(USER_DATA_TABLES.map(([t, c]) => readUserRows(env, t, c, user.id).catch(() => null)));
+  for (let i = 0; i < USER_DATA_TABLES.length; i++) {
+    const r = results[i];
+    if (r === null) return json({ error: "Couldn't prepare your data right now. Please try again shortly." }, 502);
+    tables[USER_DATA_TABLES[i][0]] = r === 'missing' ? [] : r;
+  }
+  const now = new Date();
+  const out = {
+    exported_at: now.toISOString(),
+    account: { id: user.id, email: user.email, created_at: user.createdAt },
+    tables
+  };
+  return new Response(JSON.stringify(out, null, 2), {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'Content-Disposition': `attachment; filename="firepath-data-${now.toISOString().slice(0, 10)}.json"`
+    }
+  });
+}
+
+// ── Health checks (Cron Trigger, every 30 minutes) ────────
+// Website, Supabase and Stripe. A check that fails twice in a row emails the owner
+// once; when it comes back, one more email. State lives in the RateLimiter Durable
+// Object (instance "health:state"), so there's no new storage to set up.
+const HEALTH_FAILS_BEFORE_ALERT = 2;
+const HEALTH_TIMEOUT_MS = 10_000;
+
+async function probe(url, init = {}) {
+  try {
+    const res = await fetch(url, { ...init, signal: AbortSignal.timeout(HEALTH_TIMEOUT_MS) });
+    return res.status === 200 ? { ok: true } : { ok: false, detail: `HTTP ${res.status}` };
+  } catch (e) {
+    return { ok: false, detail: (e && (e.name === 'TimeoutError' ? 'timed out' : e.message)) || 'network error' };
+  }
+}
+
+const HEALTH_CHECKS = {
+  website: () => probe(SITE),
+  // One tiny database read with the service key (proves the API and Postgres answer).
+  supabase: env => probe(`${env.SUPABASE_URL}/rest/v1/users?select=id&limit=1`, { headers: serviceHeaders(env) }),
+  stripe: env => probe('https://api.stripe.com/v1/balance', { headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` } })
+};
+const HEALTH_LABELS = { website: 'The website (www.firepath.pro)', supabase: 'Supabase (database)', stripe: 'Stripe (payments)' };
+
+async function runHealthChecks(env) {
+  const names = Object.keys(HEALTH_CHECKS);
+  const checked = await Promise.all(names.map(n => HEALTH_CHECKS[n](env)));
+  const results = Object.fromEntries(names.map((n, i) => [n, checked[i]]));
+  for (const [n, r] of Object.entries(results)) if (!r.ok) console.error('Health check failed', n, r.detail);
+  if (!env.LIMITER) return { results, down: [], up: [] };
+  let down = [], up = [];
+  try {
+    const stub = env.LIMITER.get(env.LIMITER.idFromName('health:state'));
+    const res = await stub.fetch('https://limiter/health', { method: 'POST', body: JSON.stringify({ results }) });
+    ({ down, up } = await res.json());
+  } catch (e) {
+    console.error('Health state error', e && e.message);
+    return { results, down: [], up: [] };
+  }
+  const time = new Date().toISOString();
+  if (down.length) {
+    await sendEmail(env, `🚨 FirePath: ${down.map(n => HEALTH_LABELS[n] || n).join(', ')} not responding`,
+      `These checks have failed twice in a row (checked every 30 minutes):\n\n${down.map(n => `- ${HEALTH_LABELS[n] || n}: ${results[n].detail || 'failed'}`).join('\n')}\n\nYou'll get one more email when it's back. No further alerts until then.\nTime: ${time}`);
+  }
+  if (up.length) {
+    await sendEmail(env, `✅ FirePath: ${up.map(n => HEALTH_LABELS[n] || n).join(', ')} back to normal`,
+      `These checks are passing again:\n\n${up.map(n => `- ${HEALTH_LABELS[n] || n}`).join('\n')}\n\nTime: ${time}`);
+  }
+  return { results, down, up };
+}
+
+// ── CSP violation reports (from browsers, no auth) ────────
+// Accepts the old report-uri format (application/csp-report) and the Reporting
+// API (application/reports+json). Logs one short line per report; returns 204.
+const CSP_MAX_BYTES = 8 * 1024;
+const CSP_MAX_PER_REQUEST = 10;
+
+// Keep only scheme/host/path: queries and fragments can carry tokens or personal data.
+function stripQuery(v) {
+  if (typeof v !== 'string' || !v) return '-';
+  return v.split(/[?#]/)[0].slice(0, 200);
+}
+
+function parseCspReports(contentType, data) {
+  const out = [];
+  const add = (doc, blocked, directive) => out.push({
+    blocked: stripQuery(blocked),
+    directive: typeof directive === 'string' && directive ? directive.slice(0, 100) : '-',
+    document: stripQuery(doc)
+  });
+  if (contentType.includes('application/csp-report') || (data && !Array.isArray(data) && data['csp-report'])) {
+    const r = data && data['csp-report'];
+    if (r && typeof r === 'object') add(r['document-uri'], r['blocked-uri'], r['violated-directive'] || r['effective-directive']);
+  } else if (Array.isArray(data)) {
+    for (const rep of data.slice(0, CSP_MAX_PER_REQUEST)) {
+      if (!rep || typeof rep !== 'object' || rep.type !== 'csp-violation' || !rep.body || typeof rep.body !== 'object') continue;
+      const b = rep.body;
+      add(b.documentURL || rep.url, b.blockedURL, b.effectiveDirective || b.violatedDirective);
+    }
+  }
+  return out;
+}
+
+async function handleCspReport(request, env) {
+  const contentType = (request.headers.get('Content-Type') || '').toLowerCase();
+  if (!contentType.includes('application/csp-report') && !contentType.includes('application/reports+json') && !contentType.includes('application/json')) {
+    return new Response(null, { status: 415 });
+  }
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!(await rateLimit(env, 'csp', ip))) return new Response(null, { status: 429 });
+  const { data, error } = await readJson(request, CSP_MAX_BYTES);
+  if (error) return new Response(null, { status: error === 'too_large' ? 413 : 400 });
+  for (const r of parseCspReports(contentType, data)) {
+    console.log(`CSP violated-directive=${r.directive} blocked-uri=${r.blocked} document-uri=${r.document}`);
+  }
+  return new Response(null, { status: 204 });
+}
+
 // ── Router ────────────────────────────────────────────────
 
 async function route(request, env, url) {
@@ -874,6 +1407,9 @@ async function route(request, env, url) {
   if (path === '/billing/cancel' && method === 'POST') return handleBillingCancel(request, env);
   if (path === '/stripe/webhook' && method === 'POST') return handleStripeWebhook(request, env);
   if (path === '/notify/feedback' && method === 'POST') return handleFeedbackNotify(request, env);
+  if (path === '/account/delete' && method === 'POST') return handleAccountDelete(request, env);
+  if (path === '/account/export' && method === 'GET') return handleAccountExport(request, env);
+  if (path === '/csp-report' && method === 'POST') return handleCspReport(request, env);
   if (path.startsWith('/db/')) return handleDb(request, env, url);
   if (path.startsWith('/auth/')) return handleAuth(request, env, url);
   if (path === '/assumptions' && method === 'GET') return handleAssumptions();
@@ -901,8 +1437,14 @@ export default {
       console.error('Unhandled error', e && e.stack || e);
       return finalise(json({ error: 'Something went wrong.' }, 500), origin, env);
     }
+  },
+
+  // Cron Trigger (wrangler.toml [triggers]): health checks every 30 minutes.
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(runHealthChecks(env).catch(e => console.error('Health checks failed to run', e && e.message)));
   }
 };
 
 // Exposed for tests only.
-export const _internal = { RATE_LIMITS, sanitiseFeedback, sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, DB_PRO_WRITE, AI, AI_SERVER_SYSTEM, latestRbaValue, RBA_SERIES };
+export const _internal = { RATE_LIMITS, sanitiseFeedback, sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, DB_PRO_WRITE, AI, AI_SERVER_SYSTEM, latestRbaValue, RBA_SERIES,
+  USER_DATA_TABLES, healthTransitions, runHealthChecks, parseCspReports, withCaptcha, trialEndingEmail, welcomeEmail, auDate };

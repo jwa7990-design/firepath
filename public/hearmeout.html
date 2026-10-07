@@ -299,7 +299,7 @@
     try {
       if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return null;
       if (!(await checkProStatus())) return null;
-      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${getUserId()}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${getUserId()}`, {}, { onExpired: 'none' });
       if (!res.ok) return null;
       const rows = await res.json();
       return Array.isArray(rows) && rows[0] ? rows[0] : null;

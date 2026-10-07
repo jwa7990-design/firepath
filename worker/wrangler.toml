@@ -30,5 +30,18 @@ class_name = "RateLimiter"
 tag = "v1"
 new_sqlite_classes = ["RateLimiter"]
 
+# Health checks: every 30 minutes, scheduled() in src/index.js checks the website,
+# Supabase and Stripe, and emails the owner if one fails twice in a row (and again
+# when it recovers). Its state is kept in the same RateLimiter Durable Object
+# (instance "health:state"), so no migration or KV is needed. Cron Triggers are free.
+# To pause: comment out the crons line and deploy (or Dashboard → firepath-api →
+# Settings → Trigger events → delete the cron).
+[triggers]
+crons = ["*/30 * * * *"]
+
+# Optional plain variables (set in the dashboard; keep_vars keeps them):
+#   CUSTOMER_EMAILS = "on"   → sends customers the Pro welcome and trial-ending emails
+#   SUPPORT_EMAIL            → Reply-To address on customer emails (default: the owner's)
+
 [observability]
 enabled = true
