@@ -20,7 +20,7 @@
 window.FirePathEngine = (function () {
  
   function fmtM(n) {
-    if (n == null || isNaN(n)) return '—';
+    if (n == null || !Number.isFinite(Number(n))) return '—';   // NaN and ±Infinity too, never "$InfinityM"
     const sign = n < 0 ? '-' : '';
     const a = Math.abs(n);
     if (a >= 999500) return sign + '$' + (a / 1000000).toFixed(1) + 'M';   // 999,600 → $1.0M, not $1000K
@@ -167,7 +167,10 @@ window.FirePathEngine = (function () {
       let pensionIncome = 0;
       if (age >= PENSION_AGE && pensionAvailable()) {
         // Other income 0: Centrelink deems the portfolio rather than counting drawdowns.
-        try { pensionIncome = calculateAgePension(portfolio + superBal, 0, homeowner, !!isCouple).annualPension || 0; } catch (e) {}
+        // A couple where the partner isn't 67 yet: only your half of the couple rate, and
+        // their super (still in accumulation) isn't counted. Partner age unknown: both 67+.
+        const opts = isCouple && partner && partner.age ? { partnerEligible: age + pAgeGap >= PENSION_AGE, partnerSuper } : undefined;
+        try { pensionIncome = calculateAgePension(portfolio + superBal, 0, homeowner, !!isCouple, undefined, opts).annualPension || 0; } catch (e) {}
       }
       if (portfolioIncome + pensionIncome >= targetSpend) {
         return { age, portfolio: Math.round(portfolio), superBalance: Math.round(superBal), portfolioIncome: Math.round(portfolioIncome), pensionIncome: Math.round(pensionIncome) };
@@ -175,7 +178,226 @@ window.FirePathEngine = (function () {
     }
     return null;
   }
- 
+
+  // ── Freedom plan: the one headline freedom date ──────────
+  // Every page's headline "when could work be optional" comes from freedomPlan(), so the
+  // same person gets the same date and age on the free calculator, Pro, Freedom gap and
+  // Journey. Two phases, month by month:
+  //   1. Before 60 only money outside super counts. You're free before 60 only if your
+  //      savings alone reach the freedom number (they carry you all the way to 60 and
+  //      beyond, without touching super).
+  //   2. From your 60th birthday your super counts too (your partner's from *their* 60th).
+  // Super grows at SUPER_RETURN (7% less typical fund fees, less 15% earnings tax), plus
+  // employer SG while you're still working — only when the page knows the income (no
+  // income, no SG: we don't invent contributions). SG is capped at the concessional cap
+  // and taxed 15% on the way in. Same rules as Pro's original twoPhaseTimeline.
+  //
+  // Money outside super earns 7% real less a tax drag: about 3% of it a year is income
+  // (dividends, distributions, interest), taxed at your marginal rate. 7% − 3% × 30% ≈
+  // 6.1%. Capital gains tax is ignored until you sell (it isn't due until then, and the
+  // 50% discount usually applies), so this is still slightly generous for someone who
+  // sells to fund their spending. The marginal rate comes from tax-engine.js when the
+  // income is known (rate on today's salary, which overstates it after you stop work),
+  // otherwise 30%.
+  const INVEST_RETURN = 0.07;
+  const INCOME_YIELD = 0.03;
+  const DEFAULT_MARGINAL_RATE = 0.30;
+  const PLAN_MAX_MONTHS = 100 * 12;   // same horizon as yearsToGoal: null = "100+ yrs"
+
+  function outsideSuperReturn(marginalRate) {
+    const t = Number.isFinite(marginalRate) && marginalRate >= 0 && marginalRate < 1 ? marginalRate : DEFAULT_MARGINAL_RATE;
+    return INVEST_RETURN - INCOME_YIELD * t;
+  }
+
+  // The safe withdrawal rate for someone stopping work at retireAge: 4% (25×) holds up
+  // over ~30 years; longer retirements need a lower rate (four-percent-rule-australia:
+  // 3–3.5% for 40+ years). Not used by the headline yet — the 25× freedom number stays
+  // the default — but there for notes like "retiring at 45, 3.5% (28.6×) is safer".
+  function safeWithdrawalRate(retireAge) {
+    const a = Number(retireAge);
+    if (!Number.isFinite(a) || a >= 60) return 0.04;
+    if (a >= 50) return 0.0375;
+    return 0.035;
+  }
+
+  const finiteOr = (v, d) => { const n = Number(v); return v != null && v !== '' && Number.isFinite(n) ? n : d; };
+
+  // Annual gross pay from what the page knows: a gross figure, or a monthly take-home
+  // worked back through the tax tables. 0 = unknown (no SG, default tax rate).
+  function grossFrom(o) {
+    const g = finiteOr(o && o.grossIncome, 0);
+    if (g > 0) return g;
+    const th = finiteOr(o && o.takeHomeMonthly, 0);
+    if (th > 0 && typeof estimateGrossFromNet === 'function') { try { return estimateGrossFromNet(th * 12) || 0; } catch (e) {} }
+    return 0;
+  }
+  function sgNetMonthly(gross) {
+    if (!(gross > 0)) return 0;
+    const sgRate = typeof FP_ASSUMPTIONS !== 'undefined' && FP_ASSUMPTIONS.sgRate > 0 ? FP_ASSUMPTIONS.sgRate : 0.12;
+    const cap = typeof TAX_CONFIG !== 'undefined' && TAX_CONFIG.concessionalCap > 0 ? TAX_CONFIG.concessionalCap : 32500;
+    return Math.min(gross * sgRate, cap) / 12 * 0.85;   // 15% contributions tax
+  }
+
+  // Cleans the inputs once. Returns null when there's no honest answer to give (no
+  // freedom number, or a number that isn't a number) — pages show "fill in your numbers".
+  //   age, savings (outside super), monthlySavings, target (the freedom number) or
+  //   annualSpend (× 25), superBalance, grossIncome or takeHomeMonthly (your own, for SG
+  //   and the tax rate), marginalRate (override), outsideReturn (override, used as is),
+  //   partner: { superBalance, age, grossIncome | takeHomeMonthly }.
+  function planInputs(inputs) {
+    const i = inputs || {};
+    const target = i.target != null ? Number(i.target) : Number(i.annualSpend) * 25;
+    const savings = finiteOr(i.savings, 0), monthlySavings = finiteOr(i.monthlySavings, 0);
+    if (!Number.isFinite(target) || target <= 0) return null;
+    if (![i.savings, i.monthlySavings, i.superBalance].every(v => v == null || v === '' || Number.isFinite(Number(v)))) return null;
+    const age = finiteOr(i.age, 0) > 0 && i.age < 120 ? Number(i.age) : null;
+    const gross = grossFrom(i);
+    const marginalRate = Number.isFinite(i.marginalRate) ? i.marginalRate
+      : gross > 0 && typeof calculateMarginalRate === 'function' ? calculateMarginalRate(gross) : DEFAULT_MARGINAL_RATE;
+    const outsideReturn = Number.isFinite(i.outsideReturn) ? i.outsideReturn : outsideSuperReturn(marginalRate);
+    const superBalance = Math.max(0, finiteOr(i.superBalance, 0));
+    let partner = null;
+    const p = i.partner;
+    if (p && finiteOr(p.superBalance, 0) > 0) {
+      const known = finiteOr(p.age, 0) > 0 && p.age < 120;
+      // Partner's age unknown: assume the same as yours (Pro's cards say so in small print).
+      partner = { superBalance: Number(p.superBalance), age: known ? Number(p.age) : age, ageAssumed: !known, grossIncome: grossFrom(p) };
+    }
+    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner };
+  }
+
+  // The month-by-month walk. Returns the month freedom is reached (null = not within
+  // 100 years) and, if asked, the super that's accessible each month (for Monte Carlo).
+  function walkPlan(n, wantSuperPath) {
+    const rO = monthlyRate(n.outsideReturn), rS = monthlyRate(SUPER_RETURN);
+    // Super only counts once its owner is 60, so without an age it can't be counted.
+    const own = n.age != null && n.superBalance > 0 ? { bal: n.superBalance, sg: sgNetMonthly(n.gross), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.age) * 12)) } : null;
+    const pt = n.partner && n.partner.age != null ? { bal: n.partner.superBalance, sg: sgNetMonthly(n.partner.grossIncome), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.partner.age) * 12)) } : null;
+    const pots = [own, pt].filter(Boolean);
+    const superPath = wantSuperPath ? [] : null;
+    let out = n.savings, month = null, savingsOnly = null, outsideAt60 = null;
+    const superAt = {};   // each pot's balance on its unlock month
+    for (let m = 0; m <= PLAN_MAX_MONTHS; m++) {
+      let sup = 0;
+      for (const s of pots) {
+        if (m === s.unlock) superAt[s === own ? 'own' : 'partner'] = s.bal;
+        if (m >= s.unlock) sup += s.bal;
+      }
+      if (own && m === own.unlock) outsideAt60 = out;
+      if (superPath) superPath.push(sup);
+      if (savingsOnly === null && out >= n.target) savingsOnly = m;
+      if (month === null && out + sup >= n.target) month = m;
+      // Keep walking only while something is still needed: the super path for Monte Carlo,
+      // or the balances at 60 for display.
+      if (month !== null && !wantSuperPath && pots.every(s => m >= s.unlock)) break;
+      out = out * (1 + rO) + n.monthlySavings;
+      // SG keeps going while you're still working (i.e. until you're free).
+      for (const s of pots) s.bal = s.bal * (1 + rS) + (month === null ? s.sg : 0);
+    }
+    // Savings alone, for "before super" comparisons, if the walk stopped before they got there.
+    if (savingsOnly === null && n.target > 0) {
+      let b = n.savings;
+      for (let m = 0; m <= PLAN_MAX_MONTHS; m++) {
+        if (b >= n.target) { savingsOnly = m; break; }
+        b = b * (1 + rO) + n.monthlySavings;
+        if (!(n.monthlySavings > 0) && !(b > 0 && rO > 0)) break;
+      }
+    }
+    return { month, savingsOnly, superPath, own, pt, superAt, outsideAt60 };
+  }
+
+  function freedomPlan(inputs, opts) {
+    const n = planInputs(inputs);
+    if (!n) return { valid: false, reachable: false, alreadyFree: false, months: null, years: null, freedomAge: null, freedomYear: null };
+    const w = walkPlan(n, false);
+    const months = w.month;
+    const now = (opts && opts.now) || new Date();
+    const years = months === null ? null : months / 12;
+    const accessibleNow = n.savings + (w.own && w.own.unlock === 0 ? n.superBalance : 0) + (w.pt && w.pt.unlock === 0 ? n.partner.superBalance : 0);
+    // Which phase the freedom date falls in: savings alone, or with super counted.
+    const superUnlocked = months !== null && ((w.own && months >= w.own.unlock) || (w.pt && months >= w.pt.unlock));
+    return {
+      valid: true,
+      months, years,
+      reachable: months !== null,
+      alreadyFree: months === 0,
+      freedomAge: n.age != null && years !== null ? Math.round(n.age + years) : null,
+      freedomAgeExact: n.age != null && years !== null ? n.age + years : null,
+      freedomYear: months === null ? null : new Date(now.getFullYear(), now.getMonth() + months, 1).getFullYear(),
+      // 'savings': savings outside super reach the number on their own. 'with-super': it
+      // takes super (unlocked at 60) to get there.
+      phase: months === null ? null : superUnlocked && w.savingsOnly !== months ? 'with-super' : 'savings',
+      superCounted: !!superUnlocked && w.savingsOnly !== months,
+      superIgnored: n.age == null && (n.superBalance > 0 || !!n.partner),   // no age: super can't be timed, so it's left out
+      savingsOnlyYears: w.savingsOnly === null ? null : w.savingsOnly / 12,
+      yearsTo60: w.own ? w.own.unlock / 12 : null,
+      superAt60: w.superAt.own != null ? w.superAt.own : null,
+      partnerSuperAt60: w.superAt.partner != null ? w.superAt.partner : null,
+      partnerYearsTo60: w.pt ? w.pt.unlock / 12 : null,
+      partnerAgeAssumed: !!(n.partner && n.partner.ageAssumed),
+      outsideAt60: w.outsideAt60,
+      sgMonthly: sgNetMonthly(n.gross) / 0.85,   // before contributions tax, as Pro shows it
+      accessibleNow,
+      target: n.target,
+      outsideReturn: n.outsideReturn,
+      superReturn: SUPER_RETURN,
+      marginalRate: n.marginalRate,
+      inputs: n
+    };
+  }
+
+  // A saved plan (an fp_profiles row, or FirePathNext.deviceProfile()) as freedomPlan
+  // inputs, so Journey, Freedom gap and Pro read a saved plan the same way.
+  // take_home_income is the household's monthly take-home; partner_income is the
+  // partner's own take-home per pay_cycle.
+  function planInputsFromProfile(p) {
+    p = p || {};
+    const perMonth = v => !(v > 0) ? 0 : p.pay_cycle === 'weekly' ? v * 52 / 12 : p.pay_cycle === 'fortnightly' ? v * 26 / 12 : v;
+    const partnerMonthly = perMonth(p.partner_income);
+    return {
+      age: p.age, savings: p.current_savings || 0, monthlySavings: p.savings_monthly || 0,
+      target: p.freedom_number, superBalance: p.super_balance || 0,
+      grossIncome: p.gross_income > 0 ? p.gross_income : null,
+      takeHomeMonthly: Math.max(0, (p.take_home_income || 0) - partnerMonthly),
+      partner: p.partner_super > 0 ? { superBalance: p.partner_super, age: p.partner_age, takeHomeMonthly: partnerMonthly } : null
+    };
+  }
+
+  // Money you could draw on `years` from now: savings outside super, plus super that has
+  // unlocked by then. Same walk as freedomPlan, for charts.
+  function projectAccessible(inputs, years) {
+    const n = planInputs(inputs);
+    if (!n) return null;
+    const target = Math.round(Math.max(0, years) * 12);
+    const rO = monthlyRate(n.outsideReturn), rS = monthlyRate(SUPER_RETURN);
+    const pots = [];
+    if (n.age != null && n.superBalance > 0) pots.push({ bal: n.superBalance, sg: sgNetMonthly(n.gross), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.age) * 12)) });
+    if (n.partner && n.partner.age != null) pots.push({ bal: n.partner.superBalance, sg: sgNetMonthly(n.partner.grossIncome), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.partner.age) * 12)) });
+    let out = n.savings;
+    for (let m = 0; m < target; m++) {
+      out = out * (1 + rO) + n.monthlySavings;
+      for (const s of pots) s.bal = s.bal * (1 + rS) + s.sg;
+    }
+    return out + pots.reduce((t, s) => t + (target >= s.unlock ? s.bal : 0), 0);
+  }
+
+  // The market range around the headline: the same plan with random yearly returns on
+  // the money outside super (median = the same after-tax rate the headline uses), and
+  // super joining from 60 exactly as in the headline. So the range wraps the headline.
+  // Returns simulateTimeToTarget's { early, likely, late, reachedShare } in months, or
+  // null when there's no range to show (invalid, already free, or nothing growing).
+  function freedomRange(inputs, opts) {
+    const n = planInputs(inputs);
+    if (!n) return null;
+    const w = walkPlan(n, true);
+    if (w.month === 0) return null;
+    if (!(n.monthlySavings > 0) && !(n.savings > 0) && !w.superPath.some(v => v > 0)) return null;
+    return simulateTimeToTarget(Object.assign({}, opts || {}, {
+      startPortfolio: n.savings, monthlySavings: Math.max(0, n.monthlySavings), target: n.target,
+      median: n.outsideReturn, extraByMonth: w.superPath
+    }));
+  }
+
   // ── Monte Carlo ──────────────────────────────────────────
   // Real markets don't return 7% every year. These simulate many possible futures:
   // each year's real return is drawn from a lognormal distribution whose median is 7%
@@ -239,19 +461,22 @@ window.FirePathEngine = (function () {
   // When might savings reach the target? Simulates monthly saving with yearly random
   // returns (each year's return spread evenly over its months) and reports the 10th,
   // 50th and 90th percentile time, in months, to reach `target`. null = not within 50 years.
-  function simulateTimeToTarget({ startPortfolio, monthlySavings, target, paths, seed, median, volatility }) {
+  // extraByMonth (optional): money that joins the portfolio on a fixed path — e.g. super
+  // once it unlocks at 60, from freedomRange — added to the balance month by month.
+  function simulateTimeToTarget({ startPortfolio, monthlySavings, target, paths, seed, median, volatility, extraByMonth }) {
     paths = paths || MC.paths;
     const next = returnSampler(seed == null ? 2 : seed, median, volatility);
     const MAX = 50 * 12;
+    const extra = m => extraByMonth ? (extraByMonth[Math.min(m, extraByMonth.length - 1)] || 0) : 0;
     const months = [];
     for (let p = 0; p < paths; p++) {
       let bal = startPortfolio, m = 0, r = 0;
-      while (bal < target && m < MAX) {
+      while (bal + extra(m) < target && m < MAX) {
         if (m % 12 === 0) r = monthlyRate(next());
         bal = bal * (1 + r) + monthlySavings;
         m++;
       }
-      months.push(bal >= target ? m : Infinity);
+      months.push(bal + extra(m) >= target ? m : Infinity);
     }
     months.sort((a, b) => a - b);
     const out = q => { const v = percentile(months, q); return Number.isFinite(v) ? v : null; };
@@ -265,14 +490,18 @@ window.FirePathEngine = (function () {
   //   projected to 67). Defaults to today's portfolio. Callers decide whether the pension
   //   applies yet — it's only paid from 67.
   function computeFreedomPicture(inputs) {
-    const { portfolio, annualSpend, isHomeowner, withdrawalRate, isCouple, pensionAssets } = inputs;
+    // partnerEligible / partnerSuper (couples, optional): false when the partner isn't 67 yet
+    // at the point assessed — then only half the couple rate is paid and partnerSuper (their
+    // accumulation super, included in pensionAssets) isn't counted. Omit for both eligible.
+    const { portfolio, annualSpend, isHomeowner, withdrawalRate, isCouple, pensionAssets, partnerEligible, partnerSuper } = inputs;
     const rate = withdrawalRate == null ? 0.04 : withdrawalRate;
     const portfolioIncome = portfolio * rate;
     const gap = Math.max(0, annualSpend - portfolioIncome);
     let pensionAnnual = 0, pensionWeekly = 0;
     if (pensionAvailable()) {
       try {
-        const pension = calculateAgePension(pensionAssets == null ? portfolio : pensionAssets, 0, isHomeowner, !!isCouple);
+        const opts = isCouple && partnerEligible != null ? { partnerEligible: !!partnerEligible, partnerSuper: partnerSuper || 0 } : undefined;
+        const pension = calculateAgePension(pensionAssets == null ? portfolio : pensionAssets, 0, isHomeowner, !!isCouple, undefined, opts);
         pensionAnnual = pension.annualPension || 0;
         pensionWeekly = pension.weeklyPension || 0;
       } catch (e) {}
@@ -315,5 +544,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, projectAccessible, planInputsFromProfile, outsideSuperReturn, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();

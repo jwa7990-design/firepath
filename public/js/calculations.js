@@ -13,9 +13,12 @@ function monthlyRate(annualRate) {
 
 /* ── Time to goal ──────────────────────────────────────────
    Returns years to reach a savings goal.
-   Returns null if mSaving <= 0 or goal unreachable in 100 years.
+   Returns null if mSaving <= 0, goal unreachable in 100 years, or any
+   input isn't a finite number.
 ──────────────────────────────────────────────────────────── */
 function yearsToGoal(goal, current, mSaving, rate) {
+  // A missing or broken input (NaN, Infinity) has no honest answer: never "Already there!".
+  if (![goal, current, mSaving, rate].every(Number.isFinite)) return null;
   if (current >= goal) return 0;
   // Nothing going in and nothing to grow: it never gets there. (With a balance and a
   // positive return it can still get there on growth alone, so keep going.)
@@ -34,6 +37,7 @@ function yearsToGoal(goal, current, mSaving, rate) {
    Returns 9999 if unreachable — useful for comparisons.
 ──────────────────────────────────────────────────────────── */
 function yearsToGoalCapped(goal, current, mSaving, rate) {
+  if (![goal, current, mSaving, rate].every(Number.isFinite)) return 9999;
   if (current >= goal) return 0;
   if (mSaving <= 0 && (current <= 0 || rate <= 0)) return 9999;
   const r = monthlyRate(rate);
@@ -51,6 +55,7 @@ function yearsToGoalCapped(goal, current, mSaving, rate) {
 ──────────────────────────────────────────────────────────── */
 function fmt(y) {
   if (y === null) return '100+ yrs';
+  if (typeof y !== 'number' || !Number.isFinite(y)) return '—';   // NaN, Infinity, undefined: never "NaNyr NaNmo"
   if (y === 0) return 'Already there!';
   const months = Math.round(y * 12);           // round once, so 12.97 years is "13 yrs", never "12yr 12mo"
   const yr = Math.floor(months / 12);
@@ -65,7 +70,7 @@ function fmt(y) {
    e.g. 1500000 → "$1.5M", 45000 → "$45K", 500 → "$500"
 ──────────────────────────────────────────────────────────── */
 function fmtM(n) {
-  if (n == null || isNaN(n)) return '—';
+  if (n == null || !Number.isFinite(Number(n))) return '—';   // NaN and ±Infinity too, never "$InfinityM"
   const sign = n < 0 ? '-' : '';
   const a = Math.abs(n);
   if (a >= 999500) return sign + '$' + (a / 1000000).toFixed(1) + 'M';   // 999,600 → $1.0M, not $1000K
@@ -79,7 +84,7 @@ function fmtM(n) {
    Pass { compact: false } to show millions in full too.
 ──────────────────────────────────────────────────────────── */
 function fmtDollars(n, opts) {
-  if (n == null || isNaN(n)) return '—';
+  if (n == null || !Number.isFinite(Number(n))) return '—';
   const sign = n < 0 ? '-' : '';
   const a = Math.abs(n);
   if (a >= 1000000 && !(opts && opts.compact === false)) return sign + '$' + (a / 1000000).toFixed(1) + 'M';
@@ -117,6 +122,24 @@ function compoundWithContributions(principal, monthlyContrib, annualRate, years)
     bal = bal * (1 + r) + monthlyContrib;
   }
   return bal;
+}
+
+/* ── Super at 60 ──────────────────────────────────────────
+   One person's super at 60: today's balance plus employer super (SG,
+   capped at the concessional cap) and any extra net contribution, after
+   15% contributions tax, growing at FP_ASSUMPTIONS.superReturn (7% less
+   typical fund fees, less 15% earnings tax ≈ 5.4%), compounded monthly.
+   Same rules as FirePathEngine.freedomPlan. Needs js/tax-engine.js for the
+   cap (falls back to $32,500).
+──────────────────────────────────────────────────────────── */
+function projectSuperTo60(balance, age, annualGross, extraNetMonthly) {
+  const years = Math.max(0, 60 - age), r = monthlyRate(FP_ASSUMPTIONS.superReturn);
+  const cap = typeof TAX_CONFIG !== 'undefined' && TAX_CONFIG.concessionalCap > 0 ? TAX_CONFIG.concessionalCap : 32500;
+  const sgMonthly = Math.min(Math.max(0, annualGross || 0) * FP_ASSUMPTIONS.sgRate, cap) / 12;
+  const inMonthly = sgMonthly * 0.85 + (extraNetMonthly || 0);
+  let bal = balance || 0;
+  for (let m = 0; m < Math.round(years * 12); m++) bal = bal * (1 + r) + inMonthly;
+  return { balance: bal, sgMonthly, years };
 }
 
 /* ── FIRE number ───────────────────────────────────────────

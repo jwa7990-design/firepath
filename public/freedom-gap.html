@@ -405,6 +405,27 @@
   let partnerSuper = 0;   // a couple is means-tested on both partners' super
   let partnerAge = null;  // the partner's super unlocks at *their* 60 (used by Freedom Options)
   let lastGapCalc = null;
+  // Pay from the saved plan, if there is one: employer super (SG) and the tax rate on
+  // investment income in the freedom date. This page doesn't ask for income, so without a
+  // saved plan there's no SG and a 30% rate (FirePathEngine.freedomPlan).
+  let planIncome = { grossIncome: null, takeHomeMonthly: 0, partnerTakeHomeMonthly: 0 };
+
+  // The freedom date: the shared plan every FirePath page uses for its headline (savings
+  // outside super until 60, then super too; your partner's from their 60).
+  function freedomDateLine(currentAge, netPortfolio, monthlySavings, annualSpend, superBalance) {
+    const E = window.FirePathEngine;
+    if (!E.freedomPlan || !(currentAge > 0)) return '';
+    const plan = E.freedomPlan({
+      age: currentAge, savings: netPortfolio, monthlySavings, annualSpend, superBalance,
+      grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly,
+      partner: isCouple && partnerSuper > 0 ? { superBalance: partnerSuper, age: partnerAge, takeHomeMonthly: planIncome.partnerTakeHomeMonthly } : null
+    });
+    if (!plan.valid) return '';
+    const num = fmtM(plan.target);
+    if (plan.alreadyFree) return ` Counting the super you can already get to, you have your full freedom number of <strong>${num}</strong> (25× your spending).`;
+    if (!plan.reachable) return ` At this rate your savings don't reach your full freedom number of ${num} (25× your spending) within 100 years.`;
+    return ` At your current saving, you reach your full freedom number of ${num} (25× your spending) at about <strong>age ${plan.freedomAge}</strong>, in ${plan.freedomYear}${plan.phase === 'with-super' ? ', counting your super from 60' : ''}.`;
+  }
 
   // What Centrelink would assess at pension age: the portfolio from the scenario age,
   // left to grow to 67, plus super grown from today. Today's dollars (7% is real).
@@ -417,6 +438,20 @@
     const supers = superBalance + (isCouple ? partnerSuper : 0);
     return E.projectPortfolio(portfolioAtScenario, 0, portfolioYears)
       + (supers > 0 ? E.projectPortfolio(supers, 0, superYears, E.SUPER_RETURN) : 0);
+  }
+
+  // A couple where the partner isn't 67 yet when you're assessed: only your half of the
+  // couple rate, and their accumulation super isn't counted (js/tax-engine.js). Needs the
+  // partner's age from the saved plan; without it both are treated as eligible.
+  function partnerPensionInputs(currentAge, scenarioAge) {
+    if (!isCouple || !(partnerAge > 0) || !(currentAge > 0)) return {};
+    const E = window.FirePathEngine;
+    const assessAge = Math.max(E.PENSION_AGE, scenarioAge || 0);
+    const yearsOut = Math.max(0, assessAge - currentAge);
+    return {
+      partnerEligible: partnerAge + yearsOut >= E.PENSION_AGE,
+      partnerSuper: partnerSuper > 0 ? E.projectPortfolio(partnerSuper, 0, yearsOut, E.SUPER_RETURN) : 0
+    };
   }
 
   function setHomeowner(val) {
@@ -474,7 +509,7 @@
 
     const scenarioAge = targetAge || currentAge;
     const pensionAssets = pensionAssetsAt(effectivePortfolio, superBalance, currentAge, scenarioAge);
-    const freedomPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: effectivePortfolio, annualSpend, isHomeowner, isCouple, pensionAssets });
+    const freedomPicture = window.FirePathEngine.computeFreedomPicture(Object.assign({ portfolio: effectivePortfolio, annualSpend, isHomeowner, isCouple, pensionAssets }, partnerPensionInputs(currentAge, scenarioAge)));
     const { portfolioIncome, gap, pensionAnnual, pensionWeekly, gapAfterPension, freedomPct } = freedomPicture;
     // The pension is only paid from 67 — before that, the gap work has to close is the full gap.
     const pensionApplies = scenarioAge >= 67;
@@ -516,6 +551,7 @@
     // get the page's core insight; the AI outlook below is an optional deeper layer on top.
     const hoursToCloseAfterPension = hourlyRate > 0 ? niceHours(gapNow / hourlyRate / 52) : null;
     let story = `Your investments already cover <strong>${freedomPct}%</strong> of your annual spending — ${fmtM(portfolioIncome)} of the ${fmtM(annualSpend)} you expect to need.`;
+    story += freedomDateLine(currentAge, netPortfolio, monthlySavings, annualSpend, superBalance);
     if (pensionAnnual > 0) {
       story += ` At 67, the Age Pension could reduce the remaining gap to around <strong>${fmtM(gapAfterPension)}/yr</strong>.`;
     }
@@ -593,7 +629,7 @@
     // "what if" exploration carried into its starting point — it starts fresh from today's
     // real (net-of-debt) numbers and finds its own future scenarios independently.
     try {
-      const todayPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: netPortfolio, annualSpend, isHomeowner, isCouple, pensionAssets: pensionAssetsAt(netPortfolio, superBalance, currentAge, currentAge) });
+      const todayPicture = window.FirePathEngine.computeFreedomPicture(Object.assign({ portfolio: netPortfolio, annualSpend, isHomeowner, isCouple, pensionAssets: pensionAssetsAt(netPortfolio, superBalance, currentAge, currentAge) }, partnerPensionInputs(currentAge, currentAge)));
       localStorage.setItem('fp_freedom_model', JSON.stringify({
         inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance: superBalance || 0, partnerSuper: isCouple ? partnerSuper : 0, partnerAge: isCouple ? partnerAge : null },   // partner's super kept separate: it unlocks at their 60, not yours
         picture: todayPicture,
@@ -823,6 +859,9 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
         isCouple = !!(p.partner_age || p.partner_income > 0 || p.partner_super > 0);
         partnerSuper = Math.max(0, p.partner_super || 0);
         partnerAge = p.partner_age > 0 ? p.partner_age : null;
+        // Same reading of the saved plan as Pro and Journey (FirePathEngine.planInputsFromProfile).
+        const pi = window.FirePathEngine.planInputsFromProfile ? window.FirePathEngine.planInputsFromProfile(p) : null;
+        if (pi) planIncome = { grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: pi.partner ? pi.partner.takeHomeMonthly : 0 };
         if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
         if (filled && fromDevice) FirePathNext.showDeviceNote(document.getElementById('fpPlanNote'));
         else if (filled) document.getElementById('fpPlanNote').style.display = 'block';

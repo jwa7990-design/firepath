@@ -169,7 +169,7 @@
   <div class="card glass-card">
     <div class="eyebrow card-label">Assumptions</div>
     <div class="input-row">
-      <div class="input-label-text">Investment return per year</div>
+      <div class="input-label-text">Investment return per year (after inflation)</div>
       <div class="slider-row">
         <input type="range" class="dark-slider" id="c-returnRate" min="3" max="12" value="7" oninput="document.getElementById('c-returnRateVal').textContent=this.value+'%';calcCompound()"/>
         <span class="slider-val" id="c-returnRateVal">7%</span>
@@ -218,7 +218,7 @@
     </div>
     <!-- What next for you — filled by js/next-steps.js -->
     <div id="fpNextSteps"></div>
-    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections assume steady returns. Actual returns vary from year to year.</p>
+    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections assume steady returns, after inflation, so every figure is in today's money. Actual returns vary from year to year.</p>
   </div>
 
 </main>
@@ -312,6 +312,14 @@
   }
 
 
+  // Money for display: never "NaN", "Infinity" or "undefined" (e.g. an absurdly large typed amount).
+  function money(n) { return Number.isFinite(n) ? fmtM(n) : '—'; }
+  // Read a number from a field; an empty or unreadable field gives the fallback, an explicit 0 stays 0.
+  function numFrom(id, fallback) {
+    const v = parseFloat(document.getElementById(id).value);
+    return Number.isFinite(v) ? v : fallback;
+  }
+
   function calcAtYear(years, monthlyStart, existing, returnRate, contribIncreaseRate) {
     let portfolio = existing;
     const mr = monthlyRate(returnRate);
@@ -343,24 +351,24 @@
     const ratio = (total / contributed).toFixed(1);
     if (years <= 5) return `You've done most of the work so far — compounding is just getting started.`;
     if (years <= 10) return `Compounding is now adding ${compoundPct}% of your total. It's starting to pull its weight.`;
-    if (years <= 15) return `Compounding has now added ${fmtM(total - contributed)} on top of your ${fmtM(contributed)} invested. It's accelerating.`;
+    if (years <= 15) return `Compounding has now added ${money(total - contributed)} on top of your ${money(contributed)} invested. It's accelerating.`;
     if (years <= 20) return total - contributed > contributed
       ? `Compounding has now overtaken you — it's doing more work than you are.`
       : `Compounding has added ${compoundPct}% of your total.`;
-    if (years <= 30) return `You invested ${fmtM(contributed)}. Compounding turned it into ${fmtM(total)}. That's ${ratio}x your money.`;
+    if (years <= 30) return `You invested ${money(contributed)}. Compounding turned it into ${money(total)}. That's ${ratio}x your money.`;
     return `For every $1 you invested, compounding added $${(ratio - 1).toFixed(1)}. Time did most of the heavy lifting.`;
   }
 
   function calcCompound() {
-    const age        = parseInt(document.getElementById('c-age').value) || 0;
-    const amount     = parseFloat(document.getElementById('c-amount').value) || 0;
-    const existing   = parseFloat(document.getElementById('c-existing').value) || 0;
-    const returnPct  = parseFloat(document.getElementById('c-returnRate').value);
-    const contribPct = parseFloat(document.getElementById('c-contribIncrease').value);
-    const returnRate = isNaN(returnPct) ? 0.07 : returnPct / 100;
-    const contribInc = isNaN(contribPct) ? 0.03 : contribPct / 100;
+    const age        = Math.floor(numFrom('c-age', 0));
+    const amount     = Math.max(0, numFrom('c-amount', 0));
+    const existing   = Math.max(0, numFrom('c-existing', 0));
+    const returnRate = numFrom('c-returnRate', 7) / 100;
+    const contribInc = numFrom('c-contribIncrease', 3) / 100;
 
-    if (age <= 0 || amount <= 0) {
+    // Needs an age, and something to grow: a regular amount, or savings already invested
+    // ($0 a fortnight on top of existing savings is a fair question too).
+    if (age <= 0 || (amount <= 0 && existing <= 0)) {
       document.getElementById('results').style.display = 'none';
       return;
     }
@@ -388,7 +396,7 @@
       card.className = 'milestone-card' + (isHighlight ? ' highlight' : '');
       card.innerHTML = `
         <div class="milestone-year">Year ${years} — Age ${currentAge}</div>
-        <div class="milestone-total"><span>${fmtM(total)}</span></div>
+        <div class="milestone-total"><span>${money(total)}</span></div>
         <div class="milestone-bar-wrap">
           <div class="milestone-bar">
             <div class="bar-contributed" style="width:${youPct}%"></div>
@@ -396,8 +404,8 @@
           </div>
         </div>
         <div class="milestone-breakdown">
-          <span class="breakdown-you">You invested: ${fmtM(contributed)}</span>
-          <span class="breakdown-compound">Compounding added: ${fmtM(compound)}</span>
+          <span class="breakdown-you">You invested: ${money(contributed)}</span>
+          <span class="breakdown-compound">Compounding added: ${money(compound)}</span>
         </div>
         <div class="milestone-insight">💡 ${insight}</div>
       `;
@@ -420,10 +428,10 @@
     document.getElementById('w-costBanner').style.display = show5 ? '' : 'none';
     document.getElementById('w-grid').style.gridTemplateColumns = `repeat(${1 + show5 + show10}, minmax(0, 1fr))`;
 
-    document.getElementById('w-now').textContent  = fmtM(wNow);
-    document.getElementById('w-5').textContent    = fmtM(w5);
-    document.getElementById('w-10').textContent   = fmtM(w10);
-    document.getElementById('w-cost5').textContent = fmtM(cost5);
+    document.getElementById('w-now').textContent  = money(wNow);
+    document.getElementById('w-5').textContent    = money(w5);
+    document.getElementById('w-10').textContent   = money(w10);
+    document.getElementById('w-cost5').textContent = money(cost5);
 
     // Save final portfolio value for withdrawal calculator
     const finalYears = Math.min(40, Math.max(0, 60 - age));

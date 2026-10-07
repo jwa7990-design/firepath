@@ -20,10 +20,10 @@
 <meta property="og:url" content="https://www.firepath.pro/withdrawal"/>
 <meta property="og:type" content="website"/>
 <meta property="og:title" content="Will my money last? Retirement withdrawal calculator | FirePath"/>
-<meta property="og:description" content="Will your money last? Test a withdrawal rate the way markets really behave: the odds it lasts 30 years, in today’s dollars. Free and Australian."/>
+<meta property="og:description" content="Will your money last? Test a withdrawal rate the way markets really behave: the odds it lasts 30, 40 or 50 years, in today’s dollars. Free and Australian."/>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Withdrawal planner","url":"https://www.firepath.pro/withdrawal","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"inLanguage":"en-AU"}</script>
 <!-- seo:end -->
-<meta name="description" content="Will your money last? Test a withdrawal rate the way markets really behave: the odds it lasts 30 years, in today’s dollars. Free and Australian."/>
+<meta name="description" content="Will your money last? Test a withdrawal rate the way markets really behave: the odds it lasts 30, 40 or 50 years, in today’s dollars. Free and Australian."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
@@ -161,6 +161,12 @@
   /* Takeaway */
   .takeaway { font-size: 14.5px; color: var(--ink-2); line-height: 1.7; }
 
+  /* "How long should it last?" — full-width .segmented */
+  .horizon-group.segmented { display: flex; width: 100%; }
+  .horizon-group.segmented > * { flex: 1; min-width: 0; padding: 8px 6px; white-space: nowrap; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
+  .horizon-group.segmented > :hover:not(.active) { color: var(--ink); }
+  .horizon-group.segmented > :focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+
   .disclaimer { font-size: 12px; color: var(--ink-2); line-height: 1.6; text-align: center; max-width: 64ch; margin: 4px auto 0; }
 </style>
 </head>
@@ -189,7 +195,7 @@
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="w-portfolio" placeholder="1000000" oninput="calcWithdrawal()"/></div>
     </div>
     <p class="card-note fp-plan-note" id="fpPlanNote" style="display:none;">Filled in from your saved plan — change any number.</p>
-    <p class="card-note">This is everything you have invested <strong>right now</strong>, not counting property, or super unless you can already get to it. Use today's value, not a future guess. The "years until you start withdrawing" setting below grows it forward for you.</p>
+    <p class="card-note">This is everything you have invested <strong>right now</strong>, not counting property, or super unless you can already get to it. Use today's value, not a future guess. If you won't start drawing on it for a while, the "years of growth" setting below grows it forward for you.</p>
   </div>
 
   <div class="card">
@@ -209,20 +215,34 @@
       </div>
     </div>
     <div class="input-row">
-      <label class="input-label-text" for="w-years">Years until you start withdrawing</label>
+      <label class="input-label-text" for="w-years">Years of growth before you start drawing</label>
       <div class="slider-row">
-        <input type="range" class="dark-slider" id="w-years" min="1" max="40" value="25" oninput="document.getElementById('w-yearsVal').textContent=this.value+' yrs';calcWithdrawal()"/>
-        <span class="slider-val" id="w-yearsVal">25 yrs</span>
+        <input type="range" class="dark-slider" id="w-years" min="0" max="40" value="0" oninput="calcWithdrawal()"/>
+        <span class="slider-val" id="w-yearsVal">Start now</span>
       </div>
+      <p class="card-note" id="w-yearsNote" style="margin-top:0;">Set to 0 if you're drawing on your savings from today. Each extra year grows today's balance at your return. It doesn't add any new savings.</p>
+    </div>
+    <div class="input-row">
+      <label class="input-label-text" for="w-age">Your age today <span style="color:var(--ink-2);font-weight:400;">(optional)</span></label>
+      <div class="input-wrap"><input type="number" class="dark-input" id="w-age" min="16" max="100" placeholder="e.g. 45" style="padding-left:14px;" oninput="calcWithdrawal()"/></div>
+    </div>
+    <div class="input-row">
+      <span class="input-label-text" id="w-horizonLabel">How long should it last?</span>
+      <div class="segmented horizon-group" role="group" aria-labelledby="w-horizonLabel">
+        <button type="button" data-horizon="30" class="active" aria-pressed="true" onclick="setHorizon(30)">30 years</button>
+        <button type="button" data-horizon="40" aria-pressed="false" onclick="setHorizon(40)">40 years</button>
+        <button type="button" data-horizon="50" aria-pressed="false" onclick="setHorizon(50)">50 years</button>
+      </div>
+      <p class="card-note" id="w-horizonNote" style="margin-top:0;">Stopping work before 50? Your money may need to last 40 years or more.</p>
     </div>
     <div class="input-row">
       <label class="input-label-text" for="w-inflation">Expected inflation rate (only used to show future dollars)</label>
       <div class="slider-row">
-        <input type="range" class="dark-slider" id="w-inflation" min="1" max="6" value="3" step="0.5" oninput="document.getElementById('w-inflationVal').textContent=this.value+'%';calcWithdrawal()"/>
-        <span class="slider-val" id="w-inflationVal">3%</span>
+        <input type="range" class="dark-slider" id="w-inflation" min="1" max="6" value="2.5" step="0.5" oninput="document.getElementById('w-inflationVal').textContent=this.value+'%';calcWithdrawal()"/>
+        <span class="slider-val" id="w-inflationVal">2.5%</span>
       </div>
     </div>
-    <p id="w-rateExplainer" class="callout rate-explainer">The 4% rule comes from research showing a 4% annual withdrawal lasted 30 years in most past periods for a spread of investments. Most, not all.</p>
+    <p id="w-rateExplainer" class="callout rate-explainer">The 4% rule comes from research showing a 4% annual withdrawal lasted 30 years in most past periods for a spread of investments. Most, not all. For a longer retirement, many people use 3–3.5%.</p>
   </div>
   </div>
 
@@ -290,7 +310,7 @@
     <!-- ── Longevity + AI Outlook ── -->
     <div class="card longevity-card">
       <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Will your money last?</div>
-      <div class="card-sub">This first grows your investments for the years you said you'll keep working. Then it takes the same income, after inflation, every year of a <strong>30-year retirement</strong>. That's the standard test behind the 4% rule. All figures are in today's money.</div>
+      <div class="card-sub">This first grows your investments for any years of growth you set. Then it takes the same income, after inflation, every year of a <strong id="w-horizonText">30-year retirement</strong>. The standard test behind the 4% rule uses 30 years. All figures are in today's money.</div>
       <div id="w-confidenceBadge" class="confidence">
         <div class="confidence-left">
           <div id="w-confidenceDot" class="confidence-dot"></div>
@@ -300,14 +320,14 @@
           </div>
         </div>
         <div id="w-endingBalanceWrap" style="text-align:right;">
-          <div class="eyebrow">After 30 years</div>
+          <div class="eyebrow" id="w-endingLabel">After 30 years</div>
           <div class="confidence-value up" id="w-endingBalance">—</div>
         </div>
       </div>
       <div class="longevity-compare">
         <div class="longevity-item" id="w-longevityBase">
           <div class="longevity-years" id="w-longevityBaseYears">—</div>
-          <div class="longevity-item-label">On your current settings</div>
+          <div class="longevity-item-label">Steady returns, your settings</div>
         </div>
         <div class="longevity-item good" id="w-longevityGood">
           <div class="longevity-years" id="w-longevityGoodYears">—</div>
@@ -336,7 +356,7 @@
 
     <div class="card">
       <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> <span id="w-compareTitle">What if I spend more?</span></div>
-      <div class="card-sub">Same savings, different withdrawal rates. See the trade-off between income and growth.</div>
+      <div class="card-sub">Same savings, different withdrawal rates. A bigger income now means less room for bad years.</div>
       <div id="w-rateComparison"></div>
     </div>
 
@@ -385,12 +405,58 @@
 
   let lastLongevity = null;
 
-  function calcWithdrawal() {
-    const portfolio    = parseFloat(document.getElementById('w-portfolio').value) || 0;
-    const returnRate   = parseFloat(document.getElementById('w-returnRate').value) / 100 || 0.07;
-    const withdrawRate = parseFloat(document.getElementById('w-withdrawRate').value) / 100 || 0.04;
+  // Read a number from a field. An explicit 0 stays 0; only an empty or unreadable field
+  // falls back to the default (a plain `|| default` would turn a typed 0 into the default).
+  function numFrom(id, fallback) {
+    const el = document.getElementById(id);
+    const v = el ? parseFloat(el.value) : NaN;
+    return Number.isFinite(v) ? v : fallback;
+  }
+  // Money for display: never "NaN", "Infinity" or "undefined".
+  function money(n) { return Number.isFinite(n) ? fmtM(n) : '—'; }
 
-    if (portfolio <= 0) {
+  // One comfort scale for the whole page, from the share of market futures in which the
+  // money lasts. The steady-return path never sets these labels on its own.
+  function comfortTier(successRate) {
+    if (!Number.isFinite(successRate)) return null;
+    return successRate >= 0.9 ? { cls: 'strong', label: 'Comfortable', colour: 'var(--positive)' }
+      : successRate >= 0.75 ? { cls: 'okay', label: 'Some risk', colour: 'var(--amber)' }
+      : { cls: 'fragile', label: 'Risky', colour: 'var(--negative)' };
+  }
+
+  // "How long should it last?" — 30 years (the classic 4% rule test), or 40 when we know
+  // you'd stop before 50. Once you pick one yourself, that choice sticks.
+  let horizonChoice = null;
+  function setHorizon(n) { horizonChoice = n; calcWithdrawal(); }
+  function horizonFor(retireAge) {
+    if (horizonChoice) return horizonChoice;
+    return retireAge != null && retireAge < 50 ? 40 : 30;
+  }
+
+  function calcWithdrawal() {
+    const portfolio    = Math.max(0, numFrom('w-portfolio', 0));
+    const returnRate   = numFrom('w-returnRate', 7) / 100;
+    const withdrawRate = numFrom('w-withdrawRate', 4) / 100;
+    const years        = Math.max(0, Math.round(numFrom('w-years', 0)));
+    const defaultInflation = (typeof FP_ASSUMPTIONS !== 'undefined' && Number.isFinite(FP_ASSUMPTIONS.longRunInflation)) ? FP_ASSUMPTIONS.longRunInflation * 100 : 2.5;
+    const inflation    = numFrom('w-inflation', defaultInflation) / 100;
+    const ageRaw       = numFrom('w-age', NaN);
+    const ageToday     = ageRaw >= 16 && ageRaw <= 100 ? ageRaw : null;
+    const retireAge    = ageToday != null ? ageToday + years : null;
+    const horizon      = horizonFor(retireAge);
+
+    // Settings labels
+    document.getElementById('w-yearsVal').textContent = years === 0 ? 'Start now' : `${years} yr${years === 1 ? '' : 's'}`;
+    document.getElementById('w-horizonNote').textContent = retireAge != null
+      ? `You'd start drawing at ${Math.round(retireAge)}. ${retireAge < 50 ? 'Starting before 50, your money may need to last 40 years or more.' : `${horizon} years takes you to ${Math.round(retireAge + horizon)}.`}`
+      : 'Stopping work before 50? Your money may need to last 40 years or more.';
+    document.querySelectorAll('.horizon-group [data-horizon]').forEach(b => {
+      const on = +b.dataset.horizon === horizon;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+
+    if (!(portfolio > 0)) {
       document.getElementById('results').style.display = 'none';
       return;
     }
@@ -399,8 +465,6 @@
 
     // Everything here is in today's money: the return slider is a real (after-inflation)
     // return. Grow today's portfolio to the point withdrawals start, then take the income.
-    const years = parseFloat(document.getElementById('w-years').value) || 25;
-    const inflation = parseFloat(document.getElementById('w-inflation').value) / 100 || 0.03;
     const portfolioAtStart = portfolio * Math.pow(1 + returnRate, years);
     const annualIncome    = portfolioAtStart * withdrawRate;
     // Income comes out at the start of the year; the rest earns the return
@@ -408,18 +472,20 @@
     const netGrowth       = annualReturn - annualIncome;
 
     // Income breakdown
-    document.getElementById('w-annual').textContent      = fmtM(annualIncome);
+    document.getElementById('w-annual').textContent      = money(annualIncome);
     // Inflation is only used to show the same income as a future-dollar figure
     const futureValue = annualIncome * Math.pow(1 + inflation, years);
-    document.getElementById('w-sub').textContent = `${fmtM(annualIncome)}/year in today's money, starting in ${years} years — about ${fmtM(futureValue)} in future dollars at ${(inflation * 100).toFixed(1).replace(/\.0$/, '')}% inflation`;
+    document.getElementById('w-sub').textContent = years === 0
+      ? `${money(annualIncome)}/year in today's money, starting now`
+      : `${money(annualIncome)}/year in today's money, starting in ${years} year${years === 1 ? '' : 's'}. That's about ${money(futureValue)} in future dollars at ${(inflation * 100).toFixed(1).replace(/\.0$/, '')}% inflation`;
 
-    document.getElementById('w-monthly').textContent     = fmtM(annualIncome / 12);
-    document.getElementById('w-fortnightly').textContent = fmtM(annualIncome / 26);
-    document.getElementById('w-weekly').textContent      = fmtM(annualIncome / 52);
+    document.getElementById('w-monthly').textContent     = money(annualIncome / 12);
+    document.getElementById('w-fortnightly').textContent = money(annualIncome / 26);
+    document.getElementById('w-weekly').textContent      = money(annualIncome / 52);
 
     const growthNoteEl = document.getElementById('w-growthNote');
     if (netGrowth > 0) {
-      growthNoteEl.innerHTML = `<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Your investments should keep growing while paying you this income.`;
+      growthNoteEl.innerHTML = `<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> If returns were steady, your investments would keep growing while paying you this.`;
       growthNoteEl.style.color = '#81C784';
     } else {
       growthNoteEl.innerHTML = `<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-alert"/></svg> This eats into your savings over time. See the rate comparison below.`;
@@ -427,52 +493,33 @@
     }
 
     // One-year story
-    document.getElementById('w-yearStart').textContent  = fmtM(portfolioAtStart);
-    document.getElementById('w-yearReturn').textContent = '+' + fmtM(annualReturn);
-    document.getElementById('w-yearPaid').textContent   = '-' + fmtM(annualIncome);
-    document.getElementById('w-yearEnd').textContent    = fmtM(portfolioAtStart + netGrowth);
+    document.getElementById('w-yearStart').textContent  = money(portfolioAtStart);
+    document.getElementById('w-yearReturn').textContent = (annualReturn < 0 ? '' : '+') + money(annualReturn);
+    document.getElementById('w-yearPaid').textContent   = '-' + money(annualIncome);
+    document.getElementById('w-yearEnd').textContent    = money(portfolioAtStart + netGrowth);
 
     // Portfolio 10/20 years into withdrawals (same fixed income every year, in today's money)
     const p10 = balanceAfterWithdrawals(portfolioAtStart, returnRate, annualIncome, 10);
     const p20 = balanceAfterWithdrawals(portfolioAtStart, returnRate, annualIncome, 20);
-    document.getElementById('w-10yr').textContent = fmtM(p10);
-    document.getElementById('w-20yr').textContent = fmtM(p20);
-
-    // Rate explainer
-    const explainers = {
-      2: 'Very safe — your money should keep growing while you live on less.',
-      2.5: 'Very cautious — lots of room to grow, but a lower income.',
-      3: 'Cautious — your savings should grow nicely while paying a solid income.',
-      3.5: 'Middle of the road — a good balance of income and growth.',
-      4: 'The usual 4% rule — from a US study where 4% lasted 30 years in most (not all) past periods for a spread of investments.',
-      4.5: 'Slightly above benchmark — works well if returns are strong.',
-      5: 'Comfortable — your savings may grow slowly or stay flat, depending on returns.',
-      5.5: 'Higher lifestyle — growth slows right down.',
-      6: 'High — your savings may shrink over time if returns are average.',
-      6.5: 'Risky — your savings could run out within 20–30 years.',
-      7: 'Very high — unlikely to last a long retirement.',
-      7.5: 'Too high for average returns — your savings will shrink.',
-      8: 'Too high — you\'d be eating into your savings each year.'
-    };
-    const rateKey = parseFloat(document.getElementById('w-withdrawRate').value);
-    document.getElementById('w-rateExplainer').textContent = explainers[rateKey] || explainers[4];
+    document.getElementById('w-10yr').textContent = money(p10);
+    document.getElementById('w-20yr').textContent = money(p20);
 
     // Magic moment — animated staggered reveal instead of a static paragraph
     const magicTitleText = document.getElementById('w-magicTitleText');
     const magicIconWrap = document.getElementById('w-magicTitle').querySelector('svg use');
     const magicText  = document.getElementById('w-magicText');
-    document.getElementById('w-stepEarn').textContent = fmtM(annualReturn);
-    document.getElementById('w-stepWithdraw').textContent = fmtM(annualIncome);
-    document.getElementById('w-stepNet').textContent = fmtM(netGrowth);
+    document.getElementById('w-stepEarn').textContent = money(annualReturn);
+    document.getElementById('w-stepWithdraw').textContent = money(annualIncome);
+    document.getElementById('w-stepNet').textContent = money(netGrowth);
 
     if (netGrowth > 0.5) {
       magicIconWrap.setAttribute('href', '/icons.svg#icon-featured');
       magicTitleText.textContent = 'Your money keeps growing';
-      magicText.innerHTML = `You’re taking out less than your investments earn, so the balance keeps going up.`;
+      magicText.innerHTML = `In an average year you take out less than your investments earn, so the balance goes up. Real years go up and down. The test below shows what that does.`;
     } else if (netGrowth > -0.5) {
       magicIconWrap.setAttribute('href', '/icons.svg#icon-balance');
       magicTitleText.textContent = 'Breaking even';
-      magicText.innerHTML = `What you started with stays about the same. That could go on for a long time, but there's no buffer if markets dip.`;
+      magicText.innerHTML = `What you started with stays about the same in an average year. That could go on for a long time, but there's no buffer if markets dip.`;
     } else {
       magicIconWrap.setAttribute('href', '/icons.svg#icon-alert');
       magicTitleText.textContent = 'Eating into your savings';
@@ -485,99 +532,131 @@
       setTimeout(() => { el.style.opacity = '1'; }, 120 + i * 220);
     });
 
-    // Rate comparison
+    // ── Longevity on a steady return (fixed real withdrawal, inflation-adjusted) ──
+    // Grow the portfolio through the deferral years first — the longevity test needs to
+    // reflect the balance at the point withdrawals actually start, not today's balance.
+    const base = simulateSWR(portfolioAtStart, returnRate, withdrawRate, horizon);
+    const good = simulateSWR(portfolioAtStart, returnRate + 0.02, withdrawRate, horizon);
+    lastLongevity = { portfolio: portfolioAtStart, portfolioToday: portfolio, yearsToRetirement: years, returnRate, withdrawRate, inflation, horizon, base, good };
+
+    // ── Many possible market futures (Monte Carlo) ──
+    // The steady-return test can't show sequence risk. Run the same withdrawal through
+    // 2,000 random market paths whose typical (median) return is the slider's. This sets
+    // the comfort label everywhere on the page.
+    const mc = renderMonteCarlo(portfolioAtStart, annualIncome, returnRate, horizon);
+    const tier = mc ? comfortTier(mc.successRate) : null;
+    const pct = mc ? Math.round(mc.successRate * 100) : null;
+    const rateKey = numFrom('w-withdrawRate', 4);   // the slider's own value, so 3.5 looks up 3.5
+
+    // Rate explainer: what the rate is, then how it did in the market test.
+    const explainers = {
+      2: 'A small income with a big safety margin.',
+      2.5: 'A small income with a big safety margin.',
+      3: 'A cautious rate. Often suggested when money needs to last 40 years or more.',
+      3.5: 'A cautious rate with a little more income.',
+      4: 'The usual 4% rule, from a US study where 4% lasted 30 years in most (not all) past periods for a spread of investments.',
+      4.5: 'A little above the 4% rule.',
+      5: 'More income now, with less room for bad years.',
+      5.5: 'A high rate. A few bad years early on can drain it.',
+      6: 'A high rate. A few bad years early on can drain it.',
+      6.5: 'Very high. Likely to run out in a long retirement unless returns are strong.',
+      7: 'Very high. Likely to run out in a long retirement unless returns are strong.',
+      7.5: 'Very high. Likely to run out in a long retirement unless returns are strong.',
+      8: 'Very high. Likely to run out in a long retirement unless returns are strong.'
+    };
+    const rateLead = explainers[rateKey] || explainers[4];
+    document.getElementById('w-rateExplainer').textContent = mc
+      ? `${rateLead} In our market test it lasted ${horizon} years in ${pct}% of futures: ${tier.label.toLowerCase()}.`
+      : rateLead;
+
+    // Rate comparison — each row's label comes from the same market test.
     const rates = [3, 4, 5, 6];
     const container = document.getElementById('w-rateComparison');
     container.innerHTML = rates.map(rate => {
       const income = portfolioAtStart * (rate / 100);
-      // First-year growth, with the income taken out at the start of the year
-      const growth = (1 - rate / 100) * (1 + returnRate) - 1;
       const isActive = Math.abs(rate - rateKey) < 0.3;
-      const growthClass = growth > 0.02 ? 'positive' : growth > 0 ? 'warning' : 'danger';
-      const growthText = Math.abs(growth) < 0.0005 ? 'Savings hold steady' : growth > 0 ? `Savings grow ${(growth * 100).toFixed(1)}% in year one` : `Savings shrink ${Math.abs(growth * 100).toFixed(1)}% in year one`;
-      const desc = rate === 3 ? 'Cautious' : rate === 4 ? 'The 4% rule' : rate === 5 ? 'Comfortable' : 'High';
+      const rowMc = (window.FirePathEngine && FirePathEngine.simulateDrawdown)
+        ? FirePathEngine.simulateDrawdown({ portfolio: portfolioAtStart, annualSpend: income, years: horizon, median: returnRate }) : null;
+      const rowTier = rowMc ? comfortTier(rowMc.successRate) : null;
+      const growthClass = !rowTier ? 'warning' : rowTier.cls === 'strong' ? 'positive' : rowTier.cls === 'okay' ? 'warning' : 'danger';
+      const lastText = rowMc ? `Lasts ${horizon} yrs in ${Math.round(rowMc.successRate * 100)}% of futures` : '—';
+      const desc = rowTier ? rowTier.label : (rate === 4 ? 'The 4% rule' : '');
       return `
         <div class="rate-row ${isActive ? 'active' : ''}">
           <div class="rate-left">
-            <div class="rate-pct">${rate}% — ${desc}</div>
-            <div class="rate-desc">${fmtM(income / 52)}/week · ${fmtM(income / 26)}/fortnight · ${fmtM(income / 12)}/month</div>
+            <div class="rate-pct">${rate}%${desc ? ' — ' + desc : ''}</div>
+            <div class="rate-desc">${money(income / 52)}/week · ${money(income / 26)}/fortnight · ${money(income / 12)}/month</div>
           </div>
           <div style="text-align:right">
-            <div class="rate-income">${fmtM(income)}/yr</div>
-            <div class="rate-growth ${growthClass}">${growthText}</div>
+            <div class="rate-income">${money(income)}/yr</div>
+            <div class="rate-growth ${growthClass}">${lastText}</div>
           </div>
         </div>`;
     }).join('');
 
-    // ── Longevity simulation (fixed real withdrawal, inflation-adjusted) ──
-    // Grow the portfolio through the deferral years first — the longevity test needs to
-    // reflect the balance at the point withdrawals actually start, not today's balance.
-    const base = simulateSWR(portfolioAtStart, returnRate, withdrawRate);
-    const good = simulateSWR(portfolioAtStart, returnRate + 0.02, withdrawRate);
-    lastLongevity = { portfolio: portfolioAtStart, portfolioToday: portfolio, yearsToRetirement: years, returnRate, withdrawRate, inflation, base, good };
-
+    document.getElementById('w-horizonText').textContent = `${horizon}-year retirement`;
+    document.getElementById('w-endingLabel').textContent = `After ${horizon} years, steady returns`;
     const baseYearsEl = document.getElementById('w-longevityBaseYears');
     const goodYearsEl = document.getElementById('w-longevityGoodYears');
-    baseYearsEl.textContent = base.depleted ? `~${base.yearsLasted} yrs` : `Lasts 30+ yrs`;
-    goodYearsEl.textContent = good.depleted ? `~${good.yearsLasted} yrs` : `Lasts 30+ yrs`;
+    baseYearsEl.textContent = base.depleted ? `~${base.yearsLasted} yrs` : `Lasts ${horizon}+ yrs`;
+    goodYearsEl.textContent = good.depleted ? `~${good.yearsLasted} yrs` : `Lasts ${horizon}+ yrs`;
     document.getElementById('w-longevityGoodLabel').textContent = `With ${((returnRate + 0.02) * 100).toFixed(0)}% returns instead of ${(returnRate * 100).toFixed(0)}%`;
 
-    // Confidence badge + ending balance. Now that this runs on a realistic 30-year
-    // horizon (not the old unbounded simulation), the ending balance is a plausible,
-    // useful number — legacy, flexibility to spend more now and taper later, a buffer
-    // for unexpected costs. Worth showing, as long as the underlying test is realistic.
+    // Confidence badge — from the market test, so it never says "comfortable" while the
+    // market test says the money often runs out. The steady path's ending balance sits
+    // beside it as a "what if returns were smooth" figure.
     const confDot = document.getElementById('w-confidenceDot');
     const confLabel = document.getElementById('w-confidenceLabel');
     const bufferNote = document.getElementById('w-bufferNote');
     const endingBalanceEl = document.getElementById('w-endingBalance');
     const endingBalanceWrap = document.getElementById('w-endingBalanceWrap');
+    if (tier) {
+      confDot.style.background = tier.colour;
+      confLabel.textContent = tier.label;
+    } else {
+      confDot.style.background = base.depleted ? 'var(--negative)' : 'var(--amber)';
+      confLabel.textContent = base.depleted ? 'Risky' : '—';
+    }
+    const riskLine = !mc ? ''
+      : tier.cls === 'strong' ? ` Across 2,000 market futures it lasted the full ${horizon} years in ${pct}% of them, so there's a good margin.`
+      : tier.cls === 'okay' ? ` But across 2,000 market futures it lasted the full ${horizon} years in only ${pct}% of them. Being ready to spend a bit less after bad years would help.`
+      : ` But across 2,000 market futures it lasted the full ${horizon} years in only ${pct}% of them. A lower withdrawal rate, or more years of growth first, would make it much safer.`;
     if (base.depleted) {
-      confDot.style.background = 'var(--negative)';
-      confLabel.textContent = 'Tight';
       endingBalanceWrap.style.display = 'none';
-      bufferNote.innerHTML = `On these settings, the money runs out before the 30-year test finishes. A lower withdrawal rate, or a few more years of saving first, would help. See the rate comparison below.`;
+      bufferNote.innerHTML = `Even with steady returns, the money runs out around year ${base.yearsLasted} of ${horizon}. A lower withdrawal rate, or a few more years of growth first, would help. See the rate comparison below.`;
     } else {
       endingBalanceWrap.style.display = 'block';
-      endingBalanceEl.textContent = fmtM(base.endingBalance);
-      // Compare the balance trajectory to gauge how comfortable the margin is
-      const midPoint = base.series[Math.floor(base.series.length / 2)];
-      const comfortable = midPoint > portfolioAtStart * 0.9;
-      confDot.style.background = comfortable ? 'var(--positive)' : 'var(--amber)';
-      confLabel.textContent = comfortable ? 'High' : 'Comfortable';
+      endingBalanceEl.textContent = money(base.endingBalance);
 
-      // Sanity check: a long deferral compounding at a high return, then another 30
-      // years compounding in retirement, can multiply today's portfolio by an amount
-      // nobody would actually experience in practice. Flag it plainly rather than
-      // presenting an outlier figure as if it were an ordinary result.
+      // Sanity check: a long deferral compounding at a high return, then decades more
+      // compounding in retirement, can multiply today's portfolio by an amount nobody
+      // would actually experience. Flag it plainly rather than presenting an outlier.
       const multiple = portfolio > 0 ? base.endingBalance / portfolio : 0;
-      const totalHorizon = years + 30;
+      const totalHorizon = years + horizon;
       const isOutlier = multiple > 15 && totalHorizon > 40;
 
-      const buffLine = comfortable
-        ? `Your savings last the full 30 years with a growing buffer the whole way, ending with roughly <strong>${fmtM(base.endingBalance)}</strong> still there. That gives you room to spend more early and less later, a buffer for surprises, or something to leave behind.`
-        : `Your savings make it through the full 30 years, ending with roughly <strong>${fmtM(base.endingBalance)}</strong> — though the buffer thins for a stretch before growth catches back up.`;
+      const buffLine = `With steady ${(returnRate * 100).toFixed(0)}% returns every year, your savings last the full ${horizon} years, ending with roughly <strong>${money(base.endingBalance)}</strong>.${riskLine}`;
 
       bufferNote.innerHTML = isOutlier
-        ? `${buffLine}<br/><br/><em style="color:var(--ink-2);font-size:12.5px;">Worth knowing: this assumes ${(returnRate*100).toFixed(0)}% returns every year for ${totalHorizon} years straight: ${years} years growing before retirement, then 30 more in retirement. Real markets don't grow smoothly for six decades, so treat this as what the assumption implies, not a forecast.</em>`
+        ? `${buffLine}<br/><br/><em style="color:var(--ink-2);font-size:12.5px;">Worth knowing: this assumes ${(returnRate*100).toFixed(0)}% returns every year for ${totalHorizon} years straight: ${years} years growing first, then ${horizon} more in retirement. Real markets don't grow smoothly for that long, so treat this as what the assumption implies, not a forecast.</em>`
         : buffLine;
     }
-
-    // ── Many possible market futures (Monte Carlo) ──
-    // The steady-return test above can't show sequence risk. Run the same withdrawal
-    // through 2,000 random market paths whose typical (median) return is the slider's.
-    renderMonteCarlo(portfolioAtStart, annualIncome, returnRate, 30);
 
     // Portfolio journey chart — real SVG line from the actual year-by-year simulation
     renderJourneyChart(base.series, years);
 
     // Deterministic takeaway — computed from the numbers, always available instantly
     const takeawayEl = document.getElementById('w-takeaway');
-    if (base.depleted) {
-      takeawayEl.innerHTML = `Based on today's assumptions, this withdrawal rate doesn't quite make it through a full 30-year retirement. Small changes, like a slightly lower withdrawal rate or a few more years of growth first, can make a big difference over decades.`;
+    if (!mc) {
+      takeawayEl.innerHTML = base.depleted
+        ? `On these settings the money runs out before the ${horizon} years are up, even with steady returns. A slightly lower withdrawal rate or a few more years of growth first can make a big difference.`
+        : `With steady ${(returnRate * 100).toFixed(0)}% returns, your investments last the full ${horizon} years. Real returns won't be steady, so leave yourself some room.`;
+    } else if (tier.cls === 'strong') {
+      takeawayEl.innerHTML = `At ${(withdrawRate * 100).toFixed(1).replace(/\.0$/, '')}%, your money lasted the full ${horizon} years in ${pct}% of market futures. That's a comfortable margin, with room for a few bad years.`;
+    } else if (tier.cls === 'okay') {
+      takeawayEl.innerHTML = `At ${(withdrawRate * 100).toFixed(1).replace(/\.0$/, '')}%, your money lasted the full ${horizon} years in ${pct}% of market futures. That's some risk: it usually works, but a bad run early on could cut it short. Spending a little less in bad years, or a slightly lower rate, adds safety.`;
     } else {
-      takeawayEl.innerHTML = base.endingBalance >= portfolioAtStart
-        ? `On a steady ${(returnRate * 100).toFixed(0)}% path, your investments keep growing faster than you draw them down, right through retirement. That's what a steady plan and a sensible withdrawal rate can do.`
-        : `On a steady ${(returnRate * 100).toFixed(0)}% path, your investments last the full 30 years, though the balance slowly shrinks along the way. Actual returns won't be steady, so a thinner margin like this is worth a closer look.`;
+      takeawayEl.innerHTML = `At ${(withdrawRate * 100).toFixed(1).replace(/\.0$/, '')}%, your money lasted the full ${horizon} years in only ${pct}% of market futures. That's risky. A lower withdrawal rate or more years of growth first would make a big difference.`;
     }
 
     // Reset AI outlook when inputs change — the cached narrative no longer matches
@@ -618,15 +697,14 @@
     if (!window.FirePathEngine || !FirePathEngine.simulateDrawdown || !(portfolioAtStart > 0)) { wrap.style.display = 'none'; return null; }
     const mc = FirePathEngine.simulateDrawdown({ portfolio: portfolioAtStart, annualSpend, years: horizon, median: returnRate });
     const pct = Math.round(mc.successRate * 100);
-    const tier = mc.successRate >= 0.9 ? { cls: 'strong', label: 'Strong', colour: 'var(--positive)' }
-      : mc.successRate >= 0.75 ? { cls: 'okay', label: 'Okay with flexibility', colour: 'var(--amber)' }
-      : { cls: 'fragile', label: 'Fragile', colour: 'var(--negative)' };
+    if (!mc || !Number.isFinite(mc.successRate)) { wrap.style.display = 'none'; return null; }
+    const tier = comfortTier(mc.successRate);
     wrap.style.display = 'flex';
     document.getElementById('w-mcDot').style.background = tier.colour;
     document.getElementById('w-mcHeadline').innerHTML = `In <strong>${pct}%</strong> of 2,000 possible market outcomes your money lasts the full ${horizon} years.<span class="mc-verdict ${tier.cls}">${tier.label}</span>`;
     const parts = [];
     if (mc.badCaseRunsOutYear != null) parts.push(`In a bad run (1 in 10), it runs out around year ${mc.badCaseRunsOutYear + 1}.`);
-    parts.push(`Typical balance left after ${horizon} years: ${fmtM(mc.p50)}.`);
+    parts.push(`Typical balance left after ${horizon} years: ${money(mc.p50)}.`);
     document.getElementById('w-mcDetail').textContent = parts.join(' ');
     if (lastLongevity) lastLongevity.monteCarlo = mc;
     return mc;
@@ -684,18 +762,21 @@
     loading.classList.add('visible');
     textEl.style.display = 'none';
 
-    const { portfolio, portfolioToday, yearsToRetirement, returnRate, withdrawRate, base, good } = lastLongevity;
-    const baseDesc = base.depleted ? `runs out around year ${base.yearsLasted} of a 30-year retirement` : `comfortably lasts the full 30-year retirement test, ending with roughly ${fmtM(base.endingBalance)} still invested`;
-    const goodDesc = good.depleted ? `runs out around year ${good.yearsLasted}` : `also lasts the full 30 years, ending with roughly ${fmtM(good.endingBalance)} — an even larger buffer`;
+    const { portfolio, portfolioToday, yearsToRetirement, returnRate, withdrawRate, horizon, base, good } = lastLongevity;
+    const baseDesc = base.depleted ? `runs out around year ${base.yearsLasted} of a ${horizon}-year retirement` : `lasts the full ${horizon}-year retirement test on steady returns, ending with roughly ${money(base.endingBalance)} still invested`;
+    const goodDesc = good.depleted ? `runs out around year ${good.yearsLasted}` : `also lasts the full ${horizon} years, ending with roughly ${money(good.endingBalance)}`;
 
-    const totalHorizonForAI = yearsToRetirement + 30;
+    const totalHorizonForAI = yearsToRetirement + horizon;
     const multipleForAI = portfolioToday > 0 ? base.endingBalance / portfolioToday : 0;
     const outlierNote = (multipleForAI > 15 && totalHorizonForAI > 40)
-      ? ` Note: this assumes ${(returnRate*100).toFixed(0)}% returns sustained for ${totalHorizonForAI} straight years (${yearsToRetirement} to retirement plus 30 in retirement) — flag this clearly as an aggressive assumption over an unusually long horizon, not a realistic forecast.`
+      ? ` Note: this assumes ${(returnRate*100).toFixed(0)}% returns sustained for ${totalHorizonForAI} straight years (${yearsToRetirement} to retirement plus ${horizon} in retirement) — flag this clearly as an aggressive assumption over an unusually long horizon, not a realistic forecast.`
       : '';
     const mc = lastLongevity.monteCarlo;
-    const mcNote = mc ? ` Across 2,000 possible market outcomes with the same typical return (not steady every year), the money lasted the full 30 years in ${Math.round(mc.successRate * 100)}% of them${mc.badCaseRunsOutYear != null ? `; in a bad 1-in-10 future it runs out around year ${mc.badCaseRunsOutYear + 1}` : ''}.` : '';
-    const userInput = `Portfolio today: ${fmtM(portfolioToday)}. This person plans to keep working and growing it for ${yearsToRetirement} more years before retiring, at which point the portfolio is projected to be roughly ${fmtM(portfolio)} in today's money. Assumed return: ${(returnRate*100).toFixed(1)}% a year after inflation (all figures are in today's money). Withdrawal rate at retirement: ${(withdrawRate*100).toFixed(1)}% (${fmtM(portfolio*withdrawRate)}/yr in today's money, taken at the start of each year and kept at the same buying power throughout). Simulation result on current settings (30-year retirement horizon starting from the projected retirement balance — the standard Trinity Study test): ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.${mcNote}${outlierNote}`;
+    const mcNote = mc ? ` Across 2,000 possible market outcomes with the same typical return (not steady every year), the money lasted the full ${horizon} years in ${Math.round(mc.successRate * 100)}% of them (the page labels this "${comfortTier(mc.successRate).label}")${mc.badCaseRunsOutYear != null ? `; in a bad 1-in-10 future it runs out around year ${mc.badCaseRunsOutYear + 1}` : ''}.` : '';
+    const startDesc = yearsToRetirement > 0
+      ? `This person plans to let it grow for ${yearsToRetirement} more years before drawing on it, at which point the portfolio is projected to be roughly ${money(portfolio)} in today's money.`
+      : `This person is drawing on it from today.`;
+    const userInput = `Portfolio today: ${money(portfolioToday)}. ${startDesc} Assumed return: ${(returnRate*100).toFixed(1)}% a year after inflation (all figures are in today's money). Withdrawal rate at retirement: ${(withdrawRate*100).toFixed(1)}% (${money(portfolio*withdrawRate)}/yr in today's money, taken at the start of each year and kept at the same buying power throughout). Steady-return result on current settings (${horizon}-year retirement horizon starting from the projected retirement balance; the standard Trinity Study test uses 30): ${baseDesc}. Simulation result with 2% stronger returns (${((returnRate+0.02)*100).toFixed(1)}%): ${goodDesc}.${mcNote}${outlierNote}`;
 
     try {
       const res = await fetch(WORKER_URL, {
@@ -704,9 +785,9 @@
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 500,
-          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. You have been given the exact results of a real portfolio-longevity simulation with two phases: the portfolio growing until retirement, then a realistic 30-year retirement withdrawal test starting from that projected balance — do not recalculate or second-guess these numbers, just narrate what they mean for the person in plain English.
+          system: `You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. You have been given the exact results of a real portfolio-longevity simulation with two phases: the portfolio growing until retirement, then a retirement withdrawal test over the horizon given (30, 40 or 50 years) starting from that projected balance — do not recalculate or second-guess these numbers, just narrate what they mean for the person in plain English.
 
-Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what surviving (or not surviving) the 30-year test practically means for someone's retirement, in warm and human terms — not clinical. 3. If the portfolio survives with a comfortable buffer, it's fine to mention the ending balance — but frame it as what it actually enables (flexibility to spend more now and taper later, a cushion for the unexpected, something to leave behind) rather than just a number sitting there. 4. Briefly describe what the stronger-returns scenario shows and why even a small return difference compounds into a meaningful gap over decades. 5. Never say "you should" or "I recommend", and never say which option they should choose — frame as something worth understanding, not advice. 6. Never name specific products, funds, ETFs, brokers or platforms. 7. Max 2 short paragraphs. 8. Don't add a disclaimer; the page shows one under your answer. Use <strong> for bold.`,
+Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what surviving (or not surviving) the test practically means for someone's retirement, in warm and human terms — not clinical. 3. The market-futures (Monte Carlo) result is the main measure of safety; the steady-return result is only what smooth returns would give. Never call the plan comfortable or safe if the market-futures success rate is under 90%. If the portfolio survives with a buffer, it's fine to mention the ending balance — but frame it as what it actually enables (flexibility to spend more now and taper later, a cushion for the unexpected, something to leave behind) rather than just a number sitting there. 4. Briefly describe what the stronger-returns scenario shows and why even a small return difference compounds into a meaningful gap over decades. 5. Never say "you should" or "I recommend", and never say which option they should choose — frame as something worth understanding, not advice. 6. Never name specific products, funds, ETFs, brokers or platforms. 7. Max 2 short paragraphs. 8. Don't add a disclaimer; the page shows one under your answer. Use <strong> for bold.`,
           messages: [{ role: 'user', content: userInput }]
         })
       });
@@ -766,6 +847,11 @@ Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what 
         el.value = Math.round(p.current_savings);
         filled = true;
       }
+      const ageEl = document.getElementById('w-age');
+      if (!skip.includes('w-age') && !fpTyped.has('w-age') && ageEl.value === '' && p.age >= 16 && p.age <= 100) {
+        ageEl.value = Math.round(p.age);
+        filled = true;
+      }
       if (filled && fromDevice) FirePathNext.showDeviceNote(document.getElementById('fpPlanNote'));
       else if (filled) document.getElementById('fpPlanNote').style.display = 'block';
       calcWithdrawal();
@@ -785,6 +871,12 @@ Rules: 1. Reference the actual simulation numbers given to you. 2. Explain what 
   // deliberately not used: it's already a projected age-60 value, and this page grows
   // today's value forward itself.
   document.addEventListener('DOMContentLoaded', () => {
+    // Inflation default comes from the shared assumption (FP_ASSUMPTIONS, js/calculations.js).
+    if (typeof FP_ASSUMPTIONS !== 'undefined' && Number.isFinite(FP_ASSUMPTIONS.longRunInflation)) {
+      const inf = document.getElementById('w-inflation');
+      inf.value = Math.round(FP_ASSUMPTIONS.longRunInflation * 200) / 2;   // nearest 0.5%, the slider's step
+      document.getElementById('w-inflationVal').textContent = inf.value + '%';
+    }
     const params = new URLSearchParams(window.location.search);
     const urlPortfolio = params.get('portfolio');
     if (urlPortfolio) {

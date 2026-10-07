@@ -320,7 +320,7 @@
 <script src="js/interactions.js"></script>
 <script>
   function fmtPct(r){return(r*100).toFixed(1)+'%';}
-  function yearsToGoal(goal,cur,ms,rate){if(ms<=0)return null;if(cur>=goal)return 0;const r=rate/12;let b=cur,m=0;while(b<goal&&m<1200){b=b*(1+r)+ms;m++;}return m<1200?m/12:null;}
+  // yearsToGoal comes from js/calculations.js (monthly rate (1+r)^(1/12)−1, not r/12).
   function fmtYrs(y){if(y===null)return'100+ yrs';const yr=Math.floor(y),mo=Math.round((y-yr)*12);if(yr===0)return mo+' months';if(mo===0)return yr+' yr'+(yr!==1?'s':'');return yr+'yr '+mo+'mo';}
 
   let proProfile = null, fpToken = null, fpUserId = null;
@@ -638,15 +638,11 @@
     const t2Compare = document.getElementById('t2SuperCompare');
     const t2Link = document.getElementById('t2SuperLink');
     if (proProfile && proProfile.age && proProfile.age < 60) {
-      const yearsTo60 = Math.max(0, 60 - proProfile.age);
-      const sgMonthly = (gross * TAX_CONFIG.sgRate / 12) * 0.85;
-      const monthlyNet = (r.netSuperGain / 12);
-      const mr = 0.07 / 12;
-      let withExtra = proProfile.super_balance || 0, withoutExtra = proProfile.super_balance || 0;
-      for (let m = 0; m < yearsTo60 * 12; m++) {
-        withoutExtra = withoutExtra * (1 + mr) + sgMonthly;
-        withExtra = withExtra * (1 + mr) + sgMonthly + monthlyNet;
-      }
+      // The shared super projection (js/calculations.js, same as Pro): SG capped at the
+      // concessional cap, 15% contributions tax, growing at ~5.4% (7% less fees and 15%
+      // earnings tax), compounded monthly at (1 + r)^(1/12) − 1.
+      const withoutExtra = projectSuperTo60(proProfile.super_balance || 0, proProfile.age, gross).balance;
+      const withExtra = projectSuperTo60(proProfile.super_balance || 0, proProfile.age, gross, r.netSuperGain / 12).balance;
       const extra = Math.round(withExtra - withoutExtra);
       if (t2Compare) {
         t2Compare.innerHTML = `

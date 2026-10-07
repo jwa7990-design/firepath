@@ -273,7 +273,7 @@
           <div class="chart-wrap" id="chartWrap">
             <div class="chart-tip" id="chartTip" role="status" aria-live="polite"></div>
           </div>
-          <div class="chart-foot">Invested savings outside super, growing at 7% a year after inflation. <a href="assumptions.html">How we calculate</a></div>
+          <div class="chart-foot">Invested savings outside super (7% a year after inflation, less tax on its income), plus your super from 60. <a href="assumptions.html">How we calculate</a></div>
         </div>
       </div>
     </section>
@@ -416,8 +416,9 @@
   const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ── Model — every number on the page comes from here ────
-  // Same formulas as before the redesign: freedom % is invested savings over the
-  // freedom number, and the date is solveMonthsToTarget at 7% with a 4% withdrawal.
+  // Freedom % is invested savings over the freedom number. The date is the shared freedom
+  // plan (Engine.freedomPlan), the same headline as the calculators: savings outside super
+  // until 60, then super too, with 7% less tax on investment income.
   function buildModel(p) {
     const savings = p.current_savings || 0;
     const superBal = p.super_balance || 0;
@@ -427,24 +428,26 @@
     const freedomNumber = p.freedom_number || 0;
     const monthlySavings = p.savings_monthly || 0;
     const annualSpend = freedomNumber > 0 ? freedomNumber / 25 : 0;
-    const months = annualSpend > 0 ? Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend, RATE) : null;
     const now = new Date();
-    // Markets don't return 7% every year: 2,000 random-return futures with the same
-    // typical return give a realistic early (1 in 10) to late (1 in 10) window for the
-    // same target. Built once per model, not on every re-render.
+    const planInputs = Engine.planInputsFromProfile(p);
+    const plan = Engine.freedomPlan(planInputs, { now });
+    const months = plan.valid ? plan.months : null;   // null = not within 100 years (or no numbers yet)
+    // Markets don't return 7% every year: 2,000 random-return futures on the same plan give
+    // a realistic early (1 in 10) to late (1 in 10) window around the same date. Built once
+    // per model, not on every re-render.
     let range = null;
-    if (months != null && Engine.simulateTimeToTarget) {
-      const sim = Engine.simulateTimeToTarget({ startPortfolio: savings, monthlySavings, target: annualSpend / 0.04, median: RATE });
-      if (sim.early != null) range = { early: yearAfter(now, sim.early), late: sim.late != null ? yearAfter(now, sim.late) : null };
+    if (months != null && months > 0 && Engine.freedomRange) {
+      const sim = Engine.freedomRange(planInputs);
+      if (sim && sim.early != null) range = { early: yearAfter(now, sim.early), late: sim.late != null ? yearAfter(now, sim.late) : null };
     }
     return {
-      p, savings, superBal, debt, mortgage, offset, freedomNumber, monthlySavings, annualSpend, months, range,
+      p, savings, superBal, debt, mortgage, offset, freedomNumber, monthlySavings, annualSpend, months, range, plan, planInputs,
       // Net worth — savings, super and offset, minus everything owed (formula version 3).
       netWorth: (savings + superBal + offset) - (debt + mortgage),
       pct: freedomNumber > 0 ? Math.min(100, Math.round((savings / freedomNumber) * 100)) : 0,
       age: p.age || null,
       currentYear: now.getFullYear(),
-      freedomYear: months != null ? yearAfter(now, months) : null,
+      freedomYear: months != null ? plan.freedomYear : null,
       savingsRate: p.savings_rate != null ? p.savings_rate : null,
       situation: situationOf(p)
     };
@@ -456,7 +459,7 @@
     try { return window.FirePathMoves.situationFromProfile(p); } catch (e) { return null; }
   }
   // Already free: their accessible money covers the number (super counts from 60).
-  const isFree = m => !!((m.situation && m.situation.alreadyFree) || (m.months === 0 && m.freedomNumber > 0));
+  const isFree = m => !!((m.plan && m.plan.alreadyFree) || (m.situation && m.situation.alreadyFree));
 
   // ── Header ─────────────────────────────────────────────
   function renderHeader(p) {
@@ -486,14 +489,14 @@
     }
     if (m.months == null) {
       return persona === 'fire'
-        ? `Not reaching FI inside 40 years at current contributions. SR and spend are what move it — see below.`
-        : `At today's pace your savings don't reach your freedom number within 40 years. The ideas below show what could change that.`;
+        ? `Not reaching FI inside 100 years at current contributions. SR and spend are what move it — see below.`
+        : `At today's pace your savings don't reach your freedom number within 100 years. The ideas below show what could change that.`;
     }
     if (persona === 'beginner') {
       return `You've saved ${m.pct}% of what you'd need for work to become optional. Money saved early does the most work — it has the longest to grow.`;
     }
     if (persona === 'fire') {
-      return `${m.pct}% FI. ${money(remaining)} to go at a 4% SWR, ${money(m.monthlySavings)}/mo contributions, 7% after inflation.`;
+      return `${m.pct}% FI. ${money(remaining)} to go at a 4% SWR, ${money(m.monthlySavings)}/mo contributions, ${(m.plan.outsideReturn * 100).toFixed(1)}% after inflation and tax${m.plan.phase === 'with-super' ? ', super from 60' : ''}.`;
     }
     return `You're ${m.pct}% of the way to your freedom number. Keep saving ${money(m.monthlySavings)} a month and you get there in ${m.freedomYear}.`;
   }
@@ -501,16 +504,16 @@
   function renderHero(m) {
     const yearEl = $('heroYear');
     yearEl.classList.remove('skeleton');
-    yearEl.textContent = m.freedomYear != null ? m.freedomYear : '40+ yrs';
+    yearEl.textContent = m.freedomYear != null ? m.freedomYear : '100+ yrs';
     const parts = [];
     if (isFree(m)) {
       parts.push("You've reached your number");
     } else if (m.months != null) {
-      // Rounded up, like Freedom Options: you're free at the first birthday on or after the date.
-      if (m.age) parts.push(`Age <strong>${Math.ceil(m.age + m.months / 12)}</strong>`);
+      // The same freedom age the calculators show (freedomPlan rounds to the nearest year).
+      if (m.plan.freedomAge != null) parts.push(`Age <strong>${m.plan.freedomAge}</strong>`);
       parts.push(`<strong>${duration(m.months)}</strong> from now`);
     } else {
-      parts.push('Beyond 40 years at your current pace');
+      parts.push('Beyond 100 years at your current pace');
     }
     $('heroMeta').innerHTML = parts.join(' · ');
     const rangeEl = $('heroRange');
@@ -599,7 +602,8 @@
     const pts = [];
     for (let i = 0; i <= steps; i++) {
       const t = i / 4;
-      pts.push({ t, cur: Engine.projectPortfolio(m.savings, m.monthlySavings, t, RATE), opt: Engine.projectPortfolio(m.savings, m.monthlySavings + extra, t, RATE) });
+      // Money you could draw on: savings outside super, plus super once it unlocks at 60 (same plan as the date).
+      pts.push({ t, cur: Engine.projectAccessible(m.planInputs, t) || 0, opt: Engine.projectAccessible(Object.assign({}, m.planInputs, { monthlySavings: m.monthlySavings + extra }), t) || 0 });
     }
     const goal = m.freedomNumber;
     const top = Math.max(goal * 1.18, Math.min(pts[steps].cur, goal * 1.6));
@@ -630,7 +634,7 @@
     }
 
     const svg = `
-      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Projected invested savings reaching ${money(goal)} in ${m.freedomYear || 'more than 40 years'}">
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Projected savings and super reaching ${money(goal)} in ${m.freedomYear || 'more than 100 years'}">
         <defs>
           <linearGradient id="pgFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stop-color="var(--ember)" stop-opacity="0.16"/>
@@ -728,8 +732,8 @@
   const LEVER_COPY = {
     more: {
       beginner: ['Saving an extra $50 a week', 'About the cost of a couple of takeaway meals.'],
-      building: ['Saving $50 more a week', 'Invested at the same 7% assumption.'],
-      fire: ['+$50/wk contributions', 'Same 7% after inflation.']
+      building: ['Saving $50 more a week', 'Invested on the same assumptions.'],
+      fire: ['+$50/wk contributions', 'Same return assumption.']
     },
     spend: {
       beginner: ['Spending 10% less', "You'd need less saved, and you'd save more each month — it works twice."],
@@ -737,8 +741,8 @@
       fire: ['−10% annual spend', 'Lower FI number and higher SR at once.']
     },
     returns: {
-      beginner: ['If investments grow slower', 'Markets vary — this is 6% a year instead of 7%.'],
-      building: ['Returns 1% lower', '6% instead of 7%. Worth knowing the downside.'],
+      beginner: ['If investments grow slower', 'Markets vary — this is 1% a year less growth than we assume.'],
+      building: ['Returns 1% lower', 'One point a year less than we assume. Worth knowing the downside.'],
       fire: ['Return 6% after inflation (−1pt)', 'Sensitivity to your return assumption.']
     }
   };
@@ -759,19 +763,24 @@
     }
     const persona = Persona.get();
     const base = m.months;
-    const solve = (monthly, spend, rate) => Engine.solveMonthsToTarget(m.savings, monthly, spend, rate);
+    // Same plan as the headline date, with one thing changed.
+    const solve = (monthly, spend, rate) => {
+      const r = Engine.freedomPlan(Object.assign({}, m.planInputs, { monthlySavings: monthly, target: spend * 25, outsideReturn: rate }));
+      return r.valid ? r.months : null;
+    };
+    const rate = m.plan.outsideReturn;
     // The returns row is a sensitivity check, not something you can act on — so no link.
     const rows = [
-      { key: 'more', url: 'hearmeout.html', months: solve(m.monthlySavings + EXTRA_WEEKLY * 52 / 12, m.annualSpend, RATE) },
-      { key: 'spend', url: 'hearmeout.html', months: solve(m.monthlySavings + m.annualSpend * 0.1 / 12, m.annualSpend * 0.9, RATE) },
-      { key: 'returns', url: null, months: solve(m.monthlySavings, m.annualSpend, RATE - 0.01) }
+      { key: 'more', url: 'hearmeout.html', months: solve(m.monthlySavings + EXTRA_WEEKLY * 52 / 12, m.annualSpend, rate) },
+      { key: 'spend', url: 'hearmeout.html', months: solve(m.monthlySavings + m.annualSpend * 0.1 / 12, m.annualSpend * 0.9, rate) },
+      { key: 'returns', url: null, months: solve(m.monthlySavings, m.annualSpend, rate - 0.01) }
     ];
     el.innerHTML = rows.map(r => {
       const [title, desc] = LEVER_COPY[r.key][persona];
       let chip;
       if (base == null && r.months == null) chip = '<span class="chip">No change</span>';
       else if (base == null) chip = `<span class="chip chip-positive">Reachable in ${duration(r.months)}</span>`;
-      else if (r.months == null) chip = '<span class="chip chip-negative">40+ yrs</span>';
+      else if (r.months == null) chip = '<span class="chip chip-negative">100+ yrs</span>';
       else {
         const diff = base - r.months;
         chip = Math.abs(diff) < 1 ? '<span class="chip">No change</span>'

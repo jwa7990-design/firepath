@@ -346,3 +346,54 @@ test('partner super unlocks at the partner\'s own 60', () => {
   assert.equal(withOlderPartner.age, 58);
   assert.equal(sameAge.age, 60);
 });
+
+// ── Week 2: couple Age Pension with one partner under pension age, LISTO income test ──
+test('Age Pension: couple where only one partner is 67 gets half the couple rate', () => {
+  // Each member of a couple is paid half the combined couple rate: 1,866 × 26 ÷ 2 = $24,258.
+  const r = E.calculateAgePension(0, 0, true, true, undefined, { partnerEligible: false });
+  near(r.annualPension, 24258);
+  assert.equal(r.eligiblePartners, 1);
+  // Both eligible: the full combined rate, as before.
+  near(E.calculateAgePension(0, 0, true, true, undefined, { partnerEligible: true }).annualPension, MAX_COUPLE);
+});
+
+test('Age Pension: younger partner\'s accumulation super is not means-tested', () => {
+  // Couple homeowner: $400k invested (counted) + $300k partner super (exempt, partner 58).
+  // Assets $400k < $499k → no assets reduction. Deemed: 110,600 × 1.75% + 289,400 × 3.75%
+  // = 1,935.50 + 10,852.50 = 12,788; free area 396 × 26 = 10,296; reduction 1,246.
+  // Combined 48,516 − 1,246 = 47,270; the eligible partner's half = $23,635.
+  const r = E.calculateAgePension(700000, 0, true, true, undefined, { partnerEligible: false, partnerSuper: 300000 });
+  near(r.deemedIncome, 12788);
+  near(r.annualPension, 23635);
+  assert.equal(r.bindingTest, 'income');
+  // The old behaviour (both counted as eligible, partner super tested) paid $32,838.
+  near(E.calculateAgePension(700000, 0, true, true).annualPension, 32838);
+});
+
+test('Age Pension: one eligible partner, assets test on combined couple assets', () => {
+  // $800k non-financial assets: (800,000 − 499,000) × $78 per $1,000 = 23,478;
+  // 48,516 − 23,478 = 25,038 combined → $12,519 for the eligible partner.
+  const r = E.calculateAgePension(800000, 0, true, true, 0, { partnerEligible: false });
+  near(r.annualPension, 12519);
+  assert.equal(r.bindingTest, 'assets');
+});
+
+test('Age Pension: NaN input never becomes a full pension', () => {
+  assert.equal(E.calculateAgePension(NaN, 0, true, false).annualPension, 0);
+  assert.equal(E.calculateAgePension(100000, NaN, true, false).annualPension, 0);
+});
+
+test('LISTO uses adjusted taxable income: sacrifice can\'t bring you under $37,000', () => {
+  // $40k earner sacrificing $5k: taxable income 35,000, but adjusted taxable income adds the
+  // $5k back → $40,000 > $37,000, so no LISTO. Super tax is the full 15% of $5,000 = $750.
+  const r = E.calculateSalarySacrifice(40000, 5000);
+  assert.equal(r.listo, 0);
+  assert.equal(r.superTax, 750);
+  assert.equal(r.netSuperGain, 4250);
+  // Under the limit either way: $20k still gets LISTO on the extra contributions
+  // (SG 2,400 × 15% = 360 → (2,400 + 1,000) × 15% = 510, capped at 500 → +140).
+  assert.equal(E.calculateSalarySacrifice(20000, 1000).listo, 140);
+});
+
+// The shared freedom date, its range and the formatting guards live in their own file.
+require('./freedom.test.cjs');

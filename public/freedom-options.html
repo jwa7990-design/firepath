@@ -267,7 +267,8 @@
   const OPTION_META = {
     stay_course: {
       desc: 'Your situation as it stands today, unchanged.',
-      headline: (f) => f.hoursPerWeekNow > 0 ? `Work part-time, starting today` : `You're already covered, right now`,
+      // "Already covered" only when there's truly no gap — not just because no hourly rate was given.
+      headline: (f) => f.gapToday > 0 ? (f.hoursPerWeekNow > 0 ? `Work part-time, starting today` : `Where you stand today`) : `You're already covered, right now`,
       gainBack: (f) => {
         if (!f.hoursPerWeekNow || f.hoursPerWeekNow <= 0) return null;
         const daysFewer = Math.round(5 - (f.hoursPerWeekNow / 7.6));
@@ -318,8 +319,10 @@
     // Pension means test at 67: today's portfolio left to grow, plus super grown from today.
     const E = window.FirePathEngine;
     const y67 = Math.max(0, E.PENSION_AGE - age);
-    // A couple is means-tested on both partners' super.
-    const supers = (superBalance || 0) + (partner ? partnerSuper : 0);
+    // A couple is means-tested on both partners' super, but a partner's super still in
+    // accumulation isn't counted until they reach pension age themselves.
+    const partnerAt67 = partner ? (partnerAge || age) + y67 : null;
+    const supers = (superBalance || 0) + (partner && partnerAt67 >= E.PENSION_AGE ? partnerSuper : 0);
     const pensionAssets = projectPortfolio(portfolio, 0, y67) + (supers > 0 ? projectPortfolio(supers, 0, y67, E.SUPER_RETURN) : 0);
     const picture = E.computeFreedomPicture({ portfolio, annualSpend, isHomeowner, isCouple, pensionAssets });
     const portfolioIncomeToday = picture.portfolioIncome;
@@ -416,9 +419,11 @@ Absolute rules:
     const f = o.facts;
     switch (o.id) {
       case 'stay_course':
-        return { blurb: f.hoursPerWeekNow > 0
-          ? `Right now your investments cover ${f.freedomPctToday}% of your spending — working about ${f.hoursPerWeekNow} hrs/week would close the rest.`
-          : `Your investments already cover all your spending today.` };
+        return { blurb: !(f.gapToday > 0)
+          ? `Your investments already cover all your spending today.`
+          : f.hoursPerWeekNow > 0
+            ? `Right now your investments cover ${f.freedomPctToday}% of your spending — working about ${f.hoursPerWeekNow} hrs/week would close the rest.`
+            : `Right now your investments cover ${f.freedomPctToday}% of your spending. Work or other income would need to cover the other ${fmtM(f.gapToday)} a year.` };
       case 'retire_full_stop':
         return { blurb: `That's ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} away — by then your investments (with super and any Age Pension) should cover everything, with no work income needed.` };
       case 'reduce_spend':
@@ -465,7 +470,8 @@ Absolute rules:
       const isStay = o.id === 'stay_course';
       const isStrongest = o.id === strongestId;
       const gainBack = meta.gainBack ? meta.gainBack(o.facts) : null;
-      const statsHtml = Object.entries(o.facts).filter(([k, v]) => v !== null && v !== undefined).slice(0, 3).map(([k, v]) => {
+      // Skip anything that isn't a real number, so a card never shows "NaN" or "undefined".
+      const statsHtml = Object.entries(o.facts).filter(([k, v]) => v !== null && v !== undefined && (typeof v !== 'number' || Number.isFinite(v))).slice(0, 3).map(([k, v]) => {
         const label = { freedomPctToday: 'Covered today', hoursPerWeekNow: 'Hrs/week', gapToday: 'Gap/yr', gapAfterPensionToday: 'Gap after pension', targetAge: 'Target age', yearsAway: 'Years away', projectedPortfolioIncome: 'Investment income', projectedPensionIncome: 'Pension income', reductionPerYear: 'Less spending', yearsSooner: 'Years sooner', hoursPerWeek: 'Hrs/week', yearsToPension: 'To pension' }[k] || k;
         const val = typeof v === 'number' && (k.toLowerCase().includes('income') || k.toLowerCase().includes('gap') || k === 'reductionPerYear') ? fmtM(v) : (k.toLowerCase().includes('pct') ? v + '%' : v);
         return `<div class="option-stat"><div class="option-stat-value">${val}</div><div class="option-stat-label">${label}</div></div>`;
@@ -526,16 +532,19 @@ Absolute rules:
     const hasCompleteHandoff = inp2 && inp2.portfolio > 0 && inp2.annualSpend > 0 && inp2.age > 0;
 
     if (hasCompleteHandoff) {
+      // Saved numbers can be text or missing: anything unreadable counts as 0 (or no
+      // partner age), so nothing downstream can turn into NaN.
+      const n0 = v => { const x = Number(v); return Number.isFinite(x) ? Math.max(0, x) : 0; };
       currentInputs = {
-        portfolio: inp2.portfolio, annualSpend: inp2.annualSpend, age: inp2.age,
-        monthlySavings: inp2.monthlySavings || 0, hourlyRate: inp2.hourlyRate || 0, isHomeowner: inp2.isHomeowner,
-        isCouple: !!inp2.isCouple, superBalance: inp2.superBalance || 0,
-        partnerSuper: inp2.partnerSuper || 0, partnerAge: inp2.partnerAge || null
+        portfolio: n0(inp2.portfolio), annualSpend: n0(inp2.annualSpend), age: n0(inp2.age),
+        monthlySavings: n0(inp2.monthlySavings), hourlyRate: n0(inp2.hourlyRate), isHomeowner: inp2.isHomeowner,
+        isCouple: !!inp2.isCouple, superBalance: n0(inp2.superBalance),
+        partnerSuper: n0(inp2.partnerSuper), partnerAge: n0(inp2.partnerAge) > 0 ? n0(inp2.partnerAge) : null
       };
 
       // Reuse the exact picture Freedom Gap already calculated for the intro line, rather
       // than silently recomputing it — it should say the same thing the person just saw.
-      if (handoff.picture) {
+      if (handoff.picture && Number.isFinite(Number(handoff.picture.freedomPct))) {
         document.getElementById('handoffIntro').innerHTML = `<div class="handoff-title">Based on your Freedom gap...</div><div class="handoff-text">Your investments already fund <strong>${handoff.picture.freedomPct}%</strong> of your lifestyle. Here are a few different ways you could use that.</div>`;
       }
       document.getElementById('handoffIntro').style.display = 'block';

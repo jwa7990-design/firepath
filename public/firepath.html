@@ -784,6 +784,17 @@
   // A calendar year for a years-to-go figure: null = out of reach, 0 = already there.
   function yearLabel(y, cy) { return y === null ? '100+ yrs' : y === 0 ? 'Now' : cy + Math.round(y); }
 
+  // The headline date is the shared freedom plan (FirePathEngine.freedomPlan, js/financial-engine.js),
+  // the same one Pro, Freedom gap and Journey use: savings outside super until 60, then super too,
+  // after tax on investment income. _planInputs holds this calculation's inputs; planYears() reruns
+  // the same plan with some of them changed, so every "what if" is measured against the headline.
+  let _planInputs = null;
+  function planYears(over) {
+    if (!_planInputs || typeof FirePathEngine === 'undefined') return null;
+    const p = FirePathEngine.freedomPlan(Object.assign({}, _planInputs, over || {}));
+    return p.valid ? p.years : null;
+  }
+
   function updateSavingsHint() {
     const income = parseFloat(document.getElementById('income').value) || 0;
     const saving = parseFloat(document.getElementById('savingsAmount').value) || 0;
@@ -829,6 +840,16 @@
       housing: housingStatus, mortgageRemaining: mortgage, consumerDebt: debt,
       retirementSpendMultiplier, freedomNumber: fireNum, payCycle: selectedCycle
     };
+    // The headline: your own super (employer super from your own pay) and your partner's,
+    // each unlocking at its owner's 60. Broken numbers get "check your numbers", not a date.
+    _planInputs = {
+      age, savings, monthlySavings: mSav, target: fireNum, superBalance: superBal, takeHomeMonthly: toMonthly(income),
+      partner: pSuper > 0 ? { superBalance: pSuper, age: pAge, takeHomeMonthly: pI > 0 ? toMonthly(pI) : 0 } : null
+    };
+    const plan = FirePathEngine.freedomPlan(_planInputs);
+    if (!plan.valid) { _planInputs = null; errEl.textContent = "Please check your numbers: we need what you spend (take-home less savings) to work out your freedom number."; errEl.style.display = 'block'; return; }
+    const yHead = plan.years;   // null = more than 100 years, 0 = already there
+
     const ranked = window.FirePathMoves ? FirePathMoves.rank(FirePathMoves.situationFromInputs(situationInputs), { limit: 20 }) : null;
     const moveList = ranked ? ranked.all : [];
     const debtMove = moveList.find(m => m.id === 'clear-debt') || null;
@@ -838,13 +859,10 @@
     const cycleStatLabel = selectedCycle === 'weekly' ? 'Saved / week' : selectedCycle === 'fortnightly' ? 'Saved / fortnight' : 'Saved / month';
     const cycleSaving = selectedCycle === 'weekly' ? mSav * 12 / 52 : selectedCycle === 'fortnightly' ? mSav * 12 / 26 : mSav;
 
-    const bankRate = FP_ASSUMPTIONS.bankRealReturn;
-    const y0075 = yearsToGoal(fireNum, savings, mSav, bankRate);
-    const y05 = yearsToGoal(fireNum, savings, mSav, 0.05);
-    const y07 = yearsToGoal(fireNum, savings, mSav, 0.07);
-    const y10 = yearsToGoal(fireNum, savings, mSav, 0.10);
+    // y07 is the headline from here on (the name stays for the helpers below).
+    const y07 = yHead;
 
-    const alreadyFree = savings >= fireNum && fireNum > 0;
+    const alreadyFree = plan.alreadyFree;   // super counts from 60, so a 62-year-old with enough super is free
     document.getElementById('yearsOut').textContent = alreadyFree ? 'Already there!' : fmt(y07);
     document.getElementById('savingsRateOut').textContent = sRate + '%';
     document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
@@ -856,14 +874,16 @@
     const gap = fireNum - savings;
     const weeklyAmt = fmtM(mSav * 12 / 52);
     let gapText = '';
-    if (savings >= fireNum) {
-      gapText = `<strong>You've already hit your freedom number!</strong> Your savings of ${fmtM(savings)} cover your freedom target of ${fmtM(fireNum)}. You're there.`;
+    if (alreadyFree) {
+      gapText = savings >= fireNum
+        ? `<strong>You've already hit your freedom number!</strong> Your savings of ${fmtM(savings)} cover your freedom target of ${fmtM(fireNum)}. You're there.`
+        : `<strong>You've already hit your freedom number!</strong> Your savings and super (yours from 60) come to ${fmtM(plan.accessibleNow)}, covering your freedom target of ${fmtM(fireNum)}. You're there.`;
     } else if (y07 !== null) {
       const cy = new Date().getFullYear();
       const mSavPlus = mSav + (50 * 52 / 12);
-      const yPlus = yearsToGoal(fireNum, savings, mSavPlus, 0.07);
+      const yPlus = planYears({ monthlySavings: mSavPlus });
       const currentRate = currentReturns().rate[savingsType] ?? FP_ASSUMPTIONS.bankRealReturn;
-      const yReality = yearsToGoal(fireNum, savings, mSav, currentRate);
+      const yReality = planYears({ outsideReturn: currentRate });
       const realityNote = debtMove ? debtFirst
         : savingsType !== 'etfs' && yReality !== null && yReality - y07 > 0.5
         ? ` Right now your money is ${savingsType === 'cash' ? 'in a bank' : savingsType === 'offset' ? 'in your offset' : 'spread across different places'} — if it was invested at 7%, you could get there <strong>${fmt(yReality - y07)} sooner</strong>.`
@@ -871,7 +891,7 @@
       const plusNote = !debtMove && yPlus && y07 && y07 - yPlus > 0.3
         ? ` Find an extra $50/week on top of that and it moves to <strong>${cy + Math.round(yPlus)}</strong>.`
         : '';
-      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong>, about 25× what you spend in a year. That's enough to make work optional.${savings > 0 ? ` You currently have <strong>${fmtM(savings)}</strong>, leaving a gap of <strong>${fmtM(gap)}</strong>.` : ''} At <strong>${weeklyAmt}/week</strong> you're on track to get there in <strong>${fmt(y07)}</strong>.${realityNote}${plusNote} The article below is a good place to start.`;
+      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong>, about 25× what you spend in a year. That's enough to make work optional.${savings > 0 ? ` You currently have <strong>${fmtM(savings)}</strong>, leaving a gap of <strong>${fmtM(gap)}</strong>.` : ''} At <strong>${weeklyAmt}/week</strong> you're on track to get there in <strong>${fmt(y07)}</strong>${plan.phase === 'with-super' ? ', counting your super from 60' : ''}.${realityNote}${plusNote} The article below is a good place to start.`;
     } else {
       gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong>, about 25× what you spend in a year. That's enough to make work optional.<br/><br/>Right now your savings rate is low, which means the timeline is long.${debtFirst} ${debtFirst ? 'After that, every' : 'But every'} extra dollar you save each week shortens that gap — because of compounding. FirePath Pro shows which change would make the biggest difference for you.`;
     }
@@ -886,7 +906,7 @@
     }
 
     buildMovesCard(moveList, alreadyFree || !!(ranked && ranked.situation.alreadyFree));
-    buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate, debtMove ? debt : 0);
+    buildRangeCard(fireNum, savings, mSav, null, y07, null, sRate, debtMove ? debt : 0);
 
     const rec = recommendArticle(moveList);
     const recCard = document.getElementById('recommendedCard');
@@ -917,13 +937,13 @@
     buildWithdrawalCard(savings, mSav, mI, fireNum, mS, y07, age);
     buildTaxNudge(sRate, moveList);
     buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
-    buildLifeUnlockedCard(fireNum, savings, mSav, y07, age);
+    buildLifeUnlockedCard(fireNum, savings, mSav, y07, age, alreadyFree);
 
     // Store for cinematic stage
     _cinYearsText = alreadyFree ? 'Already there!' : fmt(y07);
     _cinSubText = `Saving ${fmtM(cycleSaving)} per ${cycleWord} towards your freedom number of ${fmtM(fireNum)}.`;
     _cinFreedomAgeText = (age > 0 && y07 !== null && !alreadyFree)
-      ? `${getPersonaCopy().freedomAgeLabel}: ${Math.round(age + y07)} — ${fmt(y07)} to go`
+      ? `${getPersonaCopy().freedomAgeLabel}: ${plan.freedomAge} — ${fmt(y07)} to go`
       : '';
     // Mondays-left opening beat — skipped entirely if already free (nothing to count down)
     _cinMondaysText = (y07 !== null && !alreadyFree)
@@ -966,14 +986,14 @@
     return years < 100 ? years : null;
   }
 
-  function buildLifeUnlockedCard(fireNum, savings, mSav, y07, age) {
+  function buildLifeUnlockedCard(fireNum, savings, mSav, y07, age, isFree) {
     const card = document.getElementById('lifeUnlockedCard');
     const sub = document.getElementById('lifeUnlockedSub');
     const grid = document.getElementById('lifeUnlockedGrid');
     if (!card || !grid || fireNum <= 0) return;
 
     const pc = getPersonaCopy();
-    const alreadyFree = savings >= fireNum;
+    const alreadyFree = isFree != null ? isFree : savings >= fireNum;
     const yearsToCoast = yearsForLumpSum(fireNum, savings, 0.07);
     const coastReached = alreadyFree || (yearsToCoast !== null && age > 0 && (age + yearsToCoast) <= 65);
     const yearsAwayText = (y07 !== null) ? fmt(y07) : null;
@@ -1016,7 +1036,7 @@
   function cinematicApplyLever() {
     if (_cinLever.used || _cinLever.y07 === null) return;
     const mSavPlus = _cinLever.mSav + (50 * 52 / 12);
-    const yPlus = yearsToGoal(_cinLever.fireNum, _cinLever.savings, mSavPlus, 0.07);
+    const yPlus = planYears({ monthlySavings: mSavPlus });
     if (yPlus === null) return;
 
     const numberEl = document.getElementById('cin-number');
@@ -1121,7 +1141,7 @@
     const freedomYear = y07 !== null ? currentYear + Math.round(y07) : null;
     const hooks = [];
     if (debt > 0) hooks.push(`You have ${fmtM(debt)} in debt. Pro's AI weighs paying it down against investing, using your own numbers.`);
-    if (superBal > 0 && age > 0 && age < 60) hooks.push(`You can get to your super in ${60 - age} years. Pro adds your super to the plan and shows how it changes your date.`);
+    if (superBal > 0 && age > 0 && age < 60) hooks.push(`You can get to your super in ${60 - age} years. Pro shows your super year by year, and what salary sacrifice would add.`);
     if (sRate < 15) hooks.push(`Your savings rate is ${sRate}%. Pro's AI looks for ways to lift that, based on your income and goals.`);
     if (context && context.length > 10) hooks.push(`You shared something about your situation. Pro's AI reads that and writes its tip around it.`);
     if (freedomYear && freedomYear > currentYear + 30) hooks.push(`That's a long way off. Pro shows the odds your money lasts to 95, with the Age Pension and part-time work counted in.`);
@@ -1225,10 +1245,11 @@
 
   // A realistic spread for the freedom date: 2,000 random-market futures (js/financial-engine.js).
   // Returns an HTML block, or '' when there's nothing to show. Called once per calculation.
+  // Same plan as the headline (super from 60, after-tax returns), so the range wraps the headline date.
   function marketRangeHTML(fireNum,savings,mSav){
-    if(typeof FirePathEngine==='undefined'||!FirePathEngine.simulateTimeToTarget)return '';
-    if(!(fireNum>0)||savings>=fireNum||(mSav<=0&&savings<=0))return '';
-    const mc=FirePathEngine.simulateTimeToTarget({startPortfolio:savings,monthlySavings:Math.max(0,mSav),target:fireNum});
+    if(typeof FirePathEngine==='undefined'||!FirePathEngine.freedomRange||!_planInputs)return '';
+    const mc=FirePathEngine.freedomRange(_planInputs);
+    if(!mc)return '';
     const cy=new Date().getFullYear(),yr=m=>cy+Math.round(m/12);
     const missPct=Math.round((1-mc.reachedShare)*100);
     let line;
@@ -1247,19 +1268,19 @@
     const { rate: rateMap, note: noteMap } = currentReturns();
     const labelMap = { cash: 'Your money in the bank', etfs: 'Your money in ETFs/shares', offset: 'Your money in offset', mix: 'Your current mix' };
     const currentRate = rateMap[savingsType] ?? FP_ASSUMPTIONS.bankRealReturn;
-    const yCurrentReality = yearsToGoal(fireNum, savings, mSav, currentRate);
+    const yCurrentReality = planYears({ outsideReturn: currentRate });   // same plan, money earning what it earns today
     const fmtReality = yearLabel(yCurrentReality, cy);
     const fmt7 = yearLabel(y07, cy);
     const diffReality = yCurrentReality !== null && y07 !== null ? Math.round(yCurrentReality - y07) : null;
     const extraLabel = sRate === 0 ? 'if you started saving $50/week' : 'if you found an extra $50/week';
     const mSavPlus = mSav + (50 * 52 / 12);
-    const yPlus = yearsToGoal(fireNum, savings, mSavPlus, 0.07);
+    const yPlus = planYears({ monthlySavings: mSavPlus });
     const fmtPlus = yearLabel(yPlus, cy);
     const diffPlus = y07 !== null && yPlus !== null ? Math.round(y07 - yPlus) : null;
     const alreadyInvested = savingsType === 'etfs';
     rows.innerHTML = !alreadyInvested ? `
       <div class="range-row"><span class="range-label"><strong>${labelMap[savingsType]}</strong><br/><span style="font-size:11px">${noteMap[savingsType]}</span></span><span class="range-value conservative">${fmtReality}</span></div>
-      <div class="range-row base"><span class="range-label"><strong>If your money was invested</strong><br/><span style="font-size:11px">(7% a year after inflation)</span></span><span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffReality}yr sooner)</span>` : ''}</span></div>
+      <div class="range-row base"><span class="range-label"><strong>If your money was invested</strong><br/><span style="font-size:11px">(7% a year after inflation, less tax)</span></span><span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffReality}yr sooner)</span>` : ''}</span></div>
       <div class="range-row"><span class="range-label"><strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>` : `
       <div class="range-row base"><span class="range-label"><strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span><span class="range-value base">${fmt7}</span></div>
       <div class="range-row"><span class="range-label"><strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>`;
@@ -1283,10 +1304,10 @@
     const cy = new Date().getFullYear();
     const base = cy + Math.round(y07);
     const levers = [{ label: 'Save an extra $50/week', mSavNew: mSav + (50*52/12) },{ label: 'Save an extra $100/week', mSavNew: mSav + (100*52/12) },{ label: 'Save an extra $200/week', mSavNew: mSav + (200*52/12) }];
-    const leverRows = levers.map(l => { const y = yearsToGoal(fireNum, savings, l.mSavNew, 0.07); const diff = y !== null ? Math.round(y07 - y) : 0; return `<div class="needle-row"><span class="needle-label">${l.label}</span><span class="needle-result better">${yearLabel(y, cy)}${diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : ''}</span></div>`; }).join('');
+    const leverRows = levers.map(l => { const y = planYears({ monthlySavings: l.mSavNew }); const diff = y !== null ? Math.round(y07 - y) : 0; return `<div class="needle-row"><span class="needle-label">${l.label}</span><span class="needle-result better">${yearLabel(y, cy)}${diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : ''}</span></div>`; }).join('');
     const headwinds = [{ label: 'Spending up 15%', mult: 1.15 },{ label: 'Spending up 30%', mult: 1.30 },{ label: 'Spending up 50%', mult: 1.50 }];
     // Spending more raises the number AND comes straight out of what you save each month.
-    const headwindRows = headwinds.map(h => { const newFireNum = fireNum * h.mult; const newMSav = Math.max(0, mSav - (h.mult - 1) * mSpend); const y = yearsToGoal(newFireNum, savings, newMSav, 0.07); const diff = y !== null ? Math.round(y - y07) : 0; return `<div class="needle-row"><span class="needle-label">${h.label}</span><span class="needle-result worse">${yearLabel(y, cy)}${diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : ''}</span></div>`; }).join('');
+    const headwindRows = headwinds.map(h => { const newFireNum = fireNum * h.mult; const newMSav = Math.max(0, mSav - (h.mult - 1) * mSpend); const y = planYears({ target: newFireNum, monthlySavings: newMSav }); const diff = y !== null ? Math.round(y - y07) : 0; return `<div class="needle-row"><span class="needle-label">${h.label}</span><span class="needle-result worse">${yearLabel(y, cy)}${diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : ''}</span></div>`; }).join('');
     el.innerHTML = `<div class="needle-tabs">
         <div class="needle-tab active" onclick="switchNeedleTab('forward',this)">What moves it forward</div>
         <div class="needle-tab" onclick="switchNeedleTab('back',this)">What pushes it back</div>

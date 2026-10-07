@@ -227,8 +227,9 @@ function estimateGrossFromNet(targetTakeHome, maxIterations = 60) {
 //    marginal rate, with a 15% offset for the tax the fund already paid.
 //  • Division 293: income + concessional contributions over $250k → extra 15% on the
 //    contributions above that line.
-//  • LISTO: if taxable income is $37,000 or less, the government refunds the 15%
-//    contributions tax, up to $500.
+//  • LISTO: if adjusted taxable income is $37,000 or less, the government refunds the
+//    15% contributions tax, up to $500. Adjusted taxable income adds salary sacrifice
+//    (reportable employer super) back in, so sacrificing can't bring you under the limit.
 //  • Carry-forward: unused cap from the previous 5 years can be used this year if your
 //    total super balance was under $500k on 30 June last year (pass `carryForward`).
 const DIV293_THRESHOLD = 250000;
@@ -253,7 +254,10 @@ function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg, carryForwar
   const div293 = (income, contribs) => 0.15 * Math.min(contribs, Math.max(0, income + contribs - DIV293_THRESHOLD));
   const extraDiv293 = div293(newGross, Math.min(c.concessionalCap + extraCap, sgContrib + sacrificeAmount)) - div293(grossIncome, sgContrib);
   const listo = (income, contribs) => income <= LISTO.incomeLimit ? Math.min(LISTO.max, contribs * c.superTaxRate) : 0;
-  const listoGain = listo(newGross, sgContrib + sacrificeAmount) - listo(grossIncome, sgContrib);
+  // Adjusted taxable income after sacrifice = taxable income (gross − concessional
+  // sacrifice + excess, which is taxed as income) + the sacrifice itself = gross + excess.
+  const adjustedIncomeAfter = grossIncome + excess;
+  const listoGain = listo(adjustedIncomeAfter, sgContrib + sacrificeAmount) - listo(grossIncome, sgContrib);
   const superTax = sacrificeAmount * c.superTaxRate + extraDiv293 - listoGain;
 
   return {
@@ -295,36 +299,68 @@ function deemedIncome(financialAssets, isCouple = false) {
 }
 
 // Age Pension under both means tests; the lower result applies. All amounts annual.
-//   assets          — assessable assets (excludes the family home)
+//   assets          — assessable assets (excludes the family home). For a couple, the
+//                     combined assets of both partners.
 //   otherIncome     — assessable income other than deemed income (e.g. wages, rent).
 //                     Don't pass portfolio drawdowns: Centrelink deems financial assets
 //                     instead of counting what you withdraw.
 //   financialAssets — the part of `assets` that's deemed (shares, ETFs, cash, account-
 //                     based super in pension phase). Defaults to all of `assets`.
-function calculateAgePension(assets, otherIncome = 0, isHomeowner = true, isCouple = false, financialAssets) {
+//   opts (couples only):
+//     partnerEligible — false when only one partner has reached Age Pension age.
+//                       Each member of a couple is paid half the combined couple rate,
+//                       so only the eligible partner's half is paid. The couple means
+//                       tests still apply to the couple's combined assets and income.
+//     partnerSuper    — the younger partner's super still in accumulation phase. It is
+//                       exempt from both tests until they reach Age Pension age, so it's
+//                       taken out of `assets` (and `financialAssets`) while
+//                       partnerEligible is false. Pass it as part of `assets`.
+function calculateAgePension(assets, otherIncome = 0, isHomeowner = true, isCouple = false, financialAssets, opts) {
   const P = AGE_PENSION;
-  const maxPension = (isCouple ? P.coupleFortnight : P.singleFortnight) * 26;
+  const o = opts || {};
+  const onlyOneEligible = !!isCouple && o.partnerEligible === false;
+  const fullCoupleOrSingle = (isCouple ? P.coupleFortnight : P.singleFortnight) * 26;
 
+  // Bad input (NaN) must never turn into a full pension: treat it as "can't tell" → nil.
+  const num = v => (v == null ? 0 : Number(v));
+  let a = num(assets);
+  let fa = financialAssets == null ? a : num(financialAssets);
+  let inc = num(otherIncome);
+  if (Number.isNaN(a) || Number.isNaN(fa) || Number.isNaN(inc)) {
+    return { annualPension: 0, fortnightlyPension: 0, weeklyPension: 0, maxAnnual: Math.round(onlyOneEligible ? fullCoupleOrSingle / 2 : fullCoupleOrSingle),
+      assetsReduction: 0, incomeReduction: 0, deemedIncome: 0, bindingTest: 'assets', eligiblePartners: isCouple ? (onlyOneEligible ? 1 : 2) : 1, invalid: true };
+  }
+  if (onlyOneEligible) {
+    const exempt = Math.max(0, num(o.partnerSuper) || 0);
+    a = Math.max(0, a - exempt);
+    fa = Math.max(0, fa - exempt);
+  }
+  a = Math.max(0, a); fa = Math.max(0, fa); inc = Math.max(0, inc);
+
+  // Means tests work on the combined couple rate; each partner then gets half of it.
+  const maxPension = fullCoupleOrSingle;
   const limits = P.assets[isCouple ? 'couple' : 'single'][isHomeowner ? 'homeowner' : 'nonHomeowner'];
-  const assetsReduction = Math.max(0, (assets || 0) - limits.full) * P.assets.taperPerDollarFortnight * 26;
+  const assetsReduction = Math.max(0, a - limits.full) * P.assets.taperPerDollarFortnight * 26;
   // Past the published cut-off no pension is paid, even where the taper leaves a few dollars.
-  const pensionAfterAssets = (assets || 0) >= limits.nil ? 0 : Math.max(0, maxPension - assetsReduction);
+  const pensionAfterAssets = a >= limits.nil ? 0 : Math.max(0, maxPension - assetsReduction);
 
-  const deemed = deemedIncome(financialAssets == null ? assets : financialAssets, isCouple);
-  const assessableIncome = deemed + Math.max(0, otherIncome || 0);
+  const deemed = deemedIncome(fa, isCouple);
+  const assessableIncome = deemed + inc;
   const freeArea = (isCouple ? P.income.freeArea.couple : P.income.freeArea.single) * 26;
   const incomeReduction = Math.max(0, assessableIncome - freeArea) * P.income.taper;
   const pensionAfterIncome = Math.max(0, maxPension - incomeReduction);
 
-  const annualPension = Math.min(pensionAfterAssets, pensionAfterIncome);
+  const share = onlyOneEligible ? 0.5 : 1;
+  const annualPension = Math.min(pensionAfterAssets, pensionAfterIncome) * share;
   return {
     annualPension: Math.round(annualPension),
     fortnightlyPension: Math.round(annualPension / 26),
     weeklyPension: Math.round(annualPension / 52),
-    maxAnnual: Math.round(maxPension),
-    assetsReduction: Math.round(assetsReduction),
-    incomeReduction: Math.round(incomeReduction),
+    maxAnnual: Math.round(maxPension * share),
+    assetsReduction: Math.round(assetsReduction * share),
+    incomeReduction: Math.round(incomeReduction * share),
     deemedIncome: Math.round(deemed),
-    bindingTest: pensionAfterAssets <= pensionAfterIncome ? 'assets' : 'income'
+    bindingTest: pensionAfterAssets <= pensionAfterIncome ? 'assets' : 'income',
+    eligiblePartners: isCouple ? (onlyOneEligible ? 1 : 2) : 1
   };
 }
