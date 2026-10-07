@@ -6,9 +6,11 @@
  * file instead of keeping its own rules.
  *
  *   const s = FirePathMoves.situationFromProfile(profile);   // or situationFromInputs({...})
- *   const { moves } = FirePathMoves.rank(s);                 // best first, max 3 by default
+ *   const { moves } = FirePathMoves.rank(s);                 // biggest modelled effect first, max 3 by default
  *
- * A "move" is something that would genuinely improve this person's outcome. Each one
+ * A "move" is an option that the maths says would change this person's numbers. Pages
+ * present them as general information ("here's what each change would do"), never as
+ * instructions or "best for you" — titles describe the option, not a command. Each one
  * says when it applies, when it must NEVER be shown, its impact (years sooner or
  * dollars, worked out with the real maths), a tool to model it and an article to
  * understand it. Moves follow a sensible order — high-interest debt, then a cash
@@ -125,14 +127,14 @@ window.FirePathMoves = (function () {
   // applies(s) → false, or { impact: { years? , dollars?, text } , why }.
   // Free tools need no account; Pro ones are marked so pages can label them.
   const MOVES = [
-    { id: 'clear-debt', tier: 1, title: 'Clear high-interest debt first', plan: 'Free',
+    { id: 'clear-debt', tier: 1, title: 'Paying off high-interest debt', plan: 'Free',
       tool: { href: '/hearmeout?scenario=loan', label: 'See what paying it off does' }, article: 'debt-vs-invest',
       applies(s) {
         if (!(s.consumerDebt > 0) || s.alreadyFree) return false;
         return { why: `Cards and personal loans usually cost 15–20% a year, which is more than investing reliably earns. Every dollar of your ${money(s.consumerDebt)} you pay off saves that interest, guaranteed.`,
-          impact: { text: 'Every dollar paid off saves 15–20% a year in interest, guaranteed' } };
+          impact: { text: 'Each dollar paid off saves the 15–20% a year it would cost in interest' } };
       } },
-    { id: 'build-buffer', tier: 2, title: 'Build a three-month cash buffer', plan: 'Free',
+    { id: 'build-buffer', tier: 2, title: 'Having a three-month cash buffer', plan: 'Free',
       tool: null, article: null,
       applies(s) {
         if (s.alreadyFree || !(s.spendMonthly > 0)) return false;
@@ -140,9 +142,9 @@ window.FirePathMoves = (function () {
         if (!short) return false;
         const target = s.spendMonthly * 3;
         return { why: `About three months of spending (${money(target)}) in an easy-to-reach account means a surprise bill or job loss won’t force you to sell investments at a bad time.`,
-          impact: { text: `Target: ${money(target)}` } };
+          impact: { text: `Three months of spending: about ${money(target)}` } };
       } },
-    { id: 'invest-idle-cash', tier: 3, title: 'Put idle cash to work', plan: 'Free',
+    { id: 'invest-idle-cash', tier: 3, title: 'Investing cash you don’t need soon', plan: 'Free',
       tool: { href: '/firepath', label: 'Compare bank vs investing' }, article: 'what-is-an-index-fund',
       applies(s) {
         if (s.alreadyFree || s.consumerDebt > 0) return false;                 // debt first
@@ -155,16 +157,16 @@ window.FirePathMoves = (function () {
         const gain = now == null ? null : now - inv;
         if (gain != null && gain < 0.25) return false;
         return { why: 'Money in the bank barely keeps up with prices. Past your buffer, a diversified fund has grown far faster over the long run in the past.',
-          impact: gain == null ? { text: 'Turns "out of reach" into a real date' } : { years: gain, text: `${yearsText(gain)} than keeping it all in the bank` } };
+          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `Could mean reaching your number ${yearsText(gain)} than keeping it all in the bank` } };
       } },
-    { id: 'start-saving', tier: 3, title: 'Start with a small, automatic amount', plan: 'Free',
+    { id: 'start-saving', tier: 3, title: 'Starting with a small, automatic amount', plan: 'Free',
       tool: { href: '/hearmeout', label: 'See what $50 a week grows into' }, article: 'good-savings-rate',
       applies(s) {
         if (s.alreadyFree || s.savingsMonthly > 0 || s.consumerDebt > 0 || (s.age != null && s.age >= 60)) return false;
         return { why: 'Even a small amount, set up to move automatically on payday, gets compounding going. It builds the habit, too.',
-          impact: { text: 'The first step to a real date' } };
+          impact: { text: 'A first step towards a real date' } };
       } },
-    { id: 'save-more', tier: 4, title: 'Save a little more each week', plan: 'Free',
+    { id: 'save-more', tier: 4, title: 'Saving a little more each week', plan: 'Free',
       tool: { href: '/hearmeout', label: 'Try different amounts' }, article: 'extra-50-a-week-impact',
       applies(s) {
         if (s.alreadyFree || !(s.savingsMonthly > 0) || s.consumerDebt > 0) return false;
@@ -174,9 +176,9 @@ window.FirePathMoves = (function () {
         const gain = base == null ? null : base - more;
         if (gain != null && gain < 0.25) return false;
         return { why: 'An extra $50 a week, invested, grows along with everything else you’re saving.',
-          impact: gain == null ? { text: 'Turns "out of reach" into a real date' } : { years: gain, text: `$50 a week more: ${yearsText(gain)}` } };
+          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `$50 a week more could mean reaching your number ${yearsText(gain)}` } };
       } },
-    { id: 'spend-less', tier: 4, title: 'Trim spending by 10%', plan: 'Free',
+    { id: 'spend-less', tier: 4, title: 'Spending 10% less', plan: 'Free',
       tool: { href: '/firepath', label: 'Try it in the calculator' }, article: 'how-much-is-enough',
       applies(s) {
         if (s.alreadyFree || !(s.spendMonthly > 0) || s.consumerDebt > 0) return false;
@@ -186,9 +188,9 @@ window.FirePathMoves = (function () {
         const gain = s.yearsToFree == null ? null : s.yearsToFree - after;
         if (gain != null && gain < 0.25) return false;
         return { why: 'Spending less works twice: more to invest now, and a smaller number to reach.',
-          impact: gain == null ? { text: 'Turns "out of reach" into a real date' } : { years: gain, text: `${money(cut)} a month less: ${yearsText(gain)}` } };
+          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `${money(cut)} a month less could mean reaching your number ${yearsText(gain)}` } };
       } },
-    { id: 'salary-sacrifice', tier: 5, title: 'Salary sacrifice into super', plan: 'Pro',
+    { id: 'salary-sacrifice', tier: 5, title: 'Salary sacrificing into super', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Work out your numbers' }, article: 'salary-sacrifice-explained',
       applies(s) {
         if (s.alreadyFree || s.consumerDebt > 0 || !has('calculateSalarySacrifice')) return false;
@@ -199,17 +201,17 @@ window.FirePathMoves = (function () {
         if (!r || r.capRoom < 1000) return false;          // employer super already fills the cap
         const better = r.taxSaved - r.superTax;
         if (better < 300) return false;
-        return { why: `On your ${Math.round(s.marginalRate * 100)}% tax rate, money sacrificed into super is taxed at 15% instead. You can’t get to it until 60, so it suits money you won’t need before then.`,
-          impact: { dollars: better, text: `$5,000 a year sacrificed: about ${money(better)} less tax` } };
+        return { why: `On your ${Math.round(s.marginalRate * 100)}% tax rate, money sacrificed into super is taxed at 15% instead. You can’t get to it until 60, so it’s money you won’t be able to use before then.`,
+          impact: { dollars: better, text: `$5,000 a year sacrificed could mean about ${money(better)} less tax` } };
       } },
-    { id: 'offset-vs-invest', tier: 5, title: 'Offset account or invest?', plan: 'Pro',
+    { id: 'offset-vs-invest', tier: 5, title: 'Offset account vs investing', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Compare for your rate' }, article: 'debt-vs-invest',
       applies(s) {
         if (s.housing !== 'mortgage' || !(s.mortgageRemaining > 0) || s.alreadyFree) return false;
         return { why: 'Every dollar in an offset saves you your mortgage rate in interest, tax-free and guaranteed. Investing may earn more over time, with more ups and downs. It depends on your tax rate.',
           impact: { text: 'Guaranteed interest saved vs likely higher growth' } };
       } },
-    { id: 'work-less', tier: 6, title: 'You may be able to work less', plan: 'Free',
+    { id: 'work-less', tier: 6, title: 'Working less could be an option', plan: 'Free',
       tool: { href: '/freedom-gap', label: 'See your freedom gap' }, article: 'what-is-coast-fire',
       applies(s) {
         if (s.alreadyFree || s.age == null || s.age >= 65 || !(s.currentSavings > 0)) return false;
@@ -218,7 +220,7 @@ window.FirePathMoves = (function () {
         return { why: 'Your savings would reach your freedom number by 65 even if you never added another dollar. So part-time work could cover today’s costs.',
           impact: { text: 'On track for your number by 65 without saving more' } };
       } },
-    { id: 'bridge-to-60', tier: 6, title: 'Plan the years before you can use super', plan: 'Free',
+    { id: 'bridge-to-60', tier: 6, title: 'The years before you can use super', plan: 'Free',
       tool: { href: '/freedom-gap', label: 'See the gap' }, article: 'before-super-access',
       applies(s) {
         if (s.age == null || s.age >= 60 || !(s.superBalance > 0) || s.freedomAge == null || s.freedomAge >= 60) return false;
@@ -227,15 +229,15 @@ window.FirePathMoves = (function () {
             : `You could be free around ${Math.round(s.freedomAge)}, before you can get to your super at 60. Your savings outside super will need to carry you until then.`,
           impact: { text: `${Math.round(60 - s.freedomAge)} years to bridge` } };
       } },
-    { id: 'stress-test', tier: 7, title: 'See if your money will last', plan: 'Free',
+    { id: 'stress-test', tier: 7, title: 'Whether your money will last', plan: 'Free',
       tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' }, article: 'four-percent-rule-australia',
       applies(s) {
         const close = s.alreadyFree || (s.yearsToFree != null && s.yearsToFree <= 10) || (s.age != null && s.age >= 55);
         if (!close || !(s.currentSavings > 0)) return false;
-        return { why: 'Markets don’t return the average every year. Check your plan holds up if markets have a bad run in your first years of drawing down.',
+        return { why: 'Markets don’t return the average every year. The Withdrawal planner shows whether your plan holds up if markets have a bad run in your first years of drawing down.',
           impact: { text: 'Odds across 2,000 possible market outcomes' } };
       } },
-    { id: 'age-pension', tier: 7, title: 'Count the Age Pension', plan: 'Free',
+    { id: 'age-pension', tier: 7, title: 'What the Age Pension could add', plan: 'Free',
       tool: { href: '/freedom-gap', label: 'See what it adds' }, article: 'is-my-super-enough',
       applies(s) {
         if (s.age == null || s.age < 55) return false;
@@ -246,7 +248,7 @@ window.FirePathMoves = (function () {
         return { why: 'From 67, the Age Pension may top up what your savings pay. It’s means-tested on what you own and earn then.',
           impact: { dollars: p, text: `About ${money(p)} a year on today's figures` } };
       } },
-    { id: 'spouse-contribution', tier: 8, title: 'Boost your partner\'s super', plan: 'Pro',
+    { id: 'spouse-contribution', tier: 8, title: 'Adding to your partner\'s super', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Check the offset' }, article: 'spouse-contribution-offset',
       applies(s) {
         if (!s.hasPartner || s.alreadyFree) return false;

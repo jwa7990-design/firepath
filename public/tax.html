@@ -305,6 +305,7 @@
         <div class="ai-insight-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> What the AI says</div>
         <div class="ai-insight-text" id="aiTaxInsightText"></div>
         <div id="aiTaxLearnMore" class="ai-learn-more" style="display:none;"></div>
+        <p class="fp-advice" style="font-size:12px;color:var(--ink-2);line-height:1.5;margin:12px 0 0;">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
       </div>
     </div>
   </div>
@@ -330,7 +331,7 @@
     clearTimeout(grossSaveTimer);
     grossSaveTimer = setTimeout(async () => {
       try {
-        await fetch(`${WORKER_URL}/db/fp_profiles`, {
+        await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
           body: JSON.stringify({ id: fpUserId, gross_income: Math.round(annualGross) })
@@ -347,7 +348,7 @@
     clearTimeout(miscSaveTimers[field]);
     miscSaveTimers[field] = setTimeout(async () => {
       try {
-        await fetch(`${WORKER_URL}/db/fp_profiles`, {
+        await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
           body: JSON.stringify({ id: fpUserId, [field]: value })
@@ -439,7 +440,7 @@
     }
 
     try {
-      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) proProfile = data[0];
     } catch(e) { console.log('Profile load failed', e); }
@@ -740,7 +741,7 @@
     const userInput = `Gross income: ${fmtDollars(gross)}/yr. Take-home: ${fmtDollars(r.takeHome)}/yr. Marginal tax rate: ${(marginal*100).toFixed(0)}%. Effective tax rate: ${(r.effectiveRate*100).toFixed(1)}%. ${helpStatus}. ${coverStatus}. Salary sacrifice considered: ${fmtDollars(sacrifice)}/yr. Offset balance: ${fmtDollars(offsetBalance)}, mortgage rate: ${mortgageRate}%. User profile — ${profileSummary}`;
 
     try {
-      const res = await fetch(WORKER_URL, {
+      const res = await FirePathAuth.fetch(WORKER_URL, {
         method: 'POST',
         headers: aiHeaders(),
         body: JSON.stringify({
@@ -751,21 +752,21 @@
 The person has ALREADY seen on this page: their exact take-home breakdown, marginal and effective tax rates, a specific salary sacrifice calculation with real dollar figures, and an offset-vs-invest comparison. Do NOT repeat, re-explain, or re-derive any of those numbers — that information is already visible to them. Repeating it is a failure condition for this response.
 
 Your job is to surface ONE Australian tax angle they have not yet seen on this page, chosen ONLY if it's genuinely relevant to their actual numbers. Each angle has a short tag in brackets — you MUST use one of these exact tags at the very end of your response:
-- Catch-up (carry-forward) concessional contributions [catch-up] — if their super balance is relatively low for their age, they may be able to contribute well above the standard ${fmtDollars(TAX_CONFIG.concessionalCap)} cap in one year using unused prior-year cap.
-- The government super co-contribution [co-contribution] — if their income is under roughly $60,400 and they could make a personal after-tax contribution.
+- Catch-up (carry-forward) concessional contributions [catch-up] — if their super balance is relatively low for their age, unused cap from earlier years may let contributions go above the standard yearly cap.
+- The government super co-contribution [co-contribution] — if their income is on the lower side and personal after-tax contributions are part of the picture.
 - Spousal contribution tax offset [spouse] — only if a partner or spouse is mentioned in their situation.
 - The 50% CGT discount [cgt] — if they're investing in ETFs/shares outside super and holding for over 12 months.
 - Franking credits [franking] — if they mention Australian shares specifically (not just ETFs generally).
 - First Home Super Saver Scheme [fhsss] — only if their situation clearly mentions saving for a first home.
-- Division 293 [division293] — only if their income is near or above $250k.
+- Division 293 [division293] — only if their income is near or above the Division 293 threshold below.
 
-Pick the single most relevant angle to their actual numbers and explain it in plain English, with a rough indicative figure where you can. If genuinely none of these fit their situation, pick the closest one that still applies to most working Australians (catch-up contributions or the CGT discount are usually safe defaults) rather than leaving it blank.
+Pick the single most relevant angle to their actual numbers and explain how it works in plain English, using their numbers where the figures below allow. If genuinely none of these fit their situation, pick the closest one that still applies to most working Australians (catch-up contributions or the CGT discount are usually safe defaults) rather than leaving it blank.
 
-You have web search available. Use it when you need a current threshold, cap, or rate to give an accurate figure (e.g. this financial year's concessional cap, co-contribution income threshold, Division 293 threshold) — search the ATO website specifically rather than relying on memory for numbers that change each financial year. Don't search for concepts you already know well; only search to confirm a specific current figure.
+FIGURES FROM FIREPATH'S TAX ENGINE (${TAX_CONFIG.year} financial year): concessional cap ${fmtDollars(TAX_CONFIG.concessionalCap)} a year; non-concessional cap ${fmtDollars(TAX_CONFIG.nonConcessionalCap)} a year; tax on concessional contributions in super ${Math.round(TAX_CONFIG.superTaxRate * 100)}%; Super Guarantee ${Math.round(TAX_CONFIG.sgRate * 1000) / 10}%${typeof DIV293_THRESHOLD !== 'undefined' ? `; Division 293 threshold ${fmtDollars(DIV293_THRESHOLD)} (income plus concessional contributions)` : ''}.
+Use ONLY these figures and the ones in the person's message. Don't quote any other cap, threshold, rate or dollar limit from memory — they change each year. If a figure you'd need isn't given (for example the co-contribution income limits or the spouse offset limits), explain how the rule works without the number and point them to the ATO website for the current figure.
 
-Rules: 1. Never say "you should" or "I recommend" — frame as a question worth exploring. 2. Never name specific super funds, brokers, or platforms. 3. Keep your explanation to 2 short paragraphs maximum — you have a strict length budget and MUST finish with a complete final sentence, so stay concise from the start rather than running out of room. 4. Never quote or paste text from search results — always explain figures and rules in your own words. 5. End with exactly this sentence, then the tag on its own line: "This is educational, not financial advice." 6. Use <strong> for bold. 7. The very last line of your response must be only the tag in brackets, e.g. [catch-up] — nothing else on that line.`,
-          messages: [{ role: 'user', content: userInput }],
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }]
+Rules: 1. Never say "you should" or "I recommend", and never say which option they should choose — explain how the rule works and what it could mean in their numbers. 2. Never name specific products, super funds, ETFs, brokers, lenders or platforms. 3. Keep your explanation to 2 short paragraphs maximum — you have a strict length budget and MUST finish with a complete final sentence, so stay concise from the start rather than running out of room. 4. Don't add a disclaimer; the page shows one under your answer. 5. Use <strong> for bold. 6. The very last line of your response must be only the tag in brackets, e.g. [catch-up] — nothing else on that line.`,
+          messages: [{ role: 'user', content: userInput }]
         })
       });
       const data = await res.json();
@@ -800,7 +801,7 @@ Rules: 1. Never say "you should" or "I recommend" — frame as a question worth 
       renderTaxInsightMeta();
       if (fpToken && fpUserId && localStorage.getItem('fp_is_pro') === 'true') {
         try {
-          await fetch(`${WORKER_URL}/db/fp_profiles`, {
+          await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
             body: JSON.stringify({ id: fpUserId, tax_insight_text: cachedTaxInsight, tax_insight_generated_at: cachedTaxInsightAt })

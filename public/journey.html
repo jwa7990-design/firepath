@@ -127,6 +127,9 @@
   .move-title { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.25; color: var(--ink); letter-spacing: -0.01em; }
   .move-reason { margin-top: 10px; font-size: 14px; line-height: 1.6; color: var(--ink-2); max-width: 56ch; }
   .move-impact { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--ember-ink); }
+  .move-sort, .move-advice { font-size: 12px; line-height: 1.5; color: var(--ink-2); }
+  .move-sort { margin-bottom: 8px; }
+  .move-advice { margin-top: 12px; }
   .move-action {
     margin-top: 20px; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--r-md);
     background: var(--surface-2); border: 1px solid var(--line); text-decoration: none; transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
@@ -292,12 +295,12 @@
       </div>
     </section>
 
-    <!-- 3 ── What should I do next / what moves the date? (→ Strategy) ── -->
+    <!-- 3 ── What could move the date? (→ Strategy). Options and their modelled effect, never instructions. ── -->
     <section class="card span-7 rise" style="--i:3" aria-labelledby="moveHead">
       <div class="section-head">
         <h2 class="section-label" id="moveHead">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          Your next move
+          Option worth knowing about
         </h2>
       </div>
       <div id="opportunityCard"><div class="skeleton" style="height:26px;width:70%"></div><div class="skeleton" style="height:14px;width:90%;margin-top:14px"></div><div class="skeleton" style="height:64px;margin-top:20px;border-radius:14px"></div></div>
@@ -724,13 +727,13 @@
   // ── Levers — three real recalculations of the same date ─
   const LEVER_COPY = {
     more: {
-      beginner: ['Save an extra $50 a week', 'About the cost of a couple of takeaway meals.'],
-      building: ['Save $50 more a week', 'Invested at the same 7% assumption.'],
+      beginner: ['Saving an extra $50 a week', 'About the cost of a couple of takeaway meals.'],
+      building: ['Saving $50 more a week', 'Invested at the same 7% assumption.'],
       fire: ['+$50/wk contributions', 'Same 7% after inflation.']
     },
     spend: {
-      beginner: ['Spend 10% less', "You'd need less saved, and save more each month — it works twice."],
-      building: ['Cut spending by 10%', 'Lowers your freedom number and lifts your savings.'],
+      beginner: ['Spending 10% less', "You'd need less saved, and you'd save more each month — it works twice."],
+      building: ['Spending 10% less', 'Lowers your freedom number and lifts your savings.'],
       fire: ['−10% annual spend', 'Lower FI number and higher SR at once.']
     },
     returns: {
@@ -744,14 +747,14 @@
     if (!(m.annualSpend > 0)) { el.innerHTML = '<p class="lever-empty">Add your numbers to see what moves your date.</p>'; return; }
     if (isFree(m)) {
       // Nothing left to save towards — saving more or spending less doesn't move a date that's already here.
-      el.innerHTML = `<a class="lever" href="/withdrawal"><div class="lever-body"><div class="lever-title">You've reached your number. Now check it will last</div><div class="lever-desc">See how your money holds up across 2,000 possible market outcomes, including a bad run in the first years.</div></div><span class="chip chip-positive">Free</span></a>`;
+      el.innerHTML = `<a class="lever" href="/withdrawal"><div class="lever-body"><div class="lever-title">You've reached your number. Will it last?</div><div class="lever-desc">See how your money holds up across 2,000 possible market outcomes, including a bad run in the first years.</div></div><span class="chip chip-positive">Free</span></a>`;
       return;
     }
     // Credit-card or personal-loan debt comes first: saving or investing more while it
     // costs 15–20% a year isn't a real improvement (same rule as js/moves.js).
     const debt = m.situation && m.situation.consumerDebt;
     if (debt > 0) {
-      el.innerHTML = `<a class="lever" href="/hearmeout?scenario=loan"><div class="lever-body"><div class="lever-title">Clear your $${Math.round(debt).toLocaleString('en-AU')} debt first</div><div class="lever-desc">It usually costs 15–20% a year, so paying it off saves that much interest, guaranteed. After that, these start to count.</div></div><span class="chip chip-negative">Do first</span></a>`;
+      el.innerHTML = `<a class="lever" href="/hearmeout?scenario=loan"><div class="lever-body"><div class="lever-title">Paying off your $${Math.round(debt).toLocaleString('en-AU')} debt</div><div class="lever-desc">It usually costs 15–20% a year, so each dollar paid off saves that much interest. While it's there, saving or investing more usually earns less than the debt costs.</div></div><span class="chip chip-negative">15–20% a year</span></a>`;
       return;
     }
     const persona = Persona.get();
@@ -779,7 +782,8 @@
     }).join('');
   }
 
-  // ── Next move — the shared recommendNextStep() (top FirePathMoves move) against the real profile ──
+  // ── Option worth knowing about — the shared recommendNextStep() (the FirePathMoves option with the
+  //    biggest modelled effect) against the real profile. Shown as an option, never an instruction. ──
   const MOVE_ICONS = {
     learn: '<path d="M12 6.5c-1.8-1.3-4.2-1.8-6.5-1.5v13c2.3-.3 4.7.2 6.5 1.5"/><path d="M12 6.5c1.8-1.3 4.2-1.8 6.5-1.5v13c-2.3-.3-4.7.2-6.5 1.5"/><path d="M12 6.5v13.5"/>',
     ask: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
@@ -797,6 +801,7 @@
     const url = s.url || `learning_lab.html?topic=${s.topic}&track=${s.track}&title=${encodeURIComponent(s.title)}`;
     const type = MOVE_ICONS[s.type] ? s.type : 'learn';
     el.innerHTML = `
+      <p class="move-sort">The change with the biggest modelled effect, based on the numbers you entered.</p>
       <div class="move-title">${escapeHtml(s.headline || title)}</div>
       <p class="move-reason">${escapeHtml(s.reason)}</p>
       ${s.impact ? `<p class="move-impact">${escapeHtml(s.impact)}</p>` : ''}
@@ -805,7 +810,8 @@
         <span class="move-body"><span class="move-kind">${MOVE_KIND[type]}</span><span class="move-name" style="display:block">${escapeHtml(title)}</span></span>
         <span class="move-time">${isLearn ? '7 min' : '2 min'}</span>
         <span class="arrow" aria-hidden="true">→</span>
-      </a>`;
+      </a>
+      <p class="move-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>`;
   }
 
   // ── Learn — three reads matched to the knowledge level ──
@@ -836,7 +842,7 @@
     return !a || window.FirePathMoves.articleFits(a.for, s);
   }
   // The persona's three reads, minus any that don't fit this person. A dropped read
-  // is replaced by the top move's article (when that fits and isn't already listed).
+  // is replaced by the article of the option with the biggest modelled effect (when that fits and isn't already listed).
   function readsFor(m) {
     const s = m && m.situation;
     let list = READS[Persona.get()].filter(([href]) => fitsPerson(slugOf(href), s));
@@ -904,7 +910,7 @@
     el.hidden = false;
     $('mondayConfirmBtn').addEventListener('click', async () => {
       try {
-        await fetch(`${WORKER_URL}/db/fp_profiles`, {
+        await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'resolution=merge-duplicates' },
           body: JSON.stringify({ ...p, updated_at: new Date().toISOString() })
@@ -934,11 +940,10 @@
     if (!(await requirePro())) return;   // accounts are part of Pro
 
     try {
-      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.status === 401 || res.status === 403) {
-        ['fp_access_token', 'fp_user_id', 'fp_email'].forEach(k => localStorage.removeItem(k));
-        sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
-        window.location.href = 'auth.html';
+        FirePathAuth.clearSession();
+        window.location.href = 'auth.html?expired=1';
         return;
       }
       if (!res.ok) return;
@@ -970,7 +975,7 @@
       // Compare with the previous Journey snapshot (Journey's own only — Freedom Gap
       // uses a different percentage method). A failure here only costs the deltas.
       try {
-        const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const snapRes = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (snapRes.ok) {
           const snapData = await snapRes.json();
           prevSnapshot = Array.isArray(snapData) && snapData.length ? snapData[0] : null;
@@ -1004,7 +1009,7 @@
 
       // Freedom Unlocked — first-ever Journey snapshot vs today, same engine both times.
       try {
-        const oldestRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const oldestRes = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (oldestRes.ok) {
           const oldestData = await oldestRes.json();
           const oldest = Array.isArray(oldestData) && oldestData.length ? oldestData[0] : null;
@@ -1036,7 +1041,7 @@
       try {
         const shouldSave = !p.updated_at || (Date.now() - new Date(p.updated_at).getTime()) / 3600000 >= 24;
         if (shouldSave) {
-          await fetch(`${WORKER_URL}/db/financial_snapshots`, {
+          await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
             body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber, monthlySavings }, picture: { freedomPct: pct, netWorth, netWorthFormulaVersion: 3, savingsRate: p.savings_rate || 0 } })

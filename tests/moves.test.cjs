@@ -106,7 +106,7 @@ test('impacts are real: $50 a week more matches a hand calculation', () => {
   assert.ok(gain > 0.5 && gain < 2, `gain ${gain}`);
 });
 
-test('at most three moves by default, best first', () => {
+test('at most three moves by default, biggest modelled effect first', () => {
   const r = M.rank(base);
   assert.ok(r.moves.length <= 3);
   assert.deepEqual(r.moves.map(m => m.id), r.all.slice(0, 3).map(m => m.id));
@@ -150,4 +150,17 @@ test('articles are never recommended to someone they don\'t fit', () => {
 test('every article recommended by a move exists', () => {
   const slugs = new Set(fs.readdirSync(path.join(__dirname, '..', 'src', 'content', 'learn')).map(f => f.replace(/\.html$/, '')));
   for (const m of M.MOVES) if (m.article) assert.ok(slugs.has(m.article), m.article);
+});
+
+test('wording is general information: no "best" and no commands in titles or impacts', () => {
+  const imperative = /^(Clear|Build|Put|Start|Save|Trim|Cut|Plan|See|Count|Boost|Salary sacrifice into)\b/;
+  const everyone = [base, { age: 24, takeHomeMonthly: 3800, savingsMonthly: 0, currentSavings: 0, savingsType: 'cash', superBalance: 8000, housing: 'renting' },
+    { age: 58, takeHomeMonthly: 9000, savingsMonthly: 2000, currentSavings: 400000, savingsType: 'cash', superBalance: 500000, housing: 'mortgage', mortgageRemaining: 200000, consumerDebt: 5000, hasPartner: true, partnerTakeHomeMonthly: 1500 }];
+  for (const m of M.MOVES) {
+    assert.ok(!imperative.test(m.title), m.title);
+    assert.ok(!/\bbest\b/i.test(m.title), m.title);
+  }
+  for (const s of everyone) for (const m of M.rank(s, { limit: 20 }).all) {
+    assert.ok(!/\bbest\b|\byou should\b/i.test(`${m.title} ${m.impact.text} ${m.why}`), m.id);
+  }
 });

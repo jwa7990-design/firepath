@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!DOCTYPE html>
-<html lang="en">
-<head>
     <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
   <script>
@@ -40,6 +37,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
   <script src="js/persona.js"></script>
+  <script src="js/auth.js"></script>
 <style>
   .auth-main { min-height: calc(100vh - var(--nav-h)); min-height: calc(100dvh - var(--nav-h)); display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px calc(48px + env(safe-area-inset-bottom)); }
   @media (min-width: 768px) { .auth-main { align-items: center; padding: 48px 32px 96px; } }
@@ -72,6 +70,11 @@
   .error-msg { display: none; margin-top: 14px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--negative-wash); color: var(--negative); font-size: 13.5px; line-height: 1.5; }
   .success-msg { display: none; margin-top: 14px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--positive-wash); color: var(--positive); font-size: 13.5px; line-height: 1.5; }
 
+  .info-msg { display: none; margin-bottom: 18px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); font-size: 13.5px; line-height: 1.5; }
+  .terms-note { margin-top: 12px; text-align: center; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
+  .terms-note a { color: var(--ember-ink); font-weight: 500; text-decoration: none; }
+  .terms-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
   .back-link { text-align: center; margin-top: 20px; }
   .back-link a { font-size: 13.5px; color: var(--ink-2); text-decoration: none; }
   .back-link a:hover { color: var(--ink); }
@@ -88,6 +91,8 @@
       <button type="button" class="tab active" id="loginTab" onclick="showTab('login')">Sign in</button>
       <button type="button" class="tab" id="signupTab" onclick="showTab('signup')">Start free trial</button>
     </div>
+
+    <p class="info-msg" id="authNotice" role="status"></p>
 
     <!-- Login -->
     <div id="loginForm">
@@ -127,6 +132,7 @@
         </div>
       </div>
       <button class="btn btn-primary btn-lg btn-block cta-btn" id="signupBtn" onclick="signup()">Create account and start trial →</button>
+      <p class="terms-note">By creating an account you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy policy</a>.</p>
       <p class="error-msg" id="signupError"></p>
       <p class="success-msg" id="signupSuccess">Check your email and tap the link to confirm — it takes you straight to your free trial.</p>
     </div>
@@ -159,19 +165,14 @@
   const WEAK_PASSWORD_MSG = "That password has shown up in a known data breach, so it isn't safe to use. Please choose a different one — a short phrase of a few words works well.";
   const isWeakPassword = d => d && (d.error_code === 'weak_password' || d.code === 'weak_password' || !!d.weak_password);
 
-  const WORKER_URL = 'https://firepath-api.jwa7990.workers.dev';
-  const SUPABASE_URL = 'https://eeicdaxfrahzgjywrlgs.supabase.co';
+  // WORKER_URL, setStore/getStore/removeStore and FirePathAuth come from js/auth.js.
 
-  function setStore(key, value) {
-    try { localStorage.setItem(key, value); } catch(e) { sessionStorage.setItem(key, value); }
-  }
-  function getStore(key) {
-    try { const v = localStorage.getItem(key); if (v) return v; } catch(e) {}
-    return sessionStorage.getItem(key);
-  }
-  function removeStore(key) {
-    try { localStorage.removeItem(key); } catch(e) {}
-    try { sessionStorage.removeItem(key); } catch(e) {}
+  // Starts a fresh session: forget whoever was signed in before (and their cached
+  // Pro answer), then keep the new tokens.
+  function startSession(accessToken, refreshToken) {
+    FirePathAuth.clearSession();
+    setStore('fp_access_token', accessToken);
+    if (refreshToken) setStore('fp_refresh_token', refreshToken);
   }
 
   const EYE_OPEN_SVG = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>`;
@@ -203,12 +204,13 @@
       });
       const data = await res.json();
       if (data.error) { showError(err, data.error_description || 'That email and password don’t match. Have another go.'); btn.disabled = false; btn.textContent = 'Sign in →'; return; }
-      setStore('fp_access_token', data.access_token);
+      if (!data.access_token || !data.user || !data.user.id) throw new Error('No session returned');
+      startSession(data.access_token, data.refresh_token);
       setStore('fp_user_id', data.user.id);
-      setStore('fp_email', data.user.email);
-      const persona = await getUserPersona(data.user.id, data.access_token);
+      if (data.user.email) setStore('fp_email', data.user.email);
+      const persona = await getUserPersona(data.user.id);
       if (persona) setStore('fp_persona', persona);
-      window.location.href = (await isProUser(data.user.id, data.access_token)) ? landingUrl() : 'upgrade.html';
+      window.location.href = (await checkProStatus()) ? landingUrl() : 'upgrade.html';
     } catch(e) { showError(err, 'Something went wrong. Please try again.'); btn.disabled = false; btn.textContent = 'Sign in →'; }
   }
 
@@ -239,21 +241,25 @@
   }
 
   // Accounts are part of Pro: signed-in people without it go to the upgrade page.
-  async function isProUser(userId, token) {
+  // (checkProStatus() comes from js/auth.js.)
+
+  async function getUserPersona(userId) {
     try {
-      const res = await fetch(`${WORKER_URL}/db/users?id=eq.${userId}&select=is_pro`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/users?id=eq.${encodeURIComponent(userId)}&select=persona`, {}, { onExpired: 'none' });
+      if (!res.ok) return null;
       const data = await res.json();
-      const pro = data[0]?.is_pro === true;
-      setStore('fp_is_pro', pro ? 'true' : 'false');
-      return pro;
-    } catch { return getStore('fp_is_pro') === 'true'; }
+      return (Array.isArray(data) && data[0] && data[0].persona) || null;
+    } catch { return null; }
   }
 
-  async function getUserPersona(userId, token) {
+  // Confirms a session with the Worker (which asks Supabase) and returns the real
+  // user, or null. Never trust what the token itself says about who someone is.
+  async function fetchVerifiedUser(token) {
     try {
-      const res = await fetch(`${WORKER_URL}/db/users?id=eq.${userId}&select=persona`, { headers: { 'Authorization': `Bearer ${token}` } });
-      const data = await res.json();
-      return data[0]?.persona || null;
+      const res = await fetch(`${WORKER_URL}/auth/user`, { headers: { 'Authorization': `Bearer ${token}` } });
+      if (!res.ok) return null;
+      const user = await res.json();
+      return user && user.id ? user : null;
     } catch { return null; }
   }
 
@@ -262,14 +268,27 @@
     const email = document.getElementById('loginEmail').value.trim();
     const err = document.getElementById('loginError');
     if (!email) { showError(err, 'Enter your email address first.'); return; }
+    err.style.display = 'none';
     try {
-      await fetch(`${WORKER_URL}/auth/recover`, {
+      const res = await fetch(`${WORKER_URL}/auth/recover`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, redirectTo: 'https://firepath.pro/auth.html' })
       });
-      err.style.display = 'none';
-      alert('Password reset email sent — check your inbox.');
-    } catch(e) { showError(err, 'Something went wrong. Please try again.'); }
+      if (!res.ok) {
+        // Too many tries (429) or another problem: say so, using the server's
+        // friendly words when it sends them.
+        let data = null;
+        try { data = await res.json(); } catch (e2) {}
+        const serverMsg = data && typeof (data.error || data.msg) === 'string' ? (data.error || data.msg) : '';
+        const fallback = res.status === 429
+          ? 'You’ve asked for a few reset emails in a row. Please wait a few minutes and try again.'
+          : 'We couldn’t send a reset email just now. Please try again in a minute.';
+        showError(err, serverMsg && serverMsg.length <= 200 ? serverMsg : fallback);
+        return;
+      }
+      // Same message whether or not the email has an account, for privacy.
+      showNotice('If that email has an account, we’ve sent a link to reset your password. Check your inbox.');
+    } catch(e) { showError(err, 'We couldn’t send a reset email just now. Please check your connection and try again.'); }
   }
 
   async function saveNewPassword() {
@@ -299,7 +318,6 @@
       });
 
       const data = await res.json();
-      console.log('Reset response:', data);
 
       if (data.error || !data.id) {
         showError(err, isWeakPassword(data) ? WEAK_PASSWORD_MSG : (data.msg || data.error_description || data.error || 'Something went wrong. Please try again.'));
@@ -307,9 +325,10 @@
         return;
       }
 
-      setStore('fp_access_token', token);
+      startSession(token, hashParams.get('refresh_token'));
       setStore('fp_user_id', data.id);
-      setStore('fp_email', data.email);
+      if (data.email) setStore('fp_email', data.email);
+      history.replaceState(null, '', 'auth.html');
 
       alert('Password updated! Signing you in...');
       window.location.href = landingUrl();
@@ -329,28 +348,37 @@
   const accessToken = hash.get('access_token');
   const type = hash.get('type');
 
-  // "Sign out" links across the app point here — clear the session, then show the
-  // sign-in form (without the query string, so a refresh doesn't sign out again).
-  if (new URLSearchParams(window.location.search).get('action') === 'signout') {
-    ['fp_access_token', 'fp_refresh_token', 'fp_user_id', 'fp_email', 'fp_guest', 'fp_is_pro'].forEach(removeStore);
-    history.replaceState(null, '', 'auth.html');
+  const query = new URLSearchParams(window.location.search);
+  function showNotice(msg) { const n = document.getElementById('authNotice'); n.textContent = msg; n.style.display = 'block'; }
+  if (query.get('expired') === '1') {
+    showNotice('Your session timed out, so please sign in again.');
+    history.replaceState(null, '', 'auth.html' + window.location.hash);
   }
 
-  if (type === 'recovery' && accessToken) {
+  // "Sign out" links across the app point here — the one shared sign-out
+  // (js/auth.js) clears the session and this device's money details, then goes home.
+  if (query.get('action') === 'signout') {
+    FirePathAuth.signOut();
+  } else if (type === 'recovery' && accessToken) {
     document.querySelector('.tabs').style.display = 'none';
     document.getElementById('loginForm').style.display = 'none';
     document.getElementById('signupForm').style.display = 'none';
     document.getElementById('resetForm').style.display = 'block';
   } else if (type === 'signup' && accessToken) {
-    setStore('fp_access_token', accessToken);
-    const refreshToken = hash.get('refresh_token');
-    if (refreshToken) setStore('fp_refresh_token', refreshToken);
-    try {
-      const userData = JSON.parse(atob(accessToken.split('.')[1]));
-      if (userData.sub) setStore('fp_user_id', userData.sub);
-      if (userData.email) setStore('fp_email', userData.email);
-    } catch(e) {}
-    window.location.href = 'auth.html?upgrade=true';
+    // Back from the confirmation email. Keep the tokens out of the address bar,
+    // then ask the Worker who this really is before storing an id or email.
+    history.replaceState(null, '', 'auth.html');
+    startSession(accessToken, hash.get('refresh_token'));
+    fetchVerifiedUser(accessToken).then(user => {
+      if (!user) {
+        FirePathAuth.clearSession();
+        showError(document.getElementById('loginError'), 'That confirmation link didn’t work or has run out. Please sign in with your email and password.');
+        return;
+      }
+      setStore('fp_user_id', user.id);
+      if (user.email) setStore('fp_email', user.email);
+      window.location.href = 'auth.html?upgrade=true';
+    });
   } else {
     const token = getStore('fp_access_token');
     const userId = getStore('fp_user_id');
@@ -359,21 +387,23 @@
     if (validToken && validUser) {
       const params = new URLSearchParams(window.location.search);
       if (params.get('upgrade') === 'true') {
-        const uid = getStore('fp_user_id');
-        const email = getStore('fp_email');
-        fetch(`${WORKER_URL}/stripe/checkout`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getStore('fp_access_token')}` },
-          body: JSON.stringify({ userId: uid, email })
-        }).then(r => r.json()).then(data => {
-          if (data.url) window.location.href = data.url;
-          else window.location.href = 'upgrade.html';
+        // The Worker takes who you are from the session, not from the body.
+        FirePathAuth.fetch(`${WORKER_URL}/stripe/checkout`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+        }).then(r => r.ok ? r.json() : null).then(data => {
+          if (data && data.url) window.location.href = data.url;
+          else if (isLoggedIn()) window.location.href = 'upgrade.html';
+          else showNotice('Your session timed out, so please sign in again.');
         }).catch(() => window.location.href = 'upgrade.html');
       } else {
-        isProUser(getStore('fp_user_id'), getStore('fp_access_token')).then(pro => { window.location.href = pro ? landingUrl() : 'upgrade.html'; });
+        checkProStatus().then(pro => {
+          if (pro) window.location.href = landingUrl();
+          else if (isLoggedIn()) window.location.href = 'upgrade.html';
+          else showNotice('Your session timed out, so please sign in again.');
+        });
       }
     } else {
-      removeStore('fp_access_token'); removeStore('fp_user_id');
-      removeStore('fp_email');
+      FirePathAuth.clearSession();
     }
   }
 </script>

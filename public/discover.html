@@ -150,7 +150,7 @@
 
   <button class="regen-btn btn btn-quiet" id="regenBtn" style="display:none" onclick="regeneratePlan()">↺ Generate a fresh set of ideas</button>
 
-  <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>These are questions and ideas to look into, not professional advice.</p>
+  <p class="disclaimer">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.<br/>These are questions and ideas to look into.</p>
 
 </main>
 
@@ -202,7 +202,7 @@
       return null;
     }
     try {
-      const res = await fetch(`${WORKER_URL}/db/learn_lab?user_id=eq.${fpUserId}&topic=action_plan&order=created_at.desc&limit=1`, {
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/learn_lab?user_id=eq.${fpUserId}&topic=action_plan&order=created_at.desc&limit=1`, {
         headers: { 'Authorization': `Bearer ${fpToken}` }
       });
       const data = await res.json();
@@ -218,7 +218,7 @@
     localStorage.setItem('ap_saved_plan', JSON.stringify(payload));
     if (!fpToken || !fpUserId) return;
     try {
-      await fetch(`${WORKER_URL}/db/learn_lab`, {
+      await FirePathAuth.fetch(`${WORKER_URL}/db/learn_lab`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -249,7 +249,7 @@
       redundancy:'make the most of a redundancy payout'
     }[apScenario] || 'reach financial independence';
 
-    const prompt = `You are FirePath, a warm financial independence educational tool. Generate 7 personalised "things worth exploring" for this person — not action directives, but doors to open. Each one should spark curiosity and point toward a calculator, a question to investigate, or something to learn more about. Never tell them what to do. Open doors, don't push them through.
+    const prompt = `You are FirePath, a warm financial independence educational tool. Generate 5 personalised "things worth exploring" for this person — not action directives, but doors to open. Each one should spark curiosity and point toward a calculator, a question to investigate, or something to learn more about. Never tell them what to do. Open doors, don't push them through.
 
 Person details:
 - Income: $${Math.round(apIncome / (apCycle === 'weekly' ? 52/12 : apCycle === 'fortnightly' ? 26/12 : 1))} per ${cycleWord}
@@ -279,29 +279,33 @@ NEVER write:
 - "Switch to..."
 
 Instead write:
-- "Curious what your grocery spend looks like? Some people find switching one shop per week to Aldi saves $50-80 — worth a look at your statements"
+- "Curious what your grocery spend looks like? Some people find switching one shop a week to a cheaper supermarket makes a real difference — worth a look at your statements"
 - "Have you ever mapped out exactly where your money goes each week? Sometimes just seeing it is enough"
 - "Curious what your property equity could do? You can run that scenario yourself in What if…?"
 
+Also: never name specific products, funds, ETFs, brokers, banks, lenders, super funds, platforms or businesses, never say which option is best for them, and never use "you should" or "I recommend". Don't make up dollar figures that aren't in the person details above.
+
 For beginner personas, make it feel like a friend asking good questions — warm and non-judgmental. For FIRE personas, make it more analytical and data-focused.
 
-Respond ONLY with a JSON array — no markdown, no backticks, no explanation:
+Keep the whole response under about 600 words so it fits the length limit and the JSON is complete.
+
+Respond ONLY with a JSON array of exactly 5 items — no markdown, no backticks, no explanation:
 [
   {
     "title": "Short curiosity-framed title — a question or observation",
-    "description": "2-3 sentences opening a door, not directing action. Specific, warm, points toward exploration.",
+    "description": "1-2 short sentences opening a door, not directing action. Specific, warm, points toward exploration.",
     "why": "One sentence on why this is worth a look for their specific situation.",
     "category": "one of: save, invest, property, admin, mindset"
   }
 ]`;
 
     try {
-      const res = await fetch(WORKER_URL, {
+      const res = await FirePathAuth.fetch(WORKER_URL, {
         method: 'POST',
         headers: aiHeaders(),
         body: JSON.stringify({
           model: 'claude-sonnet-4-5',
-          max_tokens: 1500,
+          max_tokens: 1000,
           messages: [{ role: 'user', content: prompt }]
         })
       });

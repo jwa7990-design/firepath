@@ -7,10 +7,12 @@
  *
  * - With a known situation (a Pro member's saved plan passed in as opts.situation, or
  *   the free calculator's numbers saved on this device via FirePathMoves.recall()), it
- *   shows up to three of that person's best moves from js/moves.js — leaving out any
+ *   shows up to three options from js/moves.js, ordered by modelled effect — leaving out any
  *   whose tool is the page they're already on (opts.exclude).
  * - With nothing known, it shows three sensible general next steps for this tool and
- *   an invitation to run the free calculator for personal suggestions.
+ *   an invitation to run the free calculator to see options against their own numbers.
+ * - Both versions carry the same general-advice line (ADVICE) — FirePath isn't licensed
+ *   to give personal advice, so these are options and their modelled effect, not instructions.
  *
  * Also, for the tools' device prefill (free visitors): FirePathNext.deviceProfile() —
  * the free calculator's saved numbers shaped like a saved plan — and
@@ -38,6 +40,7 @@ window.FirePathNext = (function () {
 .fp-next-here { background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; }
 .fp-next-pill { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 99px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--ember-ink); background: var(--ember-wash, rgba(244, 98, 42, 0.08)); vertical-align: 1px; }
 .fp-next-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.fp-next-advice { font-size: 12px; color: var(--ink-2); line-height: 1.5; margin: 12px 0 0; }
 .fp-device-clear { background: none; border: 0; padding: 0; font: inherit; color: var(--ember-ink); text-decoration: underline; cursor: pointer; }
 `;
   let cssDone = false;
@@ -54,11 +57,13 @@ window.FirePathNext = (function () {
   // General next steps per tool, for visitors we know nothing about.
   // Each: { title, text, tool?: {href,label}, article? }
   const CALC = { href: '/firepath', label: 'Run the free calculator' };
+  // The general-advice line, worded the same everywhere options or AI answers appear.
+  const ADVICE = 'General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.';
   const GENERAL = {
     '/withdrawal': [
       { title: 'See your freedom gap', text: 'How much of your life your savings already pay for, and what fills the rest.', tool: { href: '/freedom-gap', label: 'Open Freedom gap' } },
       { title: 'The 4% rule, in Australia', text: 'Where the rule comes from, and how super and the Age Pension change it here.', article: 'four-percent-rule-australia' },
-      { title: 'Bridge the years before super', text: 'If you stop before 60, your savings outside super carry you until you can get to it.', article: 'before-super-access' },
+      { title: 'The years before super', text: 'If you stop before 60, your savings outside super carry you until you can get to it.', article: 'before-super-access' },
     ],
     '/hearmeout': [
       { title: 'Watch compounding work', text: 'What a regular amount grows into, and what waiting five years costs.', tool: { href: '/compound', label: 'Open Compound interest' } },
@@ -86,7 +91,7 @@ window.FirePathNext = (function () {
     return out.length ? `<div class="fp-next-links">${out.map(h => `<span>${h}</span>`).join('')}</div>` : '';
   }
 
-  // The person's moves, best first, minus any for the tool they're already on.
+  // The person's options, biggest modelled effect first, minus any for the tool they're already on.
   // With opts.here, moves for this page stay and open in place (opts.onHere) instead.
   function personalMoves(situation, exclude) {
     const m = M();
@@ -110,14 +115,17 @@ window.FirePathNext = (function () {
     const isHere = mv => !!(here && mv.tool && mv.tool.href && mv.tool.href.indexOf(here) === 0);
     let html;
     if (moves.length) {
-      const sub = source === 'plan' ? 'Based on your saved plan.' : 'Based on your free calculator results on this device.';
-      html = `<div class="fp-next-kicker">What next for you</div>
-        <h2 class="fp-next-title">Your best next moves</h2>
+      const sub = source === 'plan'
+        ? 'Ordered by how much each could move your date, based on your saved plan.'
+        : 'Ordered by how much each could move your date, based on the numbers you entered in the free calculator on this device.';
+      html = `<div class="fp-next-kicker">What next</div>
+        <h2 class="fp-next-title">What could move your date</h2>
         <p class="fp-next-sub">${esc(sub)}</p>
         <ul class="fp-next-list">${moves.map(mv => `<li class="fp-next-item" data-move="${esc(mv.id)}">
           <div class="fp-next-item-title">${esc(mv.title)}</div>
           ${mv.impact && mv.impact.text ? `<div class="fp-next-impact">${esc(mv.impact.text)}</div>` : ''}
           ${linksHtml(mv.tool, mv.plan, mv.article, isHere(mv))}</li>`).join('')}</ul>
+        <p class="fp-next-advice">${esc(ADVICE)}</p>
         <div class="fp-next-foot"><a class="fp-next-all" href="/features">All tools →</a></div>`;
     } else {
       const steps = GENERAL[opts.exclude] || GENERAL.default;
@@ -127,7 +135,8 @@ window.FirePathNext = (function () {
           <div class="fp-next-item-title">${esc(st.title)}</div>
           <div class="fp-next-impact">${esc(st.text)}</div>
           ${linksHtml(st.tool, null, st.article)}</li>`).join('')}</ul>
-        <div class="fp-next-foot"><a class="fp-next-cta" href="${esc(CALC.href)}">Get personal suggestions — run the free calculator (2 minutes) →</a><a class="fp-next-all" href="/features">All tools →</a></div>`;
+        <p class="fp-next-advice">${esc(ADVICE)}</p>
+        <div class="fp-next-foot"><a class="fp-next-cta" href="${esc(CALC.href)}">See these with your own numbers — run the free calculator (2 minutes) →</a><a class="fp-next-all" href="/features">All tools →</a></div>`;
     }
     el.innerHTML = `<section class="fp-next" aria-label="What next">${html}</section>`;
     el.querySelectorAll('.fp-next-here').forEach(b => { b.onclick = () => opts.onHere(b.getAttribute('data-href')); });
@@ -173,5 +182,5 @@ window.FirePathNext = (function () {
     };
   }
 
-  return { render, showDeviceNote, deviceProfile, GENERAL };
+  return { render, showDeviceNote, deviceProfile, GENERAL, ADVICE };
 })();

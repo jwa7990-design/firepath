@@ -242,7 +242,7 @@
   .stat-name { font-size: 11.5px; opacity: 1; color: rgba(253, 246, 238, 0.6); }
   .stat-note { font-size: 10.5px; color: rgba(253, 246, 238, 0.5); margin-top: 4px; }
 
-  /* ── Your best moves ── */
+  /* ── What could move your date (options from js/moves.js) ── */
   .moves-card { background: var(--surface); border: 1px solid rgba(244, 98, 42, 0.45); border-radius: var(--r-lg); box-shadow: var(--shadow-2); padding: 20px; margin-bottom: 6px; }
   @media (min-width: 768px) { .moves-card { padding: 24px; } }
   .moves-eyebrow { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 4px; }
@@ -268,6 +268,8 @@
   .move-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
   .moves-explore { display: inline-block; margin-top: 14px; font-size: 13.5px; font-weight: 600; color: var(--ember-ink); text-decoration: none; }
   .moves-explore:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .moves-sort { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: -8px 0 14px; }
+  .moves-advice { font-size: 12px; color: var(--ink-2); line-height: 1.5; margin: 12px 0 0; }
   .moves-saved { font-size: 12px; color: var(--ink-3); margin: 0 4px 12px; line-height: 1.5; }
   .moves-saved a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
 
@@ -630,15 +632,18 @@
         </div>
       </div>
 
-      <!-- Your best moves — filled from js/moves.js (FirePathMoves.rank) in calculate(). -->
+      <!-- What could move your date — options from js/moves.js (FirePathMoves.rank) in calculate().
+           General information, not advice: options and their modelled effect, never instructions. -->
       <section id="movesCard" class="moves-card cin-card" aria-labelledby="movesTitle" style="display:none;">
-        <div class="moves-eyebrow">Made for your numbers</div>
-        <h3 class="moves-title" id="movesTitle">Your 3 best moves</h3>
+        <div class="moves-eyebrow">Based on the numbers you entered</div>
+        <h3 class="moves-title" id="movesTitle">What could move your date</h3>
+        <p class="moves-sort" id="movesSort">Ordered by how much each could move your date, based on the numbers you entered.</p>
         <div id="movesOnTrack" class="moves-ontrack" style="display:none;">
           <span class="moves-ontrack-icon" aria-hidden="true">✓</span>
           <span>You're on track. <a href="/withdrawal">See if your money will last →</a></span>
         </div>
         <ol class="moves-list" id="movesList"></ol>
+        <p class="moves-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
         <a href="/features" class="moves-explore">Explore every tool →</a>
       </section>
       <p class="moves-saved" id="movesSaved" style="display:none;">Saved on this device so FirePath's free tools can use your numbers. <a href="#" id="movesForget">Clear</a></p>
@@ -1149,7 +1154,7 @@
     </div>`;
   }
 
-  // The article for this person's best next move (js/moves.js): the top move's article,
+  // The article for the first option on the moves card (js/moves.js) that has one,
   // or the next move down that has one. Titles here are a fallback until
   // /learn/articles.json gives the real heading.
   const ARTICLE_NAMES = {
@@ -1166,7 +1171,8 @@
     'spouse-contribution-offset': 'Spouse contribution tax offset',
     'what-is-fire-australia': 'What is FIRE and is it realistic for Australians?'
   };
-  // "Your 3 best moves" — the top moves from js/moves.js for exactly these numbers.
+  // "What could move your date" — up to three options from js/moves.js for exactly these
+  // numbers, ordered by modelled effect. Worded as options, never as instructions.
   // Free and Pro tools both link straight through (Pro pages handle access themselves).
   // Someone already free gets a positive line instead of the stress-test move it repeats.
   function buildMovesCard(moveList, isFree) {
@@ -1195,8 +1201,9 @@
         + (model || learn ? `<div class="move-actions">${model}${learn}</div>` : '')
         + `</div></li>`;
     }).join('');
-    document.getElementById('movesTitle').textContent = moves.length === 3 ? 'Your 3 best moves'
-      : moves.length === 2 ? 'Your 2 best moves' : moves.length === 1 ? 'Your best next move' : 'Your next step';
+    document.getElementById('movesTitle').textContent = moves.length ? 'What could move your date' : 'Options worth knowing about';
+    const sort = document.getElementById('movesSort');
+    if (sort) sort.style.display = moves.length > 1 ? 'block' : 'none';
     document.getElementById('movesOnTrack').style.display = onTrack ? 'flex' : 'none';
     card.style.display = 'block';
     const saved = document.getElementById('movesSaved');
@@ -1211,8 +1218,8 @@
     const m = (moveList || []).find(x => x.article);
     const slug = m ? m.article : 'what-is-fire-australia';
     const reason = !m ? 'New to all this? Start here.'
-      : m.id === 'clear-debt' ? 'You have debt costing more than investing reliably earns — start here.'
-      : `Your best next move: ${m.title.charAt(0).toLowerCase() + m.title.slice(1)}. This explains why.`;
+      : m.id === 'clear-debt' ? 'Debt that costs more than investing reliably earns: this explains the trade-off.'
+      : `About one of the options above, ${m.title.charAt(0).toLowerCase() + m.title.slice(1)}: how it works.`;
     return { slug, title: ARTICLE_NAMES[slug] || slug.replace(/-/g, ' '), reason };
   }
 

@@ -334,8 +334,16 @@
     if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
 
     const uel = document.getElementById('userStatus');
-    if (localStorage.getItem('fp_email')) {
-      uel.innerHTML = `Signed in as ${localStorage.getItem('fp_email')} · <a href="#" onclick="signOut()" style="color:var(--fire-orange);text-decoration:none;">Sign out</a>`;
+    const signedInEmail = getEmail();
+    if (signedInEmail) {
+      // Built with textContent: the email is never read as HTML.
+      uel.textContent = `Signed in as ${signedInEmail} · `;
+      const out = document.createElement('a');
+      out.href = '#';
+      out.textContent = 'Sign out';
+      out.style.cssText = 'color:var(--fire-orange);text-decoration:none;';
+      out.addEventListener('click', e => { e.preventDefault(); FirePathAuth.signOut(); });
+      uel.appendChild(out);
     }
 
     // Load last calc data from localStorage (set by main app after analyse())
@@ -348,7 +356,8 @@
     // fall back to the synced profile in Supabase so progress still works cross-device.
     if (!calcData.fireNum) {
       try {
-        const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+        const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${encodeURIComponent(fpUserId)}`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         if (Array.isArray(data) && data.length > 0 && data[0].freedom_number) {
           const p = data[0];
@@ -452,23 +461,20 @@
     return m + (m === 1 ? ' month' : ' months');
   }
 
-  async function dbInsert(table, data) {
-    if (!fpToken || !fpUserId) return;
-    try {
-      await fetch(`${WORKER_URL}/db/${table}`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'return=minimal'}, body:JSON.stringify({...data, user_id:fpUserId}) });
-    } catch(e) {}
-  }
+  // Saving goes through dbInsert() in js/auth.js: it keeps the session fresh,
+  // checks the answer, and shows "We couldn't save that just now…" if it fails.
 
   async function loadCheckinHistory() {
     if (!fpToken || !fpUserId) return;
     try {
-      const res = await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`, { headers:{'Authorization':`Bearer ${fpToken}`} });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/checkins?user_id=eq.${encodeURIComponent(fpUserId)}&order=created_at.desc&limit=12`);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         checkinHistory = data.map(d => ({ month: new Date(d.created_at).toLocaleString('default',{day:'numeric',month:'short',year:'numeric'}), savings: d.savings_total, sRate: d.savings_rate, hit: d.hit !== false }));
         renderHistory();
       }
-    } catch(e) {}
+    } catch(e) { console.warn('Check-in history failed to load', e); }
   }
 
   // ── Commitment ──
@@ -675,10 +681,18 @@
     }
 
     // The check-in itself always gets logged — whether or not a balance was entered.
-    dbInsert('checkins', { savings_total: newSavings, savings_rate: calcData.sRate || 0, freedom_years: ny ? Math.round(ny*10)/10 : null, streak: commitmentData.streak, hit: hit });
-    checkinHistory.unshift({ month: new Date().toLocaleString('default',{day:'numeric',month:'short',year:'numeric'}), savings: newSavings, hit });
+    const entry = { month: new Date().toLocaleString('default',{day:'numeric',month:'short',year:'numeric'}), savings: newSavings, hit };
+    checkinHistory.unshift(entry);
     checkinHistory = checkinHistory.slice(0, 20); // cap the session list so it can't grow unbounded
     renderHistory();
+    dbInsert('checkins', { savings_total: newSavings, savings_rate: calcData.sRate || 0, freedom_years: ny ? Math.round(ny*10)/10 : null, streak: commitmentData.streak, hit: hit })
+      .then(result => {
+        // Didn't reach the database (the note on screen says so): don't list it as saved history.
+        if (!result.ok && result.error !== 'signed_out') {
+          checkinHistory = checkinHistory.filter(h => h !== entry);
+          renderHistory();
+        }
+      });
 
     const perFlameDays = hit ? perFlameDaysFor(commitmentData) : null;
 

@@ -356,6 +356,29 @@
   let readTopics = [];
   let savedTopics = [];
 
+  // ── Safe values ──
+  // Topic ids, tracks and titles can come from the address bar, this browser's
+  // storage or the database, so they are checked here and always escaped before
+  // going into the page. Article links carry them in data-* attributes (read by
+  // the click handler below), never inside inline onclick code.
+  const escHtml = v => FirePathSafe.escape(v);
+  const LAB_TRACKS = ['foundation', 'tax', 'life', '5', '7', '10'];
+  const cleanTopicId = v => /^[a-z0-9-]{1,80}$/.test(String(v || '')) ? String(v) : '';
+  const cleanTrack = v => LAB_TRACKS.includes(String(v)) ? String(v) : '';
+  const cleanTitle = v => String(v == null ? '' : v).replace(/[\u0000-\u001F\u007F<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 160);
+  const articleAttrs = (id, track, title) =>
+    `data-open-topic="${escHtml(id)}" data-open-track="${escHtml(track)}" data-open-title="${escHtml(title)}" role="button" tabindex="0"`;
+  function openFromEl(el) { openArticle(el.dataset.openTopic, el.dataset.openTrack, el.dataset.openTitle); }
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-open-topic]');
+    if (el) openFromEl(el);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target.closest && e.target.closest('[data-open-topic]');
+    if (el) { e.preventDefault(); openFromEl(el); }
+  });
+
   const glossaryData = {
     'FIRE Basics': [
       { term: 'FIRE', full: 'Financial Independence, Retire Early', plain: 'The goal of building enough wealth that work becomes optional — and you can choose to stop at any age, not just 65.', context: 'Used in: "I\'m on the FIRE path" or "when do I hit FIRE?"', personal: () => userData.fireNum ? `Your freedom number (some call it your FIRE number) is ${fmtM(userData.fireNum)}. That’s roughly what you need saved.` : null },
@@ -475,16 +498,16 @@
     const tone = persona === 'beginner' ? 'warm, simple, plain English' : persona === 'fire' ? 'direct, analytical, peer-level' : 'clear, practical';
     const userCtx = userData.income ? `The reader earns ${fmtM(userData.income)}/month, saves $${weeklyAmt}/week, has ${fmtM(userData.savings)} saved and ${fmtM(userData.superBal)} in super.` : '';
     try {
-      const res = await fetch(WORKER_URL, {
+      const res = await FirePathAuth.fetch(WORKER_URL, {
         method: 'POST',
-        headers: aiHeaders(),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-5',
           max_tokens: 300,
           system: `You are FirePath Learning Lab — educational, not financial advice. Explain the term "${term} (${full})" in depth for an Australian reader. Persona: ${persona}. Tone: ${tone}. ${userCtx} Use their numbers in examples if relevant. Keep under 150 words. Plain prose, no bullet points. End with exactly: "Educational only — not financial advice."`,
           messages: [{ role: 'user', content: `Explain ${term} in more depth with practical Australian context.` }]
         })
-      });
+      }, { onExpired: 'none' });
       if (res.status === 401 || res.status === 403) { deepEl.innerHTML = PRO_DEEP_CARD; return; }   // Pro has lapsed
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
@@ -499,13 +522,12 @@
     savedTopics = JSON.parse(localStorage.getItem('fp_lab_saved') || '[]');
     if (!fpToken || !fpUserId) return;
     try {
-      const res = await fetch(`${WORKER_URL}/db/lab_progress?user_id=eq.${fpUserId}`, {
-        headers: { 'Authorization': `Bearer ${fpToken}` }
-      });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/lab_progress?user_id=eq.${encodeURIComponent(fpUserId)}`, {}, { onExpired: 'none' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (Array.isArray(data)) {
         readTopics = data.filter(r => !r.saved).map(r => r.topic_id);
-        savedTopics = data.filter(r => r.saved).map(r => ({ id: r.topic_id, title: r.topic_title, track: r.track }));
+        savedTopics = data.filter(r => r.saved).map(r => ({ id: r.topic_id, title: cleanTitle(r.topic_title), track: r.track }));
         localStorage.setItem('fp_lab_read', JSON.stringify(readTopics));
         localStorage.setItem('fp_lab_saved', JSON.stringify(savedTopics));
       }
@@ -515,22 +537,25 @@
     renderSavedArticles();
   }
 
+  // Returns { ok } from dbInsert() in js/auth.js, which logs a failure and shows
+  // "We couldn't save that just now…".
   async function saveLabProgress(topicId, title, track, saved = false) {
-    if (!fpToken || !fpUserId) return;
-    try {
-      await fetch(`${WORKER_URL}/db/lab_progress`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({ user_id: fpUserId, topic_id: topicId, topic_title: title, track, saved, read_at: new Date().toISOString() })
-      });
-    } catch(e) {}
+    return dbInsert('lab_progress',
+      { topic_id: topicId, topic_title: cleanTitle(title), track, saved, read_at: new Date().toISOString() },
+      { prefer: 'resolution=merge-duplicates' });
   }
 
   function markAsRead(topicId, title, track) {
     if (!readTopics.includes(topicId)) {
       readTopics.push(topicId);
       localStorage.setItem('fp_lab_read', JSON.stringify(readTopics));
-      saveLabProgress(topicId, title, track, false);
+      saveLabProgress(topicId, title, track, false).then(result => {
+        // Not saved: forget it locally too, so tapping again tries again.
+        if (!result.ok && result.error !== 'signed_out') {
+          readTopics = readTopics.filter(id => id !== topicId);
+          localStorage.setItem('fp_lab_read', JSON.stringify(readTopics));
+        }
+      });
     }
     const btn = document.getElementById('markReadBtn');
     if (btn) { btn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> Done'; btn.style.background = 'var(--positive-wash)'; btn.style.borderColor = 'rgba(46,125,50,0.35)'; btn.style.color = 'var(--positive)'; }
@@ -539,14 +564,14 @@
 
   async function toggleSave(topicId, title, track) {
     const alreadySaved = savedTopics.some(s => s.id === topicId);
+    const result = await saveLabProgress(topicId, title, track, !alreadySaved);
+    if (!result.ok && result.error !== 'signed_out') return;   // nothing changed; the note on screen says so
     if (alreadySaved) {
       savedTopics = savedTopics.filter(s => s.id !== topicId);
-      await saveLabProgress(topicId, title, track, false);
       const btn = document.getElementById('saveBtn');
       if (btn) { btn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Save article'; btn.className = 'btn-save'; }
     } else {
-      savedTopics.push({ id: topicId, title, track });
-      await saveLabProgress(topicId, title, track, true);
+      savedTopics.push({ id: topicId, title: cleanTitle(title), track });
       const btn = document.getElementById('saveBtn');
       if (btn) { btn.innerHTML = '<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-bookmark"/></svg> Saved!'; btn.className = 'btn-saved'; }
     }
@@ -566,8 +591,8 @@
     if (!savedTopics.length) { section.style.display = 'none'; return; }
     section.style.display = 'block';
     list.innerHTML = savedTopics.map(s => `
-      <div class="topic-item saved" onclick="openArticle('${s.id}', '${s.track}', '${s.title}')">
-        <div class="topic-left"><span class="topic-icon"><svg class="icon" style="width:18px;height:18px;color:var(--ember);"><use href="/icons.svg#icon-bookmark"/></svg></span><div><div class="topic-title">${s.title}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track === 'life' ? 'Real Questions' : s.track + '% track'}</div></div></div>
+      <div class="topic-item saved" ${articleAttrs(s.id, s.track, s.title)}>
+        <div class="topic-left"><span class="topic-icon"><svg class="icon" style="width:18px;height:18px;color:var(--ember);"><use href="/icons.svg#icon-bookmark"/></svg></span><div><div class="topic-title">${escHtml(s.title)}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track === 'tax' ? 'Tax & Strategy' : s.track === 'life' ? 'Real Questions' : escHtml(s.track) + '% track'}</div></div></div>
         <span class="saved-badge">Saved</span>
       </div>`).join('');
   }
@@ -667,7 +692,7 @@
       const isRead = readTopics.includes(t.id);
       const isSaved = savedTopics.some(s => s.id === t.id);
       return `
-        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" onclick="openArticle('${t.id}', '${t.track}', '${t.title.replace(/'/g, "\\'")}')">
+        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" ${articleAttrs(t.id, t.track, t.title)}>
           <div class="topic-left">
             <span class="topic-icon">${t.icon}</span>
             <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
@@ -684,7 +709,7 @@
       const isRead = readTopics.includes(t.id);
       const isSaved = savedTopics.some(s => s.id === t.id);
       return `
-        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" onclick="openArticle('${t.id}', 'tax', '${t.title.replace(/'/g, "\\'")}')">
+        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" ${articleAttrs(t.id, 'tax', t.title)}>
           <div class="topic-left">
             <span class="topic-icon">${t.icon}</span>
             <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
@@ -733,7 +758,7 @@
       const isRead = readTopics.includes(t.id);
       const isSaved = savedTopics.some(s => s.id === t.id);
       return `
-        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" onclick="openArticle('${t.id}', '${track}', '${t.title.replace(/'/g, "\\'")}')">
+        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" ${articleAttrs(t.id, track, t.title)}>
           <div class="topic-left">
             <span class="topic-icon">${t.icon}</span>
             <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
@@ -768,6 +793,7 @@
 
 
   async function openArticle(topicId, track, title) {
+    title = cleanTitle(title);
     currentTopic = { id: topicId, track, title };
 
     document.getElementById('trackView').style.display = 'none';
@@ -881,7 +907,7 @@
   };
 
   async function fetchArticleFromDB(topicId) {
-    const res = await fetch(`${WORKER_URL}/db/learning_articles?topic_id=eq.${topicId}&select=body_html`);
+    const res = await fetch(`${WORKER_URL}/db/learning_articles?topic_id=eq.${encodeURIComponent(topicId)}&select=body_html`);
     if (!res.ok) throw new Error(`DB fetch failed for topic: ${topicId}`);
     const rows = await res.json();
     if (!Array.isArray(rows) || !rows.length) throw new Error(`No article in DB for topic: ${topicId}`);
@@ -937,11 +963,12 @@ Output the COMPLETE article HTML back, unchanged except for that one example-box
   }
 
   async function callClaude(system, userMessage, maxTokens) {
-    const res = await fetch(WORKER_URL, {
+    const res = await FirePathAuth.fetch(WORKER_URL, {
       method: 'POST',
-      headers: aiHeaders(),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: maxTokens, system, messages: [{ role: 'user', content: userMessage }] })
-    });
+    }, { onExpired: 'none' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     return data.content[0].text;
   }
@@ -1044,9 +1071,9 @@ Respond with a short, specific, actionable list of fixes — quote the exact phr
       const persona = userData.persona || 'building';
       const readList = readTopics.join(', ');
       const age = userData.age || 'unknown';
-      const res = await fetch(WORKER_URL, {
+      const res = await FirePathAuth.fetch(WORKER_URL, {
         method: 'POST',
-        headers: aiHeaders(),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-5', max_tokens: 600,
           system: `You are the FirePath Learning Lab — educational, not financial advice.
@@ -1062,15 +1089,16 @@ Respond ONLY with valid JSON:
 }`,
           messages: [{ role: 'user', content: `Generate research pathway and next article after: ${title}` }]
         })
-      });
+      }, { onExpired: 'none' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       const result = JSON.parse(data.content[0].text.replace(/```json|```/gi, '').trim());
       const r = result.research;
       const next = result.next;
       // AI-written fields: escape for display; only safe characters inside the onclick code.
       const esc = FirePathSafe.escape;
-      const safeId = v => /^[a-z0-9-]{1,60}$/.test(String(v || '')) ? v : '';
-      const safeTitle = String(next.title || '').replace(/[^\w\s—–\-,.?!:()]/g, '').slice(0, 120);
+      const nextId = cleanTopicId(next.topicId);
+      const nextTrack = cleanTrack(next.track) || cleanTrack(track);
       nextEl.innerHTML = `
         <div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);padding:24px;margin-top:16px;margin-bottom:12px;">
           <div style="font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ember-ink);margin-bottom:12px;display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:12px;height:12px;"><use href="/icons.svg#icon-result"/></svg> Marked as read</div>
@@ -1085,7 +1113,7 @@ Respond ONLY with valid JSON:
           <div style="font-size:15px;font-weight:500;color:var(--warm-brown);margin-bottom:6px;">${esc(next.title)}</div>
           <div style="font-size:13px;color:var(--soft-grey);font-weight:400;line-height:1.6;margin-bottom:16px;">${esc(next.why)}</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <div onclick="openArticle('${safeId(next.topicId)}','${safeId(next.track)}','${safeTitle}')" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
+            <div ${articleAttrs(nextId, nextTrack, cleanTitle(next.title))} style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;padding:12px 20px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;">Read next lesson →</div>
             <div onclick="showTopicView()" style="display:inline-flex;align-items:center;gap:8px;color:var(--soft-grey);font-size:13px;cursor:pointer;padding:12px 0;">Back to all topics</div>
           </div>
         </div>`;
@@ -1113,18 +1141,20 @@ Respond ONLY with valid JSON:
     renderSavedArticles();
 
     const params = new URLSearchParams(window.location.search);
-    const pTopic = params.get('topic');
-    const pTrack = params.get('track');
-    const pTitle = params.get('title');
+    // Address-bar values are checked before use (and the title is cleaned again
+    // inside openArticle before anything is saved).
+    const pTopic = cleanTopicId(params.get('topic'));
+    const pTrack = cleanTrack(params.get('track'));
+    const pTitle = cleanTitle(params.get('title'));
     if (pTopic && pTrack && pTitle) {
       if (!['foundation', 'tax'].includes(pTrack)) selectTrack(pTrack);
-      openArticle(pTopic, pTrack, decodeURIComponent(pTitle));
+      openArticle(pTopic, pTrack, pTitle);
     } else {
       // Deep-link into a track's topic list without opening a specific article —
       // used by learn.html's "Explore topics" links. Foundation/tax topics already
       // render directly on the default track view, so only the standalone tracks
       // ('life', '5', '7', '10') need selectTrack() called explicitly.
-      const pOpenTrack = params.get('openTrack');
+      const pOpenTrack = cleanTrack(params.get('openTrack'));
       if (pOpenTrack && !['foundation', 'tax'].includes(pOpenTrack)) selectTrack(pOpenTrack);
     }
   });

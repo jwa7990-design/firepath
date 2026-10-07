@@ -206,7 +206,7 @@
       <li><a href="${url('privacy.html')}">Privacy</a></li>
       <li><a href="${url('terms.html')}">Terms</a></li>
     </ul></div>
-    <div class="site-footer-legal">© ${year} FirePath. FirePath is an educational tool and doesn't provide financial advice. Projections are illustrative only — always consider your personal circumstances.</div>
+    <div class="site-footer-legal">© ${year} FirePath, operated by Jonathan William Armstrong Pty Ltd (ABN 23 800 975 330). FirePath gives general information only, not personal financial advice, and doesn’t hold an Australian Financial Services Licence. Projections are illustrative. Consider your own circumstances and getting advice from a licensed financial adviser before acting.</div>
   </div>
 </footer>`;
     const addFooter = () => {

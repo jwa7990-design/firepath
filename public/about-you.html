@@ -229,7 +229,7 @@
     if (!(await requirePro())) return;   // accounts are part of Pro
 
     try {
-      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.status === 401 || res.status === 403) { window.location.href = 'auth.html'; return; }
       if (!res.ok) { document.getElementById('loadingState').textContent = "Couldn't load your data — try refreshing."; return; }
 

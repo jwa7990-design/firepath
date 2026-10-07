@@ -13,9 +13,15 @@ preview_urls = false
 # without this, `wrangler deploy` would remove any not listed here.
 keep_vars = true
 
-# Rate limiting: a Durable Object keeps exact per-minute and per-day counts
-# (AI: 10/min + 100/day per user; feedback: 3/min + 20/day per connection).
+# Rate limiting: a Durable Object keeps exact counts per key
+# (AI: 10/min, 30/day, 300/30 days per user + 2,000/day for everyone;
+#  sign-in/sign-up/reset: 10/min + 50/hour per connection, 5/hour per email;
+#  feedback: 3/min + 20/day per connection).
 # Limits live in RATE_LIMITS in src/index.js. Durable Objects work on the free plan.
+# No new migration needed: same RateLimiter class, just new keys.
+#
+# Optional plain variable PREVIEW_ORIGINS (comma-separated https addresses) lets a
+# Pages preview call the API — set it in the dashboard; see the top of src/index.js.
 [[durable_objects.bindings]]
 name = "LIMITER"
 class_name = "RateLimiter"

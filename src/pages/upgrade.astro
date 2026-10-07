@@ -53,7 +53,9 @@ import '../styles/upgrade.css';
 
     if (signedIn) {
       var email = getEmail();
-      who.innerHTML = (email ? 'Signed in as ' + email.replace(/[<>&"]/g, '') + ' · ' : '') + '<a href="/auth?action=signout">Sign out</a>';
+      who.textContent = email ? 'Signed in as ' + email + ' · ' : '';
+      const out = document.createElement('a'); out.href = '/auth?action=signout'; out.textContent = 'Sign out';
+      who.appendChild(out);
       btn.addEventListener('click', function () { btn.disabled = true; btn.textContent = 'Opening secure checkout…'; upgradeToPro(); });
     } else {
       document.getElementById('up-title').innerHTML = 'Save your plan with <span class="accent">Pro</span>.';

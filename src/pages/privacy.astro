@@ -19,13 +19,13 @@ const sections = [
 const glance = [
   { icon: 'shield', title: 'Never sold', text: "We don't sell your data or use it to profile you for advertising." },
   { icon: 'card', title: 'No card details', text: 'Payments are handled by Stripe. We never see or store your card.' },
-  { icon: 'spark', title: "AI doesn't train on you", text: 'Your inputs go to Anthropic only to write your insight — not to train their models.' },
+  { icon: 'spark', title: "AI doesn't train on you", text: 'For Pro AI features, what you send goes to Anthropic only to write the answer, not to train their models.' },
   { icon: 'trash', title: 'Delete any time', text: "Email us and we'll remove your account and data within 30 days." },
 ];
 const providers = [
   { name: 'Supabase', role: 'Database', text: 'Our database and authentication provider. Your data is stored securely on Supabase infrastructure.' },
   { name: 'Stripe', role: 'Payments', text: 'Payment processing for FirePath Pro subscriptions. We never see or store your card details.' },
-  { name: 'Anthropic', role: 'AI insights', text: "The AI that powers FirePath's personalised insights. Your financial inputs are sent to Anthropic's API to generate your insight and are not used to train their models." },
+  { name: 'Anthropic', role: 'AI insights', text: "The AI behind FirePath’s insights and Ask FirePath. When you use them, the relevant numbers from your plan, your question and the recent conversation are sent to Anthropic’s API to write the answer. Anthropic doesn’t use API data to train its models and keeps it only for a limited time under its own policy." },
   { name: 'Resend', role: 'Email', text: 'Email delivery for account and notification emails.' },
   { name: 'Google Analytics', role: 'Analytics', text: 'Counts visits and which pages are used, so we know what to improve. It never receives the numbers you enter. See "Website analytics" above.' },
   { name: 'Cloudflare', role: 'Hosting', text: 'Hosts the website and runs our server code. Like any web host it sees your IP address and browser details, which it uses to deliver pages and block abuse.' },
@@ -39,7 +39,7 @@ const providers = [
   eyebrow="Legal"
   heading="Privacy"
   accent="Policy"
-  lead="FirePath is built by one person in Australia. This policy explains what information we collect, how we use it, and how we protect it. We've written it in plain English because you should be able to understand it."
+  lead="FirePath is built by one person in Australia and operated by Jonathan William Armstrong Pty Ltd (ABN 23 800 975 330). This policy explains what information we collect, how we use it, and how we protect it. We've written it in plain English because you should be able to understand it."
   updated="October 2026"
   readMins={4}
   sections={sections}
@@ -54,7 +54,7 @@ const providers = [
         <h3>What we collect</h3>
         <ul class="doc-list is-yes">
           <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Account information</strong> — your email address when you sign up or log in.</span></li>
-          <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Financial inputs</strong> — the numbers you enter into the calculator (income, savings, super balance, age, debt). These are used only to generate your results and are not verified, audited, or shared.</span></li>
+          <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Financial inputs</strong> — the numbers you enter into the calculator (income, savings, super balance, age, debt). On the free tools they stay in your browser. For Pro, they’re saved to your account, and when you use an AI feature they’re sent to Anthropic to write the answer (see below). We never sell them.</span></li>
           <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Usage data</strong> — which features you use, the profile you picked, your pay cycle, and how you use the app. This helps us understand what's working and what isn't.</span></li>
           <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Feedback</strong> — if you submit feedback through the feedback form, we collect your responses and optionally your email.</span></li>
           <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span><strong>Website analytics</strong> — anonymous visit statistics from Google Analytics, such as which pages are viewed and roughly where visitors are. See "Website analytics" below.</span></li>
@@ -63,7 +63,7 @@ const providers = [
       <div class="doc-panel is-muted" data-reveal>
         <h3>What we don't collect</h3>
         <ul class="doc-list is-no">
-          <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We do not collect your name, address, phone number, or any government identifiers.</span></li>
+          <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We don’t ask for your name, address, phone number, or any government identifiers. (Stripe collects the name on your card to process payments.)</span></li>
           <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We do not collect payment card details — payments are handled securely by Stripe.</span></li>
           <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>We do not use advertising trackers or sell your data to third parties. Ever.</span></li>
           <li><span class="doc-list-mark"><Icon name="cross" size={12} stroke={2.6}/></span><span>Our analytics never receive the financial numbers you enter or the questions you type.</span></li>
@@ -80,7 +80,7 @@ const providers = [
       <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>To send you account-related emails (sign-up confirmation, password reset).</span></li>
       <li><span class="doc-list-mark"><Icon name="check" size={13} stroke={2.6}/></span><span>To improve the product based on how people use it.</span></li>
     </ul>
-    <div class="doc-aside"><p>We do not use your financial inputs to make decisions about you, profile you for advertising, or share them with any third party.</p></div>
+    <div class="doc-aside"><p>We don’t use your financial inputs to make decisions about you or profile you for advertising. We only share them with the service providers below that run FirePath, and only what each one needs (for example, sending your question and plan to Anthropic to write an answer).</p></div>
   </section>
 
   <section class="doc-section" id="analytics" data-doc-section>
@@ -120,7 +120,9 @@ const providers = [
 
   <section class="doc-section" id="rights" data-doc-section>
     <h2>Your rights</h2>
-    <p>You can request deletion of your account and all associated data at any time by emailing us. We'll do it within 30 days. You can also update or correct your information by logging in to your account.</p>
+    <p>You can ask to see the information we hold about you, ask us to correct it, or ask us to delete your account and all associated data at any time by emailing <a href="mailto:hello@firepath.pro">hello@firepath.pro</a>. We'll do it within 30 days. You can also update most of your information yourself in your account.</p>
+    <h3>How long we keep it</h3>
+    <p>We keep your account data while your account is open. When you delete your account, we delete your data within 30 days, apart from payment records we're required to keep for tax purposes (Stripe holds these). Numbers you enter in the free tools stay in your own browser until you clear them.</p>
   </section>
 
   <section class="doc-section" id="cookies" data-doc-section>

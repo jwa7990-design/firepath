@@ -324,7 +324,7 @@
     <!-- What next for you — filled by js/next-steps.js -->
     <div id="fpNextSteps"></div>
 
-    <p class="disclaimer">Investment income based on a 4% withdrawal rate. Age Pension estimate uses both the assets and income tests (single, using your homeowner status, with Centrelink deeming on investments) — your actual entitlement depends on your full financial picture at 67. Educational only — not financial advice.</p>
+    <p class="disclaimer">Investment income based on a 4% withdrawal rate. Age Pension estimate uses both the assets and income tests (single, using your homeowner status, with Centrelink deeming on investments) — your actual entitlement depends on your full financial picture at 67. General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
   </div>
 
   </div>
@@ -724,7 +724,7 @@
 
 Who this is for: ${{ beginner: 'This person is new to this — warm, simple, human. Never use FIRE community terms like "Coast FIRE," "Barista FIRE," "sequence risk," or "safe withdrawal rate." Explain everything in plain, everyday language.', building: 'This person understands the basics and is actively building toward this. Clear, motivating, practical. You can introduce a FIRE term occasionally if it genuinely helps, but always explain it in the same sentence.', fire: 'This person is deep in the FIRE journey and fluent in the terminology. Direct, analytical, peer-level. Feel free to use terms like Coast FIRE, Barista FIRE, or sequence of returns risk naturally, without stopping to explain them.' }[userPersona] || 'Clear, motivating, practical.'}
 
-Rules: 1. Reference the actual numbers given to you. 2. Explain that full financial independence isn't the only version of freedom — a portfolio that covers most of your spending, topped up by some part-time work and eventually the Age Pension, is a legitimate and often much closer form of freedom. 3. Be warm and human about what working a small number of hours by choice (not necessity) actually feels like, versus a full-time job. 4. If the hours being explored are above 20/week, spend a sentence or two on real levers worth exploring to bring that down — e.g. what a higher hourly rate would do to the same gap, whether the spending target has room to flex, or reviewing how the portfolio is invested — grounded in this person's actual numbers, not generic advice. 5. If the Work Bonus hours figure was given, mention it naturally where relevant — it's real, verified information, not a guess. 6. Never say "you should" or "I recommend" — frame as something worth exploring. 7. Never name specific jobs, employers, or investment products. 8. Max 3 short paragraphs. 9. End with exactly: "This is educational, not financial advice." Use <strong> for bold.`,
+Rules: 1. Reference the actual numbers given to you. 2. Explain that full financial independence isn't the only version of freedom — a portfolio that covers most of your spending, topped up by some part-time work and eventually the Age Pension, is a legitimate and often much closer form of freedom. 3. Be warm and human about what working a small number of hours by choice (not necessity) actually feels like, versus a full-time job. 4. If the hours being explored are above 20/week, spend a sentence or two on what a few changes would do to those hours — e.g. what a higher hourly rate would do to the same gap, or what a lower spending target would do — worked through in this person's actual numbers. Describe them as options and their effect, never as instructions, and don't say which one they should pick. 5. If the Work Bonus hours figure was given, mention it naturally where relevant — it's real, verified information, not a guess. 6. Never say "you should" or "I recommend" — frame as something worth exploring. 7. Never name specific jobs, employers, products, funds, ETFs, brokers or platforms. 8. Max 3 short paragraphs. 9. Don't add a disclaimer; the page shows one under your answer. Use <strong> for bold.`,
           messages: [{ role: 'user', content: userInput }]
         })
       });
@@ -739,7 +739,7 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
       const data = await res.json();
       const insight = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
       if (!insight) throw new Error('Empty AI response');
-      textEl.innerHTML = FirePathSafe.aiText(insight);
+      textEl.innerHTML = FirePathSafe.aiText(insight) + '<p class="fp-advice" style="font-size:12px;color:var(--ink-2);line-height:1.5;margin:12px 0 0;">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>';
       textEl.style.display = 'block';
       btn.textContent = 'Refresh my AI outlook';
     } catch(e) {
@@ -834,7 +834,7 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
     fpRenderNext();
   });
 
-  // "What next for you" — the person's best moves (or general next steps), not this tool.
+  // "What next" — options from js/moves.js ordered by modelled effect (or general next steps), not this tool.
   let fpPlanProfile = null;   // the Pro saved plan, once loaded
   function fpRenderNext() {
     if (!window.FirePathNext) return;

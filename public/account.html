@@ -194,7 +194,7 @@
       </div>
     </div>
     <div id="cancelConfirm" class="cancel-confirm" style="display:none;">
-      <div class="cancel-confirm-text">Cancel your Pro subscription? You’ll keep Pro until the end of the month you’ve paid for, and we don’t give refunds for the rest of it. The free tools stay yours.</div>
+      <div class="cancel-confirm-text">Cancel your Pro subscription? You’ll keep Pro until the end of the month you’ve paid for, and there are no change-of-mind refunds for the rest of it. The free tools stay yours.</div>
       <div class="cancel-confirm-actions">
         <button id="cancelConfirmBtn" class="btn btn-danger">Yes, cancel</button>
         <button id="cancelKeepBtn" class="btn btn-quiet">Keep Pro</button>
@@ -205,7 +205,7 @@
 
   <section class="account-section">
     <div class="section-head"><h2 class="section-label">Sign out</h2></div>
-    <button class="btn btn-quiet btn-block signout-btn" onclick="signOut()">Sign out of FirePath</button>
+    <button class="btn btn-quiet btn-block signout-btn" onclick="FirePathAuth.signOut()">Sign out of FirePath</button>
   </section>
 
 </div>
@@ -218,14 +218,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (!token || !userId) { window.location.href = 'auth.html'; return; }
   if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
 
-  const email = localStorage.getItem('fp_email');
+  const email = getEmail();
   if (email) {
     document.getElementById('accountEmail').textContent = email;
     document.getElementById('userStatus').textContent = 'Signed in as ' + email;
   }
 
-  if (typeof checkProStatus === 'function') { try { await checkProStatus(); } catch(e) {} }
-  const isPro = localStorage.getItem('fp_is_pro') === 'true';
+  let isPro = false;
+  try { isPro = await checkProStatus(); } catch(e) {}
+  // The check found the session was no good (and cleared it): sign in again.
+  if (!isLoggedIn()) { window.location.href = 'auth.html?expired=1'; return; }
   const pill = document.getElementById('subStatusPill');
   if (isPro) {
     pill.textContent = 'Pro';
@@ -247,11 +249,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     const original = link.textContent;
     link.textContent = 'Loading…';
     try {
-      const res = await fetch(`${WORKER_URL}/billing/portal`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/billing/portal`, { method: 'POST' });
+      const data = res.ok ? await res.json() : null;
       if (data && data.url) { window.location.href = data.url; return; }
       throw new Error('No portal URL returned');
     } catch (err) {
@@ -275,10 +274,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const btn = document.getElementById('cancelConfirmBtn');
     btn.textContent = 'Cancelling…'; btn.disabled = true;
     try {
-      const res = await fetch(`${WORKER_URL}/billing/cancel`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/billing/cancel`, { method: 'POST' });
       if (!res.ok) throw new Error('Cancel failed');
       cancelConfirm.style.display = 'none';
       document.getElementById('cancelDone').style.display = 'block';

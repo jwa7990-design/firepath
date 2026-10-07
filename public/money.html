@@ -154,11 +154,10 @@
     const revealCard = () => requestAnimationFrame(() => card.classList.add('in-view'));
 
     try {
-      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.status === 401 || res.status === 403) {
-        localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_user_id'); localStorage.removeItem('fp_email');
-        sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
-        window.location.href = 'auth.html';
+        FirePathAuth.clearSession();
+        window.location.href = 'auth.html?expired=1';
         return;
       }
       if (!res.ok) { revealCard(); return; }
@@ -199,7 +198,7 @@
       // Delta vs Journey's own last snapshot — reuses the picture.netWorth field
       // journey.html already saves, rather than tracking a separate history here.
       try {
-        const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const snapRes = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (snapRes.ok) {
           const snapData = await snapRes.json();
           const prevSnapshot = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;

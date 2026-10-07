@@ -772,8 +772,9 @@
       <div id="houseCard" style="display:none"></div>
       <div class="ai-insight-card">
         <div id="freedomDateMovedLine" style="display:none;"></div>
-        <div class="ai-insight-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Worth looking at first</div>
+        <div class="ai-insight-label" style="display:flex;align-items:center;gap:6px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> What stands out in your numbers</div>
         <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
+        <p class="fine-print fp-advice" style="margin-top:12px;padding:0;">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
       </div>
       <div id="insightMetaBar" class="insight-meta" style="display:none;">
         <div>
@@ -803,9 +804,9 @@
       <div id="whatsNextContent"></div>
       <div class="next-levers">
         <div class="next-levers-title">What moves your date</div>
-        <div class="next-levers-sub">Small changes add up. Here's what each one does to your freedom date, using your numbers.</div>
+        <div class="next-levers-sub">Small changes add up. Here's what each one would do to your freedom date, based on the numbers you entered.</div>
         <div id="needleCard"></div>
-        <p class="fine-print">Educational only — not financial advice. All projections assume 7% a year after inflation unless we say otherwise.</p>
+        <p class="fine-print fp-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting. All projections assume 7% a year after inflation unless we say otherwise.</p>
       </div>
       <p class="disclaimer" style="margin-top:8px;">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
       <p class="result-links"><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a> · <a href="faq.html">FAQ</a> · <a href="assumptions.html">How we calculate →</a></p>
@@ -830,7 +831,7 @@
     </div>
 
     <div id="recommendedCard" class="pro-card" style="display:none;">
-      <div class="pro-card-label" style="margin-bottom:8px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-learn"/></svg> Recommended for you</div>
+      <div class="pro-card-label" style="margin-bottom:8px;"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-learn"/></svg> Worth a read</div>
       <div class="pro-card-sub" style="margin-bottom:12px;" id="recommendedReason"></div>
       <div class="recommended-title" id="recommendedTitle"></div>
       <div class="recommended-actions">
@@ -1069,7 +1070,7 @@
     await loadAssumptions(); await loadSavedInputs(); await loadProfile(); await checkProStatus();
     const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('Welcome to FirePath Pro!');
     const uel=document.getElementById('userStatus');
-    if(localStorage.getItem('fp_email')){uel.innerHTML=`Signed in as ${localStorage.getItem('fp_email')}`;}
+    if(localStorage.getItem('fp_email')){uel.textContent=`Signed in as ${localStorage.getItem('fp_email')}`;}
     else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" style="color:var(--ember-ink);text-decoration:none;">Sign in to save progress</a>`;}
     if(FirePathPersona.hasChosen()){ const pb=document.getElementById('ob-persona-btn'); if(pb) pb.disabled=false; }
 
@@ -1316,7 +1317,7 @@
         const annualSpend = fireNum / 25;
         if (netPortfolio <= 0 || annualSpend <= 0 || typeof window.FirePathEngine === 'undefined' || !window.FirePathEngine.solveMonthsToTarget) return;
 
-        const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&source=eq.profile&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+        const snapRes = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&source=eq.profile&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
         const snapData = await snapRes.json();
         const prior = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
         if (!prior || !prior.inputs || prior.inputs.portfolio == null || prior.inputs.annualSpend == null) return;
@@ -1375,7 +1376,7 @@
         const el = document.getElementById('freedomUnlockedCard');
         if (!el || netPortfolio <= 0 || annualSpend <= 0 || typeof window.FirePathEngine === 'undefined' || !window.FirePathEngine.solveMonthsToTarget) return;
 
-        const oldestRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&source=eq.profile&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+        const oldestRes = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&source=eq.profile&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
         const oldestData = await oldestRes.json();
         const oldest = Array.isArray(oldestData) && oldestData.length > 0 ? oldestData[0] : null;
         if (!oldest || !oldest.inputs || oldest.inputs.portfolio == null || oldest.inputs.monthlySavings == null || oldest.inputs.annualSpend == null) return;
@@ -1565,7 +1566,7 @@ function stopLoadingMessages() {
 
 <script>async function loadSavedInputs(){
     if(!fpToken||!fpUserId)return;
-    try{const res=await fetch(`${WORKER_URL}/db/calculations?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`,{headers:{'Authorization':`Bearer ${fpToken}`}});
+    try{const res=await FirePathAuth.fetch(`${WORKER_URL}/db/calculations?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`,{headers:{'Authorization':`Bearer ${fpToken}`}});
     const data=await res.json();if(!Array.isArray(data)||data.length===0)return;const last=data[0];
     if(last.freedom_years!=null&&last.created_at){priorFreedomYears=last.freedom_years;priorCalcCreatedAt=last.created_at;}
     if(last.pay_cycle){selectedCycle=last.pay_cycle;document.querySelectorAll('.cycle-btn').forEach(b=>{b.classList.toggle('active',b.dataset.cycle===last.pay_cycle);});}
@@ -1584,26 +1585,25 @@ function stopLoadingMessages() {
     updateSavingsHint();updateSuperNote();}catch(e){console.log('Load failed',e);}
   }
 
-  async function dbInsert(table,data){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/${table}`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'return=minimal'},body:JSON.stringify({...data,user_id:fpUserId})});}catch(e){}}
+  async function dbInsert(table,data){if(!fpToken||!fpUserId)return;let ok=false;try{const res=await FirePathAuth.fetch(`${WORKER_URL}/db/${table}`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'return=minimal'},body:JSON.stringify({...data,user_id:fpUserId})});ok=res.ok;if(!ok)console.warn('Save failed',table,res.status);}catch(e){console.warn('Save failed',table,e);}if(!ok)FirePathAuth.notify(FirePathAuth.SAVE_FAILED_MSG);return ok;}
 
 
-  async function loadCheckinHistory(){if(!fpToken||!fpUserId)return;try{const res=await fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`,{headers:{'Authorization':`Bearer ${fpToken}`}});const data=await res.json();if(Array.isArray(data)&&data.length>0){checkinHistory=data.map(d=>({month:new Date(d.created_at).toLocaleString('default',{month:'short',year:'numeric'}),savings:d.savings_total,sRate:d.savings_rate,diff:null}));streak=data.length;renderHistory();}}catch(e){}}
+  async function loadCheckinHistory(){if(!fpToken||!fpUserId)return;try{const res=await FirePathAuth.fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`,{headers:{'Authorization':`Bearer ${fpToken}`}});const data=await res.json();if(Array.isArray(data)&&data.length>0){checkinHistory=data.map(d=>({month:new Date(d.created_at).toLocaleString('default',{month:'short',year:'numeric'}),savings:d.savings_total,sRate:d.savings_rate,diff:null}));streak=data.length;renderHistory();}}catch(e){}}
 
-  async function saveUserContext(age,context){if(!fpToken||!fpUserId)return;try{await fetch(`${WORKER_URL}/db/calculations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({user_id:fpUserId,age:age||null,context:context||''})});}catch(e){}}
+  async function saveUserContext(age,context){if(!fpToken||!fpUserId)return;try{await FirePathAuth.fetch(`${WORKER_URL}/db/calculations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({user_id:fpUserId,age:age||null,context:context||''})});}catch(e){}}
 
   async function loadProfile() {
   if (!fpToken || !fpUserId) return;
   try {
-    const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, {
+    const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${fpUserId}`, {
       headers: { 'Authorization': `Bearer ${fpToken}` }
     });
     if (res.status === 401 || res.status === 403) {
       // Session expired or invalid — this is why it silently looked like "no profile" before.
       // Clear the stale token first, or auth.html will see what looks like a valid session
       // and immediately bounce straight back here, creating a redirect loop.
-      localStorage.removeItem('fp_access_token'); localStorage.removeItem('fp_user_id'); localStorage.removeItem('fp_email'); localStorage.removeItem('fp_persona');
-      sessionStorage.removeItem('fp_access_token'); sessionStorage.removeItem('fp_user_id');
-      window.location.href = 'auth.html';
+      FirePathAuth.clearSession();
+      window.location.href = 'auth.html?expired=1';
       return;
     }
     if (!res.ok) {
@@ -1676,7 +1676,7 @@ async function saveProfile() {
   if (!fpToken || !fpUserId) return;
   const mI = calcData.mIncome || 0;
   try {
-    await fetch(`${WORKER_URL}/db/fp_profiles`, {
+    await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1728,13 +1728,13 @@ async function saveProfile() {
       const netPortfolio = Math.max(0, (calcData.savings || 0) - (calcData.debt || 0));
       const annualSpend = (calcData.mSpend || 0) * 12;
       if (netPortfolio > 0 && annualSpend > 0) {
-        const snapRes = await fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
+        const snapRes = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
         const snapData = await snapRes.json();
         const prior = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
         const shouldSave = !prior || (Date.now() - new Date(prior.created_at).getTime()) / 3600000 >= 24;
         if (shouldSave) {
           const freedomPicture = window.FirePathEngine.computeFreedomPicture({ portfolio: netPortfolio, annualSpend, isHomeowner: housingStatus !== 'renting' });
-          await fetch(`${WORKER_URL}/db/financial_snapshots`, {
+          await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'return=minimal' },
             body: JSON.stringify({
@@ -1791,7 +1791,7 @@ async function saveProfile() {
       let ext={};
       if(inputMode!=='type'){
         try{
-          const er=await fetch(WORKER_URL,{method:'POST',headers: aiHeaders(),body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:'You are a financial data extractor. Extract income, spending, savings, super, pay cycle, age and context from the user input. Respond ONLY with valid JSON and nothing else. Format: {"income_monthly": number, "spending_monthly": number, "savings": number, "super_balance": number, "age": number_or_null, "context": "string"}. Convert all amounts to monthly. If savings rate is given, calculate spending as income minus savings. If value not mentioned use 0.',messages:[{role:'user',content:userInput}]})});
+          const er=await FirePathAuth.fetch(WORKER_URL,{method:'POST',headers: aiHeaders(),body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:'You are a financial data extractor. Extract income, spending, savings, super, pay cycle, age and context from the user input. Respond ONLY with valid JSON and nothing else. Format: {"income_monthly": number, "spending_monthly": number, "savings": number, "super_balance": number, "age": number_or_null, "context": "string"}. Convert all amounts to monthly. If savings rate is given, calculate spending as income minus savings. If value not mentioned use 0.',messages:[{role:'user',content:userInput}]})});
           if(!er.ok)throw new Error('extract '+er.status);
           const ed=await er.json();const raw=ed.content[0].text.replace(/```json|```/gi,'').trim();ext=JSON.parse(raw)||{};
         }catch(e){
@@ -1828,7 +1828,7 @@ async function saveProfile() {
       // calculated result below still renders and a calm note sits in its place.
       let insight=null;
       try{
-        const ir=await fetch(WORKER_URL,{method:'POST',headers: aiHeaders(),body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:`You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. User persona: ${persona}. ${at}. ${hc}${dc}${mc}${dpc} Tone: ${FirePathPersona.config(persona).aiTone}. Rules: 1. Acknowledge caring/family pressures first with genuine empathy. 2. Identify their single biggest financial lever in plain numbers. 3. Frame as questions worth exploring, never instructions. 4. Never name specific investment products or platforms. 5. Never say "you should" or "I recommend". 6. Max 3 short paragraphs. 7. End with exactly: "This is educational, not financial advice." Use <strong> for bold. 8. If you identify a specific big financial question worth modelling (selling a property, investing a lump sum, redundancy payout), add one sentence after the disclaimer suggesting they run it in the What if…? tool — e.g. "The What if…? tool lets you model exactly this kind of move."`,messages:[{role:'user',content:`Monthly income: $${Math.round(mI)}, spending: $${Math.round(mSp)}, saving: $${Math.round(mSav)}, savings: $${savings}, super: $${superBal}, freedom number: $${Math.round(fireNum)}, savings rate: ${sRate}%, freedom: ${fyear||'over 50 years away'}. Age: ${age||'unknown'}. Debt: $${debt}. Mortgage: $${mortgage}. Dependants: ${dependants}. Housing: ${housingStatus}. Situation: ${context}`}]})});
+        const ir=await FirePathAuth.fetch(WORKER_URL,{method:'POST',headers: aiHeaders(),body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:400,system:`You are FirePath, a warm and genuinely caring financial independence educational tool. You are NOT a financial advisor. User persona: ${persona}. ${at}. ${hc}${dc}${mc}${dpc} Tone: ${FirePathPersona.config(persona).aiTone}. Rules: 1. Acknowledge caring/family pressures first with genuine empathy. 2. Point out the change that would have the biggest modelled effect on their numbers, in plain numbers, described as an option and what it would do, not an instruction. 3. Frame things as options and trade-offs worth exploring, never instructions, and never say which option they should choose. 4. Never name specific products, funds, ETFs, brokers, lenders or platforms. 5. Never say "you should" or "I recommend". 6. Max 3 short paragraphs. 7. Don't add a disclaimer; the page shows one under your answer. Use <strong> for bold. 8. If you identify a specific big financial question worth modelling (selling a property, investing a lump sum, redundancy payout), add one closing sentence mentioning they can model it in the What if…? tool — e.g. "The What if…? tool lets you model exactly this kind of move."`,messages:[{role:'user',content:`Monthly income: $${Math.round(mI)}, spending: $${Math.round(mSp)}, saving: $${Math.round(mSav)}, savings: $${savings}, super: $${superBal}, freedom number: $${Math.round(fireNum)}, savings rate: ${sRate}%, freedom: ${fyear||'over 50 years away'}. Age: ${age||'unknown'}. Debt: $${debt}. Mortgage: $${mortgage}. Dependants: ${dependants}. Housing: ${housingStatus}. Situation: ${context}`}]})});
         if(!ir.ok)throw new Error('insight '+ir.status);
         const id=await ir.json();
         insight=(id&&id.content&&id.content[0]&&id.content[0].text)||null;
@@ -2297,12 +2297,13 @@ async function saveProfile() {
     else if (fy !== null && fy <= 10) { blocks.push(`<div style="background:var(--positive-wash);border:2px solid rgba(46,125,50,0.25);border-radius:20px;padding:24px;margin-bottom:16px;"><div style="font-size:28px;margin-bottom:10px;"></div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--positive);margin-bottom:8px;line-height:1.3;">${fyear ? fyear + ' is close.' : 'Freedom is close.'}</div><div style="font-size:14px;color:var(--positive);font-weight:400;line-height:1.7;">${isPartner ? 'You two are' : 'You\'re'} ${fmt(fy)} away${freedomAge ? ' — freedom age ' + freedomAge : ''}. At this stage, sticking with it matters more than finding new changes. Compounding is doing the work.</div></div>`); }
     else if (fy !== null && fy <= 20) { blocks.push(`<div style="background:var(--ember-wash);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;"><div style="font-size:28px;margin-bottom:10px;"></div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px;line-height:1.3;">${isPartner ? 'You two are' : 'You\'re'} building something real.</div><div style="font-size:14px;color:var(--ink-2);font-weight:400;line-height:1.7;">${fmt(fy)} to freedom${freedomAge ? ' at age ' + freedomAge : ''}. ${your.charAt(0).toUpperCase() + your.slice(1)} savings rate of ${sRate}% is ${sRate >= 20 ? 'strong' : 'a solid start'}. The changes below show what moves the date.</div></div>`); }
     else { blocks.push(`<div style="background:var(--ember-wash);border:2px solid rgba(244,98,42,0.3);border-radius:20px;padding:24px;margin-bottom:16px;"><div style="font-size:28px;margin-bottom:10px;"></div><div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px;line-height:1.3;">It's a long way off, but now you can see it.</div><div style="font-size:14px;color:var(--ink-2);font-weight:400;line-height:1.7;">${isPartner ? 'You two have' : 'You have'} ${your} number. ${fy ? fmt(fy) + ' is a long road' : 'The timeline is long'}, but now ${you} know where things stand, and that's a good start.</div></div>`); }
-    // Biggest lever: the top move from FirePathMoves — the same pick Journey shows.
+    // The option with the biggest modelled effect (top of FirePathMoves) — the same one Journey shows.
+    // Shown as an option and its effect, never an instruction.
     const ranked = rankedMoves(), topMove = ranked && ranked.moves[0];
     if (topMove) {
       const go = topMove.tool ? topMove.tool : topMove.article ? { href: '/learn/' + topMove.article, label: 'Read why' } : null;
       const leverMsg = `<strong>${topMove.title}.</strong> ${topMove.why}${topMove.impact && topMove.impact.text ? `<div style="margin-top:8px;font-size:13px;font-weight:600;color:var(--ember-ink);">${topMove.impact.text}</div>` : ''}${go ? `<a href="${go.href}" style="display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:var(--ember-ink);text-decoration:none;">${go.label} →</a>` : ''}`;
-      blocks.push(`<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ember-ink);margin-bottom:10px;"> What would help most right now</div><div style="font-size:14px;color:var(--ink);font-weight:400;line-height:1.7;">${leverMsg}</div></div>`);
+      blocks.push(`<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ember-ink);margin-bottom:10px;"> What could move your date most</div><div style="font-size:14px;color:var(--ink);font-weight:400;line-height:1.7;">${leverMsg}</div><p style="font-size:12px;color:var(--ink-2);line-height:1.5;margin:12px 0 0;">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
     } else if (!ranked && !alreadyFree && !isZeroSavings && fy) {
       // Fallback if moves.js didn't load.
       const extraWeekly = 50, newMSav = mSav + (extraWeekly * 52 / 12), newFy = yearsToGoal(fireNum, savings, newMSav, 0.07), diff = newFy && fy ? Math.round(fy - newFy) : null;
@@ -2310,7 +2311,7 @@ async function saveProfile() {
       if (debt > 0) { leverMsg = `${isPartner ? 'You two have' : 'You have'} ${fmtM(debt)} in debt. Once that's gone, the repayments become savings — and that changes the date.`; }
       else if (savingsType === 'cash' && savings > 0) { leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} savings are in cash. The big question: what happens if that money is invested instead? The "If your money was invested" comparison in your results shows the exact difference.`; }
       else { leverMsg = diff && diff > 0 ? `An extra $${extraWeekly}/week could bring ${your} freedom date forward by ${diff} year${diff !== 1 ? 's' : ''}. "See what moves ${your} date" below has the full picture.` : `${your.charAt(0).toUpperCase() + your.slice(1)} plan is solid. "See what moves ${your} date" below shows what would move it further.`; }
-      blocks.push(`<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ember-ink);margin-bottom:10px;"> What would help most right now</div><div style="font-size:14px;color:var(--ink);font-weight:400;line-height:1.7;">${leverMsg}</div></div>`);
+      blocks.push(`<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ember-ink);margin-bottom:10px;"> What could move your date most</div><div style="font-size:14px;color:var(--ink);font-weight:400;line-height:1.7;">${leverMsg}</div><p style="font-size:12px;color:var(--ink-2);line-height:1.5;margin:12px 0 0;">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
     }
     const steps = [];
     steps.push(`<div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--positive-wash);border-radius:var(--r-md);border:1px solid rgba(46,125,50,0.25);"><div style="font-size:20px"></div><div><div style="font-size:14px;font-weight:500;color:var(--positive);">Know ${your} number</div><div style="font-size:12px;color:var(--ink-2);font-weight:400;">${your.charAt(0).toUpperCase() + your.slice(1)} freedom number is ${fmtM(fireNum)}. That's the foundation everything else builds on.</div></div></div>`);
