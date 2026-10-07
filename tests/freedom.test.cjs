@@ -302,3 +302,45 @@ test('cross-page: a partner\'s super counts the same way on the free page and Pr
   assert.equal(free.months, pro.months);
   assert.ok(free.months < planFor(p).months, 'partner super brings it forward');
 });
+
+// Debt: the freedom date doesn't take debt off savings on any page (the free calculator's
+// rule). Freedom gap used to net it off first, so someone with debt got a later date there.
+const OPTIONS = read('freedom-options.html');
+const gapDateCall = (() => {
+  const args = grab(GAP, /story \+= freedomDateLine\(([^)]*)\);/, 'Freedom gap freedomDateLine call');
+  return new Function('freedomDateLine', 'currentAge', 'portfolio', 'netPortfolio', 'monthlySavings', 'annualSpend', 'superBalance', 'debt',
+    'return freedomDateLine(' + args + ');');
+})();
+
+test('cross-page: someone with debt gets the same freedom date on every page', () => {
+  const p = PEOPLE[0], fire = fireNum(p), debt = 40000;
+  const profile = { age: p.age, take_home_income: p.takeHome, savings_monthly: p.mSav, current_savings: p.savings, super_balance: p.super, freedom_number: fire, pay_cycle: 'monthly', debt_total: debt };
+  const expected = planFor(p).freedomAge;
+  // Taking the debt off first would give a later age, so this test can tell the difference.
+  const netted = E.freedomPlan({ age: p.age, savings: p.savings - debt, monthlySavings: p.mSav, target: fire, superBalance: p.super, takeHomeMonthly: p.takeHome }).freedomAge;
+  assert.ok(netted > expected, `netting debt should move the date (${netted} vs ${expected})`);
+
+  // Free calculator: debt is typed in, but its plan inputs never read it.
+  assert.ok(!/debt/i.test(grab(FREE, /_planInputs = (\{[\s\S]*?\n {4}\});/, 'free page _planInputs')), 'free page plan ignores debt');
+  const free = E.freedomPlan(freePageInputs(p.age, p.savings, p.mSav, fire, p.super, x => x, p.takeHome, 0, null, 0)).freedomAge;
+  // Pro: freedomPlanInputs has no debt input; it's given savings as typed.
+  assert.ok(!/debt/i.test(grab(PRO, /(function freedomPlanInputs[\s\S]*?\n  \})/, 'Pro freedomPlanInputs')), 'Pro plan ignores debt');
+  const pro = E.freedomPlan(ctx.__pro(p.age, p.super, p.takeHome, p.savings, p.mSav, fire, null)).freedomAge;
+  // Your Path: the saved plan, debt_total included, read by planInputsFromProfile.
+  const journey = E.freedomPlan(E.planInputsFromProfile(profile)).freedomAge;
+  // Freedom gap: the page's own call, with its own netted figure available to it.
+  const pi = E.planInputsFromProfile(profile);
+  ctx.__setGapIncome({ grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: 0 });
+  const line = gapDateCall(ctx.__gap, p.age, p.savings, Math.max(0, p.savings - debt), p.mSav, fire / 25, p.super, debt);
+  const gap = Number((line.match(/age (\d+)/) || [])[1]);
+
+  assert.deepEqual({ free, pro, gap, journey }, { free: expected, pro: expected, gap: expected, journey: expected });
+});
+
+test('Freedom options: its freedom ages come from freedomPlan, fed what Freedom gap used', () => {
+  assert.ok(!/solveFreedomAge\(/.test(OPTIONS), 'no solveFreedomAge calls left');
+  assert.ok(OPTIONS.includes('window.FirePathEngine.freedomPlan('), 'uses the shared plan');
+  // The handoff carries savings before debt and the saved plan's pay.
+  assert.ok(/savings: portfolio, grossIncome: planIncome\.grossIncome/.test(GAP), 'Freedom gap hands over savings before debt');
+  assert.ok(/age, savings: ci\.savings, monthlySavings, annualSpend, superBalance,/.test(OPTIONS), 'Freedom options plans on those savings');
+});

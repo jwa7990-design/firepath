@@ -162,13 +162,22 @@
 <script src="js/moves.js"></script>
 <script src="js/next-steps.js"></script>
 <script>
-  // fmtM, niceHours, projectPortfolio, and solveFreedomAge now live in the shared
-  // financial-engine.js — these are aliases so every call site elsewhere in this file
-  // doesn't need to change, but the actual logic lives in exactly one place.
+  // fmtM, niceHours and projectPortfolio live in the shared financial-engine.js — these
+  // are aliases so the actual logic lives in exactly one place.
   const fmtM = window.FirePathEngine.fmtM;
   const niceHours = window.FirePathEngine.niceHours;
   const projectPortfolio = window.FirePathEngine.projectPortfolio;
-  const solveFreedomAge = window.FirePathEngine.solveFreedomAge;
+
+  // Every freedom age on this page comes from the shared freedom plan
+  // (FirePathEngine.freedomPlan), the same one behind the date on Freedom gap, the free
+  // calculator, Pro and Your Path: savings outside super pay your way until 60, then
+  // super too. `over` changes some inputs for a "what if". Returns { age, years, plan },
+  // or null when there's no date to show (bad numbers, or more than 100 years away).
+  function solveFreedom(inp, over) {
+    const plan = window.FirePathEngine.freedomPlan(Object.assign({}, inp.planInputs, over || {}));
+    if (!plan.valid || !plan.reachable || plan.freedomAge == null) return null;
+    return { age: plan.freedomAge, years: plan.years, plan };
+  }
 
   // No input form on this page — numbers come exclusively from the Freedom Gap handoff.
   // This is the single place that data lives before generateOptions() reads it.
@@ -196,7 +205,7 @@
         const s = inp.fullStopSolve; if (!s) return null;
         return { id: 'retire_full_stop', facts: {
           targetAge: s.age, yearsAway: s.age - Math.floor(inp.age),
-          projectedPortfolioIncome: s.portfolioIncome, projectedPensionIncome: s.pensionIncome
+          projectedPortfolioIncome: Math.round(s.plan.spendPerYear)
         }};
       }
     },
@@ -204,7 +213,7 @@
       id: 'reduce_spend',
       relevance(inp) {
         if (!inp.fullStopSolve) return 0;
-        const reduced = solveFreedomAge(inp.age, inp.portfolio, inp.monthlySavings, Math.max(0, inp.annualSpend - 5000), inp.isHomeowner, 0.07, inp.isCouple, inp.superBalance, inp.partner);
+        const reduced = inp.annualSpend > 5000 ? solveFreedom(inp, { annualSpend: inp.annualSpend - 5000, target: null }) : null;
         inp._reducedSolve = reduced;
         return reduced && reduced.age < inp.fullStopSolve.age ? 2 : 0;
       },
@@ -218,7 +227,7 @@
     {
       id: 'coast',
       relevance(inp) {
-        const c = solveFreedomAge(inp.age, inp.portfolio, 0, inp.annualSpend, inp.isHomeowner, 0.07, inp.isCouple, inp.superBalance, inp.partner);
+        const c = solveFreedom(inp, { monthlySavings: 0 });
         inp._coastSolve = c;
         return c && c.age <= 67 && inp.monthlySavings > 0 ? 2 : 0;
       },
@@ -276,7 +285,7 @@
       }
     },
     retire_full_stop: {
-      desc: 'The age at which the portfolio (plus super from 60 and the Age Pension from 67) covers everything, with no work income at all.',
+      desc: 'The freedom age: savings outside super pay the way until 60, then super too, with no work income at all. Same date as Freedom gap. The Age Pension is not counted.',
       headline: (f) => `Retire completely at ${f.targetAge}`,
       gainBack: (f) => `${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} from full freedom`
     },
@@ -286,7 +295,7 @@
       gainBack: (f) => `${f.yearsSooner} year${f.yearsSooner !== 1 ? 's' : ''} earlier, for ${fmtM(f.reductionPerYear)} less spending a year`
     },
     coast: {
-      desc: 'What happens if no more money is added — just letting the existing portfolio compound on its own.',
+      desc: 'What happens if no more money is added to savings: what is already saved, plus super from 60, left to grow on its own.',
       headline: (f) => `Stop saving, let it grow`,
       gainBack: (f) => `Freedom by ${f.targetAge} without adding another dollar`
     },
@@ -332,9 +341,16 @@
     // The pension isn't paid until 67, so anything "starting today" uses the full gap before then.
     const gapNow = age >= E.PENSION_AGE ? gapAfterPensionToday : gapToday;
     const freedomPctToday = picture.freedomPct;
-    const fullStopSolve = solveFreedomAge(age, portfolio, monthlySavings, annualSpend, isHomeowner, 0.07, isCouple, superBalance, partner);
-
-    const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, partner, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, gapNow, freedomPctToday, fullStopSolve };
+    // The freedom plan's inputs, exactly as Freedom gap built its date: savings before debt
+    // (like every page), super, your partner's super from their own 60, and the saved plan's pay.
+    const ci = currentInputs;
+    const planInputs = {
+      age, savings: ci.savings, monthlySavings, annualSpend, superBalance,
+      grossIncome: ci.grossIncome, takeHomeMonthly: ci.takeHomeMonthly,
+      partner: isCouple && partnerSuper > 0 ? { superBalance: partnerSuper, age: partnerAge, takeHomeMonthly: ci.partnerTakeHomeMonthly } : null
+    };
+    const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, partner, planInputs, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, gapNow, freedomPctToday };
+    inp.fullStopSolve = solveFreedom(inp);
     const options = selectOptions(inp);
 
     // The AI-written "what this could feel like" lines are part of Pro (the Worker
@@ -425,11 +441,11 @@ Absolute rules:
             ? `Right now your investments cover ${f.freedomPctToday}% of your spending — working about ${f.hoursPerWeekNow} hrs/week would close the rest.`
             : `Right now your investments cover ${f.freedomPctToday}% of your spending. Work or other income would need to cover the other ${fmtM(f.gapToday)} a year.` };
       case 'retire_full_stop':
-        return { blurb: `That's ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} away — by then your investments (with super and any Age Pension) should cover everything, with no work income needed.` };
+        return { blurb: `That's ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} away. Your savings pay your way until 60, then your super joins in, so no work income is needed. Any Age Pension from 67 would be extra.` };
       case 'reduce_spend':
         return { blurb: `Trimming spending by ${fmtM(f.reductionPerYear)}/year could move your full retirement forward by ${f.yearsSooner} year${f.yearsSooner !== 1 ? 's' : ''}, to age ${f.targetAge}.` };
       case 'coast':
-        return { blurb: `If you stopped contributing anything more today, compounding alone gets you there by age ${f.targetAge} — ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} from now.` };
+        return { blurb: `If you stopped adding to your savings today, what you have now (plus your super from 60) gets you there by age ${f.targetAge}, ${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} from now.` };
       case 'semi_retire_now':
         return { blurb: `Just ${f.hoursPerWeek} hours a week, for as long as you like, while your investments cover the rest.` };
       case 'pension_assist':
@@ -539,7 +555,11 @@ Absolute rules:
         portfolio: n0(inp2.portfolio), annualSpend: n0(inp2.annualSpend), age: n0(inp2.age),
         monthlySavings: n0(inp2.monthlySavings), hourlyRate: n0(inp2.hourlyRate), isHomeowner: inp2.isHomeowner,
         isCouple: !!inp2.isCouple, superBalance: n0(inp2.superBalance),
-        partnerSuper: n0(inp2.partnerSuper), partnerAge: n0(inp2.partnerAge) > 0 ? n0(inp2.partnerAge) : null
+        partnerSuper: n0(inp2.partnerSuper), partnerAge: n0(inp2.partnerAge) > 0 ? n0(inp2.partnerAge) : null,
+        // Savings before debt and pay, for the freedom plan. Older handoffs without them:
+        // the net figure, and no pay (no employer super, default tax rate).
+        savings: inp2.savings != null ? n0(inp2.savings) : n0(inp2.portfolio),
+        grossIncome: n0(inp2.grossIncome) || null, takeHomeMonthly: n0(inp2.takeHomeMonthly), partnerTakeHomeMonthly: n0(inp2.partnerTakeHomeMonthly)
       };
 
       // Reuse the exact picture Freedom Gap already calculated for the intro line, rather

@@ -34,7 +34,7 @@
   .strategy-section > .fp-consider { margin: 0 0 16px; }
 
   /* ── Your Levers — personalised, computed against this person's actual numbers
-       via the same solveMonthsToTarget the trajectory chart on Journey uses. ── */
+       via FirePathEngine.freedomPlan, the same calculation as every headline. ── */
   .levers-card { padding-bottom: 8px; opacity: 0; transform: translateY(6px); transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease); }
   .levers-card.in-view { opacity: 1; transform: none; }
   @media (min-width: 768px) { .levers-card { padding-bottom: 8px; } }
@@ -188,9 +188,8 @@
       cards.forEach(el => observer.observe(el));
     }
 
-    // ── Your Levers — same solveMonthsToTarget the trajectory chart on Journey
-    // already uses, just run against a few different named changes instead of one
-    // fixed "$50/week" optimisation. Isolated in its own try/catch so a failure
+    // ── Your Levers — the same FirePathEngine.freedomPlan every headline uses (super
+    // from 60, savings bridging until then), run against a few named changes. Isolated in its own try/catch so a failure
     // here never blocks the three tool cards above, which don't depend on it.
     const leversCard = document.getElementById('leversCard');
     try {
@@ -219,7 +218,16 @@
       if (ranked && ranked.all.some(m => m.id === 'salary-sacrifice')) document.getElementById('sacrificeConsider').style.display = '';
       if (annualSpend <= 0) { leversCard.style.display = 'none'; return; }
 
-      const baseMonths = window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
+      // freedomPlan with one thing changed: extra saved each month, or a yearly spending
+      // cut (which also lowers the freedom number, 25× spending). null = out of reach.
+      const planBase = window.FirePathEngine.planInputsFromProfile(p);
+      const planMonths = (extraMonthly, spendCutYear) => {
+        const i = Object.assign({}, planBase, { monthlySavings: (planBase.monthlySavings || 0) + (extraMonthly || 0) });
+        if (spendCutYear) i.target = Math.max(0, (planBase.target || 0) - spendCutYear * 25);
+        const r = window.FirePathEngine.freedomPlan(i);
+        return r.valid && r.reachable ? r.months : null;
+      };
+      const baseMonths = planMonths(0, 0);
       if (baseMonths == null) {
         // Out of reach at today's pace: the standard levers can't show "years sooner",
         // so show the options that do apply (ordered by modelled effect) — they handle "out of reach" themselves.
@@ -251,12 +259,12 @@
         {
           label: 'Investing an extra $200 a month',
           type: 'invest',
-          months: window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings + 200, annualSpend)
+          months: planMonths(200, 0)
         },
         {
           label: 'Spending $300 a month less',
           type: 'cut',
-          months: window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings + 300, Math.max(0, annualSpend - 3600))
+          months: planMonths(300, 3600)
         }
       ];
       // Only shown if take_home_income is on file — without it, "5% of income"
@@ -267,7 +275,7 @@
         candidates.push({
           label: 'Saving an extra 5% of your take-home pay',
           type: 'increase',
-          months: window.FirePathEngine.solveMonthsToTarget(savings, monthlySavings + extraMonthly, annualSpend)
+          months: planMonths(extraMonthly, 0)
         });
       }
 

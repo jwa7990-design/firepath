@@ -412,11 +412,13 @@
 
   // The freedom date: the shared plan every FirePath page uses for its headline (savings
   // outside super until 60, then super too; your partner's from their 60).
-  function freedomDateLine(currentAge, netPortfolio, monthlySavings, annualSpend, superBalance) {
+  // `savings` is what you have invested, before debt: the free calculator, Pro and Your
+  // Path don't take debt off the date either (the freedom % above is net of debt).
+  function freedomDateLine(currentAge, savings, monthlySavings, annualSpend, superBalance) {
     const E = window.FirePathEngine;
     if (!E.freedomPlan || !(currentAge > 0)) return '';
     const plan = E.freedomPlan({
-      age: currentAge, savings: netPortfolio, monthlySavings, annualSpend, superBalance,
+      age: currentAge, savings, monthlySavings, annualSpend, superBalance,
       grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly,
       partner: isCouple && partnerSuper > 0 ? { superBalance: partnerSuper, age: partnerAge, takeHomeMonthly: planIncome.partnerTakeHomeMonthly } : null
     });
@@ -551,7 +553,7 @@
     // get the page's core insight; the AI outlook below is an optional deeper layer on top.
     const hoursToCloseAfterPension = hourlyRate > 0 ? niceHours(gapNow / hourlyRate / 52) : null;
     let story = `Your investments already cover <strong>${freedomPct}%</strong> of your annual spending — ${fmtM(portfolioIncome)} of the ${fmtM(annualSpend)} you expect to need.`;
-    story += freedomDateLine(currentAge, netPortfolio, monthlySavings, annualSpend, superBalance);
+    story += freedomDateLine(currentAge, portfolio, monthlySavings, annualSpend, superBalance);   // same date as every page: debt not taken off
     if (pensionAnnual > 0) {
       story += ` At 67, the Age Pension could reduce the remaining gap to around <strong>${fmtM(gapAfterPension)}/yr</strong>.`;
     }
@@ -631,7 +633,10 @@
     try {
       const todayPicture = window.FirePathEngine.computeFreedomPicture(Object.assign({ portfolio: netPortfolio, annualSpend, isHomeowner, isCouple, pensionAssets: pensionAssetsAt(netPortfolio, superBalance, currentAge, currentAge) }, partnerPensionInputs(currentAge, currentAge)));
       localStorage.setItem('fp_freedom_model', JSON.stringify({
-        inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance: superBalance || 0, partnerSuper: isCouple ? partnerSuper : 0, partnerAge: isCouple ? partnerAge : null },   // partner's super kept separate: it unlocks at their 60, not yours
+        inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance: superBalance || 0, partnerSuper: isCouple ? partnerSuper : 0, partnerAge: isCouple ? partnerAge : null,   // partner's super kept separate: it unlocks at their 60, not yours
+          // For Freedom Options' freedom ages (FirePathEngine.freedomPlan): savings before debt
+          // and the saved plan's pay, so its dates match the one on this page.
+          savings: portfolio, grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, partnerTakeHomeMonthly: planIncome.partnerTakeHomeMonthly },
         picture: todayPicture,
         savedAt: new Date().toISOString()
       }));

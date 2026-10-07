@@ -885,10 +885,10 @@
       </div>`).join('');
   }
 
-  function renderFreedomUnlocked(years, months, historyRows, note) {
+  function renderFreedomUnlocked(years, months, historyRows, note, isFreedomDate) {
     const fu = $('fuCard');
     $('fuFigure').innerHTML = (years > 0 ? `${years}<small>${years === 1 ? 'year' : 'years'}</small>` : '') + `${months}<small>${months === 1 ? 'month' : 'months'}</small>`;
-    $('fuText').textContent = `You've brought your freedom date forward by ${years > 0 ? years + ' year' + (years === 1 ? '' : 's') + ' and ' : ''}${months} month${months === 1 ? '' : 's'} since your first check-in.`;
+    $('fuText').textContent = `You've brought ${isFreedomDate ? 'your freedom date' : 'the day your savings alone reach your number'} forward by ${years > 0 ? years + ' year' + (years === 1 ? '' : 's') + ' and ' : ''}${months} month${months === 1 ? '' : 's'} since your first check-in.`;
     $('fuHistory').innerHTML = historyRows + `<div class="fu-history-note">${note}</div>`;
     fu.hidden = false;
   }
@@ -927,6 +927,27 @@
         el.hidden = true;
       } catch (e) { console.log('Monday confirmation failed', e); }
     });
+  }
+
+  // ── Then vs now ────────────────────────────────────────
+  // A check-in's freedom date on the same plan as the hero (Engine.freedomPlan), worked
+  // out from the day it was saved. Check-ins saved since October 2026 keep your age and
+  // super, so they get the full plan (savings, then super from 60). Older ones only kept
+  // savings, so both sides are compared on savings alone (no super) and labelled that way:
+  // a savings comparison, not your freedom date. Today's spending and pay are used for both.
+  function snapshotPlans(m, snap) {
+    const si = snap.inputs || {};
+    const full = si.superBalance != null && si.age > 0;
+    const base = Object.assign({}, m.planInputs, { target: m.freedomNumber }, full ? {} : { superBalance: 0, partner: null });
+    const thenIn = Object.assign({}, base, { savings: si.savings || 0, monthlySavings: si.monthlySavings || 0 });
+    if (full) {
+      thenIn.age = si.age;
+      thenIn.superBalance = si.superBalance;
+      thenIn.partner = si.partnerSuper > 0 && m.planInputs.partner ? Object.assign({}, m.planInputs.partner, { superBalance: si.partnerSuper }) : null;
+    }
+    const then = Engine.freedomPlan(thenIn, { now: new Date(snap.created_at) });
+    const now = full ? m.plan : Engine.freedomPlan(base, { now: new Date() });
+    return { full, then, now };
   }
 
   // ── Data flow ──────────────────────────────────────────
@@ -995,12 +1016,10 @@
 
             const rows = [{ label: Persona.get() === 'fire' ? 'FI %' : 'Progress to freedom number', before: `${prevSnapshot.picture.freedomPct}%`, after: `${pct}%`, positive: deltaPct > 0 }];
             if (prevSnapshot.inputs && prevSnapshot.inputs.monthlySavings != null && annualSpend > 0) {
-              const prevMonths = Engine.solveMonthsToTarget(prevSnapshot.inputs.savings, prevSnapshot.inputs.monthlySavings, annualSpend);
-              const nowMonths = Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
-              if (prevMonths != null && nowMonths != null) {
-                const prevYear = yearAfter(new Date(prevSnapshot.created_at), prevMonths);
-                const nowYear = yearAfter(new Date(), nowMonths);
-                if (prevYear !== nowYear) rows.push({ label: 'Freedom date', before: String(prevYear), after: String(nowYear), positive: nowYear < prevYear });
+              const sp = snapshotPlans(model, prevSnapshot);
+              const prevYear = sp.then.valid ? sp.then.freedomYear : null, nowYear = sp.now.valid ? sp.now.freedomYear : null;
+              if (prevYear != null && nowYear != null && prevYear !== nowYear) {
+                rows.push({ label: sp.full ? 'Freedom date' : 'Savings alone reach your number', before: String(prevYear), after: String(nowYear), positive: nowYear < prevYear });
               }
             }
             // Only compare net worth measured the same way (formula version 3).
@@ -1024,10 +1043,11 @@
           const oldest = Array.isArray(oldestData) && oldestData.length ? oldestData[0] : null;
           if (oldest && oldest.inputs && oldest.inputs.monthlySavings != null && oldest.id !== (prevSnapshot && prevSnapshot.id) && annualSpend > 0) {
             const oi = oldest.inputs;
-            const monthsThen = Engine.solveMonthsToTarget(oi.savings, oi.monthlySavings, annualSpend);
-            const monthsNow = Engine.solveMonthsToTarget(savings, monthlySavings, annualSpend);
+            const sp = snapshotPlans(model, oldest);
+            const monthsThen = sp.then.valid ? sp.then.months : null;
+            const monthsNow = sp.now.valid ? sp.now.months : null;
             const elapsed = Math.round((Date.now() - new Date(oldest.created_at).getTime()) / (864e5 * 30.44));
-            // Either side beyond the 40-year horizon (null) means there's no honest figure
+            // Either side beyond the 100-year horizon (null) means there's no honest figure
             // to show (x - null would quietly count as x - 0).
             const bought = (monthsThen == null || monthsNow == null) ? 0 : Math.max(0, (monthsThen - elapsed) - monthsNow);
             if (bought > 0) {
@@ -1035,12 +1055,14 @@
               const oldDate = new Date(oldest.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
               const rows = `
                 <div class="fu-history-row"><span>First check-in (${oldDate})</span><span>${money(oi.savings)} saved, ${money(oi.monthlySavings)}/mo</span></div>
-                <div class="fu-history-row"><span>Months to freedom then</span><span>${monthsThen}</span></div>
+                <div class="fu-history-row"><span>${sp.full ? 'Months to freedom then' : 'Months on savings alone, then'}</span><span>${monthsThen}</span></div>
                 <div class="fu-history-row"><span>Today</span><span>${money(savings)} saved, ${money(monthlySavings)}/mo</span></div>
-                <div class="fu-history-row"><span>Months to freedom now</span><span>${monthsNow}</span></div>
+                <div class="fu-history-row"><span>${sp.full ? 'Months to freedom now' : 'Months on savings alone, now'}</span><span>${monthsNow}</span></div>
                 <div class="fu-history-row"><span>Time since first check-in</span><span>${elapsed} months</span></div>
                 <div class="fu-history-row total"><span>Time you've won back</span><span>${years > 0 ? years + 'y ' : ''}${months}m</span></div>`;
-              renderFreedomUnlocked(years, months, rows, 'Same 4% withdrawal rule and 7% growth assumption at both points in time.');
+              renderFreedomUnlocked(years, months, rows, sp.full
+                ? 'Same plan as your freedom date at both check-ins: your savings until 60, then your super too.'
+                : 'Savings alone, without super, with the same growth and 4% rule at both check-ins. Your first check-in didn’t record your super, so this compares savings only. Your freedom date above counts your super too.', sp.full);
             }
           }
         }
@@ -1053,7 +1075,7 @@
           await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'Prefer': 'return=minimal' },
-            body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber, monthlySavings }, picture: { freedomPct: pct, netWorth, netWorthFormulaVersion: 3, savingsRate: p.savings_rate || 0 } })
+            body: JSON.stringify({ user_id: userId, source: 'journey', inputs: { savings, freedomNumber, monthlySavings, superBalance: model.superBal, age: model.age, partnerSuper: (model.planInputs.partner && model.planInputs.partner.superBalance) || 0 }, picture: { freedomPct: pct, netWorth, netWorthFormulaVersion: 3, savingsRate: p.savings_rate || 0 } })
           });
         }
       } catch (e) { console.log('Journey snapshot save failed', e); }

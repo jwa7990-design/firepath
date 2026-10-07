@@ -22,7 +22,7 @@ export const PRO_FEATURES: [string, string][] = [
   ['Your plan, saved', 'Every tool fills in your own numbers for you. No retyping.'],
   ['A personal AI read on your plan', 'Based on your income, savings, super, debts and goals.'],
   ['Ask FirePath', 'Ask anything about your own plan. AI answers, with FirePath’s maths doing the sums.'],
-  ['Your full plan, with super', 'Two timelines: what you can use now, and what you can get to from 60. Includes your partner’s super.'],
+  ['Your full plan, with super', 'How your savings carry you to 60, then your super takes over. Includes your partner’s super.'],
   ['Tax, worked out', 'Take-home pay, HELP, salary sacrifice and offset vs investing, at current ATO rates.'],
   ['Withdrawal planner, to age 95', 'The odds your money lasts, with the Age Pension and a part-time slider.'],
   ['Your Path dashboard', 'Net worth and progress since your last check-in.'],

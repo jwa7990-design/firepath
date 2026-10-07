@@ -914,8 +914,30 @@
     const p=FirePathEngine.freedomPlan(Object.assign({},calcData.planInputs,over||{}));
     return p.valid?p.years:null;
   }
-  // Two-phase timeline: savings alone until super unlocks at 60, then savings + super together.
-  // Each person's super joins when *its owner* turns 60, so a partner's super can unlock years
+  // The whole plan with some inputs changed (null if there are no numbers yet), for cards
+  // that show a year or an age rather than a number of years.
+  function planWith(over){
+    if(!calcData||!calcData.planInputs)return null;
+    const p=FirePathEngine.freedomPlan(Object.assign({},calcData.planInputs,over||{}));
+    return p.valid?p:null;
+  }
+  // A saved check-in (financial_snapshots, source=profile) on the same plan as the headline,
+  // worked out from the day it was saved. Check-ins saved since October 2026 keep savings,
+  // super and age, so they get the full plan. Older ones only kept savings less debt, so
+  // both sides are compared on that alone (no super), and the cards say so.
+  function checkinPlans(snap,spendMult){
+    const si=snap.inputs||{},pi=calcData.planInputs;
+    const full=si.savings!=null&&si.superBalance!=null&&si.age>0;
+    const base=Object.assign({},pi,full?{}:{superBalance:0,partner:null});
+    const thenIn=Object.assign({},base,{savings:full?si.savings:si.portfolio,monthlySavings:si.monthlySavings!=null?si.monthlySavings:pi.monthlySavings,target:si.annualSpend*spendMult*25});
+    if(full){thenIn.age=si.age;thenIn.superBalance=si.superBalance;thenIn.partner=si.partnerSuper>0&&pi.partner?Object.assign({},pi.partner,{superBalance:si.partnerSuper}):null;}
+    const then=FirePathEngine.freedomPlan(thenIn,{now:new Date(snap.created_at)});
+    const now=full?calcData.plan:FirePathEngine.freedomPlan(Object.assign({},base,{savings:Math.max(0,(pi.savings||0)-(calcData.debt||0))}));
+    return {full,then:then.valid?then:null,now:now&&now.valid?now:null};
+  }
+  // The bridge to 60: your savings outside super pay your way from the day you stop work until
+  // you can get to your super at 60, then your super takes over alongside what's left. Each
+  // person's super joins when *its owner* turns 60, so a partner's super can join years
   // before or after yours. The date comes from the shared freedomPlan; the rest is for the card.
   // Returns years to the freedom number (null if out of reach), plus the figures at 60.
   function twoPhaseTimeline(age,superBal,ownMI,savings,mSav,fireNum,partner){
@@ -978,16 +1000,6 @@
     return FirePathPersona.config(persona).copy;
   }
 
-  // Lump-sum compounding check (no further contributions) — approximates whether
-  // current savings alone are enough to "coast" to the freedom number.
-  function yearsForLumpSum(goal,current,rate){
-    if(current>=goal)return 0;
-    if(current<=0)return null;
-    let bal=current,years=0;
-    while(bal<goal&&years<100){bal*=(1+rate);years++;}
-    return years<100?years:null;
-  }
-
   function buildLifeUnlockedCard(fireNum,savings,mSav,y07,age){
     const card=document.getElementById('lifeUnlockedCard');
     const sub=document.getElementById('lifeUnlockedSub');
@@ -995,9 +1007,12 @@
     if(!card||!grid||fireNum<=0)return;
 
     const pc=getPersonaCopy();
-    const alreadyFree=savings>=fireNum;
-    const yearsToCoast=yearsForLumpSum(fireNum,savings,0.07);
-    const coastReached=alreadyFree||(yearsToCoast!==null&&age>0&&(age+yearsToCoast)<=65);
+    // Same plan as the headline: already free counts super you can get to now, and "coast"
+    // means you'd still be free by 65 if you stopped adding to your savings today.
+    const plan=calcData&&calcData.plan;
+    const alreadyFree=plan?!!plan.alreadyFree:savings>=fireNum;
+    const coastPlan=planWith({monthlySavings:0});
+    const coastReached=alreadyFree||(!!coastPlan&&coastPlan.reachable&&coastPlan.freedomAgeExact!==null&&coastPlan.freedomAgeExact<=65);
     const yearsAwayText=(y07!==null)?fmt(y07):null;
 
     sub.textContent=alreadyFree
@@ -1270,7 +1285,7 @@
     }
     const rl = document.querySelector('.result-label');
     if (rl) rl.textContent = 'Your FirePath Pro result';
-    document.getElementById('freedomAgeLabel').textContent = persona === 'fire' && freedomAge && freedomAge < 60 ? 'Freedom age (pre-super)' : 'Your freedom age';
+    document.getElementById('freedomAgeLabel').textContent = persona === 'fire' && !withSuper && freedomAge && freedomAge < 60 ? 'Freedom age (pre-super)' : 'Your freedom age';
     document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
     document.getElementById('savingsRateNote').textContent = sRate + '% of income';
     document.getElementById('stat3label').textContent = csl;
@@ -1318,25 +1333,27 @@
         // Snapshots store today's spend, so the prior one is scaled the same way.
         const spendMult = retirementSpendMultiplier || 1;
         const annualSpend = fireNum / 25;
-        if (netPortfolio <= 0 || annualSpend <= 0 || typeof window.FirePathEngine === 'undefined' || !window.FirePathEngine.solveMonthsToTarget) return;
+        if (netPortfolio <= 0 || annualSpend <= 0 || typeof window.FirePathEngine === 'undefined' || !window.FirePathEngine.freedomPlan) return;
 
         const snapRes = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&source=eq.profile&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
         const snapData = await snapRes.json();
         const prior = Array.isArray(snapData) && snapData.length > 0 ? snapData[0] : null;
         if (!prior || !prior.inputs || prior.inputs.portfolio == null || prior.inputs.annualSpend == null) return;
 
-        function projectedDate(fromDate, portfolio, monthlySavings, spend) {
-          const months = window.FirePathEngine.solveMonthsToTarget(portfolio, monthlySavings, spend);
-          if (months == null) return null;
+        // Both dates on the same plan as the headline (checkinPlans above).
+        function projectedDate(fromDate, plan) {
+          if (!plan || plan.months == null) return null;
           const d = new Date(fromDate);
-          d.setMonth(d.getMonth() + months);
+          d.setMonth(d.getMonth() + plan.months);
           return d;
         }
 
         const priorSpend = prior.inputs.annualSpend * spendMult;
-        const oldDate = projectedDate(prior.created_at, prior.inputs.portfolio, prior.inputs.monthlySavings ?? mSav, priorSpend);
-        const newDate = projectedDate(new Date(), netPortfolio, mSav, annualSpend);
+        const cp = checkinPlans(prior, spendMult);
+        const oldDate = projectedDate(prior.created_at, cp.then);
+        const newDate = projectedDate(new Date(), cp.now);
         if (!oldDate || !newDate) return;
+        const what = cp.full ? 'your freedom date' : 'the day your savings alone (without super) reach your number';
 
         const daysDiff = Math.round((oldDate - newDate) / (1000*60*60*24));
         const el = document.getElementById('freedomDateMovedLine');
@@ -1344,7 +1361,7 @@
 
         let text;
         if (daysDiff > 0) {
-          text = `Since your last update, your freedom date moved <strong>${daysDiff} days closer</strong>.`;
+          text = `Since your last update, ${what} moved <strong>${daysDiff} days closer</strong>.`;
         } else {
           // Diagnose using only verifiable, this-user's data — never a generic list of
           // possible causes, since we can only defend what we can actually check.
@@ -1358,7 +1375,7 @@
               cause = ` Your monthly saving dropped from ${fmtM(prior.inputs.monthlySavings)} to ${fmtM(mSav)} — that's the main driver.`;
             }
           }
-          text = `Your freedom date is now <strong>${Math.abs(daysDiff)} days later</strong> than your previous calculation.${cause || " We can't fully pinpoint why yet — check back after your next update once we have more history to compare against."}`;
+          text = `${what.charAt(0).toUpperCase() + what.slice(1)} is now <strong>${Math.abs(daysDiff)} days later</strong> than your previous calculation.${cause || " We can't fully pinpoint why yet — check back after your next update once we have more history to compare against."}`;
         }
         el.style.display = 'block';
         el.style.cssText += 'background:var(--ember-wash);border:1px solid rgba(244,98,42,0.15);border-radius:var(--r-md);padding:12px 16px;margin-bottom:14px;font-size:14px;color:var(--ink);';
@@ -1377,15 +1394,16 @@
         const annualSpend = fireNum / 25;   // same target as the headline
         const spendMult = retirementSpendMultiplier || 1;
         const el = document.getElementById('freedomUnlockedCard');
-        if (!el || netPortfolio <= 0 || annualSpend <= 0 || typeof window.FirePathEngine === 'undefined' || !window.FirePathEngine.solveMonthsToTarget) return;
+        if (!el || netPortfolio <= 0 || annualSpend <= 0 || typeof window.FirePathEngine === 'undefined' || !window.FirePathEngine.freedomPlan) return;
 
         const oldestRes = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${fpUserId}&source=eq.profile&order=created_at.asc&limit=1`, { headers: { 'Authorization': `Bearer ${fpToken}` } });
         const oldestData = await oldestRes.json();
         const oldest = Array.isArray(oldestData) && oldestData.length > 0 ? oldestData[0] : null;
         if (!oldest || !oldest.inputs || oldest.inputs.portfolio == null || oldest.inputs.monthlySavings == null || oldest.inputs.annualSpend == null) return;
 
-        const monthsThen = window.FirePathEngine.solveMonthsToTarget(oldest.inputs.portfolio, oldest.inputs.monthlySavings, oldest.inputs.annualSpend * spendMult);
-        const monthsNow = window.FirePathEngine.solveMonthsToTarget(netPortfolio, mSav, annualSpend);
+        const cp = checkinPlans(oldest, spendMult);   // same plan as the headline
+        const monthsThen = cp.then ? cp.then.months : null;
+        const monthsNow = cp.now ? cp.now.months : null;
         const monthsElapsed = Math.round((Date.now() - new Date(oldest.created_at).getTime()) / (1000*60*60*24*30.44));
         if (monthsThen == null || monthsNow == null) return;
         const boughtBackMonths = Math.max(0, (monthsThen - monthsElapsed) - monthsNow);
@@ -1400,7 +1418,7 @@
             ${years > 0 ? `<span class="fu-num" id="fuYearsNum">0</span><span class="fu-unit">${years === 1 ? 'year' : 'years'}</span>` : ''}
             <span class="fu-num" id="fuMonthsNum">0</span><span class="fu-unit">${months === 1 ? 'month' : 'months'}</span>
           </div>
-          <div class="fu-caption">Since your first snapshot</div>`;
+          <div class="fu-caption">${cp.full ? 'Since your first snapshot' : 'Since your first snapshot, on your savings alone (without super)'}</div>`;
 
         // Count up from 0, same ease-out pattern already proven on the homepage hero.
         // Skips straight to the final value under reduced motion.
@@ -1742,7 +1760,9 @@ async function saveProfile() {
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${fpToken}`, 'Prefer': 'return=minimal' },
             body: JSON.stringify({
               user_id: fpUserId, source: 'profile',
-              inputs: { portfolio: netPortfolio, annualSpend, monthlySavings: calcData.mSav || 0, age: calcData.age || null, isHomeowner: housingStatus !== 'renting' },
+              inputs: { portfolio: netPortfolio, annualSpend, monthlySavings: calcData.mSav || 0, age: calcData.age || null, isHomeowner: housingStatus !== 'renting',
+                // For the "since last time" cards on the same plan as the headline: savings before debt, and super.
+                savings: calcData.savings || 0, superBalance: calcData.superBal || 0, partnerSuper: (calcData.partner && calcData.partner.superBal) || 0 },
               picture: freedomPicture
             })
           });
@@ -1900,7 +1920,9 @@ async function saveProfile() {
       document.getElementById('resultSub').textContent = isZeroSavings
         ? `Your freedom number is ${fmtM(fireNum)}. Start saving and watch this change.`
         : withSuper
-          ? `Your freedom number is ${fmtM(fireNum)}. Your super at 60 could bring this date a lot closer.`
+          ? (plan.bridgeYears > 0
+            ? `Your savings carry you to 60, then your super takes over. Freedom number: ${fmtM(fireNum)}.`
+            : `This counts your super from 60. Freedom number: ${fmtM(fireNum)}.`)
           : `Saving ${fmtM(cs)} per ${cw} towards your ${persona==='fire'?'FI':'freedom'} number of ${fmtM(fireNum)}.`;
 
       const isPro = localStorage.getItem('fp_is_pro') === 'true';
@@ -2088,8 +2110,11 @@ async function saveProfile() {
     renderWithdrawalCardContent(savings, mSav, mI, fireNum, mSp, fy, isPro, null);
   }
 
+  // Growth on savings outside super: the headline's rate (7% less tax on the income it pays).
+  function savingsReturn(){ return calcData && calcData.plan && Number.isFinite(calcData.plan.outsideReturn) ? calcData.plan.outsideReturn : 0.07; }
+
   function calcLongevity(portfolioAtRetirement, annualSpend, freedomAge, pensionAnnual, hoursWorked, hourlyRate) {
-    const growthRate = monthlyRate(0.07), monthlySpend = annualSpend / 12, monthlyPension = pensionAnnual / 12;
+    const growthRate = monthlyRate(savingsReturn()), monthlySpend = annualSpend / 12, monthlyPension = pensionAnnual / 12;
     const monthlyWorkIncome = (hoursWorked * hourlyRate * 52) / 12, pensionStartAge = 67;
     const yearsToPension = freedomAge ? Math.max(0, pensionStartAge - freedomAge) : 999;
     let portfolio = portfolioAtRetirement, months = 0;
@@ -2129,7 +2154,7 @@ async function saveProfile() {
     // "Right now" picture: today's portfolio, stopping at today's age (pension still from 67).
     let effectiveSavings = savings, effectiveFreedomAge = age || null;
     if (targetRetirementAge && targetRetirementAge > age) {
-      const yearsToTarget = targetRetirementAge - age, r = monthlyRate(0.07);
+      const yearsToTarget = targetRetirementAge - age, r = monthlyRate(savingsReturn());
       let proj = savings;
       for (let m = 0; m < yearsToTarget * 12; m++) { proj = proj * (1 + r) + mSav; }
       effectiveSavings = Math.round(proj); effectiveFreedomAge = targetRetirementAge;
@@ -2159,7 +2184,7 @@ async function saveProfile() {
     const targetAgeSection = isPro ? `<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);"><div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;"> Want to look at this differently?</div><div style="font-size:13px;color:var(--ink-2);font-weight:400;margin-bottom:12px;line-height:1.6;">What age would you like to stop working? We'll project your savings to that age and redo the numbers.</div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;"><input type="number" id="targetRetirementAgeInput" placeholder="e.g. 55" min="${(age || 30) + 1}" max="75" style="border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:15px;font-family:var(--font-ui);color:var(--ink);background:var(--surface);width:110px;" value="${targetRetirementAge || ''}" onfocus="this.style.borderColor='var(--fire-orange)'" onblur="this.style.borderColor='var(--border)'"/><button onclick="applyTargetRetirementAge()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));color:white;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:500;font-family:var(--font-ui);cursor:pointer;">Show me →</button>${targetRetirementAge ? `<button onclick="resetTargetRetirementAge()" style="background:none;border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:13px;color:var(--ink-2);font-family:var(--font-ui);cursor:pointer;">Reset</button>` : ''}</div>${targetRetirementAge ? `<div style="margin-top:10px;font-size:12px;color:var(--ink-2);line-height:1.6;">Showing picture at age <strong>${targetRetirementAge}</strong> — savings projected to <strong>${fmtM(effectiveSavings)}</strong> by then.</div>` : ''}</div>` : '';
     const proDetail = isPro ? `<div style="background:var(--ember-wash);border-radius:var(--r-md);padding:16px;margin-bottom:16px;font-size:14px;color:var(--ink);line-height:1.8;font-weight:400;">${plainEnglish}</div><div style="display:flex;flex-direction:column;gap:0;margin-bottom:16px;"><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Income from savings (4% rule)</span><span style="font-weight:700;color:var(--ember-ink)">${fmtM(portfolioIncome)}/yr</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Annual spending</span><span style="font-weight:500">${fmtM(annualSpend)}/yr</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">The gap</span><span style="font-weight:700;color:var(--ink)">${fmtM(gap)}/yr (${fmtM(gapWeekly)}/week)</span></div>${hoursToFillGap !== null ? `<div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--ink-2)">Hours to cover full gap</span><span style="font-weight:700;color:var(--ink)">~${hoursToFillGap} hrs/week</span></div>` : ''}${mcRow}</div>${pensionHTML}${sliderSection}${targetAgeSection}` : `<div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:12px;">Your savings could pay you <strong>${fmtM(portfolioIncome)}/year</strong>. That covers part of your spending. Pro shows the gap, how many hours you'd need to work, and how much the Age Pension might add.</div><div onclick="upgradeToPro()" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:50px;padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See the full picture →</div>`;
     el.style.display = 'block';
-    el.innerHTML = `<div style="background:var(--surface);border:2px solid var(--warm-brown);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;"> Your partial freedom picture</div><div style="font-size:14px;color:var(--ink-2);font-weight:400;line-height:1.7;margin-bottom:16px;">You don't have to be fully free for this to matter. Here's what your money already does, and how little you might need to work.</div>${proDetail}<p style="font-size:11px;color:var(--ink-2);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Age Pension estimate uses the assets and income tests (${homeLabel}, ${coupleLabel}, with deeming). Projections assume 7% growth. Always consider your personal circumstances.</p></div>`;
+    el.innerHTML = `<div style="background:var(--surface);border:2px solid var(--warm-brown);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;"> Your partial freedom picture</div><div style="font-size:14px;color:var(--ink-2);font-weight:400;line-height:1.7;margin-bottom:16px;">You don't have to be fully free for this to matter. Here's what your money already does, and how little you might need to work.</div>${proDetail}<p style="font-size:11px;color:var(--ink-2);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice. Age Pension estimate uses the assets and income tests (${homeLabel}, ${coupleLabel}, with deeming). This card looks at your savings outside super only. They grow at ${(savingsReturn() * 100).toFixed(1)}% a year after inflation (7% less tax on what they earn), the same rate as your freedom date. Always consider your personal circumstances.</p></div>`;
     if (isPro && hoursToFillGap) { updateHoursSlider(effectiveSavings, annualSpend, effectiveFreedomAge || 0, pensionAnnual, hourlyRate, gap); }
   }
 
@@ -2190,12 +2215,12 @@ async function saveProfile() {
   function applyTargetRetirementAge() {
     const input = document.getElementById('targetRetirementAgeInput'), targetAge = parseInt(input?.value) || null, age = calcData.age || 0;
     if (!targetAge || targetAge <= age || targetAge > 80) { if (input) { input.style.borderColor = 'var(--negative)'; setTimeout(() => input.style.borderColor = 'var(--border)', 2000); } return; }
-    const isPro = localStorage.getItem('fp_is_pro') === 'true', fy = yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07);
+    const isPro = localStorage.getItem('fp_is_pro') === 'true', fy = calcData.headlineYears !== undefined ? calcData.headlineYears : null;
     renderWithdrawalCardContent(calcData.savings, calcData.mSav, calcData.mIncome, calcData.fireNum, calcData.mSpend, fy, isPro, targetAge);
   }
 
   function resetTargetRetirementAge() {
-    const isPro = localStorage.getItem('fp_is_pro') === 'true', fy = yearsToGoal(calcData.fireNum, calcData.savings, calcData.mSav, 0.07);
+    const isPro = localStorage.getItem('fp_is_pro') === 'true', fy = calcData.headlineYears !== undefined ? calcData.headlineYears : null;
     renderWithdrawalCardContent(calcData.savings, calcData.mSav, calcData.mIncome, calcData.fireNum, calcData.mSpend, fy, isPro, null);
   }
 
@@ -2260,23 +2285,35 @@ async function saveProfile() {
     const extraWeeklyNeeded=gap60>0?Math.round(gap60*rW/(Math.pow(1+rW,nW)-1)):0;
     const gapCloseable=yts>=5&&extraWeeklyNeeded<2000,totalWeeklyNeeded=currentWeekly+extraWeeklyNeeded;
     let breakdownHTML='';
+    const bridgeCase=age<60&&!!(tp.plan&&tp.plan.reachable&&tp.plan.freedomAgeExact!==null&&tp.plan.freedomAgeExact<60);
     if(age>=60){breakdownHTML=`<div style="background:var(--positive-wash);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:var(--positive);line-height:1.6;"> <strong>Your super is accessible now.</strong> Counting it brings your freedom date a lot closer.</div>`;}
+    else if(bridgeCase){
+      // Free before 60: say how the bridge works, with the headline's own numbers.
+      const pl=tp.plan,fa=pl.freedomAge,bridge=pl.bridgeYears;
+      breakdownHTML=pl.phase==='with-super'
+        ?`<div style="background:var(--positive-wash);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:var(--positive);line-height:1.6;"> <strong>Your savings carry you to 60, then your super takes over.</strong> You could stop work at about ${fa} (${pl.freedomYear}). From then your savings pay your way, about ${fmtM(pl.spendPerYear)} a year, for the ${fmt(bridge)} until you can get to your super. At 60 your super${pl.superAt60!==null?`, about <strong>${fmtM(pl.superAt60)}</strong> by then (no employer contributions once you stop),`:''} joins what's left of your savings to cover the rest.</div>`
+        :`<div style="background:var(--positive-wash);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:var(--positive);line-height:1.6;"> <strong>Your savings get there on their own.</strong> At about ${fa} (${pl.freedomYear}) your savings outside super reach your full freedom number, before you can get to your super. Your super is extra on top from 60.</div>`;
+    }
     else if(combined60>=fireNum){breakdownHTML=`<div style="background:var(--positive-wash);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px;color:var(--positive);line-height:1.6;"> <strong>Good news.</strong> Your current savings rate, combined with super growing in the background, is projected to hit your freedom number by the time you're 60. No extra saving needed. Time is on your side.</div>`;}
     else{
       const tot=tp.years,sv=tot===null?0:p1===null?Infinity:p1-tot;
       breakdownHTML=`<div style="margin-top:16px;"><div style="font-size:12px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;"> The full picture at age 60</div><div style="background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--ink-2);line-height:1.6;"> <strong style="color:var(--ink)">How to read this:</strong> "Savings + contributions" is your current balance <strong style="color:var(--ink)">(${fmtM(savings)})</strong> growing at ${(tp.outsideReturn*100).toFixed(1)}% (7% less tax on its earnings) for ${yts} years, plus your ongoing <strong style="color:var(--ink)">$${currentWeekly}/week</strong> over that time.</div><div style="display:flex;flex-direction:column;gap:0;margin-bottom:14px;"><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Savings + contributions at 60</span><span style="font-weight:500">${fmtM(sav60)}</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Super (with employer contributions)</span><span style="font-weight:500;color:var(--ember-ink)">${fmtM(s60)}</span></div>${tp.partnerAt60>0?`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Partner's super (already available)</span><span style="font-weight:500;color:var(--ember-ink)">${fmtM(tp.partnerAt60)}</span></div>`:''}<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Combined at 60</span><span style="font-weight:700">${fmtM(combined60)}</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Freedom number</span><span style="font-weight:700">${fmtM(fireNum)}</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;border-top:2px solid var(--border);margin-top:4px;font-size:13px;"><span style="color:var(--ink-2)">Shortfall at 60</span><span style="font-weight:700;color:var(--negative)">${fmtM(gap60)}</span></div></div>${sv>1?`<div style="background:var(--positive-wash);border-radius:10px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--positive);line-height:1.6;"> <strong>Super moves your freedom date.</strong> Without super: ${p1y===null?'100+ yrs':p1y}. With super: <strong>${currentYear+Math.round(tot)}</strong>${p1===null?'':` — roughly <strong>${fmt(sv)} sooner</strong>`}.</div>`:''}${gapCloseable?`<div style="background:var(--ember-wash);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;"><div style="font-weight:700;color:var(--ink);margin-bottom:8px;"> One way to close the $${Math.round(gap60/1000)}K gap:</div><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--ink-2)">You currently save</span><span style="font-weight:500;">$${currentWeekly}/week</span></div><div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--ink-2)">Extra needed on top</span><span style="font-weight:700;color:var(--negative);">+$${extraWeeklyNeeded}/week</span></div><div style="display:flex;justify-content:space-between;padding:6px 0;border-top:2px solid var(--border);margin-top:4px;"><span style="font-weight:600;color:var(--ink)">Total saving needed</span><span style="font-weight:700;color:var(--ember-ink);">$${totalWeeklyNeeded}/week</span></div></div>`:`<div style="background:var(--ember-wash);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;line-height:1.7;color:var(--ink-2);"> With super close by, the big question is how to make your savings and super work together from 60 onwards.</div>`}</div>`;
     }
     el.style.display='block';
-    el.innerHTML=`<div style="background:var(--surface);border:2px solid rgba(46,125,50,0.25);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:var(--positive);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;"> Your savings now, your super at 60</div><div style="font-size:13px;color:var(--ink-2);line-height:1.6;font-weight:400;margin-bottom:14px;">Your super keeps growing in the background, and you can get to it from 60. Here's the full picture:</div><div style="display:flex;flex-direction:column;gap:0;"><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Projected super at age 60</span><span style="font-weight:500;color:var(--ember-ink)">${fmtM(s60)}</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Employer contributions/month</span><span style="font-weight:500">${fmtM(mes)}/mo</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--ink-2)">Years until you can get to your super</span><span style="font-weight:500">${yts} yrs (age 60)</span></div>${partnerRows}</div>${breakdownHTML}<p style="font-size:11px;color:var(--ink-2);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at ${(FP_ASSUMPTIONS.superReturn*100).toFixed(2)}% a year (7% less typical super fund fees and 15% tax on earnings).${pt?' Each of you can get to your own super at 60.':''} Employer contributions at ${(FP_ASSUMPTIONS.sgRate*100).toFixed(1)}% of gross income, after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p></div>`;
+    el.innerHTML=`<div style="background:var(--surface);border:2px solid rgba(46,125,50,0.25);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:var(--positive);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;"> Your savings now, your super at 60</div><div style="font-size:13px;color:var(--ink-2);line-height:1.6;font-weight:400;margin-bottom:14px;">Your savings outside super are what you live on if you stop work before 60. Your super keeps growing in the background, and you can get to it from 60. Here's the full picture:</div><div style="display:flex;flex-direction:column;gap:0;"><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Projected super at age 60${bridgeCase?' if you work until then':''}</span><span style="font-weight:500;color:var(--ember-ink)">${fmtM(s60)}</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Employer contributions/month</span><span style="font-weight:500">${fmtM(mes)}/mo</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--ink-2)">Years until you can get to your super</span><span style="font-weight:500">${yts} yrs (age 60)</span></div>${partnerRows}</div>${breakdownHTML}<p style="font-size:11px;color:var(--ink-2);font-style:italic;margin-top:12px;line-height:1.6;">Super projected at ${(FP_ASSUMPTIONS.superReturn*100).toFixed(2)}% a year (7% less typical super fund fees and 15% tax on earnings).${pt?' Each of you can get to your own super at 60.':''} Employer contributions at ${(FP_ASSUMPTIONS.sgRate*100).toFixed(1)}% of gross income, after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p></div>`;
   }
 
   function buildDebtCard(debt,savings,mSav,mI,fireNum){
     const el=document.getElementById('debtCard');if(!el||debt<=0){if(el)el.style.display='none';return;}
     const em=Math.max(debt*0.03,debt/36),mtp=Math.ceil(debt/em),ytp=(mtp/12).toFixed(1);
     // The repayment only becomes extra saving once the debt is gone (month mtp onwards).
-    const by=yearsToGoalCapped(fireNum,savings,mSav,0.07),r=monthlyRate(0.07);
-    let bal=savings,m=0;while(bal<fireNum&&m<1200){bal=bal*(1+r)+mSav+(m>=mtp?em:0);m++;}
-    const ay=bal>=fireNum?m/12:9999,diff=by-ay;
+    // Measured on the same plan as the headline. Saving em more from month mtp is the same,
+    // for your savings balance from then on, as saving em more every month and starting
+    // with today's value of the first mtp months of it taken off.
+    const pl=calcData&&calcData.plan,base=pl&&pl.reachable?pl.years:null;
+    const r=monthlyRate(savingsReturn()),pvSkipped=r>0?em*(1-Math.pow(1+r,-mtp))/r:em*mtp;
+    const after=planYears({monthlySavings:mSav+em,savings:savings-pvSkipped});
+    const by=base===null?9999:base,ay=after===null?9999:Math.min(after,by),diff=by-ay;
     el.style.display='block';
     el.innerHTML=`<div style="background:var(--surface);border:2px solid rgba(249,168,37,0.5);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:var(--ember-ink);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;"> What if you cleared your debt first?</div><div style="font-size:13px;color:var(--ink-2);line-height:1.6;font-weight:400;margin-bottom:14px;">You have <strong style="color:var(--ink)">${fmtM(debt)}</strong> in debt. Once it's gone, the money you were putting towards repayments could go straight into building your freedom number instead.</div><div style="display:flex;flex-direction:column;gap:0;"><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Estimated payoff time (before interest)</span><span style="font-weight:500">${ytp} yrs</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;"><span style="color:var(--ink-2)">Freed-up monthly saving</span><span style="font-weight:500;color:var(--ember-ink)">${fmtM(em)}/month extra</span></div><div style="display:flex;justify-content:space-between;padding:9px 0;font-size:13px;"><span style="color:var(--ink-2)">Freedom date impact</span><span style="font-weight:700;color:var(--ember-ink)">${by>=9999&&ay<9999?'brings it within reach':diff>0.1?fmt(diff)+' sooner':'slight improvement'}</span></div></div><p style="font-size:11px;color:var(--ink-2);font-style:italic;margin-top:12px;line-height:1.6;">Educational only — not financial advice.</p></div>`;
   }
@@ -2300,19 +2337,11 @@ async function saveProfile() {
     const cd = calcData || {};
     if ((fireNum > 0 && (cd.savings || 0) >= fireNum) || (cd.age >= 60 && (cd.savings || 0) > 0)) { el.style.display = 'none'; el.innerHTML = ''; return; }
     const weeklyIncome = Math.round(mI * 12 / 52), smallSave = 50, medSave = Math.round(weeklyIncome * 0.05);
-    const smallYrs = yearsToGoal(fireNum, 0, smallSave * 52 / 12, 0.07), medYrs = yearsToGoal(fireNum, 0, medSave * 52 / 12, 0.07);
-    const smallDate = smallYrs ? currentYear + Math.round(smallYrs) : null, medDate = medYrs ? currentYear + Math.round(medYrs) : null;
+    // Same plan as the headline (your savings, then super from 60), with this much saved each week.
+    const yearIf = weekly => { const p = planWith({ monthlySavings: weekly * 52 / 12 }); return p && p.reachable && !p.alreadyFree ? p.freedomYear : null; };
+    const smallDate = yearIf(smallSave), medDate = yearIf(medSave);
     el.style.display = 'block';
     el.innerHTML = `<div style="background:var(--surface);border:1px solid rgba(244,98,42,0.35);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:12px;"><div style="font-size:13px;font-weight:700;color:var(--ember-ink);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;"> You're not saving yet, and that's okay</div><div style="font-size:14px;color:var(--ink);line-height:1.7;font-weight:400;margin-bottom:16px;">Right now everything coming in is going out. Knowing that is the starting point. Even a small amount saved regularly makes a real difference.</div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">${smallDate ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--ember-wash);border-radius:10px;border:1.5px solid rgba(244,98,42,0.2);font-size:13px;"><div><span style="font-weight:500;color:var(--ink);">If you saved $${smallSave}/week</span><div style="font-size:11px;color:var(--ink-2);margin-top:2px;">A coffee a day</div></div><span style="font-weight:700;color:var(--ember-ink);">Free by ${smallDate}</span></div>` : ''}${medDate && medSave > smallSave ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface-2);border-radius:10px;border:1px solid var(--line);font-size:13px;"><div><span style="font-weight:500;color:var(--ink);">If you saved $${medSave}/week</span><div style="font-size:11px;color:var(--ink-2);margin-top:2px;">5% of your income</div></div><span style="font-weight:700;color:var(--ember-ink);">Free by ${medDate}</span></div>` : ''}</div><div style="font-size:12px;color:var(--ink-2);font-style:italic;line-height:1.6;">Start small. You can always add more later.</div></div>`;
-  }
-
-  function renderMilestones(fireNum,savings,mSav){
-    const c=document.getElementById('milestonesRoadmap');if(!c)return;
-    const ms=[0.25,0.5,0.75,1.0],ls=[' 25%',' 50%',' 75%',' Freedom!'];
-    c.innerHTML=ms.map((p,i)=>{const t=fireNum*p,y=yearsToGoal(t,savings,mSav,0.07),yr=y?currentYear+Math.round(y):null,r=savings>=t;
-      return`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:${r?'var(--positive-wash)':'var(--warm-cream)'};border-radius:10px;border:1px solid ${r?'rgba(46,125,50,0.25)':'var(--border)'};">
-        <div style="font-size:13px;font-weight:500;color:${r?'var(--positive)':'var(--warm-brown)'};">${ls[i]} — ${fmtM(t)}</div>
-        <div style="font-size:12px;color:${r?'var(--positive)':'var(--soft-grey)'};">${r?' Done':yr?yr:'100+ yrs'}</div></div>`;}).join('');
   }
 
   function buildWhatsNextTab(params) {
@@ -2337,7 +2366,7 @@ async function saveProfile() {
       blocks.push(`<div style="background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ember-ink);margin-bottom:10px;"> What could move your date most</div><div style="font-size:14px;color:var(--ink);font-weight:400;line-height:1.7;">${leverMsg}</div><p style="font-size:12px;color:var(--ink-2);line-height:1.5;margin:12px 0 0;">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
     } else if (!ranked && !alreadyFree && !isZeroSavings && fy) {
       // Fallback if moves.js didn't load.
-      const extraWeekly = 50, newMSav = mSav + (extraWeekly * 52 / 12), newFy = yearsToGoal(fireNum, savings, newMSav, 0.07), diff = newFy && fy ? Math.round(fy - newFy) : null;
+      const extraWeekly = 50, newMSav = mSav + (extraWeekly * 52 / 12), newFy = planYears({ monthlySavings: newMSav }), diff = newFy !== null && fy ? Math.round(fy - newFy) : null;   // same plan as the headline
       let leverMsg = '';
       if (debt > 0) { leverMsg = `${isPartner ? 'You two have' : 'You have'} ${fmtM(debt)} in debt. Once that's gone, the repayments become savings — and that changes the date.`; }
       else if (savingsType === 'cash' && savings > 0) { leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} savings are in cash. The big question: what happens if that money is invested instead? The "If your money was invested" comparison in your results shows the exact difference.`; }
