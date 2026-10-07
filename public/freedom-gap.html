@@ -3,7 +3,27 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>Freedom Gap — FirePath</title>
+<title>Coast FIRE & part-time freedom calculator Australia | FirePath</title>
+<!-- seo:start -->
+<meta property="og:site_name" content="FirePath"/>
+<meta property="og:locale" content="en_AU"/>
+<meta property="og:image" content="https://www.firepath.pro/og/default.png"/>
+<meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://www.firepath.pro/og/default.png"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" href="/icons/favicon-32.png" type="image/png" sizes="32x32"/>
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
+<link rel="manifest" href="/site.webmanifest"/>
+<meta name="theme-color" content="#FDF6EE"/>
+<link rel="canonical" href="https://www.firepath.pro/freedom-gap"/>
+<meta property="og:url" content="https://www.firepath.pro/freedom-gap"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Coast FIRE & part-time freedom calculator Australia | FirePath"/>
+<meta property="og:description" content="How close is your portfolio to paying your way? See your freedom gap, what the Age Pension adds from 67, and how many hours of part-time work would close it."/>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Freedom gap calculator","url":"https://www.firepath.pro/freedom-gap","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"inLanguage":"en-AU"}</script>
+<!-- seo:end -->
+<meta name="description" content="How close is your portfolio to paying your way? See your freedom gap, what the Age Pension adds from 67, and how many hours of part-time work would close it."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
@@ -12,6 +32,8 @@
 <script src="js/safe-html.js"></script>
 <script src="js/tax-engine.js"></script>
 <script src="js/financial-engine.js"></script>
+<script src="js/moves.js"></script>
+<script src="js/next-steps.js"></script>
 <style>
   /* ── Layout: inputs on the left, the picture on the right (desktop) ── */
   .page-head-sub { max-width: 62ch; }
@@ -298,6 +320,9 @@
       <p>You've seen where you are today. Now see the different ways you could use this.</p>
       <a href="freedom-options.html" class="btn btn-ember btn-lg">Explore My Freedom Options →</a>
     </div>
+
+    <!-- What next for you — filled by js/next-steps.js -->
+    <div id="fpNextSteps"></div>
 
     <p class="disclaimer">Portfolio income based on a 4% withdrawal rate. Age Pension estimate uses both the assets and income tests (single, using your homeowner status, with Centrelink deeming on investments) — your actual entitlement depends on your full financial picture at 67. Educational only — not financial advice.</p>
   </div>
@@ -740,65 +765,83 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
     if (urlPortfolio) document.getElementById('g-portfolio').value = urlPortfolio;
 
     // Pro: the saved plan fills in the numbers — only fields not typed in this visit.
+    // Free visitors: the free calculator's numbers saved on this device fill the same
+    // fields by the same rules (js/next-steps.js → FirePathNext.deviceProfile()).
+    // A Pro member's saved plan always wins over device data.
     try {
       const token = typeof getToken === 'function' ? getToken() : null;
       const userId = typeof getUserId === 'function' ? getUserId() : null;
       if (token && userId && await checkProStatus()) {
         const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
         const data = res.ok ? await res.json() : null;
-        if (Array.isArray(data) && data.length > 0) {
-          const p = data[0];
-          userPersona = p.persona || 'building';
-          let filled = false;
-          const fill = (id, v) => {
-            const el = document.getElementById(id);
-            if (!el || fpTyped.has(id) || !(v > 0)) return;
-            el.value = Math.round(v);
-            filled = true;
-          };
-          if (!urlPortfolio) fill('g-portfolio', p.current_savings);
-          fill('g-debt', p.debt_total);
-          fill('g-super', p.super_balance);            // own super; a partner's is handled below
-          fill('g-age', p.age);
-          // Yearly spending in retirement: the freedom number is that spend × 25. Older
-          // profiles without one fall back to (take-home − savings) × the retirement
-          // spend multiplier — the same sum the freedom number was built from.
-          if (p.freedom_number > 0) {
-            profileEstimatedSpend = Math.round(p.freedom_number / 25);
-          } else if (p.take_home_income) {
-            const estMonthlySpend = p.take_home_income - (p.savings_monthly || 0);
-            const multiplier = p.retirement_spend_multiplier || 1.0;
-            profileEstimatedSpend = Math.round(Math.max(0, estMonthlySpend) * 12 * multiplier);
-          }
-          if (profileEstimatedSpend) {
-            fill('g-spend', profileEstimatedSpend);
-            document.getElementById('g-useProfileSpend').style.display = 'block';
-          }
-          fill('g-monthlySavings', p.savings_monthly);   // household savings per month
-          // take_home_income is the household's monthly take-home; the partner's own pay is
-          // partner_income per pay_cycle. The hourly estimate should be *your* rate, so take
-          // the partner's share out first (a 38-hour week).
-          if (p.take_home_income) {
-            const cycle = p.pay_cycle || 'monthly';
-            const partnerMonthly = p.partner_income > 0
-              ? (cycle === 'weekly' ? p.partner_income * 52 / 12 : cycle === 'fortnightly' ? p.partner_income * 26 / 12 : p.partner_income)
-              : 0;
-            const ownMonthly = p.take_home_income - partnerMonthly;
-            if (ownMonthly > 0) fill('g-rate', (ownMonthly * 12) / 52 / 38);
-          }
-          // A partner on the profile means couple pension rates and limits.
-          isCouple = !!(p.partner_age || p.partner_income > 0 || p.partner_super > 0);
-          partnerSuper = Math.max(0, p.partner_super || 0);
-          partnerAge = p.partner_age > 0 ? p.partner_age : null;
-          if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
-          if (filled) document.getElementById('fpPlanNote').style.display = 'block';
+        if (Array.isArray(data) && data.length > 0) fpPlanProfile = data[0];
+      }
+    } catch(e) { console.log('Profile prefill failed', e); }
+    try {
+      const fromDevice = !fpPlanProfile;
+      const p = fpPlanProfile || (window.FirePathNext ? FirePathNext.deviceProfile() : null);
+      if (p) {
+        if (!fromDevice) userPersona = p.persona || 'building';
+        let filled = false;
+        const fill = (id, v) => {
+          const el = document.getElementById(id);
+          if (!el || fpTyped.has(id) || !(v > 0)) return;
+          el.value = Math.round(v);
+          filled = true;
+        };
+        if (!urlPortfolio) fill('g-portfolio', p.current_savings);
+        fill('g-debt', p.debt_total);
+        fill('g-super', p.super_balance);            // own super; a partner's is handled below
+        fill('g-age', p.age);
+        // Yearly spending in retirement: the freedom number is that spend × 25. Older
+        // profiles without one fall back to (take-home − savings) × the retirement
+        // spend multiplier — the same sum the freedom number was built from.
+        if (p.freedom_number > 0) {
+          profileEstimatedSpend = Math.round(p.freedom_number / 25);
+        } else if (p.take_home_income) {
+          const estMonthlySpend = p.take_home_income - (p.savings_monthly || 0);
+          const multiplier = p.retirement_spend_multiplier || 1.0;
+          profileEstimatedSpend = Math.round(Math.max(0, estMonthlySpend) * 12 * multiplier);
         }
+        if (profileEstimatedSpend) {
+          fill('g-spend', profileEstimatedSpend);
+          if (!fromDevice) document.getElementById('g-useProfileSpend').style.display = 'block';
+        }
+        fill('g-monthlySavings', p.savings_monthly);   // household savings per month
+        // take_home_income is the household's monthly take-home; the partner's own pay is
+        // partner_income per pay_cycle. The hourly estimate should be *your* rate, so take
+        // the partner's share out first (a 38-hour week).
+        if (p.take_home_income) {
+          const cycle = p.pay_cycle || 'monthly';
+          const partnerMonthly = p.partner_income > 0
+            ? (cycle === 'weekly' ? p.partner_income * 52 / 12 : cycle === 'fortnightly' ? p.partner_income * 26 / 12 : p.partner_income)
+            : 0;
+          const ownMonthly = p.take_home_income - partnerMonthly;
+          if (ownMonthly > 0) fill('g-rate', (ownMonthly * 12) / 52 / 38);
+        }
+        // A partner on the profile means couple pension rates and limits.
+        isCouple = !!(p.partner_age || p.partner_income > 0 || p.partner_super > 0);
+        partnerSuper = Math.max(0, p.partner_super || 0);
+        partnerAge = p.partner_age > 0 ? p.partner_age : null;
+        if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
+        if (filled && fromDevice) FirePathNext.showDeviceNote(document.getElementById('fpPlanNote'));
+        else if (filled) document.getElementById('fpPlanNote').style.display = 'block';
       }
     } catch(e) { console.log('Profile prefill failed', e); }
 
     await loadPreviousSnapshot();
     calcGap();
+    fpRenderNext();
   });
+
+  // "What next for you" — the person's best moves (or general next steps), not this tool.
+  let fpPlanProfile = null;   // the Pro saved plan, once loaded
+  function fpRenderNext() {
+    if (!window.FirePathNext) return;
+    let situation = null;
+    try { if (fpPlanProfile && window.FirePathMoves) situation = FirePathMoves.situationFromProfile(fpPlanProfile); } catch (e) {}
+    FirePathNext.render(document.getElementById('fpNextSteps'), { exclude: '/freedom-gap', situation });
+  }
 </script>
 <script src="js/auth.js"></script>
 <script src="js/interactions.js"></script>

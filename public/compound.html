@@ -3,7 +3,27 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>The Compounding Effect — FirePath</title>
+  <title>Compound interest calculator Australia — regular investing | FirePath</title>
+<!-- seo:start -->
+<meta property="og:site_name" content="FirePath"/>
+<meta property="og:locale" content="en_AU"/>
+<meta property="og:image" content="https://www.firepath.pro/og/default.png"/>
+<meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://www.firepath.pro/og/default.png"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" href="/icons/favicon-32.png" type="image/png" sizes="32x32"/>
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
+<link rel="manifest" href="/site.webmanifest"/>
+<meta name="theme-color" content="#FDF6EE"/>
+<link rel="canonical" href="https://www.firepath.pro/compound"/>
+<meta property="og:url" content="https://www.firepath.pro/compound"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Compound interest calculator Australia — regular investing | FirePath"/>
+<meta property="og:description" content="See what regular weekly, fortnightly or monthly investing grows into — how much is your money and how much is growth, and what waiting really costs. Free."/>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Compound interest calculator","url":"https://www.firepath.pro/compound","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"AUD"},"inLanguage":"en-AU"}</script>
+<!-- seo:end -->
+<meta name="description" content="See what regular weekly, fortnightly or monthly investing grows into — how much is your money and how much is growth, and what waiting really costs. Free."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
@@ -196,6 +216,8 @@
       <div class="next-card-sub">You've spent years building this. Now imagine never having to touch it — and still living an incredible life. That's what withdrawal mode shows you.</div>
       <div class="btn btn-ember btn-lg">See how to live off your wealth →</div>
     </div>
+    <!-- What next for you — filled by js/next-steps.js -->
+    <div id="fpNextSteps"></div>
     <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections assume consistent returns — real returns vary year to year.</p>
   </div>
 
@@ -213,14 +235,26 @@
   document.addEventListener('input', e => { if (e.target && e.target.id) fpTyped.add(e.target.id); }, true);
   document.addEventListener('click', e => { if (e.target && e.target.closest && e.target.closest('.cycle-btn')) fpTyped.add('cycle'); }, true);
 
+  // Free visitors: the free calculator's numbers saved on this device fill the same
+  // fields by the same rules (js/next-steps.js → FirePathNext.deviceProfile()). A Pro
+  // member's saved plan always wins over device data.
+  let fpPlanProfile = null;   // the Pro saved plan, once loaded — also feeds "What next"
+  async function fpLoadProProfile() {
+    try {
+      if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return null;
+      if (!(await checkProStatus())) return null;
+      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${getUserId()}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+      if (!res.ok) return null;
+      const rows = await res.json();
+      return Array.isArray(rows) && rows[0] ? rows[0] : null;
+    } catch (e) { return null; }
+  }
+
   async function fpPrefillFromPlan() {
     try {
-      if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return;
-      if (!(await checkProStatus())) return;
-      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${getUserId()}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
-      if (!res.ok) return;
-      const rows = await res.json();
-      const p = Array.isArray(rows) ? rows[0] : null;
+      let p = fpPlanProfile = await fpLoadProProfile();
+      const fromDevice = !p;
+      if (fromDevice) p = window.FirePathNext ? FirePathNext.deviceProfile() : null;
       if (!p) return;
       let filled = false;
       const fill = (id, v) => {
@@ -242,11 +276,20 @@
         fill('c-amount', selectedCycle === 'weekly' ? m * 12 / 52 : selectedCycle === 'fortnightly' ? m * 12 / 26 : m);
       }
       if (!filled) return;
-      document.getElementById('fpPlanNote').style.display = 'block';
+      if (fromDevice) FirePathNext.showDeviceNote(document.getElementById('fpPlanNote'));
+      else document.getElementById('fpPlanNote').style.display = 'block';
       calcCompound();
     } catch (e) { console.log('Saved plan prefill skipped', e); }
   }
-  document.addEventListener('DOMContentLoaded', fpPrefillFromPlan);
+
+  // "What next for you" — the person's best moves (or general next steps), not this tool.
+  function fpRenderNext() {
+    if (!window.FirePathNext) return;
+    let situation = null;
+    try { if (fpPlanProfile && window.FirePathMoves) situation = FirePathMoves.situationFromProfile(fpPlanProfile); } catch (e) {}
+    FirePathNext.render(document.getElementById('fpNextSteps'), { exclude: '/compound', situation });
+  }
+  document.addEventListener('DOMContentLoaded', () => fpPrefillFromPlan().then(fpRenderNext, fpRenderNext));
 
   function setCycle(btn) {
     document.querySelectorAll('.cycle-btn').forEach(b => b.classList.remove('active'));
@@ -388,6 +431,10 @@
     localStorage.setItem('fp_compound_portfolio', Math.round(finalPortfolio));
   }
 </script>
+<script src="js/tax-engine.js"></script>
 <script src="js/calculations.js"></script>
+<script src="js/financial-engine.js"></script>
+<script src="js/moves.js"></script>
+<script src="js/next-steps.js"></script>
 </body>
 </html>

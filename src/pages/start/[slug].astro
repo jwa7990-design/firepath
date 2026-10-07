@@ -1,0 +1,118 @@
+---
+/**
+ * "Start where you are" landing pages (/start/<slug>), built from src/data/starts.ts.
+ * Each one is also a search landing page: a focused title and description, FAQ and
+ * breadcrumb structured data, and links into the right free tools and articles.
+ */
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { STARTS, type StartPage } from '../../data/starts';
+import { ARTICLES } from '../../lib/learn';
+import '../../styles/doc.css';
+import '../../styles/start.css';
+
+export function getStaticPaths() {
+  return STARTS.map(p => ({ params: { slug: p.slug }, props: { page: p } }));
+}
+const { page: p } = Astro.props as { page: StartPage };
+const reads = p.articles.map(s => ARTICLES.find(a => a.slug === s)).filter(Boolean);
+const others = STARTS.filter(x => x.slug !== p.slug);
+const url = `https://www.firepath.pro/start/${p.slug}`;
+const schema = [
+  { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: p.faq.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'FirePath', item: 'https://www.firepath.pro/' },
+    { '@type': 'ListItem', position: 2, name: p.door, item: url } ] },
+];
+---
+<Base title={p.seoTitle} description={p.description} path={`/start/${p.slug}`} image={`/og/start/${p.slug}.png`}>
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
+  <main id="main">
+    <header class="doc-hero">
+      <div class="doc-hero-inner">
+        <span class="doc-eyebrow">{p.door}</span>
+        <h1 class="doc-title start-title">{p.title}</h1>
+        <p class="doc-lead">{p.lead}</p>
+        <div class="start-hero-cta">
+          <a href="/firepath" class="btn btn-ember btn-lg"><Icon name="flame" size={16}/>Get my personal plan</a>
+          <span>Free, 2 minutes, no account — your own top moves, in order.</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="start">
+      <section class="start-steps" aria-labelledby="steps-title">
+        <h2 id="steps-title" class="start-h2">The order that works</h2>
+        <ol>
+          {p.steps.map((s, i) => (
+            <li class="start-step" data-reveal>
+              <span class="start-step-n">{i + 1}</span>
+              <div>
+                <h3>{s.title}</h3>
+                <p>{s.body}</p>
+                {s.href && <a href={s.href} class="start-step-link">{s.cta} <Icon name="arrow" size={14}/></a>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section class="start-tools" aria-labelledby="tools-title">
+        <h2 id="tools-title" class="start-h2">Free tools for this</h2>
+        <div class="start-grid">
+          {p.tools.map(t => (
+            <a href={t.href} class="start-card" data-reveal>
+              <span class="start-card-plan">Free · no account</span>
+              <span class="start-card-title">{t.name}</span>
+              <span class="start-card-line">{t.line}</span>
+              <span class="start-card-go">Open <Icon name="arrow" size={14}/></span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section class="start-reads" aria-labelledby="reads-title">
+        <h2 id="reads-title" class="start-h2">Read next</h2>
+        <div class="start-grid">
+          {reads.map(a => a && (
+            <a href={`/learn/${a.slug}`} class="start-card is-read" data-reveal>
+              <span class="start-card-plan">{a.readMins} min read</span>
+              <span class="start-card-title">{a.heading}</span>
+              <span class="start-card-line">{a.description}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section class="start-faq" aria-labelledby="faq-title">
+        <h2 id="faq-title" class="start-h2">Straight answers</h2>
+        <div class="pq-list">
+          {p.faq.map(f => (
+            <details class="pq-item">
+              <summary>{f.q}<span class="pq-chev"><Icon name="chevron" size={13} stroke={2.4}/></span></summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section class="start-others" aria-label="Other starting points">
+        <h2 class="start-h2">Somewhere else?</h2>
+        <div class="start-doors">
+          {others.map(o => <a href={`/start/${o.slug}`} class="start-door"><Icon name={o.icon} size={16}/>{o.door}</a>)}
+        </div>
+      </section>
+
+      <aside class="doc-contact">
+        <span class="doc-contact-icon"><Icon name="flame" size={20}/></span>
+        <div>
+          <h2>Your own top moves, in order</h2>
+          <p>The free calculator works out which of these matter most for you — and by how much.</p>
+        </div>
+        <a href="/firepath" class="btn btn-ember">Get my personal plan</a>
+      </aside>
+
+      <p class="start-note">FirePath is educational, not financial advice. Rules and figures are Australian and current for {new Date().getFullYear()}.</p>
+    </div>
+  </main>
+</Base>

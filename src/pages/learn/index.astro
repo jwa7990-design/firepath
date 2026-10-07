@@ -5,13 +5,26 @@
  */
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
-import { ARTICLES, FIRST_READS, shelve, type Article } from '../../lib/learn';
+import { ARTICLES, FIRST_READS, SHELVES, shelve, type Article } from '../../lib/learn';
 import '../../styles/doc.css';
 import '../../styles/learn-hub.css';
+import '../../styles/learn-recs.css';
 
 const shelves = shelve();
 const firstReads = FIRST_READS.map(s => ARTICLES.find(a => a.slug === s)).filter((a): a is Article => !!a);
 const totalMins = ARTICLES.reduce((n, a) => n + a.readMins, 0);
+// "Recommended for you" fill-ins, by situation (after the person's own move articles).
+const theme = (title: string) => SHELVES.find(s => s.id === 'questions')?.themes?.find(t => t.title === title)?.slugs || [];
+const retirementReads = ['four-percent-rule-australia', 'is-my-super-enough', 'before-super-access'];
+const recThemes = {
+  debt: ['debt-vs-invest'],
+  starting: theme('Where you stand'),
+  building: [...theme('Time and freedom'), ...theme('What if…')],
+  close: retirementReads,
+  free: retirementReads,
+  renting: theme('Home and renting'),
+  fallback: [...theme('Where you stand'), ...FIRST_READS],
+};
 const schema = {
   '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'FirePath Learning Lab',
   url: 'https://www.firepath.pro/learn/',
@@ -48,8 +61,15 @@ const schema = {
       </div>
     </header>
 
-    <div class="hub">
-      <section class="hub-first" aria-labelledby="first-title" data-hub-hide-on-search>
+    <div class="hub" id="hub">
+      <!-- Filled in the browser from the numbers saved by the free calculator (this device only). -->
+      <section class="hub-first hub-recs" id="hubRecs" aria-labelledby="recs-title" hidden>
+        <h2 id="recs-title" class="hub-first-title">Recommended for you</h2>
+        <ol class="hub-first-list hub-recs-list" id="hubRecsList"></ol>
+        <p class="hub-recs-note">Based on the numbers you entered in the calculator · <a href="#" id="hubRecsClear">Clear</a></p>
+      </section>
+
+      <section class="hub-first hub-first-reads" aria-labelledby="first-title" data-hub-hide-on-search>
         <h2 id="first-title" class="hub-first-title">New here? Your first three reads</h2>
         <ol class="hub-first-list">
           {firstReads.map((a, i) => (
@@ -99,6 +119,55 @@ const schema = {
       </aside>
     </div>
   </main>
+
+  <script is:inline src="/js/tax-engine.js"></script>
+  <script is:inline src="/js/calculations.js"></script>
+  <script is:inline src="/js/financial-engine.js"></script>
+  <script is:inline src="/js/moves.js"></script>
+  <script is:inline define:vars={{ recThemes }}>
+    // "Recommended for you": only when the free calculator saved numbers on this device
+    // (FirePathMoves.recall). Never sent anywhere. Articles that don't fit are never shown.
+    (function () {
+      const M = window.FirePathMoves;
+      const saved = M && M.recall();
+      const hub = document.getElementById('hub');
+      const shelf = document.getElementById('hubRecs');
+      const list = document.getElementById('hubRecsList');
+      if (!saved || !hub || !shelf || !list) return;
+      const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+      let s, moves;
+      try { const r = M.rank(M.situationFromInputs(saved), { limit: 3 }); s = r.situation; moves = r.moves; } catch (e) { return; }
+      // Their moves first, then debt, then renting and their stage (retirement reads lead once close).
+      const stageReads = recThemes[s.stage] || [];
+      const rentReads = s.housing === 'renting' ? recThemes.renting : [];
+      const late = s.stage === 'close' || s.stage === 'free';
+      const wanted = moves.map(m => m.article).filter(Boolean)
+        .concat(s.consumerDebt > 0 ? recThemes.debt : [])
+        .concat(late ? stageReads.concat(rentReads) : rentReads.concat(stageReads))
+        .concat(recThemes.fallback);
+      fetch('/learn/articles.json').then(r => r.ok ? r.json() : null).then(all => {
+        if (!Array.isArray(all)) return;
+        const bySlug = new Map(all.map(a => [a.slug, a]));
+        const picks = [];
+        for (const slug of wanted) {
+          const a = bySlug.get(slug);
+          if (a && !picks.includes(a) && M.articleFits(a.for, s)) picks.push(a);
+          if (picks.length === 4) break;
+        }
+        if (!picks.length) return;
+        list.innerHTML = picks.map((a, i) => `<li><a href="/learn/${esc(a.slug)}" class="hub-first-card" data-rec="${esc(a.slug)}">`
+          + `<span class="hub-first-num">${i + 1}</span>`
+          + `<span class="hub-first-text"><strong>${esc(a.heading)}</strong><span>${esc(a.readMins)} min read</span></span>${arrow}</a></li>`).join('');
+        shelf.hidden = false;
+        hub.classList.add('has-recs');
+        const search = document.getElementById('hubSearch');
+        if (search) search.addEventListener('input', () => { shelf.hidden = !hub.classList.contains('has-recs') || !!search.value.trim(); });
+      }).catch(() => {});
+      const clear = document.getElementById('hubRecsClear');
+      if (clear) clear.addEventListener('click', e => { e.preventDefault(); M.forget(); shelf.hidden = true; hub.classList.remove('has-recs'); });
+    })();
+  </script>
 
   <script>
     // Search: filters cards as you type; hides empty themes and shelves.

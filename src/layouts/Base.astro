@@ -13,9 +13,12 @@ interface Props {
   footer?: boolean;
   ogType?: 'website' | 'article';
   keywords?: string | null;
+  image?: string;               // share image path, 1200×630 (default /og/default.png)
+  noindex?: boolean;            // keep this page out of search results
 }
-const { title, description, path, shell = 'site', active, footer = true, ogType = 'website', keywords } = Astro.props;
+const { title, description, path, shell = 'site', active, footer = true, ogType = 'website', keywords, image = '/og/default.png', noindex = false } = Astro.props;
 const url = new URL(path, 'https://www.firepath.pro').href;
+const imageUrl = new URL(image, 'https://www.firepath.pro').href;
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -42,7 +45,20 @@ const url = new URL(path, 'https://www.firepath.pro').href;
   {description && <meta property="og:description" content={description}/>}
   <meta property="og:url" content={url}/>
   <meta property="og:type" content={ogType}/>
+  <meta property="og:site_name" content="FirePath"/>
+  <meta property="og:locale" content="en_AU"/>
+  <meta property="og:image" content={imageUrl}/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:image" content={imageUrl}/>
   {keywords && <meta name="keywords" content={keywords}/>}
+  {noindex && <meta name="robots" content="noindex"/>}
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+  <link rel="icon" href="/icons/favicon-32.png" type="image/png" sizes="32x32"/>
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
+  <link rel="manifest" href="/site.webmanifest"/>
+  <meta name="theme-color" content="#FDF6EE"/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>

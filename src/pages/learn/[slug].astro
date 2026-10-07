@@ -29,11 +29,18 @@ const schema = {
   author: { '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro' },
   publisher: { '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro' },
   articleSection: a.badge, inLanguage: 'en-AU',
+  image: `https://www.firepath.pro/og/learn/${a.slug}.png`,
+};
+const breadcrumbs = {
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Learning Lab', item: 'https://www.firepath.pro/learn/' },
+    { '@type': 'ListItem', position: 2, name: a.heading, item: `https://www.firepath.pro/learn/${a.slug}` },
+  ],
 };
 ---
-<Base title={a.title} description={a.description} path={`/learn/${a.slug}`} active="learn" ogType="article" keywords={a.keywords}>
+<Base title={a.title} description={a.description} path={`/learn/${a.slug}`} active="learn" ogType="article" keywords={a.keywords} image={`/og/learn/${a.slug}.png`}>
   <link slot="head" rel="stylesheet" href="/css/article.css"/>
-  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify([schema, breadcrumbs])}></script>
 
   <main id="main" data-progress>
     <header class="doc-hero art-hero">

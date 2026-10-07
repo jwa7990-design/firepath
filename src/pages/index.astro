@@ -8,6 +8,7 @@ import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import { LETTER, HOME_DESCRIPTION } from '../data/letter';
 import { ARTICLES, FIRST_READS, type Article } from '../lib/learn';
+import { STARTS } from '../data/starts';
 import '../styles/doc.css';
 import '../styles/home.css';
 
@@ -19,6 +20,10 @@ const STEPS = [
 ];
 ---
 <Base title="FirePath — Money shouldn't feel confusing" description={HOME_DESCRIPTION} path="/">
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify([
+    { '@context': 'https://schema.org', '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro/', logo: 'https://www.firepath.pro/icons/icon-512.png', email: 'hello@firepath.pro', areaServed: 'AU' },
+    { '@context': 'https://schema.org', '@type': 'WebSite', name: 'FirePath', url: 'https://www.firepath.pro/', inLanguage: 'en-AU' },
+  ])}></script>
   <main id="main">
     <header class="doc-hero home-hero">
       <div class="doc-hero-inner home-hero-inner">
@@ -54,6 +59,23 @@ const STEPS = [
       <span><Icon name="flame" size={14}/>Built in Australia</span>
       <span><Icon name="lock" size={14}/>Your data is never sold</span>
     </p>
+
+    <section class="home-doors" aria-labelledby="doors-title">
+      <div class="home-head">
+        <span class="doc-eyebrow">Start where you are</span>
+        <h2 id="doors-title" class="home-h2">What’s your situation?</h2>
+      </div>
+      <div class="home-doors-grid">
+        {STARTS.map(d => (
+          <a href={`/start/${d.slug}`} class="home-door" data-reveal>
+            <span class="home-door-icon"><Icon name={d.icon} size={18}/></span>
+            <span class="home-door-title">{d.door}</span>
+            <span class="home-door-line">{d.doorLine}</span>
+            <span class="home-door-go"><Icon name="arrow" size={14}/></span>
+          </a>
+        ))}
+      </div>
+    </section>
 
     <section class="home-bridge" aria-label="Why FirePath exists">
       <p class="home-bridge-1">Nobody teaches us</p>
