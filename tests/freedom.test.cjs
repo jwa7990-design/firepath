@@ -39,21 +39,36 @@ const PEOPLE = [
 const fireNum = p => (p.takeHome - p.mSav) * 12 * 25;
 const planFor = p => E.freedomPlan({ age: p.age, savings: p.savings, monthlySavings: p.mSav, target: fireNum(p), superBalance: p.super, takeHomeMonthly: p.takeHome });
 
-// Independent check: closed-form future values, then month by month after 60.
-function handCheck(p) {
-  const gross = X.estimateGrossFromNet(p.takeHome * 12);
-  const rO = 0.07 - 0.03 * X.calculateMarginalRate(gross);
+// Independent check, by brute force: for each possible stopping month, save until then,
+// then pay spending (freedom number ÷ 25 a year) from savings outside super, adding each
+// super pot when its owner turns 60 (super untouched, no more SG, once you stop). Free on
+// the first month the money never runs out before the last pot unlocks and the pooled
+// total then reaches the freedom number. Exhaustive and slow, which is the point.
+function bruteBridge(o) {
+  const gross = o.takeHome ? X.estimateGrossFromNet(o.takeHome * 12) : 0;
+  const rO = 0.07 - 0.03 * (gross ? X.calculateMarginalRate(gross) : 0.30);
   const iO = Math.pow(1 + rO, 1 / 12) - 1, iS = Math.pow(1 + E.SUPER_RETURN, 1 / 12) - 1;
-  const sg = Math.min(gross * 0.12, 32500) / 12 * 0.85;
-  const fv = (P, c, i, n) => P * Math.pow(1 + i, n) + c * (Math.pow(1 + i, n) - 1) / i;
-  const unlock = (60 - p.age) * 12, target = fireNum(p);
+  const sg = gross ? Math.min(gross * 0.12, 32500) / 12 * 0.85 : 0;
+  const spend = o.target / 25 / 12;
+  const pots = [{ bal: o.super || 0, sg, unlock: (60 - o.age) * 12 }];
+  if (o.partner) pots.push({ bal: o.partner.super, sg: 0, unlock: (60 - o.partner.age) * 12 });
   for (let m = 0; m <= 1200; m++) {
-    const out = fv(p.savings, p.mSav, iO, m);
-    const sup = m >= unlock ? fv(p.super, sg, iS, m) : 0;
-    if (out + sup >= target) return m;
+    let out = o.savings; const bal = pots.map(p => p.bal);
+    for (let t = 0; t < m; t++) { out = out * (1 + iO) + o.mSav; pots.forEach((p, j) => { bal[j] = bal[j] * (1 + iS) + p.sg; }); }
+    const end = Math.max(m, ...pots.map(p => p.unlock));
+    const inPool = pots.map(p => m >= p.unlock);
+    pots.forEach((p, j) => { if (inPool[j]) { out += bal[j]; bal[j] = 0; } });
+    let ok = true;
+    for (let t = m; t < end; t++) {
+      out = out * (1 + iO) - spend;
+      pots.forEach((p, j) => { if (!inPool[j]) { bal[j] *= 1 + iS; if (t + 1 >= p.unlock) { out += bal[j]; bal[j] = 0; inPool[j] = true; } } });
+      if (out < -1e-6) { ok = false; break; }
+    }
+    if (ok && out >= o.target - 1e-6) return m;
   }
   return null;
 }
+const handCheck = p => bruteBridge({ age: p.age, takeHome: p.takeHome, mSav: p.mSav, savings: p.savings, super: p.super, target: fireNum(p) });
 
 test('freedom plan: 45-year-old with $250k super is free at 62, with super', () => {
   // Gross ≈ $74,294 (take-home $60k), marginal rate 32% → outside return 7% − 3% × 32% = 6.04%.
@@ -84,9 +99,15 @@ test('freedom plan: 58-year-old with $600k super is free at 62', () => {
 
 test('freedom plan: everyone matches the independent hand check', () => {
   for (const p of PEOPLE) assert.equal(planFor(p).months, handCheck(p), p.name);
-  // Savings alone get the 35- and 28-year-olds there before 60.
-  assert.equal(planFor(PEOPLE[0]).phase, 'savings');
-  assert.equal(planFor(PEOPLE[2]).phase, 'savings');
+  // The 35- and 28-year-olds stop well before 60: their savings bridge the years until
+  // super unlocks (48 and 44, against 55 and 50 on savings alone).
+  for (const [p, age, bridge] of [[PEOPLE[0], 48, 11.8], [PEOPLE[2], 44, 16.2]]) {
+    const plan = planFor(p);
+    assert.equal(plan.freedomAge, age, p.name);
+    assert.equal(plan.phase, 'with-super', p.name);
+    near(plan.bridgeYears, bridge, 0.1, p.name + ' bridge years');
+    assert.ok(plan.months < plan.savingsOnlyYears * 12, p.name + ' sooner than savings alone');
+  }
 });
 
 test('freedom plan: no income known → no SG and a 30% tax rate (6.1%)', () => {
@@ -102,19 +123,22 @@ test('freedom plan: 62 with enough super is already free; under 60 it is not', (
   assert.equal(free.alreadyFree, true);
   assert.equal(free.years, 0);
   const locked = E.freedomPlan({ age: 50, savings: 100000, monthlySavings: 1000, target: 1e6, superBalance: 1.5e6 });
-  assert.equal(locked.alreadyFree, false);
-  assert.equal(locked.months, 120);   // the day super unlocks at 60
+  assert.equal(locked.alreadyFree, false);   // $100k can't pay $40k a year for 10 years
+  assert.equal(locked.months, bruteBridge({ age: 50, savings: 100000, mSav: 1000, target: 1e6, super: 1.5e6 }));
+  assert.ok(locked.months > 0 && locked.months < 120, 'once savings can bridge to 60, before super unlocks');
 });
 
-test('freedom plan: partner super unlocks at the partner\'s own 60', () => {
+test('freedom plan: partner super unlocks at the partner\'s own 60 (savings bridge until then)', () => {
   const base = { age: 50, savings: 200000, monthlySavings: 0, target: 1e6, superBalance: 0 };
   const older = E.freedomPlan(Object.assign({}, base, { partner: { superBalance: 900000, age: 60 } }));
   assert.equal(older.alreadyFree, true);                     // 200k + 900k now
   const younger = E.freedomPlan(Object.assign({}, base, { partner: { superBalance: 900000, age: 55 } }));
-  assert.equal(younger.months, 60);                          // their 60th, 5 years on
+  assert.equal(younger.months, bruteBridge({ age: 50, savings: 200000, mSav: 0, target: 1e6, super: 0, partner: { super: 900000, age: 55 } }));
+  assert.equal(younger.alreadyFree, true);                   // $200k pays $40k a year for 5 years, then their super
   const unknown = E.freedomPlan(Object.assign({}, base, { partner: { superBalance: 900000 } }));
-  assert.equal(unknown.partnerAgeAssumed, true);             // assumed your age: 10 years on
-  assert.equal(unknown.months, 120);
+  assert.equal(unknown.partnerAgeAssumed, true);             // assumed your age: 10 years of bridging
+  assert.equal(unknown.months, bruteBridge({ age: 50, savings: 200000, mSav: 0, target: 1e6, super: 0, partner: { super: 900000, age: 50 } }));
+  assert.ok(unknown.months > younger.months);
 });
 
 test('freedom plan: invalid input is "fill in your numbers", never "already free"', () => {

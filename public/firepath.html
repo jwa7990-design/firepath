@@ -47,9 +47,8 @@
   <script src="js/persona.js"></script>
   <style>
   /* ── Page frame: the site shell draws the nav; this is the calculator column ── */
-  /* position/z-index reset: main.css gives .container z-index:1, which would trap the
-     cinematic stage and bento modal underneath the shell's sticky nav. */
-  .fp-calc { width: 100%; max-width: 520px; margin: 0 auto; padding: 0 16px calc(48px + env(safe-area-inset-bottom)); position: static; z-index: auto; }
+  /* position/z-index reset: main.css gives .container z-index:1; nothing here needs it. */
+  .fp-calc { width: 100%; max-width: 640px; margin: 0 auto; padding: 0 16px calc(48px + env(safe-area-inset-bottom)); position: static; z-index: auto; }
 
   /* main.css loads after app.css here (the page still uses its form classes), so pin .card back to app.css */
   .fp-calc .card { border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: 20px; background: var(--surface); border: 1px solid var(--line); }
@@ -100,64 +99,8 @@
   .partner-fields .section-label { margin-bottom: 14px; }
   .partner-fields .input-group:last-child { margin-bottom: 0; }
   .label-optional { color: var(--ink-3); font-weight: 400; }
-
-  /* ── Existing result detail styles (restyled) ── */
-  .rate-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 10px; overflow: hidden; transition: box-shadow var(--dur-base) var(--ease); }
-  .rate-card:hover { box-shadow: var(--shadow-2); }
-  .rate-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; cursor: pointer; user-select: none; }
-  .rate-left { display: flex; align-items: center; gap: 12px; }
-  .rate-badge { font-size: 14px; font-weight: 600; color: #fff; border-radius: var(--r-sm); padding: 4px 10px; min-width: 50px; text-align: center; font-variant-numeric: tabular-nums; }
-  .rate-badge.bank { background: var(--ink-3); }
-  .rate-badge.low { background: var(--green); }
-  .rate-badge.mid { background: var(--ember); }
-  .rate-badge.high { background: var(--negative); }
-  .rate-title { font-size: 14px; font-weight: 500; color: var(--ink); }
-  .rate-subtitle { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
-  .rate-right { display: flex; align-items: center; gap: 8px; }
-  .rate-result { font-size: 13px; font-weight: 600; color: var(--ember-ink); }
-  .rate-result.muted { color: var(--ink-2); }
-  .chevron { font-size: 10px; color: var(--ink-3); transition: transform var(--dur-base) var(--ease); }
-  .chevron.open { transform: rotate(180deg); }
-  .rate-body { border-top: 1px solid var(--line); padding: 16px 18px; display: none; }
-  .rate-body.open { display: block; }
-  .rate-body p { font-size: 13.5px; color: var(--ink-2); line-height: 1.7; margin-bottom: 10px; }
-  .rate-body p:last-child { margin-bottom: 0; }
-  .rate-body p strong { color: var(--ink); font-weight: 600; }
-  .type-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-  .type-tag { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line); }
-  .edu-note { font-size: 12px !important; font-style: italic; margin-top: 12px !important; }
   .optional-badge { display: inline-block; font-size: 11px; font-weight: 500; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
-  .thought-header { text-align: center; margin-bottom: 16px; }
-  .thought-header h3 { font-family: var(--font-display); font-size: 20px; font-weight: 700; margin-bottom: 4px; color: var(--ink); }
-  .thought-header p { font-size: 13.5px; color: var(--ink-2); }
-  .slider-hint { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
-  .needle-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); margin-bottom: 12px; overflow: hidden; }
-  .needle-tabs { display: flex; gap: 2px; padding: 3px; margin-bottom: 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
-  .needle-tab { flex: 1; padding: 8px 8px; text-align: center; font-size: 13px; font-weight: 500; color: var(--ink-2); cursor: pointer; border-radius: 999px; line-height: 1.3; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
-  .needle-tab.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
-  .needle-panel { display: none; padding: 4px 0 0; }
-  .needle-panel.active { display: block; }
-  .needle-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
-  .needle-row:last-child { border-bottom: none; }
-  .needle-label { color: var(--ink-2); }
-  .needle-result { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .needle-result.better { color: var(--positive); }
-  .needle-result.worse { color: var(--negative); }
-  .needle-result.base { color: var(--ink); }
-  .needle-pro-nudge { background: var(--surface-2); border-radius: var(--r-sm); padding: 12px 14px; margin-top: 12px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
-  .needle-pro-nudge strong { color: var(--ink); }
-  .range-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 20px; margin-bottom: 12px; }
-  .range-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
-  .range-row:last-child { border-bottom: none; }
-  .range-row.base { background: var(--ember-wash); margin: 0 -12px; padding: 11px 12px; border-radius: var(--r-sm); border-bottom-color: transparent; }
-  .range-label { color: var(--ink-2); }
-  .range-label strong { color: var(--ink); font-weight: 600; }
-  .range-value { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .range-value.optimistic { color: var(--positive); }
-  .range-value.base { color: var(--ember-ink); }
-  .range-value.conservative { color: var(--ink-2); }
-  .range-footnote { font-size: 12.5px; color: var(--ink-2); font-style: italic; margin-top: 12px; line-height: 1.6; }
-  .range-footnote a, .fp-links a { color: var(--ember-ink); }
+
 
   /* ── Onboarding ── */
   #onboarding { background: var(--bg); min-height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
@@ -224,68 +167,108 @@
   .privacy-note a { color: var(--ember-ink); text-decoration: none; }
   .privacy-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-  /* ── Results ── */
+  /* ── Results: one calm, scrolling page ── */
   #results-body { padding-top: 24px; }
   .back-btn { color: var(--ink-2); font: 500 13.5px var(--font-ui); margin-bottom: 16px; min-height: 32px; }
   .back-btn:hover { color: var(--ink); }
-  /* The one dark "earned" surface in the results flow */
-  .result-card { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-xl); padding: 28px 20px 20px; color: var(--bg); box-shadow: var(--shadow-3); margin-bottom: 12px; }
-  @media (min-width: 768px) { .result-card { padding: 32px 28px 24px; } }
-  .result-card::before { display: none; }
-  .result-label { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; opacity: 1; color: rgba(253, 246, 238, 0.55); }
-  .result-headline { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.2; color: var(--bg); }
-  .result-headline span { color: var(--amber); font-size: 32px; font-variant-numeric: tabular-nums; }
-  .result-sub { opacity: 1; color: rgba(253, 246, 238, 0.7); font-size: 14px; font-weight: 400; margin-bottom: 20px; }
-  .result-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .stat-box { background: rgba(253, 246, 238, 0.06); border: 1px solid rgba(253, 246, 238, 0.08); border-radius: var(--r-md); padding: 14px 8px; }
-  .result-card .stat-value { font-family: var(--font-display); font-size: clamp(18px, 5vw, 24px); color: var(--amber); font-variant-numeric: tabular-nums; letter-spacing: 0; margin-bottom: 6px; }
-  .stat-name { font-size: 11.5px; opacity: 1; color: rgba(253, 246, 238, 0.6); }
-  .stat-note { font-size: 10.5px; color: rgba(253, 246, 238, 0.5); margin-top: 4px; }
+  .fp-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: 20px; margin-bottom: 14px; }
+  @media (min-width: 768px) { .fp-card { padding: 24px; } }
+  .fp-kicker { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin: 0 0 8px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .text-link { background: none; border: 0; padding: 0; font: 600 13.5px var(--font-ui); color: var(--ember-ink); text-decoration: none; cursor: pointer; }
+  .text-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .text-link:focus-visible, .next-link:focus-visible, .fp-calc input[type="range"]:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
 
-  /* ── What could move your date (options from js/moves.js) ── */
-  .moves-card { background: var(--surface); border: 1px solid rgba(244, 98, 42, 0.45); border-radius: var(--r-lg); box-shadow: var(--shadow-2); padding: 20px; margin-bottom: 6px; }
-  @media (min-width: 768px) { .moves-card { padding: 24px; } }
-  .moves-eyebrow { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 4px; }
-  .moves-title { font-family: var(--font-display); font-weight: 700; font-size: 21px; line-height: 1.25; color: var(--ink); margin: 0 0 14px; }
-  .moves-ontrack { display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-bottom: 12px; background: var(--positive-wash); color: var(--ink); border-radius: var(--r-md); font-size: 14px; line-height: 1.5; }
-  .moves-ontrack a { color: var(--ember-ink); font-weight: 600; text-decoration: none; }
-  .moves-ontrack a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  /* Your answer */
+  .answer-headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 6.4vw, 30px); line-height: 1.25; color: var(--ink); margin: 0 0 18px; letter-spacing: -0.01em; }
+  .answer-headline:focus { outline: none; }
+  .answer-headline strong { color: var(--ember-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .answer-range { margin: 0 0 18px; }
+  .range-track { position: relative; height: 14px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
+  .range-band { position: absolute; top: 2px; bottom: 2px; min-width: 10px; border-radius: 999px; background: linear-gradient(90deg, rgba(244, 98, 42, 0.35), rgba(249, 168, 37, 0.45)); }
+  .range-band.open-end { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  .range-mark { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--ember); box-shadow: 0 0 0 2px var(--surface); }
+  .range-ends { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .range-ends .rule { flex: 1; height: 1px; background: var(--line-strong); }
+  .range-ends strong { color: var(--ink); font-weight: 600; }
+  .range-note { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; margin: 8px 0 0; }
+  .answer-why { font-size: 15px; color: var(--ink); line-height: 1.6; margin: 0 0 8px; }
+  .answer-why strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .answer-fact { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; margin: 0; }
+  .answer-extra { margin: 12px 0 0; }
+
+  /* Try it */
+  .try-row { margin-bottom: 16px; }
+  .try-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .try-top label { font-size: 14.5px; font-weight: 500; color: var(--ink); }
+  .try-top output { font-size: 14px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .fp-calc input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; --fill: 0%; }
+  .fp-calc input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--ember) var(--fill), var(--line-strong) var(--fill)); }
+  .fp-calc input[type="range"]::-moz-range-track { height: 6px; border-radius: 999px; background: var(--line-strong); }
+  .fp-calc input[type="range"]::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--ember); }
+  .fp-calc input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); }
+  .fp-calc input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); }
+  .fp-calc input[type="range"]:disabled { cursor: not-allowed; opacity: 0.4; }
+  .try-result { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 4px 0 0; padding: 12px 14px; border-radius: var(--r-md); background: var(--surface-2); font-size: 15px; color: var(--ink); line-height: 1.5; font-variant-numeric: tabular-nums; min-height: 48px; }
+  .try-result strong { font-weight: 700; }
+  .try-result .try-diff { color: var(--positive); font-weight: 600; }
+  .try-result .try-same { color: var(--ink-2); font-size: 13.5px; }
+  .try-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 10px; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+
+  /* What could move your date (options from js/moves.js) */
+  .moves-title { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.25; color: var(--ink); margin: 0 0 4px; }
+  .moves-sort { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 0 0 6px; }
+  .moves-ontrack { display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin: 8px 0; background: var(--positive-wash); color: var(--ink); border-radius: var(--r-md); font-size: 14px; line-height: 1.5; }
   .moves-ontrack-icon { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--positive); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
-  .moves-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .moves-list { list-style: none; margin: 0; padding: 0; }
   .moves-list:empty { display: none; }
-  .move-item { display: flex; gap: 12px; padding: 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); }
-  .move-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--ember), var(--amber)); color: #fff; font: 700 13px var(--font-ui); display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+  .move-item { display: flex; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .move-item:first-child { border-top: 0; }
+  .move-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--ember-wash); color: var(--ember-ink); font: 700 12px var(--font-ui); display: flex; align-items: center; justify-content: center; margin-top: 1px; font-variant-numeric: tabular-nums; }
   .move-body { flex: 1; min-width: 0; }
-  .move-title { font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.35; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-  .move-pro { font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ember-ink); background: var(--ember-wash); border: 1px solid rgba(244, 98, 42, 0.35); border-radius: 999px; padding: 1px 7px; }
-  .move-impact { font-size: 14px; font-weight: 700; color: var(--ember-ink); margin-top: 3px; font-variant-numeric: tabular-nums; }
-  .move-why { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin-top: 3px; }
-  .move-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .move-btn { display: inline-flex; align-items: center; min-height: 34px; padding: 7px 14px; border-radius: 999px; font: 500 13px var(--font-ui); text-decoration: none; cursor: pointer; border: 1px solid transparent; }
-  .move-btn.primary { background: linear-gradient(135deg, var(--ember), var(--amber)); color: #fff; }
-  .move-btn.secondary { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
-  .move-btn.secondary:hover { border-color: var(--ember); color: var(--ember-ink); }
-  .move-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-  .moves-explore { display: inline-block; margin-top: 14px; font-size: 13.5px; font-weight: 600; color: var(--ember-ink); text-decoration: none; }
-  .moves-explore:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .moves-sort { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: -8px 0 14px; }
-  .moves-advice { font-size: 12px; color: var(--ink-2); line-height: 1.5; margin: 12px 0 0; }
-  .moves-saved { font-size: 12px; color: var(--ink-3); margin: 0 4px 12px; line-height: 1.5; }
+  .move-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .move-title { font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.35; }
+  .move-pro { display: inline-block; margin-left: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ember-ink); background: var(--ember-wash); border: 1px solid rgba(244, 98, 42, 0.35); border-radius: 999px; padding: 0 7px; vertical-align: 2px; }
+  .move-effect { flex-shrink: 0; font-size: 13.5px; font-weight: 700; color: var(--positive); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .move-effect.tag { font-size: 11.5px; font-weight: 600; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
+  .move-why { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 3px 0 0; }
+  .move-links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 6px 0 0; }
+  .move-links .text-link { font-size: 13px; }
+  .moves-advice { font-size: 12px; color: var(--ink-2); line-height: 1.5; margin: 6px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
+  .moves-saved { font-size: 12px; color: var(--ink-3); margin: -6px 4px 14px; line-height: 1.5; }
   .moves-saved a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
 
-  .life-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: 20px; margin-bottom: 12px; }
-  .life-card-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 4px; }
-  .life-card-sub { font-size: 13px; color: var(--ink-2); margin-bottom: 16px; }
-  .life-card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  /* Where you stand */
+  .stand-line { font-size: 15px; color: var(--ink); line-height: 1.55; margin: 0 0 10px; }
+  .stand-line strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stand-bar { height: 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
+  .stand-fill { display: block; height: 100%; min-width: 3px; border-radius: 999px; background: linear-gradient(90deg, var(--ember), var(--amber)); }
+  .stand-note { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; margin: 8px 0 0; }
 
-  .feedback-card { text-align: center; margin-bottom: 16px; }
-  .feedback-card svg { margin: 0 auto 8px; display: block; color: var(--ember); }
-  .feedback-card-title { font-size: 15.5px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
-  .feedback-card-sub { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin: 0 auto 14px; max-width: 40ch; }
+  /* Next */
+  .next-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .next-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 18px; }
+  @media (min-width: 560px) { .next-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .next-link { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); text-decoration: none; color: var(--ink); transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease); }
+  .next-link:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); }
+  .next-kind { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); }
+  .next-title { font-size: 14.5px; font-weight: 600; line-height: 1.35; }
+  .next-text { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+
+  /* Pro, kept small */
+  .pro-line { border-top: 1px solid var(--line); padding: 16px 0 4px; margin-bottom: 16px; }
+  .pro-line p { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0 0 10px; }
+  .pro-line .pro-fine { font-size: 12px; color: var(--ink-2); margin: 8px 0 0; }
+
   .fp-calc .disclaimer { font-size: 12.5px; color: var(--ink-2); font-weight: 400; }
   .fp-links { text-align: center; font-size: 13px; margin: 8px 0 16px; color: var(--ink-3); }
-  .fp-links a { text-decoration: none; font-weight: 500; }
+  .fp-links a { color: var(--ember-ink); text-decoration: none; font-weight: 500; }
   .fp-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* A gentle staggered fade-in when the result appears */
+  @keyframes fpRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .rv.rv-in { animation: fpRise 0.5s var(--ease) both; animation-delay: calc(var(--i, 0) * 90ms); }
+  @media (prefers-reduced-motion: reduce) { .rv.rv-in { animation: none; } }
   </style>
 </head>
 <body class="site" data-shell="site" data-footer="none">
@@ -510,250 +493,85 @@
   </div><!-- /onboarding -->
 
   <!-- ═══════════════════════════════════════════════
-       SCREEN 3 — Results (completely unchanged)
+       SCREEN 3 — Results: one calm, scrolling page
        ═══════════════════════════════════════════════ -->
   <div id="screen3" style="display:none;">
-
-    <!-- ── CINEMATIC STAGE ── -->
-    <div id="cinematic-stage" style="
-      display:none;
-      position:fixed;
-      inset:0;
-      background:
-        radial-gradient(ellipse 900px 700px at 50% 38%, rgba(244,162,74,0.16), transparent 60%),
-        radial-gradient(ellipse 600px 500px at 50% 38%, rgba(244,98,42,0.10), transparent 55%),
-        var(--espresso);
-      z-index:100;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      padding:40px 24px;
-      text-align:center;
-      overflow-y:auto;
-    ">
-      <div id="cin-mondays" style="
-        max-width:320px;
-        margin-bottom:0;
-        opacity:0;
-        transition:opacity 0.9s ease;
-      ">
-        <div id="cin-mondays-text" style="font-family:var(--font-display);font-size:clamp(24px,6vw,32px);color:var(--bg);line-height:1.35;"></div>
-      </div>
-
-      <div id="cin-eyebrow" style="
-        font-size:12px;font-weight:700;text-transform:uppercase;
-        letter-spacing:0.16em;color:rgba(255,255,255,0.35);
-        margin-bottom:16px;opacity:0;transition:opacity 0.8s ease;
-      ">You could be free in</div>
-
-      <div id="cin-number" style="
-        font-family:var(--font-display);font-size:64px;font-weight:700;
-        color:var(--amber);line-height:1;opacity:0;
-        transform:translateY(12px);
-        transition:opacity 0.8s ease, transform 0.8s ease;
-        margin-bottom:12px;
-      ">—</div>
-
-      <div id="cin-sub" style="
-        font-size:14px;color:rgba(255,255,255,0.4);font-weight:400;
-        opacity:0;transition:opacity 0.8s ease;
-        margin-bottom:28px;max-width:280px;line-height:1.6;
-      "></div>
-
-      <div id="cin-freedomage" style="
-        font-size:13px;color:rgba(255,255,255,0.55);font-weight:400;
-        opacity:0;transition:opacity 0.8s ease;
-        margin-bottom:40px;
-      "></div>
-
-      <div id="cin-unless" style="opacity:0;transition:opacity 0.8s ease;margin-bottom:40px;">
-        <div style="font-family:var(--font-display);font-style:italic;color:var(--amber);font-size:18px;margin-bottom:16px;">Unless…</div>
-        <button onclick="cinematicApplyLever()" id="cin-lever-btn" style="
-          background:transparent;border:1px solid var(--amber);color:var(--amber);
-          padding:12px 22px;border-radius:999px;font-size:13px;font-weight:500;
-          cursor:pointer;font-family:var(--font-ui);
-        ">Save an extra $50/week</button>
-        <div id="cin-lever-result" style="margin-top:12px;font-size:12px;color:#7CB97E;min-height:16px;"></div>
-
-        <!-- Earned share card — hidden until the lever is used, not shown as a duplicate section -->
-        <div id="cin-shock-wrap" style="
-          margin-top:24px;
-          opacity:0;
-          max-height:0;
-          overflow:hidden;
-          transition:opacity 0.6s ease, max-height 0.6s ease;
-        ">
-          <div style="
-            background:rgba(255,255,255,0.06);
-            border:1px solid rgba(255,255,255,0.12);
-            border-radius:16px;
-            padding:22px 20px;
-            max-width:280px;
-            margin:0 auto;
-            text-align:left;
-          ">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#7CB97E;margin-bottom:10px;">Milestone reached</div>
-            <div style="font-family:var(--font-display);font-size:19px;color:var(--bg);line-height:1.35;margin-bottom:16px;">
-              You just won back <em id="cin-shock-days" style="color:var(--amber);font-style:italic;">— days</em>.
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:rgba(255,255,255,0.4);">
-              <span style="font-family:var(--font-display);font-style:italic;color:rgba(255,255,255,0.7);">FirePath</span>
-              <span onclick="cinematicShareResult()" id="cin-share-btn" style="cursor:pointer;color:var(--amber);">Share this →</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="cin-cta" style="opacity:0;transition:opacity 0.8s ease;">
-        <div style="font-size:13px;color:rgba(255,255,255,0.35);margin-bottom:16px;font-weight:400;">
-          here's what that means
-        </div>
-        <button onclick="cinematicRevealCards()" style="
-          background:linear-gradient(135deg,var(--ember),var(--amber));color:white;
-          border:none;border-radius:999px;padding:14px 32px;
-          font-size:15px;font-weight:500;cursor:pointer;
-          font-family:var(--font-ui);
-        ">Show me the full picture →</button>
-      </div>
-    </div>
-
-    <!-- ── RESULTS BODY ── -->
-    <div id="results-body" style="display:none;">
+    <div id="results-body">
       <button class="back-btn" onclick="showScreen(2)">← Recalculate</button>
 
-      <div class="result-card cin-card">
-        <p class="result-label">Your FirePath result</p>
-        <h2 class="result-headline">You could be free in <span id="yearsOut">—</span></h2>
-        <p class="result-sub" id="resultSub"></p>
-        <div class="result-stats">
-          <div class="stat-box"><span class="stat-value" id="savingsRateOut">—</span><span class="stat-name">Savings rate</span></div>
-          <div class="stat-box"><span class="stat-value" id="fireNumberOut">—</span><span class="stat-name" id="stat2label">Freedom number</span><div class="stat-note">in today's dollars</div></div>
-          <div class="stat-box"><span class="stat-value" id="monthlySavingOut">—</span><span class="stat-name" id="stat3label">Saved / cycle</span></div>
+      <!-- Your answer: the headline date (FirePathEngine.freedomPlan) and its market range (freedomRange) -->
+      <section class="fp-card rv" id="answerCard" aria-labelledby="answerHeadline">
+        <p class="fp-kicker">Your answer</p>
+        <h2 class="answer-headline" id="answerHeadline" tabindex="-1"></h2>
+        <div class="answer-range" id="answerRange" hidden>
+          <div class="range-track" aria-hidden="true"><span class="range-band" id="rangeBand"></span><span class="range-mark" id="rangeMark"></span></div>
+          <div class="range-ends" aria-hidden="true"><strong id="rangeStart"></strong><span class="rule"></span><span>most likely</span><span class="rule"></span><strong id="rangeEnd"></strong></div>
+          <p class="range-note" id="rangeText"></p>
         </div>
-      </div>
+        <p class="answer-why" id="answerWhy"></p>
+        <p class="answer-fact" id="answerFact"></p>
+        <p class="answer-extra" id="answerExtra" hidden></p>
+      </section>
+
+      <!-- Try it: the same plan, rerun as the sliders move -->
+      <section class="fp-card rv" id="tryCard" aria-labelledby="tryTitle">
+        <h3 class="fp-kicker" id="tryTitle">Try it</h3>
+        <div class="try-row">
+          <div class="try-top"><label for="trySave">Save more</label><output id="trySaveOut" for="trySave"></output></div>
+          <input type="range" id="trySave" min="0" max="1000" step="25" value="0"/>
+        </div>
+        <div class="try-row" id="trySpendRow">
+          <div class="try-top"><label for="trySpend">Spend less</label><output id="trySpendOut" for="trySpend"></output></div>
+          <input type="range" id="trySpend" min="0" max="600" step="20" value="0"/>
+        </div>
+        <p class="try-result" id="tryResult" aria-live="polite"></p>
+        <div class="try-foot"><span id="tryNote">Spending less also lowers your freedom number.</span><button type="button" class="text-link" id="tryReset">Reset</button></div>
+      </section>
 
       <!-- What could move your date — options from js/moves.js (FirePathMoves.rank) in calculate().
            General information, not advice: options and their modelled effect, never instructions. -->
-      <section id="movesCard" class="moves-card cin-card" aria-labelledby="movesTitle" style="display:none;">
-        <div class="moves-eyebrow">Based on the numbers you entered</div>
-        <h3 class="moves-title" id="movesTitle">What could move your date</h3>
+      <section id="movesCard" class="fp-card rv" aria-labelledby="movesTitle" style="display:none;">
+        <h3 class="fp-kicker" id="movesTitle">What could move your date</h3>
         <p class="moves-sort" id="movesSort">Ordered by how much each could move your date, based on the numbers you entered.</p>
         <div id="movesOnTrack" class="moves-ontrack" style="display:none;">
           <span class="moves-ontrack-icon" aria-hidden="true">✓</span>
-          <span>You're on track. <a href="/withdrawal">See if your money will last →</a></span>
+          <span id="movesOnTrackText">You're on track.</span>
         </div>
         <ol class="moves-list" id="movesList"></ol>
         <p class="moves-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
-        <a href="/features" class="moves-explore">Explore every tool →</a>
       </section>
       <p class="moves-saved" id="movesSaved" style="display:none;">Saved on this device so FirePath's free tools can use your numbers. <a href="#" id="movesForget">Clear</a></p>
 
-      <div id="lifeUnlockedCard" style="display:none;" class="life-card cin-card">
-        <div class="life-card-label">What your freedom number buys you</div>
-        <div class="life-card-sub" id="lifeUnlockedSub"></div>
-        <div id="lifeUnlockedGrid" class="life-card-grid"></div>
-      </div>
+      <!-- Where you stand -->
+      <section class="fp-card rv" id="standCard" aria-labelledby="standTitle">
+        <h3 class="fp-kicker" id="standTitle">Where you stand</h3>
+        <p class="stand-line" id="standLine"></p>
+        <div class="stand-bar" id="standBar" role="progressbar" aria-labelledby="standTitle" aria-valuemin="0" aria-valuemax="100"><span class="stand-fill" id="standFill"></span></div>
+        <p class="stand-note" id="standNote"></p>
+      </section>
 
-      <div class="bento-squares cin-card">
-        <div class="bsq" id="sq-range" style="display:none;" onclick="openBentoModal('range')">
-          <div class="bsq-top">
-            <span class="bsq-icon" style="background:var(--positive-wash);color:var(--positive);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 20V10"/><path d="M12 20V4"/><path d="M20 20v-7"/></svg></span>
-            <span class="bsq-num">1</span>
-          </div>
-          <div class="bsq-title">Your projected range</div>
-          <div class="bsq-stat" id="sqRangeStat">—</div>
-        </div>
+      <!-- Next: two tools picked from their situation, plus one article -->
+      <section class="rv" id="nextCard" aria-labelledby="nextTitle">
+        <div class="next-head"><h3 class="fp-kicker" id="nextTitle">Next</h3><a href="/features" class="text-link">Every tool →</a></div>
+        <div class="next-grid" id="nextLinks"></div>
+      </section>
 
-        <div class="bsq" id="sq-meaning" style="display:none;" onclick="openBentoModal('meaning')">
-          <div class="bsq-top">
-            <span class="bsq-icon" style="background:var(--ember-wash);color:var(--ember-ink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 2a7 7 0 0 0-4 12.7c.5.4.8 1 .8 1.6V17h6.4v-.7c0-.6.3-1.2.8-1.6A7 7 0 0 0 12 2z"/><path d="M9.5 20h5"/></svg></span>
-            <span class="bsq-num">2</span>
-          </div>
-          <div class="bsq-title">What this means</div>
-          <div class="bsq-stat" id="sqMeaningStat">—</div>
-        </div>
-
-        <div class="bsq" id="sq-needle" style="display:none;" onclick="openBentoModal('needle')">
-          <div class="bsq-top">
-            <span class="bsq-icon" style="background:rgba(249,168,37,0.16);color:#9A6B00;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
-            <span class="bsq-num">3</span>
-          </div>
-          <div class="bsq-title">What changes your date</div>
-          <div class="bsq-stat" id="sqNeedleStat">—</div>
-        </div>
-
-        <div class="bsq" id="sq-withdrawal" style="display:none;" onclick="openBentoModal('withdrawal')">
-          <div class="bsq-top">
-            <span class="bsq-icon" style="background:var(--surface-2);color:var(--ink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 10h18"/><circle cx="17" cy="14" r="1.3" fill="currentColor" stroke="none"/></svg></span>
-            <span class="bsq-num">4</span>
-          </div>
-          <div class="bsq-title">Already working for you</div>
-          <div class="bsq-stat" id="sqWithdrawalStat">—</div>
-        </div>
-
-        <div class="bsq bsq-wide" id="sq-tax" style="display:none;" onclick="openBentoModal('tax')">
-          <div class="bsq-top">
-            <span class="bsq-icon" style="background:var(--surface-2);color:var(--ink);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 2h12v18l-3-2-3 2-3-2-3 2V2z"/><path d="M9 7h6"/><path d="M9 11h6"/></svg></span>
-            <span class="bsq-num">5</span>
-          </div>
-          <div class="bsq-title">Where your next dollar goes</div>
-          <div class="bsq-stat" id="sqTaxStat">—</div>
-        </div>
-
-        <div id="recommendedCard" class="bsq-recommended" style="display:none;">
-          <div>
-            <div class="bsq-reason" id="recommendedReason"></div>
-            <div class="bsq-article-title" id="recommendedTitle"></div>
-          </div>
-          <div class="bsq-read-btn" id="recommendedBtn" onclick="">Read in the Learning Lab →</div>
-        </div>
-      </div>
-
-      <!-- Hidden data sources — populated by the existing build functions, unchanged.
-           Never shown directly; their content is copied into the floating modal on tap. -->
-      <div style="display:none;">
-        <div id="rangeCard" class="fp-reveal">
-          <div id="rangeRows"></div>
-          <p class="range-footnote">We assume investments grow 7% a year after inflation, a common long-run figure. Some years will be better, some worse. <a href="assumptions.html">How we calculate →</a></p>
-        </div>
-        <div id="meaningCard">
-          <div id="whatThisMeansText" style="font-size:14.5px;color:var(--ink);line-height:1.7;"></div>
-        </div>
-        <div id="needleCard"></div>
-        <div id="withdrawalCard"></div>
-        <div id="taxNudgeCard">
-          <div style="font-size:14px;color:var(--ink-2);line-height:1.7;margin-bottom:14px;" id="taxNudgeText"></div>
-          <a href="/upgrade" class="btn btn-ember">Tax tools are part of Pro — see what's included →</a>
-        </div>
-      </div>
-
-      <!-- Floating modal — shared by all five squares -->
-      <div id="bentoModalOverlay" class="bento-modal-overlay" onclick="if(event.target===this) closeBentoModal()">
-        <div class="bento-modal">
-          <button class="bento-modal-close" onclick="closeBentoModal()">✕</button>
-          <div id="bentoModalContent"></div>
-        </div>
-      </div>
-
-      <div id="proUpgradeBanner" class="cin-card"></div>
-
-      <div class="card feedback-card cin-card">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        <div class="feedback-card-title">Help shape FirePath</div>
-        <div class="feedback-card-sub">Got 2 minutes? Tell us what you think — what's useful, what's missing, what could be better.</div>
-        <a href="feedback.html" class="btn btn-quiet">Share feedback →</a>
-      </div>
+      <!-- Pro, kept small. Price and fine print match src/data/plans.ts. -->
+      <section class="pro-line rv">
+        <p>Pro saves your plan, adds tax and Ask FirePath, and keeps every tool filled in. $6/month after a 7-day free trial.</p>
+        <a href="/upgrade" class="btn btn-quiet" onclick="gtag('event','upgrade_click',{'event_category':'conversion','event_label':'free_to_pro'})">Start your 7-day free trial</a>
+        <p class="pro-fine">Card needed to start. You won’t be charged until day 8. Cancel before then and you pay nothing.</p>
+      </section>
 
       <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
-      <p class="fp-links"><a href="assumptions.html">How we calculate →</a> · <a href="faq.html">FAQ</a></p>
+      <p class="fp-links"><a href="assumptions.html">How we calculate →</a> · <a href="faq.html">FAQ</a> · <a href="feedback.html">Tell us what you think</a></p>
     </div>
-
   </div>
 
 </main><!-- /container -->
 
 <!-- ═══════════════════════════════════════════════
-     ORIGINAL JS — completely unchanged
+     CALCULATOR + RESULT JS
      ═══════════════════════════════════════════════ -->
 <script>
   let persona = FirePathPersona.get(), selectedCycle = 'fortnightly', retirementSpendMultiplier = 1.0;
@@ -766,33 +584,18 @@
   function togglePartner(){const f=document.getElementById('partnerFields'),i=document.getElementById('partnerToggleIcon'),v=f.style.display!=='none';f.style.display=v?'none':'block';i.textContent=v?'+':'−';}
 
   function setCycle(btn) { document.querySelectorAll('.cycle-btn[data-cycle]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); selectedCycle = btn.dataset.cycle; updateSavingsHint(); const w=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';const pl=document.getElementById('partnerCycleLabel'),pl2=document.getElementById('partnerCycleLabel2');if(pl)pl.textContent=w;if(pl2)pl2.textContent=w; }
-  // toMonthly, yearsToGoal, fmt and fmtM come from js/calculations.js (loaded below).
-
-  // What money earns where it sits today — real returns built from the live RBA rates.
-  function currentReturns() {
-    const a = FP_ASSUMPTIONS, pct = x => (x * 100).toFixed(1);
-    return {
-      rate: { cash: a.bankRealReturn, etfs: 0.07, offset: a.offsetRealReturn, mix: a.mixRealReturn },
-      note: {
-        cash: `(${pct(a.bankRealReturn)}% after inflation — bonus saver ${a.savingsRate}% less ${a.cpi}% inflation)`,
-        etfs: '(7% after inflation — already invested)',
-        offset: `(${pct(a.offsetRealReturn)}% after inflation — mortgage rate ${a.mortgageRate}% less ${a.cpi}% inflation)`,
-        mix: `(${pct(a.mixRealReturn)}% after inflation — an even blend of bank, offset and invested)`
-      }
-    };
-  }
-  // A calendar year for a years-to-go figure: null = out of reach, 0 = already there.
-  function yearLabel(y, cy) { return y === null ? '100+ yrs' : y === 0 ? 'Now' : cy + Math.round(y); }
+  // toMonthly, fmt and fmtM come from js/calculations.js (loaded below).
 
   // The headline date is the shared freedom plan (FirePathEngine.freedomPlan, js/financial-engine.js),
-  // the same one Pro, Freedom gap and Journey use: savings outside super until 60, then super too,
-  // after tax on investment income. _planInputs holds this calculation's inputs; planYears() reruns
-  // the same plan with some of them changed, so every "what if" is measured against the headline.
+  // the same one Pro, Freedom gap and Your Path use: savings outside super carry you until 60,
+  // then super joins, after tax on investment income. _planInputs holds this calculation's inputs;
+  // planFor() reruns the same plan with some of them changed, so every "what if" (the Try it
+  // sliders) is measured against the headline.
   let _planInputs = null;
-  function planYears(over) {
+  function planFor(over) {
     if (!_planInputs || typeof FirePathEngine === 'undefined') return null;
     const p = FirePathEngine.freedomPlan(Object.assign({}, _planInputs, over || {}));
-    return p.valid ? p.years : null;
+    return p.valid ? p : null;
   }
 
   function updateSavingsHint() {
@@ -804,6 +607,14 @@
     else if (income > 0) { hint.textContent = 'Enter how much you save each ' + cycleWord; }
     else { hint.textContent = 'Enter your income above first'; }
   }
+
+  // Further out than this we don't show a date: it isn't a useful answer.
+  const MAX_YEARS = 60;
+  const inReach = p => !!(p && p.reachable && p.years < MAX_YEARS && !(p.freedomAge > 100));
+  const cycleWordOf = c => c === 'weekly' ? 'week' : c === 'fortnightly' ? 'fortnight' : 'month';
+  const dollars = n => '$' + Math.round(n).toLocaleString('en-AU');
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let _result = null;   // this calculation, for the Try it sliders
 
   function calculate() {
     gtag('event', 'calculate', { 'event_category': 'engagement', 'event_label': 'show_me_my_path' });
@@ -852,331 +663,178 @@
 
     const ranked = window.FirePathMoves ? FirePathMoves.rank(FirePathMoves.situationFromInputs(situationInputs), { limit: 20 }) : null;
     const moveList = ranked ? ranked.all : [];
-    const debtMove = moveList.find(m => m.id === 'clear-debt') || null;
-    const debtFirst = debtMove ? ` Clear your <strong>${fmtM(debt)}</strong> debt first. Every dollar you pay off saves 15–20% a year in interest, guaranteed.` : '';
     if (window.FirePathMoves) FirePathMoves.remember(situationInputs);   // this device only — lets the other free tools start from these numbers
-    const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
-    const cycleStatLabel = selectedCycle === 'weekly' ? 'Saved / week' : selectedCycle === 'fortnightly' ? 'Saved / fortnight' : 'Saved / month';
-    const cycleSaving = selectedCycle === 'weekly' ? mSav * 12 / 52 : selectedCycle === 'fortnightly' ? mSav * 12 / 26 : mSav;
 
     // y07 is the headline from here on (the name stays for the helpers below).
     const y07 = yHead;
-
     const alreadyFree = plan.alreadyFree;   // super counts from 60, so a 62-year-old with enough super is free
-    document.getElementById('yearsOut').textContent = alreadyFree ? 'Already there!' : fmt(y07);
-    document.getElementById('savingsRateOut').textContent = sRate + '%';
-    document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
-    document.getElementById('monthlySavingOut').textContent = fmtM(cycleSaving);
-    document.getElementById('stat2label').textContent = FirePathPersona.copy('freedomNumberLabel', persona);
-    document.getElementById('stat3label').textContent = cycleStatLabel;
-    document.getElementById('resultSub').textContent = `Saving ${fmtM(cycleSaving)} per ${cycleWord} towards your ${FirePathPersona.copy('freedomShort', persona)} number of ${fmtM(fireNum)}.`;
 
-    const gap = fireNum - savings;
-    const weeklyAmt = fmtM(mSav * 12 / 52);
-    let gapText = '';
-    if (alreadyFree) {
-      gapText = savings >= fireNum
-        ? `<strong>You've already hit your freedom number!</strong> Your savings of ${fmtM(savings)} cover your freedom target of ${fmtM(fireNum)}. You're there.`
-        : `<strong>You've already hit your freedom number!</strong> Your savings and super (yours from 60) come to ${fmtM(plan.accessibleNow)}, covering your freedom target of ${fmtM(fireNum)}. You're there.`;
-    } else if (y07 !== null) {
-      const cy = new Date().getFullYear();
-      const mSavPlus = mSav + (50 * 52 / 12);
-      const yPlus = planYears({ monthlySavings: mSavPlus });
-      const currentRate = currentReturns().rate[savingsType] ?? FP_ASSUMPTIONS.bankRealReturn;
-      const yReality = planYears({ outsideReturn: currentRate });
-      const realityNote = debtMove ? debtFirst
-        : savingsType !== 'etfs' && yReality !== null && yReality - y07 > 0.5
-        ? ` Right now your money is ${savingsType === 'cash' ? 'in a bank' : savingsType === 'offset' ? 'in your offset' : 'spread across different places'} — if it was invested at 7%, you could get there <strong>${fmt(yReality - y07)} sooner</strong>.`
-        : savingsType === 'etfs' ? ` Your money is already invested — you're on the right track.` : '';
-      const plusNote = !debtMove && yPlus && y07 && y07 - yPlus > 0.3
-        ? ` Find an extra $50/week on top of that and it moves to <strong>${cy + Math.round(yPlus)}</strong>.`
-        : '';
-      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong>, about 25× what you spend in a year. That's enough to make work optional.${savings > 0 ? ` You currently have <strong>${fmtM(savings)}</strong>, leaving a gap of <strong>${fmtM(gap)}</strong>.` : ''} At <strong>${weeklyAmt}/week</strong> you're on track to get there in <strong>${fmt(y07)}</strong>${plan.phase === 'with-super' ? ', counting your super from 60' : ''}.${realityNote}${plusNote} The article below is a good place to start.`;
-    } else {
-      gapText = `Your freedom number is <strong>${fmtM(fireNum)}</strong>, about 25× what you spend in a year. That's enough to make work optional.<br/><br/>Right now your savings rate is low, which means the timeline is long.${debtFirst} ${debtFirst ? 'After that, every' : 'But every'} extra dollar you save each week shortens that gap — because of compounding. FirePath Pro shows which change would make the biggest difference for you.`;
-    }
-    document.getElementById('whatThisMeansText').innerHTML = gapText;
-    const sqMeaning = document.getElementById('sq-meaning');
-    const sqMeaningStat = document.getElementById('sqMeaningStat');
-    if (sqMeaning) sqMeaning.style.display = 'flex';
-    if (sqMeaningStat) {
-      sqMeaningStat.textContent = alreadyFree
-        ? `You've already hit your number`
-        : `Gap: ${fmtM(gap)}`;
-    }
-
-    buildMovesCard(moveList, alreadyFree || !!(ranked && ranked.situation.alreadyFree));
-    buildRangeCard(fireNum, savings, mSav, null, y07, null, sRate, debtMove ? debt : 0);
-
-    const rec = recommendArticle(moveList);
-    const recCard = document.getElementById('recommendedCard');
-    const recTitle = document.getElementById('recommendedTitle');
-    const recReason = document.getElementById('recommendedReason');
-    const recBtn = document.getElementById('recommendedBtn');
-    if (recCard && recTitle && recReason && recBtn) {
-      recTitle.textContent = rec.title;
-      recReason.textContent = rec.reason;
-      recBtn.onclick = () => { window.location.href = '/learn/' + rec.slug; };
-      recBtn.textContent = 'Read this article →';
-      // The real heading, once the article list arrives (falls back to the name above).
-      fetch('/learn/articles.json').then(r => r.ok ? r.json() : null).then(list => {
-        const a = list && list.find(x => x.slug === rec.slug);
-        if (a && a.heading) recTitle.textContent = a.heading;
-      }).catch(() => {});
-      if (!document.getElementById('browseLabBtn')) {
-        const browseBtn = document.createElement('div');
-        browseBtn.id = 'browseLabBtn';
-        browseBtn.onclick = () => window.location.href = '/learn/';
-        browseBtn.textContent = 'Browse all topics →';
-        browseBtn.style.cssText = 'display:inline-flex;align-items:center;background:white;border:2px solid var(--fire-orange);color:var(--fire-orange);padding:9px 14px;border-radius:var(--radius-pill,50px);font-size:12px;font-weight:500;cursor:pointer;margin-top:8px;';
-        recBtn.parentNode.appendChild(browseBtn);
-      }
-      recCard.style.display = 'flex';
-    }
-    buildNeedleCard(fireNum, savings, mSav, y07, mS);
-    buildWithdrawalCard(savings, mSav, mI, fireNum, mS, y07, age);
-    buildTaxNudge(sRate, moveList);
-    buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07);
-    buildLifeUnlockedCard(fireNum, savings, mSav, y07, age, alreadyFree);
-
-    // Store for cinematic stage
-    _cinYearsText = alreadyFree ? 'Already there!' : fmt(y07);
-    _cinSubText = `Saving ${fmtM(cycleSaving)} per ${cycleWord} towards your freedom number of ${fmtM(fireNum)}.`;
-    _cinFreedomAgeText = (age > 0 && y07 !== null && !alreadyFree)
-      ? `${getPersonaCopy().freedomAgeLabel}: ${plan.freedomAge} — ${fmt(y07)} to go`
-      : '';
-    // Mondays-left opening beat — skipped entirely if already free (nothing to count down)
-    _cinMondaysText = (y07 !== null && !alreadyFree)
-      ? (() => {
-          const mondaysLeft = Math.round((y07 * 365.25) / 7);
-          return `You have <strong style="color:#F4A24A">${mondaysLeft.toLocaleString()}</strong> Mondays to go until work is optional.`;
-        })()
-      : '';
-    // Snapshot for the "Unless…" lever recalculation
-    _cinLever.fireNum = fireNum;
-    _cinLever.savings = savings;
-    _cinLever.mSav = mSav;
-    _cinLever.y07 = y07;
-    _cinLever.age = age;
-    _cinLever.used = false;
-
+    _result = {
+      plan, years: y07, alreadyFree, fireNum, mSav, mS, sRate, age, savings, superBal, pSuper, pAge,
+      mult: retirementSpendMultiplier, cycle: selectedCycle, context, tried: false
+    };
+    buildAnswer(_result);
+    buildTryIt(_result);
+    const shown = buildMovesCard(moveList, alreadyFree || !!(ranked && ranked.situation.alreadyFree), alreadyFree);
+    buildStand(_result);
+    buildNextSteps(_result, moveList, shown);
     showScreen(3);
   }
 
-  // Stored for cinematic reveal
-  let _cinYearsText = '—';
-  let _cinSubText = '';
-  let _cinFreedomAgeText = '';
-  let _cinMondaysText = '';
-  let _cinLever = { fireNum: 0, savings: 0, mSav: 0, y07: null, age: 0, used: false };
-
-  // Persona vocabulary — reuses the SAME persona value set at onboarding Block 1
-  // (beginner / building / fire). No separate toggle — set once, used everywhere.
-  function getPersonaCopy() {
-    return FirePathPersona.config(persona).copy;
+  // "about 3 years", "about a year", "a few months"
+  function aboutYears(y) {
+    if (y < 0.75) return 'a few months';
+    if (y < 1.5) return 'about a year';
+    return `about ${Math.round(y)} years`;
   }
 
-  // Lump-sum compounding check (no further contributions) — used to approximate
-  // whether current savings alone are enough to "coast" to the freedom number.
-  function yearsForLumpSum(goal, current, rate) {
-    if (current >= goal) return 0;
-    if (current <= 0) return null;
-    let bal = current, years = 0;
-    while (bal < goal && years < 100) { bal *= (1 + rate); years++; }
-    return years < 100 ? years : null;
-  }
+  // ── Your answer ──
+  function buildAnswer(r) {
+    const plan = r.plan;
+    const h = document.getElementById('answerHeadline');
+    const why = document.getElementById('answerWhy');
+    const fact = document.getElementById('answerFact');
+    const extra = document.getElementById('answerExtra');
+    document.getElementById('answerRange').hidden = true;
+    extra.hidden = true; extra.innerHTML = '';
+    const num = `<strong>${fmtM(r.fireNum)}</strong>`;
 
-  function buildLifeUnlockedCard(fireNum, savings, mSav, y07, age, isFree) {
-    const card = document.getElementById('lifeUnlockedCard');
-    const sub = document.getElementById('lifeUnlockedSub');
-    const grid = document.getElementById('lifeUnlockedGrid');
-    if (!card || !grid || fireNum <= 0) return;
-
-    const pc = getPersonaCopy();
-    const alreadyFree = isFree != null ? isFree : savings >= fireNum;
-    const yearsToCoast = yearsForLumpSum(fireNum, savings, 0.07);
-    const coastReached = alreadyFree || (yearsToCoast !== null && age > 0 && (age + yearsToCoast) <= 65);
-    const yearsAwayText = (y07 !== null) ? fmt(y07) : null;
-
-    sub.textContent = alreadyFree
-      ? `You've already hit your number. Here's what that means.`
-      : `What you get back, and when.`;
-
-    // Shared outline icon set — same visual family for every item, no emoji
-    const ICONS = {
-      beach: '<path d="M4 20c3-1 13-1 16 0"/><path d="M12 20V9"/><path d="M4 9c0-4.4 3.6-8 8-8s8 3.6 8 8H4z"/>',
-      heart: '<path d="M12 20.5S3 14.8 3 8.9C3 5.6 5.5 3 8.6 3c1.8 0 3.4.9 4.4 2.3C14 3.9 15.6 3 17.4 3 20.5 3 23 5.6 23 8.9c0 5.9-9 11.6-9 11.6z"/>',
-      family: '<circle cx="8.5" cy="7.5" r="3"/><path d="M2.5 20c0-3.6 2.7-6.5 6-6.5s6 2.9 6 6.5"/><circle cx="17" cy="9" r="2.2"/><path d="M15 20c.2-2.6 1.9-4.6 4-4.6"/>',
-      guitar: '<path d="M9 17a3 3 0 1 1-3-3"/><path d="M6 14V4l11-2v11"/><path d="M17 15a3 3 0 1 1-3-3"/>',
-      globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.8 2.6 4.3 5.7 4.3 9s-1.5 6.4-4.3 9c-2.8-2.6-4.3-5.7-4.3-9s1.5-6.4 4.3-9z"/>'
-    };
-
-    const items = [
-      { icon: ICONS.beach, label: 'Beach mornings', unlocked: coastReached, sub: coastReached ? `you’re there` : `at the “${pc.coastTerm}” stage` },
-      { icon: ICONS.heart, label: 'Less money stress', unlocked: coastReached, sub: coastReached ? `you’re there` : `at the “${pc.coastTerm}” stage` },
-      { icon: ICONS.family, label: 'Time with family', unlocked: true, sub: coastReached ? `growing since you reached “${pc.coastTerm}”` : 'growing as you save' },
-      { icon: ICONS.guitar, label: 'Passion projects', unlocked: alreadyFree, sub: alreadyFree ? `you’re there` : (yearsAwayText ? `${yearsAwayText} away, at the “${pc.freedomTerm}” stage` : `at the “${pc.freedomTerm}” stage`) },
-      { icon: ICONS.globe, label: 'Travel flexibility', unlocked: alreadyFree, sub: alreadyFree ? `you’re there` : (yearsAwayText ? `${yearsAwayText} away, at the “${pc.freedomTerm}” stage` : `at the “${pc.freedomTerm}” stage`) }
-    ];
-
-    grid.innerHTML = items.map(it => `
-      <div style="background:${it.unlocked ? '#FFF7F3' : 'var(--warm-cream)'};border:1px solid ${it.unlocked ? 'rgba(244,98,42,0.25)' : 'var(--border)'};border-radius:12px;padding:14px;opacity:${it.unlocked ? '1' : '0.6'};">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${it.unlocked ? 'var(--fire-orange)' : 'var(--soft-grey)'}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;display:block;">${it.icon}</svg>
-        <div style="font-family:'Playfair Display',serif;font-size:14px;color:var(--warm-brown);margin-bottom:4px;line-height:1.3;">${it.label}</div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:${it.unlocked ? '#2E7D32' : 'var(--soft-grey)'};">${it.unlocked ? 'Yours' : ''}</div>
-        <div style="font-size:11px;color:var(--soft-grey);font-weight:300;margin-top:2px;">${it.sub}</div>
-      </div>
-    `).join('');
-
-    card.style.display = 'block';
-  }
-
-  // "Unless…" lever — reuses the same +$50/week assumption already used in the Needle card,
-  // recomputed live against the just-calculated numbers, inside the cinematic stage.
-  function cinematicApplyLever() {
-    if (_cinLever.used || _cinLever.y07 === null) return;
-    const mSavPlus = _cinLever.mSav + (50 * 52 / 12);
-    const yPlus = planYears({ monthlySavings: mSavPlus });
-    if (yPlus === null) return;
-
-    const numberEl = document.getElementById('cin-number');
-    const resultEl = document.getElementById('cin-lever-result');
-    const btn = document.getElementById('cin-lever-btn');
-    const freedomAgeEl = document.getElementById('cin-freedomage');
-    const diffYears = Math.round((_cinLever.y07 - yPlus) * 10) / 10;
-
-    numberEl.style.transition = 'opacity 0.3s ease';
-    numberEl.style.opacity = '0.3';
-    setTimeout(() => {
-      numberEl.textContent = fmt(yPlus);
-      numberEl.style.opacity = '1';
-    }, 300);
-
-    // Freedom Age must move with the number, not stay frozen at the old figure
-    if (freedomAgeEl && _cinLever.age > 0) {
-      const newFreedomAge = Math.round(_cinLever.age + yPlus);
-      freedomAgeEl.style.transition = 'opacity 0.3s ease';
-      freedomAgeEl.style.opacity = '0.3';
-      setTimeout(() => {
-        freedomAgeEl.textContent = `${getPersonaCopy().freedomAgeLabel}: ${newFreedomAge} — ${fmt(yPlus)} to go`;
-        freedomAgeEl.style.opacity = '1';
-      }, 300);
+    if (r.alreadyFree) {
+      h.textContent = 'You may already have enough for work to be optional';
+      why.innerHTML = r.savings >= r.fireNum
+        ? `Your savings of <strong>${fmtM(r.savings)}</strong> cover your freedom number of ${num}: about 25 times what you’d spend in a year.`
+        : `Your savings and super come to <strong>${fmtM(plan.accessibleNow)}</strong>, which covers your freedom number of ${num}: about 25 times what you’d spend in a year.`;
+      fact.textContent = 'The next thing to check is whether it lasts, including a bad run in the markets early on.';
+      extra.innerHTML = '<a class="text-link" href="/withdrawal">Check it lasts in the Withdrawal planner →</a>';
+      extra.hidden = false;
+      return;
     }
 
-    if (resultEl) {
-      resultEl.textContent = diffYears > 0
-        ? `− ${fmt(diffYears)}. That's real time back.`
-        : `Locked in.`;
+    // Not saving anything, or more than MAX_YEARS away: an honest, kind answer, not a date.
+    r.dateShown = false;
+    if (!inReach(plan) || !(r.mSav > 0)) {
+      h.textContent = 'At these numbers, work being optional is a long way off';
+      why.innerHTML = r.mSav > 0
+        ? `Your freedom number is ${num}: about 25 times what you’d spend in a year. At what you’re saving now, it would take ${plan.reachable ? `about ${Math.round(plan.years)} years` : 'more than 100 years'} to get there.`
+        : `Your freedom number is ${num}: about 25 times what you’d spend in a year. You’re not putting anything aside from your pay yet, so not much is growing towards it.`
+          + (inReach(plan) && plan.freedomAge != null ? ` Your super keeps growing with your employer’s contributions, but on its own it wouldn’t get there until about age ${plan.freedomAge}.` : '');
+      fact.textContent = 'That’s a common place to start, and small changes add up. Try the sliders below to see what a bit more saved, or a bit less spent, would do.';
+      return;
     }
-    if (btn) {
-      btn.textContent = 'Saved for good';
-      btn.disabled = true;
-      btn.style.opacity = '0.6';
-      btn.style.cursor = 'default';
-    }
-    _cinLever.used = true;
 
-    // Earned share card — only if the change was actually meaningful
-    if (diffYears > 0.1) {
-      const diffDays = Math.round(diffYears * 365.25);
-      _cinShockDaysText = `${diffDays.toLocaleString()} days`;
-      const shockWrap = document.getElementById('cin-shock-wrap');
-      const shockDaysEl = document.getElementById('cin-shock-days');
-      if (shockDaysEl) shockDaysEl.textContent = _cinShockDaysText;
-      if (shockWrap) {
-        setTimeout(() => {
-          shockWrap.style.opacity = '1';
-          shockWrap.style.maxHeight = '200px';
-        }, 700);
-      }
-    }
+    r.dateShown = true;
+    h.innerHTML = `Work could be optional around <strong>${plan.freedomYear}</strong>, at age <strong>${plan.freedomAge}</strong>`;
+    const parts = [`Your freedom number is ${num}: about 25 times what you’d spend in a year.`];
+    const line = superLine(plan);
+    if (line) parts.push(line);
+    why.innerHTML = parts.join(' ');
+    fact.textContent = r.sRate > 0 ? `You’re saving ${r.sRate}% of your take-home pay.` : 'You’re not putting anything aside from your pay yet.';
+    buildRange(plan);
   }
 
-  // Stored so the share action can read the current earned figure
-  let _cinShockDaysText = '';
+  // How super shapes the date (bridge-to-60 rule in freedomPlan).
+  function superLine(plan) {
+    if (plan.phase !== 'with-super') return '';
+    if (plan.bridgeYears > 0) return `Your savings would carry you for ${aboutYears(plan.bridgeYears)} until your super unlocks at 60, then your super takes over.`;
+    if (plan.freedomAge != null && plan.freedomAge >= 60) return 'From 60 your super joins your savings.';
+    return 'This counts your savings, plus super from 60.';
+  }
 
-  function cinematicShareResult() {
-    const text = `I just worked out that saving a bit more could make work optional ${_cinShockDaysText} sooner. Check your own number at firepath.pro`;
-    if (navigator.share) {
-      navigator.share({ text, url: 'https://www.firepath.pro' }).catch(() => {});
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('cin-share-btn');
-        if (btn) {
-          const original = btn.textContent;
-          btn.textContent = 'Copied!';
-          setTimeout(() => { btn.textContent = original; }, 1800);
-        }
-      });
+  // The realistic spread: 2,000 possible market outcomes on the same plan (freedomRange).
+  // 10th to 90th percentile, with the headline year marked. Text carries the meaning; the bar is decoration.
+  function buildRange(plan) {
+    const el = document.getElementById('answerRange');
+    if (typeof FirePathEngine === 'undefined' || !FirePathEngine.freedomRange || !_planInputs) return;
+    const mc = FirePathEngine.freedomRange(_planInputs);
+    if (!mc || mc.early === null || plan.freedomYear == null) return;
+    const now = new Date(), yr = m => new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear();
+    const y1 = yr(mc.early), cap = yr(50 * 12), y2 = mc.late === null ? null : yr(mc.late), head = plan.freedomYear;
+    let lo = Math.min(y1, head), hi = Math.max(y2 === null ? cap : y2, head);
+    if (hi - lo < 2) { lo -= 1; hi += 1; }
+    const pos = y => 8 + (y - lo) / (hi - lo) * 84;   // the band sits inside 8%–92% of the track
+    const band = document.getElementById('rangeBand'), mark = document.getElementById('rangeMark');
+    band.style.left = pos(y1) + '%';
+    band.style.width = y2 === null ? (100 - pos(y1)) + '%' : (pos(y2) - pos(y1)) + '%';
+    band.classList.toggle('open-end', y2 === null);
+    mark.style.left = pos(head) + '%';
+    document.getElementById('rangeStart').textContent = y1;
+    document.getElementById('rangeEnd').textContent = y2 === null ? `after ${cap}` : y2;
+    const summary = y2 === null ? `Most likely from ${y1}, and in some outcomes after ${cap}.`
+      : y1 === y2 ? `Most likely in ${y1}.` : `Most likely between ${y1} and ${y2}.`;
+    document.getElementById('rangeText').textContent = `${summary} Markets go up and down, so we ran 2,000 possible market outcomes. 8 in 10 land in this range.`;
+    el.hidden = false;
+  }
+
+  // ── Try it: two sliders, the same plan rerun live ──
+  function tryConfig(cycle) {
+    const perWeek = cycle === 'weekly' ? 1 : cycle === 'fortnightly' ? 2 : 52 / 12;
+    const step = cycle === 'weekly' ? 10 : cycle === 'fortnightly' ? 20 : 50;
+    return { perWeek, step, word: cycleWordOf(cycle) };
+  }
+  function buildTryIt(r) {
+    const card = document.getElementById('tryCard');
+    if (r.alreadyFree) { card.hidden = true; return; }
+    card.hidden = false;
+    const cfg = tryConfig(r.cycle);
+    const save = document.getElementById('trySave'), spend = document.getElementById('trySpend');
+    save.step = cfg.step; save.max = 1000; save.value = 0;
+    // Up to about $300 a week less, but never more than 90% of what they spend now.
+    const spendPerCycle = r.mS * 12 / (r.cycle === 'weekly' ? 52 : r.cycle === 'fortnightly' ? 26 : 12);
+    const spendMax = Math.floor(Math.min(300 * cfg.perWeek, spendPerCycle * 0.9) / cfg.step) * cfg.step;
+    spend.step = cfg.step; spend.max = Math.max(cfg.step, spendMax); spend.value = 0;
+    spend.disabled = spendMax < cfg.step;
+    document.getElementById('trySpendRow').hidden = spend.disabled;
+    save.setAttribute('aria-describedby', 'tryResult');
+    spend.setAttribute('aria-describedby', 'tryResult');
+    tryRender();
+  }
+  let _tryFrame = 0;
+  function tryQueue() {
+    if (_result && !_result.tried) { _result.tried = true; gtag('event', 'try_it', { 'event_category': 'engagement', 'event_label': 'result_sliders' }); }
+    if (_tryFrame) return;
+    _tryFrame = requestAnimationFrame(() => { _tryFrame = 0; tryRender(); });
+  }
+  function tryRender() {
+    const r = _result;
+    if (!r) return;
+    const cfg = tryConfig(r.cycle);
+    const save = document.getElementById('trySave'), spend = document.getElementById('trySpend');
+    const add = Number(save.value) || 0, cut = spend.disabled ? 0 : Number(spend.value) || 0;
+    [save, spend].forEach(el => el.style.setProperty('--fill', (Number(el.max) > 0 ? Number(el.value) / Number(el.max) * 100 : 0) + '%'));
+    document.getElementById('trySaveOut').textContent = `+${dollars(add)} a ${cfg.word}`;
+    document.getElementById('trySpendOut').textContent = `${dollars(cut)} a ${cfg.word} less`;
+    save.setAttribute('aria-valuetext', `${dollars(add)} a ${cfg.word} more`);
+    spend.setAttribute('aria-valuetext', `${dollars(cut)} a ${cfg.word} less`);
+    const out = document.getElementById('tryResult');
+    if (!add && !cut) { out.innerHTML = '<span class="try-same">Move a slider to see how your date changes.</span>'; return; }
+    const addM = toMonthly(add, r.cycle), cutM = toMonthly(cut, r.cycle);
+    // Spending less works twice: more to save, and a smaller freedom number (25 times spending).
+    const p = planFor({ monthlySavings: r.mSav + addM + cutM, target: Math.max(1, r.fireNum - cutM * 12 * 25 * r.mult) });
+    if (!p) { out.innerHTML = '<span class="try-same">Those numbers don’t add up. Try a smaller change.</span>'; return; }
+    if (p.alreadyFree) { out.innerHTML = '<span aria-hidden="true">→</span><span class="sr-only">With these changes:</span> <strong>you’d have enough now</strong>'; return; }
+    if (!inReach(p)) { out.innerHTML = '<span aria-hidden="true">→</span><span class="sr-only">With these changes:</span> still a long way off. <span class="try-same">Try a bigger change.</span>'; return; }
+    let diff;
+    if (r.dateShown) {
+      const months = r.plan.months - p.months;
+      const yrs = Math.round(months / 12);
+      diff = months <= 0 ? '<span class="try-same">(same date: super from 60 still sets it)</span>'
+        : yrs >= 1 ? `<span class="try-diff">(${yrs} year${yrs === 1 ? '' : 's'} sooner)</span>`
+        : `<span class="try-diff">(${months} month${months === 1 ? '' : 's'} sooner)</span>`;
+      if (months <= 0 && r.plan.phase !== 'with-super') diff = '<span class="try-same">(no change to your date)</span>';
+    } else {
+      diff = '';   // no date in the answer above to compare with
     }
+    out.innerHTML = `<span aria-hidden="true">→</span><span class="sr-only">With these changes:</span> <strong>${p.freedomYear}</strong> · age ${p.freedomAge} ${diff}`;
+  }
+  function tryReset() {
+    document.getElementById('trySave').value = 0;
+    document.getElementById('trySpend').value = 0;
+    tryRender();
   }
 
-  function showScreen(n) {
-    if (n === 3) {
-      document.getElementById('onboarding').style.display = 'none';
-      document.getElementById('screen3').style.display = 'block';
-      // Reset cards to hidden state for fresh reveal
-      document.querySelectorAll('.cin-card').forEach(c => c.classList.remove('revealed'));
-      document.getElementById('results-body').style.display = 'none';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      // Run cinematic sequence
-      runCinematicReveal(_cinYearsText, _cinSubText);
-    } else if (n === 2) {
-      document.getElementById('screen3').style.display = 'none';
-      document.getElementById('onboarding').style.display = 'flex';
-      obGoTo(4);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (n === 1) {
-      document.getElementById('screen3').style.display = 'none';
-      document.getElementById('onboarding').style.display = 'flex';
-      obGoTo(1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-
-  function buildProBanner(age, debt, superBal, savings, mSav, mI, fireNum, sRate, context, y07) {
-    const el = document.getElementById('proUpgradeBanner');
-    if (!el) return;
-    const currentYear = new Date().getFullYear();
-    const freedomYear = y07 !== null ? currentYear + Math.round(y07) : null;
-    const hooks = [];
-    if (debt > 0) hooks.push(`You have ${fmtM(debt)} in debt. Pro's AI weighs paying it down against investing, using your own numbers.`);
-    if (superBal > 0 && age > 0 && age < 60) hooks.push(`You can get to your super in ${60 - age} years. Pro shows your super year by year, and what salary sacrifice would add.`);
-    if (sRate < 15) hooks.push(`Your savings rate is ${sRate}%. Pro's AI looks for ways to lift that, based on your income and goals.`);
-    if (context && context.length > 10) hooks.push(`You shared something about your situation. Pro's AI reads that and writes its tip around it.`);
-    if (freedomYear && freedomYear > currentYear + 30) hooks.push(`That's a long way off. Pro shows the odds your money lasts to 95, with the Age Pension and part-time work counted in.`);
-    if (hooks.length === 0) hooks.push(`Pro's AI looks at your whole situation and gives you a tip that fits it.`);
-    const topHooks = hooks.slice(0, 2);
-    el.innerHTML = `<div style="margin-bottom:16px;background:linear-gradient(135deg,#3D2B1F,#5C3D2E);border-radius:20px;padding:28px 24px;color:white;">
-      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;margin-bottom:8px;line-height:1.3;">Want to go further?</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.65);font-weight:300;line-height:1.6;margin-bottom:20px;">Pro saves your plan, adds super and tax, and lets you ask questions about your own numbers.</div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">${topHooks.map(h => `<div style="background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;font-size:13px;color:rgba(255,255,255,0.85);line-height:1.6;font-weight:300;">${h}</div>`).join('')}</div>
-      <div style="background:rgba(255,255,255,0.06);border-radius:12px;padding:16px;margin-bottom:12px;">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:12px;">What you get with Pro</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">${[
-          ['icon-bookmark', 'Your plan, saved', 'Filled in everywhere — no retyping'],
-          ['icon-insight', 'An AI insight about you', 'Built from your real numbers'],
-          ['icon-super', 'Your full plan, with super', 'Including your partner\'s super'],
-          ['icon-money', 'Tax, worked out', 'Take-home, HELP, salary sacrifice'],
-          ['icon-secure', 'Odds it lasts to 95', 'With the Age Pension and part-time work'],
-          ['icon-momentum', 'Your progress dashboard', 'Net worth and progress over time'],
-        ].map(([iconId, title, desc]) => `<div style="display:flex;align-items:flex-start;gap:8px;">
-          <div style="flex-shrink:0;width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;margin-top:1px;">${
-            iconId === 'flame'
-              ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="var(--fire-amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>'
-              : `<svg width="14" height="14" style="color:var(--fire-amber);"><use href="/icons.svg#${iconId}"/></svg>`
-          }</div>
-          <div><div style="font-size:12.5px;font-weight:500;color:rgba(255,255,255,0.9);line-height:1.3;">${title}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:300;line-height:1.4;margin-top:1px;">${desc}</div></div>
-        </div>`).join('')}</div>
-      </div>
-      <div onclick="gtag('event','upgrade_click',{'event_category':'conversion','event_label':'free_to_pro'});window.location.href='/upgrade'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:var(--radius-pill,50px);padding:14px 24px;cursor:pointer;font-size:14px;font-weight:500;text-align:center;">Start your 7-day free trial →</div>
-      <div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,0.35);">Card needed to start. Then $6/month — you won't be charged until day 8. Cancel anytime.</div>
-    </div>`;
-  }
-
-  // The article for the first option on the moves card (js/moves.js) that has one,
-  // or the next move down that has one. Titles here are a fallback until
-  // /learn/articles.json gives the real heading.
+  // ── What could move your date ──
+  // The article for the first option the moves card doesn't already link, or one that fits
+  // where they are. Titles here are a fallback until /learn/articles.json gives the real heading.
   const ARTICLE_NAMES = {
     'debt-vs-invest': 'Should I Pay Off Debt or Invest First?',
     'what-is-an-index-fund': 'What is an index fund and why the FIRE community loves it',
@@ -1191,39 +849,61 @@
     'spouse-contribution-offset': 'Spouse contribution tax offset',
     'what-is-fire-australia': 'What is FIRE and is it realistic for Australians?'
   };
-  // "What could move your date" — up to three options from js/moves.js for exactly these
-  // numbers, ordered by modelled effect. Worded as options, never as instructions.
-  // Free and Pro tools both link straight through (Pro pages handle access themselves).
-  // Someone already free gets a positive line instead of the stress-test move it repeats.
-  function buildMovesCard(moveList, isFree) {
+  const ARTICLE_REASONS = {
+    'four-percent-rule-australia': 'Where the 25 times rule comes from, and how it holds up here.',
+    'before-super-access': 'How people cover the years before they can get to their super.',
+    'is-my-super-enough': 'How far super goes, and where the Age Pension may help.',
+    'how-much-is-enough': 'Where your freedom number comes from, and how to make it fit your life.',
+    'what-is-fire-australia': 'New to all this? Start here.'
+  };
+
+  // A short effect for the right-hand side: years when the maths gives years, else a tag.
+  function moveEffect(m) {
+    const y = m.impact && m.impact.years;
+    if (y > 0) {
+      const t = y >= 1 ? `−${Math.round(y * 10) / 10} yrs` : `−${Math.max(1, Math.round(y * 12))} mths`;
+      return `<span class="move-effect" title="${esc(m.impact.text)}">${t}<span class="sr-only"> sooner</span></span>`;
+    }
+    const d = m.impact && m.impact.dollars;
+    const TAGS = { 'clear-debt': 'saves interest', 'build-buffer': 'safety', 'start-saving': 'first step', 'offset-vs-invest': 'compare',
+      'work-less': 'options', 'bridge-to-60': 'before 60', 'stress-test': 'check', 'invest-idle-cash': 'growth' };
+    const tag = m.id === 'salary-sacrifice' && d > 0 ? `~${fmtM(d)} less tax`
+      : m.id === 'age-pension' && d > 0 ? `~${fmtM(d)}/yr`
+      : m.id === 'spouse-contribution' ? 'up to $540'
+      : TAGS[m.id] || (d > 0 ? fmtM(d) : '');
+    return tag ? `<span class="move-effect tag">${esc(tag)}</span>` : '';
+  }
+
+  // Up to three options from js/moves.js for exactly these numbers, ordered by modelled effect.
+  // Worded as options, never as instructions. Returns the moves shown.
+  function buildMovesCard(moveList, isFree, answerLinksWithdrawal) {
     const card = document.getElementById('movesCard');
     const list = document.getElementById('movesList');
-    if (!card || !list) return;
-    if (!window.FirePathMoves) { card.style.display = 'none'; return; }
-    const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    if (!card || !list) return [];
+    if (!window.FirePathMoves) { card.style.display = 'none'; return []; }
     const moves = (moveList || []).filter(m => !(isFree && m.id === 'stress-test')).slice(0, 3);
     const onTrack = isFree || moves.length === 0;
-    // Tools that live on this page open the matching result tile instead of reloading it.
-    const HERE = { 'invest-idle-cash': 'range', 'spend-less': 'needle' };
+    // Saving more and spending less are the Try it sliders on this page.
+    const HERE = { 'save-more': 'trySave', 'spend-less': 'trySpend' };
     list.innerHTML = moves.map((m, i) => {
+      const pro = m.plan === 'Pro' ? '<span class="move-pro">Pro</span>' : '';
       let model = '';
-      if (m.tool && m.tool.href) {
-        const pro = m.plan === 'Pro' ? ' <span class="move-pro">Pro</span>' : '';
-        model = (m.tool.href === '/firepath' || m.tool.href === '/firepath.html')
-          ? `<button type="button" class="move-btn primary" onclick="openBentoModal('${HERE[m.id] || 'needle'}')">Model it →</button>${pro}`
-          : `<a class="move-btn primary" href="${esc(m.tool.href)}" title="${esc(m.tool.label)}">Model it →</a>${pro}`;
-      }
-      const learn = m.article ? `<a class="move-btn secondary" href="/learn/${esc(m.article)}">Understand it</a>` : '';
-      return `<li class="move-item" data-move="${esc(m.id)}"><span class="move-num">${i + 1}</span><div class="move-body">`
-        + `<div class="move-title">${esc(m.title)}</div>`
-        + (m.impact && m.impact.text ? `<div class="move-impact">${esc(m.impact.text)}</div>` : '')
-        + (m.why ? `<div class="move-why">${esc(m.why)}</div>` : '')
-        + (model || learn ? `<div class="move-actions">${model}${learn}</div>` : '')
+      if (HERE[m.id] && !_result.alreadyFree) model = `<button type="button" class="text-link" onclick="tryFocus('${HERE[m.id]}')">Try it above ↑</button>`;
+      else if (m.tool && m.tool.href && m.tool.href !== '/firepath' && m.tool.href !== '/firepath.html') model = `<a class="text-link" href="${esc(m.tool.href)}" title="${esc(m.tool.label)}">Model it →</a>`;
+      const learn = m.article ? `<a class="text-link" href="/learn/${esc(m.article)}">Read</a>` : '';
+      return `<li class="move-item" data-move="${esc(m.id)}"><span class="move-num" aria-hidden="true">${i + 1}</span><div class="move-body">`
+        + `<div class="move-head"><span class="move-title">${esc(m.title)}${pro}</span>${moveEffect(m)}</div>`
+        + (m.why ? `<p class="move-why">${esc(m.why)}</p>` : '')
+        + (model || learn ? `<p class="move-links">${model}${learn}</p>` : '')
         + `</div></li>`;
     }).join('');
     document.getElementById('movesTitle').textContent = moves.length ? 'What could move your date' : 'Options worth knowing about';
     const sort = document.getElementById('movesSort');
     if (sort) sort.style.display = moves.length > 1 ? 'block' : 'none';
+    const onTrackText = document.getElementById('movesOnTrackText');
+    onTrackText.innerHTML = isFree
+      ? (answerLinksWithdrawal ? 'You’re there, so none of these are about getting there sooner.' : 'You’re on track. <a class="text-link" href="/withdrawal">See if your money will last →</a>')
+      : 'Nothing stands out from the numbers you entered. Keep doing what you’re doing.';
     document.getElementById('movesOnTrack').style.display = onTrack ? 'flex' : 'none';
     card.style.display = 'block';
     const saved = document.getElementById('movesSaved');
@@ -1232,149 +912,109 @@
       saved.style.display = FirePathMoves.recall() ? 'block' : 'none';
       forget.onclick = e => { if (e && e.preventDefault) e.preventDefault(); FirePathMoves.forget(); saved.style.display = 'none'; };
     }
+    return moves;
   }
-
-  function recommendArticle(moveList) {
-    const m = (moveList || []).find(x => x.article);
-    const slug = m ? m.article : 'what-is-fire-australia';
-    const reason = !m ? 'New to all this? Start here.'
-      : m.id === 'clear-debt' ? 'Debt that costs more than investing reliably earns: this explains the trade-off.'
-      : `About one of the options above, ${m.title.charAt(0).toLowerCase() + m.title.slice(1)}: how it works.`;
-    return { slug, title: ARTICLE_NAMES[slug] || slug.replace(/-/g, ' '), reason };
-  }
-
-  // A realistic spread for the freedom date: 2,000 random-market futures (js/financial-engine.js).
-  // Returns an HTML block, or '' when there's nothing to show. Called once per calculation.
-  // Same plan as the headline (super from 60, after-tax returns), so the range wraps the headline date.
-  function marketRangeHTML(fireNum,savings,mSav){
-    if(typeof FirePathEngine==='undefined'||!FirePathEngine.freedomRange||!_planInputs)return '';
-    const mc=FirePathEngine.freedomRange(_planInputs);
-    if(!mc)return '';
-    const cy=new Date().getFullYear(),yr=m=>cy+Math.round(m/12);
-    const missPct=Math.round((1-mc.reachedShare)*100);
-    let line;
-    if(mc.early===null)line=`At this rate it takes more than 50 years in most market outcomes.`;
-    else if(mc.likely===null)line=`Could be as early as <strong>${yr(mc.early)}</strong>, but in most market outcomes it takes more than 50 years.`;
-    else line=`8 in 10 possible market outcomes land between <strong>${yr(mc.early)}</strong> and <strong>${mc.late===null?'50+ years away':yr(mc.late)}</strong>.`;
-    const miss=missPct>=10&&mc.likely!==null?` In ${Math.round(missPct/10)} in 10 outcomes it takes more than 50 years.`:missPct>0&&mc.likely!==null?` In ${missPct} in 100 outcomes it takes more than 50 years.`:'';
-    return `<div class="range-mc" style="margin-top:12px;padding:12px 14px;background:var(--surface-2);border-radius:10px;font-size:13px;line-height:1.6;color:var(--ink);"><div style="font-weight:600;margin-bottom:4px;">When markets are bumpy</div><div style="color:var(--ink-2);margin-bottom:6px;">Markets don't return 7% every year. We ran 2,000 possible market outcomes to show the realistic spread.</div><div>${line}${miss}</div></div>`;
-  }
-  function buildRangeCard(fireNum, savings, mSav, y05, y07, y10, sRate, debtFirst) {
-    const el = document.getElementById('rangeCard');
-    const rows = document.getElementById('rangeRows');
-    if (!el || !rows) return;
-    if (typeof FP_ASSUMPTIONS === 'undefined' || FP_ASSUMPTIONS.bankRealReturn == null) return;   // real returns can be 0 or negative
-    const cy = new Date().getFullYear();
-    const { rate: rateMap, note: noteMap } = currentReturns();
-    const labelMap = { cash: 'Your money in the bank', etfs: 'Your money in ETFs/shares', offset: 'Your money in offset', mix: 'Your current mix' };
-    const currentRate = rateMap[savingsType] ?? FP_ASSUMPTIONS.bankRealReturn;
-    const yCurrentReality = planYears({ outsideReturn: currentRate });   // same plan, money earning what it earns today
-    const fmtReality = yearLabel(yCurrentReality, cy);
-    const fmt7 = yearLabel(y07, cy);
-    const diffReality = yCurrentReality !== null && y07 !== null ? Math.round(yCurrentReality - y07) : null;
-    const extraLabel = sRate === 0 ? 'if you started saving $50/week' : 'if you found an extra $50/week';
-    const mSavPlus = mSav + (50 * 52 / 12);
-    const yPlus = planYears({ monthlySavings: mSavPlus });
-    const fmtPlus = yearLabel(yPlus, cy);
-    const diffPlus = y07 !== null && yPlus !== null ? Math.round(y07 - yPlus) : null;
-    const alreadyInvested = savingsType === 'etfs';
-    rows.innerHTML = !alreadyInvested ? `
-      <div class="range-row"><span class="range-label"><strong>${labelMap[savingsType]}</strong><br/><span style="font-size:11px">${noteMap[savingsType]}</span></span><span class="range-value conservative">${fmtReality}</span></div>
-      <div class="range-row base"><span class="range-label"><strong>If your money was invested</strong><br/><span style="font-size:11px">(7% a year after inflation, less tax)</span></span><span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffReality}yr sooner)</span>` : ''}</span></div>
-      <div class="range-row"><span class="range-label"><strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>` : `
-      <div class="range-row base"><span class="range-label"><strong>Already investing at 7%</strong><br/><span style="font-size:11px">You're on the right track</span></span><span class="range-value base">${fmt7}</span></div>
-      <div class="range-row"><span class="range-label"><strong>Invested</strong> + <strong>${extraLabel}</strong></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span style="font-size:11px;font-weight:300;color:var(--soft-grey)">(${diffPlus}yr sooner)</span>` : ''}</span></div>`;
-    // High-interest debt comes before investing: lead with that, and don't sell the
-    // invested scenario as "sooner" until it's cleared.
-    if (debtFirst > 0) {
-      rows.innerHTML = `<div class="range-row base"><span class="range-label"><strong>Clear your ${fmtM(debtFirst)} debt first</strong><br/><span style="font-size:11px">Paying it off saves 15–20% a year in interest, guaranteed</span></span><span class="range-value base">First</span></div>`
-        + rows.innerHTML.replace(/ <span style="font-size:11px;font-weight:300;color:var\(--soft-grey\)">\(\d+yr sooner\)<\/span>/g, '');
-    }
-    rows.innerHTML += marketRangeHTML(fireNum, savings, mSav);
-    el.style.display = 'block';
-    const sqRange = document.getElementById('sq-range');
-    const sqRangeStat = document.getElementById('sqRangeStat');
-    if (sqRange) sqRange.style.display = 'flex';
-    if (sqRangeStat) sqRangeStat.textContent = debtFirst > 0 ? 'Clear your debt first' : diffPlus && diffPlus > 0 ? `Up to ${diffPlus}yr sooner` : `See your 3 scenarios`;
-  }
-
-  function buildNeedleCard(fireNum, savings, mSav, y07, mSpend) {
-    const el = document.getElementById('needleCard');
-    if (!el || !y07) return;
-    const cy = new Date().getFullYear();
-    const base = cy + Math.round(y07);
-    const levers = [{ label: 'Save an extra $50/week', mSavNew: mSav + (50*52/12) },{ label: 'Save an extra $100/week', mSavNew: mSav + (100*52/12) },{ label: 'Save an extra $200/week', mSavNew: mSav + (200*52/12) }];
-    const leverRows = levers.map(l => { const y = planYears({ monthlySavings: l.mSavNew }); const diff = y !== null ? Math.round(y07 - y) : 0; return `<div class="needle-row"><span class="needle-label">${l.label}</span><span class="needle-result better">${yearLabel(y, cy)}${diff > 0 ? ` <span style="font-size:11px;font-weight:400">(${diff}yr sooner)</span>` : ''}</span></div>`; }).join('');
-    const headwinds = [{ label: 'Spending up 15%', mult: 1.15 },{ label: 'Spending up 30%', mult: 1.30 },{ label: 'Spending up 50%', mult: 1.50 }];
-    // Spending more raises the number AND comes straight out of what you save each month.
-    const headwindRows = headwinds.map(h => { const newFireNum = fireNum * h.mult; const newMSav = Math.max(0, mSav - (h.mult - 1) * mSpend); const y = planYears({ target: newFireNum, monthlySavings: newMSav }); const diff = y !== null ? Math.round(y - y07) : 0; return `<div class="needle-row"><span class="needle-label">${h.label}</span><span class="needle-result worse">${yearLabel(y, cy)}${diff > 0 ? ` <span style="font-size:11px;font-weight:400">(+${diff}yrs)</span>` : ''}</span></div>`; }).join('');
-    el.innerHTML = `<div class="needle-tabs">
-        <div class="needle-tab active" onclick="switchNeedleTab('forward',this)">What moves it forward</div>
-        <div class="needle-tab" onclick="switchNeedleTab('back',this)">What pushes it back</div>
-      </div>
-      <div class="needle-panel active" id="needle-forward">${leverRows}<div class="needle-pro-nudge"><strong>Want to test a pay rise or a lump sum?</strong> <a href="hearmeout.html" style="color:var(--fire-orange);font-weight:500;text-decoration:none;">Open What if…? — free, no account needed →</a></div></div>
-      <div class="needle-panel" id="needle-back">${headwindRows}<div class="needle-pro-nudge"><strong>Pro builds your full plan</strong>, with your super, debt and income counted in and saved for next time. <a href="/upgrade" style="color:var(--fire-orange);font-weight:500;text-decoration:none;">Start your 7-day free trial →</a></div></div>`;
-
-    const sqNeedle = document.getElementById('sq-needle');
-    const sqNeedleStat = document.getElementById('sqNeedleStat');
-    if (sqNeedle) sqNeedle.style.display = 'flex';
-    if (sqNeedleStat) sqNeedleStat.textContent = `Base year: ${base}`;
-  }
-
-  function switchNeedleTab(tab, btn) {
-    document.querySelectorAll('.needle-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.needle-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('needle-' + tab).classList.add('active');
-  }
-
-  function toggleRate(header) {
-    const body = header.nextElementSibling;
-    const chevron = header.querySelector('.chevron');
-    body.classList.toggle('open');
-    chevron.classList.toggle('open');
-  }
-
-  function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, age) {
-    const el = document.getElementById('withdrawalCard');
-    const sqWithdrawal = document.getElementById('sq-withdrawal');
+  function tryFocus(id) {
+    const el = document.getElementById(id);
     if (!el) return;
-    const freedomAge = age ? Math.round(age + (fy || 0)) : null;
-    const isLongRoad = fy === null || (freedomAge && freedomAge > 65) || fy > 40;
-    if (!isLongRoad || savings <= 0) {
-      if (sqWithdrawal) sqWithdrawal.style.display = 'none';
-      return;
+    document.getElementById('tryCard').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    el.focus({ preventScroll: true });
+  }
+
+  // ── Where you stand ──
+  function buildStand(r) {
+    const have = r.plan.accessibleNow || 0;
+    const pct = r.fireNum > 0 ? Math.min(100, have / r.fireNum * 100) : 0;
+    const pctText = pct >= 100 ? '100' : pct > 0 && pct < 1 ? 'under 1' : String(Math.floor(pct));
+    document.getElementById('standLine').innerHTML = have > 0
+      ? `You’ve got <strong>${fmtM(have)}</strong> of your <strong>${fmtM(r.fireNum)}</strong> freedom number — ${pctText}% of the way.`
+      : `You’re at the start: <strong>$0</strong> of your <strong>${fmtM(r.fireNum)}</strong> freedom number so far.`;
+    document.getElementById('standFill').style.width = pct + '%';
+    const bar = document.getElementById('standBar');
+    bar.setAttribute('aria-valuenow', String(Math.round(pct)));
+    bar.setAttribute('aria-valuetext', `${pctText}% of the way`);
+    // What's counted: money you could use today. Super under 60 is locked, so it's left out here.
+    const ownLocked = r.age < 60 ? r.superBal : 0;
+    const partnerLocked = r.pSuper > 0 && (r.pAge || r.age) < 60 ? r.pSuper : 0;
+    const locked = ownLocked + partnerLocked;
+    const superCounted = (r.age >= 60 && r.superBal > 0) || (r.pSuper > 0 && (r.pAge || r.age) >= 60);
+    document.getElementById('standNote').textContent = locked > 0
+      ? `Counting what you could use today: your savings${superCounted ? ' and any super you can already get to' : ' outside super'}. ${partnerLocked > 0 && ownLocked > 0 ? `Your super and your partner’s (${fmtM(locked)}) aren’t counted until each of you turns 60.` : partnerLocked > 0 ? `Your partner’s super (${fmtM(locked)}) isn’t counted until they turn 60.` : `Your super (${fmtM(locked)}) isn’t counted until 60.`}`
+      : superCounted ? 'Counting your savings and your super.' : 'Counting your savings outside super.';
+  }
+
+  // ── Next: two tools for their situation, plus one article, nothing the moves card already links ──
+  function pathOf(href) { return String(href || '').split(/[?#]/)[0].replace(/\.html$/, ''); }
+  function recommendArticle(moveList, used, r) {
+    const m = (moveList || []).find(x => x.article && !used.has(x.article));
+    if (m) {
+      const reason = m.id === 'clear-debt' ? 'Debt that costs more than investing reliably earns: this explains the trade-off.'
+        : `Background on ${m.title.charAt(0).toLowerCase() + m.title.slice(1)}.`;
+      return { slug: m.article, title: ARTICLE_NAMES[m.article] || m.article.replace(/-/g, ' '), reason };
     }
-    const portfolioIncome = Math.round(savings * 0.04);
-    el.innerHTML = `<div style="font-size:14px;color:var(--soft-grey);font-weight:300;line-height:1.7;margin-bottom:14px;">You don't have to be fully free for this to matter. Your savings could already pay you something each year.</div>
-      <div style="background:rgba(244,98,42,0.06);border:1.5px solid rgba(244,98,42,0.2);border-radius:10px;padding:14px;font-size:13px;color:var(--warm-brown);line-height:1.7;margin-bottom:12px;">At 4%, your savings could pay you <strong>${fmtM(portfolioIncome)}/year</strong>. From 67 you may also get some Age Pension, depending on what you own and earn. Freedom gap shows how part-time work and the Age Pension could fill the rest, and the Withdrawal planner shows if your money will last 30 years. Both are free, no account needed. Pro adds the odds it lasts to 95, using your saved plan.</div>
-      <div onclick="window.location.href='freedom-gap.html'" style="background:linear-gradient(135deg,var(--fire-orange),var(--fire-amber));border-radius:var(--radius-pill,50px);padding:11px 20px;cursor:pointer;font-size:13px;font-weight:500;color:white;display:inline-block;">See your Freedom gap — free →</div>
-      <a href="withdrawal.html" style="display:inline-block;margin-left:12px;font-size:13px;font-weight:500;color:var(--fire-orange);text-decoration:none;">Will it last? Try the Withdrawal planner →</a>
-      <p style="font-size:11px;color:var(--soft-grey);font-style:italic;margin-top:12px;line-height:1.6;">Educational only, not financial advice. Based on a 4% withdrawal rate.</p>`;
-
-    if (sqWithdrawal) sqWithdrawal.style.display = 'flex';
-    const sqWithdrawalStat = document.getElementById('sqWithdrawalStat');
-    if (sqWithdrawalStat) sqWithdrawalStat.textContent = `${fmtM(portfolioIncome)}/year already`;
+    const options = r.alreadyFree ? ['four-percent-rule-australia', 'before-super-access']
+      : r.age >= 45 ? ['is-my-super-enough', 'how-much-is-enough'] : ['how-much-is-enough', 'what-is-fire-australia'];
+    const slug = options.concat(['what-is-fire-australia']).find(s => !used.has(s)) || 'what-is-fire-australia';
+    return { slug, title: ARTICLE_NAMES[slug] || slug.replace(/-/g, ' '), reason: ARTICLE_REASONS[slug] || '' };
+  }
+  function buildNextSteps(r, moveList, shown) {
+    const box = document.getElementById('nextLinks');
+    if (!box) return;
+    // Whatever the moves card links to right now (tools and articles), so nothing repeats.
+    const linked = Array.from(document.querySelectorAll('#movesCard a[href]')).filter(a => !(a.closest('#movesOnTrack') && document.getElementById('movesOnTrack').style.display === 'none')).map(a => a.getAttribute('href'));
+    const usedTools = new Set(linked.filter(h => !h.startsWith('/learn/')).map(pathOf));
+    const usedArticles = new Set(shown.map(m => m.article).filter(Boolean));
+    const TOOLS = {
+      withdrawal: { href: '/withdrawal', title: 'Withdrawal planner', text: 'See if your money will last once you start drawing on it.' },
+      gap: { href: '/freedom-gap', title: 'Freedom gap', text: 'How much of your life your savings already pay for, and what part-time work could add.' },
+      whatif: { href: '/hearmeout', title: 'What if…?', text: 'Try a pay rise, a lump sum or a break from work and see your date move.' },
+      compound: { href: '/compound', title: 'Compound interest', text: 'Watch a regular amount grow, and see what waiting costs.' }
+    };
+    const close = r.alreadyFree || (inReach(r.plan) && r.plan.years <= 10) || r.age >= 55;
+    const partTime = r.age > 40 || /part[- ]?time|work(ing)? less|fewer (days|hours)|semi[- ]?retire|cut back/i.test(r.context || '')
+      || (moveList || []).some(m => m.id === 'work-less');
+    const order = [];
+    if (close) order.push('withdrawal');
+    if (partTime) order.push('gap');
+    order.push('whatif', 'compound', 'gap');
+    const tools = order.filter((k, i) => order.indexOf(k) === i).map(k => TOOLS[k]).filter(t => !usedTools.has(t.href)).slice(0, 2);
+    const art = recommendArticle(moveList, usedArticles, r);
+    box.innerHTML = tools.map(t => `<a class="next-link" href="${esc(t.href)}"><span class="next-kind">Free tool</span><span class="next-title">${esc(t.title)}</span><span class="next-text">${esc(t.text)}</span></a>`).join('')
+      + `<a class="next-link" href="/learn/${esc(art.slug)}"><span class="next-kind">Read</span><span class="next-title" id="nextArticleTitle">${esc(art.title)}</span><span class="next-text">${esc(art.reason)}</span></a>`;
+    // The real heading, once the article list arrives (falls back to the name above).
+    fetch('/learn/articles.json').then(res => res.ok ? res.json() : null).then(list => {
+      const a = list && list.find(x => x.slug === art.slug);
+      const el = document.getElementById('nextArticleTitle');
+      if (a && a.heading && el) el.textContent = a.heading;
+    }).catch(() => {});
   }
 
-  // Only says what applies to this person (js/moves.js): salary sacrifice only when the
-  // tax saving is real for their income, offset-vs-invest only with a mortgage.
-  function buildTaxNudge(sRate, moveList) {
-    const el = document.getElementById('taxNudgeCard');
-    const txt = document.getElementById('taxNudgeText');
-    if (!el || !txt) return;
-    const sacrifice = (moveList || []).find(m => m.id === 'salary-sacrifice');
-    const offset = (moveList || []).find(m => m.id === 'offset-vs-invest');
-    let message = '';
-    if (sacrifice) { message = `<strong>Salary sacrifice could suit you.</strong> ${sacrifice.why} ${sacrifice.impact.text}. Pro's tax tools work out the exact amount for your pay.`; }
-    else if (offset) { message = `You have a mortgage — so is your spare cash better in the offset or invested? ${offset.why} Pro's offset vs invest tool works it out from your mortgage rate and tax rate.`; }
-    else { message = `Know how much of each dollar you earn you get to keep? Pro's tax tools show your take-home pay and your marginal tax rate.`; }
-    txt.innerHTML = message;
-    const sqTax = document.getElementById('sq-tax');
-    const sqTaxStat = document.getElementById('sqTaxStat');
-    if (sqTax) sqTax.style.display = 'flex';
-    if (sqTaxStat) sqTaxStat.textContent = `Your savings rate: ${sRate}%`;
+  function showScreen(n) {
+    if (n === 3) {
+      document.getElementById('onboarding').style.display = 'none';
+      document.getElementById('screen3').style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      // Gentle staggered fade-in (CSS turns it off under prefers-reduced-motion).
+      const secs = Array.from(document.querySelectorAll('#results-body .rv')).filter(el => !el.hidden && el.style.display !== 'none');
+      secs.forEach((el, i) => { el.classList.remove('rv-in'); el.style.setProperty('--i', i); void el.offsetWidth; el.classList.add('rv-in'); });
+      const h = document.getElementById('answerHeadline');
+      if (h) h.focus({ preventScroll: true });
+    } else if (n === 2) {
+      document.getElementById('screen3').style.display = 'none';
+      document.getElementById('onboarding').style.display = 'flex';
+      obGoTo(4);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (n === 1) {
+      document.getElementById('screen3').style.display = 'none';
+      document.getElementById('onboarding').style.display = 'flex';
+      obGoTo(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
+
+  document.getElementById('trySave').addEventListener('input', tryQueue);
+  document.getElementById('trySpend').addEventListener('input', tryQueue);
+  document.getElementById('tryReset').addEventListener('click', tryReset);
 </script>
 
 <!-- ── ONBOARDING JS ── -->
@@ -1467,7 +1107,7 @@
     const hint = document.getElementById('ob-ageHint');
     if (!hint) return;
     if (age >= 16 && age < 60) {
-      hint.textContent = `You can get to your super in ${60 - age} years. This free plan uses your savings outside super. Pro adds your super too.`;
+      hint.textContent = `You can get to your super in ${60 - age} years. We count it from then.`;
       hint.style.color = 'var(--fire-orange)';
     } else if (age >= 60) {
       hint.textContent = 'You can already get to your super. Nice.';
@@ -1488,232 +1128,6 @@
   loadAssumptions();
   if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
 </script>
-
-<!-- ── CINEMATIC STYLES + JS ── -->
-<style>
-.cin-card {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.55s ease, transform 0.55s ease;
-}
-.cin-card.revealed {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* ── Bento grid: tap-to-expand detail tiles ── */
-.bento-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 12px; }
-@media (min-width: 560px) {
-  .bento-grid { grid-template-columns: 1fr 1fr; }
-  .bento-full { grid-column: 1 / -1; }
-}
-.bento-tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); overflow: hidden; }
-.bento-tile.accent { border-color: var(--ember); }
-.bento-tile.dark { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border: none; color: var(--bg); }
-.bento-head { display: flex; align-items: flex-start; gap: 10px; padding: 16px 18px; cursor: pointer; user-select: none; }
-.bento-head.static { cursor: default; }
-.bento-num { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--ember-wash); color: var(--ember-ink); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
-.bento-tile.dark .bento-num { background: rgba(253, 246, 238, 0.12); color: var(--amber); }
-.bento-head-text { flex: 1; min-width: 0; }
-.bento-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 3px; }
-.bento-tile.dark .bento-title { color: var(--bg); }
-.bento-teaser { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
-.bento-tile.dark .bento-teaser { color: rgba(253, 246, 238, 0.6); }
-.bento-chevron { flex-shrink: 0; font-size: 11px; color: var(--ink-3); transition: transform 0.25s ease; margin-top: 2px; }
-.bento-tile.open .bento-chevron { transform: rotate(180deg); }
-.bento-body-wrap { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; }
-.bento-tile.open .bento-body-wrap { max-height: 900px; opacity: 1; }
-.bento-body { padding: 0 18px 18px; }
-
-/* ── Square tile grid — opens a floating modal ── */
-.bento-squares { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: dense; gap: 10px; margin-bottom: 12px; }
-.bsq-recommended {
-  background: var(--surface); border: 1px solid rgba(244, 98, 42, 0.45); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
-  padding: 16px; display: flex; flex-direction: column; justify-content: space-between;
-}
-.bsq-recommended .bsq-reason { font-size: 12px; color: var(--ink-2); line-height: 1.4; margin-bottom: 8px; }
-.bsq-recommended .bsq-article-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.3; margin-bottom: 10px; }
-.bsq-recommended .bsq-read-btn {
-  display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--ember), var(--amber)); color: #fff;
-  padding: 9px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 500; cursor: pointer; align-self: flex-start;
-}
-.bsq {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
-  padding: 16px; cursor: pointer; aspect-ratio: 1 / 0.95; min-width: 0;
-  display: flex; flex-direction: column; justify-content: space-between;
-  transition: transform var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), border-color var(--dur-fast) ease;
-}
-.bsq:active { transform: scale(0.97); }
-.bsq:hover { box-shadow: var(--shadow-2); border-color: var(--line-strong); }
-.bsq-wide { grid-column: 1 / -1; aspect-ratio: auto; flex-direction: row; align-items: center; gap: 14px; }
-.bsq-wide .bsq-top { flex-direction: column; }
-.bsq-top { display: flex; justify-content: space-between; align-items: flex-start; }
-.bsq-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-.bsq-icon svg { width: 20px; height: 20px; }
-.bsq-num { font-family: var(--font-ui); font-size: 11.5px; font-weight: 600; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.bsq-title { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--ink); line-height: 1.25; margin-top: 10px; }
-.bsq-stat { font-size: 12.5px; color: var(--ember-ink); font-weight: 500; margin-top: 6px; font-variant-numeric: tabular-nums; }
-
-/* ── Floating modal ── */
-.bento-modal-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(36, 25, 16, 0.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
-  z-index: 200; align-items: center; justify-content: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease;
-}
-.bento-modal-overlay.open { display: flex; opacity: 1; }
-.bento-modal {
-  background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-3);
-  padding: 26px 22px 22px; max-width: 440px; width: 100%; max-height: 82vh; overflow-y: auto; position: relative;
-  transform: scale(0.92) translateY(8px); opacity: 0;
-  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
-}
-.bento-modal-overlay.open .bento-modal { transform: scale(1) translateY(0); opacity: 1; }
-.bento-modal-close {
-  position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border-radius: 50%; border: none;
-  background: var(--surface-2); color: var(--ink); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-}
-.bento-modal-close:hover { background: var(--line); }
-
-/* Pro upgrade card is built by JS with inline styles — align its surface to the tokens */
-#proUpgradeBanner > div { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)) !important; border-radius: var(--r-xl) !important; box-shadow: var(--shadow-2); }
-</style>
-
-<script>
-function toggleBento(tileId) {
-  const tile = document.getElementById(tileId);
-  if (tile) tile.classList.toggle('open');
-}
-
-const BENTO_MODAL_TITLES = {
-  range: 'Your projected range',
-  meaning: 'What this means for you',
-  needle: 'What changes your freedom date?',
-  withdrawal: 'What your money is already doing for you',
-  tax: 'Where does your next dollar go?'
-};
-
-function openBentoModal(sourceId) {
-  const source = document.getElementById(sourceId + 'Card');
-  const overlay = document.getElementById('bentoModalOverlay');
-  const content = document.getElementById('bentoModalContent');
-  if (!source || !overlay || !content) return;
-  const title = BENTO_MODAL_TITLES[sourceId] || '';
-  content.innerHTML = `<div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--warm-brown);margin-bottom:14px;padding-right:24px;line-height:1.35;">${title}</div>` + source.innerHTML;
-  overlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeBentoModal() {
-  const overlay = document.getElementById('bentoModalOverlay');
-  if (!overlay) return;
-  overlay.classList.remove('open');
-  document.body.style.overflow = '';
-}
-</script>
-
-<script>
-function runCinematicReveal(yearsText, subText) {
-  const stage = document.getElementById('cinematic-stage');
-  const mondays = document.getElementById('cin-mondays');
-  const mondaysText = document.getElementById('cin-mondays-text');
-  const eyebrow = document.getElementById('cin-eyebrow');
-  const number = document.getElementById('cin-number');
-  const sub = document.getElementById('cin-sub');
-  const freedomAge = document.getElementById('cin-freedomage');
-  const unless = document.getElementById('cin-unless');
-  const leverBtn = document.getElementById('cin-lever-btn');
-  const leverResult = document.getElementById('cin-lever-result');
-  const shockWrap = document.getElementById('cin-shock-wrap');
-  const cta = document.getElementById('cin-cta');
-
-  // Reset — everything stays in normal flow now; no display:none toggling,
-  // which was the source of the earlier flash/swap feeling.
-  mondays.style.transition = 'none';
-  mondays.style.opacity = '0';
-  mondays.style.display = _cinMondaysText ? 'block' : 'none';
-  mondays.style.marginBottom = _cinMondaysText ? '32px' : '0';
-  mondaysText.style.fontSize = '';
-  mondays.getBoundingClientRect(); // force reflow before re-enabling transition
-  mondays.style.transition = 'opacity 0.9s ease, margin-bottom 0.9s ease';
-
-  eyebrow.style.opacity = '0';
-  number.style.opacity = '0';
-  number.style.transform = 'translateY(12px)';
-  sub.style.opacity = '0';
-  freedomAge.style.opacity = '0';
-  unless.style.opacity = '0';
-  cta.style.opacity = '0';
-  if (leverBtn) { leverBtn.disabled = false; leverBtn.textContent = 'Save an extra $50/week'; leverBtn.style.opacity = '1'; leverBtn.style.cursor = 'pointer'; }
-  if (leverResult) leverResult.textContent = '';
-  if (shockWrap) { shockWrap.style.opacity = '0'; shockWrap.style.maxHeight = '0'; }
-
-  mondaysText.innerHTML = _cinMondaysText;
-  number.textContent = yearsText;
-  sub.textContent = subText;
-  freedomAge.textContent = _cinFreedomAgeText;
-  // Skip the "Unless…" step entirely if there's nothing meaningful to change (e.g. already free)
-  const showUnless = _cinLever.y07 !== null;
-
-  stage.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-
-  if (_cinMondaysText) {
-    // Mondays fades in, holds, then SETTLES into a smaller persistent line —
-    // it never disappears, the rest just builds in underneath it.
-    setTimeout(() => { mondays.style.opacity = '1'; }, 300);
-    setTimeout(() => {
-      mondaysText.style.transition = 'font-size 0.7s ease';
-      mondaysText.style.fontSize = '15px';
-      mondays.style.opacity = '0.55';
-      mondays.style.marginBottom = '18px';
-    }, 2600);
-    setTimeout(() => { eyebrow.style.opacity = '1'; }, 3100);
-    setTimeout(() => { number.style.opacity = '1'; number.style.transform = 'translateY(0)'; }, 3550);
-    setTimeout(() => { sub.style.opacity = '1'; }, 4150);
-    setTimeout(() => { if (_cinFreedomAgeText) freedomAge.style.opacity = '1'; }, 4800);
-    setTimeout(() => { if (showUnless) unless.style.opacity = '1'; }, 5700);
-    setTimeout(() => { cta.style.opacity = '1'; }, showUnless ? 6600 : 5200);
-  } else {
-    // No Mondays beat (e.g. already free) — original timing, unchanged
-    setTimeout(() => { eyebrow.style.opacity = '1'; }, 300);
-    setTimeout(() => { number.style.opacity = '1'; number.style.transform = 'translateY(0)'; }, 750);
-    setTimeout(() => { sub.style.opacity = '1'; }, 1350);
-    setTimeout(() => { if (_cinFreedomAgeText) freedomAge.style.opacity = '1'; }, 2000);
-    setTimeout(() => { if (showUnless) unless.style.opacity = '1'; }, 2900);
-    setTimeout(() => { cta.style.opacity = '1'; }, showUnless ? 3800 : 2500);
-  }
-}
-
-function cinematicRevealCards() {
-  const stage = document.getElementById('cinematic-stage');
-  const body = document.getElementById('results-body');
-
-  stage.style.transition = 'opacity 0.5s ease';
-  stage.style.opacity = '0';
-  document.body.style.overflow = '';
-
-  setTimeout(() => {
-    stage.style.display = 'none';
-    stage.style.opacity = '1';
-    stage.style.transition = '';
-    body.style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // Reveal each card with staggered delay
-    // Only reveal cards that are actually visible (not display:none with content)
-    const cards = Array.from(body.querySelectorAll('.cin-card'));
-    let delay = 0;
-    cards.forEach(card => {
-      const isHidden = card.style.display === 'none';
-      const isEmpty = card.innerHTML.trim() === '';
-      if (!isHidden && !isEmpty) {
-        setTimeout(() => card.classList.add('revealed'), delay);
-        delay += 150;
-      }
-    });
-  }, 520);
-}
-</script>
-
 
 <script src="js/quick-feedback-widget.js"></script>
 </body>

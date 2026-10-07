@@ -39,7 +39,8 @@ window.FirePathMoves = (function () {
       + (s.hasPartner && (s.partnerAge != null ? s.partnerAge : s.age) >= 60 ? (s.partnerSuper || 0) : 0);
     out.alreadyFree = freedomNumber > 0 && out.accessibleSavings >= freedomNumber;
     out.savingsRate = s.takeHomeMonthly > 0 && s.savingsMonthly != null ? s.savingsMonthly / s.takeHomeMonthly : null;
-    out.yearsToFree = out.alreadyFree ? 0 : yearsTo(freedomNumber, out.accessibleSavings, s.savingsMonthly || 0, REAL);
+    // On the shared plan when the engine has it, so "years sooner" matches the headline date.
+    out.yearsToFree = out.alreadyFree ? 0 : yearsOr(out, null, () => yearsTo(freedomNumber, out.accessibleSavings, s.savingsMonthly || 0, REAL));
     out.freedomAge = s.age != null && out.yearsToFree != null ? s.age + out.yearsToFree : null;
     out.stage = out.alreadyFree ? 'free'
       : !(s.savingsMonthly > 0) && !(s.currentSavings > 0) ? 'starting'
@@ -112,6 +113,25 @@ window.FirePathMoves = (function () {
     return null;
   }
 
+  // The same plan every page's headline uses (FirePathEngine.freedomPlan: savings outside
+  // super, then super from 60, after tax), built from the situation. `over` changes some
+  // of its inputs for a "what if". undefined = the engine (or a usable number) isn't
+  // there, so callers fall back to the simple yearsTo timeline.
+  function planYears(s, over) {
+    const eng = E();
+    if (!eng || typeof eng.freedomPlan !== 'function' || !(s.freedomNumber > 0)) return undefined;
+    const ownTakeHome = s.takeHomeMonthly != null ? Math.max(0, s.takeHomeMonthly - (s.partnerTakeHomeMonthly || 0)) : null;
+    const inputs = Object.assign({
+      age: s.age, savings: s.currentSavings || 0, monthlySavings: s.savingsMonthly || 0, target: s.freedomNumber,
+      superBalance: s.superBalance || 0, grossIncome: s.grossIncome || null, takeHomeMonthly: ownTakeHome,
+      partner: s.hasPartner && s.partnerSuper > 0 ? { superBalance: s.partnerSuper, age: s.partnerAge, takeHomeMonthly: s.partnerTakeHomeMonthly || 0 } : null,
+    }, over || {});
+    let p = null;
+    try { p = eng.freedomPlan(inputs); } catch (e) { return undefined; }
+    return p && p.valid ? p.years : undefined;
+  }
+  function yearsOr(s, over, fallback) { const y = planYears(s, over); return y !== undefined ? y : fallback(); }
+
   const rateFor = type => {
     const A = window.FP_ASSUMPTIONS || {};
     return type === 'cash' ? (A.bankRealReturn != null ? A.bankRealReturn : 0.0087)
@@ -151,8 +171,8 @@ window.FirePathMoves = (function () {
         if (!['cash', 'mix', 'offset'].includes(s.savingsType)) return false; // already invested
         if (s.savingsType === 'offset') return false;                          // offset vs invest is its own move
         if (s.bufferMonths != null && s.bufferMonths < 3) return false;        // buffer first
-        const now = yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, rateFor(s.savingsType));
-        const inv = yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, REAL);
+        const now = yearsOr(s, { outsideReturn: rateFor(s.savingsType) }, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, rateFor(s.savingsType)));
+        const inv = yearsOr(s, null, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, REAL));
         if (inv == null) return false;
         const gain = now == null ? null : now - inv;
         if (gain != null && gain < 0.25) return false;
@@ -171,7 +191,7 @@ window.FirePathMoves = (function () {
       applies(s) {
         if (s.alreadyFree || !(s.savingsMonthly > 0) || s.consumerDebt > 0) return false;
         const base = s.yearsToFree;
-        const more = yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly + 50 * 52 / 12, REAL);
+        const more = yearsOr(s, { monthlySavings: s.savingsMonthly + 50 * 52 / 12 }, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly + 50 * 52 / 12, REAL));
         if (more == null) return false;
         const gain = base == null ? null : base - more;
         if (gain != null && gain < 0.25) return false;
@@ -183,7 +203,7 @@ window.FirePathMoves = (function () {
       applies(s) {
         if (s.alreadyFree || !(s.spendMonthly > 0) || s.consumerDebt > 0) return false;
         const cut = s.spendMonthly * 0.1;
-        const after = yearsTo(s.freedomNumber * 0.9, s.currentSavings, (s.savingsMonthly || 0) + cut, REAL);
+        const after = yearsOr(s, { target: s.freedomNumber * 0.9, monthlySavings: (s.savingsMonthly || 0) + cut }, () => yearsTo(s.freedomNumber * 0.9, s.currentSavings, (s.savingsMonthly || 0) + cut, REAL));
         if (after == null) return false;
         const gain = s.yearsToFree == null ? null : s.yearsToFree - after;
         if (gain != null && gain < 0.25) return false;
@@ -307,5 +327,5 @@ window.FirePathMoves = (function () {
   function recall() { try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); return v && Date.now() - v.savedAt < 180 * 864e5 ? v : null; } catch (e) { return null; } }
   function forget() { try { localStorage.removeItem(KEY); } catch (e) {} }
 
-  return { MOVES, situationFromInputs, situationFromProfile, rank, articleFits, yearsTo, remember, recall, forget };
+  return { MOVES, situationFromInputs, situationFromProfile, rank, articleFits, yearsTo, planYears, remember, recall, forget };
 })();

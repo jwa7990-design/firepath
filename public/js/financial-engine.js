@@ -183,10 +183,12 @@ window.FirePathEngine = (function () {
   // Every page's headline "when could work be optional" comes from freedomPlan(), so the
   // same person gets the same date and age on the free calculator, Pro, Freedom gap and
   // Journey. Two phases, month by month:
-  //   1. Before 60 only money outside super counts. You're free before 60 only if your
-  //      savings alone reach the freedom number (they carry you all the way to 60 and
-  //      beyond, without touching super).
+  //   1. Before 60, money outside super is the bridge. You're free before 60 once your
+  //      savings can pay your spending (freedom number ÷ 25 a year) every year until super
+  //      unlocks, AND what's left plus your super at that point reaches the freedom number.
+  //      Super keeps growing untouched (no more employer contributions once you stop work).
   //   2. From your 60th birthday your super counts too (your partner's from *their* 60th).
+  //      With two pots the bridge runs to each unlock in turn.
   // Super grows at SUPER_RETURN (7% less typical fund fees, less 15% earnings tax), plus
   // employer SG while you're still working — only when the page knows the income (no
   // income, no SG: we don't invent contributions). SG is capped at the concessional cap
@@ -266,8 +268,34 @@ window.FirePathEngine = (function () {
     return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner };
   }
 
+  // How much you'd need outside super at this moment to stop work now: enough to pay your
+  // spending until each super pot unlocks (growing at the outside rate meanwhile), then,
+  // together with the super that's unlocked, the freedom number. pots: [{bal, k}] with k
+  // = months until it unlocks (0 = already unlocked). Super grows untouched until then.
+  function outsideNeeded(n, pots, rO, rS) {
+    const spend = n.target / 25 / 12;
+    const later = pots.filter(p => p.k > 0).sort((a, b) => a.k - b.k);
+    const nowSuper = pots.filter(p => p.k <= 0).reduce((t, p) => t + p.bal, 0);
+    if (!later.length) return Math.max(0, n.target - nowSuper);
+    // Work backwards from the last unlock: at that point the pooled money (outside plus
+    // super already unlocked) plus the last pot must reach the freedom number.
+    const at = (p, k) => p.bal * Math.pow(1 + rS, k);
+    const growth = k => Math.pow(1 + rO, k), annuity = k => rO > 0 ? (growth(k) - 1) / rO : k;
+    let need = Math.max(0, n.target - at(later[later.length - 1], later[later.length - 1].k));
+    for (let i = later.length - 1; i >= 0; i--) {
+      const kHere = later[i].k, kPrev = i > 0 ? later[i - 1].k : 0, span = kHere - kPrev;
+      // Pooled money needed at kPrev to pay spending through to kHere and still have `need`.
+      need = (need + spend * annuity(span)) / growth(span);
+      // At kPrev the pot that unlocked there joins the pool, so outside money needs less.
+      if (i > 0) need = Math.max(0, need - at(later[i - 1], kPrev));
+    }
+    // Before the first unlock only outside money (and any super already unlocked) pays.
+    return Math.max(0, Math.min(n.target, need - nowSuper));
+  }
+
   // The month-by-month walk. Returns the month freedom is reached (null = not within
-  // 100 years) and, if asked, the super that's accessible each month (for Monte Carlo).
+  // 100 years) and, if asked, how much the super side is worth each month (for Monte
+  // Carlo: the freedom number less the outside money needed that month).
   function walkPlan(n, wantSuperPath) {
     const rO = monthlyRate(n.outsideReturn), rS = monthlyRate(SUPER_RETURN);
     // Super only counts once its owner is 60, so without an age it can't be counted.
@@ -278,15 +306,12 @@ window.FirePathEngine = (function () {
     let out = n.savings, month = null, savingsOnly = null, outsideAt60 = null;
     const superAt = {};   // each pot's balance on its unlock month
     for (let m = 0; m <= PLAN_MAX_MONTHS; m++) {
-      let sup = 0;
-      for (const s of pots) {
-        if (m === s.unlock) superAt[s === own ? 'own' : 'partner'] = s.bal;
-        if (m >= s.unlock) sup += s.bal;
-      }
+      for (const s of pots) if (m === s.unlock) superAt[s === own ? 'own' : 'partner'] = s.bal;
       if (own && m === own.unlock) outsideAt60 = out;
-      if (superPath) superPath.push(sup);
+      const need = outsideNeeded(n, pots.map(s => ({ bal: s.bal, k: s.unlock - m })), rO, rS);
+      if (superPath) superPath.push(n.target - need);
       if (savingsOnly === null && out >= n.target) savingsOnly = m;
-      if (month === null && out + sup >= n.target) month = m;
+      if (month === null && out >= need) month = m;
       // Keep walking only while something is still needed: the super path for Monte Carlo,
       // or the balances at 60 for display.
       if (month !== null && !wantSuperPath && pots.every(s => m >= s.unlock)) break;
@@ -315,7 +340,8 @@ window.FirePathEngine = (function () {
     const years = months === null ? null : months / 12;
     const accessibleNow = n.savings + (w.own && w.own.unlock === 0 ? n.superBalance : 0) + (w.pt && w.pt.unlock === 0 ? n.partner.superBalance : 0);
     // Which phase the freedom date falls in: savings alone, or with super counted.
-    const superUnlocked = months !== null && ((w.own && months >= w.own.unlock) || (w.pt && months >= w.pt.unlock));
+    // (Under the bridge rule super can count before 60: it's what lets savings run down.)
+    const superUnlocked = months !== null && !!(w.own || w.pt);
     return {
       valid: true,
       months, years,
@@ -336,6 +362,9 @@ window.FirePathEngine = (function () {
       partnerYearsTo60: w.pt ? w.pt.unlock / 12 : null,
       partnerAgeAssumed: !!(n.partner && n.partner.ageAssumed),
       outsideAt60: w.outsideAt60,
+      // Bridge years: stopping before super unlocks means savings pay the way until 60.
+      bridgeYears: months !== null && w.own && w.own.unlock > months ? (w.own.unlock - months) / 12 : 0,
+      spendPerYear: n.target / 25,
       sgMonthly: sgNetMonthly(n.gross) / 0.85,   // before contributions tax, as Pro shows it
       accessibleNow,
       target: n.target,
