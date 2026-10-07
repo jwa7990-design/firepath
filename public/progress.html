@@ -314,6 +314,7 @@
     const token = getToken();
     const userId = getUserId();
     if (!token || !userId) { window.location.href = 'auth.html'; return; }
+    if (!(await requirePro())) return;   // accounts are part of Pro
     fpToken = token;
     fpUserId = userId;
     if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();

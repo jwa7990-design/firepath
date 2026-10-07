@@ -92,7 +92,7 @@
 <main class="site-main compound-main">
 
   <header class="compound-head">
-    <a href="firepath_pro.html" class="section-link back-link">← Back to FirePath</a>
+    <a href="/firepath" class="section-link back-link">← Back to FirePath</a>
     <div class="eyebrow">The most powerful force in finance</div>
     <h1 class="display-lg">The Compounding Effect 🌱</h1>
     <p class="lead">You don't need to invest more. You need to start sooner. See what time does to your money.</p>
@@ -101,6 +101,7 @@
 
   <div class="card glass-card">
     <div class="eyebrow card-label">Your details</div>
+    <p class="card-note" id="fpPlanNote" style="display:none;margin:0 0 12px;font-size:13px;color:var(--ink-2);">Filled in from your saved plan — change any number.</p>
 
     <div class="input-row">
       <div class="input-label-text">Your age now</div>
@@ -200,9 +201,52 @@
 
 </main>
 
+<script src="js/auth.js"></script>
 <script>
   let selectedCycle = 'fortnightly';
   let contributionMode = 'fixed';
+
+  // ── Pro: your saved plan fills in the inputs ──
+  // Free visitors type their own numbers. Signed-in Pro members get their saved plan
+  // filled in — but never over anything they've typed or picked during this visit.
+  const fpTyped = new Set();
+  document.addEventListener('input', e => { if (e.target && e.target.id) fpTyped.add(e.target.id); }, true);
+  document.addEventListener('click', e => { if (e.target && e.target.closest && e.target.closest('.cycle-btn')) fpTyped.add('cycle'); }, true);
+
+  async function fpPrefillFromPlan() {
+    try {
+      if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return;
+      if (!(await checkProStatus())) return;
+      const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${getUserId()}`, { headers: { 'Authorization': `Bearer ${getToken()}` } });
+      if (!res.ok) return;
+      const rows = await res.json();
+      const p = Array.isArray(rows) ? rows[0] : null;
+      if (!p) return;
+      let filled = false;
+      const fill = (id, v) => {
+        const el = document.getElementById(id);
+        if (!el || fpTyped.has(id) || !(v > 0)) return;
+        el.value = Math.round(v);
+        filled = true;
+      };
+      fill('c-age', p.age);
+      fill('c-existing', p.current_savings);
+      // Household savings per month → the plan's pay cycle (unless a cycle was picked this visit).
+      if (p.savings_monthly > 0 && !fpTyped.has('c-amount')) {
+        const planCycle = ['weekly', 'fortnightly', 'monthly'].includes(p.pay_cycle) ? p.pay_cycle : null;
+        if (planCycle && !fpTyped.has('cycle') && planCycle !== selectedCycle) {
+          const btn = document.querySelector(`.cycle-btn[data-cycle="${planCycle}"]`);
+          if (btn) setCycle(btn);
+        }
+        const m = p.savings_monthly;
+        fill('c-amount', selectedCycle === 'weekly' ? m * 12 / 52 : selectedCycle === 'fortnightly' ? m * 12 / 26 : m);
+      }
+      if (!filled) return;
+      document.getElementById('fpPlanNote').style.display = 'block';
+      calcCompound();
+    } catch (e) { console.log('Saved plan prefill skipped', e); }
+  }
+  document.addEventListener('DOMContentLoaded', fpPrefillFromPlan);
 
   function setCycle(btn) {
     document.querySelectorAll('.cycle-btn').forEach(b => b.classList.remove('active'));

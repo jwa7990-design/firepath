@@ -304,7 +304,7 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>
           Since your last check-in
         </h2>
-        <a href="about-you.html" class="section-link">Milestones →</a>
+        <span style="display:flex;gap:14px;flex-wrap:wrap;"><a href="progress.html" class="section-link">Check in →</a><a href="about-you.html" class="section-link">Milestones →</a></span>
       </div>
       <div id="sinceList"><p class="progress-empty">Your progress shows up here after your next visit — FirePath compares each check-in with the one before.</p></div>
       <div class="fu" id="fuCard" role="button" tabindex="0" aria-expanded="false" hidden>
@@ -857,8 +857,7 @@
     const userId = getUserId();
     if (!token || !userId) { window.location.href = 'auth.html'; return; }
 
-    if (typeof checkProStatus === 'function') { try { await checkProStatus(); } catch (e) {} }
-    if (localStorage.getItem('fp_is_pro') !== 'true') { window.location.href = 'firepath_pro.html?upgrade=true'; return; }
+    if (!(await requirePro())) return;   // accounts are part of Pro
 
     try {
       const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });

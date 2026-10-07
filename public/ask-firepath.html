@@ -131,7 +131,7 @@
   <header class="page-head">
     <div>
       <h1 class="page-head-title">Ask FirePath</h1>
-      <p class="page-head-sub">Your AI copilot for smarter financial decisions.</p>
+      <p class="page-head-sub">Quick what-if answers, worked out from the numbers.</p>
     </div>
   </header>
 
@@ -155,8 +155,8 @@
 </main>
 
 <script>
-  // Answers are calculated from the person's saved profile. Signed out, or before they've
-  // run the calculator, we use an example saver instead — and the answer card says so.
+  // Answers are calculated (no AI) from a Pro member's saved plan. Everyone else — and a
+  // Pro member who hasn't saved a plan yet — gets an example saver, and the card says so.
   const EXAMPLE = { portfolio: 520000, monthlySavings: 2600, annualSpend: 65000, age: 35, isExample: true };
   let PERSON = EXAMPLE;
 
@@ -165,6 +165,7 @@
       const token = typeof getToken === 'function' ? getToken() : null;
       const userId = typeof getUserId === 'function' ? getUserId() : null;
       if (!token || !userId) return;
+      if (typeof checkProStatus === 'function' && !(await checkProStatus())) return;
       const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       const rows = await res.json();
       const p = Array.isArray(rows) ? rows[0] : null;
@@ -320,7 +321,7 @@
       return `
         <div class="chat-card chat-card-supported">
           <span class="chat-tag">${PERSON.isExample
-            ? 'Calculated for an example saver ($520K saved, $2,600/month, $65K/yr spending, age 35) — <a href="firepath_pro.html">add your numbers</a> to see yours'
+            ? 'Calculated for an example saver ($520K saved, $2,600/month, $65K/yr spending, age 35) — <a href="/firepath">run your own numbers</a> in the free calculator'
             : '✓ Calculated from your saved financial profile'}</span>
           <div class="chat-headline">${headline}</div>
           <div class="chat-body">${body}</div>

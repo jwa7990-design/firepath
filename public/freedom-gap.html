@@ -152,6 +152,7 @@
 
   <div class="card fp-reveal">
     <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-money"/></svg> Your numbers</div>
+    <p class="input-hint" id="fpPlanNote" style="display:none;margin:-4px 0 14px;">Filled in from your saved plan — change any number.</p>
     <div class="input-row">
       <label class="input-label-text" for="g-portfolio">Investments available today</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-portfolio" placeholder="500000" oninput="recalcGap()"/></div>
@@ -168,7 +169,7 @@
     <div class="input-row">
       <label class="input-label-text" for="g-spend">What you expect to spend per year</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-spend" placeholder="60000" oninput="recalcGap()"/></div>
-      <div id="g-useProfileSpend" class="input-link" style="display:none;" onclick="applyProfileSpend()">Autofill from my FirePath profile →</div>
+      <div id="g-useProfileSpend" class="input-link" style="display:none;" onclick="applyProfileSpend()">Use my saved plan's figure →</div>
     </div>
     <div class="input-row">
       <label class="input-label-text" for="g-age">Your age</label>
@@ -289,6 +290,7 @@
         <div class="ai-outlook-loading-text">Reading your numbers...</div>
       </div>
       <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
+      <div id="aiProCard" style="display:none;"></div>
     </div>
 
     <div class="card callout-ember next-step">
@@ -575,8 +577,7 @@
 
     // Reset AI outlook on any input change — cached narrative no longer matches
     document.getElementById('aiOutlookText').style.display = 'none';
-    document.getElementById('aiOutlookBtn').style.display = 'block';
-    document.getElementById('aiOutlookBtn').textContent = 'Get my AI outlook';
+    showAiOutlookEntry();
 
     updateHoursSlider();
   }
@@ -643,8 +644,34 @@
     }
   }
 
+  // ── Pro ──
+  // Every tool here is free with no account. Pro (which is what an account is) adds the
+  // AI explanation and fills in your saved plan. The Worker refuses AI calls from anyone
+  // else, so free visitors see a short note about Pro instead of a button that can't work.
+  function fpIsPro() {
+    try {
+      if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return false;
+      return (typeof getStore === 'function' ? getStore('fp_is_pro') : localStorage.getItem('fp_is_pro')) === 'true';
+    } catch (e) { return false; }
+  }
+  const FP_PRO_AI_CARD = `<div style="border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:14px 16px;font-size:13.5px;line-height:1.6;color:var(--ink-2);"><strong style="color:var(--ink);">AI explanation — part of Pro.</strong> Pro writes this around your own plan. <a href="/upgrade" style="color:var(--ember);font-weight:600;white-space:nowrap;">Try 7 days free →</a></div>`;
+  function showAiOutlookEntry() {
+    const btn = document.getElementById('aiOutlookBtn');
+    const card = document.getElementById('aiProCard');
+    if (fpIsPro()) {
+      card.style.display = 'none';
+      btn.style.display = 'block';
+      btn.textContent = 'Get my AI outlook';
+    } else {
+      btn.style.display = 'none';
+      card.innerHTML = FP_PRO_AI_CARD;
+      card.style.display = 'block';
+    }
+  }
+
   async function getAiOutlook() {
     if (!lastGapCalc) return;
+    if (!fpIsPro()) { showAiOutlookEntry(); return; }
     const btn = document.getElementById('aiOutlookBtn');
     const loading = document.getElementById('aiOutlookLoading');
     const textEl = document.getElementById('aiOutlookText');
@@ -675,20 +702,34 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
           messages: [{ role: 'user', content: userInput }]
         })
       });
+      // Pro has lapsed since the last check — show the Pro note, not an error.
+      if (res.status === 401 || res.status === 403) {
+        try { if (typeof setStore === 'function') setStore('fp_is_pro', 'false'); } catch (e) {}
+        loading.classList.remove('visible');
+        showAiOutlookEntry();
+        return;
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       const insight = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      if (!insight) throw new Error('Empty AI response');
       textEl.innerHTML = FirePathSafe.aiText(insight);
       textEl.style.display = 'block';
+      btn.textContent = 'Refresh my AI outlook';
     } catch(e) {
-      textEl.innerHTML = 'Something went wrong connecting to the AI. Please try again.';
+      textEl.innerHTML = 'Couldn\'t load the AI explanation just now — your numbers above are complete.';
       textEl.style.display = 'block';
+      btn.textContent = 'Try the AI outlook again';
       console.error(e);
     } finally {
       loading.classList.remove('visible');
-      btn.style.display = 'block';
-      btn.textContent = 'Refresh my AI outlook';
+      if (fpIsPro()) btn.style.display = 'block';
     }
   }
+
+  // Fields typed in during this visit — the saved plan never overwrites these.
+  const fpTyped = new Set();
+  document.addEventListener('input', e => { if (e.target && e.target.id) fpTyped.add(e.target.id); }, true);
 
   // Prefill from URL params (dashboard link) or saved Supabase profile
   document.addEventListener('DOMContentLoaded', async () => {
@@ -697,32 +738,42 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
     const urlPortfolio = params.get('portfolio');
     if (urlPortfolio) document.getElementById('g-portfolio').value = urlPortfolio;
 
+    // Pro: the saved plan fills in the numbers — only fields not typed in this visit.
     try {
       const token = typeof getToken === 'function' ? getToken() : null;
       const userId = typeof getUserId === 'function' ? getUserId() : null;
-      if (token && userId) {
+      if (token && userId && await checkProStatus()) {
         const res = await fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-        const data = await res.json();
+        const data = res.ok ? await res.json() : null;
         if (Array.isArray(data) && data.length > 0) {
           const p = data[0];
           userPersona = p.persona || 'building';
-          if (!urlPortfolio && p.current_savings) document.getElementById('g-portfolio').value = p.current_savings;
-          if (p.debt_total) document.getElementById('g-debt').value = p.debt_total;
-          if (p.super_balance) document.getElementById('g-super').value = p.super_balance;
-          if (p.age) document.getElementById('g-age').value = p.age;
-          // Spending = income minus savings, not raw income — using income alone
-          // overstates spending (and therefore the gap) for anyone who saves anything.
-          // The retirement spend multiplier (Less/Same/More, set during FirePath Pro
-          // onboarding) is applied here too — but only as this initial suggestion. Once
-          // saved, it never overwrites anything the person types here themselves.
-          if (p.take_home_income) {
+          let filled = false;
+          const fill = (id, v) => {
+            const el = document.getElementById(id);
+            if (!el || fpTyped.has(id) || !(v > 0)) return;
+            el.value = Math.round(v);
+            filled = true;
+          };
+          if (!urlPortfolio) fill('g-portfolio', p.current_savings);
+          fill('g-debt', p.debt_total);
+          fill('g-super', p.super_balance);            // own super; a partner's is handled below
+          fill('g-age', p.age);
+          // Yearly spending in retirement: the freedom number is that spend × 25. Older
+          // profiles without one fall back to (take-home − savings) × the retirement
+          // spend multiplier — the same sum the freedom number was built from.
+          if (p.freedom_number > 0) {
+            profileEstimatedSpend = Math.round(p.freedom_number / 25);
+          } else if (p.take_home_income) {
             const estMonthlySpend = p.take_home_income - (p.savings_monthly || 0);
             const multiplier = p.retirement_spend_multiplier || 1.0;
             profileEstimatedSpend = Math.round(Math.max(0, estMonthlySpend) * 12 * multiplier);
-            document.getElementById('g-spend').value = profileEstimatedSpend;
+          }
+          if (profileEstimatedSpend) {
+            fill('g-spend', profileEstimatedSpend);
             document.getElementById('g-useProfileSpend').style.display = 'block';
           }
-          if (p.savings_monthly) document.getElementById('g-monthlySavings').value = Math.round(p.savings_monthly);
+          fill('g-monthlySavings', p.savings_monthly);   // household savings per month
           // take_home_income is the household's monthly take-home; the partner's own pay is
           // partner_income per pay_cycle. The hourly estimate should be *your* rate, so take
           // the partner's share out first (a 38-hour week).
@@ -732,13 +783,14 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
               ? (cycle === 'weekly' ? p.partner_income * 52 / 12 : cycle === 'fortnightly' ? p.partner_income * 26 / 12 : p.partner_income)
               : 0;
             const ownMonthly = p.take_home_income - partnerMonthly;
-            if (ownMonthly > 0) document.getElementById('g-rate').value = Math.round((ownMonthly * 12) / 52 / 38);
+            if (ownMonthly > 0) fill('g-rate', (ownMonthly * 12) / 52 / 38);
           }
           // A partner on the profile means couple pension rates and limits.
           isCouple = !!(p.partner_age || p.partner_income > 0 || p.partner_super > 0);
           partnerSuper = Math.max(0, p.partner_super || 0);
           partnerAge = p.partner_age > 0 ? p.partner_age : null;
           if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
+          if (filled) document.getElementById('fpPlanNote').style.display = 'block';
         }
       }
     } catch(e) { console.log('Profile prefill failed', e); }

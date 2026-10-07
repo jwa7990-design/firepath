@@ -69,8 +69,9 @@ function signOut() {
 }
 
 /* ── Check Pro status ──────────────────────────────────────
-   Fetches is_pro from DB and updates UI accordingly.
-   Shows/hides upgrade nudge and menu upgrade button.
+   Fetches is_pro from the database and caches it. If the check itself fails
+   (offline, a network blip), the last known answer is used, so a paying member
+   is never bounced to the upgrade page by a hiccup.
 ──────────────────────────────────────────────────────────── */
 async function checkProStatus() {
   const userId = getUserId();
@@ -80,18 +81,31 @@ async function checkProStatus() {
     const res  = await fetch(`${WORKER_URL}/db/users?id=eq.${userId}&select=is_pro`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const isPro = data[0]?.is_pro === true;
     setStore('fp_is_pro', isPro ? 'true' : 'false');
-    const nudge = document.getElementById('upgradeNudge');
-    if (nudge) nudge.style.display = isPro ? 'none' : 'block';
-    const menuUpgrade = document.getElementById('menuUpgradeBtn');
-    if (menuUpgrade) menuUpgrade.style.display = isPro ? 'none' : 'block';
     return isPro;
   } catch(e) {
-    console.log('Pro check failed', e);
-    return false;
+    console.log('Pro check failed — using the last known status', e);
+    return getStore('fp_is_pro') === 'true';
   }
+}
+
+/* ── Accounts are part of Pro ──────────────────────────────
+   Free tools need no account; signing in is for Pro members. Call at the top
+   of every signed-in page:   if (!(await requirePro())) return;
+   Signed out → sign-in page. Signed in without Pro → the upgrade page, which
+   explains why and has a working "start your free trial" button.
+──────────────────────────────────────────────────────────── */
+async function requirePro() {
+  if (!isLoggedIn()) { window.location.href = 'auth.html'; return false; }
+  if (await checkProStatus()) return true;
+  // Straight back from Stripe? Pro may take a few seconds to land — the upgrade
+  // page waits for it rather than asking someone who just paid to pay again.
+  const justPaid = new URLSearchParams(window.location.search).get('upgraded') === 'true';
+  window.location.href = 'upgrade.html' + (justPaid ? '?upgraded=true' : '');
+  return false;
 }
 
 /* ── Upgrade to Pro ────────────────────────────────────────

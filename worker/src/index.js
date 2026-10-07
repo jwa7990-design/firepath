@@ -50,7 +50,7 @@ const DB_RULES = {
   users: ['GET', 'POST'],
   fp_profiles: ['GET', 'POST'],
   calculations: ['GET', 'POST'],
-  checkins: ['GET'],
+  checkins: ['GET', 'POST'],          // Progress page check-ins
   financial_snapshots: ['GET', 'POST'],
   lab_progress: ['GET', 'POST'],
   financial_learning_progress: ['GET', 'POST'],
@@ -414,7 +414,7 @@ async function handleCheckout(request, env) {
       mode: 'subscription',
       'subscription_data[trial_period_days]': '7',
       success_url: `${SITE}/dashboard.html?upgraded=true`,
-      cancel_url: `${SITE}/firepath_pro.html?cancelled=true`,
+      cancel_url: `${SITE}/upgrade.html?cancelled=true`,
       ...(user.email ? { customer_email: user.email } : {}),
       client_reference_id: user.id,
       'metadata[user_id]': user.id,
