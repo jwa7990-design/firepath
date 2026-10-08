@@ -186,14 +186,19 @@ const SCENARIOS = [
     <!-- Jay's letter -->
     <section class="hp-sec hp-letter" id="why" aria-labelledby="letter-title">
       <div class="hp-wrap hp-letter-grid" data-reveal>
-        <div class="hp-photo">
-          {/* TODO(owner): replace this block with Jay's photo, e.g.
-              <img src="/images/jay.jpg" alt="Jay, founder of FirePath" width="480" height="600" loading="lazy"/> */}
-          <div class="hp-photo-slot" role="img" aria-label="Photo of Jay coming soon"><span>Photo coming</span></div>
-        </div>
+        {/* No photo by choice: the letter is the feature. A real person, in his own words. */}
+        <aside class="hp-letter-side" aria-label="About the founder">
+          <dl class="hp-facts">
+            <div><dt>Who</dt><dd>{LETTER.name}, founder</dd></div>
+            <div><dt>Day job</dt><dd>Support worker</dd></div>
+            <div><dt>Where</dt><dd>Mid North Coast, NSW</dd></div>
+            <div><dt>Say hello</dt><dd><a href="mailto:hello@firepath.pro">hello@firepath.pro</a></dd></div>
+          </dl>
+        </aside>
         <div class="hp-letter-copy">
           <h2 id="letter-title" class="hp-label">Why I built this</h2>
-          <blockquote class="hp-quote">{LETTER.opener}</blockquote>
+          <span class="hp-quote-mark" aria-hidden="true">&ldquo;</span>
+          <blockquote class="hp-quote">{LETTER.opener.replace(/^["“]+|["”]+$/g, '')}</blockquote>
           <div class="hp-letter-body">
             {LETTER.paragraphs.map(p => <p set:html={p}/>)}
           </div>
