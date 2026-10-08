@@ -47,126 +47,143 @@
   <link rel="stylesheet" href="css/freedom-path.css"/>
   <script src="js/persona.js"></script>
   <style>
-  /* ── Page frame: the site shell draws the nav; this is the calculator column ── */
+  /* ── Page frame: the site shell draws the nav. The builder is wide (two columns on
+     desktop); the results stay in one calm column (.fp-calc). ── */
+  .fp-page { width: 100%; }
   /* position/z-index reset: main.css gives .container z-index:1; nothing here needs it. */
   .fp-calc { width: 100%; max-width: 640px; margin: 0 auto; padding: 0 16px calc(48px + env(safe-area-inset-bottom)); position: static; z-index: auto; }
-
-  /* main.css loads after app.css here (the page still uses its form classes), so pin .card back to app.css */
-  .fp-calc .card { border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: 20px; background: var(--surface); border: 1px solid var(--line); }
-  /* ── Shared form controls (classes come from main.css; restyled to app.css tokens) ── */
-  .fp-calc input[type="number"], .fp-calc input[type="text"] {
-    height: 48px; padding: 0 14px 0 32px; border: 1px solid var(--line-strong); border-radius: var(--r-sm);
-    background: var(--surface); color: var(--ink); font: 400 16px var(--font-ui); font-variant-numeric: tabular-nums;
-    transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
-  }
-  .fp-calc input[type="number"]:focus, .fp-calc input[type="text"]:focus, .fp-calc .context-textarea:focus { outline: none; border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
-  .fp-calc input::placeholder, .fp-calc .context-textarea::placeholder { color: var(--ink-3); font-weight: 400; }
-  .fp-calc .input-wrapper.with-word input { padding-left: 44px; }
-  .input-prefix { color: var(--ink-3); font-weight: 500; }
-  .input-prefix.word { font-size: 13px; left: 12px; }
-  .context-textarea { border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--ink); font: 400 15px/1.6 var(--font-ui); padding: 12px 14px; margin-top: 8px; }
-  .input-label { color: var(--ink); font-size: 13.5px; }
   .error-msg { color: var(--negative); font-weight: 400; font-size: 13.5px; background: var(--negative-wash); padding: 10px 14px; border-radius: var(--r-sm); margin: 0 0 12px; }
 
-  /* Toggles: pay cycle, spend, housing, savings type — JS toggles .active */
-  .cycle-group, .housing-group { display: flex; gap: 8px; margin-bottom: 0; flex-wrap: wrap; }
-  .cycle-btn, .housing-btn {
-    flex: 1 1 0; min-width: 0; min-height: 44px; padding: 10px 8px; border: 1px solid var(--line-strong); border-radius: var(--r-sm);
-    background: var(--surface); color: var(--ink-2); font: 500 13.5px/1.35 var(--font-ui); cursor: pointer; text-align: center;
-    display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-    transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, color var(--dur-fast) ease;
-  }
-  .housing-btn { flex-direction: row; gap: 6px; }
-  .housing-group .housing-btn[data-savings] { flex: 1 1 calc(50% - 4px); }
-  .cycle-btn:hover, .housing-btn:hover { border-color: var(--ink-3); color: var(--ink); }
-  .cycle-btn.active, .housing-btn.active { background: var(--ember-wash); border-color: var(--ember); color: var(--ember-ink); }
-  .cycle-btn:focus-visible, .housing-btn:focus-visible, .counter-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-  .cycle-btn-note { font-size: 11px; font-weight: 400; opacity: 0.8; line-height: 1.3; }
-  .housing-btn .icon { width: 15px; height: 15px; flex-shrink: 0; }
+  /* ── The builder: build your FirePath (js/firepath-builder.js) ──
+     Questions as large serif prompts on the left, one at a time; answered ones collapse
+     into one editorial line. The live path sits on the right (sticky), or as a slim
+     sticky strip at the top on phones. Ink on cream, ember only for the freedom marker
+     and the one primary button. Thin rules, no cards. */
+  .fb { max-width: 1120px; margin: 0 auto; padding: 28px 16px calc(56px + env(safe-area-inset-bottom)); color: var(--ink); }
+  @media (min-width: 768px) { .fb { padding: 56px 32px 96px; } }
+  .fb[hidden] { display: none; }
+  .fb .num, .fb-input, .fb-chip, .fb-big strong { font-variant-numeric: tabular-nums lining-nums; }
+  .fb-head { margin-bottom: 24px; }
+  @media (min-width: 960px) { .fb-head { margin-bottom: 48px; } }
+  .fb-h1 { max-width: 14ch; font-family: var(--font-display); font-weight: 700; font-size: clamp(36px, 5.6vw, 66px); line-height: 1.03; letter-spacing: -0.025em; color: var(--ink); margin: 0; }
+  .fb-lead { margin: 14px 0 0; max-width: 46ch; font-size: clamp(16px, 1.5vw, 18px); line-height: 1.55; color: var(--ink-2); }
+  .fb-label { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); }
+  .fb-label::before { content: ''; width: 28px; height: 1px; background: currentColor; opacity: 0.5; }
 
-  .counter-row { margin: 10px 0 0; padding: 10px 14px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-sm); }
-  .counter-label { color: var(--ink); font-size: 14px; }
-  .counter-btn { width: 36px; height: 36px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-2); }
-  .counter-btn:hover { border-color: var(--ember); color: var(--ember-ink); }
-  .counter-val { font-family: var(--font-ui); font-weight: 600; font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .fb-grid { display: grid; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 960px) { .fb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); column-gap: 72px; align-items: start; } }
+  .fb-flow { min-width: 0; }
 
-  /* Partner */
-  .partner-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: var(--surface); border: 1px dashed var(--line-strong); border-radius: var(--r-md); cursor: pointer; transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease; }
-  .partner-toggle:hover { border-color: var(--ember); background: var(--ember-wash); }
-  .partner-toggle-title { font-size: 14.5px; font-weight: 500; color: var(--ink); }
-  .partner-toggle-sub { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
-  #partnerToggleIcon { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--ember-wash); color: var(--ember-ink); display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; }
-  .partner-fields { margin-top: 12px; }
-  .partner-fields .section-label { margin-bottom: 14px; }
-  .partner-fields .input-group:last-child { margin-bottom: 0; }
-  .label-optional { color: var(--ink-3); font-weight: 400; }
-  .optional-badge { display: inline-block; font-size: 11px; font-weight: 500; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: middle; }
+  /* What you've answered, as one line. Each part is a button that reopens its question. */
+  .fb-sofar { margin: 0 0 28px; }
+  .fb-sofar[hidden] { display: none; }
+  .fb-line { margin: 8px 0 0; font-size: 17px; line-height: 1.7; color: var(--ink); }
+  .fb-chip { display: inline; padding: 2px 0; border: 0; background: none; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 5px; transition: text-decoration-color var(--dur-fast) ease, color var(--dur-fast) ease; }
+  .fb-chip:hover { text-decoration-color: var(--ink); }
+  .fb-chip[aria-current="true"] { color: var(--ink-2); text-decoration-color: var(--ink-2); text-decoration-style: dotted; }
+  .fb-sep { margin: 0 0.4em; color: var(--ink-3); }
 
+  /* One question at a time */
+  .fb-q { padding: 0 0 4px; }
+  .fb-q[hidden] { display: none; }
+  .fb-q.is-in { animation: fbIn 380ms var(--ease) both; }
+  @keyframes fbIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .fb-prompt { display: block; margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 3.3vw, 42px); line-height: 1.1; letter-spacing: -0.015em; color: var(--ink); }
+  .fb-help { margin: 10px 0 0; max-width: 44ch; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+  .fb-box { display: flex; align-items: baseline; gap: 8px; max-width: 440px; margin-top: 22px; padding-bottom: 4px; border-bottom: 1px solid var(--ink-2); transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease; }
+  .fb-box:focus-within { border-bottom-color: var(--ink); box-shadow: 0 1px 0 0 var(--ink); }
+  .fb-box:has(input[aria-invalid="true"]) { border-bottom-color: var(--ember-ink); box-shadow: 0 1px 0 0 var(--ember-ink); }
+  .fb-cur { font-size: clamp(26px, 3vw, 32px); font-weight: 500; color: var(--ink-2); }
+  /* main.css styles every text input as a boxed field; the builder's are bare. */
+  .fb .fb-input, .fb .fb-input:focus { flex: 1; width: auto; -webkit-appearance: none; appearance: none; min-width: 0; height: auto; padding: 0; border: 0; border-radius: 0; background: none; outline: none; box-shadow: none; font: 600 clamp(34px, 4.2vw, 46px)/1.15 var(--font-ui); letter-spacing: -0.01em; color: var(--ink); }
+  .fb-input::placeholder { color: var(--line-strong); font-weight: 500; }
+  .fb-unit { font-size: 16px; color: var(--ink-2); white-space: nowrap; }
+  .fb-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; min-height: 44px; margin-top: 14px; }
+  .fb-go, .fb-none, .fb-text { min-height: 44px; padding: 0; border: 0; background: none; font: 600 15px var(--font-ui); color: var(--ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; }
+  .fb-go:hover, .fb-none:hover, .fb-text:hover { text-decoration-color: var(--ink); }
+  .fb-go[hidden], .fb-none[hidden] { display: none; }
+  .fb-none, .fb-text { font-weight: 500; color: var(--ink-2); }
+  .fb-enter { font-size: 13px; color: var(--ink-2); }
+  @media (hover: none) { .fb-enter { display: none; } }
+  .fb-msg { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: var(--ember-ink); }
+  .fb-msg:empty { display: none; }
+  .fb :is(button, a, summary, select, input[type="checkbox"]):focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
 
-  /* ── Onboarding ── */
-  #onboarding { background: var(--bg); min-height: calc(100vh - var(--nav-h)); display: flex; flex-direction: column; }
-  #ob-dots { display: flex; justify-content: center; gap: 8px; padding: 20px 0 4px; position: sticky; top: var(--nav-h); z-index: 10; background: var(--bg); }
-  .ob-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--line-strong); transition: background var(--dur-base) ease, width var(--dur-base) var(--ease); cursor: default; }
-  .ob-dot.active { background: var(--ember); width: 22px; }
-  #ob-wrapper { flex: 1; position: relative; overflow: hidden; }
-  .ob-block {
-    position: absolute; top: 0; left: 0; right: 0;
-    transform: translateX(100%); opacity: 0; pointer-events: none;
-    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.35s ease;
-    min-height: calc(100vh - 60px);
+  /* Optional detail */
+  .fb-more { margin-top: 40px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .fb-more > summary { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; min-height: 56px; padding: 16px 0; cursor: pointer; list-style: none; }
+  .fb-more > summary::-webkit-details-marker { display: none; }
+  .fb-more-title { font-size: 16px; font-weight: 600; color: var(--ink); }
+  .fb-more-sub { display: block; margin-top: 2px; font-size: 13.5px; font-weight: 400; color: var(--ink-2); }
+  .fb-more > summary::after { content: '+'; font: 400 22px/1 var(--font-ui); color: var(--ink-2); }
+  .fb-more[open] > summary::after { content: '−'; }
+  .fb-more-body { padding: 0 0 20px; }
+  .fb-group { padding: 18px 0 4px; border-top: 1px solid var(--line); }
+  .fb-group-title { margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+  .fb-group-help { margin: 4px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+  .fb-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 14px; }
+  @media (min-width: 520px) { .fb-fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .fb-field label, .fb-field .fb-field-label { display: block; margin-bottom: 6px; font-size: 13.5px; font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .fb-field .fb-opt { font-weight: 400; color: var(--ink-2); }
+  .fb-sbox { display: flex; align-items: center; gap: 4px; height: 46px; padding: 0 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; transition: border-color var(--dur-fast) ease; }
+  .fb-sbox:hover { border-color: var(--ink-3); }
+  .fb-sbox:focus-within { border-color: var(--ink); }
+  .fb-sbox span { font-size: 15px; color: var(--ink-2); }
+  .fb .fb-sbox input, .fb .fb-sbox input:focus { flex: 1; width: auto; box-shadow: none; min-width: 0; height: 100%; padding: 0; border: 0; background: none; outline: none; font: 600 16px var(--font-ui); color: var(--ink); font-variant-numeric: tabular-nums; }
+  .fb .fb-sbox input::placeholder, .fb-note-text::placeholder { color: var(--ink-3); font-weight: 400; }
+  .fb-sbox select { flex: 0 0 auto; height: 100%; border: 0; background: none; font: 500 15px var(--font-ui); color: var(--ink-2); cursor: pointer; }
+  .fb-select { width: 100%; height: 46px; padding: 0 10px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; font: 500 15px var(--font-ui); color: var(--ink); cursor: pointer; }
+  .fb-check { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 8px; font-size: 15px; font-weight: 500; color: var(--ink); cursor: pointer; }
+  .fb-check input { width: 18px; height: 18px; accent-color: var(--ink); }
+  .fb-partner[hidden] { display: none; }
+  .fb-note-text { width: 100%; min-height: 84px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; font: 400 15px/1.55 var(--font-ui); color: var(--ink); resize: vertical; }
+  .fb-note-text:focus { outline: none; border-color: var(--ink); }
+  .fb-derived { margin: 10px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+  .fb-derived:empty { display: none; }
+
+  /* The one action */
+  .fb-done { margin-top: 32px; }
+  .fb-done[hidden] { display: none; }
+  .fb-done.is-in { animation: fbIn 380ms var(--ease) both; }
+  .fb-btn { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 26px; border: 0; border-radius: 8px; background: var(--ember-ink); color: #fff; font: 600 16px var(--font-ui); cursor: pointer; transition: background var(--dur-fast) ease; }
+  .fb-btn:hover { background: #A63C0C; }
+  .fb-btn:active { transform: translateY(1px); }
+  @media (max-width: 420px) { .fb-btn { width: 100%; } }
+  .fb-done .error-msg { margin: 0 0 14px; }
+  .fb-privacy { margin: 14px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+  .fb-privacy a { color: var(--ink); }
+
+  /* The live path. Desktop: a sticky sheet on the right. Phone: a slim sticky strip at the top. */
+  .fb-live { order: -1; position: sticky; top: var(--nav-h); z-index: 20; min-width: 0; margin: 0 -16px 24px; padding: 10px 16px 2px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .fb-live.is-empty { display: none; }
+  @media (min-width: 768px) and (max-width: 959px) { .fb-live { margin: 0 -32px 28px; padding: 12px 32px 2px; } }
+  .fb-live-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; }
+  .fb-big { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
+  .fb-big strong { font-weight: 700; }
+  .fb-when { margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--ink-2); }
+  .fb-live .fb-label, .fb-range, .fb-number, .fb-note, .fb-live-foot { display: none; }
+  .fb-path { margin: 2px 0 0; min-height: 116px; }
+  @media (min-width: 960px) {
+    .fb-live { order: 0; top: calc(var(--nav-h) + 24px); margin: 0; padding: 28px 32px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+    .fb-live.is-empty { display: block; }
+    .fb-live .fb-label, .fb-range, .fb-number, .fb-note, .fb-live-foot { display: block; }
+    .fb-live-text { display: block; margin-top: 18px; }
+    .fb-big { font-size: clamp(24px, 2.4vw, 30px); line-height: 1.12; letter-spacing: -0.015em; }
+    .fb-big strong.is-age { display: inline-block; min-width: 2ch; font-size: clamp(64px, 7vw, 96px); line-height: 0.9; letter-spacing: -0.04em; vertical-align: baseline; }
+    .fb-big.is-quiet { color: var(--ink); }
+    .fb-when { margin-top: 12px; font-size: 16px; font-weight: 500; color: var(--ink); }
+    .fb-live.is-waiting .fb-when { max-width: 44ch; font-weight: 400; line-height: 1.5; color: var(--ink-2); }
+    .fb-path { margin-top: 22px; padding-top: 6px; border-top: 1px solid var(--line); min-height: 157px; }
   }
-  .ob-block.active { position: relative; transform: translateX(0); opacity: 1; pointer-events: all; }
-  .ob-inner { max-width: 480px; margin: 0 auto; padding: 20px 0 56px; }
-  .ob-eyebrow { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 10px; }
-  .ob-title { font-family: var(--font-display); font-size: clamp(26px, 6vw, 30px); font-weight: 700; color: var(--ink); line-height: 1.2; letter-spacing: -0.01em; margin-bottom: 10px; }
-  .ob-sub { font-size: 15px; color: var(--ink-2); line-height: 1.6; margin-bottom: 28px; }
-  .ob-field { margin-bottom: 24px; }
-  .ob-label { display: block; font-size: 14.5px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
-  .ob-hint { font-size: 13px; color: var(--ink-2); line-height: 1.5; display: block; }
-  .ob-hint.live { margin-top: 6px; min-height: 18px; }
-  .ob-hint.spaced { margin-bottom: 10px; }
-  .ob-field .input-wrapper.spaced, .ob-field .housing-group.spaced { margin-top: 8px; }
-  .ob-subfield { margin-top: 14px; }
-  .ob-subfield .ob-label { margin-bottom: 0; }
-  /* Persona cards (markup from persona.js renderPicker) */
-  .ob-persona-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
-  .ob-persona { display: flex; align-items: center; gap: 14px; padding: 18px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); cursor: pointer; transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease), background var(--dur-fast) ease; }
-  .ob-persona:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
-  .ob-persona.selected { border-color: var(--ember); background: var(--ember-wash); box-shadow: var(--shadow-2); transform: none; }
-  .ob-persona:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-  .ob-persona-icon { font-size: 28px; flex-shrink: 0; color: var(--ember); display: flex; }
-  .ob-persona-info { flex: 1; min-width: 0; }
-  .ob-persona-name { font-size: 15.5px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
-  .ob-persona-desc { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
-  .ob-persona-check { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line-strong); display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; flex-shrink: 0; transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease; }
-  .ob-persona.selected .ob-persona-check { background: var(--ember); border-color: var(--ember); color: #fff; }
-  /* Fade-in for progressive field reveal */
-  .ob-fade-field { transition: opacity 0.4s ease; }
-  /* Next / back buttons (JS toggles :disabled) */
-  .ob-next {
-    display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; margin-top: 8px; padding: 0 24px;
-    background: var(--ink); color: var(--bg); border: none; border-radius: 999px;
-    font: 500 15px var(--font-ui); cursor: pointer; transition: background var(--dur-fast) ease, opacity var(--dur-fast) ease, transform var(--dur-fast) ease;
-  }
-  .ob-next:hover:not(:disabled) { background: #3F2C1F; }
-  .ob-next:active:not(:disabled) { transform: scale(0.98); }
-  .ob-next:disabled { opacity: 0.35; cursor: not-allowed; }
-  .ob-next:focus-visible, .cta-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-  .ob-back { display: inline-flex; align-items: center; min-height: 32px; background: none; border: none; color: var(--ink-2); font: 500 13.5px var(--font-ui); cursor: pointer; padding: 0; margin-bottom: 16px; }
-  .ob-back:hover { color: var(--ink); }
-  /* The page's main conversion action */
-  .cta-btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 54px; padding: 0 24px;
-    background: linear-gradient(135deg, var(--ember), var(--amber)); color: #fff; border: none; border-radius: 999px;
-    font: 500 16px var(--font-ui); cursor: pointer; box-shadow: 0 10px 24px -10px rgba(244, 98, 42, 0.55);
-    transition: filter var(--dur-fast) ease, transform var(--dur-fast) ease;
-  }
-  .cta-btn:hover { filter: brightness(1.04); transform: none; box-shadow: 0 10px 24px -10px rgba(244, 98, 42, 0.55); }
-  .cta-btn:active { transform: scale(0.98); }
-  .privacy-note { font-size: 13px; color: var(--ink-2); text-align: center; line-height: 1.5; margin-bottom: 14px; }
-  .privacy-note .icon { width: 12px; height: 12px; vertical-align: -2px; }
-  .privacy-note a { color: var(--ember-ink); text-decoration: none; }
-  .privacy-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .fb-range { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+  .fb-range:empty, .fb-number:empty, .fb-note:empty { display: none; }
+  .fb-number { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.5; color: var(--ink); }
+  .fb-number strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .fb-note { margin: 10px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--ink); }
+  .fb-live-foot { margin: 16px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
+  .fb-live-foot a { color: var(--ink); }
+  .fb-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  @media (prefers-reduced-motion: reduce) { .fb-q.is-in, .fb-done.is-in { animation: none; } }
 
   /* ── Results: one calm, scrolling page ── */
   #results-body { padding-top: 16px; }
@@ -279,223 +296,200 @@
 <body class="site" data-shell="site" data-footer="none">
 <script src="js/shell.js"></script>
 
-<main class="container fp-calc">
+<main class="fp-page" id="main">
 
   <!-- ═══════════════════════════════════════════════
-       CONVERSATIONAL ONBOARDING — replaces Screen 1 + Screen 2
+       THE BUILDER: five questions, one at a time, with the path drawn live beside them.
+       js/firepath-builder.js runs it and writes into the fields calculate() reads (#fbFields).
        ═══════════════════════════════════════════════ -->
-  <div id="onboarding">
+  <section class="fb" id="builder" aria-labelledby="fbTitle">
+    <header class="fb-head">
+      <h1 class="fb-h1" id="fbTitle">Build your FirePath</h1>
+      <p class="fb-lead">Five numbers. Your path draws itself as you answer, and every number moves it. Free, Australian, no account needed.</p>
+    </header>
 
-    <!-- Progress dots -->
-    <div id="ob-dots">
-      <div class="ob-dot active" data-block="1"></div>
-      <div class="ob-dot" data-block="2"></div>
-      <div class="ob-dot" data-block="3"></div>
-      <div class="ob-dot" data-block="4"></div>
+    <div class="fb-grid">
+      <div class="fb-flow">
+        <div class="fb-sofar" id="fbSofar" hidden>
+          <p class="fb-label" id="fbSofarLabel">Your numbers</p>
+          <p class="fb-line" id="fbLine" aria-labelledby="fbSofarLabel"></p>
+        </div>
+
+        <form id="fbForm" novalidate autocomplete="off">
+          <div class="fb-q" data-q="age">
+            <label class="fb-prompt" for="fbAge">How old are you?</label>
+            <p class="fb-help" id="fbAgeHelp">So we know how far off 60 is. That’s when you can get to your super.</p>
+            <div class="fb-box"><input class="fb-input" id="fbAge" type="text" inputmode="numeric" maxlength="3" placeholder="32" spellcheck="false" aria-describedby="fbAgeHelp fbAgeMsg"/><span class="fb-unit">years old</span></div>
+            <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><span class="fb-enter">Press Enter to continue</span></div>
+            <p class="fb-msg" id="fbAgeMsg"></p>
+          </div>
+
+          <div class="fb-q" data-q="savings" hidden>
+            <label class="fb-prompt" for="fbSavings">What have you saved and invested outside super?</label>
+            <p class="fb-help" id="fbSavingsHelp">Bank savings, shares, ETFs, an offset balance. If it’s working for you, it counts.</p>
+            <div class="fb-box"><span class="fb-cur" aria-hidden="true">$</span><input class="fb-input" id="fbSavings" type="text" maxlength="13" inputmode="decimal" placeholder="60,000" spellcheck="false" aria-describedby="fbSavingsHelp fbSavingsMsg"/></div>
+            <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><button type="button" class="fb-none">Nothing yet</button><span class="fb-enter">Press Enter to continue</span></div>
+            <p class="fb-msg" id="fbSavingsMsg"></p>
+          </div>
+
+          <div class="fb-q" data-q="super" hidden>
+            <label class="fb-prompt" for="fbSuper">And how much is in your super?</label>
+            <p class="fb-help" id="fbSuperHelp">Your latest balance is fine. You can get to it from 60.</p>
+            <div class="fb-box"><span class="fb-cur" aria-hidden="true">$</span><input class="fb-input" id="fbSuper" type="text" maxlength="13" inputmode="decimal" placeholder="50,000" spellcheck="false" aria-describedby="fbSuperHelp fbSuperMsg"/></div>
+            <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><button type="button" class="fb-none">None yet</button><span class="fb-enter">Press Enter to continue</span></div>
+            <p class="fb-msg" id="fbSuperMsg"></p>
+          </div>
+
+          <div class="fb-q" data-q="monthly" hidden>
+            <label class="fb-prompt" for="fbMonthly">How much do you put aside each month?</label>
+            <p class="fb-help" id="fbMonthlyHelp">Roughly what goes into savings or investing in a typical month, after tax.</p>
+            <div class="fb-box"><span class="fb-cur" aria-hidden="true">$</span><input class="fb-input" id="fbMonthly" type="text" maxlength="13" inputmode="decimal" placeholder="2,500" spellcheck="false" aria-describedby="fbMonthlyHelp fbMonthlyMsg"/><span class="fb-unit">a month</span></div>
+            <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><button type="button" class="fb-none">Nothing at the moment</button><span class="fb-enter">Press Enter to continue</span></div>
+            <p class="fb-msg" id="fbMonthlyMsg"></p>
+          </div>
+
+          <div class="fb-q" data-q="spend" hidden>
+            <label class="fb-prompt" for="fbSpend">And what do you spend in a year?</label>
+            <p class="fb-help" id="fbSpendHelp">Everything: rent or mortgage, bills, food, fun. For a couple, the whole household. Your freedom number is about 25 times this.</p>
+            <div class="fb-box"><span class="fb-cur" aria-hidden="true">$</span><input class="fb-input" id="fbSpend" type="text" maxlength="13" inputmode="decimal" placeholder="50,000" spellcheck="false" aria-describedby="fbSpendHelp fbSpendMsg"/><span class="fb-unit">a year</span></div>
+            <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><span class="fb-enter">Press Enter to continue</span></div>
+            <p class="fb-msg" id="fbSpendMsg"></p>
+          </div>
+        </form>
+
+        <!-- Optional detail: everything else calculate() can use -->
+        <details class="fb-more" id="fbMore">
+          <summary><span><span class="fb-more-title">Add more detail</span><span class="fb-more-sub">Take-home pay, debts, a partner, a note. All optional.</span></span></summary>
+          <div class="fb-more-body">
+            <div class="fb-group">
+              <h2 class="fb-group-title">Your pay</h2>
+              <p class="fb-group-help" id="fbPayHelp">We use it to estimate your employer’s super. Left blank, we take it as what you spend plus what you save.</p>
+              <div class="fb-fields">
+                <div class="fb-field">
+                  <label for="fbTakeHome">Take-home pay <span class="fb-opt">(after tax)</span></label>
+                  <div class="fb-sbox"><span aria-hidden="true">$</span><input id="fbTakeHome" type="text" inputmode="decimal" placeholder="0" aria-describedby="fbPayHelp fbDerived"/>
+                    <select id="fbCycle" aria-label="How often you’re paid"><option value="weekly">a week</option><option value="fortnightly">a fortnight</option><option value="monthly" selected>a month</option></select></div>
+                </div>
+              </div>
+              <p class="fb-derived" id="fbDerived"></p>
+            </div>
+
+            <div class="fb-group">
+              <h2 class="fb-group-title">Savings, debts and home</h2>
+              <div class="fb-fields two">
+                <div class="fb-field">
+                  <label for="fbHeld">Where your savings sit</label>
+                  <select class="fb-select" id="fbHeld"><option value="cash">Bank or cash</option><option value="etfs">ETFs or shares</option><option value="offset">Offset account</option><option value="mix">A mix</option></select>
+                </div>
+                <div class="fb-field">
+                  <label for="fbDebt">Debts <span class="fb-opt">(not your mortgage)</span></label>
+                  <div class="fb-sbox"><span aria-hidden="true">$</span><input id="fbDebt" type="text" inputmode="decimal" placeholder="0"/></div>
+                </div>
+                <div class="fb-field">
+                  <label for="fbHousing">Home</label>
+                  <select class="fb-select" id="fbHousing"><option value="renting">Renting</option><option value="owning">Own my home</option></select>
+                </div>
+                <div class="fb-field">
+                  <label for="fbMortgage">Mortgage remaining</label>
+                  <div class="fb-sbox"><span aria-hidden="true">$</span><input id="fbMortgage" type="text" inputmode="decimal" placeholder="0"/></div>
+                </div>
+                <div class="fb-field">
+                  <label for="fbDependants">Kids or others who depend on you</label>
+                  <div class="fb-sbox"><input id="fbDependants" type="text" inputmode="numeric" placeholder="0"/></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fb-group">
+              <h2 class="fb-group-title">A partner</h2>
+              <p class="fb-group-help">Combine your numbers for a shared date. Their super counts from when they turn 60.</p>
+              <label class="fb-check"><input type="checkbox" id="fbHasPartner" aria-controls="fbPartner"/> Include a partner</label>
+              <div class="fb-partner" id="fbPartner" hidden>
+                <div class="fb-fields two">
+                  <div class="fb-field">
+                    <label for="fbPIncome">Their take-home pay <span class="fb-opt fb-per">a month</span></label>
+                    <div class="fb-sbox"><span aria-hidden="true">$</span><input id="fbPIncome" type="text" inputmode="decimal" placeholder="0"/></div>
+                  </div>
+                  <div class="fb-field">
+                    <label for="fbPSavings">What they save <span class="fb-opt fb-per">a month</span></label>
+                    <div class="fb-sbox"><span aria-hidden="true">$</span><input id="fbPSavings" type="text" inputmode="decimal" placeholder="0"/></div>
+                  </div>
+                  <div class="fb-field">
+                    <label for="fbPAge">Their age <span class="fb-opt">(optional)</span></label>
+                    <div class="fb-sbox"><input id="fbPAge" type="text" inputmode="numeric" placeholder="0"/></div>
+                  </div>
+                  <div class="fb-field">
+                    <label for="fbPSuper">Their super <span class="fb-opt">(optional)</span></label>
+                    <div class="fb-sbox"><span aria-hidden="true">$</span><input id="fbPSuper" type="text" inputmode="decimal" placeholder="0"/></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fb-group">
+              <h2 class="fb-group-title">How we explain things</h2>
+              <div class="fb-fields">
+                <div class="fb-field">
+                  <label for="fbPersona">How much do you know about money?</label>
+                  <select class="fb-select" id="fbPersona"></select>
+                </div>
+              </div>
+            </div>
+
+            <div class="fb-group">
+              <h2 class="fb-group-title">Anything else?</h2>
+              <p class="fb-group-help" id="contextHint" data-term="contextHint">e.g. irregular income, self-employed, saving for a house</p>
+              <div class="fb-fields">
+                <div class="fb-field">
+                  <label for="contextNote" class="fb-sr">A note about your situation</label>
+                  <textarea class="fb-note-text" id="contextNote" aria-describedby="contextHint" placeholder="Tell us a bit about your situation…"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- The one action, once all five are in -->
+        <div class="fb-done" id="fbDone" hidden>
+          <p class="error-msg" id="errorMsg" role="alert" style="display:none;"></p>
+          <button type="button" class="fb-btn" id="fbCalc">Find my freedom date</button>
+          <p class="fb-privacy">Your numbers stay on your device. We don’t store or sell them. <a href="privacy.html">Privacy policy</a></p>
+        </div>
+      </div>
+
+      <!-- The live path: the same plan calculate() will show, redrawn as you type -->
+      <aside class="fb-live is-empty is-waiting" id="fbLive" aria-labelledby="fbLiveLabel">
+        <p class="fb-label" id="fbLiveLabel">Your FirePath</p>
+        <div class="fb-live-text">
+          <p class="fb-big" id="fbBig">Your path draws itself here</p>
+          <p class="fb-when" id="fbWhen">Answer on the left. Each number moves it.</p>
+        </div>
+        <figure class="fb-path" id="fbPath"></figure>
+        <p class="fb-range num" id="fbRange"></p>
+        <p class="fb-note" id="fbNote"></p>
+        <p class="fb-number num" id="fbNumber"></p>
+        <p class="fb-live-foot">General information, not advice. All in today’s dollars. <a href="assumptions.html">How we calculate →</a></p>
+        <p class="fb-sr" id="fbSay" aria-live="polite" aria-atomic="true"></p>
+      </aside>
     </div>
 
-    <div id="ob-wrapper">
+    <!-- What calculate() reads. The builder fills these; nothing here is shown. -->
+    <div id="fbFields" hidden>
+      <input type="hidden" id="age"/>
+      <input type="hidden" id="savings"/>
+      <input type="hidden" id="superBalance"/>
+      <input type="hidden" id="income"/>
+      <input type="hidden" id="savingsAmount"/>
+      <input type="hidden" id="debtTotal"/>
+      <input type="hidden" id="mortgageRemaining"/>
+      <input type="hidden" id="partnerIncome"/>
+      <input type="hidden" id="partnerSavings"/>
+      <input type="hidden" id="partnerAge"/>
+      <input type="hidden" id="partnerSuper"/>
+    </div>
+  </section>
 
-      <!-- ── BLOCK 1 — Persona ── -->
-      <div class="ob-block active" id="ob-block-1">
-        <div class="ob-inner">
-          <div class="ob-eyebrow">Let's find your number</div>
-          <h1 class="ob-title">How much do you know about money?</h1>
-          <p class="ob-sub">Pick one and we’ll explain things at the right level for you.</p>
-
-          <div id="obPersonaList"></div>
-        </div>
-      </div>
-
-      <!-- ── BLOCK 2 — Money ── -->
-      <div class="ob-block" id="ob-block-2">
-        <div class="ob-inner">
-          <button class="ob-back" onclick="obGoTo(1)">← Back</button>
-          <div class="ob-eyebrow" id="ob-block2-eyebrow" data-term="obEyebrow">Your money</div>
-          <h1 class="ob-title">What does your money look like right now?</h1>
-          <p class="ob-sub">Just the basics — we'll use this to find your number.</p>
-
-          <!-- Pay cycle -->
-          <div class="ob-field">
-            <label class="ob-label">Your pay cycle</label>
-            <div class="cycle-group">
-              <button class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
-              <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
-              <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
-            </div>
-          </div>
-
-          <!-- Income -->
-          <div class="ob-field">
-            <label class="ob-label" id="ob-incomeLabel" data-term="incomeLabel">Take-home income</label>
-            <div class="input-wrapper">
-              <span class="input-prefix">$</span>
-              <input type="number" id="income" placeholder="0" min="0" oninput="updateSavingsHint(); obIncomeHint()"/>
-            </div>
-            <span class="ob-hint live" id="ob-incomeHint"></span>
-          </div>
-
-          <!-- Savings per cycle — fades in after income entered -->
-          <div class="ob-field ob-fade-field" id="ob-savingsField" style="opacity:0.3;pointer-events:none;">
-            <label class="ob-label">How much do you save each cycle?</label>
-            <div class="input-wrapper">
-              <span class="input-prefix">$</span>
-              <input type="number" id="savingsAmount" placeholder="0" min="0" oninput="updateSavingsHint(); obSavingsHint()"/>
-            </div>
-            <span class="ob-hint live" id="sliderHint"></span>
-          </div>
-
-          <!-- Retirement spend — fades in after savings entered -->
-          <div class="ob-field ob-fade-field" id="ob-spendField" style="opacity:0.3;pointer-events:none;">
-            <label class="ob-label">In retirement, how much do you expect to spend?</label>
-            <span class="ob-hint spaced">We’ll use this to work out your freedom number.</span>
-            <div class="cycle-group">
-              <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less<span class="cycle-btn-note">Work costs gone, kids grown — most people spend less</span></button>
-              <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same<span class="cycle-btn-note">Similar lifestyle</span></button>
-              <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More<span class="cycle-btn-note">Travel, experiences</span></button>
-            </div>
-          </div>
-
-          <button class="ob-next" id="ob-next-2" onclick="obGoTo(3)" disabled>Keep going →</button>
-        </div>
-      </div>
-
-      <!-- ── BLOCK 3 — About you ── -->
-      <div class="ob-block" id="ob-block-3">
-        <div class="ob-inner">
-          <button class="ob-back" onclick="obGoTo(2)">← Back</button>
-          <div class="ob-eyebrow">A little about you</div>
-          <h1 class="ob-title">Tell us a bit about your situation</h1>
-          <p class="ob-sub">This helps us work out when you can get to your super.</p>
-
-          <!-- Age -->
-          <div class="ob-field">
-            <label class="ob-label">Your age</label>
-            <span class="ob-hint">So we know how long until you can get to your super at 60</span>
-            <div class="input-wrapper with-word spaced">
-              <span class="input-prefix word">age</span>
-              <input type="number" inputmode="numeric" id="age" placeholder="e.g. 28" min="16" max="80" oninput="obAgeHint()"/>
-            </div>
-            <span class="ob-hint live" id="ob-ageHint"></span>
-          </div>
-
-          <!-- Housing -->
-          <div class="ob-field">
-            <label class="ob-label">Do you rent or own?</label>
-            <div class="housing-group">
-              <button class="housing-btn active" data-housing="renting" onclick="setHousing(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-home"/></svg> Renting</button>
-              <button class="housing-btn" data-housing="owning" onclick="setHousing(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-key"/></svg> Own my home</button>
-            </div>
-          </div>
-
-          <!-- Dependants -->
-          <div class="ob-field">
-            <label class="ob-label">Dependants</label>
-            <span class="ob-hint">Kids, caring responsibilities</span>
-            <div class="counter-row">
-              <div class="counter-label">How many?</div>
-              <div class="counter-controls">
-                <button class="counter-btn" onclick="adjustDependants(-1)">−</button>
-                <span class="counter-val" id="dependantsVal">0</span>
-                <button class="counter-btn" onclick="adjustDependants(1)">+</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Partner toggle -->
-          <div class="ob-field">
-            <div class="partner-toggle" onclick="togglePartner()">
-              <div>
-                <div class="partner-toggle-title">Adding a partner?</div>
-                <div class="partner-toggle-sub">Combine your numbers for a shared freedom date</div>
-              </div>
-              <div id="partnerToggleIcon">+</div>
-            </div>
-            <div id="partnerFields" class="card partner-fields" style="display:none;">
-              <p class="section-label">Partner's details</p>
-              <div class="input-group"><label class="input-label">Their income per <span id="partnerCycleLabel">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerIncome" placeholder="0" min="0"/></div></div>
-              <div class="input-group"><label class="input-label">How much do they save per <span id="partnerCycleLabel2">fortnight</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSavings" placeholder="0" min="0"/></div></div>
-              <div class="input-group"><label class="input-label">Their age <span class="label-optional">(optional)</span></label><div class="input-wrapper with-word"><span class="input-prefix word">age</span><input type="number" inputmode="numeric" id="partnerAge" placeholder="0" min="16" max="80"/></div></div>
-              <div class="input-group"><label class="input-label">Their super balance <span class="label-optional">(optional)</span></label><div class="input-wrapper"><span class="input-prefix">$</span><input type="number" id="partnerSuper" placeholder="0" min="0"/></div></div>
-            </div>
-          </div>
-
-          <button class="ob-next" onclick="obGoTo(4)">Almost there →</button>
-        </div>
-      </div>
-
-      <!-- ── BLOCK 4 — Full picture ── -->
-      <div class="ob-block" id="ob-block-4">
-        <div class="ob-inner">
-          <button class="ob-back" onclick="obGoTo(3)">← Back</button>
-          <div class="ob-eyebrow">The full picture</div>
-          <h1 class="ob-title">What have you already built?</h1>
-          <p class="ob-sub">Everything counts — even if it doesn't feel like much yet.</p>
-
-          <!-- Savings & investments -->
-          <div class="ob-field">
-            <label class="ob-label" id="savingsLabel" data-term="savingsLabel">Current savings &amp; investments</label>
-            <span class="ob-hint">Bank savings, shares, ETFs, offset balance — if it's working for you, it counts.</span>
-            <div class="input-wrapper spaced">
-              <span class="input-prefix">$</span>
-              <input type="number" id="savings" placeholder="0" min="0"/>
-            </div>
-            <div class="ob-subfield">
-              <label class="ob-label">Where is this money held?</label>
-              <div class="housing-group spaced">
-                <button class="housing-btn active" data-savings="cash" onclick="setSavingsType(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-secure"/></svg> Bank / cash</button>
-                <button class="housing-btn" data-savings="etfs" onclick="setSavingsType(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-insight"/></svg> ETFs / shares</button>
-                <button class="housing-btn" data-savings="offset" onclick="setSavingsType(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-home"/></svg> Offset</button>
-                <button class="housing-btn" data-savings="mix" onclick="setSavingsType(this)"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-target"/></svg> Mix</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Super -->
-          <div class="ob-field">
-            <label class="ob-label">Super balance <span class="optional-badge">optional</span></label>
-            <span class="ob-hint">It counts towards your future, even if you can't touch it yet.</span>
-            <div class="input-wrapper spaced">
-              <span class="input-prefix">$</span>
-              <input type="number" id="superBalance" placeholder="0" min="0"/>
-            </div>
-          </div>
-
-          <!-- Debt -->
-          <div class="ob-field">
-            <label class="ob-label">Total debt <span class="optional-badge">optional</span></label>
-            <span class="ob-hint">Credit cards, car loans, personal loans — not your mortgage.</span>
-            <div class="input-wrapper spaced">
-              <span class="input-prefix">$</span>
-              <input type="number" id="debtTotal" placeholder="0" min="0"/>
-            </div>
-          </div>
-
-          <!-- Mortgage -->
-          <div class="ob-field">
-            <label class="ob-label">Mortgage remaining <span class="optional-badge">optional</span></label>
-            <span class="ob-hint">Only if you own your home.</span>
-            <div class="input-wrapper spaced">
-              <span class="input-prefix">$</span>
-              <input type="number" id="mortgageRemaining" placeholder="0" min="0"/>
-            </div>
-          </div>
-
-          <!-- Context -->
-          <div class="ob-field">
-            <label class="ob-label">Anything else we should know?</label>
-            <span class="ob-hint" id="contextHint" data-term="contextHint">e.g. irregular income, self-employed, saving for a house</span>
-            <textarea class="context-textarea" id="contextNote" placeholder="Tell us a bit about your situation…"></textarea>
-          </div>
-
-          <p class="error-msg" id="errorMsg" style="display:none;">Please enter your income first.</p>
-          <p class="privacy-note"><svg class="icon" aria-hidden="true"><use href="/icons.svg#icon-secure"/></svg> Your numbers stay on your device. We don't store or sell them. <a href="privacy.html">Privacy Policy</a></p>
-          <button class="cta-btn" onclick="calculate()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>Find my freedom date</button>
-        </div>
-      </div>
-
-    </div><!-- /ob-wrapper -->
-  </div><!-- /onboarding -->
+  <div class="fp-calc">
 
   <!-- ═══════════════════════════════════════════════
        SCREEN 3 — Results: one calm, scrolling page
@@ -575,22 +569,19 @@
     </div>
   </div>
 
-</main><!-- /container -->
+  </div><!-- /fp-calc -->
+</main>
 
 <!-- ═══════════════════════════════════════════════
      CALCULATOR + RESULT JS
      ═══════════════════════════════════════════════ -->
 <script>
-  let persona = FirePathPersona.get(), selectedCycle = 'fortnightly', retirementSpendMultiplier = 1.0;
+  // The builder (js/firepath-builder.js) sets these from its answers and "Add more detail".
+  // The pay cycle is monthly unless a take-home pay is given in another cycle.
+  let persona = FirePathPersona.get(), selectedCycle = 'monthly', retirementSpendMultiplier = 1.0;
   let housingStatus = 'renting', dependants = 0, savingsType = 'cash';
+  FirePathPersona.onChange(id => { persona = id; });
 
-  function setSavingsType(btn) { document.querySelectorAll('[data-savings]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); savingsType = btn.dataset.savings; }
-  function setRetirementSpend(btn) { document.querySelectorAll('[data-spend]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); retirementSpendMultiplier = parseFloat(btn.dataset.spend); }
-  function setHousing(btn) { document.querySelectorAll('[data-housing]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); housingStatus = btn.dataset.housing; }
-  function adjustDependants(delta) { dependants = Math.max(0, Math.min(10, dependants + delta)); document.getElementById('dependantsVal').textContent = dependants; }
-  function togglePartner(){const f=document.getElementById('partnerFields'),i=document.getElementById('partnerToggleIcon'),v=f.style.display!=='none';f.style.display=v?'none':'block';i.textContent=v?'+':'−';}
-
-  function setCycle(btn) { document.querySelectorAll('.cycle-btn[data-cycle]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); selectedCycle = btn.dataset.cycle; updateSavingsHint(); const w=selectedCycle==='weekly'?'week':selectedCycle==='fortnightly'?'fortnight':'month';const pl=document.getElementById('partnerCycleLabel'),pl2=document.getElementById('partnerCycleLabel2');if(pl)pl.textContent=w;if(pl2)pl2.textContent=w; }
   // toMonthly, fmt and fmtM come from js/calculations.js (loaded below).
 
   // The headline date is the shared freedom plan (FirePathEngine.freedomPlan, js/financial-engine.js),
@@ -605,16 +596,6 @@
     return p.valid ? p : null;
   }
 
-  function updateSavingsHint() {
-    const income = parseFloat(document.getElementById('income').value) || 0;
-    const saving = parseFloat(document.getElementById('savingsAmount').value) || 0;
-    const cycleWord = selectedCycle === 'weekly' ? 'week' : selectedCycle === 'fortnightly' ? 'fortnight' : 'month';
-    const hint = document.getElementById('sliderHint');
-    if (income > 0 && saving > 0) { const pct = Math.round((saving / income) * 100); hint.textContent = `That's ${pct}% of your income — ${pct >= 30 ? 'great savings rate!' : pct >= 15 ? 'a solid start' : 'every bit counts'}`; }
-    else if (income > 0) { hint.textContent = 'Enter how much you save each ' + cycleWord; }
-    else { hint.textContent = 'Enter your income above first'; }
-  }
-
   // Further out than this we don't show a date: it isn't a useful answer.
   const MAX_YEARS = 60;
   const inReach = p => !!(p && p.reachable && p.years < MAX_YEARS && !(p.freedomAge > 100));
@@ -623,8 +604,10 @@
   const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   let _result = null;   // this calculation, for the Try it sliders
 
-  function calculate() {
-    gtag('event', 'calculate', { 'event_category': 'engagement', 'event_label': 'show_me_my_path' });
+  // The numbers calculate() works from, read from the fields (#fbFields, filled by the
+  // builder). No side effects, so the builder's live path uses exactly what the result will.
+  // Returns { error } when something needed is missing.
+  function readInputs() {
     const income = parseFloat(document.getElementById('income').value) || 0;
     const savingPerCycle = parseFloat(document.getElementById('savingsAmount').value) || 0;
     const savings = parseFloat(document.getElementById('savings').value) || 0;
@@ -634,13 +617,11 @@
     const age = parseInt(document.getElementById('age').value) || 0;
     const context = document.getElementById('contextNote').value.trim();
 
-    const errEl = document.getElementById('errorMsg');
-    if (income <= 0) { errEl.textContent = 'Please enter your income first.'; errEl.style.display = 'block'; return; }
-    if (age <= 0) { errEl.textContent = 'Please enter your age.'; errEl.style.display = 'block'; return; }
+    if (income <= 0) return { error: 'Please enter your income first.' };
+    if (age <= 0) return { error: 'Please enter your age.' };
     const pI = parseFloat(document.getElementById('partnerIncome').value)||0;
     const pS = parseFloat(document.getElementById('partnerSavings').value)||0;
-    if (savingPerCycle > income || pS > pI) { errEl.textContent = "Savings can't be more than take-home pay."; errEl.style.display = 'block'; return; }
-    errEl.style.display = 'none';
+    if (savingPerCycle > income || pS > pI) return { error: "Savings can't be more than take-home pay." };
 
     const mI = toMonthly(income + pI), mSav = toMonthly(savingPerCycle + pS);
     const mS = mI - mSav, fireNum = mS * 12 * 25 * retirementSpendMultiplier;
@@ -660,12 +641,25 @@
     };
     // The headline: your own super (employer super from your own pay) and your partner's,
     // each unlocking at its owner's 60. Broken numbers get "check your numbers", not a date.
-    _planInputs = {
+    // (A local copy: calculate() is what sets the page's _planInputs.)
+    const _planInputs = {
       age, savings, monthlySavings: mSav, target: fireNum, superBalance: superBal, takeHomeMonthly: toMonthly(income),
       partner: pSuper > 0 ? { superBalance: pSuper, age: pAge, takeHomeMonthly: pI > 0 ? toMonthly(pI) : 0 } : null
     };
+    return { income, savingPerCycle, savings, superBal, debt, mortgage, age, context, pI, pS, mI, mSav, mS, fireNum, sRate, pAge, pSuper, hasPartner, situationInputs, planInputs: _planInputs };
+  }
+  const PLAN_INVALID = "Please check your numbers: we need what you spend (take-home less savings) to work out your freedom number.";
+
+  function calculate() {
+    gtag('event', 'calculate', { 'event_category': 'engagement', 'event_label': 'show_me_my_path' });
+    const errEl = document.getElementById('errorMsg');
+    const d = readInputs();
+    if (d.error) { errEl.textContent = d.error; errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
+    const { savings, superBal, age, context, mSav, mS, fireNum, sRate, pAge, pSuper, situationInputs } = d;
+    _planInputs = d.planInputs;
     const plan = FirePathEngine.freedomPlan(_planInputs);
-    if (!plan.valid) { _planInputs = null; errEl.textContent = "Please check your numbers: we need what you spend (take-home less savings) to work out your freedom number."; errEl.style.display = 'block'; return; }
+    if (!plan.valid) { _planInputs = null; errEl.textContent = PLAN_INVALID; errEl.style.display = 'block'; return; }
     const yHead = plan.years;   // null = more than 100 years, 0 = already there
 
     const ranked = window.FirePathMoves ? FirePathMoves.rank(FirePathMoves.situationFromInputs(situationInputs), { limit: 20 }) : null;
@@ -805,13 +799,18 @@
 
   // The realistic spread: 2,000 possible market outcomes on the same plan (freedomRange).
   // 10th to 90th percentile, with the headline year marked. Text carries the meaning; the bar is decoration.
-  function buildRange(plan, mc) {
-    const el = document.getElementById('answerRange');
-    if (!mc || mc.early == null || plan.freedomYear == null) return;
+  // The sentence is shared with the builder's live path, so the two always read the same.
+  function rangeSentence(plan, mc) {
+    if (!mc || mc.early == null || plan.freedomYear == null) return '';
     const now = new Date(), yr = m => new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear();
     const y1 = yr(mc.early), cap = yr(50 * 12), y2 = mc.late == null ? null : yr(mc.late);
-    const summary = y2 === null ? `Most likely from ${y1}, and in some outcomes after ${cap}.`
+    return y2 === null ? `Most likely from ${y1}, and in some outcomes after ${cap}.`
       : y1 === y2 ? `Most likely in ${y1}.` : `Most likely between ${y1} and ${y2}.`;
+  }
+  function buildRange(plan, mc) {
+    const el = document.getElementById('answerRange');
+    const summary = rangeSentence(plan, mc);
+    if (!summary) return;
     document.getElementById('rangeText').textContent = summary;
     document.getElementById('rangeDetail').hidden = false;   // the 2,000-outcomes detail, in "How we worked this out"
     el.hidden = false;
@@ -1058,7 +1057,7 @@
 
   function showScreen(n) {
     if (n === 3) {
-      document.getElementById('onboarding').style.display = 'none';
+      document.getElementById('builder').hidden = true;
       document.getElementById('screen3').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'auto' });
       // Gentle staggered fade-in (CSS turns it off under prefers-reduced-motion).
@@ -1066,16 +1065,12 @@
       secs.forEach((el, i) => { el.classList.remove('rv-in'); el.style.setProperty('--i', i); void el.offsetWidth; el.classList.add('rv-in'); });
       const h = document.getElementById('answerHeadline');
       if (h) h.focus({ preventScroll: true });
-    } else if (n === 2) {
+    } else {
+      // Back to the builder, with every answer still there to change.
       document.getElementById('screen3').style.display = 'none';
-      document.getElementById('onboarding').style.display = 'flex';
-      obGoTo(4);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (n === 1) {
-      document.getElementById('screen3').style.display = 'none';
-      document.getElementById('onboarding').style.display = 'flex';
-      obGoTo(1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('builder').hidden = false;
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      if (window.FirePathBuilder) FirePathBuilder.reopen();
     }
   }
 
@@ -1084,116 +1079,18 @@
   document.getElementById('tryReset').addEventListener('click', tryReset);
 </script>
 
-<!-- ── ONBOARDING JS ── -->
-<script>
-  let obCurrentBlock = 1;
-
-  function obGoTo(n) {
-    const current = document.getElementById('ob-block-' + obCurrentBlock);
-    const next = document.getElementById('ob-block-' + n);
-    if (!current || !next) return;
-    const goingForward = n > obCurrentBlock;
-
-    // Slide current out
-    current.classList.remove('active');
-    current.style.transition = 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease';
-    current.style.transform = goingForward ? 'translateX(-100%)' : 'translateX(100%)';
-    current.style.opacity = '0';
-    current.style.position = 'absolute';
-    current.style.pointerEvents = 'none';
-
-    // Prep next off-screen
-    next.style.transition = 'none';
-    next.style.transform = goingForward ? 'translateX(100%)' : 'translateX(-100%)';
-    next.style.opacity = '0';
-    next.style.position = 'absolute';
-    next.style.pointerEvents = 'none';
-
-    // Force reflow then slide next in
-    next.getBoundingClientRect();
-    next.style.transition = 'transform 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease';
-    next.style.transform = 'translateX(0)';
-    next.style.opacity = '1';
-    next.style.pointerEvents = 'all';
-    next.classList.add('active');
-
-    // After transition, make next truly static
-    setTimeout(() => {
-      next.style.position = 'relative';
-      next.style.transition = '';
-      current.style.transform = '';
-      current.style.opacity = '';
-      current.style.position = 'absolute';
-      current.style.transition = '';
-    }, 420);
-
-    obCurrentBlock = n;
-
-    // Update dots
-    document.querySelectorAll('.ob-dot').forEach((d, i) => {
-      d.classList.toggle('active', i + 1 === n);
-    });
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // Picker markup, copy and saving all live in js/persona.js. Choosing a card saves it
-  // and re-applies every data-term label on the page; all this page adds is advancing.
-  FirePathPersona.renderPicker(document.getElementById('obPersonaList'), {
-    onSelect: id => { persona = id; setTimeout(() => obGoTo(2), 320); }
-  });
-  FirePathPersona.onChange(id => { persona = id; });
-
-  function obIncomeHint() {
-    const income = parseFloat(document.getElementById('income').value) || 0;
-    const hint = document.getElementById('ob-incomeHint');
-    const savField = document.getElementById('ob-savingsField');
-
-    if (income > 0) {
-      if (hint) { hint.textContent = 'Got it.'; hint.style.color = '#2E7D32'; }
-      if (savField) { savField.style.opacity = '1'; savField.style.pointerEvents = 'all'; }
-    } else {
-      if (hint) { hint.textContent = ''; }
-      if (savField) { savField.style.opacity = '0.3'; savField.style.pointerEvents = 'none'; }
-      const spendField = document.getElementById('ob-spendField');
-      if (spendField) { spendField.style.opacity = '0.3'; spendField.style.pointerEvents = 'none'; }
-      const nextBtn = document.getElementById('ob-next-2');
-      if (nextBtn) nextBtn.disabled = true;
-    }
-  }
-
-  function obSavingsHint() {
-    const spendField = document.getElementById('ob-spendField');
-    const nextBtn = document.getElementById('ob-next-2');
-    if (spendField) { spendField.style.opacity = '1'; spendField.style.pointerEvents = 'all'; }
-    if (nextBtn) nextBtn.disabled = false;
-  }
-
-  function obAgeHint() {
-    const age = parseInt(document.getElementById('age').value) || 0;
-    const hint = document.getElementById('ob-ageHint');
-    if (!hint) return;
-    if (age >= 16 && age < 60) {
-      hint.textContent = `You can get to your super in ${60 - age} years. We count it from then.`;
-      hint.style.color = 'var(--fire-orange)';
-    } else if (age >= 60) {
-      hint.textContent = 'You can already get to your super. Nice.';
-      hint.style.color = '#2E7D32';
-    } else {
-      hint.textContent = '';
-    }
-  }
-</script>
-
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
 <script src="js/financial-engine.js"></script>
 <script src="js/freedom-path.js"></script>
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
+<script src="js/firepath-builder.js"></script>
 <script src="js/interactions.js"></script>
 <script>
-  loadAssumptions();
+  // Live figures (super guarantee rate and the like) can arrive after the builder has drawn,
+  // so it redraws once they do: the live path always matches the result.
+  Promise.resolve(loadAssumptions()).then(() => { if (window.FirePathBuilder) FirePathBuilder.refresh(); });
   if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
 </script>
 

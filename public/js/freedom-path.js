@@ -4,7 +4,7 @@
  *     animateIn: true = draw in the first time it's seen; 'onload' = only if it's on screen
  *     when the page opens. watch = the element whose visibility starts and pauses motion
  *     (default: the container). onIntro(phase) = 'seed' | 'play' | 'reveal' | 'end'.
- *   viz.update(plan, range, { preview, previewRange, since, far, previewFar, age, message });
+ *   viz.update(plan, range, { preview, previewRange, since, far, previewFar, age, message, waiting });
  *   viz.destroy();
  *
  * plan  = a FirePathEngine.freedomPlan() result (its inputs carry the age; or pass opts.age).
@@ -12,6 +12,9 @@
  * preview = a second freedomPlan result to show instead, with your own date left as a
  *   dashed ghost marker (the homepage options, the calculator's "Try it" sliders).
  * since = { age, label } draws a faint "where you started" marker, labelled "{label}: {age}".
+ * waiting = a short label for a path that has an age but no date yet (no plan): it draws
+ *   Today and 60 with the label above the line, instead of "Add your numbers…" (the
+ *   calculator's builder, while the questions are still being answered).
  *
  * It draws Today, the freedom marker (ember), the dotted "savings carry you" bridge to 60,
  * 60 · super, the likely-range band and age ticks, at the real pixel width (ResizeObserver),
@@ -215,7 +218,21 @@
 
       if (st === 'invalid') {
         out.push(`<line class="fpv-seg is-after" x1="${x0}" x2="${xEnd}" y1="${Y}" y2="${Y}"/>`);
-        out.push(`<text class="fpv-lab" x="${x0}" y="${Y - 14}">Add your numbers to see your path</text>`);
+        if (shape.waiting) {
+          // Today and 60 are known before the date is.
+          const todayT = `Today · ${Math.round(shape.age)}`, tw = textW(todayT, 12);
+          out.push(`<circle class="fpv-today-dot" cx="${x0}" cy="${Y}" r="4.5"/>`);
+          out.push(`<text class="fpv-lab" x="${x0}" y="${Y + 26}">${esc(todayT)}</text>`);
+          if (x60 != null) {
+            let t = narrow ? '60 · super' : '60 · super unlocks', w = textW(t, 12);
+            let lx = Math.min(x60, W - padR - w / 2);
+            if (lx - w / 2 < x0 + tw + 10) { t = '60'; w = textW(t, 12); lx = x60; }
+            out.push(`<line class="fpv-sixty" x1="${x60}" x2="${x60}" y1="${Y - 9}" y2="${Y + 9}"/>`);
+            if (lx - w / 2 >= x0 + tw + 6) out.push(`<text class="fpv-lab" x="${f1(lx)}" y="${Y + 26}" text-anchor="middle">${esc(t)}</text>`);
+          }
+          const lw = W - padL - padR, wt = shape.waiting;
+          out.push(`<text class="fpv-lab" x="${x0}" y="${Y - 14}">${esc(textW(wt, 12) > lw ? wt.slice(0, Math.max(8, Math.floor(lw / 6.72) - 1)) + '…' : wt)}</text>`);
+        } else out.push(`<text class="fpv-lab" x="${x0}" y="${Y - 14}">Add your numbers to see your path</text>`);
         mainG.innerHTML = out.join('');
         idleUpdate();
         return;
@@ -388,7 +405,8 @@
       const first = !cur;
       cur = { base, disp, since };
       if (intro && !first) endIntro();          // a change during the load animation ends it
-      shape = { status: disp.status, age: disp.age, freeAge: disp.status === 'ok' ? disp.plan.freedomAge : null, sinceLabel: since && disp.status !== 'invalid' ? since.label : null };
+      shape = { status: disp.status, age: disp.age, freeAge: disp.status === 'ok' ? disp.plan.freedomAge : null, sinceLabel: since && disp.status !== 'invalid' ? since.label : null,
+        waiting: disp.status === 'invalid' && u.waiting && fin(disp.age) ? String(u.waiting) : null };
       const next = geometryFor(disp, ghost, since);
       if (first && intro) {
         if (disp.status === 'ok') {
