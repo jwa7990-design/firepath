@@ -32,7 +32,7 @@
   const E = window.FirePathEngine;
   const Viz = window.FirePathViz;
   const mqReduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
-  const mqDesk = window.matchMedia ? window.matchMedia('(min-width: 960px)') : null;
+  const mqDesk = window.matchMedia ? window.matchMedia('(min-width: 900px)') : null;
   const reduced = () => !!(mqReduce && mqReduce.matches);
   const desk = () => !!(mqDesk && mqDesk.matches);
   const SUPER_AGE = 60;
@@ -412,7 +412,7 @@
         when.textContent = p.freedomAge != null ? `Nothing is going into savings from your pay yet, so this leans on super alone: around age ${p.freedomAge}.` : 'Nothing is going into savings from your pay yet.';
       } else {
         let a = big.querySelector('strong.is-age');
-        if (!a) { setBig('Work could become optional at <strong class="is-age"></strong>'); a = big.querySelector('strong.is-age'); setAge(a, p.freedomAge, true); }
+        if (!a) { setBig('Work could become optional at <strong class="is-age hp-age"></strong>'); a = big.querySelector('strong.is-age'); setAge(a, p.freedomAge, true); }
         else if (!(viz && viz.isIntro())) setAge(a, p.freedomAge, false);
         when.textContent = `in ${p.freedomYear} · ${span(p.months, true)} from now`;
         rangeEl.textContent = s.range ? rangeSentence(p, s.range) : '';      // eslint-disable-line no-undef

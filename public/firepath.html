@@ -45,39 +45,41 @@
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/visual-system.css"/>
   <link rel="stylesheet" href="css/freedom-path.css"/>
+  <link rel="stylesheet" href="css/fp-editorial.css"/>
   <script src="js/persona.js"></script>
   <style>
-  /* ── Page frame: the site shell draws the nav. The builder is wide (two columns on
-     desktop); the results stay in one calm column (.fp-calc). ── */
+  /* ── Page frame. The site shell draws the nav. Layout comes from the homepage's editorial
+     primitives (css/fp-editorial.css: .hp tokens, .hp-wrap, .hp-hero, .hp-sec, the dark
+     .hp-number band, the 12-column .hp-two / .hp-side / .hp-half splits, .hp-fig rules,
+     .hp-h1/.hp-h2/.hp-lead/.hp-body/.hp-label type). What follows is only what is
+     particular to this page. ── */
   .fp-page { width: 100%; }
   /* position/z-index reset: main.css gives .container z-index:1; nothing here needs it. */
-  .fp-calc { width: 100%; max-width: 640px; margin: 0 auto; padding: 0 16px calc(48px + env(safe-area-inset-bottom)); position: static; z-index: auto; }
+  .fp-calc { width: 100%; padding: 0 0 env(safe-area-inset-bottom); position: static; z-index: auto; }
   .error-msg { color: var(--negative); font-weight: 400; font-size: 13.5px; background: var(--negative-wash); padding: 10px 14px; border-radius: var(--r-sm); margin: 0 0 12px; }
 
   /* ── The builder: build your FirePath (js/firepath-builder.js) ──
-     Questions as large serif prompts on the left, one at a time; answered ones collapse
-     into one editorial line. The live path sits on the right (sticky), or as a slim
-     sticky strip at the top on phones. Ink on cream, ember only for the freedom marker
-     and the one primary button. Thin rules, no cards. */
-  .fb { max-width: 1120px; margin: 0 auto; padding: 28px 16px calc(56px + env(safe-area-inset-bottom)); color: var(--ink); }
-  @media (min-width: 768px) { .fb { padding: 56px 32px 96px; } }
+     A hero band (.hp-hero), then one 12-column composition (.hp-two from 900px):
+     "Your numbers" in columns 1–5, "Your FirePath" in 7–12, sticky, under an ink rule
+     like the homepage's figures. On phones the path is a slim sticky strip at the top.
+     Ink on cream, ember only for the freedom marker and the one primary button. */
+  .fb { color: var(--ink); }
   .fb[hidden] { display: none; }
   .fb .num, .fb-input, .fb-chip, .fb-big strong { font-variant-numeric: tabular-nums lining-nums; }
-  .fb-head { margin-bottom: 24px; }
-  @media (min-width: 960px) { .fb-head { margin-bottom: 48px; } }
-  .fb-h1 { max-width: 14ch; font-family: var(--font-display); font-weight: 700; font-size: clamp(36px, 5.6vw, 66px); line-height: 1.03; letter-spacing: -0.025em; color: var(--ink); margin: 0; }
-  .fb-lead { margin: 14px 0 0; max-width: 46ch; font-size: clamp(16px, 1.5vw, 18px); line-height: 1.55; color: var(--ink-2); }
-  .fb-label { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); }
-  .fb-label::before { content: ''; width: 28px; height: 1px; background: currentColor; opacity: 0.5; }
+  .fb-hero { padding-bottom: 36px; }
+  @media (min-width: 768px) { .fb-hero { padding-top: 56px; padding-bottom: 56px; } }
+  .fb-body { padding: 28px 0 calc(64px + env(safe-area-inset-bottom)); }
+  @media (min-width: 768px) { .fb-body { padding: 48px 0 112px; } }
+  .fb-col-label { margin: 0 0 24px; }
 
-  .fb-grid { display: grid; grid-template-columns: minmax(0, 1fr); }
-  @media (min-width: 960px) { .fb-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); column-gap: 72px; align-items: start; } }
+  .fb-grid.hp-two { gap: 0; }
   .fb-flow { min-width: 0; }
+  @media (min-width: 900px) { .fb-flow { padding-top: 21px; } }
 
   /* What you've answered, as one line. Each part is a button that reopens its question. */
-  .fb-sofar { margin: 0 0 28px; }
+  .fb-sofar { margin: 0 0 32px; }
   .fb-sofar[hidden] { display: none; }
-  .fb-line { margin: 8px 0 0; font-size: 17px; line-height: 1.7; color: var(--ink); }
+  .fb-line { margin: 0; font-size: 17px; line-height: 1.7; color: var(--ink); }
   .fb-chip { display: inline; padding: 2px 0; border: 0; background: none; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 5px; transition: text-decoration-color var(--dur-fast) ease, color var(--dur-fast) ease; }
   .fb-chip:hover { text-decoration-color: var(--ink); }
   .fb-chip[aria-current="true"] { color: var(--ink-2); text-decoration-color: var(--ink-2); text-decoration-style: dotted; }
@@ -89,8 +91,8 @@
   .fb-q.is-in { animation: fbIn 380ms var(--ease) both; }
   @keyframes fbIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   .fb-prompt { display: block; margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 3.3vw, 42px); line-height: 1.1; letter-spacing: -0.015em; color: var(--ink); }
-  .fb-help { margin: 10px 0 0; max-width: 44ch; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
-  .fb-box { display: flex; align-items: baseline; gap: 8px; max-width: 440px; margin-top: 22px; padding-bottom: 4px; border-bottom: 1px solid var(--ink-2); transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease; }
+  .fb-help { margin: 12px 0 0; max-width: 44ch; font-size: 15.5px; line-height: 1.6; color: var(--ink-2); }
+  .fb-box { display: flex; align-items: baseline; gap: 8px; max-width: 440px; margin-top: 24px; padding-bottom: 4px; border-bottom: 1px solid var(--ink-2); transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease; }
   .fb-box:focus-within { border-bottom-color: var(--ink); box-shadow: 0 1px 0 0 var(--ink); }
   .fb-box:has(input[aria-invalid="true"]) { border-bottom-color: var(--ember-ink); box-shadow: 0 1px 0 0 var(--ember-ink); }
   .fb-cur { font-size: clamp(26px, 3vw, 32px); font-weight: 500; color: var(--ink-2); }
@@ -110,208 +112,237 @@
   .fb :is(button, a, summary, select, input[type="checkbox"]):focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
 
   /* Optional detail */
-  .fb-more { margin-top: 40px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .fb-more > summary { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; min-height: 56px; padding: 16px 0; cursor: pointer; list-style: none; }
+  .fb-more { margin-top: 48px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .fb-more > summary { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; min-height: 56px; padding: 18px 0; cursor: pointer; list-style: none; }
   .fb-more > summary::-webkit-details-marker { display: none; }
   .fb-more-title { font-size: 16px; font-weight: 600; color: var(--ink); }
   .fb-more-sub { display: block; margin-top: 2px; font-size: 13.5px; font-weight: 400; color: var(--ink-2); }
   .fb-more > summary::after { content: '+'; font: 400 22px/1 var(--font-ui); color: var(--ink-2); }
   .fb-more[open] > summary::after { content: '−'; }
   .fb-more-body { padding: 0 0 20px; }
-  .fb-group { padding: 18px 0 4px; border-top: 1px solid var(--line); }
+  .fb-group { padding: 20px 0 4px; border-top: 1px solid var(--line); }
   .fb-group-title { margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
   .fb-group-help { margin: 4px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
   .fb-fields { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 14px; }
   @media (min-width: 520px) { .fb-fields.two { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .fb-field label, .fb-field .fb-field-label { display: block; margin-bottom: 6px; font-size: 13.5px; font-weight: 600; line-height: 1.35; color: var(--ink); }
   .fb-field .fb-opt { font-weight: 400; color: var(--ink-2); }
-  .fb-sbox { display: flex; align-items: center; gap: 4px; height: 46px; padding: 0 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; transition: border-color var(--dur-fast) ease; }
+  .fb-sbox { display: flex; align-items: center; gap: 4px; height: 46px; padding: 0 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--hp-r); transition: border-color var(--dur-fast) ease; }
   .fb-sbox:hover { border-color: var(--ink-3); }
   .fb-sbox:focus-within { border-color: var(--ink); }
   .fb-sbox span { font-size: 15px; color: var(--ink-2); }
   .fb .fb-sbox input, .fb .fb-sbox input:focus { flex: 1; width: auto; box-shadow: none; min-width: 0; height: 100%; padding: 0; border: 0; background: none; outline: none; font: 600 16px var(--font-ui); color: var(--ink); font-variant-numeric: tabular-nums; }
   .fb .fb-sbox input::placeholder, .fb-note-text::placeholder { color: var(--ink-3); font-weight: 400; }
   .fb-sbox select { flex: 0 0 auto; height: 100%; border: 0; background: none; font: 500 15px var(--font-ui); color: var(--ink-2); cursor: pointer; }
-  .fb-select { width: 100%; height: 46px; padding: 0 10px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; font: 500 15px var(--font-ui); color: var(--ink); cursor: pointer; }
+  .fb-select { width: 100%; height: 46px; padding: 0 10px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--hp-r); font: 500 15px var(--font-ui); color: var(--ink); cursor: pointer; }
   .fb-check { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 8px; font-size: 15px; font-weight: 500; color: var(--ink); cursor: pointer; }
   .fb-check input { width: 18px; height: 18px; accent-color: var(--ink); }
   .fb-partner[hidden] { display: none; }
-  .fb-note-text { width: 100%; min-height: 84px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px; font: 400 15px/1.55 var(--font-ui); color: var(--ink); resize: vertical; }
+  .fb-note-text { width: 100%; min-height: 84px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--hp-r); font: 400 15px/1.55 var(--font-ui); color: var(--ink); resize: vertical; }
   .fb-note-text:focus { outline: none; border-color: var(--ink); }
   .fb-derived { margin: 10px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
   .fb-derived:empty { display: none; }
 
   /* The one action */
-  .fb-done { margin-top: 32px; }
+  .fb-done { margin-top: 36px; }
   .fb-done[hidden] { display: none; }
   .fb-done.is-in { animation: fbIn 380ms var(--ease) both; }
-  .fb-btn { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 26px; border: 0; border-radius: 8px; background: var(--ember-ink); color: #fff; font: 600 16px var(--font-ui); cursor: pointer; transition: background var(--dur-fast) ease; }
+  .fb-btn { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 26px; border: 0; border-radius: var(--hp-r); background: var(--ember-ink); color: #fff; font: 600 16px var(--font-ui); cursor: pointer; transition: background var(--dur-fast) ease; }
   .fb-btn:hover { background: #A63C0C; }
   .fb-btn:active { transform: translateY(1px); }
   @media (max-width: 420px) { .fb-btn { width: 100%; } }
   .fb-done .error-msg { margin: 0 0 14px; }
-  .fb-privacy { margin: 14px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+  .fb-privacy { margin: 14px 0 0; max-width: 54ch; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
   .fb-privacy a { color: var(--ink); }
 
-  /* The live path. Desktop: a sticky sheet on the right. Phone: a slim sticky strip at the top. */
-  .fb-live { order: -1; position: sticky; top: var(--nav-h); z-index: 20; min-width: 0; margin: 0 -16px 24px; padding: 10px 16px 2px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  /* The live path. Desktop: the right-hand figure (.hp-fig: an ink rule above, a hairline
+     below), sticky. Phone: a slim sticky strip at the top. */
+  .fb-live.hp-fig { order: -1; position: sticky; top: var(--nav-h); z-index: 20; min-width: 0; margin: 0 -16px 24px; padding: 10px 16px 2px; background: var(--bg); border-top: 0; border-bottom: 1px solid var(--line); }
   .fb-live.is-empty { display: none; }
-  @media (min-width: 768px) and (max-width: 959px) { .fb-live { margin: 0 -32px 28px; padding: 12px 32px 2px; } }
+  @media (min-width: 768px) and (max-width: 899px) { .fb-live.hp-fig { margin: 0 -32px 28px; padding: 12px 32px 2px; } }
   .fb-live-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; }
   .fb-big { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
   .fb-big strong { font-weight: 700; }
   .fb-when { margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--ink-2); }
-  .fb-live .fb-label, .fb-range, .fb-number, .fb-note, .fb-live-foot { display: none; }
+  .fb-live .hp-label, .fb-range, .fb-number, .fb-note, .fb-live-foot { display: none; }
   .fb-path { margin: 2px 0 0; min-height: 116px; }
-  @media (min-width: 960px) {
-    .fb-live { order: 0; top: calc(var(--nav-h) + 24px); margin: 0; padding: 28px 32px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  /* The strip keeps the age at its line's size; the full figure gives it the .hp-age scale. */
+  @media (max-width: 899px) { .fb-big .hp-age { display: inline; min-width: 0; margin: 0; font-size: inherit; line-height: inherit; letter-spacing: inherit; } }
+  @media (min-width: 900px) {
+    .fb-live.hp-fig { order: 0; top: calc(var(--nav-h) + 24px); margin: 0; padding: 20px 0 22px; background: none; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); }
     .fb-live.is-empty { display: block; }
-    .fb-live .fb-label, .fb-range, .fb-number, .fb-note, .fb-live-foot { display: block; }
-    .fb-live-text { display: block; margin-top: 18px; }
+    .fb-live .hp-label, .fb-range, .fb-number, .fb-note, .fb-live-foot { display: block; }
+    .fb-live .hp-label { display: flex; }
+    .fb-live-text { display: block; margin-top: 22px; }
     .fb-big { font-size: clamp(24px, 2.4vw, 30px); line-height: 1.12; letter-spacing: -0.015em; }
-    .fb-big strong.is-age { display: inline-block; min-width: 2ch; font-size: clamp(64px, 7vw, 96px); line-height: 0.9; letter-spacing: -0.04em; vertical-align: baseline; }
     .fb-big.is-quiet { color: var(--ink); }
-    .fb-when { margin-top: 12px; font-size: 16px; font-weight: 500; color: var(--ink); }
+    .fb-when { margin-top: 14px; font-size: 16px; font-weight: 500; color: var(--ink); }
     .fb-live.is-waiting .fb-when { max-width: 44ch; font-weight: 400; line-height: 1.5; color: var(--ink-2); }
-    .fb-path { margin-top: 22px; padding-top: 6px; border-top: 1px solid var(--line); min-height: 157px; }
+    .fb-path { margin-top: 24px; padding-top: 6px; border-top: var(--hp-rule); min-height: 157px; }
   }
-  .fb-range { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+  .fb-range { margin: 10px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
   .fb-range:empty, .fb-number:empty, .fb-note:empty { display: none; }
-  .fb-number { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.5; color: var(--ink); }
+  .fb-number { margin: 16px 0 0; padding-top: 14px; border-top: var(--hp-rule); font-size: 15px; line-height: 1.5; color: var(--ink); }
   .fb-number strong { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .fb-note { margin: 10px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--ink); }
+  .fb-note { margin: 10px 0 0; max-width: 54ch; font-size: 15px; line-height: 1.55; color: var(--ink); }
   .fb-live-foot { margin: 16px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
   .fb-live-foot a { color: var(--ink); }
-  .fb-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   @media (prefers-reduced-motion: reduce) { .fb-q.is-in, .fb-done.is-in { animation: none; } }
 
-  /* ── Results: one calm, scrolling page ── */
-  #results-body { padding-top: 16px; }
-  .back-btn { color: var(--ink-2); font: 500 13.5px var(--font-ui); margin-bottom: 8px; min-height: 32px; }
-  .back-btn:hover { color: var(--ink); }
-  .fp-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); padding: 16px; margin-bottom: 12px; }
-  @media (min-width: 768px) { .fp-card { padding: 22px 24px; } }
-  .fp-kicker { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin: 0 0 6px; }
+  /* ── Results (#screen3): editorial sections, like the homepage's 01–05 ──
+     1 Your answer (.hp-hero, a .hp-half split), 2 the path (.hp-sec, full measure),
+     3 Try it (.hp-sec, .hp-two), 4 What could move your date (.hp-sec, .hp-side),
+     5 Next (the one dark .hp-number band, .hp-half), 6 Pro and the saved note (quiet). */
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  .text-link { background: none; border: 0; padding: 0; font: 600 13.5px var(--font-ui); color: var(--ember-ink); text-decoration: none; cursor: pointer; }
-  .text-link:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .text-link.small { font-size: 12.5px; font-weight: 500; color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; min-height: 24px; }
+  /* Links read like the homepage's: ink, a soft underline that darkens on hover. */
+  .text-link { background: none; border: 0; padding: 0; font: 600 15px var(--font-ui); color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 4px; cursor: pointer; transition: text-decoration-color var(--dur-fast) ease; }
+  .text-link:hover { text-decoration-color: var(--ink); }
+  .text-link.small { font-size: 13.5px; font-weight: 500; color: var(--ink-2); min-height: 24px; }
   .text-link.small:hover { color: var(--ink); }
-  .text-link:focus-visible, .moves-more:focus-visible, .answer-how summary:focus-visible, .fp-calc input[type="range"]:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; border-radius: 4px; }
+  .fp-calc :is(.text-link, .moves-more, .answer-how summary, .back-btn):focus-visible, .fp-calc input[type="range"]:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
 
-  /* Your answer */
-  .answer-headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 6.4vw, 30px); line-height: 1.25; color: var(--ink); margin: 0 0 14px; letter-spacing: -0.01em; }
+  /* 1 · Your answer */
+  .fr-answer { padding-top: 28px; }
+  @media (min-width: 768px) { .fr-answer { padding-top: 40px; } }
+  .back-btn { min-height: 32px; margin: 0 0 32px; font: 500 14px var(--font-ui); color: var(--ink-2); }
+  .back-btn:hover { color: var(--ink); }
+  @media (min-width: 768px) { .back-btn { margin-bottom: 48px; } }
+  .fr-answer-grid { row-gap: 28px; }
+  @media (min-width: 900px) { .fr-answer-grid { align-items: end; } }
+  .answer-headline { max-width: 19ch; margin: 18px 0 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 3.4vw, 40px); line-height: 1.12; letter-spacing: -0.015em; color: var(--ink); }
   .answer-headline:focus { outline: none; }
-  .answer-headline strong { color: var(--ember-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .answer-path { margin: 0 0 10px; padding-top: 4px; border-top: 1px solid var(--line); }
-  .answer-path[hidden] { display: none; }
-  .answer-range { margin: 0 0 12px; }
-  .range-note { font-size: 13px; color: var(--ink-2); line-height: 1.45; margin: 0; }
-  .answer-why { font-size: 14px; color: var(--ink); line-height: 1.5; margin: 0; }
-  .answer-why strong { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .answer-stand { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
-  .stand-line { font-size: 13.5px; color: var(--ink-2); line-height: 1.45; margin: 0 0 6px; }
+  .answer-headline strong { font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+  /* The age on its own line, at the .hp-age scale: the anchor of the page */
+  .answer-headline .hp-age { display: block; margin-top: 10px; }
+  .fr-answer-side { min-width: 0; max-width: 46ch; }
+  .answer-range[hidden] { display: none; }
+  .answer-range .hp-lead { margin-top: 0; color: var(--ink); }
+  .answer-why.hp-body { margin-top: 12px; }
+  .answer-why strong { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .answer-stand { margin: 24px 0 0; padding-top: 16px; border-top: var(--hp-rule); }
+  .stand-line { margin: 0 0 10px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
   .stand-line strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
-  .stand-bar { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
-  .stand-fill { display: block; height: 100%; min-width: 3px; border-radius: 999px; background: linear-gradient(90deg, var(--ember), var(--amber)); }
-  .answer-fact { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; margin: 10px 0 0; }
-  .answer-extra { margin: 10px 0 0; }
-  .answer-how { margin: 12px 0 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
-  .answer-how summary { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; cursor: pointer; list-style: none; font: 500 12.5px var(--font-ui); color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+  /* The same slim bar as the homepage's plan card */
+  .stand-bar { height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .stand-fill { display: block; height: 100%; min-width: 3px; background: var(--ink); }
+  .answer-fact { margin: 14px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+  .answer-extra { margin: 12px 0 0; }
+
+  /* 2 · The path, given the full measure */
+  .fr-path-fig { padding-bottom: 20px; }
+  .answer-path { margin: 18px 0 0; }
+  .answer-path[hidden] { display: none; }
+  /* The renderer draws at a fixed height; on wide screens it's drawn a fifth larger. */
+  @media (min-width: 900px) { .answer-path { zoom: 1.2; } }
+  .answer-how { margin: 20px 0 0; max-width: 62ch; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+  .answer-how summary { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; cursor: pointer; list-style: none; font: 600 15px var(--font-ui); color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; }
   .answer-how summary::-webkit-details-marker { display: none; }
   .answer-how summary::before { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform var(--dur-fast) ease; margin-right: 2px; }
   .answer-how[open] summary::before { transform: rotate(45deg); }
-  .answer-how summary:hover { color: var(--ink); }
-  .answer-how p { margin: 6px 0 0; }
-  .answer-how p:first-of-type { margin-top: 4px; }
+  .answer-how summary:hover { text-decoration-color: var(--ink); }
+  .answer-how p { margin: 8px 0 0; }
+  .answer-how p:first-of-type { margin-top: 10px; }
 
-  /* Try it */
-  .try-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-  .try-row { margin-bottom: 8px; }
-  .try-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 2px; }
-  .try-top label { font-size: 14px; font-weight: 500; color: var(--ink); }
-  .try-top output { font-size: 13.5px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .fp-calc input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; --fill: 0%; }
-  .fp-calc input[type="range"]::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(90deg, var(--ember) var(--fill), var(--line-strong) var(--fill)); }
-  .fp-calc input[type="range"]::-moz-range-track { height: 6px; border-radius: 999px; background: var(--line-strong); }
-  .fp-calc input[type="range"]::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--ember); }
-  .fp-calc input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); }
-  .fp-calc input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); }
+  /* 3 · Try it */
+  .try-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 28px; }
+  .try-row { margin-bottom: 18px; }
+  .try-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .try-top label { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .try-top output { font-size: 15px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* Sliders: a hairline track and a round thumb, like the homepage's spending slider (in ink, on cream) */
+  .fp-calc input[type="range"] { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; --fill: 0%; }
+  .fp-calc input[type="range"]::-webkit-slider-runnable-track { height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--ink) var(--fill), var(--line-strong) var(--fill)); }
+  .fp-calc input[type="range"]::-moz-range-track { height: 2px; border-radius: 2px; background: var(--line-strong); }
+  .fp-calc input[type="range"]::-moz-range-progress { height: 2px; border-radius: 2px; background: var(--ink); }
+  .fp-calc input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -10px; border-radius: 50%; background: var(--ink); border: 0; transition: transform var(--dur-fast) ease; }
+  .fp-calc input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); border: 0; }
+  .fp-calc input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.12); }
+  .fp-calc input[type="range"]:focus { outline: none; }
   .fp-calc input[type="range"]:disabled { cursor: not-allowed; opacity: 0.4; }
-  .try-path { margin: 2px 0 4px; }
+  .try-note { margin: 10px 0 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+  .fr-try-fig { padding-top: 12px; }
+  .try-path { margin: 6px 0 4px; }
   .try-path[hidden] { display: none; }
-  .try-result { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 4px 0 0; padding: 8px 12px; border-radius: var(--r-md); background: var(--surface-2); font-size: 14.5px; color: var(--ink); line-height: 1.45; font-variant-numeric: tabular-nums; min-height: 40px; }
+  .try-result { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-height: 44px; margin: 12px 0 0; padding-top: 14px; border-top: var(--hp-rule); font-size: 17px; line-height: 1.45; color: var(--ink); font-variant-numeric: tabular-nums; }
   .try-result strong { font-weight: 700; }
   .try-result .try-diff { color: var(--positive); font-weight: 600; }
-  .try-result .try-same { color: var(--ink-2); font-size: 13px; }
-  .try-note { margin: 6px 0 0; font-size: 12px; color: var(--ink-3); line-height: 1.4; }
+  .try-result .try-same { color: var(--ink-2); font-size: 15px; }
 
-  /* What could move your date (options from js/moves.js) */
-  .moves-sort { font-size: 12px; color: var(--ink-3); line-height: 1.4; margin: -2px 0 2px; }
-  .moves-ontrack { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin: 6px 0; background: var(--positive-wash); color: var(--ink); border-radius: var(--r-md); font-size: 14px; line-height: 1.5; }
-  .moves-ontrack-icon { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--positive); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
-  .moves-list { list-style: none; margin: 0; padding: 0; }
+  /* 4 · What could move your date (options from js/moves.js), as a ruled list */
+  .moves-sort.hp-body { margin-top: 14px; }
+  .moves-ontrack { display: flex; align-items: baseline; gap: 10px; margin: 0 0 20px; font-size: 17px; line-height: 1.55; color: var(--ink); }
+  .moves-ontrack-icon { flex-shrink: 0; font-size: 15px; font-weight: 700; color: var(--ink); }
+  .moves-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
   .moves-list:empty { display: none; }
-  .move-item { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
-  .move-item:first-child { border-top: 0; }
+  .move-item { display: grid; grid-template-columns: 2em minmax(0, 1fr); gap: 0 10px; padding: 20px 2px; border-bottom: var(--hp-rule); }
   .move-item[hidden] { display: none; }
-  .move-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--ember-wash); color: var(--ember-ink); font: 700 12px var(--font-ui); display: flex; align-items: center; justify-content: center; margin-top: 1px; font-variant-numeric: tabular-nums; }
-  .move-body { flex: 1; min-width: 0; }
-  .move-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-  .move-title { font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.35; }
-  .move-pro { display: inline-block; margin-left: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ember-ink); background: var(--ember-wash); border: 1px solid rgba(244, 98, 42, 0.35); border-radius: 999px; padding: 0 7px; vertical-align: 2px; }
-  .move-effect { flex-shrink: 0; font-size: 13.5px; font-weight: 700; color: var(--positive); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .move-effect.tag { font-size: 11.5px; font-weight: 600; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
-  .move-why { font-size: 13px; color: var(--ink-2); line-height: 1.5; margin: 2px 0 0; }
-  .move-links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 4px 0 0; }
-  .move-links .text-link { font-size: 13px; }
-  .moves-more { display: block; width: 100%; min-height: 40px; margin: 0; padding: 8px 0; background: none; border: 0; border-top: 1px solid var(--line); font: 500 13px var(--font-ui); color: var(--ember-ink); text-align: left; cursor: pointer; }
+  .move-num { padding-top: 6px; font: 600 13px var(--font-ui); letter-spacing: 0.04em; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .move-body { min-width: 0; }
+  .move-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .move-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.2vw, 24px); line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
+  .move-pro { display: inline-block; margin-left: 8px; font: 700 11px var(--font-ui); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ember-ink); vertical-align: 3px; }
+  .move-effect { flex-shrink: 0; font-size: 15px; font-weight: 700; color: var(--positive); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .move-effect.tag { font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
+  .move-why { max-width: 60ch; margin: 6px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+  .move-links { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 10px 0 0; }
+  .move-links .text-link { font-size: 14.5px; }
+  .moves-more { display: block; min-height: 44px; margin: 0; padding: 12px 2px; background: none; border: 0; font: 600 15px var(--font-ui); color: var(--ink); text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; }
   .moves-more[hidden] { display: none; }
-  .moves-more:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .moves-advice { font-size: 11.5px; color: var(--ink-3); line-height: 1.45; margin: 4px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
-  .moves-saved { font-size: 12px; color: var(--ink-3); margin: 0 0 10px; line-height: 1.5; }
-  .moves-saved a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
+  .moves-more:hover { text-decoration-color: var(--ink); }
+  .moves-advice { max-width: 62ch; margin: 20px 0 0; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
 
-  /* Next: one line of text links */
-  .next-line { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin: 4px 0 12px; }
-  .next-label { font-weight: 600; color: var(--ink); }
-  .next-line .sep { color: var(--ink-3); margin: 0 4px; }
+  /* 5 · Next, and how it's worked out: the one dark band */
+  .fr-next .hp-half { align-items: start; }
+  .next-line { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 2.8vw, 32px); line-height: 1.3; letter-spacing: -0.012em; color: var(--bg); }
+  .next-label { display: block; margin-bottom: 10px; font: 600 13px var(--font-ui); letter-spacing: 0.04em; color: rgba(253, 246, 238, 0.7); }
+  .next-line .sep { margin: 0 10px; color: rgba(253, 246, 238, 0.4); }
+  .next-line .text-link { font: inherit; color: var(--bg); text-decoration-color: rgba(253, 246, 238, 0.35); text-underline-offset: 6px; }
+  .next-line .text-link:hover { text-decoration-color: var(--bg); }
+  .fp-calc .disclaimer { margin: 0; max-width: 46ch; text-align: left; font-size: 16.5px; line-height: 1.65; font-weight: 400; color: rgba(253, 246, 238, 0.78); }
+  .fp-links { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid rgba(253, 246, 238, 0.18); font-size: 15px; line-height: 1.6; color: rgba(253, 246, 238, 0.5); }
+  .fp-links a { color: var(--bg); font-weight: 500; text-decoration: underline; text-decoration-color: rgba(253, 246, 238, 0.35); text-underline-offset: 4px; }
+  .fp-links a:hover { text-decoration-color: var(--bg); }
+  .fr-next a:focus-visible { outline-color: var(--bg); }
 
-  /* Pro, one quiet line */
-  .pro-line { border-top: 1px solid var(--line); padding: 12px 0 0; margin-bottom: 12px; }
-  .pro-line p { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin: 0; }
-  .pro-line .pro-fine { font-size: 12px; color: var(--ink-3); margin: 4px 0 0; line-height: 1.45; }
-
-  .fp-calc .disclaimer { font-size: 12.5px; color: var(--ink-2); font-weight: 400; }
-  .fp-links { text-align: center; font-size: 13px; margin: 8px 0 16px; color: var(--ink-3); }
-  .fp-links a { color: var(--ember-ink); text-decoration: none; font-weight: 500; }
-  .fp-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  /* 6 · Pro, one quiet line, and the saved note */
+  .fr-end { padding: 40px 0 72px; }
+  @media (min-width: 768px) { .fr-end { padding: 56px 0 96px; } }
+  .pro-line { max-width: 62ch; }
+  .pro-line p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+  .pro-line .pro-fine { margin: 6px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+  .moves-saved { max-width: 62ch; margin: 20px 0 0; padding-top: 14px; border-top: var(--hp-rule); font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+  .moves-saved a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
   /* A gentle staggered fade-in when the result appears */
   @keyframes fpRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   .rv.rv-in { animation: fpRise 0.5s var(--ease) both; animation-delay: calc(var(--i, 0) * 90ms); }
-  @media (prefers-reduced-motion: reduce) { .rv.rv-in { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .rv.rv-in { animation: none; } .fp-calc input[type="range"]::-webkit-slider-thumb, .text-link { transition: none; } }
   </style>
 </head>
 <body class="site" data-shell="site" data-footer="none">
 <script src="js/shell.js"></script>
 
-<main class="fp-page" id="main">
+<main class="fp-page hp" id="main">
 
   <!-- ═══════════════════════════════════════════════
        THE BUILDER: five questions, one at a time, with the path drawn live beside them.
        js/firepath-builder.js runs it and writes into the fields calculate() reads (#fbFields).
        ═══════════════════════════════════════════════ -->
   <section class="fb" id="builder" aria-labelledby="fbTitle">
-    <header class="fb-head">
-      <h1 class="fb-h1" id="fbTitle">Build your FirePath</h1>
-      <p class="fb-lead">Five numbers. Your path draws itself as you answer, and every number moves it. Free, Australian, no account needed.</p>
+    <header class="hp-hero fb-hero">
+      <div class="hp-wrap">
+        <h1 class="hp-h1" id="fbTitle">Build your FirePath</h1>
+        <p class="hp-lead">Five numbers. Your path draws itself as you answer, and every number moves it. Free, Australian, no account needed.</p>
+      </div>
     </header>
 
-    <div class="fb-grid">
+    <!-- One composition: your numbers on the left (columns 1–5), your FirePath on the right (7–12) -->
+    <div class="fb-body">
+    <div class="hp-wrap hp-two fb-grid">
       <div class="fb-flow">
+        <p class="hp-label fb-col-label" aria-hidden="true">Your numbers</p>
         <div class="fb-sofar" id="fbSofar" hidden>
-          <p class="fb-label" id="fbSofarLabel">Your numbers</p>
+          <p class="hp-sr" id="fbSofarLabel">Your numbers</p>
           <p class="fb-line" id="fbLine" aria-labelledby="fbSofarLabel"></p>
         </div>
 
@@ -441,7 +472,7 @@
               <p class="fb-group-help" id="contextHint" data-term="contextHint">e.g. irregular income, self-employed, saving for a house</p>
               <div class="fb-fields">
                 <div class="fb-field">
-                  <label for="contextNote" class="fb-sr">A note about your situation</label>
+                  <label for="contextNote" class="hp-sr">A note about your situation</label>
                   <textarea class="fb-note-text" id="contextNote" aria-describedby="contextHint" placeholder="Tell us a bit about your situation…"></textarea>
                 </div>
               </div>
@@ -458,8 +489,8 @@
       </div>
 
       <!-- The live path: the same plan calculate() will show, redrawn as you type -->
-      <aside class="fb-live is-empty is-waiting" id="fbLive" aria-labelledby="fbLiveLabel">
-        <p class="fb-label" id="fbLiveLabel">Your FirePath</p>
+      <aside class="fb-live hp-fig is-empty is-waiting" id="fbLive" aria-labelledby="fbLiveLabel">
+        <p class="hp-label" id="fbLiveLabel">Your FirePath</p>
         <div class="fb-live-text">
           <p class="fb-big" id="fbBig">Your path draws itself here</p>
           <p class="fb-when" id="fbWhen">Answer on the left. Each number moves it.</p>
@@ -469,9 +500,10 @@
         <p class="fb-note" id="fbNote"></p>
         <p class="fb-number num" id="fbNumber"></p>
         <p class="fb-live-foot">General information, not advice. All in today’s dollars. <a href="assumptions.html">How we calculate →</a></p>
-        <p class="fb-sr" id="fbSay" aria-live="polite" aria-atomic="true"></p>
+        <p class="hp-sr" id="fbSay" aria-live="polite" aria-atomic="true"></p>
       </aside>
     </div>
+    </div><!-- /fb-body -->
 
     <!-- What calculate() reads. The builder fills these; nothing here is shown. -->
     <div id="fbFields" hidden>
@@ -492,80 +524,119 @@
   <div class="fp-calc">
 
   <!-- ═══════════════════════════════════════════════
-       SCREEN 3 — Results: one calm, scrolling page
+       SCREEN 3 — Results: editorial sections, like the homepage's 01–05
        ═══════════════════════════════════════════════ -->
   <div id="screen3" style="display:none;">
     <div id="results-body">
-      <button class="back-btn" onclick="showScreen(2)">← Recalculate</button>
 
-      <!-- Your answer: the headline date (FirePathEngine.freedomPlan) and its market range (freedomRange) -->
-      <section class="fp-card rv" id="answerCard" aria-labelledby="answerHeadline">
-        <p class="fp-kicker">Your answer</p>
-        <h2 class="answer-headline" id="answerHeadline" tabindex="-1"></h2>
-        <!-- The freedom path (js/freedom-path.js): today, your date, the bridge to 60 and the likely range -->
-        <div class="answer-path" id="answerPath" hidden></div>
-        <div class="answer-range" id="answerRange" hidden>
-          <p class="range-note" id="rangeText"></p>
+      <!-- 1 · Your answer: the headline date (FirePathEngine.freedomPlan) and its market range (freedomRange) -->
+      <section class="hp-hero fr-answer rv" id="answerCard" aria-labelledby="answerHeadline">
+        <div class="hp-wrap">
+          <button class="back-btn" onclick="showScreen(2)">← Recalculate</button>
+          <div class="hp-half fr-answer-grid">
+            <div>
+              <p class="hp-label">Your answer</p>
+              <h2 class="answer-headline" id="answerHeadline" tabindex="-1"></h2>
+            </div>
+            <div class="fr-answer-side">
+              <div class="answer-range" id="answerRange" hidden>
+                <p class="range-note hp-lead num" id="rangeText"></p>
+              </div>
+              <p class="answer-why hp-body" id="answerWhy"></p>
+              <!-- Where you stand: one line and a slim bar -->
+              <div class="answer-stand" id="standCard">
+                <p class="stand-line" id="standLine"></p>
+                <div class="stand-bar" id="standBar" role="progressbar" aria-labelledby="standLine" aria-valuemin="0" aria-valuemax="100"><span class="stand-fill" id="standFill"></span></div>
+              </div>
+              <p class="answer-fact" id="answerFact" hidden></p>
+              <p class="answer-extra" id="answerExtra" hidden></p>
+            </div>
+          </div>
         </div>
-        <p class="answer-why" id="answerWhy"></p>
-        <!-- Where you stand: one line and a slim bar -->
-        <div class="answer-stand" id="standCard">
-          <p class="stand-line" id="standLine"></p>
-          <div class="stand-bar" id="standBar" role="progressbar" aria-labelledby="standLine" aria-valuemin="0" aria-valuemax="100"><span class="stand-fill" id="standFill"></span></div>
-        </div>
-        <p class="answer-fact" id="answerFact" hidden></p>
-        <p class="answer-extra" id="answerExtra" hidden></p>
-        <details class="answer-how" id="answerHow">
-          <summary>How we worked this out</summary>
-          <p id="rangeDetail" hidden>Markets go up and down, so we ran 2,000 possible market outcomes on your plan. 8 in 10 land in the range above.</p>
-          <p>Your freedom number is about 25 times what you’d spend in a year.</p>
-          <p id="answerRate" hidden></p>
-          <p id="standNote"></p>
-        </details>
       </section>
 
-      <!-- Try it: the same plan, rerun as the sliders move -->
-      <section class="fp-card rv" id="tryCard" aria-labelledby="tryTitle">
-        <div class="try-head"><h3 class="fp-kicker" id="tryTitle">Try it</h3><button type="button" class="text-link small" id="tryReset">Reset</button></div>
-        <div class="try-row">
-          <div class="try-top"><label for="trySave">Save more</label><output id="trySaveOut" for="trySave"></output></div>
-          <input type="range" id="trySave" min="0" max="1000" step="25" value="0"/>
+      <!-- 2 · The freedom path (js/freedom-path.js), given the full measure: today, your date,
+           the bridge to 60 and the likely range. Then how it was worked out. -->
+      <section class="hp-sec fr-path rv" aria-labelledby="pathTag">
+        <div class="hp-wrap">
+          <figure class="hp-fig fr-path-fig">
+            <figcaption class="hp-fig-tag" id="pathTag">Your FirePath</figcaption>
+            <div class="answer-path" id="answerPath" hidden></div>
+          </figure>
+          <details class="answer-how" id="answerHow">
+            <summary>How we worked this out</summary>
+            <p id="rangeDetail" hidden>Markets go up and down, so we ran 2,000 possible market outcomes on your plan. 8 in 10 land in the range above.</p>
+            <p>Your freedom number is about 25 times what you’d spend in a year.</p>
+            <p id="answerRate" hidden></p>
+            <p id="standNote"></p>
+          </details>
         </div>
-        <div class="try-row" id="trySpendRow">
-          <div class="try-top"><label for="trySpend">Spend less</label><output id="trySpendOut" for="trySpend"></output></div>
-          <input type="range" id="trySpend" min="0" max="600" step="20" value="0"/>
-        </div>
-        <div class="try-path" id="tryPath" hidden></div>
-        <p class="try-result" id="tryResult" aria-live="polite"></p>
-        <p class="try-note" id="tryNote">Spending less also lowers your freedom number.</p>
       </section>
 
-      <!-- What could move your date — options from js/moves.js (FirePathMoves.rank) in calculate().
+      <!-- 3 · Try it: the same plan, rerun as the sliders move. Sliders left, the path right. -->
+      <section class="hp-sec fr-try rv" id="tryCard" aria-labelledby="tryTitle">
+        <div class="hp-wrap hp-two">
+          <div class="fr-try-controls">
+            <div class="try-head"><h3 class="hp-h2" id="tryTitle">Try it</h3><button type="button" class="text-link small" id="tryReset">Reset</button></div>
+            <div class="try-row">
+              <div class="try-top"><label for="trySave">Save more</label><output id="trySaveOut" for="trySave"></output></div>
+              <input type="range" id="trySave" min="0" max="1000" step="25" value="0"/>
+            </div>
+            <div class="try-row" id="trySpendRow">
+              <div class="try-top"><label for="trySpend">Spend less</label><output id="trySpendOut" for="trySpend"></output></div>
+              <input type="range" id="trySpend" min="0" max="600" step="20" value="0"/>
+            </div>
+            <p class="try-note" id="tryNote">Spending less also lowers your freedom number.</p>
+          </div>
+          <div class="hp-fig fr-try-fig">
+            <div class="try-path" id="tryPath" hidden></div>
+            <p class="try-result" id="tryResult" aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 · What could move your date — options from js/moves.js (FirePathMoves.rank) in calculate().
            General information, not advice: options and their modelled effect, never instructions. -->
-      <section id="movesCard" class="fp-card rv" aria-labelledby="movesTitle" style="display:none;">
-        <h3 class="fp-kicker" id="movesTitle">What could move your date</h3>
-        <p class="moves-sort" id="movesSort">Biggest effect first, from your numbers.</p>
-        <div id="movesOnTrack" class="moves-ontrack" style="display:none;">
-          <span class="moves-ontrack-icon" aria-hidden="true">✓</span>
-          <span id="movesOnTrackText">You're on track.</span>
+      <section id="movesCard" class="hp-sec fr-moves rv" aria-labelledby="movesTitle" style="display:none;">
+        <div class="hp-wrap hp-side">
+          <div class="hp-side-head">
+            <h3 class="hp-h2" id="movesTitle">What could move your date</h3>
+            <p class="moves-sort hp-body" id="movesSort">Biggest effect first, from your numbers.</p>
+          </div>
+          <div class="hp-side-main">
+            <div id="movesOnTrack" class="moves-ontrack" style="display:none;">
+              <span class="moves-ontrack-icon" aria-hidden="true">✓</span>
+              <span id="movesOnTrackText">You're on track.</span>
+            </div>
+            <ol class="moves-list" id="movesList"></ol>
+            <button type="button" class="moves-more" id="movesMore" aria-expanded="false" aria-controls="movesList" hidden></button>
+            <p class="moves-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
+          </div>
         </div>
-        <ol class="moves-list" id="movesList"></ol>
-        <button type="button" class="moves-more" id="movesMore" aria-expanded="false" aria-controls="movesList" hidden></button>
-        <p class="moves-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
       </section>
 
-      <!-- Next: one tool picked from their situation, plus one article -->
-      <p class="next-line rv" id="nextCard"><span class="next-label">Next:</span> <span id="nextLinks"></span></p>
+      <!-- 5 · Next (one tool picked from their situation, plus one article) and how it's
+           worked out: the one dark band, as on the homepage -->
+      <section class="hp-number fr-next rv" aria-label="Next">
+        <div class="hp-wrap hp-half">
+          <p class="next-line" id="nextCard"><span class="next-label">Next:</span> <span id="nextLinks"></span></p>
+          <div>
+            <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
+            <p class="fp-links"><a href="assumptions.html">How we calculate →</a> · <a href="faq.html">FAQ</a> · <a href="feedback.html">Tell us what you think</a></p>
+          </div>
+        </div>
+      </section>
 
-      <!-- Pro, one quiet line. Price and fine print match src/data/plans.ts. -->
-      <div class="pro-line rv">
-        <p>Want your plan saved, plus tax and Ask FirePath? <a href="/upgrade" class="text-link" onclick="gtag('event','upgrade_click',{'event_category':'conversion','event_label':'free_to_pro'})">Try Pro free for 7 days →</a></p>
-        <p class="pro-fine">Then $6 a month. Card needed to start. You won’t be charged until day 8. Cancel before then and you pay nothing.</p>
-      </div>
-
-      <p class="moves-saved" id="movesSaved" style="display:none;">Saved on this device so FirePath's free tools can use your numbers. <a href="#" id="movesForget">Clear</a></p>
-      <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
-      <p class="fp-links"><a href="assumptions.html">How we calculate →</a> · <a href="faq.html">FAQ</a> · <a href="feedback.html">Tell us what you think</a></p>
+      <!-- 6 · Pro, one quiet line (price and fine print match src/data/plans.ts), and the saved note -->
+      <section class="hp-sec fr-end rv">
+        <div class="hp-wrap">
+          <div class="pro-line">
+            <p>Want your plan saved, plus tax and Ask FirePath? <a href="/upgrade" class="text-link" onclick="gtag('event','upgrade_click',{'event_category':'conversion','event_label':'free_to_pro'})">Try Pro free for 7 days →</a></p>
+            <p class="pro-fine">Then $6 a month. Card needed to start. You won’t be charged until day 8. Cancel before then and you pay nothing.</p>
+          </div>
+          <p class="moves-saved" id="movesSaved" style="display:none;">Saved on this device so FirePath's free tools can use your numbers. <a href="#" id="movesForget">Clear</a></p>
+        </div>
+      </section>
     </div>
   </div>
 
@@ -739,7 +810,7 @@
     }
 
     r.dateShown = true;
-    h.innerHTML = `Work could be optional around <strong>${plan.freedomYear}</strong>, at age <strong>${plan.freedomAge}</strong>`;
+    h.innerHTML = `Work could be optional around <strong>${plan.freedomYear}</strong>, at age <strong class="hp-age">${plan.freedomAge}</strong>`;
     // Kept to about two lines on a phone: the number, then how super shapes the date.
     const parts = [`Your freedom number is ${num}.`];   // where it comes from (25 times a year’s spending) is in the toggle
     const line = superLine(plan);

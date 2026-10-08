@@ -3,48 +3,15 @@
    Ink on warm off-white, one accent (ember) for the freedom marker
    and the one primary button. Thin rules, not cards. Tokens come
    from public/css/app.css.
+   The shared editorial primitives (.hp tokens, .hp-wrap, type, sections,
+   the 12-column grid, figure rules, ruled lists) live in
+   public/css/fp-editorial.css, loaded before this file. This file holds
+   only what is particular to the homepage.
    ============================================================ */
 
-.hp { --hp-max: 1120px; --hp-rule: 1px solid var(--line); --hp-r: 8px; color: var(--ink); }
-.hp .num, .hp-calc input, .hp-age, .hp-when, .hp-range, .hp-chip strong, .hp-scen-out, .hp-st { font-variant-numeric: tabular-nums lining-nums; }
-.hp-wrap { max-width: var(--hp-max); margin: 0 auto; padding: 0 16px; }
-@media (min-width: 768px) { .hp-wrap { padding: 0 32px; } }
-.hp-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.hp a:focus-visible, .hp button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+.hp-calc input, .hp-when, .hp-range, .hp-chip strong, .hp-scen-out, .hp-st { font-variant-numeric: tabular-nums lining-nums; }
 
-/* ── Type ──────────────────────────────────────────────── */
-.hp-h1 {
-  max-width: 13ch; font-family: var(--font-display); font-weight: 700; color: var(--ink);
-  font-size: clamp(40px, 6.6vw, 76px); line-height: 1.02; letter-spacing: -0.028em;
-}
-.hp-lead { margin-top: 18px; max-width: 46ch; font-size: clamp(16px, 1.6vw, 19px); line-height: 1.55; color: var(--ink-2); }
-.hp-h2 {
-  font-family: var(--font-display); font-weight: 700; color: inherit;
-  font-size: clamp(30px, 4vw, 46px); line-height: 1.06; letter-spacing: -0.02em;
-}
-.hp-h2.is-small { font-size: clamp(26px, 3vw, 34px); }
-.hp-num {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
-  font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); font-variant-numeric: tabular-nums;
-}
-.hp-num::after { content: ''; width: 28px; height: 1px; background: currentColor; opacity: 0.5; }
-.hp-label { font-family: var(--font-ui); font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); display: flex; align-items: center; gap: 10px; }
-.hp-label::before { content: ''; width: 28px; height: 1px; background: currentColor; opacity: 0.5; }
-.hp-body { margin-top: 16px; max-width: 54ch; font-size: 17px; line-height: 1.65; color: var(--ink-2); }
-.hp-link {
-  display: inline-block; margin-top: 22px; font-size: 15px; font-weight: 600; color: var(--ink);
-  text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; text-decoration-thickness: 1px;
-  transition: text-decoration-color var(--dur-fast) ease;
-}
-.hp-link:hover { text-decoration-color: var(--ink); }
-.hp-link.is-quiet { font-weight: 500; color: var(--ink-2); }
-
-/* ── Hero ──────────────────────────────────────────────── */
-.hp-hero { padding: 40px 0 64px; border-bottom: var(--hp-rule); }
-@media (min-width: 768px) { .hp-hero { padding: 72px 0 96px; } }
-.hp-hero-head { margin-bottom: 32px; }
-@media (min-width: 768px) { .hp-hero-head { margin-bottom: 48px; } }
-
+/* ── Hero: the live calculator panel (the one bordered panel) ── */
 .hp-calc {
   display: grid; grid-template-columns: minmax(0, 1fr); background: var(--surface); border: var(--hp-rule); border-radius: 10px;
   box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04), 0 18px 40px -24px rgba(43, 29, 20, 0.18);
@@ -94,8 +61,6 @@
 @media (min-width: 600px) { .hp-out { padding: 28px 28px 24px; } }
 @media (min-width: 960px) { .hp-out { padding: 32px 36px 28px; } }
 .hp-big { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.1; letter-spacing: -0.015em; color: var(--ink); }
-.hp-age { display: inline-block; min-width: 2ch; font-size: clamp(64px, 9vw, 104px); line-height: 0.9; letter-spacing: -0.04em; vertical-align: baseline; }
-@media (max-width: 599px) { .hp-age { display: block; margin-top: 6px; } }
 .hp-age.is-word { display: inline; margin: 0; min-width: 0; font-size: inherit; letter-spacing: inherit; }
 .hp-age.is-quiet { color: var(--ink-3); }
 .hp-when { margin-top: 12px; font-size: 16px; font-weight: 500; color: var(--ink); }
@@ -141,9 +106,6 @@
 @media (max-width: 420px) { .hp-btn { width: 100%; } }
 
 /* ── 01 Find your number: the one dark band ────────────── */
-.hp-number { padding: 72px 0; background: var(--espresso); color: var(--bg); }
-@media (min-width: 768px) { .hp-number { padding: 96px 0; } }
-.hp-number .hp-num { color: rgba(253, 246, 238, 0.7); }
 .hp-number .hp-number-text { margin-top: 24px; }
 .hp-number-text p:first-child { margin: 0; }
 .hp-number-grid { display: grid; gap: 8px; }
@@ -154,10 +116,6 @@
   .hp-number-text { grid-column: 9 / span 4; }
 }
 .hp-number .hp-h2 { color: rgba(253, 246, 238, 0.82); font-size: clamp(22px, 2.4vw, 28px); }
-.hp-number-big {
-  margin-top: 14px; font-family: var(--font-display); font-weight: 700; color: var(--bg);
-  font-size: clamp(48px, 9.4vw, 116px); line-height: 0.95; letter-spacing: -0.035em; overflow-wrap: anywhere;
-}
 .hp-number-sum { margin-top: 14px; font-size: 16px; color: rgba(253, 246, 238, 0.75); }
 .hp-number-text { max-width: 46ch; font-size: 16.5px; line-height: 1.65; color: rgba(253, 246, 238, 0.78); }
 .hp-number-rule { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(253, 246, 238, 0.18); font-size: 15px; color: var(--bg); }
@@ -177,21 +135,10 @@
 .hp-slide-scale { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12.5px; color: rgba(253, 246, 238, 0.6); }
 
 /* ── Story sections ────────────────────────────────────── */
-.hp-sec { padding: 56px 0; border-top: var(--hp-rule); }
-.hp-number + .hp-sec { border-top: 0; }
-@media (min-width: 768px) { .hp-sec { padding: 88px 0; } .hp-why, .hp-pro { padding: 72px 0; } }
-
-/* 02: two columns with a sketch */
-.hp-two { display: grid; gap: 32px; align-items: start; }
-@media (min-width: 900px) { .hp-two { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; } .hp-two > :first-child { grid-column: 1 / span 5; } .hp-story-fig { grid-column: 7 / span 6; } }
-
-/* Small label over a figure: a short rule, then the words (same family as .hp-num) */
-.hp-fig-tag { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
-.hp-fig-tag::before { content: ''; width: 16px; height: 1px; background: currentColor; opacity: 0.6; }
-.hp-fig-tag span { font-weight: 400; }
+@media (min-width: 768px) { .hp-why, .hp-pro { padding: 72px 0; } }
 
 /* 02: the visitor's own path, drawn top to bottom */
-.hp-story-fig { margin: 0; padding: 20px 0 16px; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); min-width: 0; }
+.hp-story-fig { margin: 0; min-width: 0; }
 .hp-story-svg { display: block; width: 100%; margin-top: 18px; overflow: visible; }
 .hp-story-cap { margin-top: 14px; max-width: 56ch; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
 .hp-st { fill: var(--ink); font-family: var(--font-ui); font-weight: 500; }
@@ -201,11 +148,6 @@
 .hp-story-svg .fpv-seg { stroke-width: 2.5; }
 .hp-story-svg .fpv-seg.is-bridge { stroke-dasharray: 0.1 6; stroke-width: 3; }
 .hp-story-svg .fpv-seg.is-after { stroke: var(--ink-3); }
-
-/* 03 and the doors: heading on the left, ruled list on the right */
-.hp-side { display: grid; gap: 28px; }
-@media (min-width: 900px) { .hp-side { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; } .hp-side-head { grid-column: 1 / span 4; } .hp-side > .hp-rules, .hp-side-main { grid-column: 6 / span 7; } }
-.hp-side-main { min-width: 0; }
 
 /* 03: three life scenarios, worked out live */
 .hp-scens { list-style: none; margin-top: 12px; border-top: 1px solid var(--ink); }
@@ -221,22 +163,6 @@
 .hp-scen-note { margin-top: 10px; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
 .hp-scen-note[hidden] { display: none; }
 .hp-fig-tag.is-tools { margin: 36px 0 12px; }
-.hp-rules { list-style: none; border-top: 1px solid var(--ink); }
-.hp-rules li { border-bottom: var(--hp-rule); }
-.hp-rule {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: baseline;
-  padding: 18px 2px; text-decoration: none; color: var(--ink);
-}
-.hp-rule-name { font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.2vw, 24px); line-height: 1.2; letter-spacing: -0.01em; }
-.hp-rule-line { grid-column: 1; font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
-.hp-rule-go { grid-column: 2; grid-row: 1; font-size: 18px; color: var(--ink-2); transition: transform var(--dur-base) var(--ease), color var(--dur-fast) ease; }
-.hp-rule:hover .hp-rule-go { transform: translateX(4px); color: var(--ink); }
-.hp-rule:hover .hp-rule-name { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; }
-@media (min-width: 700px) {
-  .hp-rule { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) auto; padding: 22px 2px; }
-  .hp-rule-line { grid-column: 2; grid-row: 1; }
-  .hp-rule-go { grid-column: 3; }
-}
 
 /* 04: the Learning Lab as an editorial list */
 .hp-learn-head { display: grid; gap: 0; margin-bottom: 28px; }
@@ -244,7 +170,7 @@
 @media (min-width: 900px) { .hp-learn-head { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; align-items: end; } .hp-learn-head > :first-child { grid-column: 1 / span 6; } .hp-learn-side { grid-column: 8 / span 5; } .hp-learn-side .hp-body { margin-top: 0; } }
 
 /* 04: 2,000 possible futures, as a dot plot */
-.hp-fut { margin: 0 0 40px; padding: 20px 0 16px; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); }
+.hp-fut { margin: 0 0 40px; }
 .hp-fut-head { display: grid; gap: 4px 24px; }
 @media (min-width: 900px) { .hp-fut-head { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: baseline; } }
 .hp-fut-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.2vw, 24px); letter-spacing: -0.01em; color: var(--ink); }
@@ -318,7 +244,7 @@
 @media (min-width: 768px) { .hp-doors { padding-bottom: 128px; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .hp-rule-go, .hp-box, .hp-chip, .hp-btn, .hp-link, .hp-who-ex, .hp-who-you, .hp-range, .hp-scen-go { transition: none !important; }
+  .hp-box, .hp-chip, .hp-btn, .hp-who-ex, .hp-who-you, .hp-range, .hp-scen-go { transition: none !important; }
   .hp-who-ex, .hp-who-you { transform: none !important; }
   .hp-plan[data-hp-once] .hp-plan-bar span { transform: scaleX(0.4); transition: none; }
 }
