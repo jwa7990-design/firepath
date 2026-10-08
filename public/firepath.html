@@ -140,8 +140,22 @@
   .fb-partner[hidden] { display: none; }
   .fb-note-text { width: 100%; min-height: 84px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--hp-r); font: 400 15px/1.55 var(--font-ui); color: var(--ink); resize: vertical; }
   .fb-note-text:focus { outline: none; border-color: var(--ink); }
-  .fb-derived { margin: 10px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
-  .fb-derived:empty { display: none; }
+  /* One-tap choices (how you're paid; the retirement spending): plain words, the chosen one underlined in ink */
+  .fb-choice { display: flex; flex-wrap: wrap; gap: 4px 28px; margin-top: 22px; }
+  .fb-opt-btn { min-height: 48px; padding: 0; border: 0; background: none; font: 600 clamp(22px, 2.4vw, 28px)/1.2 var(--font-ui); color: var(--ink-2); cursor: pointer; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 8px; transition: color var(--dur-fast) ease, text-decoration-color var(--dur-fast) ease; }
+  .fb-opt-btn:hover { color: var(--ink); text-decoration-color: var(--line-strong); }
+  .fb-opt-btn[aria-pressed="true"] { color: var(--ink); text-decoration-color: var(--ink); }
+  .fb-choice.is-small { gap: 0 22px; margin-top: 4px; }
+  .fb-choice.is-small .fb-opt-btn { min-height: 44px; font-size: 16px; text-underline-offset: 6px; }
+  /* What you spend, worked out from the two pay answers */
+  .fb-spend { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .fb-spend[hidden] { display: none; }
+  .fb-spend-line { margin: 0; max-width: 46ch; font-size: 17px; line-height: 1.6; color: var(--ink); }
+  .fb-spend-line strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .fb-adjust { min-height: 40px; }
+  .fb-retire[hidden] { display: none; }
+  .fb-retire-label { margin: 6px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+  .fb-ready { margin: 0 0 14px; font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
 
   /* The one action */
   .fb-done { margin-top: 36px; }
@@ -164,14 +178,14 @@
   .fb-big { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
   .fb-big strong { font-weight: 700; }
   .fb-when { margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--ink-2); }
-  .fb-live .hp-label, .fb-range, .fb-number, .fb-note, .fb-live-foot { display: none; }
+  .fb-live .hp-label, .fb-facts, .fb-note, .fb-live-foot { display: none; }
   .fb-path { margin: 2px 0 0; min-height: 116px; }
   /* The strip keeps the age at its line's size; the full figure gives it the .hp-age scale. */
   @media (max-width: 899px) { .fb-big .hp-age { display: inline; min-width: 0; margin: 0; font-size: inherit; line-height: inherit; letter-spacing: inherit; } }
   @media (min-width: 900px) {
     .fb-live.hp-fig { order: 0; top: calc(var(--nav-h) + 24px); margin: 0; padding: 20px 0 22px; background: none; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); }
     .fb-live.is-empty { display: block; }
-    .fb-live .hp-label, .fb-range, .fb-number, .fb-note, .fb-live-foot { display: block; }
+    .fb-live .hp-label, .fb-facts, .fb-note, .fb-live-foot { display: block; }
     .fb-live .hp-label { display: flex; }
     .fb-live-text { display: block; margin-top: 22px; }
     .fb-big { font-size: clamp(24px, 2.4vw, 30px); line-height: 1.12; letter-spacing: -0.015em; }
@@ -180,10 +194,10 @@
     .fb-live.is-waiting .fb-when { max-width: 44ch; font-weight: 400; line-height: 1.5; color: var(--ink-2); }
     .fb-path { margin-top: 24px; padding-top: 6px; border-top: var(--hp-rule); min-height: 157px; }
   }
-  .fb-range { margin: 10px 0 0; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
-  .fb-range:empty, .fb-number:empty, .fb-note:empty { display: none; }
-  .fb-number { margin: 16px 0 0; padding-top: 14px; border-top: var(--hp-rule); font-size: 15px; line-height: 1.5; color: var(--ink); }
-  .fb-number strong { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .fb-facts:empty, .fb-note:empty { display: none; }
+  .fb-facts { list-style: none; margin: 16px 0 0; padding: 0; border-top: var(--hp-rule); }
+  .fb-facts li { margin: 0; padding: 10px 0; border-bottom: var(--hp-rule); font-size: 15px; line-height: 1.5; color: var(--ink); }
+  .fb-facts strong { font-weight: 600; font-variant-numeric: tabular-nums; }
   .fb-note { margin: 10px 0 0; max-width: 54ch; font-size: 15px; line-height: 1.55; color: var(--ink); }
   .fb-live-foot { margin: 16px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
   .fb-live-foot a { color: var(--ink); }
@@ -325,14 +339,14 @@
 <main class="fp-page hp" id="main">
 
   <!-- ═══════════════════════════════════════════════
-       THE BUILDER: five questions, one at a time, with the path drawn live beside them.
+       THE BUILDER: six questions, one at a time, with the path taking shape beside them.
        js/firepath-builder.js runs it and writes into the fields calculate() reads (#fbFields).
        ═══════════════════════════════════════════════ -->
   <section class="fb" id="builder" aria-labelledby="fbTitle">
     <header class="hp-hero fb-hero">
       <div class="hp-wrap">
         <h1 class="hp-h1" id="fbTitle">Build your FirePath</h1>
-        <p class="hp-lead">Five numbers. Your path draws itself as you answer, and every number moves it. Free, Australian, no account needed.</p>
+        <p class="hp-lead">A few quick questions. Your path takes shape as you answer, then shows your date. Free, Australian, no account needed.</p>
       </div>
     </header>
 
@@ -355,6 +369,33 @@
             <p class="fb-msg" id="fbAgeMsg"></p>
           </div>
 
+          <div class="fb-q" data-q="cycle" hidden>
+            <p class="fb-prompt" id="fbCycleLabel">How are you paid?</p>
+            <p class="fb-help" id="fbCycleHelp">So we can work in the same rhythm as your pay.</p>
+            <div class="fb-choice" id="fbCycle" role="group" aria-labelledby="fbCycleLabel" aria-describedby="fbCycleHelp fbCycleMsg">
+              <button type="button" class="fb-opt-btn" data-cycle="weekly" aria-pressed="false">Weekly</button>
+              <button type="button" class="fb-opt-btn" data-cycle="fortnightly" aria-pressed="false">Fortnightly</button>
+              <button type="button" class="fb-opt-btn" data-cycle="monthly" aria-pressed="false">Monthly</button>
+            </div>
+            <p class="fb-msg" id="fbCycleMsg"></p>
+          </div>
+
+          <div class="fb-q" data-q="takeHome" hidden>
+            <label class="fb-prompt" for="fbTakeHome">What lands in your account each <span class="fb-cyc">fortnight</span>?</label>
+            <p class="fb-help" id="fbTakeHomeHelp">Your pay after tax. Just yours. Add a partner below.</p>
+            <div class="fb-box"><span class="fb-cur" aria-hidden="true">$</span><input class="fb-input" id="fbTakeHome" type="text" maxlength="13" inputmode="decimal" placeholder="3,200" spellcheck="false" aria-describedby="fbTakeHomeHelp fbTakeHomeMsg"/><span class="fb-unit">a <span class="fb-cyc">fortnight</span></span></div>
+            <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><span class="fb-enter">Press Enter to continue</span></div>
+            <p class="fb-msg" id="fbTakeHomeMsg"></p>
+          </div>
+
+          <div class="fb-q" data-q="save" hidden>
+            <label class="fb-prompt" for="fbSave">How much of that do you put aside each <span class="fb-cyc">fortnight</span>?</label>
+            <p class="fb-help" id="fbSaveHelp">What goes into savings or investing. The rest is what you live on.</p>
+            <div class="fb-box"><span class="fb-cur" aria-hidden="true">$</span><input class="fb-input" id="fbSave" type="text" maxlength="13" inputmode="decimal" placeholder="1,000" spellcheck="false" aria-describedby="fbSaveHelp fbSaveMsg"/><span class="fb-unit">a <span class="fb-cyc">fortnight</span></span></div>
+            <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><button type="button" class="fb-none">Nothing at the moment</button><span class="fb-enter">Press Enter to continue</span></div>
+            <p class="fb-msg" id="fbSaveMsg"></p>
+          </div>
+
           <div class="fb-q" data-q="savings" hidden>
             <label class="fb-prompt" for="fbSavings">What have you saved and invested outside super?</label>
             <p class="fb-help" id="fbSavingsHelp">Bank savings, shares, ETFs, an offset balance. If it’s working for you, it counts.</p>
@@ -370,41 +411,26 @@
             <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><button type="button" class="fb-none">None yet</button><span class="fb-enter">Press Enter to continue</span></div>
             <p class="fb-msg" id="fbSuperMsg"></p>
           </div>
-
-          <div class="fb-q" data-q="monthly" hidden>
-            <label class="fb-prompt" for="fbMonthly">How much do you put aside each month?</label>
-            <p class="fb-help" id="fbMonthlyHelp">Roughly what goes into savings or investing in a typical month, after tax.</p>
-            <div class="fb-box"><span class="fb-cur" aria-hidden="true">$</span><input class="fb-input" id="fbMonthly" type="text" maxlength="13" inputmode="decimal" placeholder="2,500" spellcheck="false" aria-describedby="fbMonthlyHelp fbMonthlyMsg"/><span class="fb-unit">a month</span></div>
-            <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><button type="button" class="fb-none">Nothing at the moment</button><span class="fb-enter">Press Enter to continue</span></div>
-            <p class="fb-msg" id="fbMonthlyMsg"></p>
-          </div>
-
-          <div class="fb-q" data-q="spend" hidden>
-            <label class="fb-prompt" for="fbSpend">And what do you spend in a year?</label>
-            <p class="fb-help" id="fbSpendHelp">Everything: rent or mortgage, bills, food, fun. For a couple, the whole household. Your freedom number is about 25 times this.</p>
-            <div class="fb-box"><span class="fb-cur" aria-hidden="true">$</span><input class="fb-input" id="fbSpend" type="text" maxlength="13" inputmode="decimal" placeholder="50,000" spellcheck="false" aria-describedby="fbSpendHelp fbSpendMsg"/><span class="fb-unit">a year</span></div>
-            <div class="fb-row"><button type="button" class="fb-go" hidden>Continue →</button><span class="fb-enter">Press Enter to continue</span></div>
-            <p class="fb-msg" id="fbSpendMsg"></p>
-          </div>
         </form>
+
+        <!-- What you spend, worked out from your pay less what you put aside (as calculate() does) -->
+        <div class="fb-spend" id="fbSpendBox" hidden>
+          <p class="fb-spend-line" id="fbSpendLine" aria-live="polite"></p>
+          <button type="button" class="fb-text fb-adjust" id="fbAdjust" aria-expanded="false" aria-controls="fbRetire">Adjust</button>
+          <div class="fb-retire" id="fbRetire" hidden>
+            <p class="fb-retire-label" id="fbRetireLabel">Once work is optional, I expect to spend:</p>
+            <div class="fb-choice is-small" role="group" aria-labelledby="fbRetireLabel">
+              <button type="button" class="fb-opt-btn" data-spend="0.8" aria-pressed="false">less</button>
+              <button type="button" class="fb-opt-btn" data-spend="1.0" aria-pressed="true">about the same</button>
+              <button type="button" class="fb-opt-btn" data-spend="1.2" aria-pressed="false">more</button>
+            </div>
+          </div>
+        </div>
 
         <!-- Optional detail: everything else calculate() can use -->
         <details class="fb-more" id="fbMore">
-          <summary><span><span class="fb-more-title">Add more detail</span><span class="fb-more-sub">Take-home pay, debts, a partner, a note. All optional.</span></span></summary>
+          <summary><span><span class="fb-more-title">Add more detail</span><span class="fb-more-sub">Debts, your home, a partner, a note. All optional.</span></span></summary>
           <div class="fb-more-body">
-            <div class="fb-group">
-              <h2 class="fb-group-title">Your pay</h2>
-              <p class="fb-group-help" id="fbPayHelp">We use it to estimate your employer’s super. Left blank, we take it as what you spend plus what you save.</p>
-              <div class="fb-fields">
-                <div class="fb-field">
-                  <label for="fbTakeHome">Take-home pay <span class="fb-opt">(after tax)</span></label>
-                  <div class="fb-sbox"><span aria-hidden="true">$</span><input id="fbTakeHome" type="text" inputmode="decimal" placeholder="0" aria-describedby="fbPayHelp fbDerived"/>
-                    <select id="fbCycle" aria-label="How often you’re paid"><option value="weekly">a week</option><option value="fortnightly">a fortnight</option><option value="monthly" selected>a month</option></select></div>
-                </div>
-              </div>
-              <p class="fb-derived" id="fbDerived"></p>
-            </div>
-
             <div class="fb-group">
               <h2 class="fb-group-title">Savings, debts and home</h2>
               <div class="fb-fields two">
@@ -438,11 +464,11 @@
               <div class="fb-partner" id="fbPartner" hidden>
                 <div class="fb-fields two">
                   <div class="fb-field">
-                    <label for="fbPIncome">Their take-home pay <span class="fb-opt fb-per">a month</span></label>
+                    <label for="fbPIncome">Their take-home pay <span class="fb-opt fb-per">a fortnight</span></label>
                     <div class="fb-sbox"><span aria-hidden="true">$</span><input id="fbPIncome" type="text" inputmode="decimal" placeholder="0"/></div>
                   </div>
                   <div class="fb-field">
-                    <label for="fbPSavings">What they save <span class="fb-opt fb-per">a month</span></label>
+                    <label for="fbPSavings">What they put aside <span class="fb-opt fb-per">a fortnight</span></label>
                     <div class="fb-sbox"><span aria-hidden="true">$</span><input id="fbPSavings" type="text" inputmode="decimal" placeholder="0"/></div>
                   </div>
                   <div class="fb-field">
@@ -480,25 +506,26 @@
           </div>
         </details>
 
-        <!-- The one action, once all five are in -->
+        <!-- The one action, once all six are in -->
         <div class="fb-done" id="fbDone" hidden>
           <p class="error-msg" id="errorMsg" role="alert" style="display:none;"></p>
+          <p class="fb-ready" aria-hidden="true">Ready. Find your date →</p>
           <button type="button" class="fb-btn" id="fbCalc">Find my freedom date</button>
           <p class="fb-privacy">Your numbers stay on your device. We don’t store or sell them. <a href="privacy.html">Privacy policy</a></p>
         </div>
       </div>
 
-      <!-- The live path: the same plan calculate() will show, redrawn as you type -->
+      <!-- The live path: it takes shape as you answer (Today, 60 and a "?" where your date
+           will land), with the supporting numbers. The date itself waits for the results. -->
       <aside class="fb-live hp-fig is-empty is-waiting" id="fbLive" aria-labelledby="fbLiveLabel">
         <p class="hp-label" id="fbLiveLabel">Your FirePath</p>
         <div class="fb-live-text">
           <p class="fb-big" id="fbBig">Your path draws itself here</p>
-          <p class="fb-when" id="fbWhen">Answer on the left. Each number moves it.</p>
+          <p class="fb-when" id="fbWhen">Answer on the left and watch it take shape.</p>
         </div>
         <figure class="fb-path" id="fbPath"></figure>
-        <p class="fb-range num" id="fbRange"></p>
+        <ul class="fb-facts num" id="fbFacts"></ul>
         <p class="fb-note" id="fbNote"></p>
-        <p class="fb-number num" id="fbNumber"></p>
         <p class="fb-live-foot">General information, not advice. All in today’s dollars. <a href="assumptions.html">How we calculate →</a></p>
         <p class="hp-sr" id="fbSay" aria-live="polite" aria-atomic="true"></p>
       </aside>
@@ -647,8 +674,8 @@
      CALCULATOR + RESULT JS
      ═══════════════════════════════════════════════ -->
 <script>
-  // The builder (js/firepath-builder.js) sets these from its answers and "Add more detail".
-  // The pay cycle is monthly unless a take-home pay is given in another cycle.
+  // The builder (js/firepath-builder.js) sets these from its answers and "Add more detail":
+  // the pay cycle from "How are you paid?", the multiplier from its "Adjust" choice.
   let persona = FirePathPersona.get(), selectedCycle = 'monthly', retirementSpendMultiplier = 1.0;
   let housingStatus = 'renting', dependants = 0, savingsType = 'cash';
   FirePathPersona.onChange(id => { persona = id; });
@@ -764,6 +791,7 @@
   function buildAnswer(r) {
     const plan = r.plan;
     const h = document.getElementById('answerHeadline');
+    h.removeAttribute('aria-label');
     const why = document.getElementById('answerWhy');
     const fact = document.getElementById('answerFact');
     const extra = document.getElementById('answerExtra');
@@ -811,12 +839,29 @@
 
     r.dateShown = true;
     h.innerHTML = `Work could be optional around <strong>${plan.freedomYear}</strong>, at age <strong class="hp-age">${plan.freedomAge}</strong>`;
+    countAge(h, r.age, plan.freedomAge);
     // Kept to about two lines on a phone: the number, then how super shapes the date.
     const parts = [`Your freedom number is ${num}.`];   // where it comes from (25 times a year’s spending) is in the toggle
     const line = superLine(plan);
     if (line) parts.push(line);
     why.innerHTML = parts.join(' ');
     buildRange(plan, r.range);
+  }
+
+  // The reveal: the big age counts up from today's to the freedom age while the path draws
+  // in. Screen readers get the final sentence straight away; reduced motion shows it as is.
+  function countAge(h, from, to) {
+    const el = h.querySelector('.hp-age');
+    const loop = window.FirePathViz && FirePathViz.loop;
+    h.setAttribute('aria-label', h.textContent);
+    if (!el || !loop || FirePathViz.reduced() || !(to > from)) return;
+    const t0 = performance.now(), d = 900;
+    el.textContent = String(from);
+    loop.run(el, now => {
+      const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = String(k < 1 ? Math.round(from + (to - from) * e) : to);
+      return k < 1;
+    });
   }
 
   // ── The freedom path (js/freedom-path.js) ──
@@ -829,7 +874,10 @@
     const box = document.getElementById('answerPath');
     if (!window.FirePathViz || !r || !r.plan || !(r.age > 0)) { box.hidden = true; return; }
     box.hidden = false;
-    if (!_pathViz) _pathViz = FirePathViz.mount(box, { animateIn: true, live: false });
+    // A fresh path every time the result opens, so the date always draws itself in
+    // (the builder never shows it beforehand). Reduced motion shows the final picture.
+    if (_pathViz) _pathViz.destroy();
+    _pathViz = FirePathViz.mount(box, { animateIn: true, live: false });
     _pathViz.update(r.plan, r.range, pathOpts(r));
   }
   function renderTryPath(r, preview) {

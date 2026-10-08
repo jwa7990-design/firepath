@@ -1,28 +1,29 @@
 /* FirePath: the free calculator's builder (/firepath). "Build your FirePath".
  *
- * Five questions, one at a time: age, savings outside super, super, saved each month,
- * spending a year. Answered ones fold into one line ("32 · $60k saved · …"), and each
- * part of that line reopens its question. Enter (or leaving the box) moves on. The path
- * on the right (a slim sticky strip on phones) redraws as each number is typed.
+ * Six questions, one at a time: age, how you're paid, what lands in your account each
+ * pay, how much of that you put aside, savings outside super, and super. Answered ones
+ * fold into one line ("32 · paid fortnightly · $3,200 take-home · …"), and each part of
+ * that line reopens its question. Enter (or leaving the box) moves on; the pay choice
+ * moves on when tapped.
+ *
+ * What you spend isn't asked: it's take-home less what you put aside, annualised by the
+ * pay cycle, exactly as calculate() works it out. It's shown under the questions, with
+ * "Adjust" for the old Less / About the same / More choice (retirementSpendMultiplier).
+ *
+ * The path on the right (a slim sticky strip on phones) takes shape as you answer: Today,
+ * 60 and a "?" where the date will land, with the supporting numbers (spending, freedom
+ * number, saving rate). It never shows the freedom age, year or range: the results page
+ * reveals those.
  *
  * The maths isn't here. Every answer is written into the fields calculate() has always
- * read (#age, #savings, #superBalance, #income, #savingsAmount and the rest, in
- * #fbFields), then the page's own readInputs() turns them into the plan inputs, and
- * the live path runs FirePathEngine.freedomPlan / freedomRange on exactly those. So the
- * live path is the result the button shows.
- *
- * How the five answers map onto the old form (spending = take-home less savings):
- *   pay cycle = monthly, #savingsAmount = saved a month, #income = spending / 12 + saved a month.
- * With "Add more detail":
- *   - a take-home pay is used as #income, in its own pay cycle (savings converted to that cycle);
- *   - a partner's pay and savings go in as before;
- *   - and when either means "take-home less savings" no longer equals the spending typed,
- *     retirementSpendMultiplier (the old Less / Same / More choice) is set so the freedom
- *     number stays 25 times the spending typed.
+ * read (#fbFields), in the original form's shape: the pay cycle (selectedCycle), #income =
+ * take-home per pay, #savingsAmount = put aside per pay, #age, #savings, #superBalance,
+ * and the partner's pay and saving in the same cycle. The page's readInputs() then does
+ * the rest.
  * Needs (loaded first): calculations.js, financial-engine.js, freedom-path.js, moves.js,
- * persona.js and the page's inline script (readInputs, calculate, inReach, rangeSentence,
- * PLAN_INVALID, and the globals selectedCycle, retirementSpendMultiplier, housingStatus,
- * dependants, savingsType). Nothing typed here is sent anywhere.
+ * persona.js and the page's inline script (readInputs, calculate, PLAN_INVALID, and the
+ * globals selectedCycle, retirementSpendMultiplier, housingStatus, dependants,
+ * savingsType). Nothing typed here is sent anywhere.
  */
 (function () {
   'use strict';
@@ -36,17 +37,21 @@
   const reduced = () => !!(mqReduce && mqReduce.matches);
   const desk = () => !!(mqDesk && mqDesk.matches);
   const SUPER_AGE = 60;
-  const THIS_YEAR = new Date().getFullYear();
 
+  const CYCLE_WORD = { weekly: 'week', fortnightly: 'fortnight', monthly: 'month' };
   const Q = [
     { key: 'age', id: 'fbAge', money: false },
+    { key: 'cycle', id: 'fbCycle', choice: true },
+    { key: 'takeHome', id: 'fbTakeHome', money: true },
+    { key: 'save', id: 'fbSave', money: true },
     { key: 'savings', id: 'fbSavings', money: true },
     { key: 'super', id: 'fbSuper', money: true },
-    { key: 'monthly', id: 'fbMonthly', money: true },
-    { key: 'spend', id: 'fbSpend', money: true },
   ];
   const byKey = {};
   Q.forEach(q => { q.input = $(q.id); q.block = root.querySelector(`.fb-q[data-q="${q.key}"]`); q.msg = $(q.id + 'Msg'); q.go = q.block.querySelector('.fb-go'); byKey[q.key] = q; });
+  const cycleBtns = Array.from(byKey.cycle.input.querySelectorAll('[data-cycle]'));
+  let cycle = null;                     // nothing chosen until tapped
+  let spendMult = 1.0;                  // the "Adjust" choice: less 0.8 / about the same 1.0 / more 1.2
 
   // ── Reading numbers ─────────────────────────────────────
   // Blank = null. Accepts "1,200", "$1200", "80k" and "1.2m". NaN = not a number we can use.
@@ -66,15 +71,27 @@
     if (n >= 10000) return '$' + Math.round(n / 1000) + 'k';
     return money(n);
   }
+  // A freedom number: "$1.17M", "$850K" (the site's K/M style, a little finer than fmtM)
+  function bigM(n) {
+    if (n >= 999500) return '$' + (n / 1e6).toFixed(2).replace(/0$/, '') + 'M';
+    if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
+    return money(n);
+  }
+  const word = () => CYCLE_WORD[cycle] || 'fortnight';
 
   // A question's value and what's wrong with it. ok = usable for the plan.
   function check(q) {
+    if (q.choice) return cycle ? { ok: true, value: cycle } : { ok: false, blank: true, msg: 'Choose how often you’re paid.' };
     const v = parse(q.input.value);
-    if (v === null) return { ok: false, blank: true, msg: q.key === 'age' ? 'Add your age to carry on.' : q.key === 'spend' ? 'Add roughly what you spend in a year, like 50000.' : 'Type an amount, or 0 if there’s nothing here yet.' };
-    if (!Number.isFinite(v)) return { ok: false, msg: q.money ? 'That doesn’t look like an amount. Try 25000 or 25k.' : 'Your age in whole years, like 32.' };
+    if (v === null) return { ok: false, blank: true, msg: q.key === 'age' ? 'Add your age to carry on.' : q.key === 'takeHome' ? `Add what lands in your account each ${word()}, like 3200.` : 'Type an amount, or 0 if there’s nothing here yet.' };
+    if (!Number.isFinite(v)) return { ok: false, msg: q.money ? 'That doesn’t look like an amount. Try 2500 or 2.5k.' : 'Your age in whole years, like 32.' };
     if (q.key === 'age') {
       if (v !== Math.floor(v) || v < 15 || v > 100) return { ok: false, msg: 'Your age in whole years, from 15 to 100.' };
-    } else if (q.key === 'spend' && !(v > 0)) return { ok: false, msg: 'Add roughly what you spend in a year, like 50000.' };
+    } else if (q.key === 'takeHome' && !(v > 0)) return { ok: false, msg: `Add what lands in your account each ${word()}, like 3200.` };
+    else if (q.key === 'save') {
+      const th = parse(byKey.takeHome.input.value);
+      if (Number.isFinite(th) && th > 0 && v > th) return { ok: false, over: true, msg: `That’s more than the ${money(th)} that lands each ${word()}. What you put aside comes out of your pay, so it can be up to ${money(th)}.` };
+    }
     return { ok: true, value: v };
   }
   const values = () => { const o = {}; Q.forEach(q => { const c = check(q); o[q.key] = c.ok ? c.value : null; }); return o; };
@@ -86,12 +103,13 @@
 
   function summaryPart(key, v) {
     if (key === 'age') return String(v);
+    if (key === 'cycle') return `paid ${v}`;
+    if (key === 'takeHome') return `${money(v)} take-home`;
+    if (key === 'save') return v > 0 ? `${money(v)} put aside` : 'nothing put aside';
     if (key === 'savings') return v > 0 ? `${short(v)} saved` : 'no savings yet';
-    if (key === 'super') return v > 0 ? `${short(v)} in super` : 'no super yet';
-    if (key === 'monthly') return `${money(v)} a month`;
-    return `${short(v)} a year`;
+    return v > 0 ? `${short(v)} super` : 'no super yet';
   }
-  const ARIA = { age: 'Age', savings: 'Savings outside super', super: 'Super', monthly: 'Saved each month', spend: 'Spending a year' };
+  const ariaName = key => ({ age: 'Age', cycle: 'How you’re paid', takeHome: `Take-home pay each ${word()}`, save: `Put aside each ${word()}`, savings: 'Savings outside super', super: 'Super' }[key]);
 
   function renderLine() {
     const v = values();
@@ -99,7 +117,7 @@
     $('fbSofar').hidden = parts.length === 0;
     $('fbLine').innerHTML = parts.map((q, i) =>
       (i ? '<span class="fb-sep" aria-hidden="true">·</span>' : '')
-      + `<button type="button" class="fb-chip" data-edit="${q.key}" aria-label="${ARIA[q.key]}: ${summaryPart(q.key, v[q.key])}. Change"${current === q.key ? ' aria-current="true"' : ''}>${summaryPart(q.key, v[q.key])}</button>`
+      + `<button type="button" class="fb-chip" data-edit="${q.key}" aria-label="${ariaName(q.key)}: ${summaryPart(q.key, v[q.key])}. Change"${current === q.key ? ' aria-current="true"' : ''}>${summaryPart(q.key, v[q.key])}</button>`
     ).join('');
   }
 
@@ -111,6 +129,12 @@
       done.hidden = false;
       if (!reduced()) { done.classList.remove('is-in'); void done.offsetWidth; done.classList.add('is-in'); }
     } else if (!on) done.hidden = true;
+  }
+
+  function focusQ(q) {
+    const el = q.choice ? (cycleBtns.find(b => b.dataset.cycle === cycle) || cycleBtns[0]) : q.input;
+    el.focus({ preventScroll: !desk() });
+    if (!q.choice) { try { el.select(); } catch (e) {} }
   }
 
   // Shows one question (or none, once everything's answered).
@@ -133,7 +157,7 @@
     renderLine();
     showDone();
     if (focus) {
-      if (key) { const i = byKey[key].input; i.focus({ preventScroll: !desk() }); try { i.select(); } catch (e) {} if (!desk()) keepInView(byKey[key].block); }
+      if (key) { focusQ(byKey[key]); if (!desk()) keepInView(byKey[key].block); }
       else $('fbCalc').focus({ preventScroll: false });
     }
   }
@@ -149,11 +173,11 @@
   // Accepts the current question's answer and moves on. focus = move focus with it.
   function commit(q, focus) {
     const c = check(q);
-    if (!c.ok) { q.msg.textContent = c.msg; q.input.setAttribute('aria-invalid', 'true'); return false; }
+    if (!c.ok) { q.msg.textContent = c.msg; if (!q.choice) q.input.setAttribute('aria-invalid', 'true'); return false; }
     answered[q.key] = true;
     tidy(q);
     setCurrent(nextOpen(), focus);
-    recompute(true);
+    recompute();
     return true;
   }
   // Money boxes tidy to "60,000" when you leave them.
@@ -174,14 +198,17 @@
     q.input.removeAttribute('aria-invalid');
     const c = check(q);
     q.go.hidden = !c.ok;
+    // Putting aside more than lands in the account: say so as it's typed.
+    if (q.key === 'save' && c.over) { q.msg.textContent = c.msg; q.input.setAttribute('aria-invalid', 'true'); }
     if (answered[q.key]) renderLine();
     showDone();
     later();
   }
 
   Q.forEach(q => {
+    if (q.choice) return;
     q.input.addEventListener('input', () => onType(q));
-    q.input.addEventListener('focus', () => { if (current !== q.key) setCurrent(q.key, false); markBaseline(); });
+    q.input.addEventListener('focus', () => { if (current !== q.key) setCurrent(q.key, false); });
     q.input.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); commit(q, true); }
     });
@@ -199,6 +226,19 @@
     const none = q.block.querySelector('.fb-none');
     if (none) none.addEventListener('click', () => { q.input.value = '0'; onType(q); commit(q, true); });
   });
+
+  // How you're paid: one tap chooses and moves on.
+  cycleBtns.forEach(b => {
+    b.addEventListener('focus', () => { if (current !== 'cycle') setCurrent('cycle', false); });
+    b.addEventListener('click', () => {
+      start();
+      cycle = b.dataset.cycle;
+      cycleBtns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      byKey.cycle.msg.textContent = '';
+      sync();
+      commit(byKey.cycle, true);
+    });
+  });
   $('fbForm').addEventListener('submit', e => e.preventDefault());
 
   $('fbLine').addEventListener('click', e => {
@@ -207,18 +247,31 @@
     const key = b.dataset.edit;
     if (current && current !== key && check(byKey[current]).ok && !answered[current]) answered[current] = true;
     setCurrent(key, true);
-    markBaseline();
   });
+
+  // ── What you spend, and "Adjust" ────────────────────────
+  const spendBox = $('fbSpendBox'), spendLine = $('fbSpendLine'), adjust = $('fbAdjust'), retire = $('fbRetire');
+  const retireBtns = Array.from(retire.querySelectorAll('[data-spend]'));
+  adjust.addEventListener('click', () => {
+    const open = retire.hidden;
+    retire.hidden = !open;
+    adjust.setAttribute('aria-expanded', String(open));
+    if (open) (retireBtns.find(b => b.getAttribute('aria-pressed') === 'true') || retireBtns[1]).focus();
+  });
+  retireBtns.forEach(b => b.addEventListener('click', () => {
+    start();
+    spendMult = parseFloat(b.dataset.spend);
+    retireBtns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    recompute();
+  }));
 
   // ── Add more detail ─────────────────────────────────────
   const D = {
-    takeHome: $('fbTakeHome'), cycle: $('fbCycle'), held: $('fbHeld'), debt: $('fbDebt'), housing: $('fbHousing'),
+    held: $('fbHeld'), debt: $('fbDebt'), housing: $('fbHousing'),
     mortgage: $('fbMortgage'), deps: $('fbDependants'), hasPartner: $('fbHasPartner'), pIncome: $('fbPIncome'),
     pSavings: $('fbPSavings'), pAge: $('fbPAge'), pSuper: $('fbPSuper'), persona: $('fbPersona'), note: $('contextNote')
   };
   const num0 = el => { const v = parse(el.value); return Number.isFinite(v) && v > 0 ? v : 0; };
-  const PER = { weekly: 52 / 12, fortnightly: 26 / 12, monthly: 1 };   // per-cycle → monthly, as toMonthly()
-  const WORD = { weekly: 'a week', fortnightly: 'a fortnight', monthly: 'a month' };
 
   const more = $('fbMore');
   more.addEventListener('input', e => {
@@ -231,7 +284,6 @@
     if (e.target === D.persona && window.FirePathPersona) FirePathPersona.set(D.persona.value);
     later();
   });
-  more.addEventListener('focusin', e => { if (e.target.matches('input, select')) markBaseline(); });
   more.addEventListener('focusout', e => {
     const el = e.target;
     if (el.matches('.fb-sbox input') && el.inputMode === 'decimal') { const v = parse(el.value); if (Number.isFinite(v)) el.value = fmtTyped(v); }
@@ -244,230 +296,130 @@
   }
 
   // ── Writing the answers into calculate()'s fields ───────
+  // The original form's shape: pay cycle, take-home per pay, put aside per pay. A partner's
+  // pay and saving are in the same cycle, as they were.
   const setField = (id, v) => { $(id).value = v == null || !Number.isFinite(v) ? '' : String(v); };
   function sync() {
     const v = values();
-    const takeHome = num0(D.takeHome);
-    const cyc = takeHome > 0 ? D.cycle.value : 'monthly';
-    const per = PER[cyc] || 1;
-    selectedCycle = cyc;                                     // eslint-disable-line no-undef
+    selectedCycle = cycle || 'fortnightly';                  // eslint-disable-line no-undef
+    root.querySelectorAll('.fb-cyc').forEach(s => { s.textContent = word(); });
+    root.querySelectorAll('.fb-per').forEach(s => { s.textContent = 'a ' + word(); });
     const partner = D.hasPartner.checked;
-    const pI = partner ? num0(D.pIncome) : 0, pS = partner ? num0(D.pSavings) : 0;
-    const pAge = partner ? num0(D.pAge) : 0, pSuper = partner ? num0(D.pSuper) : 0;
-    root.querySelectorAll('.fb-per').forEach(s => { s.textContent = WORD[cyc]; });
 
     setField('age', v.age);
     setField('savings', v.savings);
     setField('superBalance', v.super);
+    setField('income', v.takeHome);
+    setField('savingsAmount', v.save);
     setField('debtTotal', num0(D.debt) || null);
     setField('mortgageRemaining', num0(D.mortgage) || null);
-    setField('partnerIncome', pI || null);
-    setField('partnerSavings', pS || null);
-    setField('partnerAge', pAge || null);
-    setField('partnerSuper', pSuper || null);
+    setField('partnerIncome', partner ? num0(D.pIncome) || null : null);
+    setField('partnerSavings', partner ? num0(D.pSavings) || null : null);
+    setField('partnerAge', partner ? num0(D.pAge) || null : null);
+    setField('partnerSuper', partner ? num0(D.pSuper) || null : null);
     housingStatus = D.housing.value;                         // eslint-disable-line no-undef
     savingsType = D.held.value;                              // eslint-disable-line no-undef
     dependants = Math.max(0, Math.min(10, Math.floor(num0(D.deps))));   // eslint-disable-line no-undef
-
-    let mult = 1.0, derived = '';
-    if (v.monthly != null && v.spend != null) {
-      const save = v.monthly, spendM = v.spend / 12;
-      // Take-home: as typed, or worked out as spending plus saving (the household's, less
-      // what a partner brings in and doesn't save).
-      let income;
-      if (takeHome > 0) income = takeHome;
-      else {
-        income = spendM + save - Math.max(0, (pI - pS) * per);
-        if (!(income > save)) income = spendM + save;      // the partner's numbers don't fit inside the spending: keep it simple
-      }
-      const saveCycle = takeHome > 0 ? save / per : save;
-      setField('income', income);
-      setField('savingsAmount', saveCycle);
-      // Spending as calculate() sees it (take-home less savings, household, monthly).
-      const mS = (income + pI) * per - (saveCycle + pS) * per;
-      if (Math.abs(mS - spendM) > 0.005 && mS > 0) mult = spendM / mS;
-      if (!(takeHome > 0) && pI > 0) derived = `Your own take-home is taken as ${money(income)} a month: the household’s spending and saving, less what your partner brings in. Add your take-home pay if it’s different.`;
-      if (takeHome > 0) derived = mS > 0
-        ? `On these numbers you spend about ${money(mS * 12)} a year now (take-home less savings). Your freedom number uses the ${money(v.spend)} a year you entered.`
-        : 'Take-home pay needs to be more than what you save.';
-    } else { setField('income', null); setField('savingsAmount', null); }
-    retirementSpendMultiplier = mult;                        // eslint-disable-line no-undef
-    $('fbDerived').textContent = derived;
+    retirementSpendMultiplier = spendMult;                   // eslint-disable-line no-undef
   }
 
   // ── The live path ───────────────────────────────────────
-  const live = $('fbLive'), big = $('fbBig'), when = $('fbWhen'), rangeEl = $('fbRange'), note = $('fbNote'), numEl = $('fbNumber'), say = $('fbSay');
+  const live = $('fbLive'), big = $('fbBig'), when = $('fbWhen'), facts = $('fbFacts'), note = $('fbNote'), say = $('fbSay');
   const pathEl = $('fbPath');
-  let viz = null, vizCompact = null, dated = false, last = null;
+  let viz = null, vizCompact = null, last = null;
 
-  function mountViz(animate) {
+  function mountViz() {
     if (!Viz || !pathEl) return;
     if (viz) viz.destroy();
     vizCompact = !desk();
-    viz = Viz.mount(pathEl, {
-      compact: vizCompact, legend: !vizCompact, animateIn: animate ? true : false, live: false, watch: live,
-      onIntro(phase, info) {
-        if (phase === 'play' && last && last.status === 'ok') {
-          const a = big.querySelector('strong.is-age');
-          if (a) { setAge(a, last.inputs.age, true); setAge(a, last.plan.freedomAge, false, info.duration); }
-        }
-      }
-    });
+    viz = Viz.mount(pathEl, { compact: vizCompact, legend: false, animateIn: false, live: false, watch: live });
   }
   if (mqDesk) {
-    const re = () => { if (!viz || vizCompact === !desk()) return; mountViz(false); paint(); };
+    const re = () => { if (!viz || vizCompact === !desk()) return; mountViz(); paint(); };
     if (mqDesk.addEventListener) mqDesk.addEventListener('change', re); else if (mqDesk.addListener) mqDesk.addListener(re);
   }
 
-  // The big age counts to its new value (not under reduced motion).
-  function setAge(el, to, jump, dur) {
-    const loop = Viz && Viz.loop;
-    const from = Number(el.dataset.v);
-    if (jump || !loop || reduced() || !Number.isFinite(from) || from === to) { if (loop) loop.stop(el); el.dataset.v = to; el.textContent = String(to); return; }
-    const t0 = performance.now(), d = dur || 450;
-    loop.run(el, now => {
-      const k = Math.min(1, (now - t0) / d), e = 1 - Math.pow(1 - k, 3);
-      const cur = from + (to - from) * e;
-      el.dataset.v = k < 1 ? cur : to;
-      const s = String(Math.round(cur));
-      if (el.textContent !== s) el.textContent = s;
-      return k < 1;
-    });
-  }
-
-  function span(months, comma) { return Viz ? Viz.span(months, comma) : `${Math.round(months)} months`; }
-  function setBig(html, cls) { big.innerHTML = html; big.className = 'fb-big' + (cls ? ' ' + cls : ''); }
-
-  // Everything the panel shows, worked out exactly as calculate() and buildAnswer() would.
+  // Everything the panel shows. The plan is only checked for being workable: its date
+  // stays for the results page.
   function evaluate() {
     sync();
     const v = values();
     if (v.age == null) return { status: 'empty' };
-    if (v.spend == null || v.monthly == null || v.savings == null || v.super == null) return { status: 'waiting', age: v.age, v };
+    if (v.cycle == null || v.takeHome == null || v.save == null) {
+      const over = check(byKey.save).over;
+      return over ? { status: 'error', age: v.age, v, msg: 'Savings can’t be more than take-home pay.' } : { status: 'waiting', age: v.age, v };
+    }
     const d = typeof readInputs === 'function' ? readInputs() : { error: 'unavailable' };   // eslint-disable-line no-undef
-    if (d.error) return { status: 'error', age: v.age, msg: d.error };
+    if (d.error) return { status: 'error', age: v.age, v, msg: d.error };
     let plan = null;
     try { plan = E.freedomPlan(d.planInputs); } catch (e) { plan = null; }
-    if (!plan || !plan.valid) return { status: 'error', age: v.age, msg: PLAN_INVALID };   // eslint-disable-line no-undef
-    const s = { status: 'ok', age: v.age, plan, inputs: d.planInputs, d, range: null };
-    if (plan.alreadyFree) s.status = 'free';
-    else if (!inReach(plan)) s.status = 'far';                  // eslint-disable-line no-undef
-    else if (!(d.mSav > 0)) s.status = 'nosave';
-    return s;
+    if (!plan || !plan.valid) return { status: 'error', age: v.age, v, msg: PLAN_INVALID };   // eslint-disable-line no-undef
+    return { status: 'ready', age: v.age, v, d };
   }
 
   function paint() {
     const s = last;
     if (!s || !viz) return;
-    const opts = { age: s.age };
-    if (s.status === 'empty' || s.status === 'waiting' || s.status === 'error') {
-      if (s.status !== 'empty') opts.waiting = s.status === 'error' ? 'Check the numbers on the left' : 'Your date appears here';
-      opts.message = s.status === 'error' ? s.msg : s.status === 'empty' ? 'Add your numbers to see your path.' : 'Your date appears once you add what you spend in a year.';
-      viz.update(null, null, opts);
-      return;
-    }
-    // Same as the result's path (pathOpts): "not within reach" past 60 years.
-    opts.far = s.status !== 'free' && !inReach(s.plan);         // eslint-disable-line no-undef
-    viz.update(s.plan, s.range, opts);
+    if (s.status === 'empty') { viz.update(null, null, { message: 'Add your numbers to see your path.' }); return; }
+    viz.update(null, null, {
+      age: s.age, pending: true,
+      waiting: s.status === 'error' ? 'Check the numbers on the left' : 'Your date appears when you’re done',
+      message: `Your path so far: today you’re ${s.age}${s.age < SUPER_AGE ? ', and you can get to your super from 60' : ''}. Your freedom date appears when you’re done.`
+    });
   }
 
-  let baseline = null;          // the date when the visitor started changing something
-  function markBaseline() { baseline = last && (last.status === 'ok' || last.status === 'nosave') ? { months: last.plan.months, age: last.plan.freedomAge } : null; }
+  // "So you spend about $57,200 a year. Your freedom number is about $1.43M (25 × that)."
+  function spendText(d) {
+    const annual = d.mS * 12, who = d.hasPartner ? 'your household spends' : 'you spend';
+    const head = `So ${who} about <strong>${money(annual)} a year</strong>.`;
+    if (spendMult === 1) return `${head} Your freedom number is about <strong>${typeof fmtM === "function" ? fmtM(d.fireNum) : bigM(d.fireNum)}</strong> (25 × that).`;
+    return `${head} You expect to spend ${spendMult < 1 ? 'less' : 'more'} once work is optional, about ${money(annual * spendMult)} a year, so your freedom number is about <strong>${typeof fmtM === "function" ? fmtM(d.fireNum) : bigM(d.fireNum)}</strong> (25 × that).`;
+  }
 
-  function render(s, settled) {
-    const prev = last;
+  function render(s) {
     last = s;
     live.classList.toggle('is-empty', s.status === 'empty');
+    live.classList.add('is-waiting');
     if (s.status !== 'error') { const err = $('errorMsg'); if (err) err.style.display = 'none'; }   // an old "check your numbers" no longer applies
-    live.classList.toggle('is-waiting', s.status !== 'ok');
-    rangeEl.textContent = '';
-    numEl.innerHTML = '';
+    facts.innerHTML = '';
+    note.textContent = '';
+    const ready = s.status === 'ready';
+    spendBox.hidden = !ready;
+    if (ready) { const t = spendText(s.d); if (spendLine.innerHTML !== t) spendLine.innerHTML = t; }
     if (s.status === 'empty') {
-      setBig('Your path draws itself here', 'is-quiet');
-      when.textContent = 'Answer on the left. Each number moves it.';
-      note.textContent = '';
-    } else if (s.status === 'waiting') {
-      setBig(`Today, <strong>${s.age}</strong>`, 'is-quiet');
-      when.textContent = s.age < SUPER_AGE
-        ? `Super from 60, in ${SUPER_AGE - s.age} year${SUPER_AGE - s.age === 1 ? '' : 's'}. Your date appears once you add your spending.`
-        : 'You can already get to your super. Your date appears once you add your spending.';
-      note.textContent = '';
-    } else if (s.status === 'error') {
-      setBig('Check your numbers', 'is-quiet');
-      when.textContent = s.msg;
-      note.textContent = '';
+      big.textContent = 'Your path draws itself here';
+      when.textContent = 'Answer on the left and watch it take shape.';
     } else {
-      const p = s.plan, d = s.d;
-      numEl.innerHTML = `Freedom number <strong>${money(d.fireNum)}</strong>, about 25 times ${money(d.fireNum / 25)} a year.`;
-      if (s.status === 'free') {
-        setBig('Work could already be optional', 'is-quiet');
-        when.textContent = s.age < SUPER_AGE && s.inputs.superBalance > 0
-          ? 'On these numbers, your savings could carry you to 60, then super takes over.'
-          : 'On these numbers, what you have could cover your spending, drawn down slowly.';
-      } else if (s.status === 'far') {
-        setBig('Not within reach yet', 'is-quiet');
-        when.textContent = 'On these numbers, work being optional is a long way off. Saving more or spending less brings it into view.';
-      } else if (s.status === 'nosave') {
-        setBig('A long way off on these numbers', 'is-quiet');
-        when.textContent = p.freedomAge != null ? `Nothing is going into savings from your pay yet, so this leans on super alone: around age ${p.freedomAge}.` : 'Nothing is going into savings from your pay yet.';
-      } else {
-        let a = big.querySelector('strong.is-age');
-        if (!a) { setBig('Work could become optional at <strong class="is-age hp-age"></strong>'); a = big.querySelector('strong.is-age'); setAge(a, p.freedomAge, true); }
-        else if (!(viz && viz.isIntro())) setAge(a, p.freedomAge, false);
-        when.textContent = `in ${p.freedomYear} · ${span(p.months, true)} from now`;
-        rangeEl.textContent = s.range ? rangeSentence(p, s.range) : '';      // eslint-disable-line no-undef
-      }
-      // What the last change did.
-      const nowDated = s.status === 'ok' || s.status === 'nosave';
-      if (!prev || !(prev.status === 'ok' || prev.status === 'nosave' || prev.status === 'free' || prev.status === 'far')) note.textContent = 'Here’s what your numbers produce. Changing any of them moves your projected date.';
-      else if (baseline && nowDated) {
-        const diff = baseline.months - p.months;
-        note.textContent = Math.abs(diff) < 1 ? 'Changing this moves your projected date. On these numbers, it stays the same.'
-          : diff > 0 ? `This scenario reaches the target ${span(diff)} earlier, at ${p.freedomAge}.`
-          : `This scenario reaches the target ${span(-diff)} later, at ${p.freedomAge}.`;
+      const today = s.age < SUPER_AGE
+        ? `Today, ${s.age}. You can get to your super from 60, in ${SUPER_AGE - s.age} year${SUPER_AGE - s.age === 1 ? '' : 's'}.`
+        : `Today, ${s.age}. You can already get to your super.`;
+      if (s.status === 'error') { big.textContent = 'Check your numbers'; when.textContent = s.msg; }
+      else { big.textContent = allDone() ? 'Your FirePath is ready' : 'Your FirePath is taking shape'; when.textContent = today; }
+      if (ready) {
+        const d = s.d;
+        facts.innerHTML = [
+          `${d.hasPartner ? 'Your household spends' : 'You spend'} about <strong>${money(d.mS * 12)} a year</strong>`,
+          `Your freedom number: about <strong>${typeof fmtM === "function" ? fmtM(d.fireNum) : bigM(d.fireNum)}</strong>`,
+          d.sRate > 0 ? `You’re saving <strong>${d.sRate}%</strong> of your take-home` : 'Nothing is going into savings from your pay yet'
+        ].map(t => `<li>${t}</li>`).join('');
+        if (s.v.savings == null || s.v.super == null) note.textContent = 'Your savings and super count as $0 until you add them.';
+        else if (allDone()) note.textContent = 'Find your date to see when work could be optional, and what could move it.';
       }
     }
     paint();
-    // Screen readers hear the result once typing settles, not every keystroke.
+    // Screen readers hear the panel once typing settles: no date in it, only what's known.
     clearTimeout(sayTimer);
     sayTimer = setTimeout(() => {
-      const t = [big.textContent, when.textContent, rangeEl.textContent, note.textContent].filter(Boolean).join(' ');
+      const t = [big.textContent, when.textContent, facts.textContent ? Array.from(facts.children).map(li => li.textContent).join('. ') + '.' : '', note.textContent].filter(Boolean).join(' ');
       if (say.textContent !== t) say.textContent = t;
-    }, settled ? 150 : 900);
+    }, 700);
   }
   let sayTimer = 0;
 
   // ── Recompute ───────────────────────────────────────────
-  // The plan is cheap, so it's redone on every keystroke. The likely range (2,000 market
-  // outcomes, ~40ms) waits until typing settles, then the band grows in.
-  let rangeTimer = 0, typeTimer = 0, rangeKey = '', rangeVal = null;
-  function recompute(settled) {
-    clearTimeout(typeTimer);
-    const s = evaluate();
-    // The first date draws itself in, once the spending's been typed.
-    if ((s.status === 'ok') && !dated && viz) { dated = true; last = null; mountViz(true); }
-    if (s.status === 'ok' && s.d.mSav > 0) {
-      const key = JSON.stringify(s.inputs);
-      if (key === rangeKey) s.range = rangeVal;
-      else {
-        clearTimeout(rangeTimer);
-        rangeTimer = setTimeout(() => {
-          let mc = null;
-          try { mc = E.freedomRange(s.inputs); } catch (e) { mc = null; }
-          rangeKey = key; rangeVal = mc && mc.early != null ? mc : null;
-          if (last && last.inputs && JSON.stringify(last.inputs) === key) { last.range = rangeVal; render(last, true); }
-        }, settled ? 0 : 200);
-      }
-    }
-    render(s, settled);
-  }
-  // Typing: a short pause first. The first time through the spending question it waits a
-  // little longer, so "50000" draws one path, not five.
-  function later() {
-    clearTimeout(typeTimer);
-    const first = !dated && current === 'spend';
-    typeTimer = setTimeout(() => recompute(false), first ? 350 : 60);
-  }
+  let typeTimer = 0;
+  function recompute() { clearTimeout(typeTimer); render(evaluate()); }
+  function later() { clearTimeout(typeTimer); typeTimer = setTimeout(recompute, 60); }
 
   // ── The one action ──────────────────────────────────────
   $('fbCalc').addEventListener('click', () => {
@@ -477,17 +429,17 @@
   });
 
   // ── Start ───────────────────────────────────────────────
-  mountViz(false);
+  mountViz();
   setCurrent('age', false);
-  recompute(true);
+  recompute();
 
   window.FirePathBuilder = {
     sync,
-    refresh() { rangeKey = ''; recompute(true); },
+    refresh() { recompute(); },
     // Back from the results: every answer still there; the line ready to change.
     reopen() {
       setCurrent(nextOpen(), false);
-      recompute(true);
+      recompute();
       const first = root.querySelector('.fb-chip') || byKey.age.input;
       first.focus({ preventScroll: true });
     }
