@@ -157,7 +157,7 @@ window.FirePathMoves = (function () {
           impact: { text: 'Each dollar paid off saves the 15–20% a year it would cost in interest' } };
       } },
     { id: 'build-buffer', tier: 2, title: 'Having a three-month cash buffer', plan: 'Free',
-      tool: null, article: null,
+      tool: null, article: 'emergency-fund-australia',
       applies(s) {
         if (s.alreadyFree || !(s.spendMonthly > 0)) return false;
         const short = s.emergencyFund === false || (s.bufferMonths != null && s.bufferMonths < 3);
@@ -201,7 +201,7 @@ window.FirePathMoves = (function () {
           impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `$50 a week more could mean reaching your number ${yearsText(gain)}` } };
       } },
     { id: 'spend-less', tier: 4, title: 'Spending 10% less', plan: 'Free',
-      tool: { href: '/firepath', label: 'Try it in the calculator' }, article: 'how-much-is-enough',
+      tool: { href: '/firepath', label: 'Try it in the calculator' }, article: 'simple-budget-australia',
       applies(s) {
         if (s.alreadyFree || !(s.spendMonthly > 0) || s.consumerDebt > 0) return false;
         const cut = s.spendMonthly * 0.1;
@@ -227,7 +227,7 @@ window.FirePathMoves = (function () {
           impact: { dollars: better, text: `$5,000 a year sacrificed could mean about ${money(better)} less tax` } };
       } },
     { id: 'offset-vs-invest', tier: 5, title: 'Offset account vs investing', plan: 'Pro',
-      tool: { href: '/tax_pro', label: 'Compare for your rate' }, article: 'debt-vs-invest',
+      tool: { href: '/tax_pro', label: 'Compare for your rate' }, article: 'offset-vs-investing',
       applies(s) {
         if (s.housing !== 'mortgage' || !(s.mortgageRemaining > 0) || s.alreadyFree) return false;
         return { why: 'Every dollar in an offset saves you your mortgage rate in interest, tax-free and guaranteed. Investing may earn more over time, with more ups and downs. It depends on your tax rate.',
@@ -252,7 +252,7 @@ window.FirePathMoves = (function () {
           impact: { text: `${Math.round(60 - s.freedomAge)} years to bridge` } };
       } },
     { id: 'stress-test', tier: 7, title: 'Whether your money will last', plan: 'Free',
-      tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' }, article: 'four-percent-rule-australia',
+      tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' }, article: 'drawing-down-in-retirement',
       applies(s) {
         const close = s.alreadyFree || (s.yearsToFree != null && s.yearsToFree <= 10) || (s.age != null && s.age >= 55);
         if (!close || !(s.currentSavings > 0)) return false;
@@ -260,7 +260,7 @@ window.FirePathMoves = (function () {
           impact: { text: 'Odds across 2,000 possible market outcomes' } };
       } },
     { id: 'age-pension', tier: 7, title: 'What the Age Pension could add', plan: 'Free',
-      tool: { href: '/freedom-gap', label: 'See what it adds' }, article: 'is-my-super-enough',
+      tool: { href: '/freedom-gap', label: 'See what it adds' }, article: 'age-pension-explained',
       applies(s) {
         if (s.age == null || s.age < 55) return false;
         if (!has('calculateAgePension')) return { why: 'From 67, the Age Pension may top up what your savings pay.', impact: { text: 'Means-tested from 67' } };
