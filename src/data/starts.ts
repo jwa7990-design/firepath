@@ -118,6 +118,7 @@ export const STARTS: StartPage[] = [
     tools: [
       { href: '/withdrawal', name: 'Withdrawal planner', line: 'The odds your money lasts.' },
       { href: '/freedom-gap', name: 'Freedom gap', line: 'Age Pension and part-time work.' },
+      { href: '/retirement-age-calculator', name: 'Retirement age calculator', line: 'A quick estimate of when work could become optional.' },
     ],
     articles: ['four-percent-rule-australia', 'before-super-access', 'is-my-super-enough', 'when-can-i-actually-retire', 'super-balance-at-60', 'volatility-emotional-side'],
     faq: [

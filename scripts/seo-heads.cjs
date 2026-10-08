@@ -11,8 +11,8 @@ const SITE = 'https://www.firepath.pro';
 
 // Free tools people search for. Title ≤ ~60 characters, description ≤ ~155.
 const TOOLS = {
-  'firepath.html': { path: '/firepath', title: 'FIRE Calculator Australia — find your freedom date | FirePath',
-    description: 'Free Australian FIRE calculator. Find the year work could become optional, see a realistic range, and the moves that bring it closer. No account needed.',
+  'firepath.html': { path: '/firepath', title: 'FIRE & Retirement Age Calculator Australia | FirePath',
+    description: 'Free Australian retirement age and FIRE calculator. See when work could become optional, with super from 60 and what brings it closer. No account needed.',
     app: 'FirePath freedom calculator' },
   'withdrawal.html': { path: '/withdrawal', title: 'Will my money last? Retirement withdrawal calculator | FirePath',
     description: 'Will your money last? Test a withdrawal rate the way markets really behave: the odds it lasts 30 years, in today’s dollars. Free and Australian.',

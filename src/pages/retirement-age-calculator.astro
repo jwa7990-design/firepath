@@ -1,0 +1,255 @@
+---
+/**
+ * /retirement-age-calculator — a search landing page for "when will I retire" /
+ * "retirement age calculator" searches. A quick estimate on the page (same engine as the
+ * free calculator: FirePathEngine.freedomPlan + freedomRange), the three ages that matter
+ * in Australia, straight answers, then on to the full calculator at /firepath.
+ * Looks like the "Start where you are" pages (doc.css + start.css).
+ */
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { ARTICLES } from '../lib/learn';
+import '../styles/doc.css';
+import '../styles/start.css';
+import '../styles/retirement-age.css';
+
+const PATH = '/retirement-age-calculator';
+const URL_ABS = `https://www.firepath.pro${PATH}`;
+const TITLE = 'Retirement Age Calculator Australia — When Can I Retire?';
+const DESCRIPTION = 'Free retirement age calculator for Australia. See the age work could become optional, with super from 60 and the Age Pension at 67. No account needed.';
+const KEYWORDS = 'retirement age calculator, retirement age calculator Australia, when will I retire calculator, calculate retirement age, find out retirement age, age calculator for retirement, when can I retire';
+
+const reads = ['when-can-i-actually-retire', 'calculate-retirement-age', 'how-much-to-retire-australia', 'age-pension-explained', 'drawing-down-in-retirement']
+  .map(s => ARTICLES.find(a => a.slug === s)).filter(Boolean);
+
+const faq = [
+  { q: 'What is the retirement age in Australia?', a: 'There’s no set retirement age in Australia. You can stop work whenever your money allows. Two ages matter for most people: 60, when you can generally get to your super once you’ve retired, and 67, when you may qualify for the Age Pension.' },
+  { q: 'When can I access my super?', a: 'Generally from your preservation age, which is 60 for anyone born after 30 June 1964, once you retire. From 65 you can get to it even if you’re still working. A transition to retirement pension allows limited access from 60 while you keep working.' },
+  { q: 'When can I get the Age Pension?', a: 'From 67, if you meet the residency rules and pass the assets and income tests. It’s means-tested, so how much you get depends on what you own and earn. Plenty of people with decent super and a paid-off home still get a part pension.' },
+  { q: 'How much do I need to retire in Australia?', a: 'A common rule of thumb is 25 times what you’ll spend each year. Spending $50,000 a year works out to about $1.25 million across your savings and super. That’s the 4% rule: drawing about 4% a year has lasted 30 years or more in most past markets. The Age Pension from 67 may lower what you need.' },
+  { q: 'Can I retire before 60?', a: 'Yes, as long as money outside super can cover your spending until 60, when your super becomes available. The calculator checks both parts: that your savings last until 60, and that your savings and super together are enough after that.' },
+  { q: 'Is this retirement calculator free?', a: 'Yes. The quick estimate on this page and the full FirePath calculator are free, no account needed. The quick estimate runs in your browser, so the numbers you type here aren’t sent anywhere.' },
+];
+
+const schema = [
+  { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
+  { '@context': 'https://schema.org', '@type': 'WebApplication', name: 'FirePath retirement age calculator', url: URL_ABS, applicationCategory: 'FinanceApplication', operatingSystem: 'Any', offers: { '@type': 'Offer', price: '0', priceCurrency: 'AUD' }, inLanguage: 'en-AU' },
+  { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'FirePath', item: 'https://www.firepath.pro/' },
+    { '@type': 'ListItem', position: 2, name: 'Retirement age calculator', item: URL_ABS } ] },
+];
+---
+<Base title={TITLE} description={DESCRIPTION} path={PATH} keywords={KEYWORDS} image="/og/retirement-age-calculator.png">
+  <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
+  <main id="main">
+    <header class="doc-hero">
+      <div class="doc-hero-inner">
+        <span class="doc-eyebrow">Retirement age calculator</span>
+        <h1 class="doc-title ra-title">When can I retire? <span class="accent">A free retirement age calculator for Australians.</span></h1>
+        <p class="doc-lead">Your retirement age isn’t set by the government. It’s the point where your savings and super can pay for the life you want. Pop in a few numbers to see roughly when that could be.</p>
+        <div class="start-hero-cta">
+          <a href="/firepath" class="btn btn-ember btn-lg"><Icon name="flame" size={16}/>Find my retirement age</a>
+          <span>Free, 2 minutes, no account needed. Or try the quick estimate below.</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="start">
+      <section class="ra-calc" aria-labelledby="calc-title">
+        <h2 id="calc-title" class="start-h2">Quick estimate</h2>
+        <p class="ra-intro">Today’s dollars, for one person. Leave a box empty if it’s $0.</p>
+        <form id="raForm" class="ra-form" novalidate>
+          <div class="ra-fields">
+            <div class="field">
+              <label class="field-label" for="raAge">Your age</label>
+              <input class="input" id="raAge" name="age" inputmode="numeric" autocomplete="off" placeholder="35"/>
+            </div>
+            <div class="field">
+              <label class="field-label" for="raSavings">Savings and investments outside super</label>
+              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raSavings" name="savings" inputmode="decimal" autocomplete="off" placeholder="0"/></div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="raSuper">Super balance</label>
+              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raSuper" name="super" inputmode="decimal" autocomplete="off" placeholder="0"/></div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="raMonthly">Amount you save each month</label>
+              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raMonthly" name="monthly" inputmode="decimal" autocomplete="off" placeholder="0"/></div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="raIncome">Yearly income before tax <span class="field-optional">(optional)</span></label>
+              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raIncome" name="income" inputmode="decimal" autocomplete="off" placeholder="85,000" aria-describedby="raIncomeHint"/></div>
+              <span class="field-hint" id="raIncomeHint">Adds the super your employer pays in while you work.</span>
+            </div>
+            <div class="field">
+              <label class="field-label" for="raSpend">Yearly spending in retirement</label>
+              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raSpend" name="spend" inputmode="decimal" autocomplete="off" placeholder="50,000" aria-describedby="raSpendHint"/></div>
+              <span class="field-hint" id="raSpendHint">Not sure? Many people start with what they spend now, less rent or a mortgage that’ll be paid off.</span>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-ember btn-lg">Work out my age</button>
+        </form>
+
+        <div class="ra-result" id="raResult" role="status" aria-live="polite" hidden>
+          <p class="ra-head" id="raHead"></p>
+          <p class="ra-line" id="raLine"></p>
+          <p class="ra-line" id="raRange"></p>
+          <p class="ra-line ra-number" id="raNumber"></p>
+          <a href="/firepath" class="btn btn-ember ra-next">See the full picture: what moves your date <Icon name="arrow" size={15}/></a>
+        </div>
+        <p class="ra-fine">General information only, not financial advice. In today’s dollars: investments grow about 7% a year after inflation, less tax and fees. Adds employer super if you enter your income. Leaves out the Age Pension, which may top things up from 67. <a href="/assumptions">How we work it out</a>.</p>
+      </section>
+
+      <section aria-labelledby="ages-title">
+        <h2 id="ages-title" class="start-h2">The three ages that matter in Australia</h2>
+        <div class="ra-ages">
+          <div class="ra-age is-you">
+            <span class="ra-age-n">You</span>
+            <h3>Your “work optional” age</h3>
+            <p>When your savings and super could cover your spending for good. Nobody sets this one but you, and it’s what the calculator works out.</p>
+          </div>
+          <div class="ra-age">
+            <span class="ra-age-n">60</span>
+            <h3>You can get to your super</h3>
+            <p>60 is the preservation age for anyone born after 30 June 1964. Once you’ve retired, you can generally get to your super from then. Stopping earlier means money outside super pays the way until 60.</p>
+          </div>
+          <div class="ra-age">
+            <span class="ra-age-n">67</span>
+            <h3>The Age Pension may start</h3>
+            <p>From 67 you may qualify for the Age Pension. It’s means-tested on your assets and income, so it may top up what your savings pay, or not. <a href="/learn/age-pension-explained">How it works</a>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="how-title">
+        <h2 id="how-title" class="start-h2">How the calculator works</h2>
+        <ul class="ra-how">
+          <li><Icon name="check" size={16} stroke={2.4}/><span><strong>25 times your spending.</strong> That’s your freedom number. Drawn down slowly, at about 4% a year, it has lasted 30 years or more in most past markets.</span></li>
+          <li><Icon name="check" size={16} stroke={2.4}/><span><strong>The bridge to 60.</strong> If you stop before 60, your savings outside super need to cover you until then. After that, your super joins in.</span></li>
+          <li><Icon name="check" size={16} stroke={2.4}/><span><strong>Possible market outcomes.</strong> Markets don’t return the average every year, so we run 2,000 possible outcomes and show the likely range around your date.</span></li>
+        </ul>
+        <p class="ra-more">Every rate and figure we use is on the <a href="/assumptions">assumptions page</a>.</p>
+      </section>
+
+      <section class="start-faq" aria-labelledby="faq-title">
+        <h2 id="faq-title" class="start-h2">Straight answers</h2>
+        <div class="pq-list">
+          {faq.map(f => (
+            <details class="pq-item">
+              <summary>{f.q}<span class="pq-chev"><Icon name="chevron" size={13} stroke={2.4}/></span></summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section class="start-reads" aria-labelledby="reads-title">
+        <h2 id="reads-title" class="start-h2">Read next</h2>
+        <div class="start-grid">
+          {reads.map(a => a && (
+            <a href={`/learn/${a.slug}`} class="start-card is-read" data-reveal>
+              <span class="start-card-plan">{a.readMins} min read</span>
+              <span class="start-card-title">{a.heading}</span>
+              <span class="start-card-line">{a.description}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <aside class="doc-contact">
+        <span class="doc-contact-icon"><Icon name="flame" size={20}/></span>
+        <div>
+          <h2>See what moves your date</h2>
+          <p>The free calculator shows your freedom date, a realistic range, and which changes bring it closer, in years.</p>
+        </div>
+        <a href="/firepath" class="btn btn-ember">Find my freedom date</a>
+      </aside>
+
+      <p class="start-note">FirePath is educational, not financial advice. Rules and figures are Australian and current for {new Date().getFullYear()}.</p>
+    </div>
+  </main>
+
+  <script is:inline src="/js/tax-engine.js"></script>
+  <script is:inline src="/js/calculations.js"></script>
+  <script is:inline src="/js/financial-engine.js"></script>
+  <script is:inline>
+    // Quick estimate: the same headline as the free calculator (FirePathEngine.freedomPlan)
+    // and its market range (freedomRange). Runs in the browser only; nothing is sent.
+    (function () {
+      const form = document.getElementById('raForm');
+      const box = document.getElementById('raResult');
+      if (!form || !box) return;
+      const $ = id => document.getElementById(id);
+      const money = v => '$' + Math.round(v).toLocaleString('en-AU');
+      // Blank = 0. Accepts "1,200", "$1200" and "80k". NaN = not a number we can use.
+      function read(id) {
+        const raw = String($(id).value || '').trim().toLowerCase().replace(/[$,\s]/g, '');
+        if (!raw) return 0;
+        const m = raw.match(/^(\d+(?:\.\d+)?)(k|m)?$/);
+        if (!m) return NaN;
+        return Number(m[1]) * (m[2] === 'k' ? 1e3 : m[2] === 'm' ? 1e6 : 1);
+      }
+      function show(head, line, range, number) {
+        $('raHead').textContent = head;
+        $('raLine').textContent = line || ''; $('raLine').hidden = !line;
+        $('raRange').textContent = range || ''; $('raRange').hidden = !range;
+        $('raNumber').textContent = number || ''; $('raNumber').hidden = !number;
+        box.hidden = false;
+      }
+      function invalid(msg, id) {
+        show(msg);
+        box.classList.add('is-note');
+        if (id) $(id).setAttribute('aria-invalid', 'true');
+      }
+      function run() {
+        form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+        box.classList.remove('is-note');
+        const E = window.FirePathEngine;
+        if (!E || !E.freedomPlan) { invalid('The calculator didn’t load. Try refreshing the page.'); return; }
+        const age = read('raAge'), savings = read('raSavings'), sup = read('raSuper'), monthly = read('raMonthly'), spend = read('raSpend'), income = read('raIncome');
+        if (!$('raAge').value.trim() || !Number.isFinite(age) || age < 15 || age > 100) { invalid('Pop in your age (15 to 100) and we’ll work it out.', 'raAge'); return; }
+        const bad = [['raSavings', savings], ['raSuper', sup], ['raMonthly', monthly], ['raIncome', income]].find(([, v]) => !Number.isFinite(v));
+        if (bad) { invalid('That amount doesn’t look like a number. Try something like 25000 or 25k.', bad[0]); return; }
+        if (!Number.isFinite(spend) || !(spend > 0)) { invalid('Add roughly what you’d spend each year in retirement, for example 50000.', 'raSpend'); return; }
+
+        // With an income the engine adds employer super (SG) and uses your tax rate, the
+        // same as the full calculator; without one it leaves SG out (more cautious).
+        const inputs = { age, savings, monthlySavings: monthly, target: spend * 25, superBalance: sup, grossIncome: income > 0 ? income : null };
+        let plan;
+        try { plan = E.freedomPlan(inputs); } catch (e) { plan = null; }
+        const number = `Your freedom number: about ${E.fmtM(spend * 25)} (25 × ${money(spend)} a year).`;
+        if (!plan || !plan.valid) { invalid('Something in those numbers doesn’t add up. Check each box and try again.'); return; }
+        if (plan.alreadyFree) {
+          show('On these numbers, work could already be optional.',
+            age < 60 && sup > 0 && savings < spend * 25 ? 'Your savings could carry you to 60, then your super takes over.' : 'What you have could cover your spending, drawn down slowly.',
+            '', number);
+          return;
+        }
+        if (!plan.reachable || plan.freedomAge == null || plan.freedomYear == null || plan.freedomAge > 100) {
+          show('On these numbers, work doesn’t become optional within a lifetime.',
+            'What brings the date into view is saving a bit more each month, or planning to spend a little less. The full calculator shows by how much.',
+            '', number);
+          return;
+        }
+        let line = '';
+        if (plan.bridgeYears > 0) line = 'Your savings carry you to 60, then your super takes over.';
+        else if (plan.superCounted) line = 'From 60, your super joins in.';
+        let range = '';
+        try {
+          const mc = E.freedomRange(inputs);
+          if (mc && mc.early != null) {
+            const now = new Date(), yr = m => new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear();
+            const y1 = yr(mc.early), y2 = mc.late == null ? null : yr(mc.late), cap = yr(50 * 12);
+            range = y2 == null ? `Across 2,000 possible market outcomes, most likely from ${y1}, and in some after ${cap}.`
+              : y1 === y2 ? `Across 2,000 possible market outcomes, most likely in ${y1}.`
+              : `Across 2,000 possible market outcomes, most likely between ${y1} and ${y2}.`;
+          }
+        } catch (e) { range = ''; }
+        show(`Work could be optional around ${plan.freedomYear}, at age ${plan.freedomAge}.`, line, range, number);
+      }
+      let ran = false;
+      form.addEventListener('submit', e => { e.preventDefault(); ran = true; run(); });
+      form.addEventListener('input', () => { if (ran) run(); });
+    })();
+  </script>
+</Base>

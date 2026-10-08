@@ -6,6 +6,7 @@
  *   public/og/default.png             site-wide share image (1200×630)
  *   public/og/learn/<slug>.png        one per Learning Lab article
  *   public/og/start/<slug>.png        one per "Start where you are" page
+ *   public/og/<name>.png              other landing pages (PAGES below)
  *   public/icons/*.png, favicon.svg   browser, home-screen and Apple icons
  * Text is drawn as shapes from the brand fonts (scripts/og-fonts), so the images look
  * the same on any machine.
@@ -83,6 +84,11 @@ function card({ eyebrow, title, accent, footer }) {
   return frame(out);
 }
 
+// Other landing pages with their own share image: public/og/<file>.
+const PAGES = [
+  { file: 'retirement-age-calculator.png', eyebrow: 'Free calculator', title: 'When can I retire? Retirement age calculator', footer: 'Australia · no account needed' },
+];
+
 async function png(svg, file) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(file);
@@ -121,5 +127,6 @@ async function icons() {
   let s = [];
   try { s = starts(); } catch (e) { /* start pages not defined yet */ }
   for (const p of s) await png(card({ eyebrow: p.door, title: p.title, footer: 'Start where you are' }), path.join(OUT, 'og', 'start', `${p.slug}.png`));
-  console.log(`icons, default, ${list.length} articles, ${s.length} start pages`);
+  for (const p of PAGES) await png(card(p), path.join(OUT, 'og', p.file));
+  console.log(`icons, default, ${list.length} articles, ${s.length} start pages, ${PAGES.length} other pages`);
 })();

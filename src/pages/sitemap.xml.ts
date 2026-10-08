@@ -15,6 +15,7 @@ export function GET() {
   const urls = [
     ...PAGES.map(p => [p, p === '/' ? '1.0' : '0.8']),
     ...FREE_TOOLS.map(p => [p, p === '/firepath' ? '0.9' : '0.8']),
+    ['/retirement-age-calculator', '0.9'],
     ...STARTS.map(s => [`/start/${s.slug}`, '0.8']),
     ...ARTICLES.map(a => [`/learn/${a.slug}`, '0.7']),
   ];
