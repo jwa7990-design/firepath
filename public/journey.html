@@ -123,31 +123,58 @@
   .kpi-sub { margin-top: 4px; font-size: 12px; color: var(--ink-3); min-height: 18px; }
   .kpi-sub .delta-up, .kpi-sub .delta-down { font-weight: 600; }
 
-  /* ── Next move ── */
-  .move-title { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.25; color: var(--ink); letter-spacing: -0.01em; }
-  .move-reason { margin-top: 10px; font-size: 14px; line-height: 1.6; color: var(--ink-2); max-width: 56ch; }
-  .move-impact { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--ember-ink); }
-  .move-sort, .move-advice { font-size: 12px; line-height: 1.5; color: var(--ink-2); }
-  .move-sort { margin-bottom: 8px; }
-  .move-advice { margin-top: 12px; }
-  .move-action {
-    margin-top: 20px; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: var(--r-md);
-    background: var(--surface-2); border: 1px solid var(--line); text-decoration: none; transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
+  /* ── Your plan (→ Strategy). Options from js/moves.js with the person's own status
+       on each (On it / Done / Not for me), saved through js/moves-status.js. ── */
+  .move-advice { margin-top: 14px; font-size: 12px; line-height: 1.5; color: var(--ink-2); }
+  .vh { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .plan-progress { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--ink-2); }
+  .plan-progress strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .plan-bar { flex: 1; max-width: 220px; height: 6px; border-radius: 99px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+  .plan-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--ember), var(--amber)); transition: width var(--dur-slow) var(--ease); }
+  .plan-since { margin-top: 6px; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+  .plan-since strong { color: var(--ink); font-weight: 600; }
+  .plan-note { font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+  .plan-note:not(:empty) { margin-top: 14px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--surface-2); border: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+  .plan-note a { color: var(--ember-ink); font-weight: 500; text-decoration: none; }
+  .plan-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .plan-list { list-style: none; margin: 14px 0 0; padding: 0; }
+  .opt { display: flex; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .opt:first-child { border-top: none; }
+  .opt-num { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: 12.5px; font-weight: 600; color: var(--ember-ink); background: var(--ember-wash); font-variant-numeric: tabular-nums; }
+  .opt-body { flex: 1; min-width: 0; }
+  .opt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .opt-title { font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .opt-head .chip { flex-shrink: 0; height: 24px; font-size: 12px; }
+  .opt-impact { margin-top: 3px; font-size: 12.5px; font-weight: 600; color: var(--ember-ink); line-height: 1.45; }
+  .opt-why { margin-top: 4px; font-size: 13px; line-height: 1.55; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .opt-links { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; }
+  .opt-links a { color: var(--ember-ink); font-weight: 500; text-decoration: none; }
+  .opt-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .opt-actions { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .opt-btn {
+    min-height: 34px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface);
+    font: 500 13px/1 var(--font-ui); color: var(--ink); cursor: pointer; transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
   }
-  .move-action:hover { border-color: var(--ember); background: #FFF7F2; }
-  .move-icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex-shrink: 0; }
-  .move-icon.learn { background: rgba(124,92,168,0.12); color: var(--purple); }
-  .move-icon.ask { background: var(--ember-wash); color: var(--ember-ink); }
-  .move-icon.tool { background: rgba(58,110,165,0.12); color: var(--blue); }
-  .move-icon.explore { background: rgba(62,142,90,0.12); color: var(--green); }
-  .move-body { flex: 1; min-width: 0; }
-  .move-kind { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
-  .move-name { font-weight: 600; font-size: 14.5px; color: var(--ink); }
-  .move-time { font-size: 12px; color: var(--ink-3); flex-shrink: 0; }
-  .arrow { color: var(--ember-ink); flex-shrink: 0; transition: transform var(--dur-fast) ease; }
-  a:hover > .arrow { transform: translateX(2px); }
+  .opt-btn:hover { background: var(--surface-2); border-color: var(--ink-3); }
+  .opt-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .opt-btn:disabled { opacity: 0.55; cursor: default; }
+  .opt-btn.quiet { border-color: transparent; background: none; color: var(--ink-2); padding: 0 8px; }
+  .opt-btn.quiet:hover { color: var(--ink); background: var(--surface-2); }
+  .opt-tag { display: inline-flex; align-items: center; gap: 5px; min-height: 26px; padding: 0 10px; border-radius: 999px; background: var(--ember-wash); color: var(--ember-ink); font-size: 12.5px; font-weight: 600; }
+  .opt-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ember); }
+  .plan-more { display: inline-block; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
+  .plan-more:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .plan-empty { margin-top: 14px; font-size: 14px; line-height: 1.6; color: var(--ink-2); }
+  .plan-empty a { color: var(--ember-ink); font-weight: 500; }
+  .plan-fold { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .plan-fold summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--ink); padding: 4px 0; border-radius: 6px; }
+  .plan-fold summary:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .plan-fold ul { list-style: none; margin: 6px 0 0; padding: 0; }
+  .plan-fold li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 8px 0; font-size: 13.5px; color: var(--ink); }
+  .plan-fold li + li { border-top: 1px solid var(--line); }
+  .plan-fold .fold-sub { display: block; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
 
-  /* ── Levers (→ Strategy) ── */
+  /* ── If returns are different (→ What if…?) ── */
   .lever { display: flex; align-items: center; gap: 14px; padding: 14px 0; text-decoration: none; border-top: 1px solid var(--line); }
   .lever:first-child { border-top: none; padding-top: 2px; }
   .lever-body { flex: 1; min-width: 0; }
@@ -155,6 +182,8 @@
   .lever-desc { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
   a.lever:hover .lever-title { color: var(--ember-ink); }
   .lever-empty { font-size: 13.5px; color: var(--ink-2); }
+  .arrow { color: var(--ember-ink); flex-shrink: 0; transition: transform var(--dur-fast) ease; }
+  a:hover > .arrow { transform: translateX(2px); }
 
   /* ── Progress ── */
   .since-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); font-size: 14px; }
@@ -206,6 +235,7 @@
 <script src="js/financial-engine.js"></script>
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
+<script src="js/moves-status.js"></script>
 </head>
 <body class="app" data-shell="app" data-active="journey">
 <script src="js/shell.js"></script>
@@ -295,26 +325,31 @@
       </div>
     </section>
 
-    <!-- 3 ── What could move the date? (→ Strategy). Options and their modelled effect, never instructions. ── -->
-    <section class="card span-7 rise" style="--i:3" aria-labelledby="moveHead">
+    <!-- 3 ── Your plan (→ Strategy). Options and their modelled effect, never instructions.
+         The person marks each one On it / Done / Not for me (js/moves-status.js). ── -->
+    <section class="card span-7 rise" style="--i:3" aria-labelledby="planHeading">
       <div class="section-head">
-        <h2 class="section-label" id="moveHead">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          Option worth knowing about
+        <h2 class="section-label" id="planHeading" tabindex="-1">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Your plan
         </h2>
+        <a href="strategy.html" class="section-link">All options →</a>
       </div>
-      <div id="opportunityCard"><div class="skeleton" style="height:26px;width:70%"></div><div class="skeleton" style="height:14px;width:90%;margin-top:14px"></div><div class="skeleton" style="height:64px;margin-top:20px;border-radius:14px"></div></div>
+      <div id="planTop"></div>
+      <div class="plan-note" id="planNote" role="status" aria-live="polite" tabindex="-1"></div>
+      <div id="planBody"><div class="skeleton" style="height:22px;width:60%"></div><div class="skeleton" style="height:14px;width:90%;margin-top:14px"></div><div class="skeleton" style="height:64px;margin-top:20px;border-radius:14px"></div></div>
+      <p class="move-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
     </section>
 
-    <section class="card span-5 rise" style="--i:4" aria-labelledby="leversHead">
+    <section class="card span-5 rise" style="--i:4;align-self:start" aria-labelledby="leversHead">
       <div class="section-head">
         <h2 class="section-label" id="leversHead">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
-          What moves your date
+          If returns are different
         </h2>
-        <a href="strategy.html" class="section-link">Strategy →</a>
+        <a href="hearmeout.html" class="section-link">What if…? →</a>
       </div>
-      <div id="levers"><div class="skeleton" style="height:44px"></div><div class="skeleton" style="height:44px;margin-top:12px"></div><div class="skeleton" style="height:44px;margin-top:12px"></div></div>
+      <div id="levers"><div class="skeleton" style="height:44px"></div><div class="skeleton" style="height:44px;margin-top:12px"></div></div>
     </section>
 
     <!-- 4 ── Am I making progress? What should I learn? (→ Learn) ── -->
@@ -728,55 +763,42 @@
     setKpi('kpiRate', m.savingsRate != null ? `${m.savingsRate}%` : '—', rateSub);
   }
 
-  // ── Levers — three real recalculations of the same date ─
-  const LEVER_COPY = {
-    more: {
-      beginner: ['Saving an extra $50 a week', 'About the cost of a couple of takeaway meals.'],
-      building: ['Saving $50 more a week', 'Invested on the same assumptions.'],
-      fire: ['+$50/wk contributions', 'Same return assumption.']
-    },
-    spend: {
-      beginner: ['Spending 10% less', "You'd need less saved, and you'd save more each month — it works twice."],
-      building: ['Spending 10% less', 'Lowers your freedom number and lifts your savings.'],
-      fire: ['−10% annual spend', 'Lower FI number and higher SR at once.']
-    },
-    returns: {
-      beginner: ['If investments grow slower', 'Markets vary — this is 1% a year less growth than we assume.'],
+  // ── If returns are different — the same date with returns a point lower or higher.
+  //    A sensitivity check, not something to act on (the options live in Your plan). ─
+  const RETURNS_COPY = {
+    lower: {
+      beginner: ['If investments grow slower', 'Markets vary. This is 1% a year less growth than we assume.'],
       building: ['Returns 1% lower', 'One point a year less than we assume. Worth knowing the downside.'],
-      fire: ['Return 6% after inflation (−1pt)', 'Sensitivity to your return assumption.']
+      fire: ['Return −1pt after inflation', 'Sensitivity to your return assumption.']
+    },
+    higher: {
+      beginner: ['If investments grow faster', '1% a year more growth than we assume. Nice if it happens, but not something to count on.'],
+      building: ['Returns 1% higher', 'One point a year more than we assume. Not something to plan on.'],
+      fire: ['Return +1pt after inflation', 'Upside sensitivity. Don’t bank on it.']
     }
   };
   function renderLevers(m) {
     const el = $('levers');
-    if (!(m.annualSpend > 0)) { el.innerHTML = '<p class="lever-empty">Add your numbers to see what moves your date.</p>'; return; }
+    if (!(m.annualSpend > 0)) { el.innerHTML = '<p class="lever-empty">Add your numbers to see how sure your date is.</p>'; return; }
     if (isFree(m)) {
-      // Nothing left to save towards — saving more or spending less doesn't move a date that's already here.
+      // The date is already here; what matters now is whether the money lasts.
       el.innerHTML = `<a class="lever" href="/withdrawal"><div class="lever-body"><div class="lever-title">You've reached your number. Will it last?</div><div class="lever-desc">See how your money holds up across 2,000 possible market outcomes, including a bad run in the first years.</div></div><span class="chip chip-positive">Free</span></a>`;
-      return;
-    }
-    // Credit-card or personal-loan debt comes first: saving or investing more while it
-    // costs 15–20% a year isn't a real improvement (same rule as js/moves.js).
-    const debt = m.situation && m.situation.consumerDebt;
-    if (debt > 0) {
-      el.innerHTML = `<a class="lever" href="/hearmeout?scenario=loan"><div class="lever-body"><div class="lever-title">Paying off your $${Math.round(debt).toLocaleString('en-AU')} debt</div><div class="lever-desc">It usually costs 15–20% a year, so each dollar paid off saves that much interest. While it's there, saving or investing more usually earns less than the debt costs.</div></div><span class="chip chip-negative">15–20% a year</span></a>`;
       return;
     }
     const persona = Persona.get();
     const base = m.months;
-    // Same plan as the headline date, with one thing changed.
-    const solve = (monthly, spend, rate) => {
-      const r = Engine.freedomPlan(Object.assign({}, m.planInputs, { monthlySavings: monthly, target: spend * 25, outsideReturn: rate }));
+    // Same plan as the headline date, with only the return changed.
+    const solve = rate => {
+      const r = Engine.freedomPlan(Object.assign({}, m.planInputs, { outsideReturn: rate }));
       return r.valid ? r.months : null;
     };
     const rate = m.plan.outsideReturn;
-    // The returns row is a sensitivity check, not something you can act on — so no link.
     const rows = [
-      { key: 'more', url: 'hearmeout.html', months: solve(m.monthlySavings + EXTRA_WEEKLY * 52 / 12, m.annualSpend, rate) },
-      { key: 'spend', url: 'hearmeout.html', months: solve(m.monthlySavings + m.annualSpend * 0.1 / 12, m.annualSpend * 0.9, rate) },
-      { key: 'returns', url: null, months: solve(m.monthlySavings, m.annualSpend, rate - 0.01) }
+      { key: 'lower', months: solve(rate - 0.01) },
+      { key: 'higher', months: solve(rate + 0.01) }
     ];
     el.innerHTML = rows.map(r => {
-      const [title, desc] = LEVER_COPY[r.key][persona];
+      const [title, desc] = RETURNS_COPY[r.key][persona];
       let chip;
       if (base == null && r.months == null) chip = '<span class="chip">No change</span>';
       else if (base == null) chip = `<span class="chip chip-positive">Reachable in ${duration(r.months)}</span>`;
@@ -786,42 +808,207 @@
         chip = Math.abs(diff) < 1 ? '<span class="chip">No change</span>'
           : `<span class="chip ${diff > 0 ? 'chip-positive' : 'chip-negative'}">${duration(diff)} ${diff > 0 ? 'sooner' : 'later'}</span>`;
       }
-      const inner = `<div class="lever-body"><div class="lever-title">${title}</div><div class="lever-desc">${desc}</div></div>${chip}`;
-      return r.url ? `<a class="lever" href="${r.url}">${inner}</a>` : `<div class="lever">${inner}</div>`;
+      return `<div class="lever"><div class="lever-body"><div class="lever-title">${title}</div><div class="lever-desc">${desc}</div></div>${chip}</div>`;
     }).join('');
   }
 
-  // ── Option worth knowing about — the shared recommendNextStep() (the FirePathMoves option with the
-  //    biggest modelled effect) against the real profile. Shown as an option, never an instruction. ──
-  const MOVE_ICONS = {
-    learn: '<path d="M12 6.5c-1.8-1.3-4.2-1.8-6.5-1.5v13c2.3-.3 4.7.2 6.5 1.5"/><path d="M12 6.5c1.8-1.3 4.2-1.8 6.5-1.5v13c-2.3-.3-4.7.2-6.5 1.5"/><path d="M12 6.5v13.5"/>',
-    ask: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
-    tool: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 3h6"/>',
-    explore: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5 5-2z"/>'
-  };
-  const MOVE_KIND = { learn: 'Read', ask: 'Ask FirePath', tool: 'Open tool', explore: 'Explore' };
-  function renderNextMove(p) {
-    const el = $('opportunityCard');
-    if (!Engine || typeof Engine.recommendNextStep !== 'function') { el.innerHTML = ''; return; }
-    const s = Engine.recommendNextStep(p.savings_type || 'cash', Persona.get(), p.savings_rate || 0, p.super_balance || 0, p.debt_total || 0, p.age, p.has_emergency_fund, p);
-    const isLearn = s.type === 'learn';
-    const article = isLearn && s.article && ARTICLES ? ARTICLES.find(a => a.slug === s.article) : null;
-    const title = isLearn ? (article ? article.heading : s.title) : s.name;
-    const url = s.url || `learning_lab.html?topic=${s.topic}&track=${s.track}&title=${encodeURIComponent(s.title)}`;
-    const type = MOVE_ICONS[s.type] ? s.type : 'learn';
-    el.innerHTML = `
-      <p class="move-sort">The change with the biggest modelled effect, based on the numbers you entered.</p>
-      <div class="move-title">${escapeHtml(s.headline || title)}</div>
-      <p class="move-reason">${escapeHtml(s.reason)}</p>
-      ${s.impact ? `<p class="move-impact">${escapeHtml(s.impact)}</p>` : ''}
-      <a href="${url}" class="move-action">
-        <span class="move-icon ${type}"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MOVE_ICONS[type]}</svg></span>
-        <span class="move-body"><span class="move-kind">${MOVE_KIND[type]}</span><span class="move-name" style="display:block">${escapeHtml(title)}</span></span>
-        <span class="move-time">${isLearn ? '7 min' : '2 min'}</span>
-        <span class="arrow" aria-hidden="true">→</span>
-      </a>
-      <p class="move-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>`;
+  // ── Your plan — FirePathMoves.plan() with the person's saved statuses. ─────
+  // Options are general information: what each change would do, never "you should".
+  let moveStatuses = {};          // { moveId: { status, done_at, updated_at } }
+  let statusesLoaded = false;
+  let sinceInfo = null;           // { label, monthsCloser, oldYear, newYear } from the oldest full snapshot
+  const pendingMoves = new Set();
+  let planNote = null;            // { kind, id, title, prev } — the line under the header
+  let noteTimer = null;
+  const OPEN_SHOWN = 3;
+
+  function currentPlan() {
+    if (!model || !model.situation || !window.FirePathMoves || typeof window.FirePathMoves.plan !== 'function') return null;
+    try { return window.FirePathMoves.plan(model.situation, moveStatuses); } catch (e) { console.log('Plan failed', e); return null; }
   }
+  // The open option to point at first: one the person is on, else the top-ranked one.
+  function leadOption(p) {
+    if (!p || !p.open.length) return null;
+    return p.open.find(o => o.status === 'doing') || p.open[0];
+  }
+  const monthYear = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }); };
+  function impactHtml(o) {
+    const imp = o.impact || {};
+    if (imp.years > 0) {
+      const short = imp.years >= 1 ? `−${(Math.round(imp.years * 10) / 10).toFixed(1)} yrs` : `−${Math.max(1, Math.round(imp.years * 12))} mths`;
+      return { chip: `<span class="chip chip-positive" title="${escapeHtml(imp.text || '')}" aria-hidden="true">${short}</span>`, line: imp.text ? `<p class="opt-impact">${escapeHtml(imp.text)}</p>` : '' };
+    }
+    return { chip: '', line: imp.text ? `<p class="opt-impact">${escapeHtml(imp.text)}</p>` : '' };
+  }
+  function optionHtml(o, i) {
+    const t = escapeHtml(o.title), id = escapeHtml(o.id);
+    const busy = pendingMoves.has(o.id) ? ' disabled' : '';
+    const btn = (act, label, aria) => `<button type="button" class="opt-btn" data-move="${id}" data-act="${act}" aria-label="${aria}"${busy}>${label}</button>`;
+    const imp = impactHtml(o);
+    const links = [];
+    if (o.tool && o.tool.href) links.push(`<a href="${escapeHtml(o.tool.href)}">Model it →<span class="vh"> ${t}</span></a>`);
+    if (o.article) links.push(`<a href="/learn/${escapeHtml(o.article)}">Read<span class="vh"> about ${t}</span></a>`);
+    return `<li class="opt">
+        <span class="opt-num" aria-hidden="true">${i + 1}</span>
+        <div class="opt-body">
+          <div class="opt-head"><h3 class="opt-title">${t}</h3>${imp.chip}</div>
+          ${imp.line}
+          <p class="opt-why" title="${escapeHtml(o.why || '')}">${escapeHtml(o.why || '')}</p>
+          ${links.length ? `<div class="opt-links">${links.join('')}</div>` : ''}
+          <div class="opt-actions" role="group" aria-label="Where you are with ${t}">
+            ${o.status === 'doing' ? '<span class="opt-tag">On it</span>' : btn('doing', 'On it', `Mark ${t} as on it`)}
+            ${btn('done', 'Done', `Mark ${t} as done`)}
+            ${btn('dismissed', 'Not for me', `Mark ${t} as not for me`)}
+          </div>
+        </div>
+      </li>`;
+  }
+
+  function renderPlanTop(p) {
+    const top = $('planTop');
+    if (!p || !p.progress.total) { top.innerHTML = sinceHtml(); return; }
+    const { done, total } = p.progress;
+    const pct = Math.round((done / total) * 100);
+    top.innerHTML = `<div class="plan-progress"><span><strong>${done} of ${total}</strong> done</span><span class="plan-bar" aria-hidden="true"><i style="width:${pct}%"></i></span></div>${sinceHtml()}`;
+  }
+  function sinceHtml() {
+    const si = sinceInfo;
+    if (!si) return '';
+    const n = Math.abs(si.monthsCloser);
+    const span = n >= 12 ? `${Math.floor(n / 12)} year${Math.floor(n / 12) === 1 ? '' : 's'}${n % 12 ? ` and ${n % 12} month${n % 12 === 1 ? '' : 's'}` : ''}` : `${n} month${n === 1 ? '' : 's'}`;
+    const years = si.oldYear !== si.newYear ? ` (${si.oldYear} → ${si.newYear})` : '';
+    if (si.monthsCloser > 0) return `<p class="plan-since">Since ${si.label}, your date has moved <strong>${span} closer</strong>${years}.</p>`;
+    if (si.monthsCloser < 0) return `<p class="plan-since">Since ${si.label}, your date has moved ${span} further away${years}.</p>`;
+    return `<p class="plan-since">Since ${si.label}, your date hasn't moved yet.</p>`;
+  }
+
+  function renderNote() {
+    const el = $('planNote');
+    const n = planNote;
+    if (!n) { el.innerHTML = ''; return; }
+    const t = escapeHtml(n.title);
+    if (n.kind === 'done') {
+      el.innerHTML = `<span>Nice. <a href="firepath_pro.html?edit=true">Update your numbers so your date reflects it →</a></span><button type="button" class="opt-btn quiet" data-move="${escapeHtml(n.id)}" data-act="undo" aria-label="Undo marking ${t} as done">Undo</button>`;
+    } else if (n.kind === 'dismissed') {
+      el.innerHTML = `<span>Hidden: ${t}.</span><button type="button" class="opt-btn quiet" data-move="${escapeHtml(n.id)}" data-act="undo" aria-label="Undo hiding ${t}">Undo</button>`;
+    } else if (n.kind === 'doing') {
+      el.innerHTML = `<span>${t} is marked On it.</span>`;
+    } else if (n.kind === 'back') {
+      el.innerHTML = `<span>${t} is back in your plan, marked On it.</span>`;
+    } else if (n.kind === 'undone') {
+      el.innerHTML = `<span>Undone.</span>`;
+    }
+  }
+  function setNote(n, ms) {
+    clearTimeout(noteTimer);
+    planNote = n;
+    renderNote();
+    if (n && ms) noteTimer = setTimeout(() => {
+      if (planNote !== n) return;
+      const hadFocus = $('planNote').contains(document.activeElement);
+      planNote = null; renderNote();
+      if (hadFocus) $('planHeading').focus();   // don't drop keyboard focus to the page when Undo goes away
+    }, ms);
+  }
+
+  function renderPlan(focus) {
+    const body = $('planBody');
+    if (!model) return;
+    if (!statusesLoaded) return;   // the skeleton stays until statuses arrive, so a hidden option never flashes up
+    const p = currentPlan();
+    renderPlanTop(p);
+    if (!p) { body.innerHTML = '<p class="plan-empty">Your options couldn’t load just now. Try refreshing the page.</p>'; return; }
+    // Keep any open <details> open across re-renders.
+    const wasOpen = new Set(Array.from(body.querySelectorAll('details[open]')).map(d => d.dataset.fold));
+    let html = '';
+    if (p.open.length) {
+      html += `<ol class="plan-list">${p.open.slice(0, OPEN_SHOWN).map(optionHtml).join('')}</ol>`;
+      if (p.open.length > OPEN_SHOWN) html += `<a class="plan-more" href="strategy.html">Show all ${p.open.length} options →</a>`;
+    } else if (p.done.length) {
+      html += `<p class="plan-empty">You've worked through every option we can see for your numbers.</p>`;
+    } else if (isFree(model)) {
+      html += `<p class="plan-empty">There's nothing to work through for your numbers right now. Since you've reached your number, the <a href="/withdrawal">Withdrawal planner</a> shows whether your money will last.</p>`;
+    } else {
+      html += `<p class="plan-empty">We can't see any options for your numbers yet. Filling in a bit more in <a href="firepath_pro.html?edit=true">your plan’s inputs</a> helps us find them.</p>`;
+    }
+    if (p.done.length) {
+      html += `<details class="plan-fold" data-fold="done"${wasOpen.has('done') ? ' open' : ''}><summary>Done (${p.done.length})</summary><ul>${p.done.map(d => `
+        <li><span>${escapeHtml(d.title)}<span class="fold-sub">${d.auto ? `Your numbers show this. ${escapeHtml(d.reason || '')}` : d.done_at ? `Marked done ${monthYear(d.done_at)}` : 'Marked done'}</span></span></li>`).join('')}</ul></details>`;
+    }
+    if (p.dismissed.length) {
+      html += `<details class="plan-fold" data-fold="dismissed"${wasOpen.has('dismissed') ? ' open' : ''}><summary>Not for me (${p.dismissed.length})</summary><ul>${p.dismissed.map(d => `
+        <li><span>${escapeHtml(d.title)}</span><button type="button" class="opt-btn" data-move="${escapeHtml(d.id)}" data-act="back" aria-label="Bring back ${escapeHtml(d.title)}"${pendingMoves.has(d.id) ? ' disabled' : ''}>Bring it back</button></li>`).join('')}</ul></details>`;
+    }
+    body.innerHTML = html;
+    if (focus) restoreFocus(focus);
+  }
+  // After a re-render the clicked button may be gone: focus the same button if it's
+  // still there, else the note's action (Undo / update link), else the card heading.
+  function restoreFocus(f) {
+    const same = $('planBody').querySelector(`[data-move="${f.id}"][data-act="${f.act}"]`);
+    if (same && !same.disabled) { same.focus(); return; }
+    const sibling = $('planBody').querySelector(`[data-move="${f.id}"]:not(:disabled)`);   // e.g. "Done" once "On it" became a tag
+    if (sibling) { sibling.focus(); return; }
+    const noteAction = $('planNote').querySelector('button, a');
+    if (noteAction) { noteAction.focus(); return; }
+    $('planHeading').focus();
+  }
+
+  const NOTE_FOR = { done: 'done', dismissed: 'dismissed', doing: 'doing', back: 'back' };
+  async function changeMove(id, act, title) {
+    const MS = window.FirePathMoveStatus;
+    if (!MS || pendingMoves.has(id)) return;
+    const status = act === 'back' ? 'doing' : act;
+    const before = moveStatuses;
+    const prevNote = planNote;
+    const now = new Date().toISOString();
+    // Optimistic: show the change straight away, put it back if the save fails
+    // (set() shows the "couldn't save" note itself).
+    moveStatuses = Object.assign({}, moveStatuses, { [id]: { status, done_at: status === 'done' ? now : null, updated_at: now } });
+    pendingMoves.add(id);
+    setNote({ kind: NOTE_FOR[act], id, title, prev: before[id] || null }, act === 'dismissed' ? 6000 : act === 'done' ? 0 : 4000);
+    renderPlan({ id, act });
+    renderLearn();
+    const r = await MS.set(id, status);
+    pendingMoves.delete(id);
+    if (r && r.ok) moveStatuses = await MS.load();
+    else { moveStatuses = before; setNote(prevNote && prevNote.id !== id ? prevNote : null); }
+    renderPlan({ id, act });
+    renderLearn();
+  }
+  async function undoMove(id, title) {
+    const MS = window.FirePathMoveStatus;
+    if (!MS || pendingMoves.has(id)) return;
+    const before = moveStatuses;
+    const prevNote = planNote;
+    // Optimistic: back to what it was before the last change on this page.
+    const back = prevNote && prevNote.id === id && 'prev' in prevNote ? prevNote.prev : { status: 'doing', done_at: null, updated_at: new Date().toISOString() };
+    moveStatuses = Object.assign({}, moveStatuses);
+    if (back) moveStatuses[id] = back; else delete moveStatuses[id];
+    pendingMoves.add(id);
+    setNote({ kind: 'undone', id, title }, 3000);
+    renderPlan();
+    const r = await MS.undo(id);
+    pendingMoves.delete(id);
+    if (r && r.ok) moveStatuses = await MS.load();
+    else { moveStatuses = before; setNote(prevNote); }
+    renderPlan({ id, act: 'doing' });
+    renderLearn();
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('#planBody [data-act], #planNote [data-act]');
+    if (!b || b.disabled) return;
+    const id = b.dataset.move;
+    const p = currentPlan();
+    const all = p ? [].concat(p.open, p.done, p.dismissed) : [];
+    const found = all.find(x => x.id === id);
+    const def = window.FirePathMoves && window.FirePathMoves.MOVES.find(x => x.id === id);
+    const title = (found && found.title) || (def && def.title) || 'That option';
+    if (b.dataset.act === 'undo') undoMove(id, title);
+    else changeMove(id, b.dataset.act, title);
+  });
+
+  const LEARN_ICON = '<path d="M12 6.5c-1.8-1.3-4.2-1.8-6.5-1.5v13c2.3-.3 4.7.2 6.5 1.5"/><path d="M12 6.5c1.8-1.3 4.2-1.8 6.5-1.5v13c-2.3-.3-4.7.2-6.5 1.5"/><path d="M12 6.5v13.5"/>';
 
   // ── Learn — three reads matched to the knowledge level ──
   const READS = {
@@ -851,13 +1038,15 @@
     return !a || window.FirePathMoves.articleFits(a.for, s);
   }
   // The persona's three reads, minus any that don't fit this person. A dropped read
-  // is replaced by the article of the option with the biggest modelled effect (when that fits and isn't already listed).
+  // is replaced by the article of the person's lead open option in Your plan (one they're
+  // on, else the top-ranked one), so it never points at a done or "not for me" option.
   function readsFor(m) {
     const s = m && m.situation;
     let list = READS[Persona.get()].filter(([href]) => fitsPerson(slugOf(href), s));
     if (list.length < 3 && s && window.FirePathMoves) {
-      const top = window.FirePathMoves.rank(s).moves.find(x => x.article);
-      const slug = top && top.article;
+      const p = statusesLoaded ? currentPlan() : null;
+      const lead = p ? [leadOption(p)].concat(p.open).find(x => x && x.article) : null;
+      const slug = lead && lead.article;
       if (slug && fitsPerson(slug, s) && !list.some(([href]) => slugOf(href) === slug)) {
         const a = ARTICLES && ARTICLES.find(x => x.slug === slug);
         if (a) list.push([`learn/${slug}.html`, a.heading]);
@@ -869,7 +1058,7 @@
     if (ARTICLES === null) return;   // wait for the tags so an unsuitable read never flashes up
     $('learnList').innerHTML = readsFor(model).map(([href, title]) => `
       <a class="read" href="${href}">
-        <span class="read-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MOVE_ICONS.learn}</svg></span>
+        <span class="read-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LEARN_ICON}</svg></span>
         <span class="read-title">${escapeHtml(title)}</span>
         <span class="arrow" aria-hidden="true">→</span>
       </a>`).join('');
@@ -958,7 +1147,7 @@
     renderProjection(model);
     renderKpis(model, prevSnapshot);
     renderLevers(model);
-    renderNextMove(model.p);
+    renderPlan();
     renderLearn();
   }
 
@@ -988,7 +1177,13 @@
       renderAll();
       fetch('/learn/articles.json').then(r => r.ok ? r.json() : false).catch(() => false).then(list => {
         ARTICLES = Array.isArray(list) ? list : false;
-        renderNextMove(model.p);
+        renderLearn();
+      });
+      // The person's status on each option (On it / Done / Not for me). {} if it can't load.
+      (window.FirePathMoveStatus ? window.FirePathMoveStatus.load() : Promise.resolve({})).catch(() => ({})).then(st => {
+        moveStatuses = st || {};
+        statusesLoaded = true;
+        renderPlan();
         renderLearn();
       });
 
@@ -1067,6 +1262,35 @@
           }
         }
       } catch (e) { console.log('Freedom Unlocked calculation failed', e); }
+
+      // "Since {Month YYYY}" in Your plan: the oldest check-in that kept age and super
+      // (from October 2026), on the same plan both times. Older savings-only check-ins
+      // are skipped for this line. Moved closer = the date then, as a calendar month,
+      // less the date now.
+      try {
+        const base = `${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.asc`;
+        let fullRes = await FirePathAuth.fetch(`${base}&inputs->superBalance=not.is.null&limit=10`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!fullRes.ok) fullRes = await FirePathAuth.fetch(`${base}&limit=60`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (fullRes.ok && annualSpend > 0) {
+          const rows = await fullRes.json();
+          const today = new Date(); today.setHours(0, 0, 0, 0);
+          const first = (Array.isArray(rows) ? rows : []).find(r => r && r.inputs && r.inputs.superBalance != null && r.inputs.age > 0 && r.inputs.monthlySavings != null && new Date(r.created_at) < today);
+          if (first) {
+            const sp = snapshotPlans(model, first);
+            if (sp.full && sp.then.valid && sp.now.valid && sp.then.months != null && sp.now.months != null) {
+              const d0 = new Date(first.created_at), n = new Date();
+              const thenAt = d0.getFullYear() * 12 + d0.getMonth() + sp.then.months;
+              const nowAt = n.getFullYear() * 12 + n.getMonth() + sp.now.months;
+              sinceInfo = {
+                label: d0.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' }),
+                monthsCloser: Math.round(thenAt - nowAt),
+                oldYear: sp.then.freedomYear, newYear: sp.now.freedomYear
+              };
+              renderPlan();
+            }
+          }
+        }
+      } catch (e) { console.log('Plan since-line calculation failed', e); }
 
       // Snapshot for next time — throttled to once a day.
       try {

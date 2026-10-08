@@ -27,36 +27,66 @@
 <script src="js/financial-engine.js"></script>
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
+<script src="js/moves-status.js"></script>
 <style>
   .strategy-wrap { max-width: 1000px; }
   .strategy-wrap > .fp-why, .strategy-wrap > .fp-tldr { margin: -12px 0 24px; }
   .strategy-section { margin-bottom: 32px; }
   .strategy-section > .fp-consider { margin: 0 0 16px; }
 
-  /* ── Your Levers — personalised, computed against this person's actual numbers
-       via FirePathEngine.freedomPlan, the same calculation as every headline. ── */
-  .levers-card { padding-bottom: 8px; opacity: 0; transform: translateY(6px); transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease); }
-  .levers-card.in-view { opacity: 1; transform: none; }
-  @media (min-width: 768px) { .levers-card { padding-bottom: 8px; } }
-  .levers-question { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 4px; }
-  .levers-caption { font-size: 13.5px; color: var(--ink-2); margin-bottom: 12px; }
-  .lever-row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
-  .lever-row:last-of-type { border-bottom: none; }
-  .lever-icon { width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0; display: grid; place-items: center; }
-  .lever-icon.invest { background: rgba(62,142,90,0.12); color: var(--green); }
-  .lever-icon.cut { background: rgba(124,92,168,0.12); color: var(--purple); }
-  .lever-icon.increase { background: var(--ember-wash); color: var(--ember-ink); }
-  .lever-label { flex: 1; min-width: 0; font-size: 14.5px; color: var(--ink); font-weight: 500; }
-  .lever-value { font-size: 13px; font-weight: 600; line-height: 1.3; text-align: right; white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; }
-  .lever-value.invest { color: var(--green); }
-  .lever-value.cut { color: var(--purple); }
-  .lever-value.increase { color: var(--ember-ink); }
-  .lever-arrow { color: var(--ink-3); flex-shrink: 0; }
-  .levers-skeleton { color: var(--ink-2); font-size: 13.5px; padding: 4px 0 16px; }
-  .levers-cta { display: block; text-align: right; padding: 14px 0 12px; border-top: 1px solid var(--line); font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
-  .levers-cta:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .lever-row.move { align-items: flex-start; text-decoration: none; }
-  .lever-row.move .lever-label small { display: block; font-size: 12.5px; font-weight: 400; color: var(--ink-2); line-height: 1.5; margin-top: 2px; }
+  /* ── All your options — FirePathMoves.plan() with the person's saved statuses
+       (js/moves-status.js), worked out with the same freedomPlan as every headline. ── */
+  .plan-card { padding-bottom: 12px; }
+  .plan-question { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 4px; }
+  .plan-caption { font-size: 13.5px; color: var(--ink-2); margin-bottom: 10px; line-height: 1.55; }
+  .vh { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .plan-progress { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--ink-2); margin-bottom: 4px; }
+  .plan-progress strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .plan-bar { flex: 1; max-width: 240px; height: 6px; border-radius: 99px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
+  .plan-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--ember), var(--amber)); transition: width var(--dur-slow) var(--ease); }
+  .plan-note { font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+  .plan-note:not(:empty) { margin-top: 12px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--surface-2); border: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+  .plan-note a { color: var(--ember-ink); font-weight: 500; text-decoration: none; }
+  .plan-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .plan-group { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .plan-group > summary { cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); padding: 6px 0; border-radius: 6px; list-style: none; }
+  .plan-group > summary::-webkit-details-marker { display: none; }
+  .plan-group > summary::before { content: '▸'; font-size: 11px; color: var(--ink-3); transition: transform var(--dur-fast) ease; }
+  .plan-group[open] > summary::before { transform: rotate(90deg); }
+  .plan-group > summary:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .plan-list { list-style: none; margin: 0; padding: 0; }
+  .opt { display: flex; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .opt:first-child { border-top: none; }
+  .opt-icon { width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0; display: grid; place-items: center; background: var(--ember-wash); color: var(--ember-ink); }
+  .opt-icon.done { background: var(--positive-wash); color: var(--positive); }
+  .opt-icon.off { background: var(--surface-2); color: var(--ink-3); }
+  .opt-body { flex: 1; min-width: 0; }
+  .opt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .opt-title { font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--ink); }
+  .opt-head .chip { flex-shrink: 0; height: 24px; font-size: 12px; }
+  .opt-impact { margin-top: 3px; font-size: 13px; font-weight: 600; color: var(--ember-ink); line-height: 1.45; }
+  .opt-why { margin-top: 4px; font-size: 13.5px; line-height: 1.6; color: var(--ink-2); }
+  .opt-sub { margin-top: 2px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+  .opt-links { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; }
+  .opt-links a { color: var(--ember-ink); font-weight: 500; text-decoration: none; }
+  .opt-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .opt-actions { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .opt-btn {
+    min-height: 34px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface);
+    font: 500 13px/1 var(--font-ui); color: var(--ink); cursor: pointer; transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
+  }
+  .opt-btn:hover { background: var(--surface-2); border-color: var(--ink-3); }
+  .opt-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .opt-btn:disabled { opacity: 0.55; cursor: default; }
+  .opt-btn.quiet { border-color: transparent; background: none; color: var(--ink-2); padding: 0 8px; }
+  .opt-btn.quiet:hover { color: var(--ink); background: var(--surface-2); }
+  .opt-tag { display: inline-flex; align-items: center; gap: 5px; min-height: 26px; padding: 0 10px; border-radius: 999px; background: var(--ember-wash); color: var(--ember-ink); font-size: 12.5px; font-weight: 600; }
+  .opt-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ember); }
+  .plan-empty { font-size: 14px; line-height: 1.6; color: var(--ink-2); padding: 6px 0 8px; }
+  .plan-empty a { color: var(--ember-ink); font-weight: 500; }
+  .plan-advice { font-size: 12px; color: var(--ink-2); line-height: 1.5; margin: 14px 0 4px; }
+  .plan-cta { display: block; text-align: right; padding: 12px 0 0; margin-top: 8px; border-top: 1px solid var(--line); font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
+  .plan-cta:hover { text-decoration: underline; text-underline-offset: 3px; }
   .more-ideas { display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
   .more-ideas:hover { text-decoration: underline; text-underline-offset: 3px; }
 
@@ -96,21 +126,22 @@
   <div class="fp-why" data-persona-show="beginner">The date you could stop needing to work isn't fixed. Saving a little more, paying less tax, or changing one big decision can bring it closer — these tools show by how much, before you commit to anything.</div>
   <div class="fp-tldr" data-persona-show="fire">Biggest movers are usually savings rate, CC headroom and your SWR assumption. The Withdrawal planner stress-tests the SWR behind the FI date.</div>
 
-  <section class="strategy-section">
-    <div class="card levers-card" id="leversCard">
+  <section class="strategy-section" aria-labelledby="planHead">
+    <div class="card plan-card rise" style="--i:1" id="planCard">
       <div class="section-head">
-        <h2 class="section-label">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
-          Options worth knowing about
+        <h2 class="section-label" id="planHead" tabindex="-1">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          All your options
         </h2>
+        <a href="journey.html" class="section-link">Your Path →</a>
       </div>
-      <div class="levers-question">What could move your freedom date?</div>
-      <div class="levers-caption">Based on the numbers you entered.</div>
-      <div id="leversList">
-        <div class="levers-skeleton">Running your numbers…</div>
-      </div>
-      <p class="levers-advice" style="font-size:12px;color:var(--ink-2);line-height:1.5;margin:8px 0 12px;">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
-      <a href="hearmeout.html" class="levers-cta">Explore scenarios →</a>
+      <div class="plan-question">What could move your freedom date?</div>
+      <div class="plan-caption" id="planCaption">Based on the numbers you entered, ordered by how much each could move your date. Mark each one as you go.</div>
+      <div id="planTop"></div>
+      <div class="plan-note" id="planNote" role="status" aria-live="polite" tabindex="-1"></div>
+      <div id="planBody"><div class="skeleton" style="height:22px;width:60%;margin-top:8px"></div><div class="skeleton" style="height:14px;width:90%;margin-top:14px"></div><div class="skeleton" style="height:64px;margin-top:20px;border-radius:14px"></div></div>
+      <p class="plan-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
+      <a href="hearmeout.html" class="plan-cta">Try your own what-ifs →</a>
     </div>
   </section>
 
@@ -188,10 +219,170 @@
       cards.forEach(el => observer.observe(el));
     }
 
-    // ── Your Levers — the same FirePathEngine.freedomPlan every headline uses (super
-    // from 60, savings bridging until then), run against a few named changes. Isolated in its own try/catch so a failure
-    // here never blocks the three tool cards above, which don't depend on it.
-    const leversCard = document.getElementById('leversCard');
+    // ── All your options — FirePathMoves.plan() (the same freedomPlan as every
+    // headline) with the person's saved statuses. Isolated in its own try/catch so a
+    // failure here never blocks the tool cards below, which don't depend on it.
+    const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const $ = id => document.getElementById(id);
+    const planCard = $('planCard');
+    const MS = window.FirePathMoveStatus;
+    let situation = null, statuses = {}, profile = null, outOfReach = false, alreadyFree = false;
+    const pending = new Set();
+    let note = null, noteTimer = null;
+
+    const ICONS = {
+      open: '<path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>',
+      done: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+      off: '<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>'
+    };
+    const icon = kind => `<span class="opt-icon ${kind === 'open' ? '' : kind}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[kind]}</svg></span>`;
+    const monthYear = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }); };
+
+    function currentPlan() {
+      if (!situation || !window.FirePathMoves) return null;
+      try { return window.FirePathMoves.plan(situation, statuses); } catch (e) { console.log('Plan failed', e); return null; }
+    }
+    function impactParts(o) {
+      const imp = o.impact || {};
+      const line = imp.text ? `<p class="opt-impact">${esc(imp.text)}</p>` : '';
+      if (!(imp.years > 0)) return { chip: '', line };
+      const short = imp.years >= 1 ? `−${(Math.round(imp.years * 10) / 10).toFixed(1)} yrs` : `−${Math.max(1, Math.round(imp.years * 12))} mths`;
+      return { chip: `<span class="chip chip-positive" title="${esc(imp.text || '')}" aria-hidden="true">${short}</span>`, line };
+    }
+    function openHtml(o) {
+      const t = esc(o.title), id = esc(o.id);
+      const dis = pending.has(o.id) ? ' disabled' : '';
+      const btn = (act, label, aria) => `<button type="button" class="opt-btn" data-move="${id}" data-act="${act}" aria-label="${aria}"${dis}>${label}</button>`;
+      const imp = impactParts(o);
+      const links = [];
+      if (o.tool && o.tool.href) links.push(`<a href="${esc(o.tool.href)}">${esc(o.tool.label || 'Model it')} →</a>`);
+      if (o.article) links.push(`<a href="/learn/${esc(o.article)}">Read about it<span class="vh">: ${t}</span></a>`);
+      return `<li class="opt">${icon('open')}
+          <div class="opt-body">
+            <div class="opt-head"><h3 class="opt-title">${t}</h3>${imp.chip}</div>
+            ${imp.line}
+            <p class="opt-why">${esc(o.why)}</p>
+            ${links.length ? `<div class="opt-links">${links.join('')}</div>` : ''}
+            <div class="opt-actions" role="group" aria-label="Where you are with ${t}">
+              ${o.status === 'doing' ? '<span class="opt-tag">On it</span>' : btn('doing', 'On it', `Mark ${t} as on it`)}
+              ${btn('done', 'Done', `Mark ${t} as done`)}
+              ${btn('dismissed', 'Not for me', `Mark ${t} as not for me`)}
+            </div>
+          </div>
+        </li>`;
+    }
+    function doneHtml(d) {
+      const t = esc(d.title);
+      const sub = d.auto ? `Your numbers show this. ${esc(d.reason || '')}` : d.done_at ? `Marked done ${monthYear(d.done_at)}` : 'Marked done';
+      // A marked one can go back to On it (a mis-tap, or it turned out not to be finished).
+      const back = d.auto ? '' : `<div class="opt-actions"><button type="button" class="opt-btn quiet" data-move="${esc(d.id)}" data-act="back" aria-label="Move ${t} back to On it"${pending.has(d.id) ? ' disabled' : ''}>Not done yet</button></div>`;
+      return `<li class="opt">${icon('done')}<div class="opt-body"><h3 class="opt-title">${t}</h3><p class="opt-sub">${sub}</p>${back}</div></li>`;
+    }
+    function dismissedHtml(d) {
+      const t = esc(d.title);
+      return `<li class="opt">${icon('off')}<div class="opt-body"><h3 class="opt-title">${t}</h3><div class="opt-actions"><button type="button" class="opt-btn" data-move="${esc(d.id)}" data-act="back" aria-label="Bring back ${t}"${pending.has(d.id) ? ' disabled' : ''}>Bring it back</button></div></div></li>`;
+    }
+
+    function renderNote() {
+      const el = $('planNote');
+      if (!note) { el.innerHTML = ''; return; }
+      const t = esc(note.title), id = esc(note.id);
+      el.innerHTML = note.kind === 'done'
+        ? `<span>Nice. <a href="firepath_pro.html?edit=true">Update your numbers so your date reflects it →</a></span><button type="button" class="opt-btn quiet" data-move="${id}" data-act="undo" aria-label="Undo marking ${t} as done">Undo</button>`
+        : note.kind === 'dismissed'
+          ? `<span>Hidden: ${t}.</span><button type="button" class="opt-btn quiet" data-move="${id}" data-act="undo" aria-label="Undo hiding ${t}">Undo</button>`
+          : note.kind === 'doing' ? `<span>${t} is marked On it.</span>`
+          : note.kind === 'back' ? `<span>${t} is back in your plan, marked On it.</span>`
+          : '<span>Undone.</span>';
+    }
+    function setNote(n, ms) {
+      clearTimeout(noteTimer);
+      note = n;
+      renderNote();
+      if (n && ms) noteTimer = setTimeout(() => {
+      if (note !== n) return;
+      const hadFocus = $('planNote').contains(document.activeElement);
+      note = null; renderNote();
+      if (hadFocus) $('planHead').focus();   // don't drop keyboard focus to the page when Undo goes away
+    }, ms);
+    }
+
+    function render(focus) {
+      const p = currentPlan();
+      const body = $('planBody');
+      // Salary sacrifice tip only when it's an open option for this person.
+      $('sacrificeConsider').style.display = p && p.open.some(m => m.id === 'salary-sacrifice') ? '' : 'none';
+      if (!p) { body.innerHTML = '<p class="plan-empty">Your options couldn’t load just now. Try refreshing the page.</p>'; return; }
+      const { done, total } = p.progress;
+      $('planTop').innerHTML = total ? `<div class="plan-progress"><span><strong>${done} of ${total}</strong> done</span><span class="plan-bar" aria-hidden="true"><i style="width:${Math.round(done / total * 100)}%"></i></span></div>` : '';
+      const wasOpen = {};
+      body.querySelectorAll('details[data-group]').forEach(d => { wasOpen[d.dataset.group] = d.open; });
+      const isOpen = (key, dflt) => (key in wasOpen ? wasOpen[key] : dflt) ? ' open' : '';
+      const doing = p.open.filter(o => o.status === 'doing');
+      const rest = p.open.filter(o => o.status !== 'doing');
+      let html = '';
+      if (!p.open.length) {
+        html += p.done.length
+          ? '<p class="plan-empty">You’ve worked through every option we can see for your numbers.</p>'
+          : alreadyFree
+            ? '<p class="plan-empty">There’s nothing to work through for your numbers right now. Since you’ve reached your number, the <a href="withdrawal.html">Withdrawal planner</a> shows whether your money will last.</p>'
+            : '<p class="plan-empty">We can’t see any options for your numbers yet. Filling in a bit more in <a href="firepath_pro.html?edit=true">your plan’s inputs</a> helps us find them.</p>';
+      }
+      if (doing.length) html += `<details class="plan-group" data-group="doing"${isOpen('doing', true)}><summary>On it (${doing.length})</summary><ol class="plan-list">${doing.map(openHtml).join('')}</ol></details>`;
+      if (rest.length) html += `<details class="plan-group" data-group="open"${isOpen('open', true)}><summary>Open (${rest.length})</summary><ol class="plan-list">${rest.map(openHtml).join('')}</ol></details>`;
+      if (p.done.length) html += `<details class="plan-group" data-group="done"${isOpen('done', true)}><summary>Done (${p.done.length})</summary><ul class="plan-list">${p.done.map(doneHtml).join('')}</ul></details>`;
+      if (p.dismissed.length) html += `<details class="plan-group" data-group="dismissed"${isOpen('dismissed', false)}><summary>Not for me (${p.dismissed.length})</summary><ul class="plan-list">${p.dismissed.map(dismissedHtml).join('')}</ul></details>`;
+      body.innerHTML = html;
+      if (focus) {
+        const same = body.querySelector(`[data-move="${focus.id}"][data-act="${focus.act}"]`);
+        const sibling = body.querySelector(`[data-move="${focus.id}"]:not(:disabled)`);   // e.g. "Done" once "On it" became a tag
+        const noteAction = $('planNote').querySelector('button, a');
+        (same && !same.disabled ? same : sibling || noteAction || $('planHead')).focus();
+      }
+    }
+
+    const NOTE_KIND = { done: 'done', dismissed: 'dismissed', doing: 'doing', back: 'back' };
+    async function change(id, act, title) {
+      if (!MS || pending.has(id)) return;
+      const status = act === 'back' ? 'doing' : act;
+      const before = statuses, prevNote = note, now = new Date().toISOString();
+      // Optimistic, rolled back if the save fails (set() shows the "couldn't save" note).
+      statuses = Object.assign({}, statuses, { [id]: { status, done_at: status === 'done' ? now : null, updated_at: now } });
+      pending.add(id);
+      setNote({ kind: NOTE_KIND[act], id, title, prev: before[id] || null }, act === 'dismissed' ? 6000 : act === 'done' ? 0 : 4000);
+      render({ id, act });
+      const r = await MS.set(id, status);
+      pending.delete(id);
+      if (r && r.ok) statuses = await MS.load();
+      else { statuses = before; setNote(prevNote && prevNote.id !== id ? prevNote : null); }
+      render({ id, act });
+    }
+    async function undo(id, title) {
+      if (!MS || pending.has(id)) return;
+      const before = statuses, prevNote = note;
+      const back = prevNote && prevNote.id === id && 'prev' in prevNote ? prevNote.prev : { status: 'doing', done_at: null, updated_at: new Date().toISOString() };
+      statuses = Object.assign({}, statuses);
+      if (back) statuses[id] = back; else delete statuses[id];
+      pending.add(id);
+      setNote({ kind: 'undone', id, title }, 3000);
+      render();
+      const r = await MS.undo(id);
+      pending.delete(id);
+      if (r && r.ok) statuses = await MS.load();
+      else { statuses = before; setNote(prevNote); }
+      render({ id, act: 'doing' });
+    }
+    planCard.addEventListener('click', e => {
+      const b = e.target.closest('[data-act]');
+      if (!b || b.disabled) return;
+      const id = b.dataset.move;
+      const p = currentPlan();
+      const found = p ? [].concat(p.open, p.done, p.dismissed).find(x => x.id === id) : null;
+      const def = window.FirePathMoves && window.FirePathMoves.MOVES.find(x => x.id === id);
+      const title = (found && found.title) || (def && def.title) || 'That option';
+      if (b.dataset.act === 'undo') undo(id, title); else change(id, b.dataset.act, title);
+    });
+
     try {
       const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.status === 401 || res.status === 403) {
@@ -199,124 +390,27 @@
         window.location.href = 'auth.html?expired=1';
         return;
       }
-      if (!res.ok) { leversCard.style.display = 'none'; return; }
-
+      if (!res.ok) { planCard.style.display = 'none'; return; }
       const data = await res.json();
-      const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
-      if (!p || !window.FirePathEngine) { leversCard.style.display = 'none'; return; }
-
-      const savings = p.current_savings || 0;
-      const monthlySavings = p.savings_monthly || 0;
-      const freedomNumber = p.freedom_number || 0;
-      const annualSpend = freedomNumber > 0 ? freedomNumber / 25 : 0;
-      // The shared moves engine: what genuinely applies to this person.
-      let ranked = null;
-      if (window.FirePathMoves) {
-        try { ranked = window.FirePathMoves.rank(window.FirePathMoves.situationFromProfile(p), { limit: 3 }); } catch (e) { ranked = null; }
-      }
-      // Salary sacrifice tip only when it actually pays for this person.
-      if (ranked && ranked.all.some(m => m.id === 'salary-sacrifice')) document.getElementById('sacrificeConsider').style.display = '';
-      if (annualSpend <= 0) { leversCard.style.display = 'none'; return; }
-
-      // freedomPlan with one thing changed: extra saved each month, or a yearly spending
-      // cut (which also lowers the freedom number, 25× spending). null = out of reach.
-      const planBase = window.FirePathEngine.planInputsFromProfile(p);
-      const planMonths = (extraMonthly, spendCutYear) => {
-        const i = Object.assign({}, planBase, { monthlySavings: (planBase.monthlySavings || 0) + (extraMonthly || 0) });
-        if (spendCutYear) i.target = Math.max(0, (planBase.target || 0) - spendCutYear * 25);
-        const r = window.FirePathEngine.freedomPlan(i);
-        return r.valid && r.reachable ? r.months : null;
-      };
-      const baseMonths = planMonths(0, 0);
-      if (baseMonths == null) {
-        // Out of reach at today's pace: the standard levers can't show "years sooner",
-        // so show the options that do apply (ordered by modelled effect) — they handle "out of reach" themselves.
-        if (!ranked || !ranked.moves.length) { leversCard.style.display = 'none'; return; }
-        const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-        document.querySelector('#leversCard .levers-question').textContent = 'What could move your date';
-        document.querySelector('#leversCard .levers-caption').textContent = 'Ordered by how much each could move your date, based on the numbers you entered.';
-        document.getElementById('leversList').innerHTML = ranked.moves.map(m => {
-          const href = m.tool ? m.tool.href : m.article ? '/learn/' + m.article : null;
-          const inner = `
-              <span class="lever-icon increase">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>
-              </span>
-              <span class="lever-label">${esc(m.title)}<small>${esc(m.why)}</small></span>
-              ${m.impact && m.impact.text ? `<span class="lever-value increase" style="white-space:normal;max-width:9em">${esc(m.impact.text)}</span>` : ''}
-              ${href ? '<span class="lever-arrow">→</span>' : ''}`;
-          return href ? `<a class="lever-row move" href="${href}">${inner}</a>` : `<div class="lever-row move">${inner}</div>`;
-        }).join('');
-        if (prefersReducedMotion) { leversCard.classList.add('in-view'); }
-        else { requestAnimationFrame(() => leversCard.classList.add('in-view')); }
+      profile = (Array.isArray(data) && data.length > 0) ? data[0] : null;
+      if (!profile || !window.FirePathEngine || !window.FirePathMoves) { planCard.style.display = 'none'; return; }
+      if (!(profile.freedom_number > 0)) {
+        $('planBody').innerHTML = '<p class="plan-empty">Add your numbers in <a href="firepath_pro.html?edit=true">your plan’s inputs</a> to see your options.</p>';
         return;
       }
-      const baseYears = baseMonths / 12;
-
-      // Each lever changes exactly one named thing, holding everything else at
-      // today's values — "if you did only this, and nothing else" rather than a
-      // blended what-if, so each row is a genuinely isolated, explainable comparison.
-      const candidates = [
-        {
-          label: 'Investing an extra $200 a month',
-          type: 'invest',
-          months: planMonths(200, 0)
-        },
-        {
-          label: 'Spending $300 a month less',
-          type: 'cut',
-          months: planMonths(300, 3600)
-        }
-      ];
-      // Only shown if take_home_income is on file — without it, "5% of income"
-      // isn't a real number, just a guess, and this page doesn't show guesses.
-      // take_home_income is stored as a monthly figure, so 5% of it is already monthly.
-      if (p.take_home_income) {
-        const extraMonthly = p.take_home_income * 0.05;
-        candidates.push({
-          label: 'Saving an extra 5% of your take-home pay',
-          type: 'increase',
-          months: planMonths(extraMonthly, 0)
-        });
-      }
-
-      // One icon+colour per lever type — a quiet visual shorthand (green = grow,
-      // red = trim, orange = the page's own accent) so the three rows read as
-      // distinct levers at a glance, not one undifferentiated list.
-      const LEVER_ICONS = {
-        invest: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/>',
-        cut: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.12 15.88M14.47 14.48L20 20M8.12 8.12L12 12"/>',
-        increase: '<path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>',
-      };
-
-      const rows = candidates
-        .map(c => {
-          if (c.months == null) return null;
-          const gainYears = Math.round((baseYears - c.months / 12) * 10) / 10;
-          if (gainYears < 0.1) return null;
-          return `
-            <div class="lever-row">
-              <span class="lever-icon ${c.type}">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${LEVER_ICONS[c.type]}</svg>
-              </span>
-              <span class="lever-label">${c.label}</span>
-              <span class="lever-value ${c.type}">${gainYears} yr${gainYears === 1 ? '' : 's'}<br>sooner</span>
-              <span class="lever-arrow">→</span>
-            </div>`;
-        })
-        .filter(Boolean);
-
-      const leversList = document.getElementById('leversList');
-      if (rows.length === 0) {
-        leversList.innerHTML = `<div class="levers-skeleton">You're already moving fast enough that these standard changes don't add much. The tools below go deeper.</div>`;
-      } else {
-        leversList.innerHTML = rows.join('');
-      }
-
-      if (prefersReducedMotion) { leversCard.classList.add('in-view'); }
-      else { requestAnimationFrame(() => leversCard.classList.add('in-view')); }
+      situation = window.FirePathMoves.situationFromProfile(profile);
+      // Out of reach at today's pace, or already free: say so, so "years sooner" isn't
+      // read as a promise. Options handle "out of reach" in their own impact text.
+      const base = window.FirePathEngine.freedomPlan(window.FirePathEngine.planInputsFromProfile(profile));
+      alreadyFree = !!(situation.alreadyFree || (base && base.alreadyFree));
+      outOfReach = !alreadyFree && !(base && base.valid && base.reachable);
+      if (alreadyFree) $('planCaption').textContent = 'You’ve reached your number. What’s left is mostly about making your money last.';
+      else if (outOfReach) $('planCaption').textContent = 'At today’s pace your savings don’t reach your number within 100 years. These options show what could change that, based on the numbers you entered.';
+      statuses = MS ? await MS.load() : {};
+      render();
     } catch (e) {
-      console.log('Levers calculation failed', e);
-      leversCard.style.display = 'none';
+      console.log('Options failed to load', e);
+      $('planBody').innerHTML = '<p class="plan-empty">Your options couldn’t load just now. Try refreshing the page.</p>';
     }
   });
 </script>

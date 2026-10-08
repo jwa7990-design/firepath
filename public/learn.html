@@ -27,6 +27,7 @@
 <script src="js/financial-engine.js"></script>
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
+<script src="js/moves-status.js"></script>
 <style>
   :root {
     /* Page motion names, mapped onto app.css tokens. */
@@ -142,6 +143,12 @@
     transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
   }
   .rec-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
+  /* "Because you're looking at: …" — why a pick is here, when it comes from an option in Your plan. */
+  .rec-primary-because { display: block; font-size: 12.5px; line-height: 1.45; color: rgba(253,246,238,0.78); margin-bottom: 6px; }
+  .rec-card-because { font-size: 12px; line-height: 1.4; color: var(--ink-2); }
+  .rec-card-because b, .rec-primary-because b { font-weight: 600; }
+  .rec-card-because b { color: var(--ember-ink); }
+  .rec-primary-because b { color: var(--amber); }
   .rec-card-tag {
     align-self: flex-start; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
     color: var(--ember-ink); background: var(--ember-wash); padding: 3px 8px; border-radius: 999px;
@@ -296,7 +303,7 @@
         <div class="section-head">
           <h2 class="section-label" id="recHead">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3 6.5 7 .9-5.1 4.8 1.3 7L12 17.8 5.8 21.2l1.3-7L2 9.4l7-.9L12 2z"/></svg>
-            Recommended for you
+            Next for you
           </h2>
           <a href="#pathSection" class="section-link">View all</a>
         </div>
@@ -438,6 +445,7 @@
   const LESSON_SLUG = { 'what-is-fire': 'what-is-fire-australia', 'compounding': 'how-compound-interest-works', 'saving-vs-investing': 'difference-saving-investing', 'two-phase': 'two-phase-freedom-timeline', 'acronyms': 'fire-glossary-australia', 'franking-credits': 'franking-credits-australia', 'four-percent': 'four-percent-rule-australia' };
   // Hide lessons that don't fit this person (e.g. the spouse offset for a single person,
   // Division 293 for a modest income). Unknown facts never hide anything.
+  let LEARN_ARTICLES = null, LEARN_SITUATION = null;   // kept for "Next for you"
   async function personaliseStages(token, userId) {
     if (!window.FirePathMoves) return;
     try {
@@ -450,6 +458,8 @@
       const p = Array.isArray(rows) && rows.length ? rows[0] : null;
       if (!p || !Array.isArray(articles)) return;
       const s = window.FirePathMoves.situationFromProfile(p);
+      LEARN_ARTICLES = articles;
+      LEARN_SITUATION = s;
       const tagsFor = id => { const a = articles.find(x => x.slug === (LESSON_SLUG[id] || id)); return a ? a.for : null; };
       STAGES.forEach(stage => { stage.lessons = stage.lessons.filter(l => window.FirePathMoves.articleFits(tagsFor(l.id), s)); });
       TOTAL_LESSONS = STAGES.reduce((n, st) => n + st.lessons.length, 0);
@@ -474,6 +484,8 @@
     if (avatarEl) avatarEl.textContent = initial;
 
     const personalised = personaliseStages(token, userId);   // runs alongside the progress fetch
+    // Where the person stands on each option in Your plan (On it / Done / Not for me).
+    const statusesLoad = window.FirePathMoveStatus ? window.FirePathMoveStatus.load().catch(() => ({})) : Promise.resolve({});
 
     let readIds = new Set();
     let readDates = [];
@@ -495,6 +507,40 @@
       }
     } catch (e) { console.log('Learning progress fetch failed', e); }
     await personalised;
+    let optionPlan = null;
+    if (LEARN_SITUATION && window.FirePathMoves && typeof window.FirePathMoves.plan === 'function') {
+      try { optionPlan = window.FirePathMoves.plan(LEARN_SITUATION, await statusesLoad); } catch (e) { optionPlan = null; }
+    }
+    // Lesson ids by article slug (the reverse of LESSON_SLUG; most ids are the slug already).
+    const LESSON_FOR_SLUG = {};
+    Object.keys(LESSON_SLUG).forEach(id => { LESSON_FOR_SLUG[LESSON_SLUG[id]] = id; });
+    const escHtml = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    // Up to three unread reads tied to the person's open options: ones they're "On it"
+    // first, then in the plan's order. A lesson in the path opens in the Learning Lab;
+    // otherwise the Learn article. Already-read ones (lab_progress) are skipped.
+    function optionReads() {
+      if (!optionPlan) return [];
+      const open = optionPlan.open.filter(o => o.status === 'doing').concat(optionPlan.open.filter(o => o.status !== 'doing'));
+      const out = [], seen = new Set();
+      for (const o of open) {
+        if (out.length >= 3) break;
+        const slug = o.article;
+        if (!slug || seen.has(slug)) continue;
+        seen.add(slug);
+        const lessonId = LESSON_FOR_SLUG[slug] || slug;
+        if (readIds.has(lessonId) || readIds.has(slug)) continue;
+        let stage = null, lesson = null;
+        for (const st of STAGES) { const l = st.lessons.find(x => x.id === lessonId); if (l) { stage = st; lesson = l; break; } }
+        if (lesson) {
+          out.push({ id: lesson.id, href: lessonUrl(stage.key, lesson.id, lesson.title), title: lesson.title, sub: lesson.sub, mins: EST_MINUTES, because: o.title });
+          continue;
+        }
+        const art = Array.isArray(LEARN_ARTICLES) ? LEARN_ARTICLES.find(a => a.slug === slug) : null;
+        if (!art || (LEARN_SITUATION && !window.FirePathMoves.articleFits(art.for, LEARN_SITUATION))) continue;
+        out.push({ id: slug, href: `/learn/${encodeURIComponent(slug)}`, title: escHtml(art.heading), sub: escHtml(art.description || ''), mins: art.readMins || EST_MINUTES, because: o.title });
+      }
+      return out;
+    }
 
     const LOCK_ICON = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
     // Draws itself the instant a lesson is marked complete (see completeLesson()
@@ -640,9 +686,11 @@
         taglineEl.textContent = 'You\'ve completed the whole path — nice work.';
       }
 
-      // ── Recommended for you — the next unread lesson as a dominant "NEXT UP" card,
-      // plus one honest pick from up to three other stages (labelled by real stage
-      // name, not a fabricated "popular" claim there's no data to back). ──
+      // ── Next for you — reads tied to the person's open options first ("Because
+      // you're looking at: …"), then the next unread lesson as before, plus one honest
+      // pick from other stages (labelled by real stage name, not a "popular" claim). ──
+      const picks = optionReads();
+      const taken = new Set(picks.map(p => p.id));
       const recPicks = [];
       if (nextLesson) recPicks.push({ tag: 'Next lesson', stage: nextStage, lesson: nextLesson });
       STAGES.forEach(s => {
@@ -651,26 +699,32 @@
         const pick = s.lessons.find(l => !readIds.has(l.id)) || s.lessons[0];
         if (pick) recPicks.push({ tag: s.name, stage: s, lesson: pick });
       });
+      recPicks.forEach(p => {
+        if (picks.length >= 4 || taken.has(p.lesson.id)) return;
+        taken.add(p.lesson.id);
+        picks.push({ id: p.lesson.id, href: lessonUrl(p.stage.key, p.lesson.id, p.lesson.title), title: p.lesson.title, sub: p.lesson.sub, mins: EST_MINUTES, tag: p.tag });
+      });
       const recPrimaryEl = document.getElementById('recPrimary');
       const recSecondaryEl = document.getElementById('recSecondaryRow');
-      if (recPicks.length) {
-        const first = recPicks[0];
+      const searchOf = p => escHtml(String(p.title + ' ' + p.sub).replace(/<[^>]*>/g, '').toLowerCase());
+      if (picks.length) {
+        const first = picks[0];
         recPrimaryEl.innerHTML = `
-          <a href="${lessonUrl(first.stage.key, first.lesson.id, first.lesson.title)}" class="rec-primary" data-search-text="${(first.lesson.title + ' ' + first.lesson.sub).toLowerCase()}">
-            <span class="rec-primary-tag">NEXT UP</span>
+          <a href="${first.href}" class="rec-primary" data-search-text="${searchOf(first)}">
             <span class="rec-primary-body">
-              <span class="rec-primary-title">${first.lesson.title}</span>
-              <span class="rec-primary-time">${first.lesson.sub} · ${EST_MINUTES} min</span>
+              ${first.because ? `<span class="rec-primary-because">Because you’re looking at: <b>${escHtml(first.because)}</b></span>` : '<span class="rec-primary-tag">NEXT UP</span>'}
+              <span class="rec-primary-title">${first.title}</span>
+              <span class="rec-primary-time">${first.sub ? first.sub + ' · ' : ''}${first.mins} min</span>
             </span>
-            <span class="rec-primary-arrow">→</span>
+            <span class="rec-primary-arrow" aria-hidden="true">→</span>
           </a>`;
-        recSecondaryEl.innerHTML = recPicks.slice(1, 4).map(p => `
-          <a href="${lessonUrl(p.stage.key, p.lesson.id, p.lesson.title)}" class="rec-card" data-search-text="${(p.lesson.title + ' ' + p.lesson.sub).toLowerCase()}">
-            <span class="rec-card-tag">${p.tag}</span>
-            <span class="rec-card-title">${p.lesson.title}</span>
+        recSecondaryEl.innerHTML = picks.slice(1, 4).map(p => `
+          <a href="${p.href}" class="rec-card" data-search-text="${searchOf(p)}">
+            ${p.because ? `<span class="rec-card-because">Because you’re looking at: <b>${escHtml(p.because)}</b></span>` : `<span class="rec-card-tag">${p.tag}</span>`}
+            <span class="rec-card-title">${p.title}</span>
             <span class="rec-card-bottom">
-              <span class="rec-card-time"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ${EST_MINUTES} min</span>
-              <span class="rec-card-arrow">→</span>
+              <span class="rec-card-time"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> ${p.mins} min</span>
+              <span class="rec-card-arrow" aria-hidden="true">→</span>
             </span>
           </a>`).join('');
       } else {

@@ -39,6 +39,10 @@
   <script src="js/persona.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/calculations.js"></script>
+  <script src="js/financial-engine.js"></script>
+  <script src="js/tax-engine.js"></script>
+  <script src="js/moves.js"></script>
+  <script src="js/moves-status.js"></script>
   <script src="js/interactions.js"></script>
   <style>
     .progress-wrap { max-width: 640px; }
@@ -691,7 +695,9 @@
         if (!result.ok && result.error !== 'signed_out') {
           checkinHistory = checkinHistory.filter(h => h !== entry);
           renderHistory();
+          return;
         }
+        if (result.ok) showOptionsOnTheGo();
       });
 
     const perFlameDays = hit ? perFlameDaysFor(commitmentData) : null;
@@ -703,6 +709,36 @@
     const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
     if (checkinCard) checkinCard.insertAdjacentElement('afterend', feedbackEl);
     setTimeout(() => feedbackEl.remove(), 4000);
+  }
+
+  // After a saved check-in: a short pointer back to Your plan when the person has
+  // options marked "On it". Nothing changes in the check-in itself.
+  async function showOptionsOnTheGo() {
+    if (!window.FirePathMoveStatus) return;
+    try {
+      const st = await FirePathMoveStatus.load();
+      // Count the way Your plan does: an "On it" option the numbers now show as done, or
+      // one that no longer applies, isn't on the go. Raw count if the plan can't be built.
+      let n = Object.keys(st).filter(id => st[id] && st[id].status === 'doing').length;
+      if (n && window.FirePathMoves && window.FirePathEngine) {
+        try {
+          const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${encodeURIComponent(fpUserId)}`);
+          const rows = res.ok ? await res.json() : null;
+          const prof = Array.isArray(rows) && rows.length ? rows[0] : null;
+          if (prof) n = FirePathMoves.plan(FirePathMoves.situationFromProfile(prof), st).open.filter(o => o.status === 'doing').length;
+        } catch (e) { /* keep the raw count */ }
+      }
+      const old = document.getElementById('optionsOnTheGo');
+      if (old) old.remove();
+      if (!n) return;
+      const el = document.createElement('p');
+      el.id = 'optionsOnTheGo';
+      el.setAttribute('role', 'status');
+      el.style.cssText = 'margin:0 0 12px;padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:13.5px;line-height:1.5;color:var(--ink);';
+      el.innerHTML = `You’ve got ${n} option${n === 1 ? '' : 's'} on the go. <a href="journey.html" style="color:var(--ember-ink);font-weight:500;text-decoration:none;">See your plan →</a>`;
+      const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
+      if (checkinCard) checkinCard.insertAdjacentElement('afterend', el);
+    } catch (e) { console.log('Option count failed', e); }
   }
 
   function showMilestone(diff, pct) {
