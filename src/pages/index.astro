@@ -1,22 +1,24 @@
 ---
 /**
- * Homepage. Promise → proof → why → learn → act. The example numbers all describe one
- * example saver ($185K saved, $3,200 a month, $1.5M goal) and are written as "in N years"
- * so they never date. Jay's letter comes word for word from src/data/letter.ts.
+ * Homepage. The freedom date and the path to it are the brand, so the page opens on a
+ * live calculator (src/components/FreedomPath.astro + public/js/home-path.js, using the
+ * shared engine), then five short sections, Jay's letter and the "Start where you are"
+ * doors. Jay's letter comes word for word from src/data/letter.ts.
  */
 import Base from '../layouts/Base.astro';
-import Icon from '../components/Icon.astro';
+import FreedomPath from '../components/FreedomPath.astro';
 import { LETTER, HOME_DESCRIPTION } from '../data/letter';
 import { ARTICLES, FIRST_READS, type Article } from '../lib/learn';
 import { STARTS } from '../data/starts';
-import '../styles/doc.css';
-import '../styles/home.css';
+import { PRO_PRICE, TRIAL_FINE_PRINT } from '../data/plans';
+import '../styles/home-path.css';
 
 const firstReads = FIRST_READS.map(s => ARTICLES.find(a => a.slug === s)).filter((a): a is Article => !!a);
-const STEPS = [
-  { n: 1, title: 'Your date', big: '15 yrs', text: 'until work could become optional. A real date to aim for.', tool: 'Free calculator', href: '/firepath' },
-  { n: 2, title: 'What moves it', big: '1 yr sooner', text: 'from saving an extra $500 a month. Every change, shown in years.', tool: 'Free calculator', href: '/firepath' },
-  { n: 3, title: 'Will it last?', big: '94%', text: 'of 2,000 possible market outcomes, the money lasts 30 years taking 4% a year.', tool: 'Withdrawal planner', href: '/withdrawal' },
+const TOOLS = [
+  { href: '/withdrawal', name: 'Withdrawal planner', line: 'See if your money will last, across 2,000 possible market outcomes.' },
+  { href: '/hearmeout', name: 'What if…?', line: 'Sell the house, a lump sum, redundancy, downsizing, rent vs invest.' },
+  { href: '/freedom-gap', name: 'Freedom gap', line: 'What part-time work and the Age Pension could add.' },
+  { href: '/compound', name: 'Compound interest', line: 'What regular saving grows into.' },
 ];
 ---
 <Base title="Money shouldn’t feel confusing | FirePath" description={HOME_DESCRIPTION} path="/">
@@ -24,134 +26,165 @@ const STEPS = [
     { '@context': 'https://schema.org', '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro/', logo: 'https://www.firepath.pro/icons/icon-512.png', email: 'hello@firepath.pro', areaServed: 'AU' },
     { '@context': 'https://schema.org', '@type': 'WebSite', name: 'FirePath', url: 'https://www.firepath.pro/', inLanguage: 'en-AU' },
   ])}></script>
-  <main id="main">
-    <header class="doc-hero home-hero">
-      <div class="doc-hero-inner home-hero-inner">
-        <div class="home-hero-copy">
-          <span class="doc-eyebrow">Built for everyday Australians</span>
-          <h1 class="doc-title home-title">Money shouldn’t feel <span class="accent">confusing.</span></h1>
-          <p class="doc-lead">FirePath explains tax, super and investing in plain English, for everyday Australians. First up, you’ll see when work could become optional.</p>
-          <div class="home-cta">
-            <a href="/firepath" class="btn btn-ember btn-lg"><Icon name="flame" size={16}/>Find my freedom date</a>
-            <p>Free. Takes 2 minutes. No account needed. · <a href="/pricing">See Pro</a></p>
-            <p>Just want your retirement age? <a href="/retirement-age-calculator">Try the quick estimate →</a></p>
-          </div>
-        </div>
+  <main id="main" class="hp">
 
-        <figure class="home-preview" aria-label="Example result">
-          <div class="home-preview-card">
-            <span class="home-preview-kicker">Work becomes optional in</span>
-            <p class="home-preview-big">15 years</p>
-            <p class="home-preview-range">Realistically <strong>10–21 years</strong>, as markets rise and fall</p>
-            <div class="home-preview-bar" aria-hidden="true"><span class="home-preview-fill"></span><span class="home-preview-mark"></span></div>
-            <ul class="home-preview-levers">
-              <li><span>Save $500 more a month</span><strong>1 yr sooner</strong></li>
-              <li><span>Money lasts 30 years (4% rule)</span><strong>94% of outcomes</strong></li>
-            </ul>
-          </div>
-          <figcaption>Example: $185K saved, $3,200 a month, $1.5M goal.</figcaption>
-        </figure>
+    <!-- Hero: the live freedom path -->
+    <header class="hp-hero">
+      <div class="hp-wrap">
+        <div class="hp-hero-head">
+          <h1 class="hp-h1">When could you stop working?</h1>
+          <p class="hp-lead">Type a few numbers. See the year work becomes optional, and the path to get there. Free, Australian, no account needed.</p>
+        </div>
+        <FreedomPath/>
       </div>
     </header>
 
-    <p class="home-trust">
-      <span><Icon name="scale" size={14}/>Current ATO and Centrelink rates</span>
-      <span><Icon name="bars" size={14}/>Live Reserve Bank figures</span>
-      <span><Icon name="flame" size={14}/>Built in Australia</span>
-      <span><Icon name="lock" size={14}/>Your data is never sold</span>
-    </p>
-
-    <section class="home-doors" aria-labelledby="doors-title">
-      <div class="home-head">
-        <span class="doc-eyebrow">Start where you are</span>
-        <h2 id="doors-title" class="home-h2">What’s your situation?</h2>
-      </div>
-      <div class="home-doors-grid">
-        {STARTS.map(d => (
-          <a href={`/start/${d.slug}`} class="home-door" data-reveal>
-            <span class="home-door-icon"><Icon name={d.icon} size={18}/></span>
-            <span class="home-door-title">{d.door}</span>
-            <span class="home-door-line">{d.doorLine}</span>
-            <span class="home-door-go"><Icon name="arrow" size={14}/></span>
-          </a>
-        ))}
-      </div>
-    </section>
-
-    <section class="home-bridge" aria-label="Why FirePath exists">
-      <p class="home-bridge-1">Nobody teaches us</p>
-      <p class="home-bridge-2">how money works.</p>
-      <p class="home-bridge-3">Let’s sort that out.</p>
-    </section>
-
-    <section class="home-steps" aria-labelledby="steps-title">
-      <div class="home-head">
-        <span class="doc-eyebrow">What you’ll find out</span>
-        <h2 id="steps-title" class="home-h2">From “someday” to a real plan.</h2>
-      </div>
-      <ol class="home-steps-grid">
-        {STEPS.map(s => (
-          <li class="home-step" data-reveal>
-            <span class="home-step-n">{s.n}</span>
-            <p class="home-step-title">{s.title}</p>
-            <p class="home-step-big">{s.big}</p>
-            <p class="home-step-text">{s.text}</p>
-            <a href={s.href} class="home-step-tool">{s.tool} <Icon name="arrow" size={14}/></a>
-          </li>
-        ))}
-      </ol>
-      <p class="home-steps-note">Same example saver throughout. Every one of these is free, no account needed.</p>
-    </section>
-
-    <section class="home-letter" id="why" aria-labelledby="letter-title">
-      <div class="home-letter-inner">
-        <span class="doc-eyebrow" id="letter-title">Why I built this</span>
-        <blockquote class="home-letter-quote">{LETTER.opener}</blockquote>
-        <div class="home-letter-body">
-          {LETTER.paragraphs.map(p => <p set:html={p}/>)}
+    <!-- 01 Find your number: the one dark band -->
+    <section class="hp-number" aria-labelledby="s1-title">
+      <div class="hp-wrap hp-number-grid" data-reveal>
+        <p class="hp-num">01</p>
+        <div class="hp-number-copy">
+          <h2 id="s1-title" class="hp-h2">Find your number</h2>
+          <p class="hp-number-big num"><span data-hp-number>$1,250,000</span></p>
+          <p class="hp-number-sum num">25 × <span data-hp-spend>$50,000</span> a year</p>
         </div>
-        <p class="home-letter-sig">
-          <span>Thanks for stopping by.</span>
-          <strong>— {LETTER.name}</strong>
-          <span>{LETTER.role}</span>
-        </p>
+        <p class="hp-number-text">Your freedom number is about 25 times what you spend in a year. Drawn down slowly, about 4% a year, that amount has lasted 30 years or more in most past markets. It counts your savings and your super together, and it moves with the spending you type in above.</p>
       </div>
     </section>
 
-    <section class="home-learn" aria-labelledby="learn-title">
-      <div class="home-head">
-        <span class="doc-eyebrow">Learning Lab</span>
-        <h2 id="learn-title" class="home-h2">Start with three short reads.</h2>
-        <p class="home-sub">{ARTICLES.length} free guides in plain English, from what FIRE means to super and tax.</p>
-      </div>
-      <ol class="home-learn-grid">
-        {firstReads.map((a, i) => (
-          <li><a href={`/learn/${a.slug}`} class="home-learn-card" data-reveal>
-            <span class="home-learn-n">{i + 1}</span>
-            <span class="home-learn-title">{a.heading}</span>
-            <span class="home-learn-meta">{a.readMins} min read <Icon name="arrow" size={14}/></span>
-          </a></li>
-        ))}
-      </ol>
-      <a href="/learn/" class="home-more">Browse the Learning Lab <Icon name="arrow" size={14}/></a>
-    </section>
-
-    <section class="home-plans" aria-label="Plans">
-      <div class="home-plans-inner">
-        <p><strong>Get to know your numbers free</strong>, no account needed. <strong>Pro is $6 a month</strong> and adds your saved plan, super, tax and Ask FirePath.</p>
-        <a href="/pricing" class="btn btn-quiet">Compare plans <Icon name="arrow" size={14}/></a>
-      </div>
-    </section>
-
-    <section class="home-final">
-      <div class="home-final-inner">
-        <h2>Let’s see where you stand.</h2>
-        <p>Free, takes about 2 minutes, no account needed.</p>
-        <div class="home-final-actions">
-          <a href="/firepath" class="btn btn-ember btn-lg"><Icon name="flame" size={16}/>Find my freedom date</a>
-          <a href="/upgrade" class="home-final-link">Try Pro free for 7 days</a>
+    <!-- 02 See your path: editorial two columns with a small path sketch -->
+    <section class="hp-sec" aria-labelledby="s2-title">
+      <div class="hp-wrap hp-two" data-reveal>
+        <div>
+          <p class="hp-num">02</p>
+          <h2 id="s2-title" class="hp-h2">See your path</h2>
+          <p class="hp-body">In Australia most people can’t get to their super until 60. So if you stop work earlier, the money you hold outside super pays the way until then. That’s the bridge.</p>
+          <p class="hp-body">From 60 your super joins in and takes over. FirePath checks both parts: that your savings last until 60, and that savings and super together are enough after that.</p>
+          <a href="/learn/two-phase-freedom-timeline" class="hp-link">How the two parts work →</a>
         </div>
+        <figure class="hp-sketch" aria-label="A path from today, to the day work becomes optional, to 60 when super can be used">
+          <svg viewBox="0 0 340 130" role="img" aria-hidden="true" focusable="false">
+            <line class="hp-seg is-work" x1="10" x2="130" y1="70" y2="70"/>
+            <line class="hp-seg is-bridge" x1="130" x2="262" y1="70" y2="70"/>
+            <line class="hp-seg is-after" x1="262" x2="332" y1="70" y2="70"/>
+            <line class="hp-sixty" x1="262" x2="262" y1="61" y2="79"/>
+            <circle class="hp-today-dot" cx="10" cy="70" r="4.5"/>
+            <line class="hp-stem" x1="130" x2="130" y1="40" y2="62"/>
+            <circle class="hp-free-dot" cx="130" cy="70" r="7"/>
+            <text class="hp-lab is-free" x="130" y="32" text-anchor="middle">Work optional</text>
+            <text class="hp-lab is-small" x="196" y="61" text-anchor="middle">savings carry you</text>
+            <text class="hp-lab" x="4" y="98">Today</text>
+            <text class="hp-lab" x="262" y="98" text-anchor="middle">60</text>
+            <text class="hp-lab is-small" x="298" y="61" text-anchor="middle">super</text>
+          </svg>
+          <figcaption>Savings first, then super from 60.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- 03 Change the variables: tools as a ruled list -->
+    <section class="hp-sec" aria-labelledby="s3-title">
+      <div class="hp-wrap hp-side" data-reveal>
+        <div class="hp-side-head">
+          <p class="hp-num">03</p>
+          <h2 id="s3-title" class="hp-h2">Change the variables</h2>
+          <p class="hp-body">Free tools for the questions that come next. No account needed.</p>
+        </div>
+        <ul class="hp-rules">
+          {TOOLS.map(t => (
+            <li><a href={t.href} class="hp-rule">
+              <span class="hp-rule-name">{t.name}</span>
+              <span class="hp-rule-line">{t.line}</span>
+              <span class="hp-rule-go" aria-hidden="true">→</span>
+            </a></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- 04 Understand why: the Learning Lab as an editorial list -->
+    <section class="hp-sec" aria-labelledby="s4-title">
+      <div class="hp-wrap" data-reveal>
+        <div class="hp-learn-head">
+          <div>
+            <p class="hp-num">04</p>
+            <h2 id="s4-title" class="hp-h2">Understand why</h2>
+          </div>
+          <p class="hp-body">{ARTICLES.length} short guides in the Learning Lab, in plain English. Start with these three.</p>
+        </div>
+        <ol class="hp-reads">
+          {firstReads.map(a => (
+            <li><a href={`/learn/${a.slug}`} class="hp-read">
+              <span class="hp-read-title">{a.heading}</span>
+              <span class="hp-read-meta num">{a.readMins} min read</span>
+            </a></li>
+          ))}
+        </ol>
+        <a href="/learn/" class="hp-link">Browse the Learning Lab →</a>
+      </div>
+    </section>
+
+    <!-- 05 Keep moving: Pro, understated -->
+    <section class="hp-sec hp-pro" aria-labelledby="s5-title">
+      <div class="hp-wrap hp-pro-grid" data-reveal>
+        <div>
+          <p class="hp-num">05</p>
+          <h2 id="s5-title" class="hp-h2">Keep moving</h2>
+        </div>
+        <div>
+          <p class="hp-body">Get to know your numbers free, no account needed. When you want FirePath to keep up with you, Pro saves your plan, lays out your options, shows your progress since last time, and lets you Ask FirePath about your own numbers.</p>
+          <p class="hp-pro-price num"><strong>{PRO_PRICE.amount} a month</strong> after a {PRO_PRICE.trialDays}-day free trial.</p>
+          <p class="hp-pro-fine">{TRIAL_FINE_PRINT}</p>
+          <p class="hp-pro-links"><a href="/upgrade" class="hp-link">Try Pro free for {PRO_PRICE.trialDays} days →</a><a href="/pricing" class="hp-link is-quiet">Compare plans</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Jay's letter -->
+    <section class="hp-sec hp-letter" id="why" aria-labelledby="letter-title">
+      <div class="hp-wrap hp-letter-grid" data-reveal>
+        <div class="hp-photo">
+          {/* TODO(owner): replace this block with Jay's photo, e.g.
+              <img src="/images/jay.jpg" alt="Jay, founder of FirePath" width="480" height="600" loading="lazy"/> */}
+          <div class="hp-photo-slot" role="img" aria-label="Photo of Jay coming soon"><span>Photo coming</span></div>
+        </div>
+        <div class="hp-letter-copy">
+          <h2 id="letter-title" class="hp-label">Why I built this</h2>
+          <blockquote class="hp-quote">{LETTER.opener}</blockquote>
+          <div class="hp-letter-body">
+            {LETTER.paragraphs.map(p => <p set:html={p}/>)}
+          </div>
+          <p class="hp-sig">
+            <span>Thanks for stopping by.</span>
+            <strong>— {LETTER.name}</strong>
+            <span>{LETTER.role}</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Start where you are -->
+    <section class="hp-sec hp-doors" aria-labelledby="doors-title">
+      <div class="hp-wrap hp-side" data-reveal>
+        <div class="hp-side-head">
+          <h2 id="doors-title" class="hp-h2 is-small">Start where you are</h2>
+          <p class="hp-body">A plain plan for where you’re at.</p>
+        </div>
+        <ul class="hp-rules">
+          {STARTS.map(d => (
+            <li><a href={`/start/${d.slug}`} class="hp-rule">
+              <span class="hp-rule-name">{d.door}</span>
+              <span class="hp-rule-line">{d.doorLine}</span>
+              <span class="hp-rule-go" aria-hidden="true">→</span>
+            </a></li>
+          ))}
+        </ul>
       </div>
     </section>
   </main>
+
+  <script is:inline src="/js/tax-engine.js"></script>
+  <script is:inline src="/js/calculations.js"></script>
+  <script is:inline src="/js/financial-engine.js"></script>
+  <script is:inline src="/js/home-path.js"></script>
 </Base>

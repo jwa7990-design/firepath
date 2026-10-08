@@ -1,0 +1,71 @@
+---
+/**
+ * The homepage's live freedom path: five inputs, the freedom age, the path drawn as an
+ * SVG timeline and three what-if options. Markup only. public/js/home-path.js does the
+ * maths (FirePathEngine.freedomPlan + freedomRange) and draws the path.
+ * The example person below is also the fallback the script resets to.
+ */
+const EXAMPLE = { age: 32, savings: 60000, super: 50000, monthly: 2500, spend: 50000 };
+const fmt = (n: number) => n.toLocaleString('en-AU');
+const FIELDS = [
+  { id: 'hpAge', key: 'age', label: 'Age', money: false, value: String(EXAMPLE.age), unit: '' },
+  { id: 'hpSavings', key: 'savings', label: 'Savings and investments', hint: 'outside super', money: true, value: fmt(EXAMPLE.savings), unit: '' },
+  { id: 'hpSuper', key: 'super', label: 'Super', money: true, value: fmt(EXAMPLE.super), unit: '' },
+  { id: 'hpMonthly', key: 'monthly', label: 'Saved each month', money: true, value: fmt(EXAMPLE.monthly), unit: '' },
+  { id: 'hpSpend', key: 'spend', label: 'Yearly spending', money: true, value: fmt(EXAMPLE.spend), unit: 'a year' },
+];
+---
+<div class="hp-calc" id="hpCalc" data-example={JSON.stringify(EXAMPLE)}>
+  <form class="hp-inputs" id="hpForm" novalidate aria-describedby="hpWho">
+    <div class="hp-who">
+      <p id="hpWho"><span class="hp-who-tag" id="hpWhoTag">Example</span> <span id="hpWhoText">32, $60k saved, $50k super, $2,500 a month, $50k a year</span></p>
+      <button type="button" class="hp-reset" id="hpReset" hidden>Back to the example</button>
+    </div>
+    <div class="hp-fields">
+      {FIELDS.map(f => (
+        <div class={`hp-field hp-field-${f.key}`}>
+          <label for={f.id}>{f.label}{f.hint && <span class="hp-hint"> {f.hint}</span>}</label>
+          <div class={f.money ? 'hp-box is-money' : 'hp-box'}>
+            {f.money && <span aria-hidden="true">$</span>}
+            <input id={f.id} name={f.key} value={f.value} inputmode={f.money ? 'decimal' : 'numeric'} autocomplete="off" spellcheck="false"/>
+          </div>
+        </div>
+      ))}
+    </div>
+    <p class="hp-today">All in today’s dollars.</p>
+  </form>
+
+  <div class="hp-out">
+    <div class="hp-result" id="hpResult">
+      <p class="hp-big" id="hpBig">Work could become optional at <strong class="hp-age" id="hpAgeOut">56</strong></p>
+      <p class="hp-when" id="hpWhen">in 2048 · 21 years, 8 months from now</p>
+      <p class="hp-range" id="hpRange"></p>
+    </div>
+
+    <figure class="hp-path" aria-labelledby="hpPathText">
+      <svg class="hp-svg" id="hpSvg" role="img" aria-hidden="true" focusable="false" width="100%" height="128"></svg>
+      <ul class="hp-legend" aria-hidden="true">
+        <li class="is-work">Working and saving</li>
+        <li class="is-bridge" id="hpLegBridge">Savings carry you</li>
+        <li class="is-band" id="hpLegBand">Likely range</li>
+      </ul>
+      <figcaption class="hp-sr" id="hpPathText" aria-live="polite"></figcaption>
+    </figure>
+
+    <div class="hp-whatif" id="hpWhatIf">
+      <p class="hp-whatif-head">Options to try <span>Tap one to see it on the path</span></p>
+      <div class="hp-chips" role="group" aria-label="What-if options">
+        <button type="button" class="hp-chip" data-chip="week100" aria-pressed="false">+$100 a week <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+        <button type="button" class="hp-chip" data-chip="spend10" aria-pressed="false">Spend 10% less <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+        <button type="button" class="hp-chip" data-chip="both" aria-pressed="false">Both <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+      </div>
+      <p class="hp-preview" id="hpPreview" aria-live="polite"></p>
+    </div>
+
+    <div class="hp-actions">
+      <a href="/firepath" class="hp-btn">Find my freedom date</a>
+      <a href="/retirement-age-calculator" class="hp-quiet">Just want a quick retirement age? →</a>
+    </div>
+    <p class="hp-fine">General information, not advice. Assumes 7% growth a year before tax (after inflation), less tax outside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>
+  </div>
+</div>
