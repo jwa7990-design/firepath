@@ -326,7 +326,7 @@ test('DB: only allowed tables and methods; no deletes, no RPC', async () => {
 });
 
 test('DB: Pro-only tables refuse writes from signed-in non-Pro users', async () => {
-  for (const t of ['checkins', 'financial_snapshots', 'lab_progress', 'learn_lab', 'calculations', 'financial_learning_progress']) {
+  for (const t of ['checkins', 'financial_snapshots', 'lab_progress', 'calculations', 'financial_learning_progress']) {
     assert.ok(_internal.DB_PRO_WRITE.has(t), t);
     const res = await send(req(`/db/${t}`, { token: FREE_TOKEN, body: { user_id: 'user-free' } }));
     assert.equal(res.status, 403, t);
@@ -644,14 +644,14 @@ test('Feedback: signed-out visitors can send it, saved with no user_id', async (
   assert.equal(res.status, 201);
   const [w] = feedbackWrites();
   assert.equal(w.row.user_id, null);                      // spoofed id ignored
-  assert.equal(w.auth, `Bearer ${ANON}`);
+  assert.equal(w.auth, 'Bearer svc.svc.svc');            // server key: the database no longer takes feedback from browsers
 });
 
 test('Feedback: signed-in users are attributed from their verified session', async () => {
   await send(req('/db/feedback', { token: FREE_TOKEN, body: { other: 'hi', user_id: 'someone-else' } }));
   const [w] = feedbackWrites();
   assert.equal(w.row.user_id, 'user-free');
-  assert.equal(w.auth, `Bearer ${FREE_TOKEN}`);
+  assert.equal(w.auth, 'Bearer svc.svc.svc');
 });
 
 test('Feedback: honeypot submissions look successful but save nothing', async () => {

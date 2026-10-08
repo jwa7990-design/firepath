@@ -70,7 +70,6 @@ const DB_RULES = {
   financial_snapshots: ['GET', 'POST'],
   lab_progress: ['GET', 'POST'],
   financial_learning_progress: ['GET', 'POST'],
-  learn_lab: ['GET', 'POST'],
   learning_articles: ['GET'],
   feedback: ['POST']
 };
@@ -80,7 +79,7 @@ const DB_PUBLIC = { learning_articles: ['GET'], feedback: ['POST'] };
 // saved calculations). Writes need an active Pro account, checked server-side.
 // Not here on purpose: users and fp_profiles (written at sign-up and before Pro is
 // active), feedback (open to everyone).
-const DB_PRO_WRITE = new Set(['checkins', 'financial_snapshots', 'lab_progress', 'learn_lab', 'calculations', 'financial_learning_progress']);
+const DB_PRO_WRITE = new Set(['checkins', 'financial_snapshots', 'lab_progress', 'calculations', 'financial_learning_progress']);
 const PREFER_ALLOWED = new Set(['return=minimal', 'return=representation', 'resolution=merge-duplicates', 'count=exact']);
 const DB_MAX_BODY = 256 * 1024;
 
@@ -473,12 +472,10 @@ async function handleFeedback(request, env) {
   const row = { ...clean.feedback, user_id: user ? user.id : null };
   const res = await fetch(`${env.SUPABASE_URL}/rest/v1/feedback`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: env.SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${user ? user.token : env.SUPABASE_ANON_KEY}`,
-      Prefer: 'return=minimal'
-    },
+    // Written with the service key: the database no longer accepts feedback straight
+    // from browsers (supabase/004), so every row comes through the checks and rate
+    // limit above, with user_id taken from the verified session, never the client.
+    headers: serviceHeaders(env, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
     body: JSON.stringify(row)
   });
   if (!res.ok) {
@@ -1119,7 +1116,6 @@ const USER_DATA_TABLES = [
   ['financial_snapshots', 'user_id'],
   ['calculations', 'user_id'],
   ['lab_progress', 'user_id'],
-  ['learn_lab', 'user_id'],
   ['financial_learning_progress', 'user_id'],
   ['feedback', 'user_id'],
   ['fp_profiles', 'id'],
