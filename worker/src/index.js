@@ -70,6 +70,7 @@ const DB_RULES = {
   financial_snapshots: ['GET', 'POST'],
   lab_progress: ['GET', 'POST'],
   financial_learning_progress: ['GET', 'POST'],
+  fp_moves: ['GET', 'POST'],          // Pro journey: each option's status (On it / Done / Not for me)
   learning_articles: ['GET'],
   feedback: ['POST']
 };
@@ -79,9 +80,17 @@ const DB_PUBLIC = { learning_articles: ['GET'], feedback: ['POST'] };
 // saved calculations). Writes need an active Pro account, checked server-side.
 // Not here on purpose: users and fp_profiles (written at sign-up and before Pro is
 // active), feedback (open to everyone).
-const DB_PRO_WRITE = new Set(['checkins', 'financial_snapshots', 'lab_progress', 'calculations', 'financial_learning_progress']);
+const DB_PRO_WRITE = new Set(['checkins', 'financial_snapshots', 'lab_progress', 'calculations', 'financial_learning_progress', 'fp_moves']);
 const PREFER_ALLOWED = new Set(['return=minimal', 'return=representation', 'resolution=merge-duplicates', 'count=exact']);
 const DB_MAX_BODY = 256 * 1024;
+
+// fp_moves writes are rebuilt from checked fields only (see sanitiseMoves).
+const MOVE_ID_RE = /^[a-z0-9-]{1,64}$/;
+const MOVE_STATUSES = new Set(['doing', 'done', 'dismissed']);
+const MOVE_FIELDS = new Set(['move_id', 'status', 'done_at', 'updated_at', 'user_id']);
+const MOVES_MAX_ROWS = 50;
+const ISO_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,6})?)?(Z|[+-]\d{2}:?\d{2})$/;
+const isIso = v => typeof v === 'string' && v.length <= 40 && ISO_RE.test(v) && !isNaN(Date.parse(v));
 
 // Supabase Auth: only what the sign-in page calls.
 const AUTH_ROUTES = new Set(['POST /token', 'POST /signup', 'POST /recover', 'GET /user', 'PUT /user', 'POST /logout']);
@@ -432,6 +441,31 @@ async function recordAiFailure(env, status, type) {
 const FEEDBACK_TEXT_FIELDS = ['gaps', 'confusing', 'bring_back', 'other', 'pro_interest'];
 const FEEDBACK_MAX_TEXT = 4000;
 
+// fp_moves POST body → { rows } or { error }. One object or an array of up to 50.
+// Only move_id, status, done_at (ISO or null) and updated_at (ISO) are accepted;
+// user_id is always the verified user (a different one sent by the page is refused).
+// Every row gets the same keys, as PostgREST bulk upserts need.
+function sanitiseMoves(text, userId) {
+  let data;
+  try { data = JSON.parse(text); } catch (e) { return { error: 'Invalid JSON.' }; }
+  const list = Array.isArray(data) ? data : [data];
+  if (!list.length || list.length > MOVES_MAX_ROWS) return { error: 'Send 1 to 50 rows.' };
+  const rows = [], seen = new Set();
+  for (const r of list) {
+    if (!r || typeof r !== 'object' || Array.isArray(r)) return { error: 'Each row must be an object.' };
+    for (const k of Object.keys(r)) if (!MOVE_FIELDS.has(k)) return { error: 'Unknown field.' };
+    if (r.user_id !== undefined && r.user_id !== userId) return { error: 'Wrong user.' };
+    if (typeof r.move_id !== 'string' || !MOVE_ID_RE.test(r.move_id)) return { error: 'Invalid move_id.' };
+    if (seen.has(r.move_id)) return { error: 'Duplicate move_id.' };
+    seen.add(r.move_id);
+    if (!MOVE_STATUSES.has(r.status)) return { error: 'Invalid status.' };
+    if (r.done_at != null && !isIso(r.done_at)) return { error: 'Invalid done_at.' };
+    if (r.updated_at !== undefined && !isIso(r.updated_at)) return { error: 'Invalid updated_at.' };
+    rows.push({ user_id: userId, move_id: r.move_id, status: r.status, done_at: r.done_at == null ? null : r.done_at, updated_at: r.updated_at || new Date().toISOString() });
+  }
+  return { rows };
+}
+
 function sanitiseFeedback(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return { error: 'Invalid feedback.' };
   if (typeof input.website === 'string' && input.website.trim() !== '') return { honeypot: true };
@@ -499,8 +533,9 @@ async function handleDb(request, env, url) {
   if (!signedIn && !isPublic) return json({ error: 'Please sign in.' }, 401);
 
   // Pro-only tables: writes need a verified Pro account (same lookup as /ai).
+  let user = null;
   if (request.method === 'POST' && DB_PRO_WRITE.has(table)) {
-    const user = await getUser(request, env);
+    user = await getUser(request, env);
     if (!user) return json({ error: 'Please sign in.' }, 401);
     if (!(await isPro(user.id, env))) return json({ error: 'Saving this is part of FirePath Pro.' }, 403);
   }
@@ -510,6 +545,17 @@ async function handleDb(request, env, url) {
     const r = await readBody(request, DB_MAX_BODY);
     if (r.error) return json({ error: 'Request too large.' }, 413);
     body = r.text;
+  }
+  // fp_moves writes: an upsert on (user_id, move_id), nothing else. The only query
+  // allowed is on_conflict=user_id,move_id; the body is rebuilt from checked fields.
+  if (table === 'fp_moves' && request.method === 'POST') {
+    const keys = Array.from(url.searchParams.keys());
+    if (keys.some(k => k !== 'on_conflict') || url.searchParams.getAll('on_conflict').some(v => v !== 'user_id,move_id')) {
+      return json({ error: 'Invalid request.' }, 400);
+    }
+    const clean = sanitiseMoves(body, user.id);
+    if (clean.error) return json({ error: clean.error }, 400);
+    body = JSON.stringify(clean.rows);
   }
   const prefer = (request.headers.get('Prefer') || '').split(',').map(s => s.trim()).filter(p => PREFER_ALLOWED.has(p)).join(', ');
   const headers = {
@@ -1117,6 +1163,7 @@ const USER_DATA_TABLES = [
   ['calculations', 'user_id'],
   ['lab_progress', 'user_id'],
   ['financial_learning_progress', 'user_id'],
+  ['fp_moves', 'user_id'],
   ['feedback', 'user_id'],
   ['fp_profiles', 'id'],
   ['users', 'id']
@@ -1442,5 +1489,5 @@ export default {
 };
 
 // Exposed for tests only.
-export const _internal = { RATE_LIMITS, sanitiseFeedback, sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, DB_PRO_WRITE, AI, AI_SERVER_SYSTEM, latestRbaValue, RBA_SERIES,
+export const _internal = { RATE_LIMITS, sanitiseFeedback, sanitiseMoves, sanitiseAiRequest, verifyStripeSignature, originAllowed, timingSafeEqual, DB_RULES, DB_PRO_WRITE, AI, AI_SERVER_SYSTEM, latestRbaValue, RBA_SERIES,
   USER_DATA_TABLES, healthTransitions, runHealthChecks, parseCspReports, withCaptcha, trialEndingEmail, welcomeEmail, auDate };

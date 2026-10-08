@@ -5,8 +5,9 @@ Supabase SQL Editor). Re-capture after any change in the dashboard and update th
 file, so the rules are tracked alongside the code.
 
 Row-level security is **on** for every table: calculations, checkins, feedback,
-financial_learning_progress, financial_snapshots, fp_profiles, lab_progress,
-learning_articles, users.
+financial_learning_progress, financial_snapshots, fp_moves, fp_profiles, lab_progress,
+learning_articles, users. (fp_moves added by `005_fp_moves.sql`; re-capture to
+confirm once it has been run.)
 
 | table | rule | command | roles | using | with check |
 |---|---|---|---|---|---|
@@ -20,6 +21,9 @@ learning_articles, users.
 | financial_learning_progress | Users can update their own learning progress | UPDATE | public | auth.uid() = user_id | – |
 | financial_snapshots | Users can insert their own snapshots | INSERT | public | – | auth.uid() = user_id |
 | financial_snapshots | Users can view their own snapshots | SELECT | public | auth.uid() = user_id | – |
+| fp_moves | Users can view own moves | SELECT | authenticated | auth.uid() = user_id | – |
+| fp_moves | Users can insert own moves | INSERT | authenticated | – | auth.uid() = user_id |
+| fp_moves | Users can update own moves | UPDATE | authenticated | auth.uid() = user_id | auth.uid() = user_id |
 | fp_profiles | Users can insert own profile | INSERT | public | – | auth.uid() = id |
 | fp_profiles | Users can read own profile | SELECT | public | auth.uid() = id | – |
 | fp_profiles | Users can update own profile | UPDATE | public | auth.uid() = id | – |
@@ -39,6 +43,12 @@ Notes
 - Column grants (001) limit what signed-in people can write on `users` to id, email
   and persona, so nobody can set `is_pro` on themselves.
 - Pro-only tables (checkins, snapshots, lab_progress, calculations,
-  financial_learning_progress) accept a person's own rows even without Pro at the
+  financial_learning_progress, fp_moves) accept a person's own rows even without Pro at the
   database level; the Worker enforces Pro for those writes. Low risk (own data only).
 - The `learn_lab` table doesn't exist; the Worker no longer allows it.
+- fp_moves (005): one row per person per option, primary key (user_id, move_id).
+  Grants: authenticated gets select, insert, update only (no delete — "Bring it
+  back" sets the status to 'doing'); service_role gets delete for account deletion.
+  The Worker also checks every write: only move_id, status (doing/done/dismissed),
+  done_at and updated_at are accepted, at most 50 rows, and user_id is always set
+  to the signed-in person.

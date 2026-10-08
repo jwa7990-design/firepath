@@ -366,6 +366,97 @@ test('DB: only known Prefer values are forwarded', async () => {
   assert.equal(outbound(`${SUPABASE}/rest/v1/fp_profiles`)[0].headers.Prefer, 'resolution=merge-duplicates');
 });
 
+// ── fp_moves (Pro journey: each option's status) ──
+const MOVES_URL = '/db/fp_moves?on_conflict=user_id,move_id';
+const UPSERT = { Prefer: 'resolution=merge-duplicates,return=minimal' };
+const moveRow = (extra = {}) => Object.assign({ move_id: 'clear-debt', status: 'done', done_at: '2026-10-08T01:02:03.456Z', updated_at: '2026-10-08T01:02:03.456Z' }, extra);
+
+test('fp_moves: GET and POST allowed; no PATCH/DELETE; reads go with the caller\'s session', async () => {
+  assert.deepEqual(_internal.DB_RULES.fp_moves, ['GET', 'POST']);
+  const res = await send(req('/db/fp_moves?select=move_id,status,done_at,updated_at', { method: 'GET', token: FREE_TOKEN }));
+  assert.equal(res.status, 200);                                       // reads left to RLS, like other Pro tables
+  const c = outbound(`${SUPABASE}/rest/v1/fp_moves`)[0];
+  assert.equal(c.url, `${SUPABASE}/rest/v1/fp_moves?select=move_id,status,done_at,updated_at`);
+  assert.equal(c.headers.Authorization, `Bearer ${FREE_TOKEN}`);
+  assert.equal((await send(req('/db/fp_moves?move_id=eq.x', { method: 'DELETE', token: PRO_TOKEN }))).status, 405);
+  assert.equal((await send(req('/db/fp_moves', { method: 'PATCH', token: PRO_TOKEN, body: moveRow() }))).status, 405);
+  assert.equal((await send(req('/db/fp_moves?select=*', { method: 'GET' }))).status, 401);
+});
+
+test('fp_moves: writes are Pro-only', async () => {
+  assert.ok(_internal.DB_PRO_WRITE.has('fp_moves'));
+  const res = await send(req(MOVES_URL, { token: FREE_TOKEN, body: moveRow(), headers: UPSERT }));
+  assert.equal(res.status, 403);
+  assert.equal(outbound(`${SUPABASE}/rest/v1/fp_moves`).length, 0);
+  assert.equal((await send(req(MOVES_URL, { body: moveRow() }))).status, 401);
+  assert.equal((await send(req(MOVES_URL, { token: 'aaa.fake.token', body: moveRow() }))).status, 401);
+});
+
+test('fp_moves: an upsert passes on_conflict and both Prefer values through; user_id is the verified user', async () => {
+  const res = await send(req(MOVES_URL, { token: PRO_TOKEN, body: moveRow(), headers: UPSERT }));
+  assert.equal(res.status, 200);
+  const [c] = outbound(`${SUPABASE}/rest/v1/fp_moves`);
+  assert.equal(c.method, 'POST');
+  assert.equal(c.url, `${SUPABASE}/rest/v1/fp_moves?on_conflict=user_id,move_id`);
+  assert.equal(c.headers.Prefer, 'resolution=merge-duplicates, return=minimal');
+  assert.equal(c.headers.Authorization, `Bearer ${PRO_TOKEN}`);
+  assert.deepEqual(JSON.parse(c.body), [Object.assign({ user_id: 'user-pro' }, moveRow())]);
+  // user_id may be sent if it is the caller's own; done_at null and a missing updated_at are fine.
+  await send(req(MOVES_URL, { token: PRO_TOKEN, body: { user_id: 'user-pro', move_id: 'build-buffer', status: 'doing', done_at: null }, headers: UPSERT }));
+  const [row] = JSON.parse(outbound(`${SUPABASE}/rest/v1/fp_moves`)[0].body);
+  assert.equal(row.user_id, 'user-pro');
+  assert.equal(row.done_at, null);
+  assert.ok(!isNaN(Date.parse(row.updated_at)));
+  // A small array, every row with the same keys.
+  await send(req(MOVES_URL, { token: PRO_TOKEN, body: [moveRow(), { move_id: 'save-more', status: 'dismissed' }], headers: UPSERT }));
+  const rows = JSON.parse(outbound(`${SUPABASE}/rest/v1/fp_moves`)[0].body);
+  assert.equal(rows.length, 2);
+  for (const r of rows) assert.deepEqual(Object.keys(r), ['user_id', 'move_id', 'status', 'done_at', 'updated_at']);
+  // No query at all is fine too (the primary key decides the conflict).
+  assert.equal((await send(req('/db/fp_moves', { token: PRO_TOKEN, body: moveRow() }))).status, 200);
+});
+
+test('fp_moves: anything but the known fields, shapes and sizes is refused with 400 and nothing is written', async () => {
+  const bad = [
+    moveRow({ user_id: 'someone-else' }),                 // another person's row
+    moveRow({ is_pro: true }),                            // unknown field
+    moveRow({ move_id: 'Clear-Debt' }),                   // not the id shape
+    moveRow({ move_id: 'a'.repeat(65) }),
+    moveRow({ move_id: '../users' }),
+    moveRow({ move_id: 7 }),
+    { status: 'done' },                                    // no move_id
+    moveRow({ status: 'finished' }),
+    moveRow({ status: undefined }),
+    moveRow({ done_at: 'yesterday' }),
+    moveRow({ done_at: 12345 }),
+    moveRow({ updated_at: null }),
+    moveRow({ updated_at: '2026-13-45T99:99:99Z' }),
+    [],
+    Array.from({ length: 51 }, (_, i) => moveRow({ move_id: `m-${i}` })),
+    [moveRow(), moveRow()],                               // same move twice
+    [moveRow(), 'x'],
+    'just a string',
+    null
+  ];
+  for (const body of bad) {
+    const res = await send(req(MOVES_URL, { token: PRO_TOKEN, body, headers: UPSERT }));
+    assert.equal(res.status, 400, JSON.stringify(body)?.slice(0, 80));
+    assert.equal(outbound(`${SUPABASE}/rest/v1/fp_moves`).length, 0);
+  }
+  assert.equal((await send(req(MOVES_URL, { token: PRO_TOKEN, body: '{not json', headers: UPSERT }))).status, 400);
+  // 50 rows is the most allowed.
+  assert.equal((await send(req(MOVES_URL, { token: PRO_TOKEN, body: Array.from({ length: 50 }, (_, i) => moveRow({ move_id: `m-${i}` })) }))).status, 200);
+  // Only on_conflict=user_id,move_id may ride along on a write.
+  for (const q of ['?on_conflict=move_id', '?columns=user_id', '?on_conflict=user_id,move_id&select=*', '?user_id=eq.someone-else']) {
+    assert.equal((await send(req(`/db/fp_moves${q}`, { token: PRO_TOKEN, body: moveRow() }))).status, 400, q);
+    assert.equal(outbound(`${SUPABASE}/rest/v1/fp_moves`).length, 0, q);
+  }
+});
+
+test('fp_moves: included in account delete and export', () => {
+  assert.ok(_internal.USER_DATA_TABLES.some(([t, c]) => t === 'fp_moves' && c === 'user_id'));
+});
+
 // ── Auth proxy ──
 test('Auth: only the sign-in page\'s routes are reachable', async () => {
   assert.equal((await send(req('/auth/token?grant_type=password', { body: { email: 'a', password: 'b' } }))).status, 200);

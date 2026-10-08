@@ -7,6 +7,7 @@
  *
  *   const s = FirePathMoves.situationFromProfile(profile);   // or situationFromInputs({...})
  *   const { moves } = FirePathMoves.rank(s);                 // biggest modelled effect first, max 3 by default
+ *   const p = FirePathMoves.plan(s, statuses);               // Pro journey: open / done / dismissed + progress
  *
  * A "move" is an option that the maths says would change this person's numbers. Pages
  * present them as general information ("here's what each change would do"), never as
@@ -62,6 +63,7 @@ window.FirePathMoves = (function () {
       hasPartner: !!i.hasPartner, partnerAge: num(i.partnerAge), partnerTakeHomeMonthly: num(i.partnerTakeHomeMonthly),
       dependants: num(i.dependants) || 0, housing: normaliseHousing(i.housing, num(i.mortgageRemaining)),
       mortgageRemaining: num(i.mortgageRemaining) || 0, consumerDebt: num(i.consumerDebt) || 0,
+      consumerDebtKnown: num(i.consumerDebt) != null,   // a blank debt field is unknown, not "no debt"
       emergencyFund: typeof i.emergencyFund === 'boolean' ? i.emergencyFund : null,
       retirementSpendMultiplier: num(i.retirementSpendMultiplier) || 1, freedomNumber: num(i.freedomNumber),
       persona: i.persona || null,
@@ -305,6 +307,58 @@ window.FirePathMoves = (function () {
     return { situation: s, moves: all.slice(0, limit), all };
   }
 
+  // ── Already done, going by the numbers ────────────────────
+  // { moveId: reason } for moves the person's own figures show are already in place.
+  // Conservative: a fact we don't have never counts as done.
+  const INVESTED_TYPES = ['etfs'];          // savings held invested (not cash, offset or a mix)
+  function autoDone(situation) {
+    const s = situation && situation.stage ? situation : situationFromInputs(situation);
+    const out = {};
+    if (s.consumerDebtKnown && s.consumerDebt === 0) out['clear-debt'] = 'Your plan shows no high-interest debt';
+    if (s.emergencyFund === true || (s.bufferMonths != null && s.bufferMonths >= 3)) out['build-buffer'] = 'Your plan shows a cash buffer of three months or more';
+    if (s.savingsMonthly > 0) out['start-saving'] = 'Your plan shows you’re already saving each month';
+    if (INVESTED_TYPES.includes(s.savingsType) && s.currentSavings > 0) out['invest-idle-cash'] = 'Your plan shows your savings are already invested';
+    return out;
+  }
+
+  // ── Pro journey: where each option stands ─────────────────
+  // statuses: { [moveId]: { status: 'doing'|'done'|'dismissed', done_at, updated_at } } (fp_moves rows).
+  // Who wins, per move:  marked done → done · marked "Not for me" → dismissed ·
+  // the numbers show it's done → done (auto) · applies now → open · otherwise not shown.
+  // So a move marked done stays done even if it no longer applies; a "doing" or
+  // dismissed move that no longer applies drops out (bringing it back would show nothing).
+  // open keeps rank() order exactly; 'doing' is a flag for the page, not a re-sort.
+  // opts.limit caps `open` only (default: all); progress always counts everything.
+  function plan(situation, statuses, opts) {
+    const s = situation && situation.stage ? situation : situationFromInputs(situation);
+    const st = statuses || {};
+    const statusOf = id => (st[id] && typeof st[id] === 'object' ? st[id] : null);
+    const auto = autoDone(s);
+    const ranked = rank(s, { limit: MOVES.length }).all;
+    const applies = new Set(ranked.map(m => m.id));
+    const open = [], done = [], dismissed = [];
+    for (const def of MOVES) {
+      const row = statusOf(def.id);
+      const status = row && row.status;
+      if (status === 'done') done.push({ id: def.id, title: def.title, auto: false, done_at: row.done_at || null });
+      else if (status === 'dismissed' && applies.has(def.id)) dismissed.push({ id: def.id, title: def.title });
+      // The numbers tick an option off only if the person was working on it ("On it"):
+      // someone who never had a card debt hasn't "done" paying one off, so it isn't
+      // counted as progress — it just doesn't apply to them.
+      else if (status === 'doing' && auto[def.id]) done.push({ id: def.id, title: def.title, auto: true, reason: auto[def.id] });
+    }
+    const settled = new Set(done.map(d => d.id).concat(dismissed.map(d => d.id)));
+    for (const m of ranked) {
+      if (settled.has(m.id)) continue;
+      const row = statusOf(m.id);
+      open.push(Object.assign({}, m, { status: row && row.status === 'doing' ? 'doing' : null, updated_at: row && row.updated_at || null }));
+    }
+    // Most recently marked first; ones spotted from the numbers after, in the usual order.
+    done.sort((a, b) => (a.auto - b.auto) || String(b.done_at || '').localeCompare(String(a.done_at || '')));
+    const limit = opts && opts.limit > 0 ? opts.limit : open.length;
+    return { situation: s, open: open.slice(0, limit), done, dismissed, progress: { done: done.length, total: open.length + done.length } };
+  }
+
   // ── Articles: never recommend one that doesn't fit ────────
   // `tags` is an article's "for" metadata (src/content/learn, served at /learn/articles.json).
   // Unknown facts don't exclude — only a known mismatch does.
@@ -327,5 +381,5 @@ window.FirePathMoves = (function () {
   function recall() { try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); return v && Date.now() - v.savedAt < 180 * 864e5 ? v : null; } catch (e) { return null; } }
   function forget() { try { localStorage.removeItem(KEY); } catch (e) {} }
 
-  return { MOVES, situationFromInputs, situationFromProfile, rank, articleFits, yearsTo, planYears, remember, recall, forget };
+  return { MOVES, situationFromInputs, situationFromProfile, rank, autoDone, plan, articleFits, yearsTo, planYears, remember, recall, forget };
 })();

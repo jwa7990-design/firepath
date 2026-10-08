@@ -202,3 +202,139 @@ test('wording is general information: no "best" and no commands in titles or imp
     assert.ok(!/\bbest\b|\byou should\b/i.test(`${m.title} ${m.impact.text} ${m.why}`), m.id);
   }
 });
+
+// ── Pro journey: autoDone and plan ──
+// moves.js runs in its own realm, so compare plain copies.
+const plain = v => v === undefined ? v : JSON.parse(JSON.stringify(v));
+const deq = (a, b, ...msg) => assert.deepEqual(plain(a), plain(b), ...msg);
+const titleOf = id => M.MOVES.find(m => m.id === id).title;
+const openIds = (s, st, o) => M.plan(s, st, o).open.map(m => m.id);
+const doneIds = (s, st) => M.plan(s, st).done.map(d => d.id);
+
+test('autoDone: no debt counts as done only when the debt field was actually filled in', () => {
+  assert.ok(!('clear-debt' in M.autoDone(base)));                                     // not asked → unknown
+  assert.ok(!('clear-debt' in M.autoDone(Object.assign({}, base, { consumerDebt: '' }))));
+  assert.ok('clear-debt' in M.autoDone(Object.assign({}, base, { consumerDebt: 0 })));
+  assert.ok(!('clear-debt' in M.autoDone(Object.assign({}, base, { consumerDebt: 4000 }))));
+  // From a saved profile: debt_total missing vs 0.
+  const prof = { age: 35, take_home_income: 8000, savings_monthly: 2000, current_savings: 60000, savings_type: 'cash' };
+  assert.ok(!('clear-debt' in M.autoDone(M.situationFromProfile(prof))));
+  assert.ok('clear-debt' in M.autoDone(M.situationFromProfile(Object.assign({}, prof, { debt_total: 0 }))));
+  assert.ok(!('clear-debt' in M.autoDone(M.situationFromProfile(Object.assign({}, prof, { debt_total: null })))));
+});
+
+test('autoDone: buffer when the person says so or holds 3+ months of spending in cash', () => {
+  assert.ok('build-buffer' in M.autoDone(base));                                      // $60k cash vs $6k/month spend
+  assert.ok(!('build-buffer' in M.autoDone(Object.assign({}, base, { currentSavings: 8000 }))));
+  assert.ok('build-buffer' in M.autoDone(Object.assign({}, base, { currentSavings: 8000, emergencyFund: true })));
+  // Invested savings: the cash buffer is unknown, so not done unless they said they have one.
+  assert.ok(!('build-buffer' in M.autoDone(Object.assign({}, base, { savingsType: 'etfs' }))));
+  assert.ok(!('build-buffer' in M.autoDone(Object.assign({}, base, { savingsType: 'etfs', emergencyFund: false }))));
+  assert.ok('build-buffer' in M.autoDone(Object.assign({}, base, { savingsType: 'etfs', emergencyFund: true })));
+  // Mix: a third counts as cash.
+  assert.ok('build-buffer' in M.autoDone(Object.assign({}, base, { savingsType: 'mix', currentSavings: 60000 })));
+  assert.ok(!('build-buffer' in M.autoDone(Object.assign({}, base, { savingsType: 'mix', currentSavings: 30000 }))));
+});
+
+test('autoDone: saving each month, and savings held invested', () => {
+  assert.ok('start-saving' in M.autoDone(base));
+  assert.ok(!('start-saving' in M.autoDone(Object.assign({}, base, { savingsMonthly: 0 }))));
+  assert.ok(!('start-saving' in M.autoDone(Object.assign({}, base, { savingsMonthly: null }))));
+  assert.ok('invest-idle-cash' in M.autoDone(Object.assign({}, base, { savingsType: 'etfs' })));
+  for (const t of ['cash', 'mix', 'offset', null, 'something-new']) assert.ok(!('invest-idle-cash' in M.autoDone(Object.assign({}, base, { savingsType: t }))), String(t));
+  assert.ok(!('invest-idle-cash' in M.autoDone(Object.assign({}, base, { savingsType: 'etfs', currentSavings: 0 }))));
+  // Nothing known → nothing done.
+  deq(Object.keys(M.autoDone({})), []);
+  // Reasons are plain descriptions, not instructions.
+  for (const r of Object.values(M.autoDone(Object.assign({}, base, { consumerDebt: 0, savingsType: 'etfs', emergencyFund: true })))) assert.match(r, /^Your plan shows /);
+});
+
+test('plan: with no statuses, open is exactly rank() order and nothing is flagged', () => {
+  const p = M.plan(base, {});
+  deq(p.open.map(m => m.id), ids(base).filter(id => !(id in M.autoDone(base))));
+  assert.ok(p.open.every(m => m.status === null));
+  deq(p.dismissed, []);
+  deq(M.plan(base).open.map(m => m.id), p.open.map(m => m.id));   // statuses optional
+  // Open items keep everything rank() gives (tool, article, why, impact...).
+  const r = M.rank(base, { limit: 20 }).all[0];
+  deq(Object.assign({}, p.open[0], { status: undefined, updated_at: undefined }), Object.assign({}, r, { status: undefined, updated_at: undefined }));
+});
+
+test('plan: "On it" is flagged without changing the order; "Done" and "Not for me" leave the open list', () => {
+  const all = ids(base);
+  assert.ok(all.length >= 3, all.join());
+  const [a, b, c] = all;
+  const st = { [c]: { status: 'doing', updated_at: '2026-10-01T00:00:00Z' }, [a]: { status: 'done', done_at: '2026-10-05T00:00:00Z' }, [b]: { status: 'dismissed' } };
+  const p = M.plan(base, st);
+  deq(p.open.map(m => m.id), all.filter(id => ![a, b].includes(id)));
+  assert.equal(p.open[0].id, c);
+  assert.equal(p.open[0].status, 'doing');
+  assert.equal(p.open[0].updated_at, '2026-10-01T00:00:00Z');
+  assert.ok(p.open.slice(1).every(m => m.status === null));
+  deq(p.done.find(d => d.id === a), { id: a, title: titleOf(a), auto: false, done_at: '2026-10-05T00:00:00Z' });
+  deq(p.dismissed, [{ id: b, title: titleOf(b) }]);
+  assert.ok(!p.done.some(d => d.id === b));
+});
+
+test('plan: marked done stays done even when it no longer applies; doing/dismissed ones that no longer apply drop out', () => {
+  const debt = Object.assign({}, base, { consumerDebt: 12000 });
+  assert.ok(ids(debt).includes('clear-debt'));
+  const st = { 'clear-debt': { status: 'done', done_at: '2026-09-01T00:00:00Z' }, 'offset-vs-invest': { status: 'doing' }, 'spouse-contribution': { status: 'dismissed' } };
+  // Later the debt is gone (and recorded as 0) — the done row is still there, not auto.
+  const later = Object.assign({}, base, { consumerDebt: 0 });
+  const p = M.plan(later, st);
+  const cd = p.done.filter(d => d.id === 'clear-debt');
+  assert.equal(cd.length, 1);
+  assert.equal(cd[0].auto, false);
+  assert.equal(cd[0].done_at, '2026-09-01T00:00:00Z');
+  // A renter: offset doesn't apply, spouse offset doesn't apply.
+  assert.ok(!p.open.some(m => m.id === 'offset-vs-invest'));
+  deq(p.dismissed, []);
+  // Unknown ids (an option that was retired) are ignored, never crash.
+  const q = M.plan(later, { 'retired-move': { status: 'done' }, 'save-more': null, 'spend-less': 'done' });
+  assert.ok(!q.done.some(d => d.id === 'retired-move'));
+  assert.ok(q.open.some(m => m.id === 'spend-less'));
+});
+
+test('plan: the numbers tick an option off only if the person was on it', () => {
+  const s = Object.assign({}, base, { consumerDebt: 0 });
+  // Never had the debt / already saving: not progress, it just doesn't apply.
+  const p = M.plan(s, {});
+  deq(p.done.filter(d => d.auto).map(d => d.id), []);
+  assert.ok(!p.open.some(m => ['clear-debt', 'build-buffer', 'start-saving'].includes(m.id)));
+  // Was "On it" and the numbers now show it → done (auto), with a reason.
+  const on = { 'clear-debt': { status: 'doing' }, 'build-buffer': { status: 'doing' }, 'start-saving': { status: 'doing' } };
+  const q = M.plan(s, on);
+  deq(q.done.filter(d => d.auto).map(d => d.id).sort(), ['build-buffer', 'clear-debt', 'start-saving']);
+  for (const d of q.done) { assert.equal(d.title, titleOf(d.id)); assert.ok(d.reason); }
+  // "On it" for something the numbers now show is done → done.
+  const s2 = Object.assign({}, base, { savingsType: 'etfs' });
+  assert.ok(M.plan(s2, { 'invest-idle-cash': { status: 'doing' } }).done.some(d => d.id === 'invest-idle-cash' && d.auto));
+  // Marked done by the person wins over auto (keeps their date, auto: false).
+  const d = M.plan(s, { 'start-saving': { status: 'done', done_at: '2026-01-01T00:00:00Z' } }).done.find(x => x.id === 'start-saving');
+  assert.equal(d.auto, false);
+  assert.equal(d.done_at, '2026-01-01T00:00:00Z');
+  // Marked done ones come first, newest first; auto ones after.
+  const order = M.plan(s, { 'save-more': { status: 'done', done_at: '2026-02-01T00:00:00Z' }, 'spend-less': { status: 'done', done_at: '2026-03-01T00:00:00Z' } }).done.map(x => x.id);
+  deq(order.slice(0, 2), ['spend-less', 'save-more']);
+});
+
+test('plan: progress counts open + done, never dismissed; limit trims open only', () => {
+  const s = Object.assign({}, base, { consumerDebt: 0 });
+  const p = M.plan(s, {});
+  assert.equal(p.progress.done, p.done.length);
+  assert.equal(p.progress.total, p.open.length + p.done.length);
+  const first = p.open[0].id;
+  const d = M.plan(s, { [first]: { status: 'dismissed' } });
+  assert.equal(d.progress.total, p.progress.total - 1);
+  assert.equal(d.progress.done, p.progress.done);
+  const m = M.plan(s, { [first]: { status: 'done', done_at: '2026-10-08T00:00:00Z' } });
+  assert.equal(m.progress.total, p.progress.total);
+  assert.equal(m.progress.done, p.progress.done + 1);
+  const lim = M.plan(s, {}, { limit: 1 });
+  assert.equal(lim.open.length, 1);
+  deq(lim.progress, p.progress);
+  // Nothing known about the person: nothing counts as done.
+  const empty = M.plan({}, {});
+  deq(empty.progress, { done: 0, total: empty.open.length });
+});
