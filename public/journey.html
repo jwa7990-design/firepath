@@ -22,6 +22,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/app.css"/>
+<link rel="stylesheet" href="css/freedom-path.css"/>
 <style>
   /* ── Journey layout ──────────────────────────────────────
      One question per row, most important first:
@@ -87,6 +88,17 @@
   .milestone-label.edge-start { transform: translateX(-12px); text-align: left; }
   .milestone-label b { display: block; font-weight: 600; color: var(--ink-2); }
   .milestone-label.reached b { color: var(--ember-ink); }
+
+  /* The freedom path (js/freedom-path.js): under the date on phones, across the card's foot on desktop */
+  .hero-path { order: 2; min-width: 0; padding: 16px 20px 18px; border-top: 1px solid var(--line); }
+  .hero-path[hidden] { display: none; }
+  .hero-chart { order: 3; }
+  @media (min-width: 768px) { .hero-path { padding: 18px 32px 22px; } }
+  @media (min-width: 1024px) { .hero-path { order: 0; grid-column: 1 / -1; grid-row: 2; } .hero-chart { order: 0; } }
+  .hero-path-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+  .hero-path-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .hero-path-note { font-size: 12.5px; color: var(--ink-2); }
+  .hero-path-fig { margin: 2px 0 0; }
 
   /* Projection chart panel */
   .hero-chart { background: var(--surface-2); border-top: 1px solid var(--line); padding: 20px 12px 12px 8px; display: flex; flex-direction: column; min-width: 0; }
@@ -233,6 +245,7 @@
 <script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/financial-engine.js"></script>
+<script src="js/freedom-path.js"></script>
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
 <script src="js/moves-status.js"></script>
@@ -304,6 +317,11 @@
             <div class="chart-tip" id="chartTip" role="status" aria-live="polite"></div>
           </div>
           <div class="chart-foot">Invested savings outside super (7% a year after inflation, less tax on its income), plus your super from 60. <a href="assumptions.html">How we calculate</a></div>
+        </div>
+
+        <div class="hero-path" id="heroPathWrap" hidden>
+          <div class="hero-path-head"><span class="hero-path-title">Your path</span><span class="hero-path-note" id="heroPathNote"></span></div>
+          <figure class="hero-path-fig" id="heroPath"></figure>
         </div>
       </div>
     </section>
@@ -470,13 +488,13 @@
     // Markets don't return 7% every year: 2,000 random-return futures on the same plan give
     // a realistic early (1 in 10) to late (1 in 10) window around the same date. Built once
     // per model, not on every re-render.
-    let range = null;
+    let range = null, rangeMonths = null;
     if (months != null && months > 0 && Engine.freedomRange) {
       const sim = Engine.freedomRange(planInputs);
-      if (sim && sim.early != null) range = { early: yearAfter(now, sim.early), late: sim.late != null ? yearAfter(now, sim.late) : null };
+      if (sim && sim.early != null) { range = { early: yearAfter(now, sim.early), late: sim.late != null ? yearAfter(now, sim.late) : null }; rangeMonths = sim; }
     }
     return {
-      p, savings, superBal, debt, mortgage, offset, freedomNumber, monthlySavings, annualSpend, months, range, plan, planInputs,
+      p, savings, superBal, debt, mortgage, offset, freedomNumber, monthlySavings, annualSpend, months, range, rangeMonths, plan, planInputs,
       // Net worth — savings, super and offset, minus everything owed (formula version 3).
       netWorth: (savings + superBal + offset) - (debt + mortgage),
       pct: freedomNumber > 0 ? Math.min(100, Math.round((savings / freedomNumber) * 100)) : 0,
@@ -566,6 +584,20 @@
     $('progressAmounts').textContent = `${money(m.savings)} of ${money(m.freedomNumber)}`;
     renderMilestones(m);
     requestAnimationFrame(() => requestAnimationFrame(() => { $('trackFill').style.width = `${m.pct}%`; }));
+  }
+
+  // The freedom path: the same plan and range as the date above. Once we know where you
+  // started (the oldest full check-in), a faint marker shows the date you had then.
+  let heroViz = null;
+  function renderPath(m) {
+    const wrap = $('heroPathWrap');
+    if (!window.FirePathViz || !m || !m.plan || !m.plan.valid || !(m.age > 0)) { wrap.hidden = true; return; }
+    wrap.hidden = false;
+    if (!heroViz) heroViz = FirePathViz.mount($('heroPath'), { animateIn: true, live: false });
+    const si = sinceInfo;
+    const since = si && Number.isFinite(si.thenAge) && !isFree(m) && Math.abs(si.thenAge - (m.plan.freedomAgeExact || 0)) >= 0.25 ? { age: si.thenAge, label: si.label } : null;
+    heroViz.update(m.plan, m.rangeMonths, { since, far: !isFree(m) && m.months == null });
+    $('heroPathNote').textContent = since ? `The faint marker is your date in ${si.label}` : '';
   }
 
   // Milestones on the progress track. Coast = the balance that grows to the freedom
@@ -1144,6 +1176,7 @@
 
   function renderAll() {
     renderHero(model);
+    renderPath(model);
     renderProjection(model);
     renderKpis(model, prevSnapshot);
     renderLevers(model);
@@ -1284,9 +1317,11 @@
               sinceInfo = {
                 label: d0.toLocaleDateString('en-AU', { month: 'long', year: 'numeric' }),
                 monthsCloser: Math.round(thenAt - nowAt),
-                oldYear: sp.then.freedomYear, newYear: sp.now.freedomYear
+                oldYear: sp.then.freedomYear, newYear: sp.now.freedomYear,
+                thenAge: sp.then.freedomAgeExact   // the freedom age you had then, for the path's "since" marker
               };
               renderPlan();
+              renderPath(model);
             }
           }
         }

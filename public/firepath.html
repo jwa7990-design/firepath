@@ -44,6 +44,7 @@
   <link rel="stylesheet" href="css/app.css"/>
   <link rel="stylesheet" href="css/main.css"/>
   <link rel="stylesheet" href="css/visual-system.css"/>
+  <link rel="stylesheet" href="css/freedom-path.css"/>
   <script src="js/persona.js"></script>
   <style>
   /* ── Page frame: the site shell draws the nav; this is the calculator column ── */
@@ -185,15 +186,10 @@
   .answer-headline { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 6.4vw, 30px); line-height: 1.25; color: var(--ink); margin: 0 0 14px; letter-spacing: -0.01em; }
   .answer-headline:focus { outline: none; }
   .answer-headline strong { color: var(--ember-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .answer-path { margin: 0 0 10px; padding-top: 4px; border-top: 1px solid var(--line); }
+  .answer-path[hidden] { display: none; }
   .answer-range { margin: 0 0 12px; }
-  .range-track { position: relative; height: 14px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
-  .range-band { position: absolute; top: 2px; bottom: 2px; min-width: 10px; border-radius: 999px; background: linear-gradient(90deg, rgba(244, 98, 42, 0.35), rgba(249, 168, 37, 0.45)); }
-  .range-band.open-end { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-  .range-mark { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--ember); box-shadow: 0 0 0 2px var(--surface); }
-  .range-ends { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .range-ends .rule { flex: 1; height: 1px; background: var(--line-strong); }
-  .range-ends strong { color: var(--ink); font-weight: 600; }
-  .range-note { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; margin: 4px 0 0; }
+  .range-note { font-size: 13px; color: var(--ink-2); line-height: 1.45; margin: 0; }
   .answer-why { font-size: 14px; color: var(--ink); line-height: 1.5; margin: 0; }
   .answer-why strong { font-weight: 600; font-variant-numeric: tabular-nums; }
   .answer-stand { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
@@ -225,6 +221,8 @@
   .fp-calc input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); }
   .fp-calc input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); }
   .fp-calc input[type="range"]:disabled { cursor: not-allowed; opacity: 0.4; }
+  .try-path { margin: 2px 0 4px; }
+  .try-path[hidden] { display: none; }
   .try-result { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin: 4px 0 0; padding: 8px 12px; border-radius: var(--r-md); background: var(--surface-2); font-size: 14.5px; color: var(--ink); line-height: 1.45; font-variant-numeric: tabular-nums; min-height: 40px; }
   .try-result strong { font-weight: 700; }
   .try-result .try-diff { color: var(--positive); font-weight: 600; }
@@ -510,9 +508,9 @@
       <section class="fp-card rv" id="answerCard" aria-labelledby="answerHeadline">
         <p class="fp-kicker">Your answer</p>
         <h2 class="answer-headline" id="answerHeadline" tabindex="-1"></h2>
+        <!-- The freedom path (js/freedom-path.js): today, your date, the bridge to 60 and the likely range -->
+        <div class="answer-path" id="answerPath" hidden></div>
         <div class="answer-range" id="answerRange" hidden>
-          <div class="range-track" aria-hidden="true"><span class="range-band" id="rangeBand"></span><span class="range-mark" id="rangeMark"></span></div>
-          <div class="range-ends" aria-hidden="true"><strong id="rangeStart"></strong><span class="rule"></span><span>most likely</span><span class="rule"></span><strong id="rangeEnd"></strong></div>
           <p class="range-note" id="rangeText"></p>
         </div>
         <p class="answer-why" id="answerWhy"></p>
@@ -543,6 +541,7 @@
           <div class="try-top"><label for="trySpend">Spend less</label><output id="trySpendOut" for="trySpend"></output></div>
           <input type="range" id="trySpend" min="0" max="600" step="20" value="0"/>
         </div>
+        <div class="try-path" id="tryPath" hidden></div>
         <p class="try-result" id="tryResult" aria-live="polite"></p>
         <p class="try-note" id="tryNote">Spending less also lowers your freedom number.</p>
       </section>
@@ -707,6 +706,12 @@
     document.getElementById('answerRange').hidden = true;
     document.getElementById('rangeDetail').hidden = true;
     document.getElementById('answerHow').open = false;
+    // The market range (2,000 outcomes) only when there's a date to put it around.
+    r.range = null;
+    if (!r.alreadyFree && inReach(plan) && r.mSav > 0 && FirePathEngine.freedomRange && _planInputs) {
+      try { r.range = FirePathEngine.freedomRange(_planInputs); } catch (e) { r.range = null; }
+    }
+    renderPath(r);
     extra.hidden = true; extra.innerHTML = '';
     fact.hidden = true; fact.textContent = '';
     // Savings rate: a detail, so it lives in "How we worked this out".
@@ -746,7 +751,48 @@
     const line = superLine(plan);
     if (line) parts.push(line);
     why.innerHTML = parts.join(' ');
-    buildRange(plan);
+    buildRange(plan, r.range);
+  }
+
+  // ── The freedom path (js/freedom-path.js) ──
+  // The answer card draws your path from the same plan and range as the answer. Try it has
+  // its own smaller copy beside the sliders (so it's in view on a phone): a slider change
+  // moves its marker to the new date and leaves a dashed ring on your own.
+  let _pathViz = null, _tryViz = null, _previewTimer = 0, _previewKey = '', _previewRange = null, _previewOn = false, _pathFor = null;
+  function pathOpts(r) { return { far: !r.alreadyFree && !inReach(r.plan) }; }
+  function renderPath(r) {
+    const box = document.getElementById('answerPath');
+    if (!window.FirePathViz || !r || !r.plan || !(r.age > 0)) { box.hidden = true; return; }
+    box.hidden = false;
+    if (!_pathViz) _pathViz = FirePathViz.mount(box, { animateIn: true, live: false });
+    _pathViz.update(r.plan, r.range, pathOpts(r));
+  }
+  function renderTryPath(r, preview) {
+    const box = document.getElementById('tryPath');
+    if (!window.FirePathViz || !r || !r.plan || !(r.age > 0) || r.alreadyFree) { box.hidden = true; return; }
+    box.hidden = false;
+    if (!_tryViz) _tryViz = FirePathViz.mount(box, { compact: true, idle: false, live: false });
+    if (_pathFor !== r) { _pathFor = r; _previewKey = ''; _previewRange = null; clearTimeout(_previewTimer); }   // a new calculation
+    const opts = pathOpts(r);
+    if (preview) { opts.preview = preview.plan; opts.previewFar = !preview.plan.alreadyFree && !inReach(preview.plan); opts.previewRange = preview.range || null; }
+    _previewOn = !!preview;
+    _tryViz.update(r.plan, r.range, opts);
+  }
+  // While a slider moves the preview has no band; its range (2,000 outcomes, ~40ms) is
+  // worked out once the slider settles, so dragging stays smooth.
+  function previewPath(r, p, over) {
+    clearTimeout(_previewTimer);
+    if (!p) { if (_previewOn || _pathFor !== r) renderTryPath(r, null); return; }   // back to your own date
+    const key = JSON.stringify(over);
+    const ready = key === _previewKey ? _previewRange : null;
+    renderTryPath(r, { plan: p, range: ready });
+    if (ready || p.alreadyFree || !inReach(p)) return;
+    _previewTimer = setTimeout(() => {
+      let mc = null;
+      try { mc = FirePathEngine.freedomRange(Object.assign({}, _planInputs, over)); } catch (e) { mc = null; }
+      _previewKey = key; _previewRange = mc && mc.early != null ? mc : null;
+      if (_result === r) renderTryPath(r, { plan: p, range: _previewRange });
+    }, 180);
   }
 
   // How super shapes the date (bridge-to-60 rule in freedomPlan).
@@ -759,23 +805,11 @@
 
   // The realistic spread: 2,000 possible market outcomes on the same plan (freedomRange).
   // 10th to 90th percentile, with the headline year marked. Text carries the meaning; the bar is decoration.
-  function buildRange(plan) {
+  function buildRange(plan, mc) {
     const el = document.getElementById('answerRange');
-    if (typeof FirePathEngine === 'undefined' || !FirePathEngine.freedomRange || !_planInputs) return;
-    const mc = FirePathEngine.freedomRange(_planInputs);
-    if (!mc || mc.early === null || plan.freedomYear == null) return;
+    if (!mc || mc.early == null || plan.freedomYear == null) return;
     const now = new Date(), yr = m => new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear();
-    const y1 = yr(mc.early), cap = yr(50 * 12), y2 = mc.late === null ? null : yr(mc.late), head = plan.freedomYear;
-    let lo = Math.min(y1, head), hi = Math.max(y2 === null ? cap : y2, head);
-    if (hi - lo < 2) { lo -= 1; hi += 1; }
-    const pos = y => 8 + (y - lo) / (hi - lo) * 84;   // the band sits inside 8%–92% of the track
-    const band = document.getElementById('rangeBand'), mark = document.getElementById('rangeMark');
-    band.style.left = pos(y1) + '%';
-    band.style.width = y2 === null ? (100 - pos(y1)) + '%' : (pos(y2) - pos(y1)) + '%';
-    band.classList.toggle('open-end', y2 === null);
-    mark.style.left = pos(head) + '%';
-    document.getElementById('rangeStart').textContent = y1;
-    document.getElementById('rangeEnd').textContent = y2 === null ? `after ${cap}` : y2;
+    const y1 = yr(mc.early), cap = yr(50 * 12), y2 = mc.late == null ? null : yr(mc.late);
     const summary = y2 === null ? `Most likely from ${y1}, and in some outcomes after ${cap}.`
       : y1 === y2 ? `Most likely in ${y1}.` : `Most likely between ${y1} and ${y2}.`;
     document.getElementById('rangeText').textContent = summary;
@@ -824,10 +858,12 @@
     save.setAttribute('aria-valuetext', `${dollars(add)} a ${cfg.word} more`);
     spend.setAttribute('aria-valuetext', `${dollars(cut)} a ${cfg.word} less`);
     const out = document.getElementById('tryResult');
-    if (!add && !cut) { out.innerHTML = '<span class="try-same">Move a slider to see how your date changes.</span>'; return; }
+    if (!add && !cut) { out.innerHTML = '<span class="try-same">Move a slider to see how your date changes.</span>'; previewPath(r, null); return; }
     const addM = toMonthly(add, r.cycle), cutM = toMonthly(cut, r.cycle);
     // Spending less works twice: more to save, and a smaller freedom number (25 times spending).
-    const p = planFor({ monthlySavings: r.mSav + addM + cutM, target: Math.max(1, r.fireNum - cutM * 12 * 25 * r.mult) });
+    const over = { monthlySavings: r.mSav + addM + cutM, target: Math.max(1, r.fireNum - cutM * 12 * 25 * r.mult) };
+    const p = planFor(over);
+    previewPath(r, p, over);
     if (!p) { out.innerHTML = '<span class="try-same">Those numbers don’t add up. Try a smaller change.</span>'; return; }
     if (p.alreadyFree) { out.innerHTML = '<span aria-hidden="true">→</span><span class="sr-only">With these changes:</span> <strong>you’d have enough now</strong>'; return; }
     if (!inReach(p)) { out.innerHTML = '<span aria-hidden="true">→</span><span class="sr-only">With these changes:</span> still a long way off. <span class="try-same">Try a bigger change.</span>'; return; }
@@ -1152,6 +1188,7 @@
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
 <script src="js/financial-engine.js"></script>
+<script src="js/freedom-path.js"></script>
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
 <script src="js/interactions.js"></script>

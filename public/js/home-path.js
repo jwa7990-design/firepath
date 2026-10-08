@@ -8,11 +8,13 @@
  *   - works out the hero's what-if options and section 03's three life scenarios,
  *   - keeps section 01's spending slider and the hero's spending box in step,
  *   - draws the visitor's own path larger in 02, and the spread of outcomes in 04.
- * All motion runs through one requestAnimationFrame loop that stops when nothing is
- * moving. The idle touches (a slow pulse on the freedom marker, a few dots drifting
- * along the bridge) only run while the hero is on screen and the tab is visible.
- * prefers-reduced-motion: no drawing in, no travel, no pulse, no drift. Final states only.
- * Needs tax-engine.js, calculations.js and financial-engine.js loaded first.
+ * The hero path itself is drawn by the shared renderer (public/js/freedom-path.js,
+ * FirePathViz), the same one the calculator, retirement age and Your Path pages use.
+ * All motion runs through its one requestAnimationFrame loop (FirePathViz.loop), which
+ * stops when nothing is moving. The idle touches (a slow pulse on the freedom marker,
+ * a few dots drifting along the bridge) only run while the path is on screen and the
+ * tab is visible. prefers-reduced-motion: no drawing in, no travel, no pulse, no drift.
+ * Needs tax-engine.js, calculations.js, financial-engine.js and freedom-path.js first.
  * Runs in the browser only; nothing typed here is sent anywhere.
  */
 (function () {
@@ -21,6 +23,7 @@
   if (!root) return;
   const $ = id => document.getElementById(id);
   const E = window.FirePathEngine;
+  const Viz = window.FirePathViz;
   const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
   let reduce = !!(mq && mq.matches);
   const SUPER_AGE = 60;
@@ -37,6 +40,7 @@
   const easeInOut = k => k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
   const f1 = n => Math.round(n * 10) / 10;                                    // keeps SVG strings short
   const op = n => clamp(n, 0, 1).toFixed(2);                                   // opacity attribute
+  const textW = (str, size) => str.length * size * 0.56;
 
   // Blank = 0. Accepts "1,200", "$1200", "80k" and "1.2m". NaN = not a number we can use.
   function read(key) {
@@ -57,16 +61,16 @@
   }
 
   // ── One animation loop ──────────────────────────────────
-  // Every tween and the idle motion is a task here. The loop only asks for a frame while
-  // at least one task is running, so a still page costs nothing.
-  const tasks = new Map();
-  let loopId = 0;
-  function run(key, fn) { tasks.set(key, fn); if (!loopId) loopId = requestAnimationFrame(loop); }
-  function stop(key) { tasks.delete(key); }
-  function loop(now) {
-    tasks.forEach((fn, key) => { if (fn(now) === false && tasks.get(key) === fn) tasks.delete(key); });
-    loopId = tasks.size ? requestAnimationFrame(loop) : 0;
-  }
+  // Every tween is a task on the path renderer's shared loop, which only asks for a frame
+  // while at least one task is running, so a still page costs nothing.
+  const tasks = Viz ? Viz.loop : (function () {
+    const m = new Map(); let id = 0;
+    const loop = now => { m.forEach((fn, k) => { if (fn(now) === false && m.get(k) === fn) m.delete(k); }); id = m.size ? requestAnimationFrame(loop) : 0; };
+    return { run(k, fn) { m.set(k, fn); if (!id) id = requestAnimationFrame(loop); }, stop(k) { m.delete(k); }, has: k => m.has(k) };
+  })();
+  const mine = new Set();          // this script's own tasks, so reduced motion can stop them
+  function run(key, fn) { mine.add(key); tasks.run(key, fn); }
+  function stop(key) { mine.delete(key); tasks.stop(key); }
 
   // Counts the numbers in an element's text from what's on screen to `to`.
   // `kind` names the sentence shape; a new shape (or reduced motion) just sets the text.
@@ -114,6 +118,7 @@
     if (withRange) {
       const r = range(inp);
       if (r && r.early != null) {
+        s.range = r;
         s.lo = inp.age + r.early / 12;
         // No late figure = some outcomes take longer than the 50 years simulated, so the band runs on past the date.
         s.hi = r.late == null ? Math.min(100, Math.max(inp.age + 50, p.freedomAgeExact + 2)) : inp.age + r.late / 12;
@@ -125,234 +130,45 @@
     return s;
   }
 
-  // ── The hero path (SVG) ─────────────────────────────────
-  // Drawn from a small set of numbers (start, end, freedom, range, ghost) so a change is
-  // a tween of those numbers, redrawn each frame into #hpMain. #hpFx holds the pulse ring
-  // and the drifting dots, which move without redrawing anything else.
-  const svg = $('hpSvg'), mainG = $('hpMain'), fxG = $('hpFx');
-  const pulse = fxG.querySelector('.hp-pulse'), flows = Array.from(fxG.querySelectorAll('.hp-flow'));
-  let svgW = svg.getBoundingClientRect().width || 600;
-  let shown = null;          // what's on screen now
-  let shape = null;          // non-numeric bits of the current picture (status, labels)
-  let fxGeo = null;          // where the marker and bridge are, for the idle motion
-  // The load animation: p = how far the line has drawn (0–1), f = fade of everything after it.
-  let intro = reduce ? null : { p: 0, f: 0 };
-  let introDone = reduce;
+  let base = null;
+  const whenText = v => `in ${Math.round(v[0])} · ${span(v[1], true)} from now`;
 
-  function geometryFor(s, ghostAge) {
-    const age = s.inputs.age;
-    const g = { start: age, free: NaN, lo: NaN, hi: NaN, ghost: Number.isFinite(ghostAge) ? ghostAge : NaN };
-    let far = age + 30;
-    if (s.status === 'ok') {
-      g.free = s.plan.freedomAgeExact;
-      if (s.lo != null) { g.lo = s.lo; g.hi = s.hi; }
-      far = Math.max(g.free, Number.isFinite(g.hi) ? g.hi : 0, g.ghost || 0);
-    } else if (s.status === 'free') {
-      g.free = age;
-      far = age;
-    }
-    g.end = Math.min(Math.max(100, age + 4), Math.max(SUPER_AGE, far, age + 8) + 3);
-    return g;
-  }
-
-  const KEYS = ['start', 'end', 'free', 'lo', 'hi', 'ghost'];
-  function glideTo(next, meta) {
-    shape = meta;
-    if (intro && shown) endIntro();          // an edit during the load animation ends it
-    if (!shown || reduce || !heroOn) { stop('path'); shown = Object.assign({}, next); draw(shown); return; }
-    const from = Object.assign({}, shown);
-    const t0 = performance.now(), dur = 450;
-    run('path', now => {
-      const k = Math.min(1, (now - t0) / dur), e = ease(k);
-      KEYS.forEach(key => {
-        const a = from[key], b = next[key];
-        shown[key] = Number.isFinite(a) && Number.isFinite(b) ? a + (b - a) * e : b;
-      });
-      // A band that's appearing grows out of the freedom marker.
-      if (!Number.isFinite(from.lo) && Number.isFinite(next.lo) && Number.isFinite(next.free)) {
-        shown.lo = next.free + (next.lo - next.free) * e; shown.hi = next.free + (next.hi - next.free) * e;
-      }
-      draw(shown);
-      return k < 1;
-    });
-  }
-
-  function textW(str, size) { return str.length * size * 0.56; }
-
-  function draw(g) {
-    if (!shape) return;
-    const W = Math.max(280, svgW);
-    const narrow = W < 520;
-    const H = 128, Y = 62, padL = 6, padR = 6;
-    svg.setAttribute('viewBox', `0 0 ${f1(W)} ${H}`);
-    const x = a => f1(padL + (clamp(a, g.start, g.end) - g.start) / Math.max(1, g.end - g.start) * (W - padL - padR));
-    const out = [], late = [];          // `late` = things that fade in after the line has drawn
-    const st = shape.status;
-    const x0 = x(g.start), x60 = g.start < SUPER_AGE ? x(SUPER_AGE) : null, xEnd = x(g.end);
-    const ip = intro ? intro.p : 1, fa = intro ? intro.f : 1;
-    fxGeo = null;
-
-    // Age ticks
-    const stepYears = narrow ? 10 : 5;
-    for (let a = Math.ceil((g.start + 1) / stepYears) * stepYears; a <= g.end; a += stepYears) {
-      const tx = x(a);
-      if (tx - x0 < 18 || xEnd - tx < 10) continue;
-      out.push(`<line class="hp-tick" x1="${tx}" x2="${tx}" y1="${Y + 5}" y2="${Y + 9}"/>`);
-      out.push(`<text class="hp-tick-t" x="${tx}" y="${H - 6}" text-anchor="middle">${a}</text>`);
-    }
-
-    if (st === 'invalid') {
-      out.push(`<line class="hp-seg is-after" x1="${x0}" x2="${xEnd}" y1="${Y}" y2="${Y}"/>`);
-      out.push(`<text class="hp-lab" x="${x0}" y="${Y - 14}">Add your numbers to see your path</text>`);
-      mainG.innerHTML = out.join('');
-      idleUpdate();
-      return;
-    }
-
-    // Likely range band
-    if (st === 'ok' && Number.isFinite(g.lo) && Number.isFinite(g.hi)) {
-      const bx = x(g.lo), bw = Math.max(2, x(g.hi) - bx);
-      if (fa > 0) out.push(`<rect class="hp-band" x="${bx}" y="${Y - 10}" width="${f1(bw)}" height="20" rx="3"${fa < 1 ? ` opacity="${op(fa)}"` : ''}/>`);
-    }
-
-    // Segments. The working line draws in first on load; the rest fades in after it.
-    let xf = null;
-    if (st === 'far') {
-      out.push(`<line class="hp-seg is-far" x1="${x0}" x2="${f1(x0 + (xEnd - x0) * ip)}" y1="${Y}" y2="${Y}"/>`);
-    } else {
-      xf = x(g.free);
-      const xHead = f1(x0 + (xf - x0) * ip);
-      if (xHead > x0) out.push(`<line class="hp-seg is-work" x1="${x0}" x2="${xHead}" y1="${Y}" y2="${Y}"/>`);
-      if (x60 != null && xf < x60) late.push(`<line class="hp-seg is-bridge" x1="${xf}" x2="${x60}" y1="${Y}" y2="${Y}"/>`);
-      const xa = Math.max(xf, x60 == null ? xf : x60);
-      if (xEnd > xa) late.push(`<line class="hp-seg is-after" x1="${xa}" x2="${xEnd}" y1="${Y}" y2="${Y}"/>`);
-      // Bridge label, if it fits
-      if (x60 != null && xf < x60) {
-        const t = 'savings carry you', w = textW(t, 11.5);
-        if (x60 - xf > w + 12) late.push(`<text class="hp-lab is-small" x="${f1((xf + x60) / 2)}" y="${Y - 8}" text-anchor="middle">${t}</text>`);
-      }
-    }
-
-    // Labels below the line: Today on the left, 60 where super unlocks
-    const below = [];
-    const todayT = `Today · ${shape.age}`;
-    below.push({ x: x0, w: textW(todayT, 12), anchor: 'start', t: todayT });
-    if (x60 != null) {
-      let t = narrow ? '60 · super' : '60 · super unlocks';
-      let w = textW(t, 12);
-      let lx = Math.min(x60, W - padR - w / 2);
-      if (lx - w / 2 < below[0].x + below[0].w + 10) { t = '60'; w = textW(t, 12); lx = x60; }
-      if (lx - w / 2 >= below[0].x + below[0].w + 6) below.push({ x: f1(lx), w, anchor: 'middle', t, late: true });
-      late.push(`<line class="hp-sixty" x1="${x60}" x2="${x60}" y1="${Y - 9}" y2="${Y + 9}"/>`);
-    }
-    out.push(`<circle class="hp-today-dot" cx="${x0}" cy="${Y}" r="4.5"/>`);
-    below.forEach(l => (l.late ? late : out).push(`<text class="hp-lab" x="${l.x}" y="${Y + 26}" text-anchor="${l.anchor}">${esc(l.t)}</text>`));
-
-    // Ghost marker (where your own numbers put it, while an option is previewed)
-    if (Number.isFinite(g.ghost) && st !== 'far') out.push(`<circle class="hp-ghost" cx="${x(g.ghost)}" cy="${Y}" r="7"/>`);
-
-    // Freedom marker and its label. On load the marker rides the head of the line.
-    if (st === 'far') {
-      late.push(`<text class="hp-lab is-far" x="${xEnd}" y="${Y - 14}" text-anchor="end">Not within reach on these numbers</text>`);
-    } else {
-      const xm = f1(x0 + (xf - x0) * ip);
-      // The label counts along with the marker as it glides.
-      const t = st === 'free' ? 'Work optional now' : `Work optional · ${Math.round(Number.isFinite(g.free) ? g.free : shape.freeAge)}`;
-      const w = textW(t, 13);
-      const lx = f1(Math.min(Math.max(xf, padL + w / 2), W - padR - w / 2));
-      late.push(`<line class="hp-stem" x1="${xf}" x2="${xf}" y1="${Y - 30}" y2="${Y - 8}"/>`);
-      late.push(`<text class="hp-lab is-free" x="${lx}" y="${Y - 36}" text-anchor="middle">${esc(t)}</text>`);
-      out.push(`<circle class="hp-free-dot" cx="${xm}" cy="${Y}" r="7"/>`);
-      fxGeo = { xf, x60: x60 != null && xf < x60 ? x60 : null, Y };
-    }
-    // The fading group sits under the marker so the marker stays on top.
-    const lateHtml = fa <= 0 ? '' : `<g${fa < 1 ? ` opacity="${op(fa)}"` : ''}>${late.join('')}</g>`;
-    const marker = out.findIndex(s => s.indexOf('hp-free-dot') > -1);
-    if (marker > -1) out.splice(marker, 0, lateHtml); else out.push(lateHtml);
-    mainG.innerHTML = out.join('');
-    idleUpdate();
-  }
-
-  // ── Idle motion: a slow pulse on the marker, savings drifting along the bridge ──
-  let heroOn = true;
-  function hideFx() {
-    pulse.setAttribute('opacity', '0');
-    flows.forEach(c => c.setAttribute('opacity', '0'));
-  }
-  function idleTick(now) {
-    const G = fxGeo;
-    if (!G) { hideFx(); return true; }
-    // Pulse: a faint ring grows out of the marker about every 3.2 seconds.
-    const ph = (now % 3200) / 3200;
-    if (ph < 0.5) {
-      const e = ease(ph / 0.5);
-      pulse.setAttribute('cx', G.xf); pulse.setAttribute('cy', G.Y);
-      pulse.setAttribute('r', f1(8 + 11 * e));
-      pulse.setAttribute('opacity', op((1 - e) * 0.3));
-    } else pulse.setAttribute('opacity', '0');
-    // Drift: four dots move from the freedom marker towards 60, fading in and out.
-    const len = G.x60 == null ? 0 : G.x60 - G.xf;
-    flows.forEach((c, i) => {
-      if (len < 48) { c.setAttribute('opacity', '0'); return; }
-      const pos = (now / 1000 * 14 + i * len / flows.length) % len, t = pos / len;
-      c.setAttribute('cx', f1(G.xf + pos)); c.setAttribute('cy', G.Y);
-      c.setAttribute('opacity', op(Math.sin(Math.PI * t) * 0.45));
-    });
-    return true;
-  }
-  function idleUpdate() {
-    const want = !reduce && introDone && heroOn && !document.hidden && !!fxGeo;
-    if (want) { if (!tasks.has('idle')) run('idle', idleTick); }
-    else if (tasks.has('idle')) { stop('idle'); hideFx(); }
-  }
-
-  // ── The load animation ──────────────────────────────────
-  // The line draws from Today to the freedom marker (900ms, ease-out) while the marker
-  // rides its head and the age counts up; then the bridge, 60 and the range fade in.
+  // ── The hero path ───────────────────────────────────────
+  // Drawn by FirePathViz (public/js/freedom-path.js). On load the line draws itself in
+  // once (only if the hero is on screen when the page opens) while the big age counts up;
+  // the range sentence fades in with the band. The hooks below keep the numbers in step.
+  const pathFig = $('hpPath');
   const ageOut = () => $('hpAgeOut');
   const when = $('hpWhen');
-  function seedIntro() {
-    if (!intro || !base || base.status !== 'ok') return;
-    root.classList.add('is-intro');
-    const a = ageOut();
-    untween(a); untween(when);
-    tween(a, 'age', [base.inputs.age], ageText);
-    tween(when, 'when', [THIS_YEAR, 0], whenText);
-  }
-  function playIntro() {
-    if (!intro) return;
-    if (!base || base.status !== 'ok' || reduce) { endIntro(); return; }
-    const D = 900, F = 500, t0 = performance.now();
-    tween(ageOut(), 'age', [base.plan.freedomAge], ageText, D);
-    tween(when, 'when', [base.plan.freedomYear, base.plan.months], whenText, D);
-    let unveiled = false;
-    run('path', now => {
-      if (!intro) return false;
-      const t = now - t0;
-      intro.p = ease(Math.min(1, t / D));
-      intro.f = t <= D ? 0 : ease(Math.min(1, (t - D) / F));
-      if (t > D && !unveiled) { unveiled = true; setRange(base); root.classList.remove('is-intro'); }
-      if (t >= D + F) { endIntro(); return false; }
-      draw(shown);
-      return true;
-    });
-  }
-  // Jumps to the final picture: when the intro ends, or is interrupted by an edit.
-  function endIntro() {
-    if (!intro) return;
-    intro = null; introDone = true;
-    root.classList.remove('is-intro');
-    if (base) showResult(base);
-    if (shown) draw(shown);
-    idleUpdate();
-  }
+  const viz = Viz && pathFig ? Viz.mount(pathFig, {
+    animateIn: 'onload',
+    watch: root,                  // the intro and idle motion follow the whole calculator, as before
+    onIntro(phase, info) {
+      if (phase === 'seed') {
+        if (!base || base.status !== 'ok') return;
+        root.classList.add('is-intro');
+        const a = ageOut();
+        untween(a); untween(when);
+        tween(a, 'age', [base.inputs.age], ageText);
+        tween(when, 'when', [THIS_YEAR, 0], whenText);
+      } else if (phase === 'play') {
+        tween(ageOut(), 'age', [base.plan.freedomAge], ageText, info.duration);
+        tween(when, 'when', [base.plan.freedomYear, base.plan.months], whenText, info.duration);
+      } else if (phase === 'reveal') {
+        setRange(base); root.classList.remove('is-intro');
+      } else if (phase === 'end') {
+        root.classList.remove('is-intro');
+        if (base) showResult(base);
+      }
+    }
+  }) : null;
+  const introOn = () => !!(viz && viz.isIntro());
 
   // ── Wiring ──────────────────────────────────────────────
-  const big = $('hpBig'), rangeOut = $('hpRange'), pathText = $('hpPathText');
+  const big = $('hpBig'), rangeOut = $('hpRange');
   const whatIf = $('hpWhatIf'), preview = $('hpPreview');
   const chips = Array.from(root.querySelectorAll('.hp-chip'));
-  let base = null, chipScen = {}, active = null, edited = false, speakTimer = 0;
-  const whenText = v => `in ${Math.round(v[0])} · ${span(v[1], true)} from now`;
+  let chipScen = {}, active = null, edited = false;
 
   function inputsNow() {
     const v = {}; Object.keys(ids).forEach(k => { v[k] = read(k); });
@@ -368,18 +184,6 @@
   }
 
   function setBig(html) { big.innerHTML = html; }
-
-  function describe(s) {
-    const a = s.inputs.age;
-    if (s.status === 'free') return `Your path: on these numbers, work could be optional now, at ${a}.${a < SUPER_AGE ? ` Your savings would carry you to 60, when super unlocks.` : ''}`;
-    if (s.status === 'far') return `Your path: on these numbers, work doesn’t become optional within a lifetime. Saving more or spending less brings it into view.`;
-    const p = s.plan;
-    let t = `Your path: today you’re ${a}. Work could become optional at ${p.freedomAge}, in ${p.freedomYear}.`;
-    if (p.bridgeYears > 0) t += ` Your savings carry you about ${span(p.bridgeYears * 12)} to 60, then super takes over.`;
-    else if (p.superCounted) t += ' Your super joins in from 60.';
-    if (s.lo != null) t += s.hiOpen ? ` Likely from about ${Math.round(s.lo)}, and in some market outcomes later than ${s.capAge}.` : ` Likely range: about ${Math.round(s.lo)} to ${Math.round(s.hi)}.`;
-    return t;
-  }
 
   function showResult(s) {
     root.dataset.status = s.status;
@@ -406,7 +210,7 @@
     }
     const p = s.plan;
     if (!ageOut()) setBig('Work could become optional at <strong class="hp-age num" id="hpAgeOut"></strong>');
-    if (intro) return;            // the load animation counts these in
+    if (introOn()) return;        // the load animation counts these in
     tween(ageOut(), 'age', [p.freedomAge], ageText);
     tween(when, 'when', [p.freedomYear, p.months], whenText);
     setRange(s);
@@ -453,18 +257,14 @@
     story.update(s);
     scenarios(s);
     futures.update(s);
-    clearTimeout(speakTimer);
-    speakTimer = setTimeout(() => { pathText.textContent = s.status === 'invalid' ? s.message : describe(s); }, 700);
   }
 
-  function paint(s, ghostAge) {
-    glideTo(geometryFor(s, ghostAge), {
-      status: s.status, age: s.inputs.age,
-      freeAge: s.status === 'ok' ? s.plan.freedomAge : null,
-    });
-    const bridge = s.status === 'ok' ? s.plan.bridgeYears > 0 : s.status === 'free' && s.inputs.age < SUPER_AGE;
-    $('hpLegBridge').hidden = !bridge;
-    $('hpLegBand').hidden = !(s.status === 'ok' && s.lo != null);
+  // The path shows `s`; with an option previewed, `alt` is shown and your own date stays as a ghost.
+  function paint(s, alt) {
+    if (!viz) return;
+    const opts = { age: s.inputs.age, message: s.message };
+    if (alt) { opts.preview = alt.plan || null; opts.previewRange = alt.range || null; }
+    viz.update(s.plan || null, s.range || null, opts);
   }
 
   function clearPreview(repaint) {
@@ -496,7 +296,7 @@
       msg = `${label}: that would make work optional now.`;
     } else msg = '';
     preview.textContent = msg + (msg ? ' Tap again to go back.' : '');
-    paint(full, base.status === 'ok' ? base.plan.freedomAgeExact : null);
+    paint(base, full);
   }
 
   chips.forEach(c => c.addEventListener('click', () => choose(c)));
@@ -661,12 +461,12 @@
         sv.setAttribute('viewBox', `0 0 ${f1(W)} ${H}`);
         const yEnd = f1(20 + (H - 40) * p);
         if (model.far) {
-          out.push(`<circle class="hp-today-dot" cx="${LX}" cy="20" r="5"/>`);
+          out.push(`<circle class="fpv-today-dot" cx="${LX}" cy="20" r="5"/>`);
           out.push(`<text class="hp-st" x="${TX}" y="25" font-size="${fs}">Today · ${esc(model.age)}</text>`);
-          out.push(`<line class="hp-seg is-far" x1="${LX}" x2="${LX}" y1="20" y2="${yEnd}"/>`);
+          out.push(`<line class="fpv-seg is-far" x1="${LX}" x2="${LX}" y1="20" y2="${yEnd}"/>`);
           out.push(`<text class="hp-st is-sub" x="${TX}" y="${H / 2 + 8}" font-size="${fsub}" opacity="${p}">Not within reach on these numbers yet</text>`);
         } else {
-          out.push(`<line class="hp-seg is-after" x1="${LX}" x2="${LX}" y1="20" y2="${H - 20}"/>`);
+          out.push(`<line class="fpv-seg is-after" x1="${LX}" x2="${LX}" y1="20" y2="${H - 20}"/>`);
           out.push(`<text class="hp-st is-sub" x="${TX}" y="${H / 2}" font-size="${fsub}">${esc(model.msg)}</text>`);
         }
         sv.innerHTML = out.join('');
@@ -682,7 +482,7 @@
       // Segments
       model.segs.forEach(sg => {
         const y1 = sg.a.y, y2 = Math.min(sg.b.y, head);
-        if (y2 > y1) out.push(`<line class="hp-seg is-${sg.kind}" x1="${LX}" x2="${LX}" y1="${f1(y1)}" y2="${f1(y2)}"/>`);
+        if (y2 > y1) out.push(`<line class="fpv-seg is-${sg.kind}" x1="${LX}" x2="${LX}" y1="${f1(y1)}" y2="${f1(y2)}"/>`);
         if (sg.t) {
           const ym = Math.max((sg.a.y + sg.b.y) / 2, sg.a.sub ? sg.a.y + 46 : 0), o = seen(ym);   // clear of the point's own sub-line
           if (o > 0) {
@@ -699,9 +499,9 @@
         const o = seen(pt.y);
         if (o <= 0) return;
         const g = [];
-        if (pt.kind === 'today') g.push(`<circle class="hp-today-dot" cx="${LX}" cy="${pt.y}" r="5"/>`);
-        if (pt.kind === 'sixty') g.push(`<line class="hp-sixty" x1="${LX - 9}" x2="${LX + 9}" y1="${pt.y}" y2="${pt.y}"/>`);
-        if (pt.kind === 'free') g.push(`<circle class="hp-free-dot" cx="${LX}" cy="${pt.y}" r="8"/>`);
+        if (pt.kind === 'today') g.push(`<circle class="fpv-today-dot" cx="${LX}" cy="${pt.y}" r="5"/>`);
+        if (pt.kind === 'sixty') g.push(`<line class="fpv-sixty" x1="${LX - 9}" x2="${LX + 9}" y1="${pt.y}" y2="${pt.y}"/>`);
+        if (pt.kind === 'free') g.push(`<circle class="fpv-free-dot" cx="${LX}" cy="${pt.y}" r="8"/>`);
         const big = pt.kind === 'free';
         g.push(`<text class="hp-st${big ? ' is-free' : ''}" x="${TX}" y="${f1(pt.y + (pt.sub ? 1 : 5))}" font-size="${big ? fs + 4 : fs}">${esc(pt.t)}</text>`);
         if (pt.sub) g.push(`<text class="hp-st is-sub" x="${TX}" y="${f1(pt.y + 20)}" font-size="${fsub}">${esc(pt.sub)}</text>`);
@@ -820,11 +620,11 @@
       const x = a => f1(pad + (a - a0) / Math.max(1, a1 - a0) * (W - pad * 2));
       const out = [];
       // Likely band (10th to 90th percentile of all 2,000)
-      out.push(`<rect class="hp-band" x="${x(s.lo)}" y="6" width="${f1(Math.max(2, x(s.hi) - x(s.lo)))}" height="${base - 6}" rx="3"/>`);
+      out.push(`<rect class="fpv-band" x="${x(s.lo)}" y="6" width="${f1(Math.max(2, x(s.hi) - x(s.lo)))}" height="${base - 6}" rx="3"/>`);
       // Axis
       out.push(`<line class="hp-axis" x1="${pad}" x2="${f1(W - pad)}" y1="${base}" y2="${base}"/>`);
       const tick = (a1 - a0) > 30 ? 10 : 5;
-      for (let a = Math.ceil(a0 / tick) * tick; a <= a1; a += tick) out.push(`<text class="hp-tick-t" x="${x(a)}" y="${base + 18}" text-anchor="middle">${a}</text>`);
+      for (let a = Math.ceil(a0 / tick) * tick; a <= a1; a += tick) out.push(`<text class="fpv-tick-t" x="${x(a)}" y="${base + 18}" text-anchor="middle">${a}</text>`);
       // Dots, stacked by age
       const dots = [];
       Object.keys(cols).forEach(k => {
@@ -837,7 +637,7 @@
         const mx = x(s.mid), t = `Middle outcome · ${Math.round(s.mid)}`, tw = textW(t, 12.5);
         const lx = clamp(mx, pad + tw / 2, W - pad - tw / 2);
         out.push(`<line class="hp-mid" x1="${mx}" x2="${mx}" y1="22" y2="${base}"/>`);
-        out.push(`<text class="hp-lab is-free" x="${f1(lx)}" y="14" text-anchor="middle" font-size="12.5">${esc(t)}</text>`);
+        out.push(`<text class="fpv-lab is-free" x="${f1(lx)}" y="14" text-anchor="middle" font-size="12.5">${esc(t)}</text>`);
       }
       sv.innerHTML = out.join('');
       const few = data.beyond ? ` ${data.beyond} of these 100 take longer than 50 years.` : '';
@@ -876,47 +676,22 @@
   // ── 05 and anything else that animates once in view (CSS does the motion) ──
   document.querySelectorAll('[data-hp-once]').forEach(el => onceInView(el, () => el.classList.add('is-in'), 0.4));
 
-  // ── Pausing ─────────────────────────────────────────────
-  // The idle motion runs only while the hero is on screen and the tab is visible.
-  let firstSight = true;
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(entries => {
-      heroOn = entries[entries.length - 1].isIntersecting;
-      if (firstSight) {
-        firstSight = false;
-        // Play the load animation only if the hero is in view when the page opens.
-        if (heroOn) playIntro(); else endIntro();
-      }
-      idleUpdate();
-    }).observe(root);
-  }
-  document.addEventListener('visibilitychange', idleUpdate);
+  // ── Reduced motion ──────────────────────────────────────
+  // Switching it on mid-visit lands everything on its final state. (The path renderer
+  // pauses its own idle motion off screen, in hidden tabs and under reduced motion.)
   if (mq) {
     const onMotion = () => {
       reduce = mq.matches;
-      if (reduce) { tasks.clear(); endIntro(); hideFx(); recompute(); }   // land everything on its final state
-      idleUpdate();
+      if (reduce) { Array.from(mine).forEach(stop); recompute(); }
     };
     if (mq.addEventListener) mq.addEventListener('change', onMotion); else if (mq.addListener) mq.addListener(onMotion);
   }
-  watchWidthHero();
-  function watchWidthHero() {
-    if ('ResizeObserver' in window) new ResizeObserver(entries => {
-      const w = entries[0].contentRect.width;
-      if (w && Math.abs(w - svgW) > 0.5) { svgW = w; if (shown) draw(shown); }
-    }).observe(svg);
-  }
 
-  if (!E || !E.freedomPlan) {
-    intro = null; introDone = true;
+  if (!E || !E.freedomPlan || !viz) {
+    if (viz) viz.destroy();
     setBig('The calculator didn’t load.');
     when.textContent = 'Try refreshing the page, or use the full calculator.';
     return;
   }
   recompute();
-  if (intro) {
-    if (base && base.status === 'ok') { seedIntro(); draw(shown); }
-    else endIntro();
-    if (!('IntersectionObserver' in window)) playIntro();
-  }
 })();

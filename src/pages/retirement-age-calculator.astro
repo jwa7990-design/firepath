@@ -40,6 +40,7 @@ const schema = [
 ];
 ---
 <Base title={TITLE} description={DESCRIPTION} path={PATH} keywords={KEYWORDS} image="/og/retirement-age-calculator.png">
+  <link slot="head" rel="stylesheet" href="/css/freedom-path.css"/>
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
   <main id="main">
     <header class="doc-hero">
@@ -90,11 +91,15 @@ const schema = [
           <button type="submit" class="btn btn-ember btn-lg">Work out my age</button>
         </form>
 
-        <div class="ra-result" id="raResult" role="status" aria-live="polite" hidden>
-          <p class="ra-head" id="raHead"></p>
-          <p class="ra-line" id="raLine"></p>
-          <p class="ra-line" id="raRange"></p>
-          <p class="ra-line ra-number" id="raNumber"></p>
+        <div class="ra-result" id="raResult" hidden>
+          <div role="status" aria-live="polite">
+            <p class="ra-head" id="raHead"></p>
+            <p class="ra-line" id="raLine"></p>
+            <p class="ra-line" id="raRange"></p>
+            <p class="ra-line ra-number" id="raNumber"></p>
+          </div>
+          <!-- The freedom path (public/js/freedom-path.js), compact -->
+          <div class="ra-path" id="raPath" hidden></div>
           <a href="/firepath" class="btn btn-ember ra-next">See the full picture: what moves your date <Icon name="arrow" size={15}/></a>
         </div>
         <p class="ra-fine">General information only, not financial advice. In today’s dollars: investments grow about 7% a year after inflation, less tax and fees. Adds employer super if you enter your income. Leaves out the Age Pension, which may top things up from 67. <a href="/assumptions">How we work it out</a>.</p>
@@ -172,6 +177,7 @@ const schema = [
   <script is:inline src="/js/tax-engine.js"></script>
   <script is:inline src="/js/calculations.js"></script>
   <script is:inline src="/js/financial-engine.js"></script>
+  <script is:inline src="/js/freedom-path.js"></script>
   <script is:inline>
     // Quick estimate: the same headline as the free calculator (FirePathEngine.freedomPlan)
     // and its market range (freedomRange). Runs in the browser only; nothing is sent.
@@ -189,6 +195,15 @@ const schema = [
         if (!m) return NaN;
         return Number(m[1]) * (m[2] === 'k' ? 1e3 : m[2] === 'm' ? 1e6 : 1);
       }
+      // The path under the result: the same plan and range, drawn compact.
+      let viz = null;
+      function path(plan, mc) {
+        const el = $('raPath');
+        if (!plan || !window.FirePathViz) { el.hidden = true; return; }
+        el.hidden = false;
+        if (!viz) viz = window.FirePathViz.mount(el, { compact: true, animateIn: true, live: false });
+        viz.update(plan, mc || null);
+      }
       function show(head, line, range, number) {
         $('raHead').textContent = head;
         $('raLine').textContent = line || ''; $('raLine').hidden = !line;
@@ -198,6 +213,7 @@ const schema = [
       }
       function invalid(msg, id) {
         show(msg);
+        path(null);
         box.classList.add('is-note');
         if (id) $(id).setAttribute('aria-invalid', 'true');
       }
@@ -220,12 +236,14 @@ const schema = [
         const number = `Your freedom number: about ${E.fmtM(spend * 25)} (25 × ${money(spend)} a year).`;
         if (!plan || !plan.valid) { invalid('Something in those numbers doesn’t add up. Check each box and try again.'); return; }
         if (plan.alreadyFree) {
+          path(plan);
           show('On these numbers, work could already be optional.',
             age < 60 && sup > 0 && savings < spend * 25 ? 'Your savings could carry you to 60, then your super takes over.' : 'What you have could cover your spending, drawn down slowly.',
             '', number);
           return;
         }
         if (!plan.reachable || plan.freedomAge == null || plan.freedomYear == null || plan.freedomAge > 100) {
+          path(plan);
           show('On these numbers, work doesn’t become optional within a lifetime.',
             'What brings the date into view is saving a bit more each month, or planning to spend a little less. The full calculator shows by how much.',
             '', number);
@@ -234,9 +252,9 @@ const schema = [
         let line = '';
         if (plan.bridgeYears > 0) line = 'Your savings carry you to 60, then your super takes over.';
         else if (plan.superCounted) line = 'From 60, your super joins in.';
-        let range = '';
+        let range = '', mc = null;
         try {
-          const mc = E.freedomRange(inputs);
+          mc = E.freedomRange(inputs);
           if (mc && mc.early != null) {
             const now = new Date(), yr = m => new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear();
             const y1 = yr(mc.early), y2 = mc.late == null ? null : yr(mc.late), cap = yr(50 * 12);
@@ -245,6 +263,7 @@ const schema = [
               : `Across 2,000 possible market outcomes, most likely between ${y1} and ${y2}.`;
           }
         } catch (e) { range = ''; }
+        path(plan, mc);
         show(`Work could be optional around ${plan.freedomYear}, at age ${plan.freedomAge}.`, line, range, number);
       }
       let ran = false;

@@ -2,7 +2,8 @@
 /**
  * The homepage's live freedom path: five inputs, the freedom age, the path drawn as an
  * SVG timeline and three what-if options. Markup only. public/js/home-path.js does the
- * maths (FirePathEngine.freedomPlan + freedomRange) and draws the path.
+ * maths (FirePathEngine.freedomPlan + freedomRange); the shared renderer
+ * public/js/freedom-path.js (FirePathViz) draws the path.
  * The example person below is also the fallback the script resets to.
  */
 const EXAMPLE = { age: 32, savings: 60000, super: 50000, monthly: 2500, spend: 50000 };
@@ -48,18 +49,8 @@ const FIELDS = [
       <p class="hp-range num" id="hpRange"></p>
     </div>
 
-    <figure class="hp-path" aria-labelledby="hpPathText">
-      <svg class="hp-svg" id="hpSvg" aria-hidden="true" focusable="false" width="100%" height="128">
-        <g class="hp-fx" id="hpFx"><circle class="hp-pulse" r="7" cx="-20" cy="62" opacity="0"/><circle class="hp-flow" r="2" cx="-20" cy="62" opacity="0"/><circle class="hp-flow" r="2" cx="-20" cy="62" opacity="0"/><circle class="hp-flow" r="2" cx="-20" cy="62" opacity="0"/><circle class="hp-flow" r="2" cx="-20" cy="62" opacity="0"/></g>
-        <g id="hpMain"></g>
-      </svg>
-      <ul class="hp-legend" aria-hidden="true">
-        <li class="is-work">Working and saving</li>
-        <li class="is-bridge" id="hpLegBridge">Savings carry you</li>
-        <li class="is-band" id="hpLegBand">Likely range</li>
-      </ul>
-      <figcaption class="hp-sr" id="hpPathText" aria-live="polite"></figcaption>
-    </figure>
+    <!-- The path: drawn by public/js/freedom-path.js (FirePathViz), styles in public/css/freedom-path.css -->
+    <figure class="hp-path" id="hpPath"></figure>
 
     <div class="hp-whatif" id="hpWhatIf">
       <p class="hp-whatif-head">Options to try <span>Tap one to see it on the path</span></p>
