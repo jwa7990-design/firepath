@@ -39,9 +39,16 @@ new_sqlite_classes = ["RateLimiter"]
 [triggers]
 crons = ["*/30 * * * *"]
 
-# Optional plain variables (set in the dashboard; keep_vars keeps them):
+# Plain (non-secret) settings live here so every deploy matches the dashboard.
 #   CUSTOMER_EMAILS = "on"   → sends customers the Pro welcome and trial-ending emails
-#   SUPPORT_EMAIL            → Reply-To address on customer emails (default: the owner's)
+#   SUPPORT_EMAIL            → Reply-To address on customer emails
+#   PREVIEW_ORIGINS          → optional, comma-separated preview addresses allowed to
+#                              call the API (add here, or in the dashboard while testing)
+[vars]
+CUSTOMER_EMAILS = "on"
+SUPPORT_EMAIL = "hello@firepath.pro"
+# Temporary, for testing Phase 3 on its preview with a real account. Remove after merging.
+PREVIEW_ORIGINS = "https://phase3-journey.firepath-e2w.pages.dev"
 
 [observability]
 enabled = true
