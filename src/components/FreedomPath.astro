@@ -7,6 +7,9 @@
  */
 const EXAMPLE = { age: 32, savings: 60000, super: 50000, monthly: 2500, spend: 50000 };
 const fmt = (n: number) => n.toLocaleString('en-AU');
+const k = (n: number) => `$${Math.round(n / 1000)}k`;
+// "32 · $60k saved · $50k super · $2,500 a month · $50k a year"
+const exampleLine = `${EXAMPLE.age} · ${k(EXAMPLE.savings)} saved · ${k(EXAMPLE.super)} super · $${fmt(EXAMPLE.monthly)} a month · ${k(EXAMPLE.spend)} a year`;
 const FIELDS = [
   { id: 'hpAge', key: 'age', label: 'Age', money: false, value: String(EXAMPLE.age), unit: '' },
   { id: 'hpSavings', key: 'savings', label: 'Savings and investments', hint: 'outside super', money: true, value: fmt(EXAMPLE.savings), unit: '' },
@@ -18,8 +21,11 @@ const FIELDS = [
 <div class="hp-calc" id="hpCalc" data-example={JSON.stringify(EXAMPLE)}>
   <form class="hp-inputs" id="hpForm" novalidate aria-describedby="hpWho">
     <div class="hp-who">
-      <p id="hpWho"><span class="hp-who-tag" id="hpWhoTag">Example</span> <span id="hpWhoText">32, $60k saved, $50k super, $2,500 a month, $50k a year</span></p>
-      <button type="button" class="hp-reset" id="hpReset" hidden>Back to the example</button>
+      <p class="hp-who-label" id="hpWho" aria-live="polite" aria-atomic="true">
+        <span class="hp-who-ex" id="hpWhoEx"><span class="hp-who-tag">Example person</span> <span class="hp-who-text">{exampleLine}</span></span>
+        <span class="hp-who-you" id="hpWhoYou"></span>
+      </p>
+      <button type="button" class="hp-reset" id="hpReset" hidden>Reset to example</button>
     </div>
     <div class="hp-fields">
       {FIELDS.map(f => (
@@ -37,13 +43,16 @@ const FIELDS = [
 
   <div class="hp-out">
     <div class="hp-result" id="hpResult">
-      <p class="hp-big" id="hpBig">Work could become optional at <strong class="hp-age" id="hpAgeOut">56</strong></p>
-      <p class="hp-when" id="hpWhen">in 2048 · 21 years, 8 months from now</p>
-      <p class="hp-range" id="hpRange"></p>
+      <p class="hp-big" id="hpBig">Work could become optional at <strong class="hp-age num" id="hpAgeOut">48</strong></p>
+      <p class="hp-when num" id="hpWhen">in 2042 · 15 years, 10 months from now</p>
+      <p class="hp-range num" id="hpRange"></p>
     </div>
 
     <figure class="hp-path" aria-labelledby="hpPathText">
-      <svg class="hp-svg" id="hpSvg" role="img" aria-hidden="true" focusable="false" width="100%" height="128"></svg>
+      <svg class="hp-svg" id="hpSvg" aria-hidden="true" focusable="false" width="100%" height="128">
+        <g class="hp-fx" id="hpFx"><circle class="hp-pulse" r="7" cx="-20" cy="62" opacity="0"/><circle class="hp-flow" r="2" cx="-20" cy="62" opacity="0"/><circle class="hp-flow" r="2" cx="-20" cy="62" opacity="0"/><circle class="hp-flow" r="2" cx="-20" cy="62" opacity="0"/><circle class="hp-flow" r="2" cx="-20" cy="62" opacity="0"/></g>
+        <g id="hpMain"></g>
+      </svg>
       <ul class="hp-legend" aria-hidden="true">
         <li class="is-work">Working and saving</li>
         <li class="is-bridge" id="hpLegBridge">Savings carry you</li>

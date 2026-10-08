@@ -20,6 +20,12 @@ const TOOLS = [
   { href: '/freedom-gap', name: 'Freedom gap', line: 'What part-time work and the Age Pension could add.' },
   { href: '/compound', name: 'Compound interest', line: 'What regular saving grows into.' },
 ];
+// Section 03's live what-ifs. public/js/home-path.js works each one out on the hero's numbers.
+const SCENARIOS = [
+  { key: 'windfall', name: 'A $20,000 windfall invested', href: '/hearmeout?scenario=lump', go: 'What if…?' },
+  { key: 'yearoff', name: 'Taking a year off at no saving', href: '/hearmeout', go: 'What if…?' },
+  { key: 'spendless', name: 'Spending $5,000 a year less', href: '/firepath', go: 'Find my freedom date' },
+];
 ---
 <Base title="Money shouldn’t feel confusing | FirePath" description={HOME_DESCRIPTION} path="/">
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify([
@@ -39,7 +45,7 @@ const TOOLS = [
       </div>
     </header>
 
-    <!-- 01 Find your number: the one dark band -->
+    <!-- 01 Find your number: the one dark band, with a spending slider tied to the hero -->
     <section class="hp-number" aria-labelledby="s1-title">
       <div class="hp-wrap hp-number-grid" data-reveal>
         <p class="hp-num">01</p>
@@ -47,13 +53,21 @@ const TOOLS = [
           <h2 id="s1-title" class="hp-h2">Find your number</h2>
           <p class="hp-number-big num"><span data-hp-number>$1,250,000</span></p>
           <p class="hp-number-sum num">25 × <span data-hp-spend>$50,000</span> a year</p>
+          <div class="hp-slide">
+            <label for="hpSpendSlide">Move your yearly spending</label>
+            <input type="range" id="hpSpendSlide" min="30000" max="150000" step="1000" value="50000" aria-valuetext="$50,000 a year"/>
+            <div class="hp-slide-scale num" aria-hidden="true"><span>$30k</span><span>$150k</span></div>
+          </div>
         </div>
-        <p class="hp-number-text">Your freedom number is about 25 times what you spend in a year. Drawn down slowly, about 4% a year, that amount has lasted 30 years or more in most past markets. It counts your savings and your super together, and it moves with the spending you type in above.</p>
+        <div class="hp-number-text">
+          <p>Your freedom number is about 25 times what you spend in a year. Drawn down slowly, about 4% a year, that amount has lasted 30 years or more in most past markets. It counts your savings and your super together, and it moves with the spending you type in above.</p>
+          <p class="hp-number-rule num">Every $1,000 a year less spending lowers it by $25,000.</p>
+        </div>
       </div>
     </section>
 
-    <!-- 02 See your path: editorial two columns with a small path sketch -->
-    <section class="hp-sec" aria-labelledby="s2-title">
+    <!-- 02 See your path: the visitor's own path, drawn larger and annotated -->
+    <section class="hp-sec hp-story" aria-labelledby="s2-title">
       <div class="hp-wrap hp-two" data-reveal>
         <div>
           <p class="hp-num">02</p>
@@ -62,54 +76,70 @@ const TOOLS = [
           <p class="hp-body">From 60 your super joins in and takes over. FirePath checks both parts: that your savings last until 60, and that savings and super together are enough after that.</p>
           <a href="/learn/two-phase-freedom-timeline" class="hp-link">How the two parts work →</a>
         </div>
-        <figure class="hp-sketch" aria-label="A path from today, to the day work becomes optional, to 60 when super can be used">
-          <svg viewBox="0 0 340 130" role="img" aria-hidden="true" focusable="false">
-            <line class="hp-seg is-work" x1="10" x2="130" y1="70" y2="70"/>
-            <line class="hp-seg is-bridge" x1="130" x2="262" y1="70" y2="70"/>
-            <line class="hp-seg is-after" x1="262" x2="332" y1="70" y2="70"/>
-            <line class="hp-sixty" x1="262" x2="262" y1="61" y2="79"/>
-            <circle class="hp-today-dot" cx="10" cy="70" r="4.5"/>
-            <line class="hp-stem" x1="130" x2="130" y1="40" y2="62"/>
-            <circle class="hp-free-dot" cx="130" cy="70" r="7"/>
-            <text class="hp-lab is-free" x="130" y="32" text-anchor="middle">Work optional</text>
-            <text class="hp-lab is-small" x="196" y="61" text-anchor="middle">savings carry you</text>
-            <text class="hp-lab" x="4" y="98">Today</text>
-            <text class="hp-lab" x="262" y="98" text-anchor="middle">60</text>
-            <text class="hp-lab is-small" x="298" y="61" text-anchor="middle">super</text>
-          </svg>
-          <figcaption>Savings first, then super from 60.</figcaption>
+        <figure class="hp-story-fig" id="hpStory">
+          <p class="hp-fig-tag" id="hpStoryTag">Your path, from the numbers above</p>
+          <svg class="hp-story-svg" id="hpStorySvg" aria-hidden="true" focusable="false" width="100%" height="360"></svg>
+          <figcaption class="hp-story-cap" id="hpStoryCap">On the example numbers, work could become optional at 48. Your savings carry you about 12 years to 60, then your super takes over.</figcaption>
         </figure>
       </div>
     </section>
 
-    <!-- 03 Change the variables: tools as a ruled list -->
+    <!-- 03 Change the variables: three live what-ifs on the visitor's numbers, then the tools -->
     <section class="hp-sec" aria-labelledby="s3-title">
       <div class="hp-wrap hp-side" data-reveal>
         <div class="hp-side-head">
           <p class="hp-num">03</p>
           <h2 id="s3-title" class="hp-h2">Change the variables</h2>
-          <p class="hp-body">Free tools for the questions that come next. No account needed.</p>
+          <p class="hp-body">Three things that happen in real life, worked out on the numbers above. Then free tools for the questions that come next. No account needed.</p>
         </div>
-        <ul class="hp-rules">
-          {TOOLS.map(t => (
-            <li><a href={t.href} class="hp-rule">
-              <span class="hp-rule-name">{t.name}</span>
-              <span class="hp-rule-line">{t.line}</span>
-              <span class="hp-rule-go" aria-hidden="true">→</span>
-            </a></li>
-          ))}
-        </ul>
+        <div class="hp-side-main">
+          <p class="hp-fig-tag">On your numbers <span class="num" id="hpScenNow"></span></p>
+          <ul class="hp-scens" id="hpScens">
+            {SCENARIOS.map(sc => (
+              <li><a href={sc.href} class="hp-scen" data-scen={sc.key}>
+                <span class="hp-scen-name">{sc.name}</span>
+                <span class="hp-scen-out num"><span aria-hidden="true">→ </span><span data-out>–</span></span>
+                <span class="hp-scen-meta"><span data-delta></span><span class="hp-scen-go">{sc.go} →</span></span>
+              </a></li>
+            ))}
+          </ul>
+          <p class="hp-scen-note" id="hpScenNote">General information only. The year off pauses saving for 12 months while what you already have keeps growing.</p>
+          <p class="hp-fig-tag is-tools">Tools</p>
+          <ul class="hp-rules">
+            {TOOLS.map(t => (
+              <li><a href={t.href} class="hp-rule">
+                <span class="hp-rule-name">{t.name}</span>
+                <span class="hp-rule-line">{t.line}</span>
+                <span class="hp-rule-go" aria-hidden="true">→</span>
+              </a></li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
 
-    <!-- 04 Understand why: the Learning Lab as an editorial list -->
-    <section class="hp-sec" aria-labelledby="s4-title">
+    <!-- 04 Understand why: the spread of possible futures, then the Learning Lab -->
+    <section class="hp-sec hp-why" aria-labelledby="s4-title">
       <div class="hp-wrap" data-reveal>
         <div class="hp-learn-head">
           <div>
             <p class="hp-num">04</p>
             <h2 id="s4-title" class="hp-h2">Understand why</h2>
           </div>
+          <div class="hp-learn-side">
+            <p class="hp-body">Markets go up and down, so we show the likely range.</p>
+            <a href="/assumptions" class="hp-link">How we calculate →</a>
+          </div>
+        </div>
+        <figure class="hp-fut" id="hpFut">
+          <div class="hp-fut-head">
+            <p class="hp-fut-title num">2,000 possible futures</p>
+            <p class="hp-fut-sub" id="hpFutSub">When work could become optional on your numbers, in 100 of the 2,000 market outcomes we test. Each dot is one outcome.</p>
+          </div>
+          <svg class="hp-fut-svg" id="hpFutSvg" aria-hidden="true" focusable="false" width="100%" height="180"></svg>
+          <figcaption class="hp-fut-cap num" id="hpFutCap" aria-live="polite"></figcaption>
+        </figure>
+        <div class="hp-reads-head">
           <p class="hp-body">{ARTICLES.length} short guides in the Learning Lab, in plain English. Start with these three.</p>
         </div>
         <ol class="hp-reads">
@@ -124,19 +154,32 @@ const TOOLS = [
       </div>
     </section>
 
-    <!-- 05 Keep moving: Pro, understated -->
+    <!-- 05 Keep moving: Pro, with a clearly labelled example of the Your plan card -->
     <section class="hp-sec hp-pro" aria-labelledby="s5-title">
       <div class="hp-wrap hp-pro-grid" data-reveal>
         <div>
           <p class="hp-num">05</p>
           <h2 id="s5-title" class="hp-h2">Keep moving</h2>
-        </div>
-        <div>
           <p class="hp-body">Get to know your numbers free, no account needed. When you want FirePath to keep up with you, Pro saves your plan, lays out your options, shows your progress since last time, and lets you Ask FirePath about your own numbers.</p>
           <p class="hp-pro-price num"><strong>{PRO_PRICE.amount} a month</strong> after a {PRO_PRICE.trialDays}-day free trial.</p>
           <p class="hp-pro-fine">{TRIAL_FINE_PRINT}</p>
           <p class="hp-pro-links"><a href="/upgrade" class="hp-link">Try Pro free for {PRO_PRICE.trialDays} days →</a><a href="/pricing" class="hp-link is-quiet">Compare plans</a></p>
         </div>
+        <figure class="hp-plan" data-hp-once aria-label="Example of Your plan (Pro), with made-up numbers">
+          <figcaption class="hp-fig-tag">Example of Your plan (Pro)</figcaption>
+          <div class="hp-plan-card">
+            <div class="hp-plan-head">
+              <span class="hp-plan-title">Your plan</span>
+              <span class="hp-plan-count num">2 of 5 done</span>
+            </div>
+            <div class="hp-plan-bar" aria-hidden="true"><span></span></div>
+            <ul class="hp-plan-rows">
+              <li><span>Having a three-month cash buffer</span><span class="hp-plan-st is-done">Done</span></li>
+              <li><span>Saving a little more each week</span><span class="hp-plan-st is-doing">On it</span></li>
+            </ul>
+            <p class="hp-plan-moved num">Since March your date moved 8 months closer.</p>
+          </div>
+        </figure>
       </div>
     </section>
 
