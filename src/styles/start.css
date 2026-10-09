@@ -20,3 +20,63 @@
 .start-doors { padding-top: 18px; border-top: 1px solid var(--ink); }
 .start-end { padding-bottom: 72px; }
 @media (min-width: 768px) { .start-end { padding-bottom: 96px; } }
+
+/* ============================================================
+   Warmth layer (start pages + retirement age). Shared upgrades:
+   a bigger reading scale, ember step numerals, ruled rows that
+   darken on hover, and the dark closing band.
+   ============================================================ */
+
+/* Hero: words left, the path motif right (from 900px); under the words on phones */
+.start-hero { display: grid; gap: 36px; align-items: end; }
+.start-motif { max-width: 340px; }
+@media (min-width: 900px) {
+  .start-hero { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; }
+  .start-hero > :first-child { grid-column: 1 / span 7; }
+  .start-motif { grid-column: 8 / span 5; justify-self: end; max-width: 420px; margin-bottom: 14px; }
+}
+
+/* Steps: big ember numerals, every one (the section's single accent) */
+.start-steps .mk-step { grid-template-columns: 64px minmax(0, 1fr); padding: 28px 2px 30px; }
+@media (min-width: 700px) { .start-steps .mk-step { grid-template-columns: 112px minmax(0, 1fr); padding: 36px 2px 38px; } }
+.start-steps .mk-step-n { font-size: clamp(44px, 6vw, 80px); line-height: 0.9; letter-spacing: -0.04em; color: var(--hp-accent); }
+@media (max-width: 499px) { .start-steps .mk-step { grid-template-columns: minmax(0, 1fr); gap: 14px; } .start-steps .mk-step-n { font-size: 60px; } }
+.start-steps .mk-step h3 { font-size: clamp(23px, 2.6vw, 30px); line-height: 1.2; letter-spacing: -0.012em; }
+.start-steps .mk-step p { font-size: 17px; color: var(--ink); }
+.start-steps .mk-step { transition: border-color var(--dur-fast) ease; }
+.start-steps .mk-step:hover { border-bottom-color: var(--ink); }
+
+/* Tools on sand: a larger ruled list */
+.start-free { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+.start-tools .hp-rule-name { font-size: clamp(23px, 2.5vw, 28px); }
+.start-tools .hp-rule-line { font-size: 17px; color: var(--ink); }
+.start-tools .hp-rule-go { color: var(--ink); font-size: 20px; }
+@media (min-width: 700px) { .start-tools .hp-rule { padding: 26px 2px; } }
+
+/* Read next: bigger titles, ink lines */
+.start-reads.hp-rows .start-read { padding: 24px 2px; }
+.start-reads.hp-rows .start-read-title { font-size: clamp(21px, 2.3vw, 25px); }
+.start-reads.hp-rows .start-read-line { font-size: 16px; }
+.start-reads.hp-rows .start-read-meta { color: var(--ink); font-weight: 600; }
+
+/* Questions: one step bigger, answers at body size */
+.start-qs .mk-q summary { padding: 22px 2px; font-size: clamp(20px, 2.2vw, 24px); }
+.start-qs .mk-q summary::after { color: var(--ink); font-size: 24px; }
+.start-qs .mk-q p { font-size: 17px; }
+.start-qs .mk-q { transition: border-color var(--dur-fast) ease; }
+.start-qs .mk-q:hover, .start-qs .mk-q[open] { border-bottom-color: var(--ink); }
+
+/* Not quite you? On sand: the doors as larger links */
+.start-others .mk-doors a { font-size: 18px; }
+.start-others .start-doors { border-top-color: var(--ink); }
+
+/* The dark close */
+.start-end.is-dark { padding-bottom: 88px; }
+@media (min-width: 768px) { .start-end.is-dark { padding-bottom: 120px; } }
+.start-end-title { font-size: clamp(40px, 5.4vw, 64px); }
+.start-end.is-dark .hp-body { color: var(--ink); }
+.start-end.is-dark .mk-note { margin-top: 56px; border-top-color: var(--line); }
+
+@media (prefers-reduced-motion: reduce) {
+  .start-steps .mk-step, .start-qs .mk-q { transition: none !important; }
+}

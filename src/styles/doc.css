@@ -356,3 +356,39 @@
 @media (min-width: 720px) { .doc-ed .doc-ed-contact { grid-template-columns: minmax(0, 1fr) auto; padding: 32px 0 0; } }
 .doc-ed .doc-ed-contact h2 { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3vw, 34px); line-height: 1.1; color: var(--ink); }
 .doc-ed .doc-ed-contact p { margin-top: 10px; font-size: 16px; line-height: 1.6; color: var(--ink-2); max-width: 46ch; }
+
+/* ============================================================
+   Warmth layer for the editorial doc pages (additive, scoped to
+   .doc-ed so the other pages importing this file are unchanged).
+   At a glance sits on sand (.hp-sec.is-sand) with ember marks;
+   How we calculate adds one dark key-figures band.
+   ============================================================ */
+.doc-ed .doc-ed-hero { border-bottom: 0; }
+.doc-ed .doc-ed-glance .hp-h2.is-small { font-size: clamp(30px, 3.6vw, 42px); }
+.doc-ed .doc-ed-glance .hp-side-head .hp-body { color: var(--ink); }
+@media (min-width: 900px) { .doc-ed .doc-ed-glance .hp-side-head { position: sticky; top: calc(var(--nav-h) + 32px); align-self: start; } }
+.doc-ed .doc-glance-name { display: flex; align-items: baseline; gap: 12px; font-size: clamp(20px, 2.1vw, 24px); }
+.doc-ed .doc-glance-name > .hp-mark { transform: translateY(-0.2em); }
+.doc-ed .doc-glance-text { font-size: 17px; line-height: 1.6; color: var(--ink); }
+@media (max-width: 699px) { .doc-ed .doc-glance-text { padding-left: 20px; } }
+
+/* Section headings a step up, the reading text at 17px */
+.doc-ed .doc-section > h2 { font-size: clamp(26px, 3.2vw, 34px); }
+.doc-ed .doc-section p, .doc-ed .doc-section li { font-size: 17px; }
+.doc-ed .doc-section a { color: var(--ink); text-decoration-color: var(--ember); }
+
+/* Key figures: big ember numbers in the dark band */
+.doc-keyfigs .hp-label { margin-bottom: 28px; }
+.doc-keyfigs-list { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; border-top: 1px solid var(--ink); }
+@media (min-width: 900px) { .doc-keyfigs-list { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 24px; } }
+.doc-keyfig { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 22px 0 24px; border-bottom: 1px solid var(--line); }
+@media (min-width: 900px) { .doc-keyfig { padding: 28px 0 8px; border-bottom: 0; } }
+.doc-keyfig-val { font-size: clamp(56px, 8.4vw, 112px); line-height: 0.95; margin-bottom: 10px; }
+.doc-keyfig-name { font-size: 17px; font-weight: 600; line-height: 1.35; color: var(--ink); }
+@media (min-width: 768px) { .doc-keyfig-name { font-size: 19px; } }
+.doc-keyfig-unit { font-size: 15px; line-height: 1.45; color: var(--ink-2); }
+
+/* Labels that head content read in ink (doc pages and articles) */
+.doc-ed .doc-ed-hero .hp-label, :is(.doc-ed, .art-page) .doc-toc-label, .doc-ed .doc-notice-label { color: var(--ink); }
+.doc-ed .doc-ed-hero .hp-label::before, :is(.doc-ed, .art-page) .doc-toc-label::before, .doc-ed .doc-notice-label::before { opacity: 1; }
+:is(.doc-ed, .art-page) .doc-toc-mobile summary { color: var(--ink); }

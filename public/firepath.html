@@ -327,6 +327,62 @@
   .moves-saved { max-width: 62ch; margin: 20px 0 0; padding-top: 14px; border-top: var(--hp-rule); font-size: 13px; color: var(--ink-2); line-height: 1.5; }
   .moves-saved a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
+
+  /* ── Warmth layer (see css/fp-editorial.css, end): sand hero, bigger supporting figures,
+     the freedom number and the answer's age in ember (--hp-accent picks the shade). ── */
+  /* Builder hero on sand */
+  .fb-hero.hp-sec { padding: 40px 0 44px; border-bottom: 0; }
+  @media (min-width: 768px) { .fb-hero.hp-sec { padding: 72px 0 76px; } }
+  .fb-hero .hp-lead { color: var(--ink); }
+  /* Your numbers: answers and the spending line a step up */
+  .fb-line { font-size: 18px; }
+  .fb-spend-line { font-size: 18px; line-height: 1.55; }
+  .fb-spend-line strong { font-family: var(--font-display); font-weight: 700; font-size: 1.3em; letter-spacing: -0.01em; line-height: 1.2; font-variant-numeric: tabular-nums lining-nums; }
+  /* Phones don't show the facts column, so the freedom number takes the ember here */
+  @media (max-width: 899px) { .fb-spend-line strong:last-of-type { color: var(--hp-accent); } }
+  /* The one action, strong */
+  .fb-done { padding-top: 24px; border-top: 1px solid var(--ink); }
+  .fb-ready { margin-bottom: 18px; font-size: clamp(28px, 3vw, 36px); line-height: 1.1; letter-spacing: -0.015em; }
+  .fb-btn { height: 56px; padding: 0 30px; font-size: 17px; }
+  /* Live column: the supporting numbers as figures, the freedom number in ember */
+  @media (min-width: 900px) {
+    .fb-big { font-size: clamp(30px, 3vw, 40px); line-height: 1.08; }
+    .fb-when { font-size: 17px; }
+    .fb-facts { margin-top: 22px; border-top: 1px solid var(--ink); }
+    .fb-facts li { padding: 14px 0; font-size: 17px; line-height: 1.35; }
+    .fb-facts strong { display: inline-block; font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 2.5vw, 32px); line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums lining-nums; }
+    .fb-facts strong.fb-fact-key { color: var(--hp-accent); font-size: clamp(34px, 3.4vw, 46px); }
+    .fb-note { margin-top: 16px; font-size: 16px; }
+  }
+
+  /* Results · 1 Your answer: the age is the page's anchor, in ember */
+  .answer-headline .hp-age { color: var(--hp-accent); font-size: clamp(104px, 15vw, 196px); line-height: 0.85; margin-top: 14px; }
+  .answer-range .hp-lead { font-size: clamp(22px, 2.2vw, 26px); line-height: 1.35; font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
+  .answer-why.hp-body { font-size: 17px; }
+  .stand-line { font-size: 16px; color: var(--ink); }
+  /* 2 · The path: an ink label */
+  .fr-path .hp-fig-tag { color: var(--ink); }
+  .fr-path .hp-fig-tag::before { opacity: 1; }
+  .answer-how summary { font-size: 16px; }
+  .answer-how { font-size: 16px; }
+  /* 3 · Try it on sand: labels and outputs a step up, the result line as a figure */
+  .try-row { margin-bottom: 22px; }
+  .try-top label { font-size: 17px; }
+  .try-top output { font-size: 17px; }
+  .try-note { font-size: 15px; }
+  .try-result { font-size: 18px; }
+  .try-result strong { font-family: var(--font-display); font-size: 1.35em; letter-spacing: -0.01em; font-variant-numeric: tabular-nums lining-nums; }
+  .fr-try .fpv-today-dot, .fr-try .fpv-q-dot, .fr-try .fpv-since { fill: var(--hp-sand); }
+  .fr-try .fpv-free-dot { stroke: var(--hp-sand); }
+  .fr-try .try-result .try-diff { color: #256A29; } /* the positive green, deepened for sand (4.5:1+) */
+  /* 4 · What could move your date: larger options */
+  .move-item { padding: 24px 2px; grid-template-columns: 2.2em minmax(0, 1fr); }
+  .move-num { padding-top: 2px; font: 700 clamp(20px, 2vw, 24px)/1.2 var(--font-display); color: var(--ink); }
+  .move-title { font-size: clamp(24px, 2.6vw, 30px); line-height: 1.15; }
+  .move-effect { font-size: 17px; }
+  .move-why { font-size: 16.5px; }
+  .move-links .text-link { font-size: 15.5px; }
+
   /* A gentle staggered fade-in when the result appears */
   @keyframes fpRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   .rv.rv-in { animation: fpRise 0.5s var(--ease) both; animation-delay: calc(var(--i, 0) * 90ms); }
@@ -343,7 +399,7 @@
        js/firepath-builder.js runs it and writes into the fields calculate() reads (#fbFields).
        ═══════════════════════════════════════════════ -->
   <section class="fb" id="builder" aria-labelledby="fbTitle">
-    <header class="hp-hero fb-hero">
+    <header class="hp-hero hp-sec is-sand fb-hero">
       <div class="hp-wrap">
         <h1 class="hp-h1" id="fbTitle">Build your FirePath</h1>
         <p class="hp-lead">A few quick questions. Your path takes shape as you answer, then shows your date. Free, Australian, no account needed.</p>
@@ -354,7 +410,7 @@
     <div class="fb-body">
     <div class="hp-wrap hp-two fb-grid">
       <div class="fb-flow">
-        <p class="hp-label fb-col-label" aria-hidden="true">Your numbers</p>
+        <p class="hp-label is-ink fb-col-label" aria-hidden="true">Your numbers</p>
         <div class="fb-sofar" id="fbSofar" hidden>
           <p class="hp-sr" id="fbSofarLabel">Your numbers</p>
           <p class="fb-line" id="fbLine" aria-labelledby="fbSofarLabel"></p>
@@ -518,7 +574,7 @@
       <!-- The live path: it takes shape as you answer (Today, 60 and a "?" where your date
            will land), with the supporting numbers. The date itself waits for the results. -->
       <aside class="fb-live hp-fig is-empty is-waiting" id="fbLive" aria-labelledby="fbLiveLabel">
-        <p class="hp-label" id="fbLiveLabel">Your FirePath</p>
+        <p class="hp-label is-ink" id="fbLiveLabel">Your FirePath</p>
         <div class="fb-live-text">
           <p class="fb-big" id="fbBig">Your path draws itself here</p>
           <p class="fb-when" id="fbWhen">Answer on the left and watch it take shape.</p>
@@ -562,7 +618,7 @@
           <button class="back-btn" onclick="showScreen(2)">← Recalculate</button>
           <div class="hp-half fr-answer-grid">
             <div>
-              <p class="hp-label">Your answer</p>
+              <p class="hp-label is-ink">Your answer</p>
               <h2 class="answer-headline" id="answerHeadline" tabindex="-1"></h2>
             </div>
             <div class="fr-answer-side">
@@ -601,7 +657,7 @@
       </section>
 
       <!-- 3 · Try it: the same plan, rerun as the sliders move. Sliders left, the path right. -->
-      <section class="hp-sec fr-try rv" id="tryCard" aria-labelledby="tryTitle">
+      <section class="hp-sec is-sand fr-try rv" id="tryCard" aria-labelledby="tryTitle">
         <div class="hp-wrap hp-two">
           <div class="fr-try-controls">
             <div class="try-head"><h3 class="hp-h2" id="tryTitle">Try it</h3><button type="button" class="text-link small" id="tryReset">Reset</button></div>
@@ -635,7 +691,7 @@
               <span class="moves-ontrack-icon" aria-hidden="true">✓</span>
               <span id="movesOnTrackText">You're on track.</span>
             </div>
-            <ol class="moves-list" id="movesList"></ol>
+            <ol class="moves-list hp-rows" id="movesList"></ol>
             <button type="button" class="moves-more" id="movesMore" aria-expanded="false" aria-controls="movesList" hidden></button>
             <p class="moves-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
           </div>

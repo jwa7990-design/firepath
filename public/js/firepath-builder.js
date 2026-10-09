@@ -399,7 +399,7 @@
         const d = s.d;
         facts.innerHTML = [
           `${d.hasPartner ? 'Your household spends' : 'You spend'} about <strong>${money(d.mS * 12)} a year</strong>`,
-          `Your freedom number: about <strong>${typeof fmtM === "function" ? fmtM(d.fireNum) : bigM(d.fireNum)}</strong>`,
+          `Your freedom number: about <strong class="fb-fact-key">${typeof fmtM === "function" ? fmtM(d.fireNum) : bigM(d.fireNum)}</strong>`,
           d.sRate > 0 ? `You’re saving <strong>${d.sRate}%</strong> of your take-home` : 'Nothing is going into savings from your pay yet'
         ].map(t => `<li>${t}</li>`).join('');
         if (s.v.savings == null || s.v.super == null) note.textContent = 'Your savings and super count as $0 until you add them.';

@@ -6,6 +6,7 @@
  */
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
+import MiniPath from '../../components/MiniPath.astro';
 import { ARTICLES, relatedTo, type Article } from '../../lib/learn';
 import '../../styles/doc.css';
 import '../../styles/article-page.css';
@@ -46,10 +47,13 @@ const breadcrumbs = {
   <main id="main" class="hp art-page" data-progress>
     <header class="hp-hero art-hero">
       <div class="hp-wrap">
-        <nav class="art-crumbs" aria-label="Breadcrumb"><a href="/learn/">Learning Lab</a><span aria-hidden="true">/</span><span>{a.badge}</span></nav>
+        <div class="hp-label is-ink art-kicker">
+          <nav class="art-crumbs" aria-label="Breadcrumb"><a href="/learn/">Learning Lab</a><span aria-hidden="true">/</span><span>{a.badge}</span></nav>
+          <span class="art-kicker-time num"><span aria-hidden="true">·</span> {a.readMins} min read</span>
+        </div>
         <h1 class="hp-h1 art-title">{a.heading}</h1>
         <p class="hp-lead">{a.sub || a.description}</p>
-        <p class="doc-meta-line num">{a.readMins} min read · Educational, not advice</p>
+        <p class="doc-meta-line art-meta"><span class="hp-mark" aria-hidden="true"></span>Educational, not advice</p>
       </div>
     </header>
 
@@ -71,19 +75,6 @@ const breadcrumbs = {
       <article class="doc-content art-content">
         <div class="article-body" set:html={a.body}></div>
 
-        <aside class="art-try">
-          <p class="hp-label art-try-kicker">Try it with your numbers</p>
-          <h2>{a.cta?.heading || 'See how this applies to you'}</h2>
-          <p>{a.cta?.text || 'FirePath works out your own numbers. Free, in about 2 minutes.'}</p>
-          <div class="art-try-actions">
-            {tryLinks.map((l, i) => <>
-              <a href={cleanHref(l.href)} class={i === 0 ? 'doc-btn' : 'art-try-link'}>{l.label.replace(/\s*→$/, '')} {i === 0 && <Icon name="arrow" size={16}/>}</a>
-              {isProHref(l.href) && <span class="art-try-pro">Pro</span>}
-            </>)}
-          </div>
-          {hasProLink && <p class="art-try-pro-note">Part of FirePath Pro. Or <a href="/firepath">try the free calculator</a>.</p>}
-        </aside>
-
         {a.seeAlso && (
           <div class="art-seealso">
             <p class="art-list-tag">See also</p>
@@ -91,30 +82,52 @@ const breadcrumbs = {
           </div>
         )}
 
-        <section class="art-related" aria-labelledby="related-title">
-          <h2 id="related-title">Keep reading</h2>
-          <ul class="art-related-list">
-            {related.map(r => (
-              <li><a href={`/learn/${r.slug}`} class="art-related-card">
-                <span class="art-related-title">{r.heading}</span>
-                <span class="art-related-meta num">{r.badge} · {r.readMins} min read</span>
-              </a></li>
-            ))}
-          </ul>
-          <a href="/learn/" class="hp-link">Browse all of the Learning Lab →</a>
-        </section>
 
         <p class="art-disclaimer">FirePath is here to help you learn. Nothing on this page is financial advice. Everyone’s situation is different, so for advice on yours, talk to a licensed financial adviser.</p>
       </article>
     </div>
     </div>
+
+    <section class="hp-sec is-sand art-try" aria-labelledby="try-title">
+      <div class="hp-wrap hp-two art-try-grid">
+        <div>
+          <p class="hp-label is-ink art-try-kicker">Try it with your numbers</p>
+          <h2 id="try-title" class="hp-h2">{a.cta?.heading || 'See how this applies to you'}</h2>
+          <p class="hp-body is-ink">{a.cta?.text || 'FirePath works out your own numbers. Free, in about 2 minutes.'}</p>
+          <div class="art-try-actions">
+            {tryLinks.map((l, i) => <>
+              <a href={cleanHref(l.href)} class={i === 0 ? 'doc-btn' : 'art-try-link'}>{l.label.replace(/\s*→$/, '')} {i === 0 && <Icon name="arrow" size={16}/>}</a>
+              {isProHref(l.href) && <span class="art-try-pro"><span class="hp-mark" aria-hidden="true"></span>Pro</span>}
+            </>)}
+          </div>
+          {hasProLink && <p class="art-try-pro-note">Part of FirePath Pro. Or <a href="/firepath">try the free calculator</a>.</p>}
+        </div>
+        <div class="art-try-fig">
+          <MiniPath />
+        </div>
+      </div>
+    </section>
+
+    <section class="hp-sec is-dark art-related" aria-labelledby="related-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="related-title" class="hp-h2">Keep reading</h2>
+          <a href="/learn/" class="hp-link">Browse all of the Learning Lab →</a>
+        </div>
+        <ol class="art-related-list hp-rows hp-side-main">
+          {related.map((r, i) => (
+            <li><a href={`/learn/${r.slug}`} class="art-related-card">
+              <span class="art-related-num hp-ember num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              <span class="art-related-title">{r.heading}</span>
+              <span class="art-related-meta num">{r.badge} · {r.readMins} min read</span>
+              <span class="art-related-go hp-go" aria-hidden="true">→</span>
+            </a></li>
+          ))}
+        </ol>
+      </div>
+    </section>
   </main>
 
-  <style>
-    .art-try-pro { padding: 2px 7px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--ink-2); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; }
-    .art-try p.art-try-pro-note { margin-top: 14px; font-size: 13.5px; }
-    .art-try-pro-note a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
-  </style>
 
   <script>
     import { followSections } from '../../scripts/toc';

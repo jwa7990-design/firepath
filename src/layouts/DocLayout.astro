@@ -9,6 +9,8 @@
  *     <section id="collect" data-doc-section> … </section>
  *   </DocLayout>
  * The contents list is built from `sections`, so it can't drift from the page.
+ * An optional `slot="band"` section (e.g. a dark key-figures band) sits between
+ * "at a glance" and the contents.
  * The editorial look is scoped to `.doc-ed` in src/styles/doc.css, so the other
  * pages that import doc.css (FAQ, start pages, pricing…) are unaffected.
  */
@@ -51,7 +53,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
   </header>
 
   {glance && (
-    <section class="hp-sec doc-ed-glance" aria-labelledby="glance-title">
+    <section class="hp-sec is-sand doc-ed-glance" aria-labelledby="glance-title">
       <div class="hp-wrap hp-side">
         <div class="hp-side-head">
           <h2 id="glance-title" class="hp-h2 is-small">At a glance</h2>
@@ -60,7 +62,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
         <ul class="hp-rules doc-glance-rules">
           {glance.map(g => (
             <li class="doc-glance-row">
-              <strong class="doc-glance-name">{g.title}</strong>
+              <strong class="doc-glance-name"><span class="hp-mark" aria-hidden="true"></span>{g.title}</strong>
               <span class="doc-glance-text">{g.text}</span>
             </li>
           ))}
@@ -68,6 +70,8 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
       </div>
     </section>
   )}
+
+  <slot name="band"/>
 
   <section class="hp-sec doc-ed-main">
   <div class="hp-wrap doc-ed-grid">

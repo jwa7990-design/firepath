@@ -59,6 +59,10 @@ const MODELLED: [string, boolean][] = [
   ['Division 296: extra tax on earnings for super balances over $3M, from 1 July 2026', false],
   ['SAPTO, the seniors and pensioners tax offset', false],
 ];
+// The key figures for the dark band, taken from the rows above so they can't drift.
+// The Age Pension age is filled from js/tax-engine.js by the script below.
+const pick = (name: string) => LONG_RUN.find(r => r[0] === name)!;
+const KEY = [pick('Investment return'), pick('Freedom number'), pick('Retiring before 60')].map(([l, , v, unit]) => ({ l, v, unit }));
 const done = MODELLED.filter(([, d]) => d).length;
 const SOURCES = [
   ['Reserve Bank of Australia', 'Cash rate, inflation, savings and mortgage rates', 'https://www.rba.gov.au/statistics/', 'rba.gov.au'],
@@ -82,6 +86,18 @@ const SOURCES = [
   glance={glance}
   glanceNote="The details for each are below."
 >
+  <section slot="band" class="hp-sec is-dark doc-keyfigs" aria-labelledby="keyfigs-title">
+    <div class="hp-wrap">
+      <h2 id="keyfigs-title" class="hp-label is-ink">Long-run assumptions</h2>
+      <ul class="doc-keyfigs-list">
+        {KEY.map(k => (
+          <li class="doc-keyfig"><span class="hp-big is-ember doc-keyfig-val">{k.v}</span><span class="doc-keyfig-name">{k.l}</span><span class="doc-keyfig-unit">{k.unit}</span></li>
+        ))}
+        <li class="doc-keyfig"><span class="hp-big is-ember doc-keyfig-val" id="keyPensionAge">67</span><span class="doc-keyfig-name">Age Pension age</span><span class="doc-keyfig-unit">years</span></li>
+      </ul>
+    </div>
+  </section>
+
   <section class="doc-section" id="your-number" data-doc-section>
     <h2>Your number, step by step</h2>
     <p id="chainIntro">An example. <a href="/auth">Sign in</a> to see this built from your own numbers.</p>
@@ -173,6 +189,7 @@ const SOURCES = [
 
     // Tax, super and pension — straight from js/tax-engine.js
     const c = TAX_CONFIG, P = AGE_PENSION;
+    $('keyPensionAge').textContent = P.eligibilityAge;
     const brackets = c.brackets.map(b => pct(b.rate)).join(' / ');
     $('rateFacts').innerHTML = [
       fact('Income tax brackets ' + c.year, brackets + ' — tax-free up to ' + money(c.brackets[0].max), c.year, 'financial year'),

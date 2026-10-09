@@ -92,6 +92,29 @@
   .success-sub { max-width: 46ch; margin: 0 0 14px; font-size: 17px; color: var(--ink-2); line-height: 1.65; }
   .success-sig { font-size: 15px; color: var(--ink-2); }
   .success-back { display: inline-block; margin-top: 24px; }
+  /* ── Warmth layer: the questions on sand, numbered in ember; inputs at 54px / 18px;
+     the privacy line as a dark panel (shared parts in css/fp-tools.css) ── */
+  #formArea { counter-reset: fbq; }
+  .fb-q { counter-increment: fbq; display: grid; grid-template-columns: minmax(0, 1fr); }
+  .fb-q > .hp-label { color: var(--ink); }
+  .fb-q > .hp-label::before { opacity: 1; }
+  .fb-q::before { content: counter(fbq, decimal-leading-zero); display: block; margin: 0 0 10px; font-family: var(--font-display); font-weight: 700; font-size: clamp(40px, 5vw, 64px); line-height: 0.9; letter-spacing: -0.03em; color: var(--hp-accent); font-variant-numeric: lining-nums; }
+  @media (min-width: 768px) {
+    .fb-q { grid-template-columns: 96px minmax(0, 1fr); column-gap: 8px; }
+    .fb-q::before { grid-row: 1 / span 20; margin: 0; }
+    .fb-q > * { grid-column: 2; }
+  }
+  .card-question { font-size: clamp(23px, 2.5vw, 28px); max-width: 30ch; }
+  .card-hint { font-size: 16px; color: var(--ink); }
+  .tl .input { height: 54px; font-size: 18px; }
+  .tl textarea.input { height: 124px; font-size: 17px; }
+  .tl textarea.input.textarea-tall { height: 144px; }
+  .emoji-label { font-size: 15px; color: var(--ink); }
+  .choice { min-height: 54px; font-size: 18px; }
+  .choice:hover { border-bottom-color: var(--ink); }
+  .fb-aside .tl-disclaimer { padding-top: 0; border-top: 0; max-width: none; font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.2vw, 26px); line-height: 1.3; letter-spacing: -0.01em; color: var(--ink); }
+  .success-sub { color: var(--ink); }
+
   @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   @media (prefers-reduced-motion: reduce) { .success-card.visible { animation: none; } }
   </style>
@@ -108,7 +131,7 @@
     </div>
   </header>
 
-  <div class="tl-body">
+  <div class="tl-body hp-sec is-sand fb-body">
   <div class="hp-wrap fb-grid">
 
   <div id="formArea">
@@ -189,7 +212,7 @@
   </div>
 
   <aside class="fb-aside">
-    <p class="tl-disclaimer">Everything you share stays between us and goes straight into making FirePath better.</p>
+    <div class="hp-panel is-dark"><p class="tl-disclaimer">Everything you share stays between us and goes straight into making FirePath better.</p></div>
   </aside>
 
   </div>
