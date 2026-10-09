@@ -3,11 +3,30 @@
    and marketing.css (plans, price, questions, buttons).
    ============================================================ */
 
-/* Trust line under the plans: plain text, separated by thin rules */
-.price-trust { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 0; margin-top: 40px; font-size: 14px; color: var(--ink-2); }
-.price-trust li { padding-right: 18px; margin-right: 18px; border-right: var(--hp-rule); }
-.price-trust li:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
-@media (max-width: 599px) { .price-trust { display: grid; } .price-trust li { border-right: 0; } }
+/* Hero: words left, the path motif right (from 900px) */
+.price-hero { display: grid; gap: 40px; align-items: end; }
+@media (min-width: 900px) { .price-hero { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; } .price-hero > :first-child { grid-column: 1 / span 7; } .price-motif { grid-column: 8 / span 5; justify-self: end; width: 100%; max-width: 440px; } }
+.price-motif { margin: 0; min-width: 0; }
+@media (max-width: 899px) { .price-motif { max-width: 420px; } }
+
+/* Free on cream, Pro on the dark panel with the ember rule */
+.price-free { padding-top: 8px; }
+@media (min-width: 900px) { .price-free { padding-top: 38px; } }
+.price-free .mk-feats li { font-size: 17px; }
+.price-pro .mk-plan-name { border-bottom-color: var(--line-strong); }
+.price-pro .mk-feats { border-top-color: var(--line-strong); }
+.price-pro .mk-feats li { padding: 16px 0; font-size: 18px; }
+.price-pro .mk-feats li > span { font-size: 15px; }
+.price-pro .mk-plan-sub { color: var(--ink); }
+
+/* Trust line under the plans: three larger points with ember marks */
+.price-trust { list-style: none; display: grid; gap: 0; margin-top: 48px; border-top: 1px solid var(--ink); }
+.price-trust li { display: flex; align-items: baseline; gap: 12px; padding: 16px 2px; border-bottom: var(--hp-rule); font-size: 18px; line-height: 1.4; color: var(--ink); }
+.price-trust li > .hp-mark { transform: translateY(-0.15em); }
+@media (min-width: 900px) {
+  .price-trust { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 24px; margin-top: 64px; }
+  .price-trust li { padding: 20px 2px 0; border-bottom: 0; font-size: 19px; }
+}
 
 /* Examples: a ruled list, the result as a big number */
 .price-proof { list-style: none; border-top: 1px solid var(--ink); }
@@ -18,8 +37,21 @@
   margin-top: 10px; font-family: var(--font-display); font-weight: 700; color: var(--ink);
   font-size: clamp(44px, 6vw, 64px); line-height: 1; letter-spacing: -0.03em;
 }
+.price-proof-big.is-ember { color: var(--hp-accent); font-size: clamp(56px, 8vw, 96px); line-height: 0.95; }
+/* On the dark band: bigger question, the plan as a mark */
+.price-proof-sec .price-proof li { padding: 28px 2px 30px; }
+.price-proof-sec .price-proof-q { font-size: 17px; }
+.price-proof-sec .price-proof-text { font-size: 17px; color: var(--ink); }
+.price-proof-sec .hp-side-head .hp-body { color: var(--ink-2); }
 .price-proof-text { margin-top: 8px; max-width: 54ch; font-size: 15.5px; line-height: 1.55; color: var(--ink-2); }
 .price-proof-eg { margin-top: 8px; font-size: 13px; color: var(--ink-2); }
 
 .price-end { padding-bottom: 96px; }
 @media (min-width: 768px) { .price-end { padding-bottom: 128px; } }
+
+/* The plan beside each example, as a small mark: ember square for Pro, ink outline for Free */
+.price-proof-plan { display: inline-flex; align-items: center; gap: 8px; }
+.price-proof-plan::before { content: ''; width: 8px; height: 8px; box-shadow: inset 0 0 0 1.5px var(--ink-2); }
+.price-proof-plan[data-plan="Pro"] { color: var(--ink); }
+.price-proof-plan[data-plan="Pro"]::before { box-shadow: none; background: var(--hp-accent); }
+.price-pro .mk-price-n { color: var(--hp-accent); }

@@ -6,20 +6,24 @@
 .tour-count { margin-top: 28px; font-size: 15px; font-weight: 600; color: var(--ink); }
 .tour-jump { margin-top: 14px; }
 
-.tour-group { scroll-margin-top: calc(var(--nav-h) + 24px); }
-.tour-group + .tour-group { margin-top: 56px; }
-@media (min-width: 768px) { .tour-group + .tour-group { margin-top: 72px; } }
-.tour-intro { margin-top: 14px; max-width: 34ch; font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.4vw, 28px); line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
+.tour-group { scroll-margin-top: var(--nav-h); }
+.tour > .tour-group:first-child { border-top: 0; }
+/* Group head: a big ember numeral, the group as a real h2, the question under it */
+.tour-gn { margin-bottom: 10px; font-family: var(--font-display); font-weight: 700; font-size: clamp(40px, 4.4vw, 56px); line-height: 1; letter-spacing: -0.03em; color: var(--hp-accent); }
+.tour-gn::after { display: none; }
+.tour-intro { margin-top: 16px; max-width: 34ch; font-size: 17px; line-height: 1.6; color: var(--ink-2); }
+@media (min-width: 900px) { .tour-group .hp-side-head { position: sticky; top: calc(var(--nav-h) + 32px); align-self: start; } }
 
 .tour-list { list-style: none; border-top: 1px solid var(--ink); }
 .tour-list > li { border-bottom: var(--hp-rule); }
-.tour-row { display: block; padding: 22px 2px; color: var(--ink); text-decoration: none; }
+.tour-row { display: block; padding: 26px 2px 28px; color: var(--ink); text-decoration: none; }
 .tour-row-top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
-.tour-name { font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.2vw, 24px); line-height: 1.2; letter-spacing: -0.01em; }
-.tour-plan { flex-shrink: 0; font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
-.tour-line { display: block; margin-top: 6px; max-width: 56ch; font-size: 15.5px; line-height: 1.55; color: var(--ink-2); }
-.tour-pts { list-style: none; margin-top: 10px; display: grid; gap: 4px; }
-.tour-pts li { position: relative; padding-left: 18px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.tour-name { font-family: var(--font-display); font-weight: 700; font-size: clamp(23px, 2.4vw, 28px); line-height: 1.15; letter-spacing: -0.012em; }
+.tour-plan { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.tour-plan[data-plan="Pro"] { color: var(--ink); }
+.tour-line { display: block; margin-top: 8px; max-width: 52ch; font-size: 17px; line-height: 1.55; color: var(--ink); }
+.tour-pts { list-style: none; margin-top: 12px; display: grid; gap: 5px; }
+.tour-pts li { position: relative; padding-left: 18px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
 .tour-pts li::before { content: ''; position: absolute; left: 0; top: 0.75em; width: 9px; height: 1px; background: var(--ink-3); }
 .tour-go { display: inline-block; margin-top: 12px; font-size: 14.5px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; text-decoration-thickness: 1px; }
 .tour-go span { display: inline-block; transition: transform var(--dur-base) var(--ease); }
@@ -27,7 +31,12 @@
 .tour-row:hover .tour-go { text-decoration-color: var(--ink); }
 .tour-row:hover .tour-go span { transform: translateX(4px); }
 
-.tour-compare-title { margin-bottom: 32px; }
+.tour-compare-title { margin-bottom: 32px; font-size: clamp(40px, 5.4vw, 64px); }
+.tour-compare .mk-plan-name { border-bottom-color: var(--line-strong); }
+.tour-compare .mk-feats li { font-size: 17px; }
+.tour-pro { padding-top: 22px; }
+.tour-compare .mk-plan:first-child { padding-top: 24px; border-top: 2px solid transparent; }
+.tour-compare .hp-link { color: var(--ink); text-decoration-color: var(--line-strong); }
 @media (min-width: 768px) { .tour-compare-title { margin-bottom: 48px; } }
 .tour-compare .mk-feats { margin-top: 0; border-top: 0; }
 .tour-compare .hp-link { margin-top: 40px; }
@@ -35,3 +44,15 @@
 @media (min-width: 768px) { .tour-compare { padding-bottom: 128px; } }
 
 @media (prefers-reduced-motion: reduce) { .tour-go span { transition: none !important; } }
+
+/* One ember accent per section: the group numeral. Plans are ink marks (Pro filled, Free outline). */
+.tour-plan .hp-mark:not(.is-ink) { background: var(--ink); }
+
+/* Hero: words left, the path motif right (from 900px; hidden on phones, where the hero is already long) */
+.tour-hero { display: grid; gap: 32px; align-items: end; }
+.tour-motif { display: none; }
+@media (min-width: 900px) {
+  .tour-hero { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; }
+  .tour-hero > :first-child { grid-column: 1 / span 7; }
+  .tour-motif { display: block; grid-column: 8 / span 5; justify-self: end; margin-bottom: 8px; }
+}

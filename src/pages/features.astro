@@ -8,6 +8,7 @@ import Base from '../layouts/Base.astro';
 import { FREE_FEATURES, PRO_FEATURES, TRIAL_FINE_PRINT } from '../data/plans';
 import '../styles/marketing.css';
 import '../styles/tour.css';
+import MiniPath from '../components/MiniPath.astro';
 
 type Tool = { name: string; plan: 'Free' | 'Pro'; href: string; icon: string; line: string; points: string[] };
 const GROUPS: { id: string; title: string; intro: string; tools: Tool[] }[] = [
@@ -58,7 +59,8 @@ const count = (p: 'Free' | 'Pro') => GROUPS.flatMap(g => g.tools).filter(t => t.
   <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
   <main id="main" class="hp">
     <header class="hp-hero">
-      <div class="hp-wrap">
+      <div class="hp-wrap tour-hero">
+        <div>
         <p class="hp-label mk-kicker">The tools</p>
         <h1 class="hp-h1">Every tool, in one place.</h1>
         <p class="hp-lead">Get to know your numbers free, no account needed. You just type them in. Pro saves your plan and adds super, tax and Ask FirePath.</p>
@@ -68,36 +70,39 @@ const count = (p: 'Free' | 'Pro') => GROUPS.flatMap(g => g.tools).filter(t => t.
             {GROUPS.map(g => <li><a href={`#${g.id}`}>{g.title}<span class="num">{g.tools.length}</span></a></li>)}
           </ul>
         </nav>
+        </div>
+        <MiniPath class="tour-motif"/>
       </div>
     </header>
 
-    <section class="hp-sec tour" aria-label="All the tools">
-      <div class="hp-wrap">
-        {GROUPS.map(g => (
-          <section class="hp-side tour-group" id={g.id} aria-labelledby={`${g.id}-title`}>
+    <div class="tour" aria-label="All the tools" role="region">
+      {GROUPS.map((g, gi) => (
+        <section class:list={['hp-sec tour-group', gi % 2 === 1 && 'is-sand']} id={g.id} aria-labelledby={`${g.id}-title`}>
+          <div class="hp-wrap hp-side">
             <div class="hp-side-head">
-              <h2 id={`${g.id}-title`} class="hp-label">{g.title}</h2>
+              <p class="hp-num tour-gn num" aria-hidden="true">{String(gi + 1).padStart(2, '0')}</p>
+              <h2 id={`${g.id}-title`} class="hp-h2 tour-gtitle">{g.title}</h2>
               <p class="tour-intro">{g.intro}</p>
             </div>
-            <ul class="hp-side-main tour-list">
+            <ul class="hp-side-main tour-list hp-rows">
               {g.tools.map(t => (
                 <li><a href={t.href} class="tour-row" data-reveal>
                   <div class="tour-row-top">
                     <h3 class="tour-name">{t.name}</h3>
-                    <span class="tour-plan">{t.plan === 'Free' ? 'Free · no account' : 'Pro'}</span>
+                    <span class="tour-plan" data-plan={t.plan}><span class:list={['hp-mark', t.plan === 'Free' && 'is-ink']} aria-hidden="true"></span>{t.plan === 'Free' ? 'Free · no account' : 'Pro'}</span>
                   </div>
                   <span class="tour-line">{t.line}</span>
                   <ul class="tour-pts">{t.points.map(p => <li>{p}</li>)}</ul>
-                  <span class="tour-go">{t.plan === 'Free' ? 'Open the tool' : 'Part of Pro. Try it 7 days free'} <span aria-hidden="true">→</span></span>
+                  <span class="tour-go">{t.plan === 'Free' ? 'Open the tool' : 'Part of Pro. Try it 7 days free'} <span class="hp-go" aria-hidden="true">→</span></span>
                 </a></li>
               ))}
             </ul>
-          </section>
-        ))}
-      </div>
-    </section>
+          </div>
+        </section>
+      ))}
+    </div>
 
-    <section class="hp-sec tour-compare" aria-labelledby="compare-title">
+    <section class="hp-sec is-dark tour-compare" aria-labelledby="compare-title">
       <div class="hp-wrap">
         <h2 id="compare-title" class="hp-h2 tour-compare-title">Free or Pro?</h2>
         <div class="hp-half">
@@ -106,7 +111,7 @@ const count = (p: 'Free' | 'Pro') => GROUPS.flatMap(g => g.tools).filter(t => t.
             <ul class="mk-feats">{FREE_FEATURES.map(f => <li>{f}</li>)}</ul>
             <div class="mk-actions"><a href="/firepath" class="mk-btn is-outline">Find my freedom date</a></div>
           </div>
-          <div class="mk-plan">
+          <div class="mk-plan hp-feature tour-pro">
             <div class="mk-plan-name"><h3>Pro</h3><span class="mk-plan-tag">$6 a month · 7-day free trial</span></div>
             <ul class="mk-feats">{PRO_FEATURES.map(([t]) => <li>{t}</li>)}</ul>
             <div class="mk-actions"><a href="/upgrade" class="mk-btn">Try Pro free for 7 days</a></div>

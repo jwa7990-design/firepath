@@ -1,0 +1,29 @@
+---
+/**
+ * The path motif (static, lightly animated): Today ─── ● ··· 60.
+ * Ink line for the working years, the ember dot for the freedom date, a dotted
+ * bridge to 60 (super), a faint line after. With `ghost`, an earlier date sits
+ * further right and the dot slides closer (Pro: "watch it move closer").
+ * Styles: .hp-mini* in public/css/fp-editorial.css. Decorative: aria-hidden;
+ * put any words it needs in a caption next to it.
+ */
+interface Props { ghost?: boolean; free?: string; class?: string }
+const { ghost = false, free = 'Your date', class: cls = '' } = Astro.props;
+// Geometry (viewBox 420 × 120): line at y=64. XG - XF = 56 matches the CSS slide (--hp-mini-shift).
+const Y = 64, X0 = 10, XF = 236, X60 = 340, XE = 410, XG = 292;
+---
+<svg class:list={['hp-mini', ghost && 'has-ghost', cls]} viewBox="0 0 420 120" aria-hidden="true" focusable="false">
+  <path class="hp-mini-after" d={`M${X60} ${Y}H${XE}`}/>
+  <path class="hp-mini-bridge" d={`M${XF + 10} ${Y}H${X60 - 4}`}/>
+  <path class="hp-mini-work" pathLength="1" d={`M${X0} ${Y}H${XF}`}/>
+  <line class="hp-mini-tick" x1={X60} y1={Y - 9} x2={X60} y2={Y + 9}/>
+  <circle class="hp-mini-today" cx={X0} cy={Y} r="6"/>
+  {ghost && <circle class="hp-mini-ghost" cx={XG} cy={Y} r="8"/>}
+  <g class="hp-mini-dot">
+    <circle class="hp-mini-ring" cx={XF} cy={Y} r="9"/>
+    <circle class="hp-mini-free" cx={XF} cy={Y} r="10"/>
+    <text class="hp-mini-t is-free" x={XF} y={Y - 22} text-anchor="middle">{free}</text>
+  </g>
+  <text class="hp-mini-t" x={X0} y={Y + 34}>Today</text>
+  <text class="hp-mini-t" x={X60} y={Y + 34} text-anchor="middle">60</text>
+</svg>

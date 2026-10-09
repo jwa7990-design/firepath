@@ -64,13 +64,13 @@ const schema = {
 
     <div class="hub" id="hub">
       <!-- Filled in the browser from the numbers saved by the free calculator (this device only). -->
-      <section class="hp-sec hub-first hub-recs" id="hubRecs" aria-labelledby="recs-title" hidden>
+      <section class="hp-sec is-dark hub-first hub-recs" id="hubRecs" aria-labelledby="recs-title" hidden>
         <div class="hp-wrap">
           <div class="hub-first-head">
             <h2 id="recs-title" class="hp-h2 hub-first-title">Recommended for you</h2>
             <p class="hub-recs-note">Based on the numbers you entered in the calculator · <a href="#" id="hubRecsClear">Clear</a></p>
           </div>
-          <ol class="hub-first-list hub-recs-list" id="hubRecsList"></ol>
+          <ol class="hub-first-list hub-recs-list hp-rows" id="hubRecsList"></ol>
         </div>
       </section>
 
@@ -79,7 +79,7 @@ const schema = {
           <div class="hub-first-head">
             <h2 id="first-title" class="hp-h2 hub-first-title">New here? Your first three reads</h2>
           </div>
-          <ol class="hub-first-list">
+          <ol class="hub-first-list hp-rows">
             {firstReads.map((a, i) => (
               <li><a href={`/learn/${a.slug}`} class="hub-first-card">
                 <span class="hub-first-num">{i + 1}</span>
@@ -91,8 +91,8 @@ const schema = {
         </div>
       </section>
 
-      {shelves.map(s => (
-        <section class="hp-sec hub-shelf" id={s.id} aria-labelledby={`${s.id}-title`} data-hub-shelf>
+      {shelves.map((s, si) => (
+        <section class:list={['hp-sec hub-shelf', si % 2 === 0 && 'is-sand']} id={s.id} aria-labelledby={`${s.id}-title`} data-hub-shelf>
           <div class="hp-wrap hp-side">
             <div class="hp-side-head">
               <h2 id={`${s.id}-title`} class="hp-h2 is-small">{s.title}</h2>
@@ -101,12 +101,12 @@ const schema = {
             </div>
             <div class="hp-side-main">
               {s.articles.length > 0 && (
-                <ul class="hub-list">{s.articles.map(a => <li data-hub-card data-reveal><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
+                <ul class="hub-list hp-rows">{s.articles.map(a => <li data-hub-card data-reveal><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
               )}
               {s.themes.map(t => (
                 <div class="hub-theme" data-hub-theme>
                   <h3>{t.title}</h3>
-                  <ul class="hub-list">{t.articles.map(a => <li data-hub-card data-reveal><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
+                  <ul class="hub-list hp-rows">{t.articles.map(a => <li data-hub-card data-reveal><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
                 </div>
               ))}
             </div>

@@ -8,6 +8,7 @@ import Base from '../layouts/Base.astro';
 import '../styles/marketing.css';
 import '../styles/pricing.css';
 import { faqItems } from '../data/faq';
+import MiniPath from '../components/MiniPath.astro';
 
 import { FREE_FEATURES as FREE, FREE_NOTE, PRO_FEATURES as PRO, TRIAL_FINE_PRINT } from '../data/plans';
 const PROOF = [
@@ -27,17 +28,26 @@ const QUESTIONS = faqItems('account-needed', 'trial', 'cancel', 'advice');
   <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
   <main id="main" class="hp">
     <header class="hp-hero">
-      <div class="hp-wrap">
-        <p class="hp-label mk-kicker">Pricing</p>
-        <h1 class="hp-h1 mk-h1-wide">Free to find your date. $6 to save your plan.</h1>
-        <p class="hp-lead">Get to know your numbers free, no account needed. Pro is $6 a month and adds your saved plan, super, tax and Ask FirePath.</p>
+      <div class="hp-wrap price-hero">
+        <div>
+          <p class="hp-label mk-kicker">Pricing</p>
+          <h1 class="hp-h1 mk-h1-wide">Free to find your date. $6 to save your plan.</h1>
+          <p class="hp-lead">Get to know your numbers free, no account needed. Pro is $6 a month and adds your saved plan, super, tax and Ask FirePath.</p>
+        </div>
+        <figure class="price-motif">
+          <MiniPath ghost/>
+          <ul class="hp-mini-cap">
+            <li><span class="hp-mark is-ink" aria-hidden="true"></span><span><strong>Free:</strong> see your date</span></li>
+            <li><span class="hp-mark" aria-hidden="true"></span><span><strong>Pro:</strong> watch it move closer</span></li>
+          </ul>
+        </figure>
       </div>
     </header>
 
     <section class="hp-sec" aria-label="Plans">
       <div class="hp-wrap">
         <div class="hp-half">
-          <article class="mk-plan">
+          <article class="mk-plan price-free">
             <div class="mk-plan-name"><h2>Free</h2></div>
             <p class="mk-price"><span class="mk-price-n">$0</span><span class="mk-price-per">forever</span></p>
             <p class="mk-plan-sub">{FREE_NOTE}</p>
@@ -47,9 +57,9 @@ const QUESTIONS = faqItems('account-needed', 'trial', 'cancel', 'advice');
             </ul>
           </article>
 
-          <article class="mk-plan">
+          <article class="mk-plan price-pro hp-panel is-dark hp-feature">
             <div class="mk-plan-name"><h2>Pro</h2><span class="mk-plan-tag">7-day free trial</span></div>
-            <p class="mk-price"><span class="mk-price-n">$6</span><span class="mk-price-per">a month (AUD)</span></p>
+            <p class="mk-price"><span class="mk-price-n hp-ember">$6</span><span class="mk-price-per">a month (AUD)</span></p>
             <p class="mk-plan-sub">Everything in Free, plus an account that remembers your numbers:</p>
             <div class="mk-actions"><a href="/upgrade" class="mk-btn">Try Pro free for 7 days</a></div>
             <p class="mk-fine">{TRIAL_FINE_PRINT}</p>
@@ -60,25 +70,25 @@ const QUESTIONS = faqItems('account-needed', 'trial', 'cancel', 'advice');
         </div>
 
         <ul class="price-trust">
-          <li>Cancel any time from Settings</li>
-          <li>Your data is never sold</li>
-          <li>Current ATO rates and live RBA figures</li>
+          <li><span class="hp-mark" aria-hidden="true"></span>Cancel any time from Settings</li>
+          <li><span class="hp-mark" aria-hidden="true"></span>Your data is never sold</li>
+          <li><span class="hp-mark" aria-hidden="true"></span>Current ATO rates and live RBA figures</li>
         </ul>
       </div>
     </section>
 
-    <section class="hp-sec" aria-labelledby="proof-title">
+    <section class="hp-sec is-dark price-proof-sec" aria-labelledby="proof-title">
       <div class="hp-wrap hp-side" data-reveal>
         <div class="hp-side-head">
           <p class="hp-label mk-kicker">What you’ll find out</p>
-          <h2 id="proof-title" class="hp-h2 is-small">A few real examples.</h2>
+          <h2 id="proof-title" class="hp-h2">A few real examples.</h2>
           <p class="hp-body">Example results. The free tools work with any numbers you type in. Pro fills in your own and keeps them.</p>
         </div>
         <ul class="hp-side-main price-proof">
           {PROOF.map(p => (
             <li>
-              <p class="price-proof-q"><span>{p.q}</span><span class="price-proof-plan">{p.plan}</span></p>
-              <p class="price-proof-big num">{p.big}</p>
+              <p class="price-proof-q"><span>{p.q}</span><span class="price-proof-plan" data-plan={p.plan}>{p.plan}</span></p>
+              <p class="price-proof-big hp-big is-ember num">{p.big}</p>
               <p class="price-proof-text">{p.text}</p>
               <p class="price-proof-eg">{p.eg}</p>
             </li>
@@ -87,10 +97,10 @@ const QUESTIONS = faqItems('account-needed', 'trial', 'cancel', 'advice');
       </div>
     </section>
 
-    <section class="hp-sec" aria-labelledby="pq-title">
+    <section class="hp-sec is-sand" aria-labelledby="pq-title">
       <div class="hp-wrap hp-side" data-reveal>
         <div class="hp-side-head">
-          <h2 id="pq-title" class="hp-h2 is-small">Questions before you start</h2>
+          <h2 id="pq-title" class="hp-h2">Questions before you start</h2>
           <p class="hp-body mk-prose">More answers on the <a href="/faq">questions page</a>.</p>
         </div>
         <div class="hp-side-main mk-qs">

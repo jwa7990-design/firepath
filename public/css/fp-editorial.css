@@ -115,3 +115,99 @@
 /* A section straight after a hero needs no second rule (the hero already draws one).
    Added for /firepath; on the homepage the hero is followed by the dark band. */
 .hp-hero + .hp-sec { border-top: 0; }
+
+/* ============================================================
+   Warmth layer (additive). Section tones, a bigger type scale,
+   ember used with purpose, the mini path motif and hover life.
+   Nothing above this line changes, so the homepage is untouched.
+   Contrast (checked): ink 13.4:1 and ink-2 5.9:1 on sand; ember
+   text is --hp-accent, re-set per tone: #C4480F on cream (4.6:1),
+   #A63C0C on sand (5.3:1), #F4622A on espresso (5.4:1).
+   ============================================================ */
+.hp { --hp-sand: #F3E7D8; --hp-accent: var(--ember-ink); }
+
+/* ── Section tones: cream (default) / sand / dark. One dark per page. ── */
+.hp-sec.is-sand {
+  --hp-accent: #A63C0C; --line: #E3D3C0; --line-strong: #D6C3AD; --hp-rule: 1px solid var(--line);
+  background: var(--hp-sand); border-top: 0;
+}
+.hp-sec.is-dark, .hp-panel.is-dark {
+  /* Re-point the palette so every primitive inside reads cream-on-espresso. */
+  --ink: #FDF6EE; --ink-2: #CDBFB3; --ink-3: #9C8B7E;
+  --line: rgba(253, 246, 238, 0.16); --line-strong: rgba(253, 246, 238, 0.32);
+  --bg: #241910; --surface: #2E2117; --hp-accent: var(--ember);
+  --hp-rule: 1px solid var(--line);
+  background: var(--espresso); color: var(--ink);
+}
+.hp-sec.is-dark { border-top: 0; }
+.hp-sec.is-sand + .hp-sec, .hp-sec.is-dark + .hp-sec { border-top: 0; }
+/* Buttons on dark: the solid ember keeps its AA ember (white on #C4480F is 4.9:1). */
+.hp-sec.is-dark :is(a, button):focus-visible, .hp-panel.is-dark :is(a, button):focus-visible { outline-color: var(--ink); }
+
+/* A dark panel: the one place a box is right (e.g. the featured plan) */
+.hp-panel { min-width: 0; padding: 28px 20px 32px; border-radius: var(--hp-r); }
+@media (min-width: 768px) { .hp-panel { padding: 36px 36px 40px; } }
+
+/* ── Type, a step up ─────────────────────────────────────── */
+.hp-h2.is-mid { font-size: clamp(28px, 3.4vw, 40px); }
+.hp-label.is-ink { color: var(--ink); }
+.hp-label.is-ink::before { opacity: 1; }
+.hp-body.is-ink { color: var(--ink); }
+
+/* Ruled list in large type: 18–20px ink, not small grey */
+.hp-list-lg { list-style: none; border-top: 1px solid var(--ink); }
+.hp-list-lg > li { display: flex; align-items: baseline; gap: 14px; padding: 16px 2px; border-bottom: var(--hp-rule); font-size: 18px; line-height: 1.45; color: var(--ink); }
+@media (min-width: 768px) { .hp-list-lg > li { font-size: 19px; padding: 18px 2px; } }
+.hp-list-lg > li > .hp-mark { transform: translateY(-0.2em); }
+.hp-list-lg strong { font-weight: 600; }
+.hp-list-lg .hp-list-sub { display: block; margin-top: 4px; font-size: 15.5px; line-height: 1.5; color: var(--ink-2); }
+
+/* ── Ember with purpose ─────────────────────────────────── */
+/* A key figure in ember (one per section) */
+.hp-big.is-ember, .hp-ember { color: var(--hp-accent); }
+.hp-big.is-ember { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.035em; font-variant-numeric: tabular-nums lining-nums; }
+/* The featured item: a 2px ember rule on top */
+.hp-feature { border-top: 2px solid var(--hp-accent); }
+/* Small markers for key points: an ember square; .is-ink is an ink outline (the lesser mark) */
+.hp-mark { flex: none; display: inline-block; width: 8px; height: 8px; background: var(--hp-accent); vertical-align: 0.1em; }
+.hp-mark.is-ink { background: none; box-shadow: inset 0 0 0 1.5px var(--ink); }
+.hp-mark.is-dot { border-radius: 50%; }
+
+/* ── The path motif: Today ─── ● ··· 60, ink line, ember dot, dotted bridge ── */
+.hp-mini { display: block; width: 100%; max-width: 420px; height: auto; overflow: visible; color: var(--ink); }
+.hp-mini-work { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; }
+.hp-mini-bridge { fill: none; stroke: var(--ink-2); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 0.1 7; }
+.hp-mini-after { fill: none; stroke: var(--line-strong); stroke-width: 2.5; stroke-linecap: round; }
+.hp-mini-today { fill: var(--bg); stroke: var(--ink); stroke-width: 2; }
+.hp-mini-tick { stroke: var(--ink-2); stroke-width: 1.5; }
+.hp-mini-free { fill: var(--ember); stroke: var(--bg); stroke-width: 3; }
+.hp-mini-ghost { fill: none; stroke: var(--ink-2); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.hp-mini-ring { fill: none; stroke: var(--ember); stroke-width: 1.5; opacity: 0; }
+.hp-mini-t { fill: var(--ink-2); font-family: var(--font-ui); font-size: 14px; font-weight: 500; font-variant-numeric: tabular-nums lining-nums; }
+.hp-mini-t.is-free { fill: var(--ink); font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+/* Light motion: the line draws, the dot arrives (sliding closer when there's a ghost), one ring. */
+@media (prefers-reduced-motion: no-preference) {
+  .hp-mini .hp-mini-work { stroke-dasharray: 1; stroke-dashoffset: 1; animation: hpMiniDraw 1100ms var(--ease) 200ms forwards; }
+  .hp-mini .hp-mini-dot { animation: hpMiniIn 600ms var(--ease) 900ms both; }
+  .hp-mini.has-ghost .hp-mini-dot { animation: hpMiniCloser 1400ms var(--ease) 900ms both; }
+  .hp-mini .hp-mini-ring { transform-box: fill-box; transform-origin: center; animation: hpMiniRing 1600ms ease-out 1500ms 2; }
+}
+@keyframes hpMiniDraw { to { stroke-dashoffset: 0; } }
+@keyframes hpMiniIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes hpMiniCloser { from { transform: translateX(var(--hp-mini-shift, 56px)); } to { transform: none; } }
+@keyframes hpMiniRing { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 0; transform: scale(2.4); } }
+/* The motif's caption: two short lines, each with its mark */
+.hp-mini-cap { list-style: none; margin-top: 18px; border-top: var(--hp-rule); max-width: 420px; }
+.hp-mini-cap li { display: flex; align-items: baseline; gap: 12px; padding: 12px 0; border-bottom: var(--hp-rule); font-size: 16px; line-height: 1.4; color: var(--ink); }
+.hp-mini-cap li > .hp-mark { transform: translateY(-0.15em); }
+.hp-mini-cap strong { font-weight: 600; }
+
+/* ── Hover life for ruled rows: the rule darkens, the arrow nudges. No shadows. ── */
+.hp-rows > li { transition: border-color var(--dur-fast) ease; }
+.hp-rows > li:hover, .hp-rows > li:focus-within { border-bottom-color: var(--ink); }
+.hp-go { display: inline-block; transition: transform var(--dur-base) var(--ease); }
+.hp-rows > li:hover .hp-go, .hp-rows > li:focus-within .hp-go { transform: translateX(4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hp-rows > li, .hp-go { transition: none !important; }
+}
