@@ -5,10 +5,9 @@
  * breadcrumb structured data, and links into the right free tools and articles.
  */
 import Base from '../../layouts/Base.astro';
-import Icon from '../../components/Icon.astro';
 import { STARTS, type StartPage } from '../../data/starts';
 import { ARTICLES } from '../../lib/learn';
-import '../../styles/doc.css';
+import '../../styles/marketing.css';
 import '../../styles/start.css';
 
 export function getStaticPaths() {
@@ -27,92 +26,114 @@ const schema = [
 ---
 <Base title={p.seoTitle} description={p.description} path={`/start/${p.slug}`} image={`/og/start/${p.slug}.png`}>
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
-  <main id="main">
-    <header class="doc-hero">
-      <div class="doc-hero-inner">
-        <span class="doc-eyebrow">{p.door}</span>
-        <h1 class="doc-title start-title">{p.title}</h1>
-        <p class="doc-lead">{p.lead}</p>
-        <div class="start-hero-cta">
-          <a href="/firepath" class="btn btn-ember btn-lg"><Icon name="flame" size={16}/>Find my freedom date</a>
-          <span>Free, 2 minutes, no account needed. See what to do first, and next.</span>
+  {/* Shared editorial primitives. Loads before the page CSS (Astro adds bundled CSS after the head slot). */}
+  <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
+  <main id="main" class="hp">
+    <header class="hp-hero">
+      <div class="hp-wrap">
+        <p class="hp-label mk-kicker">{p.door}</p>
+        <h1 class="hp-h1 mk-h1-wide">{p.title}</h1>
+        <p class="hp-lead">{p.lead}</p>
+        <div class="mk-actions">
+          <a href="/firepath" class="mk-btn">Find my freedom date</a>
+          <span class="mk-aside">Free, 2 minutes, no account needed. See what to do first, and next.</span>
         </div>
       </div>
     </header>
 
-    <div class="start">
-      <section class="start-steps" aria-labelledby="steps-title">
-        <h2 id="steps-title" class="start-h2">What to do, in order</h2>
-        <ol>
+    <section class="hp-sec" aria-labelledby="steps-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="steps-title" class="hp-h2 is-small">What to do, in order</h2>
+        </div>
+        <ol class="hp-side-main mk-steps">
           {p.steps.map((s, i) => (
-            <li class="start-step" data-reveal>
-              <span class="start-step-n">{i + 1}</span>
+            <li class="mk-step" data-reveal>
+              <span class="mk-step-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <div>
                 <h3>{s.title}</h3>
                 <p>{s.body}</p>
-                {s.href && <a href={s.href} class="start-step-link">{s.cta} <Icon name="arrow" size={14}/></a>}
+                {s.href && <a href={s.href} class="hp-link">{s.cta} →</a>}
               </div>
             </li>
           ))}
         </ol>
-      </section>
+      </div>
+    </section>
 
-      <section class="start-tools" aria-labelledby="tools-title">
-        <h2 id="tools-title" class="start-h2">Free tools for this</h2>
-        <div class="start-grid">
+    <section class="hp-sec" aria-labelledby="tools-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="tools-title" class="hp-h2 is-small">Free tools for this</h2>
+          <p class="hp-body">Free · no account</p>
+        </div>
+        <ul class="hp-rules">
           {p.tools.map(t => (
-            <a href={t.href} class="start-card" data-reveal>
-              <span class="start-card-plan">Free · no account</span>
-              <span class="start-card-title">{t.name}</span>
-              <span class="start-card-line">{t.line}</span>
-              <span class="start-card-go">Open <Icon name="arrow" size={14}/></span>
-            </a>
+            <li><a href={t.href} class="hp-rule">
+              <span class="hp-rule-name">{t.name}</span>
+              <span class="hp-rule-line">{t.line}</span>
+              <span class="hp-rule-go" aria-hidden="true">→</span>
+            </a></li>
           ))}
-        </div>
-      </section>
+        </ul>
+      </div>
+    </section>
 
-      <section class="start-reads" aria-labelledby="reads-title">
-        <h2 id="reads-title" class="start-h2">Read next</h2>
-        <div class="start-grid">
+    <section class="hp-sec" aria-labelledby="reads-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="reads-title" class="hp-h2 is-small">Read next</h2>
+        </div>
+        <ul class="hp-side-main start-reads">
           {reads.map(a => a && (
-            <a href={`/learn/${a.slug}`} class="start-card is-read" data-reveal>
-              <span class="start-card-plan">{a.readMins} min read</span>
-              <span class="start-card-title">{a.heading}</span>
-              <span class="start-card-line">{a.description}</span>
-            </a>
+            <li><a href={`/learn/${a.slug}`} class="start-read">
+              <span class="start-read-title">{a.heading}</span>
+              <span class="start-read-line">{a.description}</span>
+              <span class="start-read-meta num">{a.readMins} min read</span>
+            </a></li>
           ))}
-        </div>
-      </section>
+        </ul>
+      </div>
+    </section>
 
-      <section class="start-faq" aria-labelledby="faq-title">
-        <h2 id="faq-title" class="start-h2">Straight answers</h2>
-        <div class="pq-list">
+    <section class="hp-sec" aria-labelledby="faq-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="faq-title" class="hp-h2 is-small">Straight answers</h2>
+        </div>
+        <div class="hp-side-main mk-qs">
           {p.faq.map(f => (
-            <details class="pq-item">
-              <summary>{f.q}<span class="pq-chev"><Icon name="chevron" size={13} stroke={2.4}/></span></summary>
+            <details class="mk-q">
+              <summary>{f.q}</summary>
               <p>{f.a}</p>
             </details>
           ))}
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="start-others" aria-label="Other starting points">
-        <h2 class="start-h2">Not quite you?</h2>
-        <div class="start-doors">
-          {others.map(o => <a href={`/start/${o.slug}`} class="start-door"><Icon name={o.icon} size={16}/>{o.door}</a>)}
+    <section class="hp-sec" aria-labelledby="others-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="others-title" class="hp-h2 is-small">Not quite you?</h2>
         </div>
-      </section>
+        <ul class="hp-side-main mk-doors start-doors">
+          {others.map(o => <li><a href={`/start/${o.slug}`}>{o.door}</a></li>)}
+        </ul>
+      </div>
+    </section>
 
-      <aside class="doc-contact">
-        <span class="doc-contact-icon"><Icon name="flame" size={20}/></span>
-        <div>
-          <h2>What to do first, for you</h2>
-          <p>The free calculator shows which of these matter most for you, and by how many years.</p>
+    <section class="hp-sec start-end" aria-labelledby="end-title">
+      <div class="hp-wrap">
+        <div class="mk-close">
+          <div>
+            <h2 id="end-title" class="hp-h2">What to do first, for you</h2>
+            <p class="hp-body">The free calculator shows which of these matter most for you, and by how many years.</p>
+          </div>
+          <div class="mk-actions"><a href="/firepath" class="mk-btn">Find my freedom date</a></div>
         </div>
-        <a href="/firepath" class="btn btn-ember">Find my freedom date</a>
-      </aside>
-
-      <p class="start-note">FirePath is educational, not financial advice. Rules and figures are Australian and current for {new Date().getFullYear()}.</p>
-    </div>
+        <p class="mk-note">FirePath is educational, not financial advice. Rules and figures are Australian and current for {new Date().getFullYear()}.</p>
+      </div>
+    </section>
   </main>
 </Base>

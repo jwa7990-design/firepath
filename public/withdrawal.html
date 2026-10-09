@@ -28,351 +28,328 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/app.css"/>
+<link rel="stylesheet" href="css/fp-editorial.css"/>
+<link rel="stylesheet" href="css/fp-tools.css"/>
 <script src="js/persona.js"></script>
 <script src="js/safe-html.js"></script>
 <style>
-  /* ── Layout: settings on the left, results on the right (desktop) ── */
-  .page-head-sub { max-width: 60ch; }
-  .page-back { display: inline-block; margin-bottom: 10px; }
-  .tool-layout { display: grid; gap: 16px; }
-  @media (min-width: 1024px) {
-    .tool-layout { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 20px; align-items: start; }
-  }
-  .stack > * + * { margin-top: 16px; }
-  @media (min-width: 1024px) { .stack > * + * { margin-top: 20px; } }
-  .icon { width: 20px; height: 20px; flex-shrink: 0; vertical-align: -4px; }
+  /* Layout comes from css/fp-editorial.css (the homepage's primitives) and css/fp-tools.css
+     (the tool pages' shared parts). Hero; settings in columns 1–5 and your income in 7–12
+     (sticky); then the first year, will it last, spending more, the takeaway (the one dark
+     band) and What next. */
+  .icon { width: 16px; height: 16px; flex-shrink: 0; vertical-align: -3px; }
+  .rate-explainer { margin: 20px 0 0; padding-top: 14px; border-top: var(--hp-rule); max-width: 54ch; font-size: 14px; line-height: 1.6; color: var(--ink-2); }
 
-  .card-label { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-  .card-label .icon { color: var(--ink-3); }
-  .card-sub { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin: -6px 0 14px; }
-  .card-note { font-size: 13px; color: var(--ink-2); line-height: 1.6; margin-top: 12px; }
-  .card-note strong { color: var(--ink); font-weight: 600; }
+  /* Your annual income (right-hand figure) */
+  .income-sub { margin: 14px 0 0; max-width: 46ch; font-size: 15.5px; line-height: 1.55; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .growth-note { display: flex; align-items: baseline; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: var(--hp-rule); font-size: 14.5px; line-height: 1.5; }
+  .growth-note:empty { display: none; }
 
-  /* ── Inputs ── */
-  .input-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
-  .input-row:last-child { margin-bottom: 0; }
-  .input-label-text { font-size: 13.5px; font-weight: 500; color: var(--ink); }
-  .input-wrap { position: relative; }
-  .input-prefix-dark { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--ink-2); pointer-events: none; }
-  .dark-input {
-    width: 100%; height: 48px; padding: 0 14px 0 30px; border-radius: var(--r-sm); border: 1px solid var(--line-strong);
-    background: var(--surface); color: var(--ink); font: 400 15px var(--font-ui); font-variant-numeric: tabular-nums;
-    outline: none; -moz-appearance: textfield; transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
-  }
-  .dark-input::-webkit-inner-spin-button, .dark-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-  .dark-input:focus { border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
-  .dark-input::placeholder { color: var(--ink-3); }
-
-  .slider-row { display: flex; align-items: center; gap: 14px; }
-  input[type="range"].dark-slider { flex: 1; min-width: 0; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 99px; background: var(--line-strong); outline: none; cursor: pointer; }
-  input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
-  input[type="range"].dark-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
-  input[type="range"].dark-slider:focus-visible { box-shadow: 0 0 0 3px var(--ember-wash); }
-  .slider-val { min-width: 56px; text-align: right; font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .rate-explainer { margin-top: 16px; }
-
-  /* ── Income — the one dark "earned" surface on the page ── */
-  .income-hero { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-lg); padding: 24px 20px; color: var(--bg); box-shadow: var(--shadow-2); }
-  @media (min-width: 768px) { .income-hero { padding: 28px; } }
-  .income-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(253,246,238,0.55); margin-bottom: 8px; }
-  .income-annual { font-family: var(--font-display); font-weight: 700; font-size: clamp(48px, 11vw, 64px); line-height: 1; letter-spacing: -0.02em; color: var(--amber); font-variant-numeric: lining-nums tabular-nums; }
-  .income-sub { font-size: 13.5px; color: rgba(253,246,238,0.72); margin: 10px 0 20px; font-variant-numeric: tabular-nums; }
-  .income-breakdown { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  .income-tile { background: rgba(253,246,238,0.07); border: 1px solid rgba(253,246,238,0.08); border-radius: var(--r-md); padding: 12px; }
-  .income-tile-label { font-size: 11px; font-weight: 600; color: rgba(253,246,238,0.55); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  .income-tile-value { font-size: 18px; font-weight: 600; color: var(--bg); font-variant-numeric: tabular-nums lining-nums; }
-  .growth-note { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(253,246,238,0.12); font-size: 13px; display: flex; align-items: center; gap: 8px; }
-
-  /* The magic moment */
-  .magic-title { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 19px; font-weight: 700; margin-bottom: 10px; color: var(--ink); }
-  .magic-title .icon { color: var(--ember); }
-  .magic-step { font-size: 14.5px; color: var(--ink-2); }
+  /* How this works: three lines under the income */
+  .magic-card { margin-top: 22px; padding-top: 18px; border-top: var(--hp-rule); }
+  .magic-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-family: var(--font-display); font-size: 21px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+  .magic-title .icon { display: none; }
+  .magic-step { font-size: 15.5px; line-height: 1.5; color: var(--ink-2); }
   .magic-step strong { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .magic-text { font-size: 14px; color: var(--ink-2); line-height: 1.65; }
+  .magic-text { max-width: 54ch; font-size: 15px; color: var(--ink-2); line-height: 1.6; }
   .magic-text strong { color: var(--ink); }
 
-  /* Data rows */
-  .data-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
-  .data-row:last-child { border-bottom: none; padding-bottom: 0; }
-  .data-row.total { border-top: 1px solid var(--line-strong); margin-top: 2px; }
-  .data-label { color: var(--ink-2); }
-  .data-row.total .data-label { color: var(--ink); font-weight: 500; }
-  .data-value { font-weight: 600; font-size: 15px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  /* Ruled rows */
+  .data-row.total { border-bottom: 0; }
+  .data-row.total .data-label { color: var(--ink); font-weight: 600; }
+  .data-row.total .data-value { font-size: 18px; }
   .data-value.up { color: var(--positive); }
   .data-value.out { color: var(--ember-ink); }
-  .data-row.total .data-value { font-size: 17px; }
 
-  /* Portfolio journey chart */
-  .chart-wrap { position: relative; }
+  /* Your savings over time */
+  .chart-wrap { position: relative; margin-top: 14px; }
   .chart-wrap svg { display: block; overflow: visible; }
-  .chart-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); margin-top: 6px; font-variant-numeric: tabular-nums; }
-  .chart-ymax { font-size: 11px; color: var(--ink-3); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+  .chart-axis { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink-2); margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .chart-ymax { font-size: 12.5px; color: var(--ink-2); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
   @keyframes fp-chart-draw { to { stroke-dashoffset: 0; } }
 
-  /* ── Longevity ── */
-  .confidence { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 14px; }
-  .confidence-left { display: flex; align-items: center; gap: 10px; }
-  .confidence-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ink-3); flex-shrink: 0; transition: background 0.4s ease; }
-  .confidence-value { font-size: 17px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  /* Will your money last? */
+  .confidence { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 16px 0; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); }
+  .confidence-left { display: flex; align-items: flex-start; gap: 10px; }
+  .confidence-dot { width: 10px; height: 10px; margin-top: 30px; border-radius: 50%; background: var(--ink-3); flex-shrink: 0; transition: background 0.4s ease; }
+  .confidence .eyebrow, .tl-mini { display: block; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; color: var(--ink-2); }
+  .confidence-value { margin-top: 4px; font-family: var(--font-display); font-size: clamp(22px, 2.6vw, 28px); font-weight: 700; letter-spacing: -0.01em; color: var(--ink); font-variant-numeric: tabular-nums; }
   .confidence-value.up { color: var(--positive); }
-  .longevity-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .longevity-item { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 14px; text-align: center; }
-  .longevity-item.good { background: var(--positive-wash); border-color: rgba(46,125,50,0.2); }
+  .longevity-compare { display: grid; grid-template-columns: 1fr 1fr; border-bottom: var(--hp-rule); }
+  .longevity-item { min-width: 0; padding: 16px 12px 16px 0; }
+  .longevity-item + .longevity-item { padding-left: 16px; border-left: var(--hp-rule); }
   .longevity-years { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); font-variant-numeric: tabular-nums; }
   .longevity-item.good .longevity-years { color: var(--positive); }
-  .longevity-item-label { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; line-height: 1.45; }
-  /* Monte Carlo (many possible market futures) */
-  .mc-result { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px 16px; margin-top: 10px; }
-  .mc-result .confidence-dot { margin-top: 5px; }
-  .mc-headline { font-size: 14.5px; color: var(--ink); line-height: 1.55; }
+  .longevity-item-label { font-size: 13.5px; color: var(--ink-2); margin-top: 4px; line-height: 1.45; }
+  .mc-result { display: flex; gap: 12px; align-items: flex-start; padding: 16px 0; border-bottom: var(--hp-rule); }
+  .mc-result .confidence-dot { margin-top: 7px; }
+  .mc-headline { font-size: 16px; color: var(--ink); line-height: 1.55; }
   .mc-headline strong { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .mc-verdict { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 1px; }
-  .mc-verdict.strong { color: var(--positive); background: var(--positive-wash); }
-  .mc-verdict.okay { color: var(--ink); background: rgba(255,183,77,0.22); }
-  .mc-verdict.fragile { color: var(--negative); background: rgba(198,40,40,0.10); }
-  .mc-detail { font-size: 13px; color: var(--ink-2); line-height: 1.6; margin-top: 4px; font-variant-numeric: tabular-nums; }
-  .mc-explainer { font-size: 12.5px; color: var(--ink-2); line-height: 1.6; margin-top: 8px; }
-  .buffer-note { font-size: 14px; color: var(--ink-2); line-height: 1.7; margin-top: 14px; }
+  .mc-verdict { display: inline; margin-left: 8px; font-size: 13px; font-weight: 700; letter-spacing: 0.02em; }
+  .mc-verdict.strong { color: var(--positive); }
+  .mc-verdict.okay { color: var(--ink); }
+  .mc-verdict.fragile { color: var(--negative); }
+  .mc-detail { font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .mc-explainer { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin-top: 8px; max-width: 62ch; }
+  .buffer-note { max-width: 62ch; font-size: 15.5px; color: var(--ink-2); line-height: 1.7; margin-top: 16px; }
   .buffer-note strong { color: var(--ink); font-weight: 600; }
+  .ai-outlook { margin-top: 24px; }
 
-  .ai-outlook { margin-top: 16px; }
-  .ai-outlook-loading { display: none; text-align: center; padding: 24px 0; }
-  .ai-outlook-loading.visible { display: block; }
-  .ai-outlook-loading-text { font-size: 13px; color: var(--ink-2); margin-top: 10px; }
-  .ai-outlook-flame { animation: aiFlamePulse 1.4s ease-in-out infinite; display: inline-block; color: var(--ember); }
-  @keyframes aiFlamePulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: 0.75; } }
-  .ai-outlook-text { font-size: 14.5px; color: var(--ink-2); line-height: 1.75; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
-  .ai-outlook-text strong { font-weight: 600; color: var(--ink); }
-
-  /* Rate comparison */
-  .rate-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: var(--r-md); margin-bottom: 8px; border: 1px solid var(--line); background: var(--surface); }
-  .rate-row:last-child { margin-bottom: 0; }
-  .rate-row.active { border-color: rgba(244,98,42,0.35); background: var(--ember-wash); }
+  /* What if I spend more? A ruled list */
+  #w-rateComparison { border-top: 1px solid var(--ink); }
+  .rate-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 2px; border-bottom: var(--hp-rule); }
   .rate-left { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-  .rate-pct { font-size: 14.5px; font-weight: 600; color: var(--ink); }
-  .rate-row.active .rate-pct { color: var(--ember-ink); }
-  .rate-desc { font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .rate-pct { font-family: var(--font-display); font-size: 19px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+  .rate-row.active { box-shadow: inset 3px 0 0 var(--ink); padding-left: 16px; }
+  .rate-desc { font-size: 13.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
   .rate-income { font-size: 17px; font-weight: 600; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .rate-growth { font-size: 12px; color: var(--ink-2); text-align: right; margin-top: 2px; }
+  .rate-growth { font-size: 13px; color: var(--ink-2); text-align: right; margin-top: 2px; }
   .rate-growth.positive { color: var(--positive); }
   .rate-growth.warning { color: var(--ink-2); }
   .rate-growth.danger { color: var(--negative); }
+  @media (max-width: 479px) { .rate-row { flex-direction: column; align-items: flex-start; } .rate-row > div:last-child { text-align: left !important; } .rate-growth { text-align: left; } }
 
-  /* Takeaway */
-  .takeaway { font-size: 14.5px; color: var(--ink-2); line-height: 1.7; }
-
-  /* "How long should it last?" — full-width .segmented */
-  .horizon-group.segmented { display: flex; width: 100%; }
-  .horizon-group.segmented > * { flex: 1; min-width: 0; padding: 8px 6px; white-space: nowrap; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
-  .horizon-group.segmented > :hover:not(.active) { color: var(--ink); }
-  .horizon-group.segmented > :focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
-
-  .disclaimer { font-size: 12px; color: var(--ink-2); line-height: 1.6; text-align: center; max-width: 64ch; margin: 4px auto 0; }
+  /* Your takeaway: the one dark band */
+  .takeaway { margin: 0; max-width: 40ch; font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.35; letter-spacing: -0.01em; color: var(--bg); }
 </style>
 </head>
 <body class="app" data-shell="app" data-public="true" data-active="strategy">
 <script src="js/shell.js"></script>
 
-<main class="app-main">
+<main class="tl hp" id="main">
 
-  <header class="page-head">
-    <div>
-      <a data-app-only href="strategy.html" class="section-link page-back">← Strategy</a>
-      <a href="features.html" class="section-link page-back" data-site-only>← All tools</a>
-      <div class="eyebrow">The 4% rule, explained</div>
-      <h1 class="page-head-title">Withdrawal planner</h1>
-      <p class="page-head-sub">See how much your savings could pay you each year, and whether they’ll last.</p>
+  <header class="hp-hero tl-hero">
+    <div class="hp-wrap">
+      <a data-app-only href="strategy.html" class="tl-back">← Strategy</a>
+      <a href="features.html" class="tl-back" data-site-only>← All tools</a>
+      <div class="hp-label">The 4% rule, explained</div>
+      <h1 class="hp-h1">Withdrawal planner</h1>
+      <p class="hp-lead">See how much your savings could pay you each year, and whether they’ll last.</p>
     </div>
   </header>
 
-  <div class="tool-layout">
+  <div class="tl-body">
+  <div class="hp-wrap hp-two">
 
-  <div class="tool-inputs stack">
-  <div class="card">
-    <div class="card-label">Your investments</div>
-    <div class="input-row">
-      <label class="input-label-text" for="w-portfolio">Total invested today</label>
+  <div class="tl-in">
+  <div class="tl-group">
+    <div class="hp-label">Your investments</div>
+    <div class="tl-row">
+      <label class="tl-field-label" for="w-portfolio">Total invested today</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="w-portfolio" placeholder="1000000" oninput="calcWithdrawal()"/></div>
     </div>
-    <p class="card-note fp-plan-note" id="fpPlanNote" style="display:none;">Filled in from your saved plan — change any number.</p>
-    <p class="card-note">This is everything you have invested <strong>right now</strong>, not counting property, or super unless you can already get to it. Use today's value, not a future guess. If you won't start drawing on it for a while, the "years of growth" setting below grows it forward for you.</p>
+    <p class="tl-note fp-plan-note" id="fpPlanNote" style="display:none;">Filled in from your saved plan — change any number.</p>
+    <p class="tl-note">This is everything you have invested <strong>right now</strong>, not counting property, or super unless you can already get to it. Use today's value, not a future guess. If you won't start drawing on it for a while, the "years of growth" setting below grows it forward for you.</p>
   </div>
 
-  <div class="card">
-    <div class="card-label">Assumptions</div>
-    <div class="input-row">
-      <label class="input-label-text" for="w-returnRate">Annual investment return (after inflation)</label>
+  <div class="tl-group">
+    <div class="hp-label">Assumptions</div>
+    <div class="tl-row">
+      <label class="tl-field-label" for="w-returnRate">Annual investment return (after inflation)</label>
       <div class="slider-row">
         <input type="range" class="dark-slider" id="w-returnRate" min="3" max="12" value="7" oninput="document.getElementById('w-returnRateVal').textContent=this.value+'%';calcWithdrawal()"/>
         <span class="slider-val" id="w-returnRateVal">7%</span>
       </div>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="w-withdrawRate">Withdrawal rate</label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="w-withdrawRate">Withdrawal rate</label>
       <div class="slider-row">
         <input type="range" class="dark-slider" id="w-withdrawRate" min="2" max="8" value="4" step="0.5" oninput="document.getElementById('w-withdrawRateVal').textContent=this.value+'%';calcWithdrawal()"/>
         <span class="slider-val" id="w-withdrawRateVal">4%</span>
       </div>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="w-years">Years of growth before you start drawing</label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="w-years">Years of growth before you start drawing</label>
       <div class="slider-row">
         <input type="range" class="dark-slider" id="w-years" min="0" max="40" value="0" oninput="calcWithdrawal()"/>
         <span class="slider-val" id="w-yearsVal">Start now</span>
       </div>
-      <p class="card-note" id="w-yearsNote" style="margin-top:0;">Set to 0 if you're drawing on your savings from today. Each extra year grows today's balance at your return. It doesn't add any new savings.</p>
+      <p class="tl-note" id="w-yearsNote" style="margin-top:0;">Set to 0 if you're drawing on your savings from today. Each extra year grows today's balance at your return. It doesn't add any new savings.</p>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="w-age">Your age today <span style="color:var(--ink-2);font-weight:400;">(optional)</span></label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="w-age">Your age today <span class="tl-opt">(optional)</span></label>
       <div class="input-wrap"><input type="number" class="dark-input" id="w-age" min="16" max="100" placeholder="e.g. 45" style="padding-left:14px;" oninput="calcWithdrawal()"/></div>
     </div>
-    <div class="input-row">
-      <span class="input-label-text" id="w-horizonLabel">How long should it last?</span>
+    <div class="tl-row">
+      <span class="tl-field-label" id="w-horizonLabel">How long should it last?</span>
       <div class="segmented horizon-group" role="group" aria-labelledby="w-horizonLabel">
         <button type="button" data-horizon="30" class="active" aria-pressed="true" onclick="setHorizon(30)">30 years</button>
         <button type="button" data-horizon="40" aria-pressed="false" onclick="setHorizon(40)">40 years</button>
         <button type="button" data-horizon="50" aria-pressed="false" onclick="setHorizon(50)">50 years</button>
       </div>
-      <p class="card-note" id="w-horizonNote" style="margin-top:0;">Stopping work before 50? Your money may need to last 40 years or more.</p>
+      <p class="tl-note" id="w-horizonNote" style="margin-top:0;">Stopping work before 50? Your money may need to last 40 years or more.</p>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="w-inflation">Expected inflation rate (only used to show future dollars)</label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="w-inflation">Expected inflation rate (only used to show future dollars)</label>
       <div class="slider-row">
         <input type="range" class="dark-slider" id="w-inflation" min="1" max="6" value="2.5" step="0.5" oninput="document.getElementById('w-inflationVal').textContent=this.value+'%';calcWithdrawal()"/>
         <span class="slider-val" id="w-inflationVal">2.5%</span>
       </div>
     </div>
-    <p id="w-rateExplainer" class="callout rate-explainer">The 4% rule comes from research showing a 4% annual withdrawal lasted 30 years in most past periods for a spread of investments. Most, not all. For a longer retirement, many people use 3–3.5%.</p>
+    <p id="w-rateExplainer" class="rate-explainer">The 4% rule comes from research showing a 4% annual withdrawal lasted 30 years in most past periods for a spread of investments. Most, not all. For a longer retirement, many people use 3–3.5%.</p>
   </div>
   </div>
 
-  <div id="results" class="stack" style="display:none">
-
-    <div class="income-hero">
-      <div class="income-label">Your annual income</div>
-      <div class="income-annual" id="w-annual">—</div>
-      <div class="income-sub" id="w-sub">from your savings each year</div>
-      <div class="income-breakdown">
-        <div class="income-tile">
-          <div class="income-tile-label">Monthly</div>
-          <div class="income-tile-value" id="w-monthly">—</div>
-        </div>
-        <div class="income-tile">
-          <div class="income-tile-label">Fortnightly</div>
-          <div class="income-tile-value" id="w-fortnightly">—</div>
-        </div>
-        <div class="income-tile">
-          <div class="income-tile-label">Weekly</div>
-          <div class="income-tile-value" id="w-weekly">—</div>
-        </div>
-      </div>
-      <div id="w-growthNote" class="growth-note" style="color:#81C784;"></div>
-    </div>
-
-    <div class="card callout-ember magic-card">
-      <div class="magic-title" id="w-magicTitle"><svg class="icon" style="width:16px;height:16px;"><use href="/icons.svg#icon-featured"/></svg> <span id="w-magicTitleText">How this works</span></div>
-      <div id="w-magicFlow" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
-        <div class="magic-step" id="w-step1" style="opacity:0;transition:opacity 0.4s ease;">In your first year, your investments earn <strong id="w-stepEarn" style="color:var(--positive);">—</strong></div>
-        <div class="magic-step" id="w-step2" style="opacity:0;transition:opacity 0.4s ease;">You withdraw <strong id="w-stepWithdraw" style="color:var(--ember-ink);">—</strong> to live on</div>
-        <div class="magic-step" id="w-step3" style="opacity:0;transition:opacity 0.4s ease;"><strong id="w-stepNet" style="color:var(--positive);">—</strong> stays invested and keeps growing</div>
-      </div>
-      <div class="magic-text" id="w-magicText" style="margin-top:10px;"></div>
-    </div>
-
-    <!-- One-year story — a single readable flow instead of scanning a table -->
-    <div class="card portfolio-card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your first year of withdrawals, step by step</div>
-      <div class="data-row"><span class="data-label">Start of year</span><span class="data-value" id="w-yearStart">—</span></div>
-      <div class="data-row"><span class="data-label">↓ Income paid to you</span><span class="data-value out" id="w-yearPaid">—</span></div>
-      <div class="data-row"><span class="data-label">↓ Investment returns</span><span class="data-value up" id="w-yearReturn">—</span></div>
-      <div class="data-row total"><span class="data-label">End of year</span><span class="data-value up" id="w-yearEnd">—</span></div>
-    </div>
-
-    <div class="card portfolio-card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Looking further ahead</div>
-      <div class="data-row">
-        <span class="data-label">10 years after you start withdrawing</span>
-        <span class="data-value" id="w-10yr">—</span>
-      </div>
-      <div class="data-row">
-        <span class="data-label">20 years after you start withdrawing</span>
-        <span class="data-value" id="w-20yr">—</span>
-      </div>
-    </div>
-
-    <!-- Portfolio journey chart — the highest-impact addition -->
-    <div class="card portfolio-card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your savings over time</div>
-      <div class="card-sub">The line shows what your investments are worth through retirement, on your current settings.</div>
-      <div id="w-chartContainer" class="chart-wrap"></div>
-    </div>
-
-    <!-- ── Longevity + AI Outlook ── -->
-    <div class="card longevity-card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Will your money last?</div>
-      <div class="card-sub">This first grows your investments for any years of growth you set. Then it takes the same income, after inflation, every year of a <strong id="w-horizonText">30-year retirement</strong>. The standard test behind the 4% rule uses 30 years. All figures are in today's money.</div>
-      <div id="w-confidenceBadge" class="confidence">
-        <div class="confidence-left">
-          <div id="w-confidenceDot" class="confidence-dot"></div>
+  <div class="tl-out is-sticky">
+    <div class="hp-fig tl-fig">
+      <div class="hp-label">Your annual income</div>
+      <div id="resultsEmpty"><span class="tl-empty-big" aria-hidden="true">—</span><p class="tl-empty">Add what you have invested to see it.</p></div>
+      <div id="resultsLive" style="display:none;">
+        <div class="tl-big" id="w-annual">—</div>
+        <div class="income-sub" id="w-sub">from your savings each year</div>
+        <div class="tl-stats">
           <div>
-            <div class="eyebrow">Confidence</div>
-            <div class="confidence-value" id="w-confidenceLabel">—</div>
+            <div class="tl-stat-label">Monthly</div>
+            <div class="tl-stat-value" id="w-monthly">—</div>
+          </div>
+          <div>
+            <div class="tl-stat-label">Fortnightly</div>
+            <div class="tl-stat-value" id="w-fortnightly">—</div>
+          </div>
+          <div>
+            <div class="tl-stat-label">Weekly</div>
+            <div class="tl-stat-value" id="w-weekly">—</div>
           </div>
         </div>
-        <div id="w-endingBalanceWrap" style="text-align:right;">
-          <div class="eyebrow" id="w-endingLabel">After 30 years</div>
-          <div class="confidence-value up" id="w-endingBalance">—</div>
-        </div>
-      </div>
-      <div class="longevity-compare">
-        <div class="longevity-item" id="w-longevityBase">
-          <div class="longevity-years" id="w-longevityBaseYears">—</div>
-          <div class="longevity-item-label">Steady returns, your settings</div>
-        </div>
-        <div class="longevity-item good" id="w-longevityGood">
-          <div class="longevity-years" id="w-longevityGoodYears">—</div>
-          <div class="longevity-item-label" id="w-longevityGoodLabel">With 2% stronger returns</div>
-        </div>
-      </div>
-      <div class="mc-result" id="w-mc" style="display:none;">
-        <div id="w-mcDot" class="confidence-dot"></div>
-        <div>
-          <div class="mc-headline" id="w-mcHeadline">—</div>
-          <div class="mc-detail" id="w-mcDetail"></div>
-          <div class="mc-explainer">Markets don't return the average every year. A bad few years right after you stop work hurt most, because you're selling while prices are down (this is called sequence risk). So this tests your plan against 2,000 different orders of good and bad years.</div>
-        </div>
-      </div>
-      <div id="w-bufferNote" class="buffer-note"></div>
-      <div class="ai-outlook">
-      <button type="button" class="ai-outlook-btn btn btn-primary btn-lg btn-block" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook</button>
-      <div class="ai-outlook-loading" id="aiOutlookLoading">
-        <div class="ai-outlook-flame"><svg class="icon" style="width:28px;height:28px;"><use href="/icons.svg#icon-momentum"/></svg></div>
-        <div class="ai-outlook-loading-text">Reading your numbers...</div>
-      </div>
-      <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
-      <div id="aiProCard" style="display:none;"></div>
-      </div>
-    </div>
+        <div id="w-growthNote" class="growth-note"></div>
 
-    <div class="card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> <span id="w-compareTitle">What if I spend more?</span></div>
-      <div class="card-sub">Same savings, different withdrawal rates. A bigger income now means less room for bad years.</div>
-      <div id="w-rateComparison"></div>
+        <div class="magic-card">
+          <div class="magic-title" id="w-magicTitle"><svg class="icon"><use href="/icons.svg#icon-featured"/></svg> <span id="w-magicTitleText">How this works</span></div>
+          <div id="w-magicFlow" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+            <div class="magic-step" id="w-step1" style="opacity:0;transition:opacity 0.4s ease;">In your first year, your investments earn <strong id="w-stepEarn" style="color:var(--positive);">—</strong></div>
+            <div class="magic-step" id="w-step2" style="opacity:0;transition:opacity 0.4s ease;">You withdraw <strong id="w-stepWithdraw" style="color:var(--ember-ink);">—</strong> to live on</div>
+            <div class="magic-step" id="w-step3" style="opacity:0;transition:opacity 0.4s ease;"><strong id="w-stepNet" style="color:var(--positive);">—</strong> stays invested and keeps growing</div>
+          </div>
+          <div class="magic-text" id="w-magicText" style="margin-top:10px;"></div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  </div>
+  </div>
+
+  <div id="results" style="display:none">
+
+    <!-- One-year story — a single readable flow instead of scanning a table -->
+    <section class="hp-sec">
+      <div class="hp-wrap hp-half">
+        <div>
+          <div class="tl-block">
+            <h2 class="hp-h2 is-small">Your first year of withdrawals, step by step</h2>
+            <div class="tl-rows" style="margin-top:24px;">
+              <div class="data-row"><span class="data-label">Start of year</span><span class="data-value" id="w-yearStart">—</span></div>
+              <div class="data-row"><span class="data-label">↓ Income paid to you</span><span class="data-value out" id="w-yearPaid">—</span></div>
+              <div class="data-row"><span class="data-label">↓ Investment returns</span><span class="data-value up" id="w-yearReturn">—</span></div>
+              <div class="data-row total"><span class="data-label">End of year</span><span class="data-value up" id="w-yearEnd">—</span></div>
+            </div>
+          </div>
+          <div class="tl-block">
+            <div class="hp-label">Looking further ahead</div>
+            <div class="tl-rows" style="margin-top:16px;">
+              <div class="data-row">
+                <span class="data-label">10 years after you start withdrawing</span>
+                <span class="data-value" id="w-10yr">—</span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">20 years after you start withdrawing</span>
+                <span class="data-value" id="w-20yr">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Portfolio journey chart -->
+        <figure class="hp-fig tl-fig">
+          <div class="hp-label">Your savings over time</div>
+          <p class="tl-note" style="margin-top:0;">The line shows what your investments are worth through retirement, on your current settings.</p>
+          <div id="w-chartContainer" class="chart-wrap"></div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ── Longevity + AI Outlook ── -->
+    <section class="hp-sec">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 class="hp-h2 is-small">Will your money last?</h2>
+          <p class="tl-sub">This first grows your investments for any years of growth you set. Then it takes the same income, after inflation, every year of a <strong id="w-horizonText">30-year retirement</strong>. The standard test behind the 4% rule uses 30 years. All figures are in today's money.</p>
+        </div>
+        <div class="hp-side-main">
+          <div id="w-confidenceBadge" class="confidence">
+            <div class="confidence-left">
+              <div id="w-confidenceDot" class="confidence-dot"></div>
+              <div>
+                <div class="eyebrow">Confidence</div>
+                <div class="confidence-value" id="w-confidenceLabel">—</div>
+              </div>
+            </div>
+            <div id="w-endingBalanceWrap" style="text-align:right;">
+              <div class="eyebrow" id="w-endingLabel">After 30 years</div>
+              <div class="confidence-value up" id="w-endingBalance">—</div>
+            </div>
+          </div>
+          <div class="longevity-compare">
+            <div class="longevity-item" id="w-longevityBase">
+              <div class="longevity-years" id="w-longevityBaseYears">—</div>
+              <div class="longevity-item-label">Steady returns, your settings</div>
+            </div>
+            <div class="longevity-item good" id="w-longevityGood">
+              <div class="longevity-years" id="w-longevityGoodYears">—</div>
+              <div class="longevity-item-label" id="w-longevityGoodLabel">With 2% stronger returns</div>
+            </div>
+          </div>
+          <div class="mc-result" id="w-mc" style="display:none;">
+            <div id="w-mcDot" class="confidence-dot"></div>
+            <div>
+              <div class="mc-headline" id="w-mcHeadline">—</div>
+              <div class="mc-detail" id="w-mcDetail"></div>
+              <div class="mc-explainer">Markets don't return the average every year. A bad few years right after you stop work hurt most, because you're selling while prices are down (this is called sequence risk). So this tests your plan against 2,000 different orders of good and bad years.</div>
+            </div>
+          </div>
+          <div id="w-bufferNote" class="buffer-note"></div>
+          <div class="ai-outlook">
+          <button type="button" class="ai-outlook-btn tl-btn is-outline" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook</button>
+          <div class="ai-outlook-loading" id="aiOutlookLoading">
+            <div class="ai-outlook-flame"><svg class="icon" style="width:22px;height:22px;"><use href="/icons.svg#icon-momentum"/></svg></div>
+            <div class="ai-outlook-loading-text">Reading your numbers...</div>
+          </div>
+          <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
+          <div id="aiProCard" style="display:none;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="hp-sec">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 class="hp-h2 is-small" id="w-compareTitle">What if I spend more?</h2>
+          <p class="tl-sub">Same savings, different withdrawal rates. A bigger income now means less room for bad years.</p>
+        </div>
+        <div class="hp-side-main">
+          <div id="w-rateComparison"></div>
+        </div>
+      </div>
+    </section>
 
     <!-- Deterministic takeaway — computed from the numbers, not the AI, so it's always available instantly -->
-    <div class="card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-featured"/></svg> Your takeaway</div>
-      <div id="w-takeaway" class="takeaway"></div>
-    </div>
+    <section class="hp-number">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head"><div class="hp-label">Your takeaway</div></div>
+        <div class="hp-side-main"><div id="w-takeaway" class="takeaway"></div></div>
+      </div>
+    </section>
 
-    <!-- What next for you — filled by js/next-steps.js -->
-    <div id="fpNextSteps"></div>
-
-    <p class="disclaimer">These numbers assume your investments grow at the rate you've chosen, with capital gains, dividends and everything combined. Actual returns vary and depend on what you're invested in. General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
+    <section class="hp-sec tl-next">
+      <div class="hp-wrap">
+        <!-- What next for you — filled by js/next-steps.js -->
+        <div id="fpNextSteps"></div>
+        <p class="tl-disclaimer">These numbers assume your investments grow at the rate you've chosen, with capital gains, dividends and everything combined. Actual returns vary and depend on what you're invested in. General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
+      </div>
+    </section>
   </div>
 
-  </div>
 </main>
 
 <script>
@@ -433,6 +410,13 @@
     return retireAge != null && retireAge < 50 ? 40 : 30;
   }
 
+  // The results sit in two places: your income (right-hand column) and the sections below.
+  function showResults(on) {
+    document.getElementById('results').style.display = on ? 'block' : 'none';
+    document.getElementById('resultsLive').style.display = on ? 'block' : 'none';
+    document.getElementById('resultsEmpty').style.display = on ? 'none' : 'block';
+  }
+
   function calcWithdrawal() {
     const portfolio    = Math.max(0, numFrom('w-portfolio', 0));
     const returnRate   = numFrom('w-returnRate', 7) / 100;
@@ -457,11 +441,11 @@
     });
 
     if (!(portfolio > 0)) {
-      document.getElementById('results').style.display = 'none';
+      showResults(false);
       return;
     }
 
-    document.getElementById('results').style.display = 'block';
+    showResults(true);
 
     // Everything here is in today's money: the return slider is a real (after-inflation)
     // return. Grow today's portfolio to the point withdrawals start, then take the income.
@@ -486,10 +470,10 @@
     const growthNoteEl = document.getElementById('w-growthNote');
     if (netGrowth > 0) {
       growthNoteEl.innerHTML = `<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-result"/></svg> If returns were steady, your investments would keep growing while paying you this.`;
-      growthNoteEl.style.color = '#81C784';
+      growthNoteEl.style.color = 'var(--positive)';
     } else {
       growthNoteEl.innerHTML = `<svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-alert"/></svg> This eats into your savings over time. See the rate comparison below.`;
-      growthNoteEl.style.color = '#FFB74D';
+      growthNoteEl.style.color = 'var(--ember-ink)';
     }
 
     // One-year story
@@ -674,7 +658,7 @@
       return (typeof getStore === 'function' ? getStore('fp_is_pro') : localStorage.getItem('fp_is_pro')) === 'true';
     } catch (e) { return false; }
   }
-  const FP_PRO_AI_CARD = `<div style="border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:14px 16px;font-size:13.5px;line-height:1.6;color:var(--ink-2);"><strong style="color:var(--ink);">AI explanation — part of Pro.</strong> Pro writes this around your own plan. <a href="/upgrade" style="color:var(--ember);font-weight:600;white-space:nowrap;">Try 7 days free →</a></div>`;
+  const FP_PRO_AI_CARD = `<div class="tl-pro-note"><strong>AI explanation — part of Pro.</strong> Pro writes this around your own plan. <a href="/upgrade">Try 7 days free →</a></div>`;
   function showAiOutlookEntry() {
     const btn = document.getElementById('aiOutlookBtn');
     const card = document.getElementById('aiProCard');

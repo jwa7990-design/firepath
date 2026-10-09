@@ -39,84 +39,97 @@ const schema = {
 >
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
 
-  <main id="main">
-    <header class="doc-hero hub-hero">
-      <div class="doc-hero-inner">
-        <span class="doc-eyebrow">Learning Lab</span>
-        <h1 class="doc-title">Money, explained in <span class="accent">plain English</span>.</h1>
-        <p class="doc-lead">Free guides to financial independence for everyday Australians, from the basics of FIRE to super, investing and tax. No jargon, no sales pitch.</p>
-        <div class="doc-meta">
-          <span class="doc-chip"><Icon name="book" size={14}/>{ARTICLES.length} guides</span>
-          <span class="doc-chip"><Icon name="clock" size={14}/>{Math.round(totalMins / 60)} hours of reading</span>
-          <span class="doc-chip"><Icon name="scale" size={14}/>Australian rules</span>
+  <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
+  <main id="main" class="hp hub-page">
+    <header class="hp-hero hub-hero">
+      <div class="hp-wrap hub-hero-grid">
+        <div>
+          <p class="hp-label">Learning Lab</p>
+          <h1 class="hp-h1 hub-title">Money, explained in plain English.</h1>
         </div>
-        <div class="faq-search hub-search">
-          <Icon name="search" size={18}/>
-          <input id="hubSearch" type="search" placeholder={`Search ${ARTICLES.length} guides…`} aria-label="Search the Learning Lab" autocomplete="off"/>
-          <span class="faq-search-count" id="hubCount" aria-live="polite"></span>
+        <div class="hub-hero-side">
+          <p class="hp-lead">Free guides to financial independence for everyday Australians, from the basics of FIRE to super, investing and tax. No jargon, no sales pitch.</p>
+          <p class="doc-meta-line hub-meta num">{ARTICLES.length} guides · {Math.round(totalMins / 60)} hours of reading · Australian rules</p>
+          <div class="hub-search">
+            <Icon name="search" size={18}/>
+            <input id="hubSearch" type="search" placeholder={`Search ${ARTICLES.length} guides…`} aria-label="Search the Learning Lab" autocomplete="off"/>
+            <span class="hub-search-count" id="hubCount" aria-live="polite"></span>
+          </div>
+          <nav class="hub-jump" aria-label="Shelves">
+            <ul>{shelves.map(s => <li><a href={`#${s.id}`}>{s.title}<span class="num">{s.count}</span></a></li>)}</ul>
+          </nav>
         </div>
-        <nav class="hub-chips" aria-label="Shelves">
-          {shelves.map(s => <a href={`#${s.id}`} class="hub-chip"><Icon name={s.icon} size={14}/>{s.title}<span>{s.count}</span></a>)}
-        </nav>
       </div>
     </header>
 
     <div class="hub" id="hub">
       <!-- Filled in the browser from the numbers saved by the free calculator (this device only). -->
-      <section class="hub-first hub-recs" id="hubRecs" aria-labelledby="recs-title" hidden>
-        <h2 id="recs-title" class="hub-first-title">Recommended for you</h2>
-        <ol class="hub-first-list hub-recs-list" id="hubRecsList"></ol>
-        <p class="hub-recs-note">Based on the numbers you entered in the calculator · <a href="#" id="hubRecsClear">Clear</a></p>
+      <section class="hp-sec hub-first hub-recs" id="hubRecs" aria-labelledby="recs-title" hidden>
+        <div class="hp-wrap">
+          <div class="hub-first-head">
+            <h2 id="recs-title" class="hp-h2 hub-first-title">Recommended for you</h2>
+            <p class="hub-recs-note">Based on the numbers you entered in the calculator · <a href="#" id="hubRecsClear">Clear</a></p>
+          </div>
+          <ol class="hub-first-list hub-recs-list" id="hubRecsList"></ol>
+        </div>
       </section>
 
-      <section class="hub-first hub-first-reads" aria-labelledby="first-title" data-hub-hide-on-search>
-        <h2 id="first-title" class="hub-first-title">New here? Your first three reads</h2>
-        <ol class="hub-first-list">
-          {firstReads.map((a, i) => (
-            <li><a href={`/learn/${a.slug}`} class="hub-first-card">
-              <span class="hub-first-num">{i + 1}</span>
-              <span class="hub-first-text"><strong>{a.heading}</strong><span>{a.readMins} min read</span></span>
-              <Icon name="arrow" size={18}/>
-            </a></li>
-          ))}
-        </ol>
+      <section class="hp-sec hub-first hub-first-reads" aria-labelledby="first-title" data-hub-hide-on-search>
+        <div class="hp-wrap">
+          <div class="hub-first-head">
+            <h2 id="first-title" class="hp-h2 hub-first-title">New here? Your first three reads</h2>
+          </div>
+          <ol class="hub-first-list">
+            {firstReads.map((a, i) => (
+              <li><a href={`/learn/${a.slug}`} class="hub-first-card">
+                <span class="hub-first-num">{i + 1}</span>
+                <span class="hub-first-text"><strong>{a.heading}</strong><span>{a.readMins} min read</span></span>
+                <Icon name="arrow" size={18}/>
+              </a></li>
+            ))}
+          </ol>
+        </div>
       </section>
 
       {shelves.map(s => (
-        <section class="hub-shelf" id={s.id} aria-labelledby={`${s.id}-title`} data-hub-shelf>
-          <div class="hub-shelf-head">
-            <span class="faq-group-icon"><Icon name={s.icon} size={18}/></span>
-            <div>
-              <h2 id={`${s.id}-title`}>{s.title}</h2>
-              <p>{s.intro}</p>
+        <section class="hp-sec hub-shelf" id={s.id} aria-labelledby={`${s.id}-title`} data-hub-shelf>
+          <div class="hp-wrap hp-side">
+            <div class="hp-side-head">
+              <h2 id={`${s.id}-title`} class="hp-h2 is-small">{s.title}</h2>
+              <p class="hp-body">{s.intro}</p>
+              <p class="hub-shelf-count num">{s.count} guides</p>
             </div>
-            <span class="hub-shelf-count">{s.count} guides</span>
+            <div class="hp-side-main">
+              {s.articles.length > 0 && (
+                <ul class="hub-list">{s.articles.map(a => <li data-hub-card data-reveal><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
+              )}
+              {s.themes.map(t => (
+                <div class="hub-theme" data-hub-theme>
+                  <h3>{t.title}</h3>
+                  <ul class="hub-list">{t.articles.map(a => <li data-hub-card data-reveal><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
+                </div>
+              ))}
+            </div>
           </div>
-          {s.articles.length > 0 && (
-            <div class="hub-grid">{s.articles.map(a => <a href={`/learn/${a.slug}`} class="hub-card" data-hub-card data-reveal><span class="hub-card-title">{a.heading}</span><span class="hub-card-desc">{a.description}</span><span class="hub-card-meta">{a.readMins} min read <Icon name="arrow" size={14}/></span></a>)}</div>
-          )}
-          {s.themes.map(t => (
-            <div class="hub-theme" data-hub-theme>
-              <h3>{t.title}</h3>
-              <div class="hub-grid">{t.articles.map(a => <a href={`/learn/${a.slug}`} class="hub-card" data-hub-card data-reveal><span class="hub-card-title">{a.heading}</span><span class="hub-card-desc">{a.description}</span><span class="hub-card-meta">{a.readMins} min read <Icon name="arrow" size={14}/></span></a>)}</div>
-            </div>
-          ))}
         </section>
       ))}
 
-      <div class="faq-empty" id="hubEmpty" hidden>
-        <strong>No guides match that yet.</strong>
-        <p>Try a different word, or <a href="/feedback">tell us what you'd like explained</a>.</p>
+      <div class="hp-wrap">
+        <div class="hub-empty" id="hubEmpty" hidden>
+          <strong>No guides match that yet.</strong>
+          <p>Try a different word, or <a href="/feedback">tell us what you'd like explained</a>.</p>
+        </div>
       </div>
 
-      <aside class="doc-contact hub-cta">
-        <span class="doc-contact-icon"><Icon name="flame" size={20}/></span>
-        <div>
-          <h2>Put it to work on your own numbers</h2>
-          <p>Find the year work could become optional. Free, about 2 minutes, no account needed.</p>
+      <section class="hp-sec hub-cta" aria-labelledby="hub-cta-title">
+        <div class="hp-wrap hp-half">
+          <h2 id="hub-cta-title" class="hp-h2">Put it to work on your own numbers</h2>
+          <div>
+            <p class="hp-body">Find the year work could become optional. Free, about 2 minutes, no account needed.</p>
+            <p class="hub-cta-go"><a href="/firepath" class="doc-btn">Find my freedom date</a></p>
+          </div>
         </div>
-        <a href="/firepath" class="btn btn-ember">Find my freedom date</a>
-      </aside>
+      </section>
     </div>
   </main>
 

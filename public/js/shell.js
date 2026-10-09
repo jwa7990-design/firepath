@@ -24,7 +24,7 @@
  * just bounce a visitor to sign in. Mark links that only make sense inside the app
  * with data-app-only and their visitor equivalents with data-site-only — the shell
  * hides whichever set doesn't match the shell drawn.
- * Styles live in css/app.css. Works from subfolders (learn/…) — links are resolved
+ * Styles live in css/app.css (the shell sections). Works from subfolders (learn/…) — links are resolved
  * against this script's own location.
  */
 (function () {
@@ -56,7 +56,7 @@
     learn: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/>',
     ask: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
     menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
-    explore: '<path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6z"/><path d="M19 3v4M17 5h4"/>',
+    explore: '<path d="M4 9h16M4 15h16"/>',
     arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
     close: '<path d="M6 6l12 12M18 6L6 18"/>'
   };
@@ -100,8 +100,10 @@
   }
 
   // ── Site shell ─────────────────────────────────────────
-  // The header stays quiet — logo, sign in, the one action, and an Explore button.
-  // Explore opens a full-screen panel with the site's sections as big numbered links.
+  // The header stays quiet: the logo, the section names as plain text links on wide
+  // screens, sign in, and one outlined Explore button. Explore opens a full-screen
+  // editorial menu: the sections as a ruled list, then the free calculator and the
+  // smaller links.
   const SITE_LINKS = [
     ['features', 'Features', 'features.html', 'Everything FirePath works out for you'],
     ['pricing', 'Pricing', 'pricing.html', 'Free tools, no account needed · Pro $6 a month'],
@@ -113,30 +115,36 @@
     const nav = `
 <header class="site-nav" id="siteNav">
   <a href="${url('index.html')}" class="site-logo">${svg('flame', 20)}<span>Fire<em>Path</em></span></a>
+  <nav class="site-links" aria-label="Main">
+    ${SITE_LINKS.map(([k, label, href]) => `<a href="${url(href)}" class="site-link"${k === active ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
+  </nav>
   <div class="site-actions">
     <a href="${url('auth.html')}" class="site-signin">Sign in</a>
-    <button class="explore-btn" id="exploreBtn" aria-expanded="false" aria-controls="explorePanel">${svg('explore', 16)}<span>Explore</span></button>
+    <button class="explore-btn" id="exploreBtn" aria-expanded="false" aria-controls="explorePanel"><span>Explore</span>${svg('explore', 16)}</button>
   </div>
 </header>
 <div class="explore" id="explorePanel" role="dialog" aria-modal="true" aria-label="Explore FirePath" hidden>
   <div class="explore-inner">
     <div class="explore-top">
-      <span class="explore-kicker">Explore FirePath</span>
-      <button class="explore-close" id="exploreClose" aria-label="Close">${svg('close', 22)}</button>
+      <span class="site-logo" aria-hidden="true">${svg('flame', 20)}<span>Fire<em>Path</em></span></span>
+      <button class="explore-close" id="exploreClose" aria-label="Close"><span aria-hidden="true">Close</span>${svg('close', 16)}</button>
     </div>
     <div class="explore-grid">
+      <div class="explore-head">
+        <span class="explore-kicker">Explore FirePath</span>
+      </div>
       <nav class="explore-links" aria-label="Primary">
         ${SITE_LINKS.map(([k, label, href, desc], i) => `
         <a href="${url(href)}" class="explore-link"${k === active ? ' aria-current="page"' : ''} style="--i:${i}">
           <span class="explore-num">0${i + 1}</span>
           <span class="explore-text"><span class="explore-title">${label}</span><span class="explore-desc">${desc}</span></span>
-          <span class="explore-arrow">${svg('arrow', 22)}</span>
+          <span class="explore-arrow">${svg('arrow', 18)}</span>
         </a>`).join('')}
       </nav>
       <aside class="explore-card" style="--i:4">
         <span class="explore-card-kicker">Free · 2 minutes</span>
-        <p class="explore-card-title">See the year work could become <em>optional</em>.</p>
-        <a href="${url('firepath.html')}" class="btn btn-ember btn-lg">Find my freedom date ${svg('arrow', 16)}</a>
+        <p class="explore-card-title">See the year work could become optional.</p>
+        <a href="${url('firepath.html')}" class="explore-cta">Find my freedom date ${svg('arrow', 16)}</a>
         <div class="explore-card-links">
           <a href="${url('auth.html')}">Sign in</a>
           <a href="${url('assumptions.html')}">How we calculate</a>
@@ -188,19 +196,19 @@
       <a href="${url('index.html')}" class="site-logo">${svg('flame', 18)}<span>Fire<em>Path</em></span></a>
       <p>Plain-English money guidance for everyday Australians — and the date work could become optional.</p>
     </div>
-    <div><h4>Product</h4><ul>
+    <div class="site-footer-col"><h4>Product</h4><ul>
       <li><a href="${url('firepath.html')}">Free calculator</a></li>
       <li><a href="${url('features.html')}">Features</a></li>
       <li><a href="${url('pricing.html')}">Pricing</a></li>
       <li><a href="${url('auth.html')}">Sign in</a></li>
     </ul></div>
-    <div><h4>Learn</h4><ul>
+    <div class="site-footer-col"><h4>Learn</h4><ul>
       <li><a href="${url('learn/index.html')}">Learning Lab</a></li>
       <li><a href="${url('learn/what-is-fire-australia.html')}">What is FIRE?</a></li>
       <li><a href="${url('assumptions.html')}">How we calculate</a></li>
       <li><a href="${url('faq.html')}">FAQ</a></li>
     </ul></div>
-    <div><h4>Company</h4><ul>
+    <div class="site-footer-col"><h4>Company</h4><ul>
       <li><a href="${url('index.html#why')}">Why FirePath</a></li>
       <li><a href="${url('feedback.html')}">Feedback</a></li>
       <li><a href="${url('privacy.html')}">Privacy</a></li>

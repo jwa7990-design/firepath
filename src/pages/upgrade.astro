@@ -6,40 +6,50 @@
  * Stripe (?upgraded=true: waits for Pro to land) and cancelling (?cancelled=true).
  */
 import Base from '../layouts/Base.astro';
-import Icon from '../components/Icon.astro';
 import { PRO_FEATURES, PRO_PRICE, TRIAL_FINE_PRINT } from '../data/plans';
-import '../styles/doc.css';
+import '../styles/marketing.css';
 import '../styles/upgrade.css';
 ---
 <Base noindex title="Start your 7-day free Pro trial | FirePath" description="FirePath accounts come with Pro. Start your 7-day free trial: your saved plan, super, tax and Ask FirePath." path="/upgrade">
   <script slot="head" is:inline src="/js/auth.js"></script>
-  <main id="main" class="up">
-    <section class="up-card" aria-labelledby="up-title">
-      <div class="up-status up-waiting" id="upWaiting" hidden>
-        <span class="up-spinner" aria-hidden="true"></span>
-        <div><strong>Setting up your Pro account…</strong><span id="upWaitingText">This usually takes a few seconds.</span></div>
-      </div>
-      <div class="up-status up-note" id="upCancelled" hidden>
-        <Icon name="check" size={16} stroke={2.4}/><span>No problem — you haven’t been charged. You can start your trial whenever you’re ready.</span>
-      </div>
+  {/* Shared editorial primitives. Loads before the page CSS (Astro adds bundled CSS after the head slot). */}
+  <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
+  <main id="main" class="hp up">
+    <section class="up-sec" aria-labelledby="up-title">
+      <div class="hp-wrap hp-two">
+        <div class="up-main">
+          <div class="up-status up-waiting" id="upWaiting" role="status" hidden>
+            <span class="up-spinner" aria-hidden="true"></span>
+            <div><strong>Setting up your Pro account…</strong><span id="upWaitingText">This usually takes a few seconds.</span></div>
+          </div>
+          <div class="up-status up-note" id="upCancelled" hidden>
+            <span>No problem — you haven’t been charged. You can start your trial whenever you’re ready.</span>
+          </div>
 
-      <span class="doc-eyebrow">FirePath Pro</span>
-      <h1 id="up-title" class="up-title">Accounts come with <span class="accent">Pro</span>.</h1>
-      <p class="up-lead" id="upLead">Get to know your numbers free, no account needed. An account comes with Pro. It saves your plan and adds super, tax and Ask FirePath.</p>
+          <p class="hp-label mk-kicker">FirePath Pro</p>
+          <h1 id="up-title" class="hp-h1 up-title">Accounts come with <span class="accent">Pro</span>.</h1>
+          <p class="hp-lead" id="upLead">Get to know your numbers free, no account needed. An account comes with Pro. It saves your plan and adds super, tax and Ask FirePath.</p>
 
-      <ul class="up-list">
-        {PRO_FEATURES.map(([t, d]) => <li><span class="up-tick"><Icon name="check" size={12} stroke={2.6}/></span><span><strong>{t}</strong><span>{d}</span></span></li>)}
-      </ul>
+          <div class="up-price">
+            <p class="mk-price"><span class="mk-price-n">{PRO_PRICE.amount}</span><span class="mk-price-per">{PRO_PRICE.per} · {PRO_PRICE.trialDays}-day free trial</span></p>
+            <div class="mk-actions">
+              <button class="mk-btn" id="upStart" type="button">Start my 7-day free trial</button>
+            </div>
+            <p class="mk-fine">{TRIAL_FINE_PRINT}</p>
+          </div>
 
-      <div class="up-price">
-        <p><span class="up-amount">{PRO_PRICE.amount}</span> {PRO_PRICE.per} · {PRO_PRICE.trialDays}-day free trial</p>
-        <button class="btn btn-ember btn-lg btn-block" id="upStart" type="button">Start my 7-day free trial <Icon name="arrow" size={16}/></button>
-        <p class="up-fine">{TRIAL_FINE_PRINT}</p>
-      </div>
+          <div class="up-foot mk-prose">
+            <a href="/firepath">Keep using the free tools</a>
+            <span id="upWho"></span>
+          </div>
+        </div>
 
-      <div class="up-foot">
-        <a href="/firepath">Keep using the free tools</a>
-        <span id="upWho"></span>
+        <figure class="hp-fig up-fig">
+          <figcaption class="hp-fig-tag">What Pro adds</figcaption>
+          <ul class="mk-feats">
+            {PRO_FEATURES.map(([t, d]) => <li><strong>{t}</strong><span>{d}</span></li>)}
+          </ul>
+        </figure>
       </div>
     </section>
   </main>

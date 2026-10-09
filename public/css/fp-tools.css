@@ -1,0 +1,194 @@
+/* ============================================================
+   FirePath — the free tool pages (Withdrawal planner, What if…?, Freedom gap,
+   Freedom options, Compound interest, Feedback, 404).
+   Built on css/fp-editorial.css (load that first): the .hp scope, .hp-wrap,
+   .hp-hero, .hp-sec, the 12-column .hp-two / .hp-side / .hp-half splits,
+   .hp-fig rules and the .hp-h1/.hp-h2/.hp-lead/.hp-body/.hp-label type.
+   What follows is only what the tools share on top of that: the page frame,
+   ruled input groups, plain fields, hairline sliders, word toggles, the live
+   result figure, ruled data rows, buttons, and "What next" without the card.
+   Same approach as /firepath: ink on cream, rules not boxes, ember only for
+   the one primary button.
+   ============================================================ */
+
+/* ── Frame ─────────────────────────────────────────────── */
+/* The tools used .app-main / .site-main (a padded, centred column). The editorial
+   sections bring their own padding and measure, so the frame is full width. */
+.tl { width: 100%; padding: 0 0 env(safe-area-inset-bottom); }
+/* Signed-in Pro members get the app shell: leave room for the phone tab bar. */
+body.app .tl { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+@media (min-width: 1024px) { body.app .tl { padding-bottom: 0; } }
+.tl .num, .tl-big, .tl-stat-value { font-variant-numeric: tabular-nums lining-nums; }
+
+/* Hero: the back link, a .hp-label, the .hp-h1 and the lead. Trimmed like /firepath's. */
+.tl-hero { padding-bottom: 36px; }
+@media (min-width: 768px) { .tl-hero { padding-top: 56px; padding-bottom: 56px; } }
+.tl-back { display: inline-block; margin: 0 0 28px; font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none; }
+.tl-back:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.tl-hero .hp-label { margin-bottom: 16px; }
+.tl-fine { margin: 18px 0 0; max-width: 62ch; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+
+/* The tool itself: inputs in columns 1–5, the live result in 7–12 (sticky from 900px) */
+.tl-body { padding: 32px 0 56px; }
+@media (min-width: 768px) { .tl-body { padding: 48px 0 88px; } }
+.tl-in { min-width: 0; }
+.tl-out { min-width: 0; }
+@media (min-width: 900px) {
+  .tl-out.is-sticky { position: sticky; top: calc(var(--nav-h) + 24px); }
+  .tl-in { padding-top: 21px; }   /* first label lines up with the figure's label, under its rule */
+}
+
+/* ── Input groups: a label and fields, divided by hairlines (no cards) ── */
+.tl-group { padding: 0 0 28px; }
+.tl-group + .tl-group { padding-top: 24px; border-top: var(--hp-rule); }
+.tl-group:last-child { padding-bottom: 0; }
+.tl-group > .hp-label, .tl-group-label { margin: 0 0 18px; }
+.tl-note { margin: 10px 0 0; max-width: 54ch; font-size: 14px; line-height: 1.6; color: var(--ink-2); }
+.tl-note strong { color: var(--ink); font-weight: 600; }
+.tl-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.tl-row:last-child { margin-bottom: 0; }
+.tl-field-label { font-size: 14.5px; font-weight: 600; line-height: 1.4; color: var(--ink); }
+.tl-field-label .tl-opt { font-weight: 400; color: var(--ink-2); }
+
+/* Plain fields: a white box, hairline border, ink on focus (as /firepath's detail fields) */
+.tl .input-wrap { position: relative; }
+.tl .input-prefix-dark { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--ink-2); pointer-events: none; }
+.tl .dark-input {
+  width: 100%; height: 48px; padding: 0 14px 0 30px; border-radius: var(--hp-r); border: 1px solid var(--line-strong);
+  background: var(--surface); color: var(--ink); font: 500 16px var(--font-ui); font-variant-numeric: tabular-nums;
+  outline: none; box-shadow: none; -moz-appearance: textfield; transition: border-color var(--dur-fast) ease;
+}
+.tl .dark-input::-webkit-inner-spin-button, .tl .dark-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.tl .dark-input:hover { border-color: var(--ink-3); }
+.tl .dark-input:focus { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.tl .dark-input::placeholder { color: var(--ink-3); font-weight: 400; }
+
+/* Sliders: a hairline track and a round ink thumb, like /firepath's "Try it" */
+.tl .slider-row, .tl .slider-row-dark { display: flex; align-items: center; gap: 16px; }
+.tl input[type="range"].dark-slider { flex: 1; min-width: 0; -webkit-appearance: none; appearance: none; height: 28px; margin: 0; background: transparent; box-shadow: none; border-radius: 0; cursor: pointer; }
+.tl input[type="range"].dark-slider::-webkit-slider-runnable-track { height: 2px; border-radius: 2px; background: var(--line-strong); }
+.tl input[type="range"].dark-slider::-moz-range-track { height: 2px; border-radius: 2px; background: var(--line-strong); }
+.tl input[type="range"].dark-slider::-moz-range-progress { height: 2px; border-radius: 2px; background: var(--ink); }
+.tl input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -10px; border-radius: 50%; background: var(--ink); border: 0; box-shadow: none; transition: transform var(--dur-fast) ease; }
+.tl input[type="range"].dark-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--ink); border: 0; box-shadow: none; }
+.tl input[type="range"].dark-slider:active::-webkit-slider-thumb { transform: scale(1.12); }
+.tl input[type="range"].dark-slider:focus { outline: none; }
+.tl input[type="range"].dark-slider:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; box-shadow: none; }
+.tl .slider-val { min-width: 56px; text-align: right; font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Word toggles: the old pill switches become plain words, the chosen one underlined in ink
+   (as /firepath's "How are you paid?"). JS still toggles .active / aria-pressed. */
+.tl .segmented, .tl .tl-words { display: flex; flex-wrap: wrap; gap: 0 24px; width: auto; padding: 0; border: 0; border-radius: 0; background: none; }
+.tl .segmented > *, .tl .tl-words > * {
+  flex: none; min-width: 0; min-height: 44px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none;
+  font: 600 16px/1.2 var(--font-ui); color: var(--ink-2); cursor: pointer; white-space: nowrap;
+  text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 7px;
+  transition: color var(--dur-fast) ease, text-decoration-color var(--dur-fast) ease;
+}
+.tl .segmented > :hover, .tl .tl-words > :hover { color: var(--ink); text-decoration-color: var(--line-strong); }
+.tl .segmented > .active, .tl .segmented > [aria-pressed="true"], .tl .tl-words > .active { color: var(--ink); text-decoration-color: var(--ink); background: none; box-shadow: none; }
+.tl .segmented > :focus-visible, .tl .tl-words > :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+
+/* ── The live result: an .hp-fig (ink rule above, hairline below), no card ── */
+.tl-fig { padding: 20px 0 22px; }
+.tl-fig > .hp-label { margin-bottom: 18px; }
+.tl-big { display: block; font-family: var(--font-display); font-weight: 700; font-size: clamp(52px, 7vw, 88px); line-height: 0.95; letter-spacing: -0.035em; color: var(--ink); overflow-wrap: anywhere; }
+.tl-big-sub { margin: 14px 0 0; max-width: 46ch; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+.tl-empty { margin: 0; max-width: 40ch; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
+.tl-empty-big { display: block; margin-bottom: 14px; font-family: var(--font-display); font-weight: 700; font-size: clamp(52px, 7vw, 88px); line-height: 0.95; color: var(--line-strong); }
+
+/* Small figures in a row, divided by hairlines (replaces rows of tiles) */
+.tl-stats { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin-top: 22px; border-top: var(--hp-rule); }
+.tl-stats > * { min-width: 0; padding: 14px 12px 0 0; }
+.tl-stats > * + * { padding-left: 14px; border-left: var(--hp-rule); }
+.tl-stat-label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.tl-stat-value { margin-top: 4px; font-size: clamp(18px, 2vw, 22px); font-weight: 600; letter-spacing: -0.01em; color: var(--ink); overflow-wrap: anywhere; }
+.tl-stat-sub { margin-top: 2px; font-size: 13px; line-height: 1.4; color: var(--ink-2); }
+
+/* Ruled data rows (label left, figure right) */
+.tl .data-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 12px 0; border-bottom: var(--hp-rule); font-size: 15px; }
+.tl .data-label { color: var(--ink-2); line-height: 1.45; }
+.tl .data-value { flex-shrink: 0; font-weight: 600; font-size: 16px; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums lining-nums; }
+.tl-rows { border-top: 1px solid var(--ink); }
+
+/* Section heads inside .hp-side: the .hp-h2.is-small and a short line under it */
+.tl-sub { margin: 12px 0 0; max-width: 46ch; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.tl-sub strong { color: var(--ink); font-weight: 600; }
+.tl-block + .tl-block { margin-top: 40px; }
+
+/* ── Buttons: one solid ember-ink primary; the rest outlined or text links ── */
+.tl-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; padding: 0 26px;
+  border: 1px solid transparent; border-radius: var(--hp-r); background: var(--ember-ink); color: #fff;
+  font: 600 16px var(--font-ui); text-decoration: none; cursor: pointer; transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+.tl-btn:hover { background: #A63C0C; }
+.tl-btn:active { transform: translateY(1px); }
+.tl-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.tl-btn.is-outline { background: none; border-color: var(--line-strong); color: var(--ink); }
+.tl-btn.is-outline:hover { border-color: var(--ink); background: none; }
+.tl :is(.tl-btn, .tl-link, a, button):focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.tl-link { padding: 0; border: 0; background: none; font: 600 15px var(--font-ui); color: var(--ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 5px; transition: text-decoration-color var(--dur-fast) ease; }
+.tl-link:hover { text-decoration-color: var(--ink); }
+
+/* AI explanation (Pro): the loading line and the answer, under a hairline */
+.tl .ai-outlook-loading { display: none; padding: 20px 0; }
+.tl .ai-outlook-loading.visible { display: flex; align-items: center; gap: 12px; }
+.tl .ai-outlook-loading-text { margin: 0; font-size: 14px; color: var(--ink-2); }
+.tl .ai-outlook-flame { display: inline-flex; color: var(--ink-2); animation: tlPulse 1.4s ease-in-out infinite; }
+@keyframes tlPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.tl .ai-outlook-text { margin-top: 18px; padding-top: 18px; border-top: var(--hp-rule); max-width: 62ch; font-size: 16px; line-height: 1.7; color: var(--ink-2); }
+.tl .ai-outlook-text strong { font-weight: 600; color: var(--ink); }
+.tl .tl-pro-note { padding-top: 14px; border-top: var(--hp-rule); max-width: 54ch; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.tl .tl-pro-note strong { color: var(--ink); }
+.tl .tl-pro-note a { color: var(--ink); font-weight: 600; white-space: nowrap; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; }
+.tl .tl-pro-note a:hover { text-decoration-color: var(--ink); }
+
+/* The one dark band on a tool page (.hp-number): one line in cream serif and its link */
+.tl-band-line { margin: 0; max-width: 30ch; font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3.2vw, 38px); line-height: 1.2; letter-spacing: -0.015em; color: var(--bg); }
+.tl-band-text { margin: 0; max-width: 46ch; font-size: 17px; line-height: 1.65; color: rgba(253, 246, 238, 0.78); }
+.tl-band-text strong { color: var(--bg); font-weight: 600; }
+.tl-band-link { display: inline-block; margin-top: 22px; font: 600 17px var(--font-ui); color: var(--bg); text-decoration: underline; text-decoration-color: rgba(253, 246, 238, 0.4); text-decoration-thickness: 1px; text-underline-offset: 6px; cursor: pointer; }
+.tl-band-link:hover { text-decoration-color: var(--bg); }
+.hp-number .tl-band-link:focus-visible, .hp-number a:focus-visible { outline-color: var(--bg); }
+.hp-number .hp-label { color: rgba(253, 246, 238, 0.7); margin-bottom: 18px; }
+
+/* Small print */
+.tl-disclaimer { margin: 32px 0 0; max-width: 62ch; font-size: 13px; line-height: 1.6; color: var(--ink-2); }
+
+/* Device / saved-plan note */
+.tl .fp-device-clear { color: var(--ink); font-weight: 600; }
+
+/* ── "What next for you" (js/next-steps.js) without its card ──
+   Its own CSS is injected at runtime; these rules are more specific (.hp …).
+   From 900px: the heading in columns 1–4, the ruled list in 6–12, like .hp-side. */
+.tl-next.hp-sec:has(#fpNextSteps:empty) { display: none; }
+.hp .fp-next { margin: 0; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; }
+@media (min-width: 900px) {
+  .hp .fp-next { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: auto auto auto 1fr; column-gap: 24px; align-items: start; }
+  .hp .fp-next > .fp-next-kicker, .hp .fp-next > .fp-next-title, .hp .fp-next > .fp-next-sub { grid-column: 1 / span 4; }
+  .hp .fp-next > .fp-next-list { grid-column: 6 / span 7; grid-row: 1 / span 4; }
+  .hp .fp-next > .fp-next-advice, .hp .fp-next > .fp-next-foot { grid-column: 6 / span 7; }
+}
+.hp .fp-next-kicker { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font: 600 13px var(--font-ui); letter-spacing: 0.04em; text-transform: none; color: var(--ink-2); }
+.hp .fp-next-kicker::before { content: ''; width: 28px; height: 1px; background: currentColor; opacity: 0.5; }
+.hp .fp-next-title { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3vw, 34px); line-height: 1.08; letter-spacing: -0.02em; color: var(--ink); }
+.hp .fp-next-sub { margin: 12px 0 0; max-width: 40ch; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.hp .fp-next-list { margin-top: 24px; border-top: 1px solid var(--ink); }
+@media (min-width: 900px) { .hp .fp-next-list { margin-top: 0; } }
+.hp .fp-next-item { padding: 18px 2px; border-top: 0; border-bottom: var(--hp-rule); }
+.hp .fp-next-item-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(19px, 2vw, 22px); line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); }
+.hp .fp-next-impact { margin-top: 6px; max-width: 60ch; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+.hp .fp-next-links { gap: 4px 20px; margin-top: 10px; }
+.hp .fp-next-links a, .hp .fp-next-here, .hp .fp-next-cta, .hp .fp-next-all {
+  font-size: 14.5px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 4px;
+}
+.hp .fp-next-links a:hover, .hp .fp-next-here:hover, .hp .fp-next-cta:hover, .hp .fp-next-all:hover { text-decoration-color: var(--ink); }
+.hp .fp-next-pill { margin-left: 8px; padding: 0; border-radius: 0; background: none; font: 700 11px var(--font-ui); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ember-ink); }
+.hp .fp-next-advice { margin: 18px 0 0; max-width: 62ch; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+.hp .fp-next-foot { margin-top: 16px; padding-top: 14px; border-top: var(--hp-rule); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tl .ai-outlook-flame { animation: none; }
+  .tl-btn, .tl-link, .tl .segmented > *, .tl .dark-input { transition: none; }
+}

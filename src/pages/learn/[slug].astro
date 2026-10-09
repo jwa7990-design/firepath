@@ -40,19 +40,21 @@ const breadcrumbs = {
 ---
 <Base title={a.title} description={a.description} path={`/learn/${a.slug}`} active="learn" ogType="article" keywords={a.keywords} image={`/og/learn/${a.slug}.png`}>
   <link slot="head" rel="stylesheet" href="/css/article.css"/>
+  <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify([schema, breadcrumbs])}></script>
 
-  <main id="main" data-progress>
-    <header class="doc-hero art-hero">
-      <div class="doc-hero-inner">
+  <main id="main" class="hp art-page" data-progress>
+    <header class="hp-hero art-hero">
+      <div class="hp-wrap">
         <nav class="art-crumbs" aria-label="Breadcrumb"><a href="/learn/">Learning Lab</a><span aria-hidden="true">/</span><span>{a.badge}</span></nav>
-        <h1 class="doc-title art-title">{a.heading}</h1>
-        <p class="doc-lead">{a.sub || a.description}</p>
-        <p class="doc-meta-line">{a.readMins} min read · Educational, not advice</p>
+        <h1 class="hp-h1 art-title">{a.heading}</h1>
+        <p class="hp-lead">{a.sub || a.description}</p>
+        <p class="doc-meta-line num">{a.readMins} min read · Educational, not advice</p>
       </div>
     </header>
 
-    <div class:list={['doc-body', 'art-body', { 'no-toc': !showToc }]}>
+    <div class="hp-wrap">
+    <div class:list={['art-body', { 'no-toc': !showToc }]}>
       {showToc && (
         <nav class="doc-toc" aria-label="In this article">
           <details class="doc-toc-mobile">
@@ -70,12 +72,12 @@ const breadcrumbs = {
         <div class="article-body" set:html={a.body}></div>
 
         <aside class="art-try">
-          <span class="art-try-kicker">Try it with your numbers</span>
+          <p class="hp-label art-try-kicker">Try it with your numbers</p>
           <h2>{a.cta?.heading || 'See how this applies to you'}</h2>
           <p>{a.cta?.text || 'FirePath works out your own numbers. Free, in about 2 minutes.'}</p>
           <div class="art-try-actions">
             {tryLinks.map((l, i) => <>
-              <a href={cleanHref(l.href)} class={i === 0 ? 'btn btn-ember btn-lg' : 'art-try-link'}>{l.label.replace(/\s*→$/, '')} {i === 0 && <Icon name="arrow" size={16}/>}</a>
+              <a href={cleanHref(l.href)} class={i === 0 ? 'doc-btn' : 'art-try-link'}>{l.label.replace(/\s*→$/, '')} {i === 0 && <Icon name="arrow" size={16}/>}</a>
               {isProHref(l.href) && <span class="art-try-pro">Pro</span>}
             </>)}
           </div>
@@ -83,32 +85,35 @@ const breadcrumbs = {
         </aside>
 
         {a.seeAlso && (
-          <p class="art-seealso">See also: {a.seeAlso.map((l, i) => <>{i > 0 && ' · '}<a href={cleanHref(l.href)}>{l.label}</a></>)}</p>
+          <div class="art-seealso">
+            <p class="art-list-tag">See also</p>
+            <ul class="art-links">{a.seeAlso.map(l => <li><a href={cleanHref(l.href)}>{l.label}<span aria-hidden="true">→</span></a></li>)}</ul>
+          </div>
         )}
 
         <section class="art-related" aria-labelledby="related-title">
           <h2 id="related-title">Keep reading</h2>
-          <div class="art-related-grid">
+          <ul class="art-related-list">
             {related.map(r => (
-              <a href={`/learn/${r.slug}`} class="art-related-card" data-reveal>
-                <span class="art-related-badge">{r.badge}</span>
+              <li><a href={`/learn/${r.slug}`} class="art-related-card">
                 <span class="art-related-title">{r.heading}</span>
-                <span class="art-related-meta">{r.readMins} min read <Icon name="arrow" size={14}/></span>
-              </a>
+                <span class="art-related-meta num">{r.badge} · {r.readMins} min read</span>
+              </a></li>
             ))}
-          </div>
-          <a href="/learn/" class="art-all">Browse all of the Learning Lab <Icon name="arrow" size={14}/></a>
+          </ul>
+          <a href="/learn/" class="hp-link">Browse all of the Learning Lab →</a>
         </section>
 
         <p class="art-disclaimer">FirePath is here to help you learn. Nothing on this page is financial advice. Everyone’s situation is different, so for advice on yours, talk to a licensed financial adviser.</p>
       </article>
     </div>
+    </div>
   </main>
 
   <style>
-    .art-try-pro { margin-left: -10px; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(249, 168, 37, 0.5); color: var(--amber); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+    .art-try-pro { padding: 2px 7px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--ink-2); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; }
     .art-try p.art-try-pro-note { margin-top: 14px; font-size: 13.5px; }
-    .art-try-pro-note a { color: var(--bg); text-decoration: underline; text-underline-offset: 3px; }
+    .art-try-pro-note a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
   </style>
 
   <script>

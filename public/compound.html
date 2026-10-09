@@ -28,197 +28,191 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
+  <link rel="stylesheet" href="css/fp-editorial.css"/>
+  <link rel="stylesheet" href="css/fp-tools.css"/>
   <script src="js/persona.js"></script>
 <style>
-  .compound-main { max-width: 640px; }
-  .compound-head { margin-bottom: 28px; }
-  .compound-head .section-link { display: inline-block; margin-bottom: 20px; }
-  .compound-head .eyebrow { color: var(--ember-ink); margin-bottom: 10px; }
-  .compound-head .lead { margin-top: 12px; }
+  /* Layout comes from css/fp-editorial.css (the homepage's primitives) and css/fp-tools.css
+     (the tool pages' shared parts). Hero; then inputs in columns 1–5 and how it grows in 7–12;
+     then the cost of waiting, the one dark band (the Withdrawal planner) and What next. */
+  .tl-out .milestones { margin-top: 4px; }
 
-  .glass-card { margin-bottom: 14px; }
-  .card-label { margin-bottom: 14px; }
-  .card-note { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin-top: 12px; }
-  .card-note-lead { margin: 0 0 16px; }
-
-  .input-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .input-row:last-child { margin-bottom: 0; }
-  .input-row-growing { margin-top: 16px; }
-  .input-label-text { font-size: 13.5px; font-weight: 500; color: var(--ink); }
-  .input-wrap { position: relative; }
-  .input-prefix-dark { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--ink-3); pointer-events: none; }
-  .input-prefix-word { font-size: 13px; left: 12px; }
-  .dark-input { padding-left: 30px; font-size: 16px; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
-  .dark-input.dark-input-word { padding-left: 44px; }
-  .dark-input::-webkit-inner-spin-button, .dark-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-  .dark-input::placeholder { color: var(--ink-3); }
-
-  /* Pay cycle + contribution mode: segmented controls (JS toggles .active) */
-  .cycle-group, .mode-toggle { display: flex; width: 100%; }
-  .cycle-btn, .mode-btn { flex: 1; min-height: 40px; white-space: nowrap; }
-  .mode-btn { padding: 8px 10px; }
-
-  .slider-row { display: flex; align-items: center; gap: 14px; }
-  input[type="range"].dark-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 6px; background: var(--line-strong); outline: none; cursor: pointer; }
-  input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
-  input[type="range"].dark-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
-  input[type="range"].dark-slider:focus-visible { outline: 2px solid var(--ember); outline-offset: 4px; }
-  .slider-val { font-weight: 600; color: var(--ink); min-width: 44px; text-align: right; font-size: 15px; font-variant-numeric: tabular-nums; }
-
-  .milestones { display: flex; flex-direction: column; gap: 12px; animation: fadeUp 0.4s var(--ease) both; }
-  .milestone-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px; transition: border-color var(--dur-base) ease; }
-  .milestone-card.highlight { border-color: rgba(244, 98, 42, 0.45); box-shadow: var(--shadow-1); }
-  .milestone-year { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin-bottom: 4px; }
-  .milestone-total { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--ink); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
+  /* How it grows: a ruled list, one row per milestone */
+  .milestones { list-style: none; margin: 0; padding: 0; border-top: var(--hp-rule); animation: fadeUp 0.4s var(--ease) both; }
+  .milestone-card { padding: 16px 0 18px; border-bottom: var(--hp-rule); }
+  .milestone-card:last-child { border-bottom: 0; padding-bottom: 0; }
+  .milestone-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .milestone-year { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink-2); }
+  .milestone-total { font-family: var(--font-display); font-size: clamp(24px, 2.6vw, 30px); font-weight: 700; line-height: 1.1; letter-spacing: -0.015em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
   .milestone-total span { color: var(--ink); }
-  .milestone-card.highlight .milestone-total span { color: var(--ember-ink); }
-  .milestone-bar-wrap { height: 8px; background: var(--surface-2); border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
-  .milestone-bar { height: 100%; border-radius: 8px; display: flex; }
-  .bar-contributed { background: var(--ink-3); height: 100%; }
-  .bar-compound { background: linear-gradient(90deg, var(--ember), var(--amber)); height: 100%; }
-  .milestone-breakdown { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .milestone-bar-wrap { height: 3px; margin: 12px 0 8px; border-radius: 2px; background: var(--line); overflow: hidden; }
+  .milestone-bar { height: 100%; display: flex; }
+  .bar-contributed { height: 100%; background: var(--ink-3); }
+  .bar-compound { height: 100%; background: var(--ink); }
+  .milestone-card.highlight .bar-compound { background: var(--ember-ink); }
+  .milestone-breakdown { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
   .breakdown-you { color: var(--ink-2); }
-  .breakdown-compound { color: var(--ember-ink); font-weight: 500; }
-  .milestone-insight { margin-top: 12px; padding: 10px 12px; background: var(--surface-2); border-radius: var(--r-sm); font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .breakdown-compound { color: var(--ink); font-weight: 600; }
+  .milestone-insight { margin-top: 8px; max-width: 54ch; font-size: 14px; color: var(--ink-2); line-height: 1.55; }
 
-  .waiting-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
-  .waiting-tile { border-radius: var(--r-md); padding: 14px 8px; text-align: center; border: 1px solid var(--line); background: var(--surface); }
-  .waiting-tile.now { background: var(--ember-wash); border-color: rgba(244, 98, 42, 0.3); }
-  .waiting-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: 6px; }
-  .waiting-tile.now .waiting-label { color: var(--ember-ink); }
-  .waiting-value { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .waiting-tile.now .waiting-value { color: var(--ember-ink); }
-  .waiting-sub { font-size: 11px; color: var(--ink-3); margin-top: 4px; }
-  .cost-banner { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 20px; text-align: center; }
-  .cost-banner-label { font-size: 13px; color: var(--ink-2); margin-bottom: 4px; }
-  .cost-banner-value { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--negative); margin-bottom: 4px; font-variant-numeric: tabular-nums; }
-  .cost-banner-sub { font-size: 12.5px; color: var(--ink-2); }
+  /* The cost of waiting: three figures in a row, then the cost, on rules */
+  .waiting-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--ink); }
+  .waiting-tile { min-width: 0; padding: 16px 12px 18px 0; }
+  .waiting-tile + .waiting-tile { padding-left: 16px; border-left: var(--hp-rule); }
+  .waiting-label { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; }
+  .waiting-tile.now .waiting-label { color: var(--ink); }
+  .waiting-value { font-family: var(--font-display); font-size: clamp(22px, 3vw, 34px); font-weight: 700; letter-spacing: -0.015em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; overflow-wrap: anywhere; }
+  .waiting-sub { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+  .cost-banner { padding: 18px 0 0; border-top: var(--hp-rule); }
+  .cost-banner-label { font-size: 15px; color: var(--ink-2); margin-bottom: 4px; }
+  .cost-banner-value { font-family: var(--font-display); font-size: clamp(36px, 5vw, 56px); font-weight: 700; line-height: 1; letter-spacing: -0.025em; color: var(--ember-ink); margin: 6px 0 8px; font-variant-numeric: tabular-nums lining-nums; }
+  .cost-banner-sub { font-size: 14px; color: var(--ink-2); }
 
-  /* The one dark "earned" surface on the page */
-  .next-card { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-xl); padding: 32px 24px; cursor: pointer; text-align: center; color: var(--bg); margin: 8px 0 16px; box-shadow: var(--shadow-2); transition: transform var(--dur-base) var(--ease), box-shadow var(--dur-base) var(--ease); }
-  .next-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-3); }
-  .next-card-emoji { font-size: 28px; margin-bottom: 12px; }
-  .next-card-title { font-family: var(--font-display); font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-  .next-card-sub { font-size: 14.5px; color: rgba(253, 246, 238, 0.7); line-height: 1.7; margin: 0 auto 20px; max-width: 44ch; }
-  .next-card .btn { white-space: normal; text-align: center; }
-
-  .disclaimer { font-size: 12.5px; color: var(--ink-2); text-align: center; line-height: 1.6; margin-top: 8px; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .milestones { animation: none; } }
 </style>
 </head>
 <body class="site" data-shell="site" data-public="true">
 <script src="js/shell.js"></script>
 
-<main class="site-main compound-main">
+<main class="tl hp" id="main">
 
-  <header class="compound-head">
-    <a href="/firepath" class="section-link back-link">← Back to FirePath</a>
-    <div class="eyebrow">What time does to your money</div>
-    <h1 class="display-lg">Compound interest 🌱</h1>
-    <p class="lead">Starting sooner often matters more than investing more. Have a play and see.</p>
+  <header class="hp-hero tl-hero">
+    <div class="hp-wrap">
+      <a href="/firepath" class="tl-back back-link">← Back to FirePath</a>
+      <div class="hp-label">What time does to your money</div>
+      <h1 class="hp-h1">Compound interest</h1>
+      <p class="hp-lead">Starting sooner often matters more than investing more. Have a play and see.</p>
+    </div>
   </header>
 
+  <div class="tl-body">
+    <div class="hp-wrap hp-two">
+      <div class="tl-in">
+        <div class="tl-group">
+          <div class="hp-label">Your details</div>
+          <p class="tl-note" id="fpPlanNote" style="display:none;margin:0 0 16px;">Filled in from your saved plan — change any number.</p>
 
-  <div class="card glass-card">
-    <div class="eyebrow card-label">Your details</div>
-    <p class="card-note" id="fpPlanNote" style="display:none;margin:0 0 12px;font-size:13px;color:var(--ink-2);">Filled in from your saved plan — change any number.</p>
+          <div class="tl-row">
+            <label class="tl-field-label" for="c-age">Your age now</label>
+            <div class="input-wrap"><span class="input-prefix-dark" style="font-size:13px;left:12px;">age</span><input type="number" inputmode="numeric" class="dark-input" id="c-age" placeholder="25" min="16" max="60" style="padding-left:44px;" oninput="calcCompound()"/></div>
+          </div>
 
-    <div class="input-row">
-      <div class="input-label-text">Your age now</div>
-      <div class="input-wrap"><span class="input-prefix-dark input-prefix-word">age</span><input type="number" inputmode="numeric" class="input dark-input dark-input-word" id="c-age" placeholder="25" min="16" max="60" oninput="calcCompound()"/></div>
-    </div>
+          <div class="tl-row">
+            <span class="tl-field-label" id="c-cycleLabel">Pay cycle</span>
+            <div class="segmented cycle-group" role="group" aria-labelledby="c-cycleLabel">
+              <button type="button" class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
+              <button type="button" class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
+              <button type="button" class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
+            </div>
+          </div>
 
-    <div class="input-row">
-      <div class="input-label-text">Pay cycle</div>
-      <div class="segmented cycle-group">
-        <button class="cycle-btn" data-cycle="weekly" onclick="setCycle(this)">Weekly</button>
-        <button class="cycle-btn active" data-cycle="fortnightly" onclick="setCycle(this)">Fortnightly</button>
-        <button class="cycle-btn" data-cycle="monthly" onclick="setCycle(this)">Monthly</button>
-      </div>
-    </div>
+          <div class="tl-row">
+            <label class="tl-field-label" for="c-amount">Amount you invest per <span id="cycleWord">fortnight</span></label>
+            <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" inputmode="decimal" class="dark-input" id="c-amount" placeholder="200" oninput="calcCompound()"/></div>
+          </div>
 
-    <div class="input-row">
-      <div class="input-label-text">Amount you invest per <span id="cycleWord">fortnight</span></div>
-      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" inputmode="decimal" class="input dark-input" id="c-amount" placeholder="200" oninput="calcCompound()"/></div>
-    </div>
+          <div class="tl-row">
+            <label class="tl-field-label" for="c-existing">Already invested / saved (optional)</label>
+            <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" inputmode="decimal" class="dark-input" id="c-existing" placeholder="0" oninput="calcCompound()"/></div>
+          </div>
+        </div>
 
-    <div class="input-row">
-      <div class="input-label-text">Already invested / saved (optional)</div>
-      <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" inputmode="decimal" class="input dark-input" id="c-existing" placeholder="0" oninput="calcCompound()"/></div>
-    </div>
-  </div>
+        <div class="tl-group">
+          <div class="hp-label" id="c-modeLabel">How you add money</div>
+          <div class="segmented mode-toggle" role="group" aria-labelledby="c-modeLabel">
+            <button type="button" class="mode-btn active" id="fixedBtn" onclick="setMode('fixed')">Fixed amount</button>
+            <button type="button" class="mode-btn" id="growingBtn" onclick="setMode('growing')">Growing amount</button>
+          </div>
+          <p id="modeExplainer" class="tl-note">You invest the same amount every cycle — simple and consistent.</p>
+          <div id="growingOptions" style="display:none;">
+            <div class="tl-row" style="margin-top:18px;">
+              <label class="tl-field-label" for="c-contribIncrease">Raise it each year by (%)</label>
+              <div class="slider-row">
+                <input type="range" class="dark-slider" id="c-contribIncrease" min="0" max="10" value="3" oninput="document.getElementById('c-contribIncreaseVal').textContent=this.value+'%';calcCompound()"/>
+                <span class="slider-val" id="c-contribIncreaseVal">3%</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <div class="card glass-card">
-    <div class="eyebrow card-label">How you add money</div>
-    <div class="segmented mode-toggle">
-      <button class="mode-btn active" id="fixedBtn" onclick="setMode('fixed')">📌 Fixed amount</button>
-      <button class="mode-btn" id="growingBtn" onclick="setMode('growing')">📈 Growing amount</button>
-    </div>
-    <p id="modeExplainer" class="card-note">You invest the same amount every cycle — simple and consistent.</p>
-    <div id="growingOptions" style="display:none;">
-      <div class="input-row input-row-growing">
-        <div class="input-label-text">Raise it each year by (%)</div>
-        <div class="slider-row">
-          <input type="range" class="dark-slider" id="c-contribIncrease" min="0" max="10" value="3" oninput="document.getElementById('c-contribIncreaseVal').textContent=this.value+'%';calcCompound()"/>
-          <span class="slider-val" id="c-contribIncreaseVal">3%</span>
+        <div class="tl-group">
+          <div class="hp-label">Assumptions</div>
+          <div class="tl-row">
+            <label class="tl-field-label" for="c-returnRate">Investment return per year (after inflation)</label>
+            <div class="slider-row">
+              <input type="range" class="dark-slider" id="c-returnRate" min="3" max="12" value="7" oninput="document.getElementById('c-returnRateVal').textContent=this.value+'%';calcCompound()"/>
+              <span class="slider-val" id="c-returnRateVal">7%</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <div class="card glass-card">
-    <div class="eyebrow card-label">Assumptions</div>
-    <div class="input-row">
-      <div class="input-label-text">Investment return per year (after inflation)</div>
-      <div class="slider-row">
-        <input type="range" class="dark-slider" id="c-returnRate" min="3" max="12" value="7" oninput="document.getElementById('c-returnRateVal').textContent=this.value+'%';calcCompound()"/>
-        <span class="slider-val" id="c-returnRateVal">7%</span>
+      <div class="tl-out is-sticky">
+        <div class="hp-fig tl-fig" aria-live="polite">
+          <div class="hp-label">How it grows, year by year</div>
+          <div id="resultsEmpty"><p class="tl-empty">Add your age and what you invest to see it grow.</p></div>
+          <div id="resultsLive" style="display:none;"><div class="milestones" id="milestonesContainer"></div></div>
+        </div>
       </div>
     </div>
   </div>
 
   <div id="results" style="display:none;">
 
-    <div class="card glass-card">
-      <div class="eyebrow card-label">How it grows, year by year 🔥</div>
-      <div class="milestones" id="milestonesContainer"></div>
-    </div>
+    <section class="hp-sec">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 class="hp-h2 is-small">The cost of waiting</h2>
+          <p class="tl-sub">Same amount, same return. The only difference is when you start.</p>
+        </div>
+        <div class="hp-side-main">
+          <div class="waiting-grid" id="w-grid">
+            <div class="waiting-tile now">
+              <div class="waiting-label">Start now</div>
+              <div class="waiting-value" id="w-now">—</div>
+              <div class="waiting-sub">at age 60</div>
+            </div>
+            <div class="waiting-tile" id="w-tile5">
+              <div class="waiting-label">Start in 5 yrs</div>
+              <div class="waiting-value" id="w-5">—</div>
+              <div class="waiting-sub">at age 60</div>
+            </div>
+            <div class="waiting-tile" id="w-tile10">
+              <div class="waiting-label">Start in 10 yrs</div>
+              <div class="waiting-value" id="w-10">—</div>
+              <div class="waiting-sub">at age 60</div>
+            </div>
+          </div>
+          <div class="cost-banner" id="w-costBanner">
+            <div class="cost-banner-label">Waiting 5 years costs you</div>
+            <div class="cost-banner-value" id="w-cost5">—</div>
+            <div class="cost-banner-sub">at age 60 — from the same investment</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <div class="card glass-card">
-      <div class="eyebrow card-label">💸 The cost of waiting</div>
-      <p class="card-note card-note-lead">Same amount, same return. The only difference is when you start.</p>
-      <div class="waiting-grid" id="w-grid">
-        <div class="waiting-tile now">
-          <div class="waiting-label">Start now</div>
-          <div class="waiting-value" id="w-now">—</div>
-          <div class="waiting-sub">at age 60</div>
+    <section class="hp-number">
+      <div class="hp-wrap hp-half">
+        <div>
+          <div class="hp-label">Next</div>
+          <h2 class="tl-band-line">So what could it pay you?</h2>
         </div>
-        <div class="waiting-tile" id="w-tile5">
-          <div class="waiting-label">Start in 5 yrs</div>
-          <div class="waiting-value" id="w-5">—</div>
-          <div class="waiting-sub">at age 60</div>
-        </div>
-        <div class="waiting-tile" id="w-tile10">
-          <div class="waiting-label">Start in 10 yrs</div>
-          <div class="waiting-value" id="w-10">—</div>
-          <div class="waiting-sub">at age 60</div>
+        <div>
+          <p class="tl-band-text">Once it’s built, how much could it pay you each year, and would it last? The Withdrawal planner works that out.</p>
+          <a class="tl-band-link" href="withdrawal.html">Open the Withdrawal planner →</a>
         </div>
       </div>
-      <div class="cost-banner" id="w-costBanner">
-        <div class="cost-banner-label">Waiting 5 years costs you</div>
-        <div class="cost-banner-value" id="w-cost5">—</div>
-        <div class="cost-banner-sub">at age 60 — from the same investment</div>
+    </section>
+
+    <section class="hp-sec tl-next">
+      <div class="hp-wrap">
+        <!-- What next for you — filled by js/next-steps.js -->
+        <div id="fpNextSteps"></div>
+        <p class="tl-disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections assume steady returns, after inflation, so every figure is in today's money. Actual returns vary from year to year.</p>
       </div>
-    </div>
-    <div class="next-card" onclick="window.location.href='withdrawal.html'">
-      <div class="next-card-emoji">🏖️</div>
-      <div class="next-card-title">So what could it pay you?</div>
-      <div class="next-card-sub">Once it’s built, how much could it pay you each year, and would it last? The Withdrawal planner works that out.</div>
-      <div class="btn btn-ember btn-lg">Open the Withdrawal planner →</div>
-    </div>
-    <!-- What next for you — filled by js/next-steps.js -->
-    <div id="fpNextSteps"></div>
-    <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections assume steady returns, after inflation, so every figure is in today's money. Actual returns vary from year to year.</p>
+    </section>
   </div>
 
 </main>
@@ -359,6 +353,13 @@
     return `For every $1 you invested, compounding added $${(ratio - 1).toFixed(1)}. Time did most of the heavy lifting.`;
   }
 
+  // The results sit in two places: how it grows (right-hand column) and the sections below.
+  function showResults(on) {
+    document.getElementById('results').style.display = on ? 'block' : 'none';
+    document.getElementById('resultsLive').style.display = on ? 'block' : 'none';
+    document.getElementById('resultsEmpty').style.display = on ? 'none' : 'block';
+  }
+
   function calcCompound() {
     const age        = Math.floor(numFrom('c-age', 0));
     const amount     = Math.max(0, numFrom('c-amount', 0));
@@ -369,11 +370,11 @@
     // Needs an age, and something to grow: a regular amount, or savings already invested
     // ($0 a fortnight on top of existing savings is a fair question too).
     if (age <= 0 || (amount <= 0 && existing <= 0)) {
-      document.getElementById('results').style.display = 'none';
+      showResults(false);
       return;
     }
 
-    document.getElementById('results').style.display = 'block';
+    showResults(true);
 
     const monthlyAmount = toMonthly(amount, selectedCycle);
     const milestoneYears = [5, 10, 15, 20, 30, 40];
@@ -395,8 +396,10 @@
       const card = document.createElement('div');
       card.className = 'milestone-card' + (isHighlight ? ' highlight' : '');
       card.innerHTML = `
-        <div class="milestone-year">Year ${years} — Age ${currentAge}</div>
-        <div class="milestone-total"><span>${money(total)}</span></div>
+        <div class="milestone-head">
+          <div class="milestone-year">Year ${years} — Age ${currentAge}</div>
+          <div class="milestone-total"><span>${money(total)}</span></div>
+        </div>
         <div class="milestone-bar-wrap">
           <div class="milestone-bar">
             <div class="bar-contributed" style="width:${youPct}%"></div>
@@ -407,7 +410,7 @@
           <span class="breakdown-you">You invested: ${money(contributed)}</span>
           <span class="breakdown-compound">Compounding added: ${money(compound)}</span>
         </div>
-        <div class="milestone-insight">💡 ${insight}</div>
+        <div class="milestone-insight">${insight}</div>
       `;
       container.appendChild(card);
     });

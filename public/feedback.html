@@ -36,100 +36,117 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
   <link rel="stylesheet" href="css/visual-system.css"/>
+  <link rel="stylesheet" href="css/fp-editorial.css"/>
+  <link rel="stylesheet" href="css/fp-tools.css"/>
   <script src="js/persona.js"></script>
   <style>
-  .feedback-main { max-width: 580px; }
-  .feedback-head { margin-bottom: 28px; }
-  .feedback-head .eyebrow { margin-bottom: 10px; }
-  .feedback-head .lead { margin-top: 12px; }
+  /* Layout comes from css/fp-editorial.css (the homepage's primitives) and css/fp-tools.css
+     (the tool pages' shared parts). Hero; then the questions as a ruled list in columns 1–7,
+     with the privacy line beside them in 9–12. */
+  @media (min-width: 900px) {
+    .fb-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; align-items: start; }
+    .fb-grid > #formArea, .fb-grid > #successCard { grid-column: 1 / span 7; }
+    .fb-grid > .fb-aside { grid-column: 9 / span 4; position: sticky; top: calc(var(--nav-h) + 24px); }
+  }
+  .fb-aside .tl-disclaimer { margin: 0; padding-top: 14px; border-top: 1px solid var(--ink); font-size: 15px; }
+  @media (max-width: 899px) { .fb-aside { margin-top: 24px; } }
 
-  #formArea .card { margin-bottom: 14px; }
-  .card-label { margin-bottom: 10px; }
-  .card-question { font-size: 16px; font-weight: 500; color: var(--ink); line-height: 1.45; margin-bottom: 14px; }
+  .fb-q { padding: 24px 0 28px; border-bottom: var(--hp-rule); }
+  .fb-q:first-child { border-top: 1px solid var(--ink); }
+  .fb-q > .hp-label { margin-bottom: 14px; }
+  .card-question { margin-bottom: 14px; max-width: 34ch; font-family: var(--font-display); font-size: clamp(21px, 2.2vw, 25px); font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); }
   .card-question-tight { margin-bottom: 6px; }
-  .card-hint { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; margin-bottom: 14px; }
+  .card-hint { font-size: 15px; color: var(--ink-2); line-height: 1.5; margin-bottom: 14px; }
 
-  textarea.input { height: 104px; padding: 12px 14px; line-height: 1.5; resize: none; display: block; }
-  textarea.input.textarea-tall { height: 124px; }
-  .input::placeholder { color: var(--ink-3); }
+  .tl .input { width: 100%; height: 48px; padding: 0 14px; border-radius: var(--hp-r); border: 1px solid var(--line-strong); background: var(--surface); box-shadow: none; font: 400 16px var(--font-ui); color: var(--ink); transition: border-color var(--dur-fast) ease; }
+  .tl .input:hover { border-color: var(--ink-3); }
+  .tl .input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  .tl textarea.input { height: 112px; padding: 12px 14px; line-height: 1.55; resize: vertical; display: block; }
+  .tl textarea.input.textarea-tall { height: 132px; }
+  .tl .input::placeholder { color: var(--ink-3); }
 
-  .emoji-row { display: flex; gap: 8px; justify-content: center; margin: 4px 0; }
-  .emoji-btn { flex: 0 1 56px; height: 56px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-md); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink-3); transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, transform var(--dur-fast) ease, color var(--dur-fast) ease; }
-  .emoji-btn svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-  .emoji-btn:hover { border-color: var(--ember); color: var(--ink-2); }
-  .emoji-btn.selected { border-color: var(--ember); background: var(--ember-wash); color: var(--ember-ink); transform: scale(1.06); }
-  .emoji-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-  .emoji-label { font-size: 13px; color: var(--ink-2); text-align: center; margin-top: 10px; }
+  /* Rating: five faces as plain marks; the chosen one in ink, underlined */
+  .emoji-row { display: flex; gap: 4px 12px; margin: 4px 0 0; }
+  .emoji-btn { width: 48px; height: 52px; padding: 0 0 6px; background: none; border: 0; border-bottom: 2px solid transparent; border-radius: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--ink-3); transition: color var(--dur-fast) ease, border-color var(--dur-fast) ease; }
+  .emoji-btn svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .emoji-btn:hover { color: var(--ink-2); }
+  .emoji-btn.selected { color: var(--ink); border-bottom-color: var(--ink); }
+  .emoji-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .emoji-label { font-size: 14px; color: var(--ink-2); margin-top: 10px; }
 
-  .choice-list { display: flex; flex-direction: column; gap: 8px; }
-  .choice { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); background: var(--surface); cursor: pointer; font-size: 14.5px; color: var(--ink); transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease; }
-  .choice:hover { border-color: var(--ink-3); }
-  .choice:has(input:checked) { border-color: var(--ember); background: var(--ember-wash); }
-  .choice input { accent-color: var(--ember); width: 16px; height: 16px; flex-shrink: 0; }
+  /* Pro interest: radios on a ruled list */
+  .choice-list { display: flex; flex-direction: column; border-top: var(--hp-rule); }
+  .choice { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px 2px; border-bottom: var(--hp-rule); cursor: pointer; font-size: 15.5px; color: var(--ink); }
+  .choice:hover { color: var(--ink); background: none; }
+  .choice:has(input:checked) { font-weight: 600; }
+  .choice input { accent-color: var(--ink); width: 18px; height: 18px; flex-shrink: 0; }
 
-  .cta-btn { margin-top: 10px; }
-  .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .fb-send { margin-top: 32px; }
   .hp-field { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
-  .feedback-error { margin-top: 12px; font-size: 13.5px; color: var(--negative); text-align: center; }
-  .disclaimer { font-size: 13px; color: var(--ink-2); text-align: center; line-height: 1.5; margin-top: 14px; }
+  .feedback-error { margin-top: 12px; font-size: 14px; color: var(--negative); }
 
-  .success-card { display: none; background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-xl); padding: 40px 24px; text-align: center; color: var(--bg); box-shadow: var(--shadow-3); }
+  /* Thanks: replaces the form, on the same cream (no dark card) */
+  .success-card { display: none; padding-top: 22px; border-top: 1px solid var(--ink); }
   .success-card.visible { display: block; animation: fadeUp 0.5s var(--ease) both; }
-  .success-icon { margin: 0 auto 16px; display: block; }
-  .success-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; margin-bottom: 12px; }
-  .success-sub { font-size: 15px; color: rgba(253, 246, 238, 0.72); line-height: 1.7; margin: 0 auto 20px; max-width: 42ch; }
-  .success-sig { font-size: 13.5px; color: rgba(253, 246, 238, 0.55); font-style: italic; }
-  .success-back { margin-top: 24px; background: rgba(253, 246, 238, 0.12); color: var(--bg); }
-  .success-back:hover { background: rgba(253, 246, 238, 0.2); }
+  .success-title { margin-bottom: 14px; font-family: var(--font-display); font-size: clamp(30px, 4vw, 46px); font-weight: 700; line-height: 1.06; letter-spacing: -0.02em; color: var(--ink); }
+  .success-sub { max-width: 46ch; margin: 0 0 14px; font-size: 17px; color: var(--ink-2); line-height: 1.65; }
+  .success-sig { font-size: 15px; color: var(--ink-2); }
+  .success-back { display: inline-block; margin-top: 24px; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .success-card.visible { animation: none; } }
   </style>
 </head>
 <body class="site" data-shell="site">
 <script src="js/shell.js"></script>
 
-<main class="site-main feedback-main">
-  <header class="feedback-head">
-    <div class="eyebrow">Feedback</div>
-    <h1 class="display-lg">Help shape FirePath</h1>
-    <p class="lead">A few quick questions. Answer as many or as few as you like.</p>
+<main class="tl hp" id="main">
+  <header class="hp-hero tl-hero">
+    <div class="hp-wrap">
+      <div class="hp-label">Feedback</div>
+      <h1 class="hp-h1">Help shape FirePath</h1>
+      <p class="hp-lead">A few quick questions. Answer as many or as few as you like.</p>
+    </div>
   </header>
+
+  <div class="tl-body">
+  <div class="hp-wrap fb-grid">
 
   <div id="formArea">
 
-    <div class="card">
-      <div class="eyebrow card-label">How was it?</div>
-      <div class="card-question">How useful did you find FirePath today?</div>
-      <div class="emoji-row">
-        <button class="emoji-btn" data-rating="1" onclick="selectRating(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><circle cx="9" cy="9.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></button>
-        <button class="emoji-btn" data-rating="2" onclick="selectRating(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14.5h8"/><circle cx="9" cy="9.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></button>
-        <button class="emoji-btn" data-rating="3" onclick="selectRating(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 1 4 1 4-1 4-1"/><circle cx="9" cy="9.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></button>
-        <button class="emoji-btn" data-rating="4" onclick="selectRating(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 13.5s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></button>
-        <button class="emoji-btn" data-rating="5" onclick="selectRating(this)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M7.5 13s2 3 4.5 3 4.5-3 4.5-3"/><circle cx="9" cy="9" r="0.7" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="0.7" fill="currentColor" stroke="none"/></svg></button>
+    <div class="fb-q">
+      <div class="hp-label">How was it?</div>
+      <div class="card-question" id="ratingQ">How useful did you find FirePath today?</div>
+      <div class="emoji-row" role="group" aria-labelledby="ratingQ">
+        <button type="button" class="emoji-btn" data-rating="1" aria-label="Not useful" onclick="selectRating(this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 15s1.5-2 4-2 4 2 4 2"/><circle cx="9" cy="9.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></button>
+        <button type="button" class="emoji-btn" data-rating="2" aria-label="Somewhat useful" onclick="selectRating(this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14.5h8"/><circle cx="9" cy="9.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></button>
+        <button type="button" class="emoji-btn" data-rating="3" aria-label="Pretty useful" onclick="selectRating(this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 1 4 1 4-1 4-1"/><circle cx="9" cy="9.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></button>
+        <button type="button" class="emoji-btn" data-rating="4" aria-label="Very useful" onclick="selectRating(this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 13.5s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9.5" r="0.6" fill="currentColor" stroke="none"/><circle cx="15" cy="9.5" r="0.6" fill="currentColor" stroke="none"/></svg></button>
+        <button type="button" class="emoji-btn" data-rating="5" aria-label="Loved it" onclick="selectRating(this)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M7.5 13s2 3 4.5 3 4.5-3 4.5-3"/><circle cx="9" cy="9" r="0.7" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="0.7" fill="currentColor" stroke="none"/></svg></button>
       </div>
       <div class="emoji-label" id="ratingLabel">Tap to rate</div>
     </div>
 
-    <div class="card">
-      <div class="eyebrow card-label">The gaps</div>
-      <div class="card-question">What was missing that you wished FirePath could do?</div>
+    <div class="fb-q">
+      <div class="hp-label">The gaps</div>
+      <label class="card-question" for="q1" style="display:block;">What was missing that you wished FirePath could do?</label>
       <textarea class="input" id="q1" placeholder="e.g. I wanted to be able to factor in my investment property, or see what happens if I change jobs..."></textarea>
     </div>
 
-    <div class="card">
-      <div class="eyebrow card-label">The confusing bits</div>
-      <div class="card-question">Was anything unclear or confusing?</div>
+    <div class="fb-q">
+      <div class="hp-label">The confusing bits</div>
+      <label class="card-question" for="q2" style="display:block;">Was anything unclear or confusing?</label>
       <textarea class="input" id="q2" placeholder="e.g. I wasn't sure what the freedom number meant, or the savings rate felt off..."></textarea>
     </div>
 
-    <div class="card">
-      <div class="eyebrow card-label">What would bring you back</div>
-      <div class="card-question">What's one thing that would make you come back to FirePath?</div>
+    <div class="fb-q">
+      <div class="hp-label">What would bring you back</div>
+      <label class="card-question" for="q3" style="display:block;">What's one thing that would make you come back to FirePath?</label>
       <textarea class="input" id="q3" placeholder="e.g. If it could track my progress over time, or if there was a mobile app..."></textarea>
     </div>
-    <div class="card" id="proInterestCard">
-      <div class="eyebrow card-label">Considering Pro?</div>
-      <div class="card-question">Based on what you've seen, would you consider upgrading to Pro for $6/month?</div>
-      <div class="choice-list">
+    <div class="fb-q" id="proInterestCard">
+      <div class="hp-label">Considering Pro?</div>
+      <div class="card-question" id="proQ">Based on what you've seen, would you consider upgrading to Pro for $6/month?</div>
+      <div class="choice-list" role="radiogroup" aria-labelledby="proQ">
         <label class="choice">
           <input type="radio" name="proInterest" value="yes"> Yes, I'd consider it
         </label>
@@ -144,34 +161,39 @@
         </label>
       </div>
     </div>
-    <div class="card">
-      <div class="eyebrow card-label">Anything else?</div>
-      <textarea class="input textarea-tall" id="q4" placeholder="Anything else on your mind — we read everything."></textarea>
+    <div class="fb-q">
+      <label class="hp-label" for="q4">Anything else?</label>
+      <textarea class="input textarea-tall" id="q4" placeholder="Anything else on your mind — we read everything." style="margin-top:14px;"></textarea>
     </div>
 
-    <div class="card">
-      <div class="eyebrow card-label">Stay in the loop (optional)</div>
-      <div class="card-question card-question-tight">Want us to let you know when we build your suggestion?</div>
+    <div class="fb-q">
+      <div class="hp-label">Stay in the loop (optional)</div>
+      <label class="card-question card-question-tight" for="feedbackEmail" style="display:block;">Want us to let you know when we build your suggestion?</label>
       <p class="card-hint">Leave your email and we'll let you know when it's ready.</p>
       <input class="input" type="email" id="feedbackEmail" placeholder="your@email.com"/>
       <div class="hp-field" aria-hidden="true"><label>Leave this empty <input type="text" id="feedbackWebsite" name="website" tabindex="-1" autocomplete="off"/></label></div>
     </div>
 
-    <button class="btn btn-primary btn-lg btn-block cta-btn" id="submitBtn" onclick="submitFeedback()">Send feedback</button>
-    <p class="feedback-error" id="feedbackError" role="alert" hidden>Sorry — that didn't send. Please try again in a moment.</p>
-
-    <p class="disclaimer">Everything you share stays between us and goes straight into making FirePath better.</p>
+    <div class="fb-send">
+      <button type="button" class="tl-btn cta-btn" id="submitBtn" onclick="submitFeedback()">Send feedback</button>
+      <p class="feedback-error" id="feedbackError" role="alert" hidden>Sorry — that didn't send. Please try again in a moment.</p>
+    </div>
   </div>
 
   <!-- Success state -->
-  <div class="success-card fp-reveal" id="successCard">
-    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--amber)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="success-icon"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg>
+  <div class="success-card" id="successCard">
     <div class="success-title">Thanks so much.</div>
     <p class="success-sub">We read every one, and it helps us decide what to build next. We'll be in touch if you left your email.</p>
     <p class="success-sig">— The FirePath team</p>
-    <a href="firepath_pro.html" class="btn success-back">← Back to FirePath</a>
+    <a href="firepath_pro.html" class="tl-link success-back">← Back to FirePath</a>
   </div>
 
+  <aside class="fb-aside">
+    <p class="tl-disclaimer">Everything you share stays between us and goes straight into making FirePath better.</p>
+  </aside>
+
+  </div>
+  </div>
 </main>
 
 <script src="js/auth.js"></script>

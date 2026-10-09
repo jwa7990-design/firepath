@@ -1,13 +1,16 @@
 ---
 /**
- * Long-form page (Privacy, Terms): hero band, optional "at a glance" summary,
- * sticky contents that follows your reading, numbered sections, contact card.
+ * Long-form page (Privacy, Terms, How we calculate): an editorial hero, an optional
+ * "at a glance" ruled list, then contents + numbered sections on the 12-column grid
+ * (public/css/fp-editorial.css), closing on a plain contact section.
  *
  * Usage:
  *   <DocLayout title=… sections={[{ id: 'collect', title: 'What we collect' }, …]} glance={[…]}>
  *     <section id="collect" data-doc-section> … </section>
  *   </DocLayout>
  * The contents list is built from `sections`, so it can't drift from the page.
+ * The editorial look is scoped to `.doc-ed` in src/styles/doc.css, so the other
+ * pages that import doc.css (FAQ, start pages, pricing…) are unaffected.
  */
 import Base from './Base.astro';
 import Icon from '../components/Icon.astro';
@@ -17,7 +20,7 @@ interface Glance { icon: string; title: string; text: string; }
 interface Props {
   title: string;            // <title>
   heading: string;          // on-page h1
-  accent?: string;          // italic ember word(s) after the heading
+  accent?: string;          // the rest of the heading (set in the same type, no accent styling)
   eyebrow: string;
   lead: string;
   description: string;
@@ -32,37 +35,42 @@ const { title, heading, accent, eyebrow, lead, description, path, updated, readM
 const num = (i: number) => String(i + 1).padStart(2, '0');
 ---
 <Base title={title} description={description} path={path}>
-  <main id="main">
-  <header class:list={["doc-hero", { "has-glance": glance }]}>
-    <div class="doc-hero-inner">
-      <span class="doc-eyebrow">{eyebrow}</span>
-      <h1 class="doc-title">{heading}{accent && <> <span class="accent">{accent}</span></>}</h1>
-      <p class="doc-lead">{lead}</p>
-      <p class="doc-meta-line">Updated {updated} · {readMins} min read</p>
+  <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
+  <main id="main" class="hp doc-ed">
+  <header class="hp-hero doc-ed-hero">
+    <div class="hp-wrap doc-ed-hero-grid">
+      <div>
+        <p class="hp-label">{eyebrow}</p>
+        <h1 class="hp-h1 doc-ed-title">{heading}{accent && <> {accent}</>}</h1>
+      </div>
+      <div class="doc-ed-hero-side">
+        <p class="hp-lead">{lead}</p>
+        <p class="doc-meta-line num">Updated {updated} · {readMins} min read</p>
+      </div>
     </div>
   </header>
 
   {glance && (
-    <section class="doc-glance" aria-labelledby="glance-title">
-      <div class="doc-glance-card">
-      <div class="doc-glance-head">
-        <h2 id="glance-title" class="doc-glance-title">At a glance</h2>
-        {glanceNote && <p class="doc-glance-note">{glanceNote}</p>}
-      </div>
-      <ul class="doc-glance-grid">
-        {glance.map(g => (
-          <li class="doc-glance-item">
-            <span class="doc-glance-icon"><Icon name={g.icon} size={18}/></span>
-            <strong>{g.title}</strong>
-            <span>{g.text}</span>
-          </li>
-        ))}
-      </ul>
+    <section class="hp-sec doc-ed-glance" aria-labelledby="glance-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="glance-title" class="hp-h2 is-small">At a glance</h2>
+          {glanceNote && <p class="hp-body">{glanceNote}</p>}
+        </div>
+        <ul class="hp-rules doc-glance-rules">
+          {glance.map(g => (
+            <li class="doc-glance-row">
+              <strong class="doc-glance-name">{g.title}</strong>
+              <span class="doc-glance-text">{g.text}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )}
 
-  <div class="doc-body">
+  <section class="hp-sec doc-ed-main">
+  <div class="hp-wrap doc-ed-grid">
     <nav class="doc-toc" aria-label="On this page">
       <details class="doc-toc-mobile">
         <summary>On this page <Icon name="chevron" size={14} stroke={2.2}/></summary>
@@ -76,16 +84,16 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
     <article class="doc-content">
       <slot/>
-      <aside class="doc-contact">
-        <span class="doc-contact-icon"><Icon name="mail" size={20}/></span>
+      <aside class="doc-contact doc-ed-contact">
         <div>
           <h2>Still have a question?</h2>
           <p>FirePath is built by one person in Australia. Email and you'll get a real reply, usually within a day.</p>
         </div>
-        <a href="mailto:hello@firepath.pro" class="btn btn-ember">Email hello@firepath.pro</a>
+        <a href="mailto:hello@firepath.pro" class="doc-btn">Email hello@firepath.pro</a>
       </aside>
     </article>
   </div>
+  </section>
 
   </main>
   <script>

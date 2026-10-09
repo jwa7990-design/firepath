@@ -4,8 +4,7 @@
  * FAQPage data Google reads. To add a question, add it there.
  */
 import Base from '../layouts/Base.astro';
-import Icon from '../components/Icon.astro';
-import '../styles/doc.css';
+import '../styles/marketing.css';
 import '../styles/faq.css';
 import { FAQ } from '../data/faq';
 
@@ -22,64 +21,64 @@ const schema = {
 >
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
 
-  <main id="main">
-  <header class="doc-hero faq-hero">
-    <div class="doc-hero-inner">
-      <span class="doc-eyebrow">Help centre</span>
-      <h1 class="doc-title">Common <span class="accent">questions</span></h1>
-      <p class="doc-lead">Plain answers to the things people ask most. Can't find what you need? Email us and a real person will reply.</p>
+  {/* Shared editorial primitives. Loads before the page CSS (Astro adds bundled CSS after the head slot). */}
+  <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
+
+  <main id="main" class="hp">
+  <header class="hp-hero">
+    <div class="hp-wrap">
+      <p class="hp-label mk-kicker">Help centre</p>
+      <h1 class="hp-h1">Common questions</h1>
+      <p class="hp-lead">Plain answers to the things people ask most. Can't find what you need? Email us and a real person will reply.</p>
     </div>
   </header>
 
-  <div class="doc-body faq-body">
-    <nav class="doc-toc" aria-label="Topics">
-      <details class="doc-toc-mobile">
-        <summary>Topics <Icon name="chevron" size={14} stroke={2.2}/></summary>
-        <ol>{FAQ.map(c => <li><a href={`#${c.id}`}><span class="doc-toc-num">{c.items.length}</span>{c.title}</a></li>)}</ol>
-      </details>
-      <div class="doc-toc-desktop">
-        <p class="doc-toc-label">Topics</p>
-        <ol>{FAQ.map(c => <li><a href={`#${c.id}`} data-toc={c.id}><span class="doc-toc-num">{c.items.length}</span>{c.title}</a></li>)}</ol>
-      </div>
-    </nav>
-
-    <div class="doc-content faq-content">
-      {FAQ.map(c => (
-        <section class="faq-group" id={c.id} data-doc-section aria-labelledby={`${c.id}-title`}>
-          <div class="faq-group-head">
-            <span class="faq-group-icon"><Icon name={c.icon} size={18}/></span>
-            <h2 id={`${c.id}-title`}>{c.title}</h2>
-            <span class="faq-group-count">{c.items.length} questions</span>
-          </div>
-          <div class="faq-list" data-reveal>
-            {c.items.map(i => (
-              <div class="faq-item" id={`q-${i.id}`}>
-                <h3>
-                  <button class="faq-q" type="button" aria-expanded="false" aria-controls={`a-${i.id}`}>
-                    <span>{i.q}</span>
-                    <span class="faq-chev"><Icon name="chevron" size={13} stroke={2.4}/></span>
-                  </button>
-                </h3>
-                <div class="faq-a" id={`a-${i.id}`} role="region" aria-label={i.q}>
-                  <div class="faq-a-inner"><p set:html={i.a}/></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-
-
-      <aside class="doc-contact">
-        <span class="doc-contact-icon"><Icon name="mail" size={20}/></span>
-        <div>
-          <h2>Still have a question?</h2>
-          <p>FirePath is built by one person. Email us and you'll get a real reply, usually within a day.</p>
+  <section class="hp-sec faq-body">
+    <div class="hp-wrap hp-side">
+      <nav class="hp-side-head faq-toc" aria-label="Topics">
+        <details class="doc-toc-mobile faq-toc-mobile">
+          <summary>Topics <span class="faq-toc-chev" aria-hidden="true">+</span></summary>
+          <ol>{FAQ.map(c => <li><a href={`#${c.id}`}>{c.title}<span class="faq-toc-num num">{c.items.length}</span></a></li>)}</ol>
+        </details>
+        <div class="faq-toc-desktop">
+          <p class="hp-label">Topics</p>
+          <ol>{FAQ.map(c => <li><a href={`#${c.id}`} data-toc={c.id}>{c.title}<span class="faq-toc-num num">{c.items.length}</span></a></li>)}</ol>
         </div>
-        <a href="mailto:hello@firepath.pro" class="btn btn-ember">Email hello@firepath.pro</a>
-      </aside>
+      </nav>
+
+      <div class="hp-side-main faq-content">
+        {FAQ.map(c => (
+          <section class="faq-group" id={c.id} data-doc-section aria-labelledby={`${c.id}-title`}>
+            <div class="faq-group-head">
+              <h2 id={`${c.id}-title`}>{c.title}</h2>
+              <span class="faq-group-count num">{c.items.length} questions</span>
+            </div>
+            <div class="faq-list" data-reveal>
+              {c.items.map(i => (
+                <div class="faq-item" id={`q-${i.id}`}>
+                  <h3>
+                    <button class="faq-q" type="button" aria-expanded="false" aria-controls={`a-${i.id}`}>
+                      <span>{i.q}</span>
+                      <span class="faq-chev" aria-hidden="true">+</span>
+                    </button>
+                  </h3>
+                  <div class="faq-a" id={`a-${i.id}`} role="region" aria-label={i.q}>
+                    <div class="faq-a-inner"><p set:html={i.a}/></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        <aside class="faq-contact">
+          <h2 class="hp-h2 is-small">Still have a question?</h2>
+          <p class="hp-body">FirePath is built by one person. Email us and you'll get a real reply, usually within a day.</p>
+          <div class="mk-actions"><a href="mailto:hello@firepath.pro" class="mk-btn">Email hello@firepath.pro</a></div>
+        </aside>
+      </div>
     </div>
-  </div>
+  </section>
   </main>
 
   <script is:inline src="/js/quick-feedback-widget.js"></script>

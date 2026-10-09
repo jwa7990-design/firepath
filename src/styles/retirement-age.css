@@ -1,47 +1,66 @@
-/* FirePath — Retirement age calculator page (builds on doc.css + start.css) */
-.ra-title { max-width: 20ch; }
-.ra-title .accent { display: block; margin-top: 8px; font-size: 0.5em; line-height: 1.2; letter-spacing: -0.01em; }
+/* ============================================================
+   FirePath — Retirement age calculator page. Builds on
+   fp-editorial.css (.hp primitives), marketing.css and start.css,
+   so it matches the /start/* pages and the homepage. The quick
+   estimate is the page's one bordered panel (it's a tool).
+   ============================================================ */
+.ra-title { max-width: 15ch; }
+.ra-title-sub { display: block; margin-top: 14px; max-width: 24ch; font-size: 0.42em; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink-2); }
 
-/* Quick estimate */
-.ra-calc { padding: 24px 20px; border-radius: var(--r-xl); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); }
-@media (min-width: 768px) { .ra-calc { padding: 32px; } }
-.ra-intro { margin: -8px 0 20px; font-size: 14.5px; color: var(--ink-2); }
+/* Quick estimate: the one panel, inputs like the homepage calculator's */
+.ra-panel {
+  padding: 22px 16px; background: var(--surface); border: var(--hp-rule); border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04), 0 18px 40px -24px rgba(43, 29, 20, 0.18);
+}
+@media (min-width: 600px) { .ra-panel { padding: 28px; } }
 .ra-fields { display: grid; gap: 0 16px; }
-@media (min-width: 640px) { .ra-fields { grid-template-columns: repeat(2, 1fr); } .ra-wide { grid-column: 1 / -1; } }
+@media (min-width: 640px) { .ra-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ra-wide { grid-column: 1 / -1; } }
 .ra-fields .field { min-width: 0; }
+.ra-form .field-label { font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--ink); }
+.ra-form .field-hint { line-height: 1.45; }
+.ra-form .input {
+  height: 46px; border-radius: var(--hp-r); border-color: var(--line-strong); background: var(--bg);
+  font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums lining-nums;
+}
+.ra-form .input:hover { border-color: var(--ink-3); }
+.ra-form .input:focus { border-color: var(--ink); background: var(--surface); box-shadow: 0 0 0 3px rgba(43, 29, 20, 0.08); }
+.ra-form .input::placeholder { font-weight: 400; color: var(--ink-3); }
 .ra-money { position: relative; }
-.ra-money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-3); font-size: 15px; pointer-events: none; }
+.ra-money span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-2); font-size: 16px; pointer-events: none; }
 .ra-money .input { padding-left: 28px; }
-.ra-form .input[aria-invalid="true"] { border-color: var(--negative); }
-.ra-form .btn { margin-top: 4px; }
+.ra-form .input[aria-invalid="true"] { border-color: var(--ember-ink); }
+.ra-form .mk-btn { margin-top: 6px; }
 
-.ra-result { margin-top: 24px; padding: 20px 22px; border-radius: var(--r-lg); background: var(--ember-wash); border: 1px solid rgba(244, 98, 42, 0.22); }
-.ra-result.is-note { background: var(--surface-2); border-color: var(--line); }
+/* Result: under a rule, the age as a display headline */
+.ra-result { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--ink); }
+.ra-result.is-note { border-top-color: var(--line); }
 .ra-result.is-note .ra-next { display: none; }
-.ra-path { margin-top: 14px; padding-top: 6px; border-top: 1px solid rgba(244, 98, 42, 0.22); }
+.ra-path { margin-top: 16px; padding-top: 6px; border-top: var(--hp-rule); }
 .ra-path[hidden] { display: none; }
-.ra-head { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 3vw, 28px); line-height: 1.2; color: var(--ink); }
-.ra-result.is-note .ra-head { font-family: var(--font-ui); font-weight: 500; font-size: 15.5px; }
-.ra-line { margin-top: 8px; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
-.ra-number { font-size: 13.5px; color: var(--ink-3); }
-.ra-next { margin-top: 16px; gap: 8px; white-space: normal; height: auto; min-height: 44px; padding-top: 10px; padding-bottom: 10px; text-align: left; }
-.ra-fine { margin-top: 16px; font-size: 12.5px; line-height: 1.6; color: var(--ink-3); }
-.ra-fine a, .ra-more a, .ra-age a { color: var(--ember-ink); text-decoration: underline; text-underline-offset: 3px; }
+.ra-head { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 3vw, 32px); line-height: 1.15; letter-spacing: -0.015em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+.ra-result.is-note .ra-head { font-family: var(--font-ui); font-weight: 500; font-size: 15.5px; letter-spacing: 0; }
+.ra-line { margin-top: 8px; font-size: 15.5px; line-height: 1.6; color: var(--ink-2); }
+.ra-number { font-size: 14px; }
+.ra-next { margin-top: 18px; }
+.ra-fine { margin-top: 16px; }
 
-/* The three ages */
-.ra-ages { display: grid; gap: 12px; }
-@media (min-width: 760px) { .ra-ages { grid-template-columns: repeat(3, 1fr); } }
-.ra-age { padding: 20px 22px; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
-.ra-age-n { display: inline-flex; align-items: center; justify-content: center; min-width: 52px; height: 52px; padding: 0 10px; border-radius: 14px; background: var(--ink); color: var(--bg); font-family: var(--font-display); font-weight: 700; font-size: 24px; }
-.ra-age.is-you .ra-age-n { background: var(--ember); color: #fff; font-size: 18px; }
-.ra-age h3 { margin-top: 14px; font-size: 17px; font-weight: 600; color: var(--ink); line-height: 1.35; }
-.ra-age p { margin-top: 6px; font-size: 14.5px; line-height: 1.65; color: var(--ink-2); }
+/* The three ages: big numbers over a rule, three columns from 760px */
+.ra-ages-title { max-width: 18ch; margin-bottom: 32px; }
+@media (min-width: 768px) { .ra-ages-title { margin-bottom: 48px; } }
+.ra-ages { display: grid; gap: 32px; }
+@media (min-width: 760px) { .ra-ages { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; } }
+.ra-age { padding-top: 20px; border-top: 1px solid var(--ink); }
+.ra-age-n {
+  display: block; font-family: var(--font-display); font-weight: 700; color: var(--ink);
+  font-size: clamp(56px, 7vw, 88px); line-height: 0.95; letter-spacing: -0.04em;
+}
+.ra-age.is-you .ra-age-n { color: var(--ember-ink); }
+.ra-age h3 { margin-top: 18px; font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.2vw, 23px); line-height: 1.25; color: var(--ink); }
+.ra-age p { margin-top: 8px; max-width: 40ch; font-size: 15.5px; line-height: 1.65; color: var(--ink-2); }
 
-/* How it works */
-.ra-how { list-style: none; display: grid; gap: 12px; }
-.ra-how li { display: grid; grid-template-columns: 20px 1fr; gap: 12px; font-size: 15px; line-height: 1.65; color: var(--ink-2); }
-.ra-how svg { margin-top: 4px; color: var(--positive); }
-.ra-how strong { color: var(--ink); font-weight: 600; }
-.ra-more { margin-top: 16px; font-size: 14.5px; color: var(--ink-2); }
+/* How it works: a ruled list */
+.ra-how { list-style: none; border-top: 1px solid var(--ink); }
+.ra-how li { padding: 18px 2px; border-bottom: var(--hp-rule); max-width: 62ch; font-size: 16px; line-height: 1.65; color: var(--ink-2); }
+.ra-how strong { display: block; margin-bottom: 4px; font-family: var(--font-display); font-weight: 700; font-size: clamp(19px, 2vw, 22px); line-height: 1.25; color: var(--ink); }
 
-.field-optional { font-weight: 400; color: var(--ink-3); }
+.field-optional { font-weight: 400; color: var(--ink-2); }

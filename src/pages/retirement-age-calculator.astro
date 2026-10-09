@@ -4,12 +4,11 @@
  * "retirement age calculator" searches. A quick estimate on the page (same engine as the
  * free calculator: FirePathEngine.freedomPlan + freedomRange), the three ages that matter
  * in Australia, straight answers, then on to the full calculator at /firepath.
- * Looks like the "Start where you are" pages (doc.css + start.css).
+ * Looks like the "Start where you are" pages (fp-editorial.css + marketing.css + start.css).
  */
 import Base from '../layouts/Base.astro';
-import Icon from '../components/Icon.astro';
 import { ARTICLES } from '../lib/learn';
-import '../styles/doc.css';
+import '../styles/marketing.css';
 import '../styles/start.css';
 import '../styles/retirement-age.css';
 
@@ -42,71 +41,81 @@ const schema = [
 <Base title={TITLE} description={DESCRIPTION} path={PATH} keywords={KEYWORDS} image="/og/retirement-age-calculator.png">
   <link slot="head" rel="stylesheet" href="/css/freedom-path.css"/>
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
-  <main id="main">
-    <header class="doc-hero">
-      <div class="doc-hero-inner">
-        <span class="doc-eyebrow">Retirement age calculator</span>
-        <h1 class="doc-title ra-title">When can I retire? <span class="accent">A free retirement age calculator for Australians.</span></h1>
-        <p class="doc-lead">Your retirement age isn’t set by the government. It’s the point where your savings and super can pay for the life you want. Pop in a few numbers to see roughly when that could be.</p>
-        <div class="start-hero-cta">
-          <a href="/firepath" class="btn btn-ember btn-lg"><Icon name="flame" size={16}/>Find my retirement age</a>
-          <span>Free, 2 minutes, no account needed. Or try the quick estimate below.</span>
+  {/* Shared editorial primitives. Loads before the page CSS (Astro adds bundled CSS after the head slot). */}
+  <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
+  <main id="main" class="hp">
+    <header class="hp-hero">
+      <div class="hp-wrap">
+        <p class="hp-label mk-kicker">Retirement age calculator</p>
+        <h1 class="hp-h1 ra-title">When can I retire? <span class="ra-title-sub">A free retirement age calculator for Australians.</span></h1>
+        <p class="hp-lead">Your retirement age isn’t set by the government. It’s the point where your savings and super can pay for the life you want. Pop in a few numbers to see roughly when that could be.</p>
+        <div class="mk-actions">
+          <a href="/firepath" class="mk-btn">Find my retirement age</a>
+          <span class="mk-aside">Free, 2 minutes, no account needed. Or try the quick estimate below.</span>
         </div>
       </div>
     </header>
 
-    <div class="start">
-      <section class="ra-calc" aria-labelledby="calc-title">
-        <h2 id="calc-title" class="start-h2">Quick estimate</h2>
-        <p class="ra-intro">Today’s dollars, for one person. Leave a box empty if it’s $0.</p>
-        <form id="raForm" class="ra-form" novalidate>
-          <div class="ra-fields">
-            <div class="field">
-              <label class="field-label" for="raAge">Your age</label>
-              <input class="input" id="raAge" name="age" inputmode="numeric" autocomplete="off" placeholder="35"/>
-            </div>
-            <div class="field">
-              <label class="field-label" for="raSavings">Savings and investments outside super</label>
-              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raSavings" name="savings" inputmode="decimal" autocomplete="off" placeholder="0"/></div>
-            </div>
-            <div class="field">
-              <label class="field-label" for="raSuper">Super balance</label>
-              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raSuper" name="super" inputmode="decimal" autocomplete="off" placeholder="0"/></div>
-            </div>
-            <div class="field">
-              <label class="field-label" for="raMonthly">Amount you save each month</label>
-              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raMonthly" name="monthly" inputmode="decimal" autocomplete="off" placeholder="0"/></div>
-            </div>
-            <div class="field">
-              <label class="field-label" for="raIncome">Yearly income before tax <span class="field-optional">(optional)</span></label>
-              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raIncome" name="income" inputmode="decimal" autocomplete="off" placeholder="85,000" aria-describedby="raIncomeHint"/></div>
-              <span class="field-hint" id="raIncomeHint">Adds the super your employer pays in while you work.</span>
-            </div>
-            <div class="field">
-              <label class="field-label" for="raSpend">Yearly spending in retirement</label>
-              <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raSpend" name="spend" inputmode="decimal" autocomplete="off" placeholder="50,000" aria-describedby="raSpendHint"/></div>
-              <span class="field-hint" id="raSpendHint">Not sure? Many people start with what they spend now, less rent or a mortgage that’ll be paid off.</span>
-            </div>
-          </div>
-          <button type="submit" class="btn btn-ember btn-lg">Work out my age</button>
-        </form>
-
-        <div class="ra-result" id="raResult" hidden>
-          <div role="status" aria-live="polite">
-            <p class="ra-head" id="raHead"></p>
-            <p class="ra-line" id="raLine"></p>
-            <p class="ra-line" id="raRange"></p>
-            <p class="ra-line ra-number" id="raNumber"></p>
-          </div>
-          <!-- The freedom path (public/js/freedom-path.js), compact -->
-          <div class="ra-path" id="raPath" hidden></div>
-          <a href="/firepath" class="btn btn-ember ra-next">See the full picture: what moves your date <Icon name="arrow" size={15}/></a>
+    <section class="hp-sec ra-calc" aria-labelledby="calc-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="calc-title" class="hp-h2 is-small">Quick estimate</h2>
+          <p class="hp-body">Today’s dollars, for one person. Leave a box empty if it’s $0.</p>
         </div>
-        <p class="ra-fine">General information only, not financial advice. In today’s dollars: investments grow about 7% a year after inflation, less tax and fees. Adds employer super if you enter your income. Leaves out the Age Pension, which may top things up from 67. <a href="/assumptions">How we work it out</a>.</p>
-      </section>
+        <div class="hp-side-main">
+          <div class="ra-panel">
+            <form id="raForm" class="ra-form" novalidate>
+              <div class="ra-fields">
+                <div class="field">
+                  <label class="field-label" for="raAge">Your age</label>
+                  <input class="input" id="raAge" name="age" inputmode="numeric" autocomplete="off" placeholder="35"/>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="raSavings">Savings and investments outside super</label>
+                  <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raSavings" name="savings" inputmode="decimal" autocomplete="off" placeholder="0"/></div>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="raSuper">Super balance</label>
+                  <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raSuper" name="super" inputmode="decimal" autocomplete="off" placeholder="0"/></div>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="raMonthly">Amount you save each month</label>
+                  <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raMonthly" name="monthly" inputmode="decimal" autocomplete="off" placeholder="0"/></div>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="raIncome">Yearly income before tax <span class="field-optional">(optional)</span></label>
+                  <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raIncome" name="income" inputmode="decimal" autocomplete="off" placeholder="85,000" aria-describedby="raIncomeHint"/></div>
+                  <span class="field-hint" id="raIncomeHint">Adds the super your employer pays in while you work.</span>
+                </div>
+                <div class="field">
+                  <label class="field-label" for="raSpend">Yearly spending in retirement</label>
+                  <div class="ra-money"><span aria-hidden="true">$</span><input class="input" id="raSpend" name="spend" inputmode="decimal" autocomplete="off" placeholder="50,000" aria-describedby="raSpendHint"/></div>
+                  <span class="field-hint" id="raSpendHint">Not sure? Many people start with what they spend now, less rent or a mortgage that’ll be paid off.</span>
+                </div>
+              </div>
+              <button type="submit" class="mk-btn">Work out my age</button>
+            </form>
 
-      <section aria-labelledby="ages-title">
-        <h2 id="ages-title" class="start-h2">The three ages that matter in Australia</h2>
+            <div class="ra-result" id="raResult" hidden>
+              <div role="status" aria-live="polite">
+                <p class="ra-head" id="raHead"></p>
+                <p class="ra-line" id="raLine"></p>
+                <p class="ra-line" id="raRange"></p>
+                <p class="ra-line ra-number" id="raNumber"></p>
+              </div>
+              <!-- The freedom path (public/js/freedom-path.js), compact -->
+              <div class="ra-path" id="raPath" hidden></div>
+              <a href="/firepath" class="hp-link ra-next">See the full picture: what moves your date →</a>
+            </div>
+          </div>
+          <p class="ra-fine mk-fine">General information only, not financial advice. In today’s dollars: investments grow about 7% a year after inflation, less tax and fees. Adds employer super if you enter your income. Leaves out the Age Pension, which may top things up from 67. <a href="/assumptions">How we work it out</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="hp-sec" aria-labelledby="ages-title">
+      <div class="hp-wrap">
+        <h2 id="ages-title" class="hp-h2 ra-ages-title">The three ages that matter in Australia</h2>
         <div class="ra-ages">
           <div class="ra-age is-you">
             <span class="ra-age-n">You</span>
@@ -114,64 +123,78 @@ const schema = [
             <p>When your savings and super could cover your spending for good. Nobody sets this one but you, and it’s what the calculator works out.</p>
           </div>
           <div class="ra-age">
-            <span class="ra-age-n">60</span>
+            <span class="ra-age-n num">60</span>
             <h3>You can get to your super</h3>
             <p>60 is the preservation age for anyone born after 30 June 1964. Once you’ve retired, you can generally get to your super from then. Stopping earlier means money outside super pays the way until 60.</p>
           </div>
           <div class="ra-age">
-            <span class="ra-age-n">67</span>
+            <span class="ra-age-n num">67</span>
             <h3>The Age Pension may start</h3>
-            <p>From 67 you may qualify for the Age Pension. It’s means-tested on your assets and income, so it may top up what your savings pay, or not. <a href="/learn/age-pension-explained">How it works</a>.</p>
+            <p class="mk-prose">From 67 you may qualify for the Age Pension. It’s means-tested on your assets and income, so it may top up what your savings pay, or not. <a href="/learn/age-pension-explained">How it works</a>.</p>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section aria-labelledby="how-title">
-        <h2 id="how-title" class="start-h2">How the calculator works</h2>
-        <ul class="ra-how">
-          <li><Icon name="check" size={16} stroke={2.4}/><span><strong>25 times your spending.</strong> That’s your freedom number. Drawn down slowly, at about 4% a year, it has lasted 30 years or more in most past markets.</span></li>
-          <li><Icon name="check" size={16} stroke={2.4}/><span><strong>The bridge to 60.</strong> If you stop before 60, your savings outside super need to cover you until then. After that, your super joins in.</span></li>
-          <li><Icon name="check" size={16} stroke={2.4}/><span><strong>Possible market outcomes.</strong> Markets don’t return the average every year, so we run 2,000 possible outcomes and show the likely range around your date.</span></li>
+    <section class="hp-sec" aria-labelledby="how-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="how-title" class="hp-h2 is-small">How the calculator works</h2>
+          <p class="hp-body mk-prose">Every rate and figure we use is on the <a href="/assumptions">assumptions page</a>.</p>
+        </div>
+        <ul class="hp-side-main ra-how">
+          <li><strong>25 times your spending.</strong> That’s your freedom number. Drawn down slowly, at about 4% a year, it has lasted 30 years or more in most past markets.</li>
+          <li><strong>The bridge to 60.</strong> If you stop before 60, your savings outside super need to cover you until then. After that, your super joins in.</li>
+          <li><strong>Possible market outcomes.</strong> Markets don’t return the average every year, so we run 2,000 possible outcomes and show the likely range around your date.</li>
         </ul>
-        <p class="ra-more">Every rate and figure we use is on the <a href="/assumptions">assumptions page</a>.</p>
-      </section>
+      </div>
+    </section>
 
-      <section class="start-faq" aria-labelledby="faq-title">
-        <h2 id="faq-title" class="start-h2">Straight answers</h2>
-        <div class="pq-list">
+    <section class="hp-sec" aria-labelledby="faq-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="faq-title" class="hp-h2 is-small">Straight answers</h2>
+        </div>
+        <div class="hp-side-main mk-qs">
           {faq.map(f => (
-            <details class="pq-item">
-              <summary>{f.q}<span class="pq-chev"><Icon name="chevron" size={13} stroke={2.4}/></span></summary>
+            <details class="mk-q">
+              <summary>{f.q}</summary>
               <p>{f.a}</p>
             </details>
           ))}
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="start-reads" aria-labelledby="reads-title">
-        <h2 id="reads-title" class="start-h2">Read next</h2>
-        <div class="start-grid">
+    <section class="hp-sec" aria-labelledby="reads-title">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 id="reads-title" class="hp-h2 is-small">Read next</h2>
+        </div>
+        <ul class="hp-side-main start-reads">
           {reads.map(a => a && (
-            <a href={`/learn/${a.slug}`} class="start-card is-read" data-reveal>
-              <span class="start-card-plan">{a.readMins} min read</span>
-              <span class="start-card-title">{a.heading}</span>
-              <span class="start-card-line">{a.description}</span>
-            </a>
+            <li><a href={`/learn/${a.slug}`} class="start-read">
+              <span class="start-read-title">{a.heading}</span>
+              <span class="start-read-line">{a.description}</span>
+              <span class="start-read-meta num">{a.readMins} min read</span>
+            </a></li>
           ))}
-        </div>
-      </section>
+        </ul>
+      </div>
+    </section>
 
-      <aside class="doc-contact">
-        <span class="doc-contact-icon"><Icon name="flame" size={20}/></span>
-        <div>
-          <h2>See what moves your date</h2>
-          <p>The free calculator shows your freedom date, a realistic range, and which changes bring it closer, in years.</p>
+    <section class="hp-sec start-end" aria-labelledby="end-title">
+      <div class="hp-wrap">
+        <div class="mk-close">
+          <div>
+            <h2 id="end-title" class="hp-h2">See what moves your date</h2>
+            <p class="hp-body">The free calculator shows your freedom date, a realistic range, and which changes bring it closer, in years.</p>
+          </div>
+          <div class="mk-actions"><a href="/firepath" class="mk-btn">Find my freedom date</a></div>
         </div>
-        <a href="/firepath" class="btn btn-ember">Find my freedom date</a>
-      </aside>
-
-      <p class="start-note">FirePath is educational, not financial advice. Rules and figures are Australian and current for {new Date().getFullYear()}.</p>
-    </div>
+        <p class="mk-note">FirePath is educational, not financial advice. Rules and figures are Australian and current for {new Date().getFullYear()}.</p>
+      </div>
+    </section>
   </main>
 
   <script is:inline src="/js/tax-engine.js"></script>

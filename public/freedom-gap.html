@@ -28,6 +28,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/app.css"/>
+<link rel="stylesheet" href="css/fp-editorial.css"/>
+<link rel="stylesheet" href="css/fp-tools.css"/>
 <script src="js/persona.js"></script>
 <script src="js/safe-html.js"></script>
 <script src="js/tax-engine.js"></script>
@@ -35,299 +37,269 @@
 <script src="js/moves.js"></script>
 <script src="js/next-steps.js"></script>
 <style>
-  /* ── Layout: inputs on the left, the picture on the right (desktop) ── */
-  .page-head-sub { max-width: 62ch; }
-  .page-back { display: inline-block; margin-bottom: 10px; }
-  .tool-layout { display: grid; gap: 16px; }
-  @media (min-width: 1024px) {
-    .tool-layout { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 20px; align-items: start; }
-  }
-  .stack > * + * { margin-top: 16px; }
-  @media (min-width: 1024px) { .stack > * + * { margin-top: 20px; } }
-  .icon { width: 20px; height: 20px; flex-shrink: 0; vertical-align: -4px; }
+  /* Layout comes from css/fp-editorial.css (the homepage's primitives) and css/fp-tools.css
+     (the tool pages' shared parts). Hero; your numbers in columns 1–5 and how much is covered
+     in 7–12 (sticky); then what it means, hours, a target age, the AI outlook, the handoff to
+     Freedom options (the one dark band) and What next. */
+  .icon { width: 16px; height: 16px; flex-shrink: 0; vertical-align: -3px; }
+  .input-hint { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+  .input-link { align-self: flex-start; padding: 0; border: 0; background: none; font: 600 14px var(--font-ui); color: var(--ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; }
+  .input-link:hover { text-decoration-color: var(--ink); }
 
-  /* Card header — same voice as .section-label */
-  .card-label { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); }
-  .card-label .icon { color: var(--ink-3); }
-  .card-sub { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; margin: -6px 0 14px; }
+  /* How much is covered (right-hand figure) */
+  .gap-percent { font-family: var(--font-display); font-weight: 700; font-size: clamp(64px, 9vw, 104px); line-height: 0.9; letter-spacing: -0.04em; color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+  .gap-percent-label { margin: 14px 0 18px; max-width: 40ch; font-size: 17px; line-height: 1.5; color: var(--ink); }
+  /* The same slim bar as the homepage's plan card */
+  .gap-progress-track { height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; margin-bottom: 18px; }
+  .gap-progress-fill { height: 100%; min-width: 3px; background: var(--ink); transition: width 0.6s var(--ease); }
+  .gap-dollar-sub { font-size: 15.5px; color: var(--ink-2); line-height: 1.55; }
+  .gap-dollar-sub strong { color: var(--ink); font-weight: 600; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .gap-net-note { margin-top: 8px; font-size: 13.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .gap-sources { margin-top: 18px; border-top: var(--hp-rule); }
+  .gap-source-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: var(--hp-rule); font-size: 15px; }
+  .gap-source-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .gap-source-label { color: var(--ink-2); display: flex; align-items: baseline; gap: 8px; }
+  .gap-source-value { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .gap-source-value.accent-amber { color: var(--ember-ink); }
+  .gap-source-tag { font-size: 12.5px; font-weight: 400; color: var(--ink-2); }
 
-  /* ── Inputs (match .input) ── */
-  .input-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .input-row:last-child { margin-bottom: 0; }
-  .input-label-text { font-size: 13.5px; font-weight: 500; color: var(--ink); }
-  .input-hint { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
-  .input-link { font-size: 12.5px; font-weight: 500; color: var(--ember-ink); cursor: pointer; }
-  .input-link:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .input-wrap { position: relative; }
-  .input-prefix-dark { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: var(--ink-2); pointer-events: none; }
-  .dark-input {
-    width: 100%; height: 48px; padding: 0 14px 0 30px; border-radius: var(--r-sm); border: 1px solid var(--line-strong);
-    background: var(--surface); color: var(--ink); font: 400 15px var(--font-ui); font-variant-numeric: tabular-nums;
-    outline: none; -moz-appearance: textfield; transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
-  }
-  .dark-input::-webkit-inner-spin-button, .dark-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-  .dark-input:focus { border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
-  .dark-input::placeholder { color: var(--ink-3); }
-
-  /* Yes / No — segmented control */
-  .toggle-group { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
-  .toggle-btn { flex: 1; height: 38px; border: none; background: none; border-radius: 999px; font: 500 13.5px var(--font-ui); color: var(--ink-2); cursor: pointer; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
-  .toggle-btn.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
-  .toggle-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-
-  /* ── Freedom Level — the one dark "earned" surface on the page ── */
-  .gap-hero { background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); border-radius: var(--r-lg); padding: 24px 20px; color: var(--bg); box-shadow: var(--shadow-2); }
-  @media (min-width: 768px) { .gap-hero { padding: 28px; } }
-  .gap-eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(253,246,238,0.55); margin-bottom: 8px; }
-  .gap-percent { font-family: var(--font-display); font-weight: 700; font-size: clamp(52px, 12vw, 72px); line-height: 1; letter-spacing: -0.02em; color: var(--amber); font-variant-numeric: lining-nums tabular-nums; }
-  .gap-percent-label { margin-top: 8px; font-size: 14px; color: rgba(253,246,238,0.8); margin-bottom: 18px; }
-  .gap-progress-track { height: 8px; background: rgba(253,246,238,0.14); border-radius: 99px; overflow: hidden; margin-bottom: 16px; }
-  .gap-progress-fill { height: 100%; background: linear-gradient(90deg, var(--ember), var(--amber)); border-radius: 99px; transition: width 0.6s var(--ease); }
-  .gap-dollar-sub { font-size: 13.5px; color: rgba(253,246,238,0.72); margin-bottom: 18px; line-height: 1.5; }
-  .gap-dollar-sub strong { color: var(--amber); font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums; }
-  .gap-net-note { font-size: 12px; color: rgba(253,246,238,0.6); margin: -10px 0 18px; font-variant-numeric: tabular-nums; }
-  .gap-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .gap-tile { background: rgba(253,246,238,0.07); border: 1px solid rgba(253,246,238,0.08); border-radius: var(--r-md); padding: 12px 14px; }
-  .gap-tile-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(253,246,238,0.55); margin-bottom: 4px; }
-  .gap-tile-value { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: var(--bg); font-variant-numeric: tabular-nums lining-nums; }
-  .gap-sources { margin-top: 16px; }
-  .gap-source-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(253,246,238,0.1); font-size: 13px; }
-  .gap-source-row:last-child { border-bottom: none; }
-  .gap-source-label { color: rgba(253,246,238,0.72); display: flex; align-items: center; gap: 6px; }
-  .gap-source-value { font-weight: 600; font-variant-numeric: tabular-nums; }
-  .gap-source-value.accent-amber { color: var(--amber); }
-  .gap-source-tag { font-size: 10px; font-weight: 600; color: rgba(253,246,238,0.45); text-transform: uppercase; letter-spacing: 0.06em; }
-
-  /* ── Freedom story + snapshot ── */
-  .story { font-size: 14.5px; color: var(--ink-2); line-height: 1.7; }
+  /* What this means for you */
+  .story { max-width: 62ch; font-size: 17px; color: var(--ink-2); line-height: 1.7; }
   .story strong { color: var(--ink); font-weight: 600; }
-  .snapshot { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
-  .snapshot-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-2); }
-  .snapshot-fig { font-size: 20px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .snapshot-fig.to { color: var(--ember-ink); }
-  .snapshot-delta { font-size: 13px; font-weight: 600; margin-top: 4px; }
-  .snapshot .eyebrow { margin-bottom: 6px; }
+  .snapshot { margin-top: 20px; padding-top: 16px; border-top: var(--hp-rule); }
+  .snapshot-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 15px; color: var(--ink-2); }
+  .snapshot-fig { font-size: 22px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .snapshot-delta { font-size: 14px; font-weight: 600; margin-top: 4px; }
+  .snapshot .eyebrow { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; color: var(--ink-2); }
+  .tl-part { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--ink); }
+  .tl-part-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 12px; font-family: var(--font-display); font-size: clamp(20px, 2.2vw, 24px); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
+  .super-text { max-width: 62ch; font-size: 16px; color: var(--ink-2); line-height: 1.7; }
+  .super-text strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .value-tag { font: 600 13px var(--font-ui); letter-spacing: 0.02em; color: var(--ink-2); }
+  .pension-box { max-width: 62ch; font-size: 16px; color: var(--ink-2); line-height: 1.65; }
+  .pension-box strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tl-part .data-row { margin-top: 12px; border-top: var(--hp-rule); }
 
-  /* Super: accessible today vs later */
-  .super-card { background: var(--positive-wash); border-color: rgba(46,125,50,0.2); }
-  .super-card .card-label, .super-card .card-label .icon { color: var(--positive); }
-  .super-text { font-size: 14px; color: var(--ink-2); line-height: 1.7; }
-  .super-text strong { color: var(--positive); font-weight: 600; font-variant-numeric: tabular-nums; }
-
-  /* Age Pension */
-  .value-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; display: inline-block; }
-  .value-tag.calculated { background: var(--positive-wash); color: var(--positive); }
-  .value-tag.estimated { background: var(--ember-wash); color: var(--ember-ink); }
-  .pension-box { background: var(--positive-wash); border: 1px solid rgba(46,125,50,0.2); border-radius: var(--r-md); padding: 14px 16px; font-size: 14px; color: var(--ink-2); line-height: 1.6; }
-  .pension-box strong { color: var(--positive); font-weight: 600; font-variant-numeric: tabular-nums; }
-  .pension-box.nil { background: var(--surface-2); border-color: var(--line); }
-  .data-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 0 0; font-size: 14px; }
-  .data-label { color: var(--ink-2); }
-  .data-value { font-weight: 600; font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
-
-  /* ── Sliders ── */
-  .slider-row { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
-  input[type="range"].dark-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 99px; background: var(--line-strong); outline: none; cursor: pointer; }
-  input[type="range"].dark-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
-  input[type="range"].dark-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--surface); border: 2px solid var(--ember); box-shadow: var(--shadow-2); cursor: pointer; }
-  input[type="range"].dark-slider:focus-visible { box-shadow: 0 0 0 3px var(--ember-wash); }
-  .slider-val { min-width: 76px; text-align: right; font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
-  .slider-result { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 14px 16px; font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-top: 14px; }
+  /* Hours: the slider, then what it covers */
+  .slider-result { margin-top: 18px; padding-top: 16px; border-top: var(--hp-rule); max-width: 54ch; font-size: 16px; color: var(--ink-2); line-height: 1.6; }
   .slider-result strong { color: var(--ink); font-weight: 600; }
+  .slider-row { margin-top: 20px; }
+  .slider-val { min-width: 84px; }
 
   /* Target age */
-  .target-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .target-row { display: flex; gap: 12px 16px; align-items: center; flex-wrap: wrap; margin-top: 20px; }
   .target-row .dark-input { width: 120px; padding-left: 14px; }
-  .target-note { margin-top: 12px; font-size: 13px; color: var(--ink-2); line-height: 1.6; }
-
-  /* ── AI outlook ── */
-  .ai-outlook-loading { display: none; text-align: center; padding: 24px 0; }
-  .ai-outlook-loading.visible { display: block; }
-  .ai-outlook-loading-text { font-size: 13px; color: var(--ink-2); margin-top: 10px; }
-  .ai-outlook-flame { animation: aiFlamePulse 1.4s ease-in-out infinite; display: inline-block; color: var(--ember); }
-  @keyframes aiFlamePulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: 0.75; } }
-  .ai-outlook-text { font-size: 14.5px; color: var(--ink-2); line-height: 1.75; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
-  .ai-outlook-text strong { font-weight: 600; color: var(--ink); }
-
-  /* Next step */
-  .next-step { text-align: center; }
-  .next-step p { font-size: 14.5px; color: var(--ink-2); line-height: 1.6; margin: 0 auto 16px; max-width: 46ch; }
-
-  .disclaimer { font-size: 12px; color: var(--ink-2); line-height: 1.6; text-align: center; max-width: 64ch; margin: 4px auto 0; }
+  @media (min-width: 900px) { .next-step .hp-half { align-items: end; } }
+  .target-note { margin-top: 14px; max-width: 54ch; font-size: 15px; color: var(--ink-2); line-height: 1.6; }
 </style>
 </head>
 <body class="app" data-shell="app" data-public="true" data-active="money">
 <script src="js/shell.js"></script>
 
-<main class="app-main">
+<main class="tl hp" id="main">
 
-  <header class="page-head">
-    <div>
-      <a data-app-only href="money.html" class="section-link page-back">← Money</a>
-      <a href="features.html" class="section-link page-back" data-site-only>← All tools</a>
-      <div class="eyebrow">Part-time freedom</div>
-      <h1 class="page-head-title">Freedom gap</h1>
-      <p class="page-head-sub">You don't have to be fully free to work less. See what your savings already pay you, what the Age Pension might add, and how much of the gap is left.</p>
+  <header class="hp-hero tl-hero">
+    <div class="hp-wrap">
+      <a data-app-only href="money.html" class="tl-back">← Money</a>
+      <a href="features.html" class="tl-back" data-site-only>← All tools</a>
+      <div class="hp-label">Part-time freedom</div>
+      <h1 class="hp-h1">Freedom gap</h1>
+      <p class="hp-lead">You don't have to be fully free to work less. See what your savings already pay you, what the Age Pension might add, and how much of the gap is left.</p>
     </div>
   </header>
 
-  <div class="tool-layout">
+  <div class="tl-body">
+  <div class="hp-wrap hp-two">
 
-  <div class="card fp-reveal">
-    <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-money"/></svg> Your numbers</div>
-    <p class="input-hint" id="fpPlanNote" style="display:none;margin:-4px 0 14px;">Filled in from your saved plan — change any number.</p>
-    <div class="input-row">
-      <label class="input-label-text" for="g-portfolio">Investments available today</label>
+  <div class="tl-in">
+  <div class="tl-group">
+    <div class="hp-label">Your numbers</div>
+    <p class="input-hint" id="fpPlanNote" style="display:none;margin:0 0 16px;">Filled in from your saved plan — change any number.</p>
+    <div class="tl-row">
+      <label class="tl-field-label" for="g-portfolio">Investments available today</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-portfolio" placeholder="500000" oninput="recalcGap()"/></div>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="g-debt">Other debt (optional)</label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="g-debt">Other debt (optional)</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-debt" placeholder="0" oninput="recalcGap()"/></div>
       <div class="input-hint">Not your mortgage — this is for things like credit cards, car loans, or personal loans.</div>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="g-super">Super balance — for context, not counted in your gap today (optional)</label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="g-super">Super balance — for context, not counted in your gap today (optional)</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-super" placeholder="0" oninput="recalcGap()"/></div>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="g-spend">What you expect to spend per year</label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="g-spend">What you expect to spend per year</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-spend" placeholder="60000" oninput="recalcGap()"/></div>
-      <div id="g-useProfileSpend" class="input-link" style="display:none;" onclick="applyProfileSpend()">Use my saved plan's figure →</div>
+      <button type="button" id="g-useProfileSpend" class="input-link" style="display:none;" onclick="applyProfileSpend()">Use my saved plan's figure →</button>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="g-age">Your age</label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="g-age">Your age</label>
       <div class="input-wrap"><span class="input-prefix-dark">age</span><input type="number" class="dark-input" id="g-age" placeholder="45" style="padding-left:46px;" oninput="recalcGap()"/></div>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="g-monthlySavings">Still saving? How much per month (optional)</label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="g-monthlySavings">Still saving? How much per month (optional)</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-monthlySavings" placeholder="0" oninput="recalcGap()"/></div>
     </div>
-    <div class="input-row">
-      <label class="input-label-text" for="g-rate">What you could earn per hour, working part-time</label>
+    <div class="tl-row">
+      <label class="tl-field-label" for="g-rate">What you could earn per hour, working part-time</label>
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="g-rate" placeholder="40" oninput="recalcGap()"/></div>
     </div>
-    <div class="input-row">
-      <div class="input-label-text">Do you own your home?</div>
-      <div class="toggle-group">
+    <div class="tl-row">
+      <span class="tl-field-label" id="g-homeLabel">Do you own your home?</span>
+      <div class="segmented toggle-group" role="group" aria-labelledby="g-homeLabel">
         <button type="button" class="toggle-btn active" id="g-homeowner-yes" onclick="setHomeowner(true)">Yes</button>
         <button type="button" class="toggle-btn" id="g-homeowner-no" onclick="setHomeowner(false)">No</button>
       </div>
     </div>
   </div>
+  </div>
 
-  <div id="results" class="stack" style="display:none">
-
-    <div class="gap-hero">
-      <div class="gap-eyebrow">How much is covered</div>
-      <div class="gap-percent" id="g-freedomPercent">—%</div>
-      <div class="gap-percent-label" id="g-freedomFraming">Lifestyle already covered by your investments</div>
-      <div class="gap-progress-track"><div class="gap-progress-fill" id="g-progressFill" style="width:0%;"></div></div>
-      <div class="gap-dollar-sub" id="g-dollarSub">Your investments now pay you<br/><strong id="g-portfolioIncome">—</strong> every year</div>
-      <div id="g-netPositionNote" class="gap-net-note" style="display:none;"></div>
-      <div class="gap-breakdown">
-        <div class="gap-tile">
-          <div class="gap-tile-label">Annual spending</div>
-          <div class="gap-tile-value" id="g-annualSpend">—</div>
+  <div class="tl-out is-sticky">
+    <div class="hp-fig tl-fig">
+      <div class="hp-label">How much is covered</div>
+      <div id="resultsEmpty"><span class="tl-empty-big" aria-hidden="true">—%</span><p class="tl-empty">Add your investments and what you expect to spend to see it.</p></div>
+      <div id="resultsLive" style="display:none;">
+        <div class="gap-percent" id="g-freedomPercent">—%</div>
+        <div class="gap-percent-label" id="g-freedomFraming">Lifestyle already covered by your investments</div>
+        <div class="gap-progress-track"><div class="gap-progress-fill" id="g-progressFill" style="width:0%;"></div></div>
+        <div class="gap-dollar-sub" id="g-dollarSub">Your investments now pay you<br/><strong id="g-portfolioIncome">—</strong> every year</div>
+        <div id="g-netPositionNote" class="gap-net-note" style="display:none;"></div>
+        <div class="tl-stats">
+          <div>
+            <div class="tl-stat-label">Annual spending</div>
+            <div class="tl-stat-value" id="g-annualSpend">—</div>
+          </div>
+          <div>
+            <div class="tl-stat-label">The gap</div>
+            <div class="tl-stat-value" id="g-gapAmount">—</div>
+          </div>
         </div>
-        <div class="gap-tile">
-          <div class="gap-tile-label">The gap</div>
-          <div class="gap-tile-value" id="g-gapAmount">—</div>
-        </div>
-      </div>
-      <div id="g-sourceBreakdown" class="gap-sources">
-        <div class="gap-source-row">
-          <span class="gap-source-label">Investments cover <span class="gap-source-tag">calculated</span></span>
-          <span class="gap-source-value" id="g-sourcePortfolioPct">—%</span>
-        </div>
-        <div class="gap-source-row" id="g-sourcePensionRow" style="display:none;">
-          <span class="gap-source-label">Age Pension could cover <span class="gap-source-tag">estimated</span></span>
-          <span class="gap-source-value" id="g-sourcePensionPct">—%</span>
-        </div>
-        <div class="gap-source-row">
-          <span class="gap-source-label">Remaining gap</span>
-          <span class="gap-source-value accent-amber" id="g-sourceGapPct">—%</span>
+        <div id="g-sourceBreakdown" class="gap-sources">
+          <div class="gap-source-row">
+            <span class="gap-source-label">Investments cover <span class="gap-source-tag">calculated</span></span>
+            <span class="gap-source-value" id="g-sourcePortfolioPct">—%</span>
+          </div>
+          <div class="gap-source-row" id="g-sourcePensionRow" style="display:none;">
+            <span class="gap-source-label">Age Pension could cover <span class="gap-source-tag">estimated</span></span>
+            <span class="gap-source-value" id="g-sourcePensionPct">—%</span>
+          </div>
+          <div class="gap-source-row">
+            <span class="gap-source-label">Remaining gap</span>
+            <span class="gap-source-value accent-amber" id="g-sourceGapPct">—%</span>
+          </div>
         </div>
       </div>
     </div>
-
-    <div class="card" id="g-freedomStoryCard">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-momentum"/></svg> What this means for you</div>
-      <div id="g-freedomStory" class="story"></div>
-      <div id="g-snapshotCompare" class="snapshot" style="display:none;">
-        <div class="eyebrow" id="g-snapshotTimeLabel"></div>
-        <div class="snapshot-row">
-          <span>How much is covered</span>
-          <span class="snapshot-fig" id="g-snapshotFrom"></span>
-          <span aria-hidden="true">→</span>
-          <span class="snapshot-fig to" id="g-snapshotTo"></span>
-        </div>
-        <div class="snapshot-delta" id="g-snapshotDelta"></div>
-      </div>
-    </div>
-
-    <div class="card super-card" id="g-superContextCard" style="display:none;">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-secure"/></svg> What you can use now vs later</div>
-      <div class="super-text">
-        <strong id="g-superToday">—</strong> can fund your life today.<br/>
-        <strong id="g-superRetirement">—</strong> is what you'll have including super.
-        <span id="g-superExplainer"></span>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-secure"/></svg> Age Pension at 67 <span class="value-tag estimated">Estimated</span></div>
-      <div id="g-pensionBox" class="pension-box">—</div>
-      <div class="data-row">
-        <span class="data-label">Gap after pension</span>
-        <span class="data-value" id="g-gapAfterPension">—</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> If work became optional, how many hours would you choose?</div>
-      <div class="card-sub">Drag to find the point where your income fully covers your spending.</div>
-      <div class="slider-row">
-        <input type="range" class="dark-slider" id="g-hours" min="0" max="40" value="10" oninput="updateHoursSlider()" aria-label="Hours per week"/>
-        <div class="slider-val" id="g-hoursVal">10 hrs</div>
-      </div>
-      <div class="slider-result" id="g-hoursResult"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-target"/></svg> Want to look at this differently?</div>
-      <div class="card-sub">What age would you like to stop working? FirePath will grow your investments to that point and redo the numbers.</div>
-      <div class="target-row">
-        <input type="number" id="targetRetirementAgeInput" class="dark-input" placeholder="e.g. 55" min="1" max="80" aria-label="Target retirement age"/>
-        <button type="button" class="btn btn-primary btn-lg" onclick="applyTargetRetirementAge()">Show me →</button>
-        <button type="button" class="btn btn-quiet btn-lg" onclick="resetTargetRetirementAge()" id="resetTargetAgeBtn" style="display:none;">Reset</button>
-      </div>
-      <div id="targetAgeNote" class="target-note" style="display:none;"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-label"><svg class="icon" style="width:14px;height:14px;"><use href="/icons.svg#icon-insight"/></svg> Your AI outlook</div>
-      <div class="card-sub">A plain-English read on what this gap means for your life.</div>
-      <button type="button" class="ai-outlook-btn btn btn-primary btn-lg btn-block" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook</button>
-      <div class="ai-outlook-loading" id="aiOutlookLoading">
-        <div class="ai-outlook-flame"><svg class="icon" style="width:28px;height:28px;"><use href="/icons.svg#icon-momentum"/></svg></div>
-        <div class="ai-outlook-loading-text">Reading your numbers...</div>
-      </div>
-      <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
-      <div id="aiProCard" style="display:none;"></div>
-    </div>
-
-    <div class="card callout-ember next-step">
-      <p>You've seen where you are today. Now see the different ways you could use this.</p>
-      <a href="freedom-options.html" class="btn btn-ember btn-lg">See your options →</a>
-    </div>
-
-    <!-- What next for you — filled by js/next-steps.js -->
-    <div id="fpNextSteps"></div>
-
-    <p class="disclaimer">Investment income based on a 4% withdrawal rate. Age Pension estimate uses both the assets and income tests (single, using your homeowner status, with Centrelink deeming on investments) — your actual entitlement depends on your full financial picture at 67. General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
   </div>
 
   </div>
+  </div>
+
+  <div id="results" style="display:none">
+
+    <section class="hp-sec" id="g-freedomStoryCard">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 class="hp-h2 is-small">What this means for you</h2>
+        </div>
+        <div class="hp-side-main">
+          <div id="g-freedomStory" class="story"></div>
+          <div id="g-snapshotCompare" class="snapshot" style="display:none;">
+            <div class="eyebrow" id="g-snapshotTimeLabel"></div>
+            <div class="snapshot-row">
+              <span>How much is covered</span>
+              <span class="snapshot-fig" id="g-snapshotFrom"></span>
+              <span aria-hidden="true">→</span>
+              <span class="snapshot-fig to" id="g-snapshotTo"></span>
+            </div>
+            <div class="snapshot-delta" id="g-snapshotDelta"></div>
+          </div>
+
+          <div class="tl-part super-card" id="g-superContextCard" style="display:none;">
+            <h3 class="tl-part-title">What you can use now vs later</h3>
+            <div class="super-text">
+              <strong id="g-superToday">—</strong> can fund your life today.<br/>
+              <strong id="g-superRetirement">—</strong> is what you'll have including super.
+              <span id="g-superExplainer"></span>
+            </div>
+          </div>
+
+          <div class="tl-part">
+            <h3 class="tl-part-title">Age Pension at 67 <span class="value-tag estimated">Estimated</span></h3>
+            <div id="g-pensionBox" class="pension-box">—</div>
+            <div class="data-row">
+              <span class="data-label">Gap after pension</span>
+              <span class="data-value" id="g-gapAfterPension">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="hp-sec">
+      <div class="hp-wrap hp-half">
+        <div>
+          <h2 class="hp-h2 is-small">If work became optional, how many hours would you choose?</h2>
+          <p class="tl-sub">Drag to find the point where your income fully covers your spending.</p>
+          <div class="slider-row">
+            <input type="range" class="dark-slider" id="g-hours" min="0" max="40" value="10" oninput="updateHoursSlider()" aria-label="Hours per week"/>
+            <div class="slider-val" id="g-hoursVal">10 hrs</div>
+          </div>
+          <div class="slider-result" id="g-hoursResult"></div>
+        </div>
+        <div>
+          <h2 class="hp-h2 is-small">Want to look at this differently?</h2>
+          <p class="tl-sub">What age would you like to stop working? FirePath will grow your investments to that point and redo the numbers.</p>
+          <div class="target-row">
+            <input type="number" id="targetRetirementAgeInput" class="dark-input" placeholder="e.g. 55" min="1" max="80" aria-label="Target retirement age"/>
+            <button type="button" class="tl-btn is-outline" onclick="applyTargetRetirementAge()">Show me →</button>
+            <button type="button" class="tl-link" onclick="resetTargetRetirementAge()" id="resetTargetAgeBtn" style="display:none;">Reset</button>
+          </div>
+          <div id="targetAgeNote" class="target-note" style="display:none;"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="hp-sec">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 class="hp-h2 is-small">Your AI outlook</h2>
+          <p class="tl-sub">A plain-English read on what this gap means for your life.</p>
+        </div>
+        <div class="hp-side-main">
+          <button type="button" class="ai-outlook-btn tl-btn is-outline" id="aiOutlookBtn" onclick="getAiOutlook()">Get my AI outlook</button>
+          <div class="ai-outlook-loading" id="aiOutlookLoading">
+            <div class="ai-outlook-flame"><svg class="icon" style="width:22px;height:22px;"><use href="/icons.svg#icon-momentum"/></svg></div>
+            <div class="ai-outlook-loading-text">Reading your numbers...</div>
+          </div>
+          <div class="ai-outlook-text" id="aiOutlookText" style="display:none;"></div>
+          <div id="aiProCard" style="display:none;"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="hp-number next-step">
+      <div class="hp-wrap hp-half">
+        <div>
+          <div class="hp-label">Next</div>
+          <p class="tl-band-line">You've seen where you are today. Now see the different ways you could use this.</p>
+        </div>
+        <div>
+          <a href="freedom-options.html" class="tl-band-link" style="margin-top:0;">See your options →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="hp-sec tl-next">
+      <div class="hp-wrap">
+        <!-- What next for you — filled by js/next-steps.js -->
+        <div id="fpNextSteps"></div>
+        <p class="tl-disclaimer">Investment income based on a 4% withdrawal rate. Age Pension estimate uses both the assets and income tests (single, using your homeowner status, with Centrelink deeming on investments) — your actual entitlement depends on your full financial picture at 67. General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
+      </div>
+    </section>
+  </div>
+
 </main>
 
 <script>
@@ -463,6 +435,13 @@
     recalcGap();
   }
 
+  // The results sit in two places: how much is covered (right-hand column) and the sections below.
+  function showResults(on) {
+    document.getElementById('results').style.display = on ? 'block' : 'none';
+    document.getElementById('resultsLive').style.display = on ? 'block' : 'none';
+    document.getElementById('resultsEmpty').style.display = on ? 'none' : 'block';
+  }
+
   function calcGap(targetAge) {
     const portfolio = parseFloat(document.getElementById('g-portfolio').value) || 0;
     const debt = parseFloat(document.getElementById('g-debt').value) || 0;
@@ -480,10 +459,10 @@
     // Nothing invested yet still has an answer if you're saving each month (0% today,
     // and a projection if you set a target age), so only bail when there's truly nothing.
     if (annualSpend <= 0 || (netPortfolio <= 0 && monthlySavings <= 0)) {
-      document.getElementById('results').style.display = 'none';
+      showResults(false);
       return;
     }
-    document.getElementById('results').style.display = 'block';
+    showResults(true);
 
     const netNote = document.getElementById('g-netPositionNote');
     if (debt > 0) {
@@ -721,7 +700,7 @@
       return (typeof getStore === 'function' ? getStore('fp_is_pro') : localStorage.getItem('fp_is_pro')) === 'true';
     } catch (e) { return false; }
   }
-  const FP_PRO_AI_CARD = `<div style="border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:14px 16px;font-size:13.5px;line-height:1.6;color:var(--ink-2);"><strong style="color:var(--ink);">AI explanation — part of Pro.</strong> Pro writes this around your own plan. <a href="/upgrade" style="color:var(--ember);font-weight:600;white-space:nowrap;">Try 7 days free →</a></div>`;
+  const FP_PRO_AI_CARD = `<div class="tl-pro-note"><strong>AI explanation — part of Pro.</strong> Pro writes this around your own plan. <a href="/upgrade">Try 7 days free →</a></div>`;
   function showAiOutlookEntry() {
     const btn = document.getElementById('aiOutlookBtn');
     const card = document.getElementById('aiProCard');

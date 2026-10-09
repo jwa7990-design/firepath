@@ -5,16 +5,15 @@
  * Questions come from the shared FAQ list so they always match the FAQ page.
  */
 import Base from '../layouts/Base.astro';
-import Icon from '../components/Icon.astro';
-import '../styles/doc.css';
+import '../styles/marketing.css';
 import '../styles/pricing.css';
 import { faqItems } from '../data/faq';
 
 import { FREE_FEATURES as FREE, FREE_NOTE, PRO_FEATURES as PRO, TRIAL_FINE_PRINT } from '../data/plans';
 const PROOF = [
-  { icon: 'calendar', plan: 'Free', q: 'When, realistically?', big: '10–21 yrs', text: 'In 8 of 10 possible market outcomes, you get there within this window.', eg: 'Example: $185K saved, $3,200 a month, $1.5M goal' },
-  { icon: 'shield', plan: 'Free', q: 'Will my money last?', big: '94%', text: 'of 2,000 possible market outcomes, the money lasts 30 years taking 4% a year.', eg: 'Example: $1M, spending $40K a year' },
-  { icon: 'scale', plan: 'Pro', q: 'What does salary sacrifice really save?', big: '$8,360', text: 'a year in tax, after your employer’s 12% counts towards the cap.', eg: 'Example: $100K salary, 2026-27 rates' },
+  { plan: 'Free', q: 'When, realistically?', big: '10–21 yrs', text: 'In 8 of 10 possible market outcomes, you get there within this window.', eg: 'Example: $185K saved, $3,200 a month, $1.5M goal' },
+  { plan: 'Free', q: 'Will my money last?', big: '94%', text: 'of 2,000 possible market outcomes, the money lasts 30 years taking 4% a year.', eg: 'Example: $1M, spending $40K a year' },
+  { plan: 'Pro', q: 'What does salary sacrifice really save?', big: '$8,360', text: 'a year in tax, after your employer’s 12% counts towards the cap.', eg: 'Example: $100K salary, 2026-27 rates' },
 ];
 const QUESTIONS = faqItems('account-needed', 'trial', 'cancel', 'advice');
 ---
@@ -24,88 +23,96 @@ const QUESTIONS = faqItems('account-needed', 'trial', 'cancel', 'advice');
   path="/pricing"
   active="pricing"
 >
-  <main id="main">
-    <header class="doc-hero price-hero">
-      <div class="doc-hero-inner">
-        <span class="doc-eyebrow">Pricing</span>
-        <h1 class="doc-title">Free to find your date. <span class="accent">$6</span> to save your plan.</h1>
-        <p class="doc-lead">Get to know your numbers free, no account needed. Pro is $6 a month and adds your saved plan, super, tax and Ask FirePath.</p>
+  {/* Shared editorial primitives. Loads before the page CSS (Astro adds bundled CSS after the head slot). */}
+  <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
+  <main id="main" class="hp">
+    <header class="hp-hero">
+      <div class="hp-wrap">
+        <p class="hp-label mk-kicker">Pricing</p>
+        <h1 class="hp-h1 mk-h1-wide">Free to find your date. $6 to save your plan.</h1>
+        <p class="hp-lead">Get to know your numbers free, no account needed. Pro is $6 a month and adds your saved plan, super, tax and Ask FirePath.</p>
       </div>
     </header>
 
-    <section class="plans" aria-label="Plans">
-      <article class="plan plan-free">
-        <h2 class="plan-name">Free</h2>
-        <p class="plan-price"><span class="plan-amount">$0</span><span class="plan-per">forever</span></p>
-        <p class="plan-sub">{FREE_NOTE}</p>
-        <a href="/firepath" class="btn btn-quiet btn-lg btn-block">Find my freedom date <Icon name="arrow" size={16}/></a>
-        <ul class="plan-list">
-          {FREE.map(f => <li><span class="plan-tick"><Icon name="check" size={12} stroke={2.6}/></span>{f}</li>)}
-        </ul>
-      </article>
+    <section class="hp-sec" aria-label="Plans">
+      <div class="hp-wrap">
+        <div class="hp-half">
+          <article class="mk-plan">
+            <div class="mk-plan-name"><h2>Free</h2></div>
+            <p class="mk-price"><span class="mk-price-n">$0</span><span class="mk-price-per">forever</span></p>
+            <p class="mk-plan-sub">{FREE_NOTE}</p>
+            <div class="mk-actions"><a href="/firepath" class="mk-btn is-outline">Find my freedom date</a></div>
+            <ul class="mk-feats">
+              {FREE.map(f => <li>{f}</li>)}
+            </ul>
+          </article>
 
-      <article class="plan plan-pro">
-        <div class="plan-top">
-          <h2 class="plan-name">Pro</h2>
-          <span class="plan-chip">7-day free trial</span>
+          <article class="mk-plan">
+            <div class="mk-plan-name"><h2>Pro</h2><span class="mk-plan-tag">7-day free trial</span></div>
+            <p class="mk-price"><span class="mk-price-n">$6</span><span class="mk-price-per">a month (AUD)</span></p>
+            <p class="mk-plan-sub">Everything in Free, plus an account that remembers your numbers:</p>
+            <div class="mk-actions"><a href="/upgrade" class="mk-btn">Try Pro free for 7 days</a></div>
+            <p class="mk-fine">{TRIAL_FINE_PRINT}</p>
+            <ul class="mk-feats">
+              {PRO.map(([t, d]) => <li><strong>{t}</strong><span>{d}</span></li>)}
+            </ul>
+          </article>
         </div>
-        <p class="plan-price"><span class="plan-amount">$6</span><span class="plan-per">a month (AUD)</span></p>
-        <p class="plan-sub">Everything in Free, plus an account that remembers your numbers:</p>
-        <a href="/upgrade" class="btn btn-ember btn-lg btn-block">Try Pro free for 7 days <Icon name="arrow" size={16}/></a>
-        <p class="plan-fine">{TRIAL_FINE_PRINT}</p>
-        <ul class="plan-list">
-          {PRO.map(([t, d]) => <li><span class="plan-tick"><Icon name="check" size={12} stroke={2.6}/></span><span><strong>{t}</strong><span class="plan-desc">{d}</span></span></li>)}
+
+        <ul class="price-trust">
+          <li>Cancel any time from Settings</li>
+          <li>Your data is never sold</li>
+          <li>Current ATO rates and live RBA figures</li>
         </ul>
-      </article>
-    </section>
-
-    <p class="plan-trust">
-      <span><Icon name="card" size={14}/>Cancel any time from Settings</span>
-      <span><Icon name="lock" size={14}/>Your data is never sold</span>
-      <span><Icon name="bars" size={14}/>Current ATO rates and live RBA figures</span>
-    </p>
-
-    <section class="proof" aria-labelledby="proof-title">
-      <div class="proof-head">
-        <span class="doc-eyebrow">What you’ll find out</span>
-        <h2 id="proof-title" class="proof-title">A few real examples.</h2>
-        <p class="proof-lead">Example results. The free tools work with any numbers you type in. Pro fills in your own and keeps them.</p>
-      </div>
-      <div class="proof-grid">
-        {PROOF.map(p => (
-          <div class="proof-card" data-reveal>
-            <div class="proof-top"><span class="proof-icon"><Icon name={p.icon} size={18}/></span><span class:list={['proof-plan', { 'is-pro': p.plan === 'Pro' }]}>{p.plan}</span></div>
-            <p class="proof-q">{p.q}</p>
-            <p class="proof-big">{p.big}</p>
-            <p class="proof-text">{p.text}</p>
-            <p class="proof-eg">{p.eg}</p>
-          </div>
-        ))}
       </div>
     </section>
 
-    <section class="price-faq" aria-labelledby="pq-title">
-      <h2 id="pq-title" class="proof-title">Questions before you start</h2>
-      <div class="pq-list">
-        {QUESTIONS.map(i => (
-          <details class="pq-item">
-            <summary>{i.q}<span class="pq-chev"><Icon name="chevron" size={13} stroke={2.4}/></span></summary>
-            <p set:html={i.a}/>
-          </details>
-        ))}
+    <section class="hp-sec" aria-labelledby="proof-title">
+      <div class="hp-wrap hp-side" data-reveal>
+        <div class="hp-side-head">
+          <p class="hp-label mk-kicker">What you’ll find out</p>
+          <h2 id="proof-title" class="hp-h2 is-small">A few real examples.</h2>
+          <p class="hp-body">Example results. The free tools work with any numbers you type in. Pro fills in your own and keeps them.</p>
+        </div>
+        <ul class="hp-side-main price-proof">
+          {PROOF.map(p => (
+            <li>
+              <p class="price-proof-q"><span>{p.q}</span><span class="price-proof-plan">{p.plan}</span></p>
+              <p class="price-proof-big num">{p.big}</p>
+              <p class="price-proof-text">{p.text}</p>
+              <p class="price-proof-eg">{p.eg}</p>
+            </li>
+          ))}
+        </ul>
       </div>
-      <p class="pq-more">More answers on the <a href="/faq">questions page</a>.</p>
     </section>
 
-    <section class="price-close">
-      <div class="price-close-inner">
+    <section class="hp-sec" aria-labelledby="pq-title">
+      <div class="hp-wrap hp-side" data-reveal>
+        <div class="hp-side-head">
+          <h2 id="pq-title" class="hp-h2 is-small">Questions before you start</h2>
+          <p class="hp-body mk-prose">More answers on the <a href="/faq">questions page</a>.</p>
+        </div>
+        <div class="hp-side-main mk-qs">
+          {QUESTIONS.map(i => (
+            <details class="mk-q">
+              <summary>{i.q}</summary>
+              <p set:html={i.a}/>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="hp-sec price-end">
+      <div class="hp-wrap mk-close" data-reveal>
         <div>
-          <h2>Try Pro free for 7 days.</h2>
-          <p>Or get to know your numbers free, no account needed.</p>
+          <h2 class="hp-h2">Try Pro free for 7 days.</h2>
+          <p class="hp-body">Or get to know your numbers free, no account needed.</p>
         </div>
-        <div class="price-close-actions">
-          <a href="/upgrade" class="btn btn-ember btn-lg">Start my free trial <Icon name="arrow" size={16}/></a>
-          <a href="/firepath" class="price-close-link">Try the free calculator first</a>
+        <div class="mk-actions">
+          <a href="/upgrade" class="mk-btn">Start my free trial</a>
+          <a href="/firepath" class="hp-link is-quiet">Try the free calculator first</a>
         </div>
       </div>
     </section>
