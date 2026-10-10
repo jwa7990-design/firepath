@@ -67,11 +67,9 @@ The 15 people:
 
 Every fix has a test built from the checkers' own figures, so it can't quietly come back.
 
-## Decisions for you (modelling choices, not bugs)
-1. **Savings held in cash are assumed to be invested.** The date grows all savings at the investment return. Several checkers flagged that someone keeping savings in a bank account would get there later. The options:
-   - a) keep it as is, but say so under the date;
-   - b) use a cash return for cash savers, so the "invest idle cash" idea shows a real gain.
-2. **People already 67 or over.** The main date ignores the Age Pension (your option B), so a 68-year-old can be told "age 82" while the pension line says "now". For people already past 67, the pension isn't speculative. Should their main date include it?
-3. **Couples stop work on the same date.** If one partner is much older, they're assumed to keep working until the other stops.
-4. **Tax on investment income in retirement** uses today's working tax rate. That's cautious, especially for people 67 and over.
-5. **Capital losses** in the Withdrawal planner aren't carried forward. That's cautious and has a small effect.
+## Decisions made (11 October 2026)
+1. **Savings held in cash now count as cash,** not as if invested. That's about 0.5% a year above inflation after tax over the long run, because most everyday Australians keep their savings in a high-interest account. Cash savers see what investing could change ("If they were invested in shares instead, this could be around …"), a one-tap change if they do invest, and Learning Lab links. Super stays invested.
+2. **People already 67 or over:** the main date now includes today's Age Pension. Under 67 it stays a separate line.
+3. **Couples stopping work on the same date:** kept as is.
+4. **Tax on investment income in retirement** uses today's working rate: kept as is (cautious).
+5. **Capital losses** in the Withdrawal planner aren't carried forward: cautious, small effect.
