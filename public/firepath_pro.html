@@ -916,6 +916,7 @@
             <div id="inflationNote" class="result-note"></div>
             <div id="proCushion" class="result-note" hidden></div>
             <div id="proPension" class="result-note" hidden></div>
+            <div id="proSavings" class="result-note" hidden><p id="proSavingsText"></p><p>Invested in shares or ETFs? <a href="firepath_pro.html?edit=true">Update where your savings sit →</a></p><p>Areas you could research further: <a href="/learn/difference-saving-investing">saving vs investing</a> · <a href="/learn/what-is-an-index-fund">what an index fund is</a></p></div>
             <div class="infl-row">
               <span>Today's dollars</span>
               <div id="inflationToggle" onclick="toggleInflation()" style="width:44px;height:24px;background:rgba(255,255,255,0.2);border-radius:var(--r-md);position:relative;cursor:pointer;transition:background 0.2s;"><div id="inflationThumb" style="width:20px;height:20px;background:var(--surface);border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;"></div></div>
@@ -1095,11 +1096,14 @@
   function currentReturns(){
     const a=FP_ASSUMPTIONS,pct=x=>(x*100).toFixed(1);
     const t=calcData&&calcData.plan&&Number.isFinite(calcData.plan.marginalRate)?calcData.plan.marginalRate:0.30;
-    const cash=a.savingsRate/100*(1-t)-a.cpi/100, inv=savingsReturn(), offset=a.offsetRealReturn, mix=(cash+offset+inv)/3;
+    // Cash: the same long-run figure as the date (FirePathEngine.CASH_REAL_RETURN), not today's rate.
+    const cash=Number.isFinite(FirePathEngine.CASH_REAL_RETURN)?FirePathEngine.CASH_REAL_RETURN:0.005;
+    const inv=calcData&&calcData.planInputs?FirePathEngine.freedomPlan(Object.assign({},calcData.planInputs,{savingsType:'etfs',ausShare:FirePathEngine.ausShareFor('etfs',ausShareAns),safeRate:false})).outsideReturn:0.07;
+    const offset=a.offsetRealReturn, mix=(cash+offset+inv)/3;
     return {
       rate:{cash,etfs:inv,offset,mix},
       note:{
-        cash:`(${pct(cash)}% after tax and inflation: bonus saver ${a.savingsRate}% less ${Math.round(t*100)}% tax, less ${a.cpi}% inflation)`,
+        cash:`(about ${pct(cash)}% a year after tax and inflation over the long run; today's bonus saver rate is ${a.savingsRate}%)`,
         etfs:`(${pct(inv)}% after tax and inflation — already invested)`,
         offset:`(${pct(offset)}% after inflation, tax-free: mortgage rate ${a.mortgageRate}% less ${a.cpi}% inflation)`,
         mix:`(${pct(mix)}% after tax and inflation — an even blend of bank, offset and invested)`
@@ -1134,7 +1138,7 @@
   // Employer super rate (0–1) when above the 12% guarantee, else null.
   let employerRate=null;
   function freedomPlanInputs(age,superBal,ownMI,savings,mSav,fireNum,partner){
-    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI,age),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,mortgage:mortgageInput(),
+    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI,age),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,mortgage:mortgageInput(),savingsType:savingsType||'cash',homeowner:!/rent/i.test(housingStatus||''),rentFortnight:rentFortnight(),
       partner:partner&&partner.superBal>0?{superBalance:partner.superBal,age:partner.ageAssumed?null:partner.age,grossIncome:partner.annualGross||0}:null};
   }
   // Years to freedom with some of this person's inputs changed, on the same plan as the
@@ -2344,14 +2348,18 @@ async function saveProfile() {
     // Same plan as the headline, with the money earning what it earns where it sits today.
     const yReality = planYears({ outsideReturn: currentRate });
     const fmtReality = yearLabel(yReality, cy);
-    const fmt7 = yearLabel(y07, cy);
-    const diffReality = yReality !== null && y07 !== null ? Math.round(yReality - y07) : null;
+    // "If invested": the same plan with the savings in shares (the date itself counts them
+    // where they sit, so for cash savers it's the cash figure).
+    const investedOver = { savingsType: 'etfs', ausShare: FirePathEngine.ausShareFor('etfs', ausShareAns) };
+    const yInvested = savingsType === 'etfs' ? y07 : planYears(investedOver);
+    const fmt7 = yearLabel(yInvested, cy);
+    const diffReality = yReality !== null && yInvested !== null ? Math.round(yReality - yInvested) : null;
     const spendReductionMonthly = 50 * 52 / 12;
     const newFireNum = fireNum * (1 - spendReductionMonthly / calcData.mSpend);   // monthly against monthly
     const mSavPlus = mSav + spendReductionMonthly;
-    const yPlus = planYears({ target: newFireNum, monthlySavings: mSavPlus });
+    const yPlus = planYears(Object.assign({ target: newFireNum, monthlySavings: mSavPlus }, investedOver));
     const fmtPlus = yearLabel(yPlus, cy);
-    const diffPlus = y07 !== null && yPlus !== null ? Math.round(y07 - yPlus) : null;
+    const diffPlus = yInvested !== null && yPlus !== null ? Math.round(yInvested - yPlus) : null;
     const alreadyInvested = savingsType === 'etfs';
     rows.innerHTML = !alreadyInvested ? `
       <div class="range-row"><span class="range-label"> <strong>${labelMap[savingsType]}</strong><br/><span class="pr-sub">${noteMap[savingsType]}</span></span><span class="range-value conservative">${fmtReality}</span></div>
@@ -2455,6 +2463,11 @@ async function saveProfile() {
     const homeowner = !/rent/i.test(housingStatus || '');
     const line = plan && plan.valid && !plan.alreadyFree && pi ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(pi, { homeowner, rentFortnight: rentFortnight() }), plan, homeowner, { rentFortnight: rentFortnight() }) : null;
     set('proPension', line);
+    // Savings counted as cash: what investing could change (information, not advice).
+    const inv = plan && plan.valid && pi ? FirePathEngine.freedomPlan(Object.assign({}, pi, { savingsType: 'etfs', ausShare: FirePathEngine.ausShareFor('etfs', ausShareAns) })) : null;
+    const sv = FirePathEngine.savingsNote(plan, inv);
+    const svEl = document.getElementById('proSavings');
+    if (svEl) { document.getElementById('proSavingsText').textContent = sv || ''; svEl.hidden = !sv; }
   }
 
   // Transfer balance cap: each person can move up to the cap (in today's dollars, as it's

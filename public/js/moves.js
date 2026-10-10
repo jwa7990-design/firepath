@@ -138,7 +138,8 @@ window.FirePathMoves = (function () {
       age: s.age, savings: s.currentSavings || 0, monthlySavings: s.savingsMonthly || 0, target: s.freedomNumber,
       superBalance: s.superBalance || 0, grossIncome: s.grossIncome || null, takeHomeMonthly: ownTakeHome,
       partner: s.hasPartner && s.partnerSuper > 0 ? { superBalance: s.partnerSuper, age: s.partnerAge, takeHomeMonthly: s.partnerTakeHomeMonthly || 0 } : null,
-      superInsurance: s.superInsurance || 0,
+      superInsurance: s.superInsurance || 0, savingsType: s.savingsType || 'cash',
+      homeowner: s.housing !== 'renting', rentFortnight: s.housing === 'renting' && s.rentMonthly > 0 ? s.rentMonthly * 12 / 26 : 0,
       ausShare: E() && E().ausShareFor ? E().ausShareFor(s.savingsType, s.ausShare) : 0,
       employerSuperRate: s.employerSuperRate || null,
       mortgage: s.mortgageRemaining > 0 && s.mortgageRepayMonthly > 0
@@ -161,7 +162,8 @@ window.FirePathMoves = (function () {
   const rateFor = (type, s) => {
     const A = window.FP_ASSUMPTIONS || {};
     const t = s && Number.isFinite(s.marginalRate) ? s.marginalRate : 0.30;
-    const cash = A.savingsRate > 0 && A.cpi != null ? A.savingsRate / 100 * (1 - t) - A.cpi / 100 : (A.bankRealReturn != null ? A.bankRealReturn : 0.0087);
+    // Cash: the same long-run figure as the date (FirePathEngine.CASH_REAL_RETURN).
+    const cash = E() && Number.isFinite(E().CASH_REAL_RETURN) ? E().CASH_REAL_RETURN : 0.005;
     const offset = A.offsetRealReturn != null ? A.offsetRealReturn : 0.022;
     const eng = E();
     const invested = eng && eng.outsideSuperReturn ? eng.outsideSuperReturn(t, eng.ausShareFor ? eng.ausShareFor(type === 'mix' ? 'mix' : 'etfs', s && s.ausShare) : 0) : REAL;
@@ -199,8 +201,9 @@ window.FirePathMoves = (function () {
         if (!['cash', 'mix', 'offset'].includes(s.savingsType)) return false; // already invested
         if (s.savingsType === 'offset') return false;                          // offset vs invest is its own move
         if (s.bufferMonths != null && s.bufferMonths < 3) return false;        // buffer first
-        const now = yearsOr(s, { outsideReturn: rateFor(s.savingsType, s) }, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, rateFor(s.savingsType, s)));
-        const inv = yearsOr(s, null, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, REAL));
+        // The date already counts the money where it sits (cash or a mix); compare it invested.
+        const now = yearsOr(s, null, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, rateFor(s.savingsType, s)));
+        const inv = yearsOr(s, { savingsType: 'etfs', ausShare: E() && E().ausShareFor ? E().ausShareFor('etfs', s.ausShare) : 0 }, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, REAL));
         if (inv == null) return false;
         const gain = now == null ? null : now - inv;
         if (gain != null && gain < 0.25) return false;

@@ -242,6 +242,8 @@
   .stand-fill { display: block; height: 100%; min-width: 3px; background: var(--ink); }
   .answer-fact { margin: 14px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
   .answer-note { margin: 10px 0 0; max-width: 60ch; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
+  .answer-savings p { margin: 0 0 6px; }
+  .answer-savings a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
   .answer-extra { margin: 12px 0 0; }
 
   /* 2 · The path, given the full measure */
@@ -639,6 +641,11 @@
               <p class="answer-fact" id="answerFact" hidden></p>
               <p class="answer-note" id="answerCushion" hidden></p>
               <p class="answer-note" id="answerPension" hidden></p>
+              <div class="answer-note answer-savings" id="answerSavings" hidden>
+                <p id="answerSavingsText"></p>
+                <p class="answer-savings-actions">Invested in shares or ETFs? <button type="button" class="fb-text" id="answerSavingsChange">Change</button></p>
+                <p class="answer-savings-learn">Areas you could research further: <a href="/learn/difference-saving-investing">saving vs investing</a> · <a href="/learn/what-is-an-index-fund">what an index fund is</a></p>
+              </div>
               <p class="answer-extra" id="answerExtra" hidden></p>
             </div>
           </div>
@@ -809,18 +816,34 @@
     };
     // Franking credits: a typical mix (about 40% Australian shares) if it's in shares/ETFs.
     _planInputs.ausShare = FirePathEngine.ausShareFor(savingsType);
+    // Where the savings sit: cash unless they say otherwise (most everyday savers use the bank).
+    _planInputs.savingsType = savingsType || 'cash';
+    _planInputs.homeowner = housingStatus === 'owning';
     // What the note says (FirePathEngine.noteFacts): mortgage repayments, employer super
     // above 12%, insurance through super, Australian shares. Shown under the note as "Counted".
     const facts = FirePathEngine.noteFacts(context);
     if (facts.ausShare != null) _planInputs.ausShare = FirePathEngine.ausShareFor(savingsType, facts.ausShare);
     _planInputs.employerSuperRate = facts.employerSuperRate || null;
     _planInputs.superInsurance = facts.superInsurance || 0;
+    _planInputs.rentFortnight = housingStatus === 'renting' && facts.rentMonthly > 0 ? facts.rentMonthly * 12 / 26 : 0;
     _planInputs.mortgage = mortgage > 0 && facts.mortgageRepayMonthly > 0
       ? { balance: mortgage, repayMonthly: facts.mortgageRepayMonthly, spendMult: retirementSpendMultiplier } : null;
     Object.assign(situationInputs, { employerSuperRate: _planInputs.employerSuperRate, superInsurance: _planInputs.superInsurance,
       ausShare: facts.ausShare, mortgageRepayMonthly: facts.mortgageRepayMonthly || 0, rentMonthly: facts.rentMonthly || 0 });
     return { income, savingPerCycle, savings, superBal, debt, mortgage, age, context, pI, pS, mI, mSav, mS, fireNum, sRate, pAge, pSuper, hasPartner, situationInputs, planInputs: _planInputs };
   }
+  // "Invested in shares or ETFs? Change": switch where the savings sit and work it out again.
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('answerSavingsChange');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const held = document.getElementById('fbHeld');
+      if (held) { held.value = 'etfs'; held.dispatchEvent(new Event('change', { bubbles: true })); }
+      savingsType = 'etfs';
+      calculate();
+    });
+  });
+
   // The note's tap-to-add prompts and "Counted" list (js/note-prompts.js).
   document.addEventListener('DOMContentLoaded', () => {
     if (!window.FirePathNotePrompts) return;
@@ -897,6 +920,7 @@
     fact.hidden = true; fact.textContent = '';
     const note = (id, text) => { const el = document.getElementById(id); el.textContent = text || ''; el.hidden = !text; };
     note('answerCushion', null); note('answerPension', null);
+    document.getElementById('answerSavings').hidden = true;
     // Savings rate: a detail, so it lives in "How we worked this out".
     rate.textContent = `You’re saving ${r.sRate}% of your take-home pay.`;
     rate.hidden = !!r.alreadyFree || !(r.sRate > 0);   // a $0 saver is told in the answer itself
@@ -942,6 +966,11 @@
     const homeowner = housingStatus === 'owning';
     const rentM = !homeowner ? FirePathEngine.noteFacts(r.context).rentMonthly || 0 : 0;   // Rent Assistance for renters
     note('answerPension', _planInputs ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(_planInputs, { homeowner, rentFortnight: rentM * 12 / 26 }), plan, homeowner, { rentFortnight: rentM * 12 / 26 }) : null);
+    // Savings counted as cash (the default): what investing could change, plus a one-tap fix.
+    const invested = _planInputs ? FirePathEngine.freedomPlan(Object.assign({}, _planInputs, { savingsType: 'etfs', ausShare: FirePathEngine.ausShareFor('etfs') })) : null;
+    const savingsText = FirePathEngine.savingsNote(plan, invested);
+    document.getElementById('answerSavingsText').textContent = savingsText || '';
+    document.getElementById('answerSavings').hidden = !savingsText;
   }
 
   // The reveal: the big age counts up from today's to the freedom age while the path draws

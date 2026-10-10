@@ -349,7 +349,7 @@ test('"Working less could be an option" uses the shared coast point (free by 65,
     Object.assign({}, base, { age: 40, currentSavings: 150000, superBalance: 300000, savingsType: 'etfs' })]) {
     const s = M.situationFromInputs(p);
     const own = Math.max(0, s.takeHomeMonthly - (s.partnerTakeHomeMonthly || 0));
-    const c = E.coastPoint({ age: s.age, savings: s.currentSavings, monthlySavings: s.savingsMonthly, target: s.freedomNumber, superBalance: s.superBalance, grossIncome: s.grossIncome, takeHomeMonthly: own });
+    const c = E.coastPoint({ age: s.age, savings: s.currentSavings, monthlySavings: s.savingsMonthly, target: s.freedomNumber, superBalance: s.superBalance, grossIncome: s.grossIncome, takeHomeMonthly: own, savingsType: s.savingsType, ausShare: E.ausShareFor(s.savingsType) });
     assert.equal(ids(p).includes('work-less'), !!(c && c.months === 0), JSON.stringify(p));
   }
   // A 40-year-old with $150k invested and $300k super is there now.

@@ -237,6 +237,10 @@ window.FirePathEngine = (function () {
   // income is known (rate on today's salary, which overstates it after you stop work),
   // otherwise 30%.
   const INVEST_RETURN = 0.07;
+  // Cash in a high-interest savings account over the long run: about 0.5% a year above
+  // inflation after tax (bank rates have roughly kept pace with prices; today's rates are
+  // below inflation, which would be too harsh to project for decades).
+  const CASH_REAL_RETURN = 0.005;
   const INCOME_YIELD = 0.03;
   const DEFAULT_MARGINAL_RATE = 0.30;
   const PLAN_MAX_MONTHS = 100 * 12;   // same horizon as yearsToGoal: null = "100+ yrs"
@@ -325,7 +329,15 @@ window.FirePathEngine = (function () {
     const marginalRate = Number.isFinite(i.marginalRate) ? i.marginalRate
       : gross > 0 && typeof calculateMarginalRate === 'function' ? calculateMarginalRate(gross, undefined, senior ? { senior } : undefined) : DEFAULT_MARGINAL_RATE;
     const ausShare = Number.isFinite(i.ausShare) ? Math.min(1, Math.max(0, i.ausShare)) : 0;
-    const outsideReturn = Number.isFinite(i.outsideReturn) ? i.outsideReturn : outsideSuperReturn(marginalRate, ausShare);
+    // Where the savings sit (i.savingsType): most everyday Australians keep them in the bank,
+    // so 'cash' grows at a long-run cash return; 'offset' saves mortgage interest (tax-free);
+    // 'mix' is an even blend; 'etfs' (or not said, on pages that don't ask) is invested.
+    const savingsType = i.savingsType || null;
+    const invested = outsideSuperReturn(marginalRate, ausShare);
+    const offsetR = typeof FP_ASSUMPTIONS !== 'undefined' && Number.isFinite(FP_ASSUMPTIONS.offsetRealReturn) ? FP_ASSUMPTIONS.offsetRealReturn : 0.022;
+    const byType = savingsType === 'cash' ? CASH_REAL_RETURN : savingsType === 'offset' ? offsetR
+      : savingsType === 'mix' ? (CASH_REAL_RETURN + offsetR + invested) / 3 : invested;
+    const outsideReturn = Number.isFinite(i.outsideReturn) ? i.outsideReturn : byType;
     const superBalance = Math.max(0, finiteOr(i.superBalance, 0));
     let partner = null;
     const p = i.partner;
@@ -344,7 +356,7 @@ window.FirePathEngine = (function () {
     const spendYear = Number.isFinite(i.spendYear) && i.spendYear >= 0 ? i.spendYear : target / 25;
     const upfrontAt = typeof i.upfrontAt === 'function' ? i.upfrontAt : () => 0;
     const notBefore = Math.max(0, Math.round(finiteOr(i.notBeforeMonth, 0)));
-    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner, superInsurance, pensionValue, employerSuperRate, spendYear, upfrontAt, notBefore };
+    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner, superInsurance, pensionValue, employerSuperRate, spendYear, upfrontAt, notBefore, savingsType };
   }
 
   // How much you'd need outside super at this moment to stop work now: enough to pay your
@@ -473,6 +485,17 @@ window.FirePathEngine = (function () {
         const now = (opts && opts.now) || new Date();
         plan.mortgage = { payoffMonth: mg.payoffMonth, payoffYear: new Date(now.getFullYear(), now.getMonth() + mg.payoffMonth, 1).getFullYear(),
           owingAtFreedom: plan.months != null ? owing : null, repayMonthly: mg.repay };
+      }
+    }
+    // Already Age Pension age: the pension isn't a guess about future rules, so the date
+    // counts it (today's rules, once you stop work). inputs.homeowner / rentFortnight as in
+    // agePensionPlan. Under 67 it stays a separate line beside the date.
+    if (plan.valid && n0 && n0.age != null && n0.age >= PENSION_AGE && !(inputs && (inputs.pensionValue || inputs.noAutoPension)) && typeof calculateAgePension === 'function') {
+      const pp = agePensionPlan(Object.assign({}, inputs, { noAutoPension: true }), { homeowner: inputs.homeowner !== false, rentFortnight: inputs.rentFortnight || 0 });
+      const later = m => m == null ? Infinity : m;
+      if (pp && pp.pensionAnnual > 0 && pp.plan.valid && later(pp.plan.months) <= later(plan.months)) {
+        pp.plan.pensionIncluded = pp.pensionAnnual;
+        return pp.plan;
       }
     }
     return plan;
@@ -678,11 +701,26 @@ window.FirePathEngine = (function () {
   // Plain-English lines for under a headline date (the same words on every page).
   // Why an early date plans on more than 25×, or null.
   function cushionNote(plan) {
+    if (plan && plan.valid && plan.pensionIncluded > 0)
+      return `You're already Age Pension age, so this date counts about $${(Math.round(plan.pensionIncluded / 100) * 100).toLocaleString('en-AU')} a year of Age Pension on today's rules, once you stop work.`;
     if (!plan || !plan.valid || !(plan.targetMultiple > 1)) return null;
     const x = String(Math.round(25 * plan.targetMultiple * 10) / 10);
     const early = plan.withdrawalRate < 0.0375;
     return `Stopping work ${early ? 'before 50' : 'in your 50s'} means your money may need to last ${early ? '45' : '35'} years or more, so this date plans on ${x}× your yearly spending (${fmtM(plan.target)}) instead of 25×.`;
   }
+  // Savings counted as cash (or a mix): what the same plan would give if they were invested,
+  // as information, not advice. investedPlan: freedomPlan with savingsType 'etfs'. null when
+  // the savings are already invested or investing wouldn't move the date by six months.
+  function savingsNote(plan, investedPlan) {
+    const type = plan && plan.valid && plan.inputs ? plan.inputs.savingsType : null;
+    if (type !== 'cash' && type !== 'mix') return null;
+    if (!investedPlan || !investedPlan.valid || investedPlan.months == null) return null;
+    if (plan.months != null && plan.months - investedPlan.months < 6) return null;
+    const where = type === 'cash' ? 'cash in the bank' : 'a mix of bank, offset and investments';
+    const when = investedPlan.alreadyFree ? 'now' : `around ${investedPlan.freedomYear}${investedPlan.freedomAge != null ? `, age ${investedPlan.freedomAge}` : ''}`;
+    return `Your savings are counted as ${where}. If they were invested in shares instead, this could be ${when}. A high-interest account keeps your money steady and has roughly kept pace with prices; shares have grown faster over long periods, with ups and downs along the way.`;
+  }
+
   // The Age Pension line (agePensionPlan's result against the headline), or null when it
   // wouldn't bring the date forward by at least six months.
   // opts.rentFortnight: renters' rent (so the line can say Rent Assistance is counted).
@@ -780,6 +818,9 @@ window.FirePathEngine = (function () {
       // From the saved answers, or the "anything else?" note (noteFacts).
       superInsurance: p.super_insurance > 0 ? p.super_insurance : facts.superInsurance || 0,
       ausShare: ausShareFor(p.savings_type, p.aus_share != null ? p.aus_share : facts.ausShare),
+      savingsType: p.savings_type || 'cash',
+      homeowner: !/rent/i.test(p.housing_status || ''),
+      rentFortnight: /rent/i.test(p.housing_status || '') && facts.rentMonthly > 0 ? facts.rentMonthly * 12 / 26 : 0,
       employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate || null,
       mortgage: p.mortgage_remaining > 0 && facts.mortgageRepayMonthly > 0
         ? { balance: p.mortgage_remaining, repayMonthly: facts.mortgageRepayMonthly, offset: p.offset_amount || 0, rate: p.offset_interest_rate > 0 ? p.offset_interest_rate / 100 : null, spendMult: p.retirement_spend_multiplier || 1 }
@@ -813,14 +854,16 @@ window.FirePathEngine = (function () {
   function freedomRange(inputs, opts) {
     // Same freedom number as the headline (including the safer rate for early stopping).
     const head = freedomPlan(inputs);
-    const n = planInputs(head.valid && head.targetMultiple > 1 ? Object.assign({}, inputs, { target: head.target, annualSpend: undefined }) : inputs);
+    const n = planInputs(head.valid ? Object.assign({}, inputs, { target: head.target, annualSpend: undefined, spendYear: head.spendYear, mortgage: null }) : inputs);
     if (!n) return null;
     const w = walkPlan(n, true);
     if (w.month === 0) return null;
     if (!(n.monthlySavings > 0) && !(n.savings > 0) && !w.superPath.some(v => v > 0)) return null;
     return simulateTimeToTarget(Object.assign({}, opts || {}, {
       startPortfolio: n.savings, monthlySavings: Math.max(0, n.monthlySavings), target: n.target,
-      median: n.outsideReturn, extraByMonth: w.superPath
+      median: n.outsideReturn, extraByMonth: w.superPath,
+      // Cash and an offset barely move year to year; a mix moves about a third as much.
+      volatility: n.savingsType === 'cash' || n.savingsType === 'offset' ? 0.01 : n.savingsType === 'mix' ? MC.volatility / 3 : undefined
     }));
   }
 
@@ -1026,5 +1069,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, retireeTax, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, savingsNote, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, CASH_REAL_RETURN, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, retireeTax, formatTimeSince, compareSnapshots };
 })();

@@ -281,6 +281,7 @@
           <p class="hero-narrative" id="heroNarrative"></p>
           <p class="hero-note" id="heroCushion" hidden></p>
           <p class="hero-note" id="heroPension" hidden></p>
+          <div class="hero-note" id="heroSavings" hidden><p id="heroSavingsText"></p><p>Invested in shares or ETFs? <a href="firepath_pro.html?edit=true">Update where your savings sit →</a> · Areas you could research further: <a href="/learn/difference-saving-investing">saving vs investing</a> · <a href="/learn/what-is-an-index-fund">what an index fund is</a></p></div>
         </div>
       </div>
 
@@ -512,6 +513,10 @@
     const rentM = !homeowner && Engine.noteFacts ? Engine.noteFacts(m.p && m.p.context).rentMonthly || 0 : 0;
     const pensionLine = isFree(m) ? null : Engine.agePensionLine(Engine.agePensionPlan(m.planInputs, { homeowner, rentFortnight: rentM * 12 / 26 }), m.plan, homeowner, { rentFortnight: rentM * 12 / 26 });
     $('heroPension').textContent = pensionLine || ''; $('heroPension').hidden = !pensionLine;
+    // Savings counted as cash: what investing could change (information, not advice).
+    const inv = Engine.savingsNote ? Engine.freedomPlan(Object.assign({}, m.planInputs, { savingsType: 'etfs', ausShare: Engine.ausShareFor('etfs', m.p && m.p.aus_share) })) : null;
+    const sv = Engine.savingsNote ? Engine.savingsNote(m.plan, inv) : null;
+    $('heroSavingsText').textContent = sv || ''; $('heroSavings').hidden = !sv;
 
     $('progressPct').textContent = `${m.pct}%`;
     $('progressAmounts').textContent = `${money(m.savings)} of ${money(m.freedomNumber)}`;

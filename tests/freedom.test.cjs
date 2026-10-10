@@ -40,6 +40,8 @@ const fireNum = p => (p.takeHome - p.mSav) * 12 * 25;
 const planFor = (p, extra) => E.freedomPlan(Object.assign({ age: p.age, savings: p.savings, monthlySavings: p.mSav, target: fireNum(p), superBalance: p.super, takeHomeMonthly: p.takeHome }, extra || {}));
 // The hand checks below are plain 25× (safeRate: false); the safer rate is tested on its own.
 const PLAIN = { safeRate: false };
+// The cross-page people hold ETFs (a typical Australian-share mix).
+const ETFS = { savingsType: 'etfs', ausShare: 0.4 };
 
 // Independent check, by brute force: for each possible stopping month, save until then,
 // then pay spending (freedom number ÷ 25 a year) from savings outside super, adding each
@@ -284,9 +286,11 @@ test('every headline page runs through FirePathEngine.freedomPlan and freedomRan
 
 const freePageInputs = (() => {
   const obj = grab(FREE, /_planInputs = (\{[\s\S]*?\n {4}\});/, 'free page _planInputs');
-  return new Function('age', 'savings', 'mSav', 'fireNum', 'superBal', 'toMonthly', 'income', 'pSuper', 'pAge', 'pI', 'return ' + obj);
+  const build = new Function('age', 'savings', 'mSav', 'fireNum', 'superBal', 'toMonthly', 'income', 'pSuper', 'pAge', 'pI', 'return ' + obj);
+  // The page then adds where the savings sit and the Australian-share mix (here: ETFs).
+  return (...args) => Object.assign(build(...args), { savingsType: 'etfs', ausShare: E.ausShareFor('etfs') });
 })();
-vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "cash", ausShareAns = null, employerRate = null; function mortgageInput() { return null; }   // no insurance, cash: the cross-page comparisons\n'
+vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "etfs", housingStatus = "owner", rentMonthly = 0; function rentFortnight() { return 0; } var _x = 0, ausShareAns = null, employerRate = null; function mortgageInput() { return null; }   // no insurance, cash: the cross-page comparisons\n'
   + grab(PRO, /(function ownGrossIncome[\s\S]*?\n  \})/, 'Pro ownGrossIncome') + '\n'
   + grab(PRO, /(function freedomPlanInputs[\s\S]*?\n  \})/, 'Pro freedomPlanInputs')
   + '\nthis.__pro = freedomPlanInputs;', ctx);
@@ -297,14 +301,14 @@ vm.runInContext('var fmtM = FirePathEngine.fmtM, isCouple = false, partnerSuper 
 test('cross-page: the four sample people get the same freedom age on every page', () => {
   for (const p of PEOPLE) {
     const fire = fireNum(p);
-    const profile = { age: p.age, take_home_income: p.takeHome, savings_monthly: p.mSav, current_savings: p.savings, super_balance: p.super, freedom_number: fire, pay_cycle: 'monthly' };
-    const expected = planFor(p).freedomAge;
+    const profile = { age: p.age, take_home_income: p.takeHome, savings_monthly: p.mSav, current_savings: p.savings, super_balance: p.super, freedom_number: fire, pay_cycle: 'monthly', savings_type: 'etfs' };
+    const expected = planFor(p, ETFS).freedomAge;
 
     const free = E.freedomPlan(freePageInputs(p.age, p.savings, p.mSav, fire, p.super, x => x, p.takeHome, 0, null, 0)).freedomAge;
     const pro = E.freedomPlan(ctx.__pro(p.age, p.super, p.takeHome, p.savings, p.mSav, fire, null)).freedomAge;
     const journey = E.freedomPlan(E.planInputsFromProfile(profile)).freedomAge;
     const pi = E.planInputsFromProfile(profile);   // Freedom gap reads the saved plan the same way
-    ctx.__setGapIncome({ grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: 0 });
+    ctx.__setGapIncome({ grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: 0, ausShare: pi.ausShare, savingsType: pi.savingsType });
     const line = ctx.__gap(p.age, p.savings, p.mSav, fire / 25, p.super);
     const gap = Number((line.match(/age (\d+)/) || [])[1]);
 
@@ -332,8 +336,8 @@ const gapDateCall = (() => {
 
 test('cross-page: someone with debt gets the same freedom date on every page', () => {
   const p = PEOPLE[0], fire = fireNum(p), debt = 40000;
-  const profile = { age: p.age, take_home_income: p.takeHome, savings_monthly: p.mSav, current_savings: p.savings, super_balance: p.super, freedom_number: fire, pay_cycle: 'monthly', debt_total: debt };
-  const expected = planFor(p).freedomAge;
+  const profile = { age: p.age, take_home_income: p.takeHome, savings_monthly: p.mSav, current_savings: p.savings, super_balance: p.super, freedom_number: fire, pay_cycle: 'monthly', savings_type: 'etfs', debt_total: debt };
+  const expected = planFor(p, ETFS).freedomAge;
   // Taking the debt off first would give a later date, so this test can tell the difference.
   const netted = E.freedomPlan({ age: p.age, savings: p.savings - debt, monthlySavings: p.mSav, target: fire, superBalance: p.super, takeHomeMonthly: p.takeHome }).months;
   assert.ok(netted > planFor(p).months, `netting debt should move the date (${netted} vs ${planFor(p).months} months)`);
@@ -348,7 +352,7 @@ test('cross-page: someone with debt gets the same freedom date on every page', (
   const journey = E.freedomPlan(E.planInputsFromProfile(profile)).freedomAge;
   // Freedom gap: the page's own call, with its own netted figure available to it.
   const pi = E.planInputsFromProfile(profile);
-  ctx.__setGapIncome({ grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: 0 });
+  ctx.__setGapIncome({ grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: 0, ausShare: pi.ausShare, savingsType: pi.savingsType });
   const line = gapDateCall(ctx.__gap, p.age, p.savings, Math.max(0, p.savings - debt), p.mSav, fire / 25, p.super, debt);
   const gap = Number((line.match(/age (\d+)/) || [])[1]);
 
@@ -599,25 +603,25 @@ test('review: employer super is paid even when super starts at $0 (under 67)', (
 
 test('review: the safer rate lands exactly on a 50 or 60 boundary when that is the first consistent month', () => {
   // Checker 12 (12% employer): 26.7× gives 49.8 (too early for that band), 28.6× gives 50.8; month 204 (exactly 50) works.
-  const at50 = E.freedomPlan(E.planInputsFromProfile({ age: 33, take_home_income: 7200, savings_monthly: 1800, current_savings: 70000, super_balance: 120000, savings_type: 'etfs', freedom_number: 5400 * 300, pay_cycle: 'monthly' }));
+  const at50 = E.freedomPlan(E.planInputsFromProfile({ age: 33, take_home_income: 7200, savings_monthly: 1800, current_savings: 70000, super_balance: 120000, savings_type: 'etfs', freedom_number: 5400 * 300, pay_cycle: 'monthly', savings_type: 'etfs' }));
   assert.equal(at50.months, 204);
   near(at50.targetMultiple, 0.04 / 0.0375, 1e-9);
   // Checker 07 (couple, partner 58): exactly 60 at plain 25×.
-  const at60 = E.freedomPlan(E.planInputsFromProfile({ age: 50, take_home_income: 9000, savings_monthly: 2000, current_savings: 300000, super_balance: 400000, savings_type: 'etfs', freedom_number: 7000 * 300, pay_cycle: 'monthly', partner_super: 250000, partner_age: 58, partner_income: 3500, housing_status: 'owner' }));
+  const at60 = E.freedomPlan(E.planInputsFromProfile({ age: 50, take_home_income: 9000, savings_monthly: 2000, current_savings: 300000, super_balance: 400000, savings_type: 'etfs', freedom_number: 7000 * 300, pay_cycle: 'monthly', savings_type: 'etfs', partner_super: 250000, partner_age: 58, partner_income: 3500, housing_status: 'owner' }));
   assert.equal(at60.months, 120);
   assert.equal(at60.targetMultiple, 1);
 });
 
 test('review: the bridge draws real spending, not the cushioned freedom number ÷ 25', () => {
   // Checker 02: spends $54k; drawing $54k (not $61.7k) gives month 188.
-  const p = E.freedomPlan(E.planInputsFromProfile({ age: 30, take_home_income: 6500, savings_monthly: 2000, current_savings: 60000, super_balance: 45000, savings_type: 'etfs', freedom_number: 4500 * 300, pay_cycle: 'monthly', context: 'About half of my investments are in Australian shares' }));
+  const p = E.freedomPlan(E.planInputsFromProfile({ age: 30, take_home_income: 6500, savings_monthly: 2000, current_savings: 60000, super_balance: 45000, savings_type: 'etfs', freedom_number: 4500 * 300, pay_cycle: 'monthly', savings_type: 'etfs', context: 'About half of my investments are in Australian shares' }));
   near(p.spendYear, 54000, 1);
   assert.equal(p.months, 188);
 });
 
 test('review: a mortgage still owing is paid out of savings on the day you stop', () => {
   // Checkers 03 and 04: the plain 25× dates with the loan cleared at freedom.
-  const four = E.freedomPlan(Object.assign(E.planInputsFromProfile({ age: 38, take_home_income: 7500, savings_monthly: 1500, current_savings: 120000, super_balance: 150000, savings_type: 'etfs', freedom_number: 6000 * 300, pay_cycle: 'monthly', housing_status: 'mortgage', mortgage_remaining: 300000, context: 'Mortgage repayments $2,500 a month' }), { safeRate: false }));
+  const four = E.freedomPlan(Object.assign(E.planInputsFromProfile({ age: 38, take_home_income: 7500, savings_monthly: 1500, current_savings: 120000, super_balance: 150000, savings_type: 'etfs', freedom_number: 6000 * 300, pay_cycle: 'monthly', savings_type: 'etfs', housing_status: 'mortgage', mortgage_remaining: 300000, context: 'Mortgage repayments $2,500 a month' }), { safeRate: false }));
   assert.equal(four.months, 132);
 });
 
@@ -632,7 +636,7 @@ test('review: Division 293 on employer super over $250,000', () => {
 test('review: from 67, take-home is worked back to gross with the seniors\' rules', () => {
   // Checker 11: $45,600 take-home at 68 (single) → $52,085 gross, not $52,811.
   near(X.estimateGrossFromNet(45600, 60, { senior: 'single' }), 52085, 5);
-  const pi = E.planInputsFromProfile({ age: 68, take_home_income: 3800, savings_monthly: 300, current_savings: 150000, super_balance: 250000, freedom_number: 3500 * 300, pay_cycle: 'monthly', housing_status: 'owner' });
+  const pi = E.planInputsFromProfile({ age: 68, take_home_income: 3800, savings_monthly: 300, current_savings: 150000, super_balance: 250000, freedom_number: 3500 * 300, pay_cycle: 'monthly', savings_type: 'etfs', housing_status: 'owner' });
   near(E.freedomPlan(pi).marginalRate, X.calculateMarginalRate(X.estimateGrossFromNet(45600, 60, { senior: 'single' }), undefined, { senior: 'single' }), 1e-9);
 });
 
@@ -649,4 +653,26 @@ test('review: the note reads more ways of saying employer super, and not a partn
   assert.equal(E.noteFacts('15.4% super').employerSuperRate, 0.154);
   assert.equal(E.noteFacts('my employer pays 35% super').employerSuperRate, 0.30);
   assert.equal(E.noteFacts("My partner's employer pays 17% super.").employerSuperRate, undefined);
+});
+
+test('savings count as cash unless invested; the note shows what investing could change', () => {
+  const base = { age: 35, take_home_income: 6000, savings_monthly: 2000, current_savings: 100000, super_balance: 80000, freedom_number: 4000 * 300, pay_cycle: 'monthly' };
+  const cash = E.freedomPlan(E.planInputsFromProfile(base));                       // no savings_type → cash
+  const inv = E.freedomPlan(E.planInputsFromProfile(Object.assign({}, base, { savings_type: 'etfs' })));
+  near(cash.outsideReturn, E.CASH_REAL_RETURN, 1e-12);
+  assert.ok(cash.months > inv.months, 'cash takes longer');
+  const note = E.savingsNote(cash, inv);
+  assert.ok(/counted as cash/.test(note) && note.includes(String(inv.freedomYear)));
+  assert.equal(E.savingsNote(inv, inv), null, 'nothing to say once invested');
+  // Pages that don't ask (homepage) keep the invested assumption.
+  assert.equal(E.freedomPlan({ age: 35, savings: 100000, monthlySavings: 2000, target: 1.2e6, superBalance: 80000 }).outsideReturn > 0.05, true);
+});
+
+test('already Age Pension age: the main date counts today\'s pension', () => {
+  const p = E.freedomPlan(E.planInputsFromProfile({ age: 68, take_home_income: 3800, savings_monthly: 300, current_savings: 150000, super_balance: 250000, freedom_number: 3500 * 300, pay_cycle: 'monthly', housing_status: 'owner', savings_type: 'cash' }));
+  assert.ok(p.pensionIncluded > 0);
+  assert.equal(p.alreadyFree, true);
+  assert.ok(/already Age Pension age/.test(E.cushionNote(p)));
+  // Under 67 the date never counts it.
+  assert.ok(!(E.freedomPlan(E.planInputsFromProfile({ age: 55, take_home_income: 4500, savings_monthly: 600, current_savings: 40000, super_balance: 220000, freedom_number: 3900 * 300, pay_cycle: 'monthly' })).pensionIncluded > 0));
 });
