@@ -65,7 +65,7 @@ export const STARTS: StartPage[] = [
     lead: 'There’s no single right answer. What matters is that it fits your plan, and if you’ll still rent in retirement, that the rent is in your plan too.',
     doorLine: 'Rent and invest, or buy? Try both on your numbers.',
     steps: [
-      { title: 'Compare both paths on your numbers', body: 'Buying builds equity but costs stamp duty, interest and upkeep. Renting can leave more to invest, but only if you invest the difference.', href: '/hearmeout?scenario=rentvest', cta: 'Compare rent vs buy' },
+      { title: 'Both paths, on your numbers', body: 'Buying builds equity but costs stamp duty, interest and upkeep. Renting can leave more to invest, but only if the difference gets invested.', href: '/hearmeout?scenario=rentvest', cta: 'Compare rent vs buy' },
       { title: 'If you rent: investing the difference', body: 'The case for renting only works when the money you’re not spending on a mortgage gets invested, consistently.' },
       { title: 'If you buy: the deposit', body: 'The First Home Super Saver Scheme lets eligible first-home buyers save part of a deposit inside super’s lower tax.', href: '/learn/first-home-super-saver', cta: 'How the scheme works' },
       { title: 'Housing in retirement', body: 'Renters need their savings to cover rent for life, so the freedom number is higher. The Age Pension assets test also treats renters differently.', href: '/learn/renting-forever-retirement', cta: 'Renting in retirement' },
@@ -89,7 +89,7 @@ export const STARTS: StartPage[] = [
     steps: [
       { title: 'Your savings rate matters most', body: 'Saving more works twice: more invested now, and a smaller number to reach if you also spend less.', href: '/firepath', cta: 'See what moves your date' },
       { title: 'Is your money working?', body: 'Cash above your buffer barely keeps up with inflation. Low-cost diversified funds have historically grown far faster over the long run.', href: '/learn/what-is-an-index-fund', cta: 'Index funds explained' },
-      { title: 'Super’s tax break, if it suits', body: 'On a 30%+ tax rate, salary sacrificing into super is taxed at 15% instead. It’s locked until 60, so balance it with money you can reach sooner.', href: '/learn/salary-sacrifice-explained', cta: 'Salary sacrifice explained' },
+      { title: 'Super’s tax break, if it suits', body: 'On a 30%+ tax rate, salary sacrificing into super is taxed at 15% instead. It’s locked until 60, so many people balance it with money they can reach sooner.', href: '/learn/salary-sacrifice-explained', cta: 'Salary sacrifice explained' },
       { title: 'When easing off could be an option', body: 'Coast FIRE is the point where your savings would reach your number by retirement without adding more, so part-time work could cover your bills from here.', href: '/freedom-gap', cta: 'See your freedom gap' },
     ],
     tools: [

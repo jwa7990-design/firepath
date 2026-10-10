@@ -298,7 +298,7 @@
     stay_course: {
       desc: 'Your situation as it stands today, unchanged.',
       // "Already covered" only when there's truly no gap — not just because no hourly rate was given.
-      headline: (f) => f.gapToday > 0 ? (f.hoursPerWeekNow > 0 ? `Work part-time, starting today` : `Where you stand today`) : `You're already covered, right now`,
+      headline: (f) => f.gapToday > 0 ? (f.hoursPerWeekNow > 0 ? `Part-time work, starting today` : `Where you stand today`) : `You're already covered, right now`,
       gainBack: (f) => {
         if (!f.hoursPerWeekNow || f.hoursPerWeekNow <= 0) return null;
         const daysFewer = Math.round(5 - (f.hoursPerWeekNow / 7.6));
@@ -307,7 +307,7 @@
     },
     retire_full_stop: {
       desc: 'The freedom age: savings outside super pay the way until 60, then super too, with no work income at all. Same date as Freedom gap. The Age Pension is not counted.',
-      headline: (f) => `Retire completely at ${f.targetAge}`,
+      headline: (f) => `Retiring completely at ${f.targetAge}`,
       gainBack: (f) => `${f.yearsAway} year${f.yearsAway !== 1 ? 's' : ''} from full freedom`
     },
     reduce_spend: {
@@ -317,12 +317,12 @@
     },
     coast: {
       desc: 'What happens if no more money is added to savings: what is already saved, plus super from 60, left to grow on its own.',
-      headline: (f) => `Stop saving, let it grow`,
+      headline: (f) => `Letting what you’ve saved grow`,
       gainBack: (f) => `Freedom by ${f.targetAge} without adding another dollar`
     },
     semi_retire_now: {
       desc: 'Working a small number of hours a week starting now, rather than a set end date.',
-      headline: (f) => `Work by choice, not necessity`,
+      headline: (f) => `Working by choice, not necessity`,
       gainBack: (f) => {
         const daysFewer = Math.round(5 - (f.hoursPerWeek / 7.6));
         return `≈${Math.max(1, daysFewer)} fewer working day${Math.max(1, daysFewer) !== 1 ? 's' : ''} a week, starting now`;
@@ -330,7 +330,7 @@
     },
     pension_assist: {
       desc: 'How close the Age Pension alone gets to closing the gap once it becomes available.',
-      headline: (f) => `Let time do some of the work`,
+      headline: (f) => `Where the Age Pension could help`,
       gainBack: (f) => `The pension arrives in ${f.yearsToPension} year${f.yearsToPension !== 1 ? 's' : ''} — worth knowing about`
     }
   };
@@ -515,7 +515,7 @@ Absolute rules:
       }).join('');
       return `
         <div class="option-card ${isStay ? 'stay' : 'highlight'}${isStrongest ? ' strongest' : ''}">
-          ${isStrongest ? '<div class="option-eyebrow is-strongest">★ Closest within reach</div>' : ''}
+          ${isStrongest ? '<div class="option-eyebrow is-strongest">Closest to your numbers</div>' : ''}
           <div class="option-headline">${meta.headline(o.facts)}</div>
           <div class="option-stats">${statsHtml}</div>
           <div class="option-blurb">${FirePathSafe.html(text.blurb)}</div>
