@@ -66,7 +66,7 @@ window.FirePathMoves = (function () {
       consumerDebtKnown: num(i.consumerDebt) != null,   // a blank debt field is unknown, not "no debt"
       emergencyFund: typeof i.emergencyFund === 'boolean' ? i.emergencyFund : null,
       retirementSpendMultiplier: num(i.retirementSpendMultiplier) || 1, freedomNumber: num(i.freedomNumber),
-      persona: i.persona || null, superInsurance: num(i.superInsurance) || 0, ausShare: num(i.ausShare),
+      persona: i.persona || null, superInsurance: num(i.superInsurance) || 0, ausShare: num(i.ausShare), employerSuperRate: num(i.employerSuperRate),
     };
     s.cashSavings = s.savingsType === 'cash' ? s.currentSavings : s.savingsType === 'mix' ? s.currentSavings / 3 : null;
     s.grossIncome = num(i.grossIncome) || ownGross(s);
@@ -85,7 +85,7 @@ window.FirePathMoves = (function () {
       dependants: p.dependants, housing: p.housing_status, mortgageRemaining: p.mortgage_remaining,
       consumerDebt: p.debt_total, emergencyFund: p.has_emergency_fund,
       retirementSpendMultiplier: p.retirement_spend_multiplier, freedomNumber: p.freedom_number,
-      grossIncome: p.gross_income, persona: p.persona, superInsurance: p.super_insurance, ausShare: p.aus_share,
+      grossIncome: p.gross_income, persona: p.persona, superInsurance: p.super_insurance, ausShare: p.aus_share, employerSuperRate: p.employer_super_rate,
     });
   }
 
@@ -127,6 +127,7 @@ window.FirePathMoves = (function () {
       partner: s.hasPartner && s.partnerSuper > 0 ? { superBalance: s.partnerSuper, age: s.partnerAge, takeHomeMonthly: s.partnerTakeHomeMonthly || 0 } : null,
       superInsurance: s.superInsurance || 0,
       ausShare: E() && E().ausShareFor ? E().ausShareFor(s.savingsType, s.ausShare) : 0,
+      employerSuperRate: s.employerSuperRate || null,
     }, over || {});
   }
   function planYears(s, over) {
@@ -224,7 +225,7 @@ window.FirePathMoves = (function () {
         if (!(s.savingsMonthly > 0) || (s.bufferMonths != null && s.bufferMonths < 3)) return false;   // basics first
         if (s.age != null && s.age >= 67) return false;
         if (!(s.marginalRate >= 0.30)) return false;      // below ~30% the tax saving is small or nil
-        const r = calculateSalarySacrifice(s.grossIncome, 5000);
+        const r = calculateSalarySacrifice(s.grossIncome, 5000, undefined, 0, { employerRate: s.employerSuperRate });
         if (!r || r.capRoom < 1000) return false;          // employer super already fills the cap
         const better = r.taxSaved - r.superTax;
         if (better < 300) return false;
@@ -288,6 +289,24 @@ window.FirePathMoves = (function () {
         if (!(p > 0)) return false;
         return { why: 'From 67, the Age Pension may top up what your savings pay. It’s means-tested on what you own and earn then.',
           impact: { dollars: p, text: `About ${money(p)} a year on today's figures` } };
+      } },
+    { id: 'co-contribution', tier: 5, title: 'The government super co-contribution', plan: 'Free',
+      tool: { href: '/compound', label: 'See what it grows to' }, article: 'super-co-contribution',
+      applies(s) {
+        if (s.alreadyFree || s.age == null || s.age >= 71 || !(s.grossIncome > 0) || !has('coContribution')) return false;
+        const t = (typeof TAX_CONFIG !== 'undefined' && TAX_CONFIG.coContribution) || null;
+        if (!t || s.grossIncome >= t.higher) return false;
+        const add = coContribution(s.grossIncome, 1000);
+        if (!(add > 0)) return false;
+        return { why: `On incomes under ${money(t.higher)}, putting after-tax money into super can mean the government adds 50c for every $1, up to $500 a year (less as income rises above ${money(t.lower)}). It's locked in super until 60, so it's money you couldn't use before then. Other rules apply, like at least 10% of your income coming from work.`,
+          impact: { dollars: add, text: `$1,000 of your own could bring about ${money(add)} more` } };
+      } },
+    { id: 'concession-cards', tier: 8, title: 'Concession cards from 67', plan: 'Free',
+      tool: { href: '/freedom-gap', label: 'See what the Age Pension could add' }, article: 'age-pension-explained',
+      applies(s) {
+        if (s.age == null || s.age < 60) return false;
+        return { why: 'From 67, people on the Age Pension get a Pension Concession Card. Those who don’t may be able to get a Commonwealth Seniors Health Card: there’s no assets test, and the income limit is about $105,000 for singles and $168,000 for couples. Both can mean cheaper medicines and other discounts.',
+          impact: { text: 'Cheaper medicines and other discounts' } };
       } },
     { id: 'spouse-contribution', tier: 8, title: 'Adding to your partner\'s super', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Check the offset' }, article: 'spouse-contribution-offset',

@@ -29,6 +29,9 @@ const TAX_YEARS = {
     // General transfer balance cap: the most you can move into a tax-free retirement
     // pension. Above it, super stays in accumulation, earnings taxed at 15%. CPI-indexed.
     transferBalanceCap: 2000000,
+    // Government co-contribution (ATO): 50c per $1 of after-tax super contributions, up to
+    // $500 at or under `lower`, reducing to nothing at `higher`.
+    coContribution: { max: 500, lower: 47488, higher: 62488 },
     superTaxRate: 0.15,
     sgRate: 0.12,
     // HELP/HECS (marginal system from 2025-26): 15c per $ over `start`; from `mid`, a
@@ -62,6 +65,7 @@ const TAX_YEARS = {
     concessionalCap: 32500,
     nonConcessionalCap: 130000,
     transferBalanceCap: 2100000,   // from 1 July 2026 (ATO); first pensions from then get $2.1M
+    coContribution: { max: 500, lower: 49293, higher: 64293 },
     superTaxRate: 0.15,
     sgRate: 0.12,
     help: { start: 69528, mid: 129717, midBase: 9028, top: 186050 },
@@ -80,6 +84,9 @@ const TAX_YEARS = {
 const AGE_PENSION = {
   effectiveFrom: '2026-09-20',
   eligibilityAge: 67,
+  // Work Bonus (Services Australia): $300 a fortnight of each pensioner's work income isn't
+  // counted in the income test (unused credit banks up to $11,800, not modelled here).
+  workBonusFortnight: 300,
   // Maximum fortnightly rate incl. pension + energy supplements. Couple = combined.
   singleFortnight: 1237.70,
   coupleFortnight: 1866.00,
@@ -183,6 +190,19 @@ function helpRepayment(repaymentIncome, cfg) {
   return (r - h.start) * 0.15;
 }
 
+// Government super co-contribution for `personal` $ of after-tax contributions on `income`
+// (total income: assessable income plus reportable fringe benefits and employer super).
+// Other rules (10% of income from work, under 71, balance under the transfer balance cap)
+// are the caller's to check. ATO pays at least $20 when anything is due.
+function coContribution(income, personal, cfg) {
+  const t = (cfg || TAX_CONFIG).coContribution;
+  const i = Number(income), c = Math.max(0, Number(personal) || 0);
+  if (!t || !Number.isFinite(i) || i >= t.higher || !(c > 0)) return 0;
+  const most = i <= t.lower ? t.max : t.max - (i - t.lower) * t.max / (t.higher - t.lower);
+  const due = Math.min(c * 0.5, most);
+  return due > 0 ? Math.max(20, due) : 0;
+}
+
 // Medicare levy surcharge (no private hospital cover). The rate applies to the whole
 // of your own MLS income, not just the part over the threshold.
 // family (optional) — you have a spouse or a dependent child: { partnerIncome, children }.
@@ -283,7 +303,8 @@ const DIV293_THRESHOLD = 250000;
 const LISTO = { incomeLimit: 37000, max: 500 };
 const CARRY_FORWARD_BALANCE_LIMIT = 500000;
 // opts.senior as in calculateTax. Sacrificed super counts back into SAPTO's rebate
-// income, so sacrificing doesn't raise the offset.
+// income, so sacrificing doesn't raise the offset. opts.employerRate: your employer's
+// super rate when above the guarantee (it uses more of the cap, leaving less room).
 function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg, carryForward, opts) {
   const c = cfg || TAX_CONFIG;
   const senior = opts && opts.senior;
@@ -291,7 +312,8 @@ function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg, carryForwar
   grossIncome = Math.max(0, Number(grossIncome) || 0);
   sacrificeAmount = Math.min(Number(sacrificeAmount) || 0, grossIncome);
   if (sacrificeAmount <= 0) return null;
-  const sgContrib = Math.min(grossIncome * c.sgRate, c.concessionalCap);
+  const employerRate = opts && opts.employerRate > c.sgRate ? Math.min(0.30, opts.employerRate) : c.sgRate;
+  const sgContrib = Math.min(grossIncome * employerRate, c.concessionalCap);
   const capRoom = Math.max(0, c.concessionalCap + extraCap - sgContrib);
   const effective = Math.min(sacrificeAmount, capRoom);       // gets the concession
   const excess = sacrificeAmount - effective;                  // taxed at marginal rate
@@ -356,6 +378,8 @@ function deemedIncome(financialAssets, isCouple = false) {
 //                     instead of counting what you withdraw.
 //   financialAssets — the part of `assets` that's deemed (shares, ETFs, cash, account-
 //                     based super in pension phase). Defaults to all of `assets`.
+//   opts.workIncome — the part of otherIncome that's work income (or [yours, partner's]):
+//                     the Work Bonus takes up to $300 a fortnight off each before the test.
 //   opts (couples only):
 //     partnerEligible — false when only one partner has reached Age Pension age.
 //                       Each member of a couple is paid half the combined couple rate,
@@ -395,7 +419,11 @@ function calculateAgePension(assets, otherIncome = 0, isHomeowner = true, isCoup
   const pensionAfterAssets = a >= limits.nil ? 0 : Math.max(0, maxPension - assetsReduction);
 
   const deemed = deemedIncome(fa, isCouple);
-  const assessableIncome = deemed + inc;
+  // o.workIncome: the part of otherIncome that's from work (a yearly figure, or one per
+  // working partner as an array). The Work Bonus takes up to $300 a fortnight off each.
+  const works = Array.isArray(o.workIncome) ? o.workIncome : o.workIncome != null ? [o.workIncome] : [];
+  const workBonus = works.reduce((t, w) => t + Math.min(Math.max(0, num(w) || 0), (P.workBonusFortnight || 0) * 26), 0);
+  const assessableIncome = deemed + Math.max(0, inc - workBonus);
   const freeArea = (isCouple ? P.income.freeArea.couple : P.income.freeArea.single) * 26;
   const incomeReduction = Math.max(0, assessableIncome - freeArea) * P.income.taper;
   const pensionAfterIncome = Math.max(0, maxPension - incomeReduction);

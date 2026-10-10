@@ -21,7 +21,7 @@ function load(date) {
   ctx.window = ctx;
   vm.createContext(ctx);
   const src = ['tax-engine.js', 'calculations.js', 'financial-engine.js'].map(f => read('js/' + f)).join('\n;\n')
-    + '\n;this.__api = { calculateTax, calculateMarginalRate, estimateGrossFromNet, calculateAgePension, fmt, fmtM, fmtDollars, yearsToGoal, yearsToGoalCapped, monthlyRate, projectSuperTo60, FP_ASSUMPTIONS, TAX_CONFIG };';
+    + '\n;this.__api = { calculateTax, calculateSalarySacrifice, calculateMarginalRate, estimateGrossFromNet, calculateAgePension, fmt, fmtM, fmtDollars, yearsToGoal, yearsToGoalCapped, monthlyRate, projectSuperTo60, FP_ASSUMPTIONS, TAX_CONFIG };';
   vm.runInContext(src, ctx);
   return { ctx, X: ctx.__api, E: ctx.FirePathEngine };
 }
@@ -240,7 +240,7 @@ test('super at 60 (tax pages and Pro): 5.89% after fees and tax, SG capped, mont
   // tax_pro.html uses it, with no r/12 compounding left.
   for (const f of ['tax_pro.html']) {
     const src = read(f);
-    assert.ok(src.includes('projectSuperTo60(proProfile.super_balance || 0, proProfile.age, gross, r.netSuperGain / 12)'), f);
+    assert.ok(src.includes('projectSuperTo60(proProfile.super_balance || 0, proProfile.age, gross, r.netSuperGain / 12, employerRate())'), f);
     assert.ok(!/0\.07\s*\/\s*12/.test(src) && !/rate\s*\/\s*12/.test(src), f + ' still compounds at r/12');
   }
 });
@@ -286,7 +286,7 @@ const freePageInputs = (() => {
   const obj = grab(FREE, /_planInputs = (\{[\s\S]*?\n {4}\});/, 'free page _planInputs');
   return new Function('age', 'savings', 'mSav', 'fireNum', 'superBal', 'toMonthly', 'income', 'pSuper', 'pAge', 'pI', 'return ' + obj);
 })();
-vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "cash", ausAnswer = null;   // no insurance, cash: the cross-page comparisons\n'
+vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "cash", ausAnswer = null, employerRate = null;   // no insurance, cash: the cross-page comparisons\n'
   + grab(PRO, /(function ownGrossIncome[\s\S]*?\n  \})/, 'Pro ownGrossIncome') + '\n'
   + grab(PRO, /(function freedomPlanInputs[\s\S]*?\n  \})/, 'Pro freedomPlanInputs')
   + '\nthis.__pro = freedomPlanInputs;', ctx);
@@ -443,4 +443,24 @@ test('franking credits: Australian shares lift the after-tax return outside supe
   assert.equal(pi.ausShare, 0.7);
   const p = PEOPLE[0], without = planFor(p), withF = planFor(p, { ausShare: 0.7 });
   assert.ok(withF.months <= without.months && withF.outsideReturn > without.outsideReturn);
+});
+
+test('employer super above 12%: more super, sooner date, less salary sacrifice room', () => {
+  const p = PEOPLE[0];
+  const std = planFor(p), uni = planFor(p, { employerSuperRate: 0.17 });
+  assert.ok(uni.superAt60 > std.superAt60, 'more super at 60');
+  assert.ok(uni.months <= std.months, 'never later');
+  near(uni.sgMonthly, std.sgMonthly * 17 / 12, 1, 'employer super scales with the rate');
+  // 12% or less, or blank, is the standard guarantee.
+  assert.equal(planFor(p, { employerSuperRate: 0.10 }).months, std.months);
+  // Still capped at the concessional cap: a $300k earner at 17% hits the cap either way.
+  const big = { age: 40, savings: 100000, monthlySavings: 4000, target: 3e6, superBalance: 400000, grossIncome: 300000 };
+  assert.equal(E.freedomPlan(Object.assign({}, big, { employerSuperRate: 0.17 })).sgMonthly, E.freedomPlan(big).sgMonthly);
+  // Super at 60 and salary sacrifice room use it too.
+  assert.ok(X.projectSuperTo60(80000, 35, 90000, 0, 0.17).balance > X.projectSuperTo60(80000, 35, 90000).balance);
+  const room = rate => X.calculateSalarySacrifice(120000, 10000, undefined, 0, rate ? { employerRate: rate } : undefined).capRoom;
+  assert.equal(room(), 32500 - 120000 * 0.12);
+  assert.equal(room(0.17), Math.max(0, 32500 - 120000 * 0.17));
+  // Saved plans carry it.
+  assert.equal(E.planInputsFromProfile({ freedom_number: 1e6, employer_super_rate: 0.154 }).employerSuperRate, 0.154);
 });

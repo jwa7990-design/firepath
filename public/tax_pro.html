@@ -478,6 +478,8 @@
     const partnerTakeHome = p.partner_income > 0 ? toMonthly(p.partner_income, cycle) * 12 : 0;
     return { partnerIncome: partnerTakeHome > 0 ? estimateGrossFromNet(partnerTakeHome) || 0 : 0, children };
   }
+  // Your employer's super rate from your plan, when it's above the 12% guarantee.
+  function employerRate() { return proProfile && proProfile.employer_super_rate > 0.12 ? proProfile.employer_super_rate : null; }
   function taxOpts(reportableSuper) {
     return { help: taxToggles.help, noPrivateCover: taxToggles.noCover, reportableSuper: reportableSuper || 0, senior: seniorStatus(), family: familyMls() };
   }
@@ -697,7 +699,7 @@
     const sacrifice = parseFloat(document.getElementById('t2Sacrifice').value) || 0;
     if (gross < 1000 || sacrifice <= 0) { document.getElementById('t2Results').style.display = 'none'; return; }
     const carryForward = Math.max(0, parseFloat(document.getElementById('t2CarryForward').value) || 0);
-    const r = calculateSalarySacrifice(gross, sacrifice, undefined, carryForward, { senior: seniorStatus() });
+    const r = calculateSalarySacrifice(gross, sacrifice, undefined, carryForward, { senior: seniorStatus(), employerRate: employerRate() });
     if (!r) return;
     document.getElementById('t2Results').style.display = 'block';
     document.getElementById('t2TaxSaved').textContent = '+' + fmtDollars(r.taxSaved) + '/yr';
@@ -731,8 +733,8 @@
       // The shared super projection (js/calculations.js, same as Pro): SG capped at the
       // concessional cap, 15% contributions tax, growing at ~5.9% (7% less fees and about
       // 7% tax on earnings), compounded monthly at (1 + r)^(1/12) − 1.
-      const withoutExtra = projectSuperTo60(proProfile.super_balance || 0, proProfile.age, gross).balance;
-      const withExtra = projectSuperTo60(proProfile.super_balance || 0, proProfile.age, gross, r.netSuperGain / 12).balance;
+      const withoutExtra = projectSuperTo60(proProfile.super_balance || 0, proProfile.age, gross, 0, employerRate()).balance;
+      const withExtra = projectSuperTo60(proProfile.super_balance || 0, proProfile.age, gross, r.netSuperGain / 12, employerRate()).balance;
       const extra = Math.round(withExtra - withoutExtra);
       if (t2Compare) {
         t2Compare.innerHTML = `

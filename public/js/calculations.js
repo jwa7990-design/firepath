@@ -132,10 +132,11 @@ function compoundWithContributions(principal, monthlyContrib, annualRate, years)
    Same rules as FirePathEngine.freedomPlan. Needs js/tax-engine.js for the
    cap (falls back to $32,500).
 ──────────────────────────────────────────────────────────── */
-function projectSuperTo60(balance, age, annualGross, extraNetMonthly) {
+// employerRate (optional): your employer's super rate when it's above the 12% guarantee.
+function projectSuperTo60(balance, age, annualGross, extraNetMonthly, employerRate) {
   const years = Math.max(0, 60 - age), r = monthlyRate(FP_ASSUMPTIONS.superReturn);
   const cap = typeof TAX_CONFIG !== 'undefined' && TAX_CONFIG.concessionalCap > 0 ? TAX_CONFIG.concessionalCap : 32500;
-  const sgMonthly = Math.min(Math.max(0, annualGross || 0) * FP_ASSUMPTIONS.sgRate, cap) / 12;
+  const sgMonthly = Math.min(Math.max(0, annualGross || 0) * (employerRate > 0.12 ? Math.min(0.30, employerRate) : FP_ASSUMPTIONS.sgRate), cap) / 12;
   const inMonthly = sgMonthly * 0.85 + (extraNetMonthly || 0);
   let bal = balance || 0;
   for (let m = 0; m < Math.round(years * 12); m++) bal = bal * (1 + r) + inMonthly;

@@ -24,7 +24,7 @@ function load(date) {
   // exactly like classic <script> tags, when run in the same context.
   const src = ['tax-engine.js', 'calculations.js', 'financial-engine.js']
     .map(f => fs.readFileSync(path.join(__dirname, '..', 'public', 'js', f), 'utf8')).join('\n;\n')
-    + '\n;this.__api = { TAX_YEARS, TAX_CONFIG, AGE_PENSION, getCurrentTaxYear, calculateTax, seniorsOffset, helpRepayment, medicareLevySurcharge, calculateMarginalRate, calculateSalarySacrifice, estimateGrossFromNet, deemedIncome, calculateAgePension, fmtM, fmtDollars, fmt, yearsToGoal, monthlyRate, compoundWithContributions, FP_ASSUMPTIONS, realRate };';
+    + '\n;this.__api = { TAX_YEARS, TAX_CONFIG, AGE_PENSION, getCurrentTaxYear, calculateTax, seniorsOffset, coContribution, helpRepayment, medicareLevySurcharge, calculateMarginalRate, calculateSalarySacrifice, estimateGrossFromNet, deemedIncome, calculateAgePension, fmtM, fmtDollars, fmt, yearsToGoal, monthlyRate, compoundWithContributions, FP_ASSUMPTIONS, realRate };';
   vm.runInContext(src, ctx);
   return Object.assign({}, ctx.__api, { Engine: ctx.FirePathEngine });
 }
@@ -449,4 +449,29 @@ test('Medicare levy surcharge: family thresholds (ATO 2026-27: $210k, +$1,500 pe
 test('transfer balance cap: $2M in 2025-26, $2.1M from 1 July 2026 (ATO)', () => {
   assert.equal(E.TAX_YEARS['2025-26'].transferBalanceCap, 2000000);
   assert.equal(E.TAX_YEARS['2026-27'].transferBalanceCap, 2100000);
+});
+
+test('co-contribution: 50c per $1, up to $500, phasing out (ATO 2026-27: $49,293 to $64,293)', () => {
+  const y = E.TAX_YEARS['2026-27'];
+  assert.equal(E.coContribution(35000, 1000, y), 500);
+  assert.equal(E.coContribution(49293, 1000, y), 500);
+  near(E.coContribution(56793, 1000, y), 250, 0.01, 'halfway');
+  assert.equal(E.coContribution(64293, 1000, y), 0);
+  assert.equal(E.coContribution(64000, 1000, y), 20, 'minimum $20');
+  assert.equal(E.coContribution(40000, 400, y), 200, 'half of what you put in');
+  assert.equal(E.coContribution(40000, 0, y), 0);
+  assert.equal(E.TAX_YEARS['2025-26'].coContribution.lower, 47488);
+});
+
+test('Age Pension: work income counts, less the Work Bonus ($300 a fortnight each)', () => {
+  const none = E.calculateAgePension(100000, 0, true, false).annualPension;
+  const noBonus = E.calculateAgePension(100000, 20000, true, false).annualPension;
+  const bonus = E.calculateAgePension(100000, 20000, true, false, undefined, { workIncome: 20000 }).annualPension;
+  assert.ok(noBonus < bonus && bonus < none);
+  // Work under $7,800 a year doesn't touch the pension at all.
+  assert.equal(E.calculateAgePension(100000, 7800, true, false, undefined, { workIncome: 7800 }).annualPension, none);
+  // A working couple gets a bonus each.
+  const one = E.calculateAgePension(200000, 30000, true, true, undefined, { workIncome: [30000] }).annualPension;
+  const two = E.calculateAgePension(200000, 30000, true, true, undefined, { workIncome: [15000, 15000] }).annualPension;
+  assert.ok(two > one);
 });

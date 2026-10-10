@@ -292,9 +292,11 @@ window.FirePathEngine = (function () {
     if (th > 0 && typeof estimateGrossFromNet === 'function') { try { return estimateGrossFromNet(th * 12) || 0; } catch (e) {} }
     return 0;
   }
-  function sgNetMonthly(gross) {
+  // employerRate: what your employer pays, when it's more than the 12% guarantee (some
+  // universities 17%, some public service 15.4%). Still capped at the concessional cap.
+  function sgNetMonthly(gross, employerRate) {
     if (!(gross > 0)) return 0;
-    const sgRate = typeof FP_ASSUMPTIONS !== 'undefined' && FP_ASSUMPTIONS.sgRate > 0 ? FP_ASSUMPTIONS.sgRate : 0.12;
+    const sgRate = employerRate > 0 ? employerRate : typeof FP_ASSUMPTIONS !== 'undefined' && FP_ASSUMPTIONS.sgRate > 0 ? FP_ASSUMPTIONS.sgRate : 0.12;
     const cap = typeof TAX_CONFIG !== 'undefined' && TAX_CONFIG.concessionalCap > 0 ? TAX_CONFIG.concessionalCap : 32500;
     return Math.min(gross * sgRate, cap) / 12 * 0.85;   // 15% contributions tax
   }
@@ -329,7 +331,10 @@ window.FirePathEngine = (function () {
     }
     const superInsurance = Math.max(0, finiteOr(i.superInsurance, 0));
     const pensionValue = Math.max(0, finiteOr(i.pensionValue, 0));
-    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner, superInsurance, pensionValue };
+    // Employer super rate (0–1), only when it's above the 12% guarantee; 30% at most.
+    const er = finiteOr(i.employerSuperRate, 0);
+    const employerSuperRate = er > 0.12 ? Math.min(0.30, er) : null;
+    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner, superInsurance, pensionValue, employerSuperRate };
   }
 
   // How much you'd need outside super at this moment to stop work now: enough to pay your
@@ -368,7 +373,7 @@ window.FirePathEngine = (function () {
   function walkPlan(n, wantSuperPath) {
     const rO = monthlyRate(n.outsideReturn), rS = monthlyRate(SUPER_RETURN);
     // Super only counts once its owner is 60, so without an age it can't be counted.
-    const own = n.age != null && n.superBalance > 0 ? { bal: n.superBalance, sg: sgNetMonthly(n.gross), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.age) * 12)) } : null;
+    const own = n.age != null && n.superBalance > 0 ? { bal: n.superBalance, sg: sgNetMonthly(n.gross, n.employerSuperRate), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.age) * 12)) } : null;
     const pt = n.partner && n.partner.age != null ? { bal: n.partner.superBalance, sg: sgNetMonthly(n.partner.grossIncome), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.partner.age) * 12)) } : null;
     // Age Pension line only (agePensionPlan): the pension's value from 67 (25× a year's
     // pension) joins like a pot that "unlocks" then. It doesn't grow once paid.
@@ -466,7 +471,7 @@ window.FirePathEngine = (function () {
       // Bridge years: stopping before super unlocks means savings pay the way until 60.
       bridgeYears: months !== null && w.own && w.own.unlock > months ? (w.own.unlock - months) / 12 : 0,
       spendPerYear: n.target / 25,
-      sgMonthly: sgNetMonthly(n.gross) / 0.85,   // before contributions tax, as Pro shows it
+      sgMonthly: sgNetMonthly(n.gross, n.employerSuperRate) / 0.85,   // before contributions tax, as Pro shows it
       accessibleNow,
       target: n.target,
       outsideReturn: n.outsideReturn,
@@ -491,7 +496,7 @@ window.FirePathEngine = (function () {
     const rO = monthlyRate(n.outsideReturn), rS = monthlyRate(SUPER_RETURN);
     const pt = n.partner && n.partner.age != null ? n.partner : null;
     let out = n.savings, own = n.superBalance || 0, ptBal = pt ? pt.superBalance || 0 : 0;
-    const sgOwn = own > 0 ? sgNetMonthly(n.gross) : 0, sgPt = pt ? sgNetMonthly(pt.grossIncome) : 0;
+    const sgOwn = own > 0 ? sgNetMonthly(n.gross, n.employerSuperRate) : 0, sgPt = pt ? sgNetMonthly(pt.grossIncome) : 0;
     const last = Math.max(0, Math.round((byAge - n.age) * 12));
     for (let m = 0; m <= last; m++) {
       const later = freedomPlan(Object.assign({}, inputs, {
@@ -566,7 +571,8 @@ window.FirePathEngine = (function () {
       takeHomeMonthly: Math.max(0, (p.take_home_income || 0) - partnerMonthly),
       partner: p.partner_super > 0 ? { superBalance: p.partner_super, age: p.partner_age, takeHomeMonthly: partnerMonthly } : null,
       superInsurance: p.super_insurance > 0 ? p.super_insurance : 0,
-      ausShare: ausShareFor(p.savings_type, p.aus_share)
+      ausShare: ausShareFor(p.savings_type, p.aus_share),
+      employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : null
     };
   }
 
@@ -578,7 +584,7 @@ window.FirePathEngine = (function () {
     const target = Math.round(Math.max(0, years) * 12);
     const rO = monthlyRate(n.outsideReturn), rS = monthlyRate(SUPER_RETURN);
     const pots = [];
-    if (n.age != null && n.superBalance > 0) pots.push({ bal: n.superBalance, sg: sgNetMonthly(n.gross), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.age) * 12)) });
+    if (n.age != null && n.superBalance > 0) pots.push({ bal: n.superBalance, sg: sgNetMonthly(n.gross, n.employerSuperRate), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.age) * 12)) });
     if (n.partner && n.partner.age != null) pots.push({ bal: n.partner.superBalance, sg: sgNetMonthly(n.partner.grossIncome), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.partner.age) * 12)) });
     let out = n.savings;
     for (let m = 0; m < target; m++) {
