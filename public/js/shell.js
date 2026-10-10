@@ -15,7 +15,7 @@
  *   <script src="js/shell.js"></script>
  *
  * data-active: journey | money | strategy | learn | ask   (app)
- *              features | pricing | learn | faq            (site)
+ *              features | pricing | learn | faq            (site; marks it in Explore)
  * data-footer="none" on a site page skips the footer (e.g. the calculator flow).
  *
  * data-public="true" marks a free tool that anyone can use. A signed-in Pro member
@@ -100,8 +100,8 @@
   }
 
   // ── Site shell ─────────────────────────────────────────
-  // The header stays quiet: the logo, the section names as plain text links on wide
-  // screens, sign in, and one outlined Explore button. Explore opens a full-screen
+  // The header stays quiet: the logo, sign in, and one outlined Explore button (the
+  // section names live only in the Explore menu, at the owner's request). Explore opens a full-screen
   // editorial menu: the sections as a ruled list, then the free calculator and the
   // smaller links.
   const SITE_LINKS = [
@@ -115,9 +115,6 @@
     const nav = `
 <header class="site-nav" id="siteNav">
   <a href="${url('index.html')}" class="site-logo">${svg('flame', 20)}<span>Fire<em>Path</em></span></a>
-  <nav class="site-links" aria-label="Main">
-    ${SITE_LINKS.map(([k, label, href]) => `<a href="${url(href)}" class="site-link"${k === active ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
-  </nav>
   <div class="site-actions">
     <a href="${url('auth.html')}" class="site-signin">Sign in</a>
     <button class="explore-btn" id="exploreBtn" aria-expanded="false" aria-controls="explorePanel"><span>Explore</span>${svg('explore', 16)}</button>
