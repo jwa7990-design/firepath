@@ -13,7 +13,7 @@ import '../../styles/learn-recs.css';
 const shelves = shelve();
 const firstReads = FIRST_READS.map(s => ARTICLES.find(a => a.slug === s)).filter((a): a is Article => !!a);
 const totalMins = ARTICLES.reduce((n, a) => n + a.readMins, 0);
-// "Recommended for you" fill-ins, by situation (after the person's own move articles).
+// "Worth exploring, based on your numbers" fill-ins, by situation (after the person's own move articles).
 const theme = (title: string) => SHELVES.find(s => s.id === 'questions')?.themes?.find(t => t.title === title)?.slugs || [];
 const retirementReads = ['four-percent-rule-australia', 'is-my-super-enough', 'before-super-access'];
 const recThemes = {
@@ -67,8 +67,8 @@ const schema = {
       <section class="hp-sec is-dark hub-first hub-recs" id="hubRecs" aria-labelledby="recs-title" hidden>
         <div class="hp-wrap">
           <div class="hub-first-head">
-            <h2 id="recs-title" class="hp-h2 hub-first-title">Recommended for you</h2>
-            <p class="hub-recs-note">Based on the numbers you entered in the calculator · <a href="#" id="hubRecsClear">Clear</a></p>
+            <h2 id="recs-title" class="hp-h2 hub-first-title">Worth exploring, based on your numbers</h2>
+            <p class="hub-recs-note">Areas you could research further, from the numbers you entered in the calculator · <a href="#" id="hubRecsClear">Clear</a></p>
           </div>
           <ol class="hub-first-list hub-recs-list hp-rows" id="hubRecsList"></ol>
         </div>
@@ -77,7 +77,7 @@ const schema = {
       <section class="hp-sec hub-first hub-first-reads" aria-labelledby="first-title" data-hub-hide-on-search>
         <div class="hp-wrap">
           <div class="hub-first-head">
-            <h2 id="first-title" class="hp-h2 hub-first-title">New here? Your first three reads</h2>
+            <h2 id="first-title" class="hp-h2 hub-first-title">New here? Three places to begin</h2>
           </div>
           <ol class="hub-first-list hp-rows">
             {firstReads.map((a, i) => (
@@ -138,7 +138,7 @@ const schema = {
   <script is:inline src="/js/financial-engine.js"></script>
   <script is:inline src="/js/moves.js"></script>
   <script is:inline define:vars={{ recThemes }}>
-    // "Recommended for you": only when the free calculator saved numbers on this device
+    // "Worth exploring": only when the free calculator saved numbers on this device
     // (FirePathMoves.recall). Never sent anywhere. Articles that don't fit are never shown.
     (function () {
       const M = window.FirePathMoves;

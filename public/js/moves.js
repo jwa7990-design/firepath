@@ -153,7 +153,7 @@ window.FirePathMoves = (function () {
       tool: { href: '/hearmeout?scenario=loan', label: 'See what paying it off does' }, article: 'debt-vs-invest',
       applies(s) {
         if (!(s.consumerDebt > 0) || s.alreadyFree) return false;
-        return { why: `Cards and personal loans usually cost 15–20% a year, which is more than investing reliably earns. Every dollar of your ${money(s.consumerDebt)} you pay off saves that interest, guaranteed.`,
+        return { why: `Cards and personal loans usually cost 15–20% a year. That’s higher than the 7% long-run return assumed for shares. Each dollar of your ${money(s.consumerDebt)} paid off saves that interest for certain. Some people also keep some cash or keep investing alongside. It depends on the rates, your buffer and how you feel about debt.`,
           impact: { text: 'Each dollar paid off saves the 15–20% a year it would cost in interest' } };
       } },
     { id: 'build-buffer', tier: 2, title: 'Having a three-month cash buffer', plan: 'Free',
@@ -163,7 +163,7 @@ window.FirePathMoves = (function () {
         const short = s.emergencyFund === false || (s.bufferMonths != null && s.bufferMonths < 3);
         if (!short) return false;
         const target = s.spendMonthly * 3;
-        return { why: `About three months of spending (${money(target)}) in an easy-to-reach account means a surprise bill or job loss won’t force you to sell investments at a bad time.`,
+        return { why: `About three months of spending (${money(target)}) in an easy-to-reach account can mean a surprise bill or job loss doesn’t force a sale of investments at a bad time. The trade-off is that cash grows slowly.`,
           impact: { text: `Three months of spending: about ${money(target)}` } };
       } },
     { id: 'invest-idle-cash', tier: 3, title: 'Investing cash you don’t need soon', plan: 'Free',
@@ -178,7 +178,7 @@ window.FirePathMoves = (function () {
         if (inv == null) return false;
         const gain = now == null ? null : now - inv;
         if (gain != null && gain < 0.25) return false;
-        return { why: 'Money in the bank barely keeps up with prices. Past your buffer, a diversified fund has grown far faster over the long run in the past.',
+        return { why: 'Money in the bank has roughly kept pace with prices. A diversified fund has grown faster over the long run in the past, with bigger ups and downs and no guarantee. It depends on when you’ll need the money and how you feel about risk.',
           impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `Could mean reaching your number ${yearsText(gain)} than keeping it all in the bank` } };
       } },
     { id: 'start-saving', tier: 3, title: 'Starting with a small, automatic amount', plan: 'Free',
@@ -223,14 +223,14 @@ window.FirePathMoves = (function () {
         if (!r || r.capRoom < 1000) return false;          // employer super already fills the cap
         const better = r.taxSaved - r.superTax;
         if (better < 300) return false;
-        return { why: `On your ${Math.round(s.marginalRate * 100)}% tax rate, money sacrificed into super is taxed at 15% instead. You can’t get to it until 60, so it’s money you won’t be able to use before then.`,
+        return { why: `On your ${Math.round(s.marginalRate * 100)}% tax rate, money sacrificed into super is taxed at 15% instead. The trade-off: you can’t get to it until 60, so it’s money you won’t be able to use before then.`,
           impact: { dollars: better, text: `$5,000 a year sacrificed could mean about ${money(better)} less tax` } };
       } },
     { id: 'offset-vs-invest', tier: 5, title: 'Offset account vs investing', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Compare for your rate' }, article: 'offset-vs-investing',
       applies(s) {
         if (s.housing !== 'mortgage' || !(s.mortgageRemaining > 0) || s.alreadyFree) return false;
-        return { why: 'Every dollar in an offset saves you your mortgage rate in interest, tax-free and guaranteed. Investing may earn more over time, with more ups and downs. It depends on your tax rate.',
+        return { why: 'Every dollar in an offset saves your mortgage rate in interest, tax-free and guaranteed. Investing may earn more over time, with more ups and downs. It depends on your tax rate, your mortgage rate and how you feel about risk.',
           impact: { text: 'Guaranteed interest saved vs likely higher growth' } };
       } },
     { id: 'work-less', tier: 6, title: 'Working less could be an option', plan: 'Free',
@@ -239,7 +239,7 @@ window.FirePathMoves = (function () {
         if (s.alreadyFree || s.age == null || s.age >= 65 || !(s.currentSavings > 0)) return false;
         const grown = E().projectPortfolio(s.currentSavings, 0, 65 - s.age, REAL);
         if (grown < s.freedomNumber) return false;
-        return { why: 'Your savings would reach your freedom number by 65 even if you never added another dollar. So part-time work could cover today’s costs.',
+        return { why: 'Your savings would reach your freedom number by 65 even if you never added another dollar. So part-time work covering today’s costs is one possibility. Others keep saving for an earlier date.',
           impact: { text: 'On track for your number by 65 without saving more' } };
       } },
     { id: 'bridge-to-60', tier: 6, title: 'The years before you can use super', plan: 'Free',
@@ -256,7 +256,7 @@ window.FirePathMoves = (function () {
       applies(s) {
         const close = s.alreadyFree || (s.yearsToFree != null && s.yearsToFree <= 10) || (s.age != null && s.age >= 55);
         if (!close || !(s.currentSavings > 0)) return false;
-        return { why: 'Markets don’t return the average every year. The Withdrawal planner shows whether your plan holds up if markets have a bad run in your first years of drawing down.',
+        return { why: 'Markets don’t return the average every year. The Withdrawal planner shows how a plan holds up if markets have a bad run in the first years of drawing down.',
           impact: { text: 'Odds across 2,000 possible market outcomes' } };
       } },
     { id: 'age-pension', tier: 7, title: 'What the Age Pension could add', plan: 'Free',

@@ -61,22 +61,22 @@ window.FirePathNext = (function () {
   const ADVICE = 'General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.';
   const GENERAL = {
     '/withdrawal': [
-      { title: 'See your freedom gap', text: 'How much of your life your savings already pay for, and what fills the rest.', tool: { href: '/freedom-gap', label: 'Open Freedom gap' } },
+      { title: 'Your freedom gap', text: 'How much of your life your savings already pay for, and what fills the rest.', tool: { href: '/freedom-gap', label: 'Open Freedom gap' } },
       { title: 'The 4% rule, in Australia', text: 'Where the rule comes from, and how super and the Age Pension change it here.', article: 'four-percent-rule-australia' },
       { title: 'The years before super', text: 'If you stop before 60, your savings outside super carry you until you can get to it.', article: 'before-super-access' },
     ],
     '/hearmeout': [
       { title: 'Watch compounding work', text: 'What a regular amount grows into, and what waiting five years costs.', tool: { href: '/compound', label: 'Open Compound interest' } },
-      { title: 'Pay off debt or invest?', text: 'When clearing a loan beats investing, and when it doesn’t.', article: 'debt-vs-invest' },
-      { title: 'See if your money will last', text: 'Check your savings hold up if markets have a bad run when you start drawing on them.', tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' } },
+      { title: 'Pay off debt or invest?', text: 'How clearing a loan compares with investing, and what it depends on.', article: 'debt-vs-invest' },
+      { title: 'Will your money last?', text: 'How savings hold up if markets have a bad run when you start drawing on them.', tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' } },
     ],
     '/compound': [
-      { title: 'Living off what you’ve built', text: 'How much your savings can pay you each year, and whether they’ll last.', tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' } },
+      { title: 'Living off what you’ve built', text: 'How much savings can pay each year, and how long they could last.', tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' } },
       { title: 'How compound interest works', text: 'Why time matters more than the amount, in plain English.', article: 'how-compound-interest-works' },
       { title: 'What an extra $50 a week does', text: 'A small change, worked through with real numbers.', article: 'extra-50-a-week-impact' },
     ],
     '/freedom-gap': [
-      { title: 'See if your money will last', text: 'Check your savings hold up if markets have a bad run in the first years.', tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' } },
+      { title: 'Will your money last?', text: 'How savings hold up if markets have a bad run in the first years.', tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' } },
       { title: 'Could you work less now?', text: 'When your savings can grow on their own and part-time work covers today’s costs.', article: 'what-is-coast-fire' },
       { title: 'Is your super enough?', text: 'What super and the Age Pension add once you reach 60 and 67.', article: 'is-my-super-enough' },
     ],
@@ -85,9 +85,9 @@ window.FirePathNext = (function () {
 
   function linksHtml(tool, plan, article, here) {
     const out = [];
-    if (here && tool && tool.href) out.push(`<button type="button" class="fp-next-here" data-href="${esc(tool.href)}">Try it here ↑</button>`);
-    else if (tool && tool.href) out.push(`<a href="${esc(tool.href)}"${tool.label ? ` title="${esc(tool.label)}"` : ''}>Model it →</a>${plan === 'Pro' ? '<span class="fp-next-pill">Pro</span>' : ''}`);
-    if (article) out.push(`<a href="/learn/${esc(article)}">Read →</a>`);
+    if (here && tool && tool.href) out.push(`<button type="button" class="fp-next-here" data-href="${esc(tool.href)}">Explore it here ↑</button>`);
+    else if (tool && tool.href) out.push(`<a href="${esc(tool.href)}"${tool.label ? ` title="${esc(tool.label)}"` : ''}>Explore in the tool →</a>${plan === 'Pro' ? '<span class="fp-next-pill">Pro</span>' : ''}`);
+    if (article) out.push(`<a href="/learn/${esc(article)}">Read about it →</a>`);
     return out.length ? `<div class="fp-next-links">${out.map(h => `<span>${h}</span>`).join('')}</div>` : '';
   }
 
@@ -116,10 +116,10 @@ window.FirePathNext = (function () {
     let html;
     if (moves.length) {
       const sub = source === 'plan'
-        ? 'Ordered by how much each could move your date, based on your saved plan.'
-        : 'Ordered by how much each could move your date, based on the numbers you entered in the free calculator on this device.';
+        ? 'Based on your saved plan. Ordered by how much each could move your projected date.'
+        : 'Based on the numbers you entered in the free calculator on this device. Ordered by how much each could move your projected date.';
       html = `<div class="fp-next-kicker">What next</div>
-        <h2 class="fp-next-title">What could move your date</h2>
+        <h2 class="fp-next-title">Areas to research further</h2>
         <p class="fp-next-sub">${esc(sub)}</p>
         <ul class="fp-next-list">${moves.map(mv => `<li class="fp-next-item" data-move="${esc(mv.id)}">
           <div class="fp-next-item-title">${esc(mv.title)}</div>
@@ -130,13 +130,13 @@ window.FirePathNext = (function () {
     } else {
       const steps = GENERAL[opts.exclude] || GENERAL.default;
       html = `<div class="fp-next-kicker">What next</div>
-        <h2 class="fp-next-title">Where to go from here</h2>
+        <h2 class="fp-next-title">Tools people find helpful</h2>
         <ul class="fp-next-list">${steps.map(st => `<li class="fp-next-item">
           <div class="fp-next-item-title">${esc(st.title)}</div>
           <div class="fp-next-impact">${esc(st.text)}</div>
           ${linksHtml(st.tool, null, st.article)}</li>`).join('')}</ul>
         <p class="fp-next-advice">${esc(ADVICE)}</p>
-        <div class="fp-next-foot"><a class="fp-next-cta" href="${esc(CALC.href)}">See these with your own numbers — run the free calculator (2 minutes) →</a><a class="fp-next-all" href="/features">All tools →</a></div>`;
+        <div class="fp-next-foot"><a class="fp-next-cta" href="${esc(CALC.href)}">See these against your own numbers in the free calculator (2 minutes) →</a><a class="fp-next-all" href="/features">All tools →</a></div>`;
     }
     el.innerHTML = `<section class="fp-next" aria-label="What next">${html}</section>`;
     el.querySelectorAll('.fp-next-here').forEach(b => { b.onclick = () => opts.onHere(b.getAttribute('data-href')); });

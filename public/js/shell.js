@@ -108,7 +108,7 @@
     ['features', 'Features', 'features.html', 'Everything FirePath works out for you'],
     ['pricing', 'Pricing', 'pricing.html', 'Free tools, no account needed · Pro $6 a month'],
     ['learn', 'Learning Lab', 'learn/index.html', 'Plain-English guides to super, tax and investing'],
-    ['faq', 'Questions', 'faq.html', 'Straight answers to what people ask most']
+    ['faq', 'Questions', 'faq.html', 'Answers to common questions']
   ];
 
   function renderSite() {

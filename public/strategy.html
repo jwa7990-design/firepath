@@ -135,8 +135,8 @@
         </h2>
         <a href="journey.html" class="section-link">Your Path →</a>
       </div>
-      <div class="plan-question">What could move your freedom date?</div>
-      <div class="plan-caption" id="planCaption">Based on the numbers you entered, ordered by how much each could move your date. Mark each one as you go.</div>
+      <div class="plan-question">Based on your numbers, areas you could research further</div>
+      <div class="plan-caption" id="planCaption">Ordered by how much each could move your projected date. You can mark where you are with each one.</div>
       <div id="planTop"></div>
       <div class="plan-note" id="planNote" role="status" aria-live="polite" tabindex="-1"></div>
       <div id="planBody"><div class="skeleton" style="height:22px;width:60%;margin-top:8px"></div><div class="skeleton" style="height:14px;width:90%;margin-top:14px"></div><div class="skeleton" style="height:64px;margin-top:20px;border-radius:14px"></div></div>
@@ -255,8 +255,8 @@
       const btn = (act, label, aria) => `<button type="button" class="opt-btn" data-move="${id}" data-act="${act}" aria-label="${aria}"${dis}>${label}</button>`;
       const imp = impactParts(o);
       const links = [];
-      if (o.tool && o.tool.href) links.push(`<a href="${esc(o.tool.href)}">${esc(o.tool.label || 'Model it')} →</a>`);
-      if (o.article) links.push(`<a href="/learn/${esc(o.article)}">Read about it<span class="vh">: ${t}</span></a>`);
+      if (o.tool && o.tool.href) links.push(`<a href="${esc(o.tool.href)}"${o.tool.label ? ` title="${esc(o.tool.label)}"` : ''}>Explore in the tool →<span class="vh">: ${t}</span></a>`);
+      if (o.article) links.push(`<a href="/learn/${esc(o.article)}">Read about it →<span class="vh">: ${t}</span></a>`);
       return `<li class="opt">${icon('open')}
           <div class="opt-body">
             <div class="opt-head"><h3 class="opt-title">${t}</h3>${imp.chip}</div>
@@ -288,7 +288,7 @@
       if (!note) { el.innerHTML = ''; return; }
       const t = esc(note.title), id = esc(note.id);
       el.innerHTML = note.kind === 'done'
-        ? `<span>Nice. <a href="firepath_pro.html?edit=true">Update your numbers so your date reflects it →</a></span><button type="button" class="opt-btn quiet" data-move="${id}" data-act="undo" aria-label="Undo marking ${t} as done">Undo</button>`
+        ? `<span>Marked done. <a href="firepath_pro.html?edit=true">Updating your numbers lets your date reflect it →</a></span><button type="button" class="opt-btn quiet" data-move="${id}" data-act="undo" aria-label="Undo marking ${t} as done">Undo</button>`
         : note.kind === 'dismissed'
           ? `<span>Hidden: ${t}.</span><button type="button" class="opt-btn quiet" data-move="${id}" data-act="undo" aria-label="Undo hiding ${t}">Undo</button>`
           : note.kind === 'doing' ? `<span>${t} is marked On it.</span>`
@@ -404,8 +404,8 @@
       const base = window.FirePathEngine.freedomPlan(window.FirePathEngine.planInputsFromProfile(profile));
       alreadyFree = !!(situation.alreadyFree || (base && base.alreadyFree));
       outOfReach = !alreadyFree && !(base && base.valid && base.reachable);
-      if (alreadyFree) $('planCaption').textContent = 'You’ve reached your number. What’s left is mostly about making your money last.';
-      else if (outOfReach) $('planCaption').textContent = 'At today’s pace your savings don’t reach your number within 100 years. These options show what could change that, based on the numbers you entered.';
+      if (alreadyFree) $('planCaption').textContent = 'You’ve reached your number. These areas are mostly about how long your money could last.';
+      else if (outOfReach) $('planCaption').textContent = 'At today’s pace your savings don’t reach your number within 100 years. These areas show what could change that, based on the numbers you entered.';
       statuses = MS ? await MS.load() : {};
       render();
     } catch (e) {

@@ -308,7 +308,7 @@
             <div class="confidence-left">
               <div id="w-confidenceDot" class="confidence-dot"></div>
               <div>
-                <div class="eyebrow">Confidence</div>
+                <div class="eyebrow">Market test result</div>
                 <div class="confidence-value" id="w-confidenceLabel">—</div>
               </div>
             </div>
@@ -535,7 +535,7 @@
     } else {
       magicIconWrap.setAttribute('href', '/icons.svg#icon-alert');
       magicTitleText.textContent = 'Eating into your savings';
-      magicText.innerHTML = `You're taking out more than your investments earn, so the balance will shrink over time. A lower withdrawal rate or more saved first would give you more breathing room.`;
+      magicText.innerHTML = `You're taking out more than your investments earn, so the balance will shrink over time. In the model, a lower withdrawal rate or more saved first leaves more room.`;
     }
     // Stagger the three steps in, re-triggering on every recalculation
     ['w-step1','w-step2','w-step3'].forEach((id, i) => {
@@ -627,15 +627,15 @@
       confLabel.textContent = tier.label;
     } else {
       confDot.style.background = base.depleted ? 'var(--negative)' : 'var(--amber)';
-      confLabel.textContent = base.depleted ? 'Risky' : '—';
+      confLabel.textContent = base.depleted ? 'Runs out' : '—';
     }
     const riskLine = !mc ? ''
-      : tier.cls === 'strong' ? ` Across 2,000 market futures it lasted the full ${horizon} years in ${pct}% of them, so there's a good margin.`
-      : tier.cls === 'okay' ? ` But across 2,000 market futures it lasted the full ${horizon} years in only ${pct}% of them. Being ready to spend a bit less after bad years would help.`
-      : ` But across 2,000 market futures it lasted the full ${horizon} years in only ${pct}% of them. A lower withdrawal rate, or more years of growth first, would make it much safer.`;
+      : tier.cls === 'strong' ? ` Across 2,000 market futures it lasted the full ${horizon} years in ${pct}% of them, so most of those futures had room to spare.`
+      : tier.cls === 'okay' ? ` But across 2,000 market futures it lasted the full ${horizon} years in only ${pct}% of them. In the model, spending a bit less after bad years raises those odds.`
+      : ` But across 2,000 market futures it lasted the full ${horizon} years in only ${pct}% of them. In the model, a lower withdrawal rate or more years of growth first raises those odds.`;
     if (base.depleted) {
       endingBalanceWrap.style.display = 'none';
-      bufferNote.innerHTML = `Even with steady returns, the money runs out around year ${base.yearsLasted} of ${horizon}. A lower withdrawal rate, or a few more years of growth first, would help. See the rate comparison below.`;
+      bufferNote.innerHTML = `Even with steady returns, the money runs out around year ${base.yearsLasted} of ${horizon}. The rate comparison below shows how lower withdrawal rates play out.`;
     } else {
       endingBalanceWrap.style.display = 'block';
       endingBalanceEl.textContent = money(base.endingBalance);
@@ -661,14 +661,14 @@
     const takeawayEl = document.getElementById('w-takeaway');
     if (!mc) {
       takeawayEl.innerHTML = base.depleted
-        ? `On these settings the money runs out before the ${horizon} years are up, even with steady returns. A slightly lower withdrawal rate or a few more years of growth first can make a big difference.`
-        : `With steady ${(returnRate * 100).toFixed(0)}% returns, your investments last the full ${horizon} years. Real returns won't be steady, so some room to spare helps.`;
+        ? `On these settings the money runs out before the ${horizon} years are up, even with steady returns. In the model, a slightly lower withdrawal rate or a few more years of growth first can change this a lot.`
+        : `With steady ${(returnRate * 100).toFixed(0)}% returns, your investments last the full ${horizon} years. Real returns won't be steady, which is what the market test looks at.`;
     } else if (tier.cls === 'strong') {
-      takeawayEl.innerHTML = `At ${(withdrawRate * 100).toFixed(1).replace(/\.0$/, '')}%, your money lasted the full ${horizon} years in ${pct}% of market futures. That's a comfortable margin, with room for a few bad years.`;
+      takeawayEl.innerHTML = `At ${(withdrawRate * 100).toFixed(1).replace(/\.0$/, '')}%, your money lasted the full ${horizon} years in ${pct}% of market futures. In the market test, that counts as comfortable: it held up through a few bad years in most futures.`;
     } else if (tier.cls === 'okay') {
-      takeawayEl.innerHTML = `At ${(withdrawRate * 100).toFixed(1).replace(/\.0$/, '')}%, your money lasted the full ${horizon} years in ${pct}% of market futures. That's some risk: it usually works, but a bad run early on could cut it short. Spending a little less in bad years, or a slightly lower rate, adds safety.`;
+      takeawayEl.innerHTML = `At ${(withdrawRate * 100).toFixed(1).replace(/\.0$/, '')}%, your money lasted the full ${horizon} years in ${pct}% of market futures. In the market test, that counts as some risk: it lasted in most futures, but a bad run early on could cut it short. In the model, spending a little less in bad years or a slightly lower rate raises the odds.`;
     } else {
-      takeawayEl.innerHTML = `At ${(withdrawRate * 100).toFixed(1).replace(/\.0$/, '')}%, your money lasted the full ${horizon} years in only ${pct}% of market futures. That's risky. A lower withdrawal rate or more years of growth first would make a big difference.`;
+      takeawayEl.innerHTML = `At ${(withdrawRate * 100).toFixed(1).replace(/\.0$/, '')}%, your money lasted the full ${horizon} years in only ${pct}% of market futures. In the market test, that counts as risky. In the model, a lower withdrawal rate or more years of growth first raises the odds a lot.`;
     }
 
     // Reset AI outlook when inputs change — the cached narrative no longer matches
@@ -713,7 +713,7 @@
     const tier = comfortTier(mc.successRate);
     wrap.style.display = 'flex';
     document.getElementById('w-mcDot').style.background = tier.colour;
-    document.getElementById('w-mcHeadline').innerHTML = `In <strong>${pct}%</strong> of 2,000 possible market outcomes your money lasts the full ${horizon} years.<span class="mc-verdict ${tier.cls}">${tier.label}</span>`;
+    document.getElementById('w-mcHeadline').innerHTML = `In <strong>${pct}%</strong> of 2,000 possible market outcomes your money lasts the full ${horizon} years.<span class="mc-verdict ${tier.cls}">${tier.label} in the market test</span>`;
     const parts = [];
     if (mc.badCaseRunsOutYear != null) parts.push(`In a bad run (1 in 10), it runs out around year ${mc.badCaseRunsOutYear + 1}.`);
     parts.push(`Typical balance left after ${horizon} years: ${money(mc.p50)}.`);

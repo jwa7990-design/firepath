@@ -683,13 +683,13 @@
       <section id="movesCard" class="hp-sec fr-moves rv" aria-labelledby="movesTitle" style="display:none;">
         <div class="hp-wrap hp-side">
           <div class="hp-side-head">
-            <h3 class="hp-h2" id="movesTitle">What could move your date</h3>
-            <p class="moves-sort hp-body" id="movesSort">Biggest effect first, from your numbers.</p>
+            <h3 class="hp-h2" id="movesTitle">Areas to research further</h3>
+            <p class="moves-sort hp-body" id="movesSort">Based on your numbers. Ordered by how much each could move your projected date.</p>
           </div>
           <div class="hp-side-main">
             <div id="movesOnTrack" class="moves-ontrack" style="display:none;">
               <span class="moves-ontrack-icon" aria-hidden="true">✓</span>
-              <span id="movesOnTrackText">You're on track.</span>
+              <span id="movesOnTrackText">On these numbers, your savings reach your freedom number.</span>
             </div>
             <ol class="moves-list hp-rows" id="movesList"></ol>
             <button type="button" class="moves-more" id="movesMore" aria-expanded="false" aria-controls="movesList" hidden></button>
@@ -873,7 +873,7 @@
       why.innerHTML = r.savings >= r.fireNum
         ? `Your savings of <strong>${fmtM(r.savings)}</strong> cover your freedom number of ${num} (25 times a year’s spending).`
         : `Your savings and super come to <strong>${fmtM(plan.accessibleNow)}</strong>, which covers your freedom number of ${num} (25 times a year’s spending).`;
-      fact.textContent = 'The next thing to check is whether it lasts, including a bad run in the markets early on.';
+      fact.textContent = 'A question people often ask next: would it last, including a bad run in the markets early on?';
       fact.hidden = false;
       extra.innerHTML = '<a class="text-link" href="/withdrawal">Check it lasts in the Withdrawal planner →</a>';
       extra.hidden = false;
@@ -1117,22 +1117,25 @@
     list.innerHTML = moves.map((m, i) => {
       const pro = m.plan === 'Pro' ? '<span class="move-pro">Pro</span>' : '';
       let model = '';
-      if (HERE[m.id] && !_result.alreadyFree) model = `<button type="button" class="text-link" onclick="tryFocus('${HERE[m.id]}')">Try it above ↑</button>`;
-      else if (m.tool && m.tool.href && m.tool.href !== '/firepath' && m.tool.href !== '/firepath.html') model = `<a class="text-link" href="${esc(m.tool.href)}" title="${esc(m.tool.label)}">Model it →</a>`;
-      const learn = m.article ? `<a class="text-link" href="/learn/${esc(m.article)}">Read</a>` : '';
+      if (HERE[m.id] && !_result.alreadyFree) model = `<button type="button" class="text-link" onclick="tryFocus('${HERE[m.id]}')">Explore it above ↑</button>`;
+      else if (m.tool && m.tool.href && m.tool.href !== '/firepath' && m.tool.href !== '/firepath.html') model = `<a class="text-link" href="${esc(m.tool.href)}" title="${esc(m.tool.label)}">Explore in the tool →</a>`;
+      const learn = m.article ? `<a class="text-link" href="/learn/${esc(m.article)}">Read about it →</a>` : '';
       return `<li class="move-item" data-move="${esc(m.id)}"${i >= MOVES_SHOWN ? ' hidden' : ''}><span class="move-num" aria-hidden="true">${i + 1}</span><div class="move-body">`
         + `<div class="move-head"><span class="move-title">${esc(m.title)}${pro}</span>${moveEffect(m)}</div>`
         + (m.why ? `<p class="move-why">${esc(m.why)}</p>` : '')
         + (model || learn ? `<p class="move-links">${model}${learn}</p>` : '')
         + `</div></li>`;
     }).join('');
-    document.getElementById('movesTitle').textContent = moves.length ? 'What could move your date' : 'Options worth knowing about';
+    document.getElementById('movesTitle').textContent = 'Areas to research further';
     const sort = document.getElementById('movesSort');
-    if (sort) sort.style.display = moves.length > 1 ? 'block' : 'none';
+    if (sort) {
+      sort.textContent = moves.length > 1 ? 'Based on your numbers. Ordered by how much each could move your projected date.' : 'Based on your numbers.';
+      sort.style.display = moves.length ? 'block' : 'none';
+    }
     const onTrackText = document.getElementById('movesOnTrackText');
     onTrackText.innerHTML = isFree
-      ? (answerLinksWithdrawal ? 'You’re there, so none of these are about getting there sooner.' : 'You’re on track. <a class="text-link" href="/withdrawal">See if your money will last →</a>')
-      : 'Nothing stands out from the numbers you entered. What you’re doing now looks to be working.';
+      ? (answerLinksWithdrawal ? 'You’re there, so none of these are about getting there sooner.' : 'On these numbers, your savings reach your freedom number. <a class="text-link" href="/withdrawal">Will it last? Explore in the Withdrawal planner →</a>')
+      : 'Nothing stands out from the numbers you entered.';
     document.getElementById('movesOnTrack').style.display = onTrack ? 'flex' : 'none';
     const more = document.getElementById('movesMore'), extraN = Math.max(0, moves.length - MOVES_SHOWN);
     more.hidden = extraN === 0;
@@ -1188,7 +1191,7 @@
   function recommendArticle(moveList, used, r) {
     const m = (moveList || []).find(x => x.article && !used.has(x.article));
     if (m) {
-      const reason = m.id === 'clear-debt' ? 'Debt that costs more than investing reliably earns: this explains the trade-off.'
+      const reason = m.id === 'clear-debt' ? 'Paying off debt or investing: how each works and what it depends on.'
         : `Background on ${m.title.charAt(0).toLowerCase() + m.title.slice(1)}.`;
       return { slug: m.article, title: ARTICLE_NAMES[m.article] || m.article.replace(/-/g, ' '), reason };
     }
