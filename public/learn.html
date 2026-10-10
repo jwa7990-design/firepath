@@ -28,6 +28,7 @@
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
 <script src="js/moves-status.js"></script>
+<link rel="stylesheet" href="/css/fp-editorial.css"/>
 <style>
   :root {
     /* Page motion names, mapped onto app.css tokens. */
@@ -38,251 +39,248 @@
     --ease-gentle:    cubic-bezier(0.22,1,0.36,1);
   }
 
-  /* ── Layout: main column + sidebar on desktop, one column on phones ── */
-  .learn-grid { display: grid; gap: 32px; }
-  .learn-main { min-width: 0; }
-  @media (min-width: 1024px) { .learn-grid { grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start; } }
-  .learn-section { margin-bottom: 32px; }
+  /* ── Frame: full-width editorial sections beside the desktop rail, clear of the
+       phone tab bar. ── */
+  .lp { width: 100%; padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+  @media (min-width: 1024px) { .lp { padding-bottom: 0; } }
+  .hidden-by-search { display: none !important; }
 
-  /* Header actions: desktop search + avatar. The second search below the header is
-     the phone copy — each is hidden at the other width. */
+  /* ── Hero: the title and search on the left, "Continue your path" (the page's one
+       primary action) on the right. ── */
+  .lp-hero { padding: 32px 0 48px; }
+  @media (min-width: 768px) { .lp-hero { padding: 56px 0 72px; } }
+  .lp-hero .hp-label { margin-bottom: 16px; }
+  .lp-hero .hp-h1 { max-width: 12ch; }
+
+  /* Search: the desktop copy sits with the account initial; the phone copy is the
+     second input. Each is hidden at the other width. */
+  .lp-search { margin-top: 28px; max-width: 460px; }
   .desktop-only { display: none; }
   @media (min-width: 1024px) {
     .desktop-only { display: flex; }
     .mobile-only-search { display: none; }
   }
+  .lp-search-row { align-items: center; gap: 12px; }
+  .lp-search-row .search-wrap { flex: 1; min-width: 0; }
   .desktop-avatar {
-    width: 38px; height: 38px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--line); color: var(--ink);
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line-strong); color: var(--ink);
     align-items: center; justify-content: center; font-weight: 600; font-size: 14px; text-decoration: none; flex-shrink: 0;
   }
-  .desktop-avatar:hover { border-color: var(--line-strong); }
-
-  /* ── Search — real client-side filter over the curated lesson list below. ── */
-  .search-wrap { position: relative; margin-bottom: 24px; }
-  .page-head-actions .search-wrap { margin-bottom: 0; width: 320px; }
+  .desktop-avatar:hover { border-color: var(--ink); }
+  .search-wrap { position: relative; }
   .search-input {
-    width: 100%; height: 44px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-sm);
-    padding: 0 14px 0 40px; font: 400 15px var(--font-ui); color: var(--ink);
+    width: 100%; height: 50px; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0;
+    padding: 0 8px 0 30px; font: 400 17px var(--font-ui); color: var(--ink);
     transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
   }
-  .search-input::placeholder { color: var(--ink-3); }
-  .search-input:focus { outline: none; border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
-  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--ink-3); pointer-events: none; }
+  .search-input::placeholder { color: var(--ink-2); }
+  .search-input:focus { outline: none; box-shadow: 0 1px 0 0 var(--ink); }
+  .search-icon { position: absolute; left: 2px; top: 50%; transform: translateY(-50%); color: var(--ink-2); pointer-events: none; }
   /* Hidden until there's an active search term (toggled via applySearch()). */
   .ask-firepath-hint {
-    display: none; align-items: center; gap: 5px; font-size: 13px; color: var(--ember-ink); font-weight: 500;
-    text-decoration: none; margin: -8px 0 20px;
+    display: none; align-items: center; gap: 6px; margin-top: 14px; font-size: 15px; font-weight: 600; color: var(--ink);
+    text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px;
     opacity: 0; transition: opacity var(--dur-responsive) ease;
   }
   .ask-firepath-hint.shown { display: inline-flex; opacity: 1; }
-  .ask-firepath-hint:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .ask-firepath-hint:hover { text-decoration-color: var(--ink); }
   .ask-firepath-hint span:last-child { transition: transform var(--dur-responsive) var(--ease-standard); }
   .ask-firepath-hint:hover span:last-child { transform: translateX(3px); }
 
-  /* ── Continue hero — the dominant action on the page. ── */
+  /* Continue your path: a figure with an ember rule on top. */
   .continue-hero {
-    margin-bottom: 32px;
+    min-width: 0; padding: 20px 0 0; border-top: 2px solid var(--hp-accent);
     opacity: 0; transform: translateY(6px);
     transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
   }
   .continue-hero.in-view { opacity: 1; transform: none; }
-  .continue-eyebrow { margin-bottom: 10px; }
+  .continue-eyebrow { margin-bottom: 14px; }
   .continue-lesson-title {
-    display: block; font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; color: var(--ink);
-    text-decoration: none; line-height: 1.25; margin-bottom: 16px; max-width: 46ch;
-    transition: color var(--dur-responsive) var(--ease-standard);
+    display: block; font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3vw, 36px); letter-spacing: -0.02em; color: var(--ink);
+    text-decoration: none; line-height: 1.12; margin-bottom: 20px; max-width: 22ch;
   }
-  .continue-lesson-title:hover { color: var(--ember-ink); }
-  .continue-meta-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .continue-time { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 5px; }
-  .continue-btn { flex-shrink: 0; }
+  .continue-lesson-title:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+  .continue-meta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .continue-time { font-size: 15px; color: var(--ink-2); }
+  .continue-btn { flex-shrink: 0; height: 50px; padding: 0 24px; border-radius: var(--hp-r); font-size: 15px; }
   .continue-btn-arrow { display: inline-block; transition: transform var(--dur-responsive) var(--ease-standard); }
   .continue-hero:hover .continue-btn-arrow { transform: translateX(4px); }
-  .progress-strip { display: flex; align-items: center; gap: 14px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
-  .progress-ring-wrap { position: relative; width: 42px; height: 42px; flex-shrink: 0; }
+  .progress-strip { display: flex; align-items: center; gap: 16px; margin-top: 28px; padding: 16px 0; border-top: var(--hp-rule); border-bottom: var(--hp-rule); }
+  .progress-ring-wrap { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
   .progress-ring-wrap svg { width: 100%; height: 100%; }
-  .progress-ring-track { fill: none; stroke: var(--surface-2); stroke-width: 6; }
-  .progress-ring-fill { fill: none; stroke: var(--ember); stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.8s cubic-bezier(0.34,1.56,0.64,1); }
-  .progress-strip-pct { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .progress-ring-track { fill: none; stroke: var(--line-strong); stroke-width: 5; }
+  .progress-ring-fill { fill: none; stroke: var(--ink); stroke-width: 5; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.8s var(--ease); }
+  .progress-strip-pct { font-family: var(--font-display); font-size: clamp(30px, 3vw, 38px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; color: var(--ink); flex-shrink: 0; font-variant-numeric: tabular-nums lining-nums; }
   .progress-strip-body { flex: 1; min-width: 0; }
-  .progress-strip-tagline { font-size: 13.5px; color: var(--ink); }
-  .progress-strip-count { font-size: 12.5px; color: var(--ink-2); margin-top: 1px; font-variant-numeric: tabular-nums; }
+  .progress-strip-tagline { font-size: 16px; color: var(--ink); line-height: 1.4; }
+  .progress-strip-count { font-size: 14.5px; color: var(--ink-2); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
-  /* ── Recommended — "Next up" is the page's one dark surface; the other picks are
-       plain cards so the hierarchy reads Next-up → other picks → full library. ── */
+  /* ── Areas to research further (sand): the first pick is the featured row (ember
+       rule on top), the rest are ruled rows. ── */
+  .rec-head-link { margin-top: 18px; }
   .rec-primary {
-    display: flex; align-items: center; justify-content: space-between; gap: 20px;
-    background: linear-gradient(140deg, var(--espresso), var(--espresso-2));
-    border-radius: var(--r-lg); padding: 22px 24px; text-decoration: none; margin-bottom: 12px; box-shadow: var(--shadow-2);
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center;
+    padding: 20px 2px 22px; border-top: 2px solid var(--hp-accent); border-bottom: var(--hp-rule); text-decoration: none; color: var(--ink);
+    transition: border-color var(--dur-fast) ease;
   }
-  .rec-primary-tag {
-    display: inline-block; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--amber); background: rgba(249,168,37,0.14); padding: 4px 9px; border-radius: 999px; margin-bottom: 10px;
-  }
-  @keyframes rec-badge-pulse {
-    0% { transform: scale(1); background: rgba(249,168,37,0.14); }
-    40% { transform: scale(1.08); background: rgba(249,168,37,0.3); }
-    100% { transform: scale(1); background: rgba(249,168,37,0.14); }
-  }
-  .rec-primary:hover .rec-primary-tag { animation: rec-badge-pulse 600ms var(--ease-standard); }
-  .rec-primary-body { flex: 1; min-width: 0; }
-  .rec-primary-title { display: block; font-family: var(--font-display); font-weight: 700; font-size: 19px; color: var(--bg); line-height: 1.3; margin-bottom: 6px; }
-  .rec-primary-time { font-size: 12.5px; color: rgba(253,246,238,0.6); transition: color var(--dur-responsive) var(--ease-standard); }
-  .rec-primary:hover .rec-primary-time { color: rgba(253,246,238,0.85); }
-  .rec-primary-arrow {
-    width: 40px; height: 40px; border-radius: 50%; background: rgba(253,246,238,0.12); color: var(--bg);
-    display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
-    transition: transform var(--dur-responsive) var(--ease-standard);
-  }
-  .rec-primary:hover .rec-primary-arrow { transform: translateX(4px); }
-  .rec-secondary-row { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 8px; margin: 0 -2px; scrollbar-width: thin; }
+  .rec-primary:hover { border-bottom-color: var(--ink); }
+  .rec-primary-tag { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); }
+  .rec-primary-body { min-width: 0; }
+  .rec-primary-title { display: block; font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 2.8vw, 32px); color: var(--ink); line-height: 1.15; letter-spacing: -0.015em; margin-bottom: 10px; }
+  .rec-primary:hover .rec-primary-title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+  .rec-primary-time { display: block; max-width: 62ch; font-size: 15.5px; line-height: 1.55; color: var(--ink-2); }
+  .rec-primary-arrow { font-size: 22px; color: var(--ink-2); transition: transform var(--dur-responsive) var(--ease-standard), color var(--dur-fast) ease; }
+  .rec-primary:hover .rec-primary-arrow { transform: translateX(4px); color: var(--ink); }
+  .rec-primary-because, .rec-card-because { display: block; margin-bottom: 8px; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
+  .rec-card-because b, .rec-primary-because b { font-weight: 600; color: var(--ink); }
+  .rec-secondary-row { display: block; }
   .rec-card {
-    flex: 0 0 180px; min-height: 148px; border-radius: var(--r-md); padding: 14px; display: flex; flex-direction: column; gap: 10px;
-    justify-content: space-between; text-decoration: none; position: relative; overflow: hidden;
-    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
-    transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: baseline;
+    padding: 18px 2px; border-bottom: var(--hp-rule); text-decoration: none; color: var(--ink);
+    transition: border-color var(--dur-fast) ease;
   }
-  .rec-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
-  /* "Because you're looking at: …" — why a pick is here, when it comes from an option in Your plan. */
-  .rec-primary-because { display: block; font-size: 12.5px; line-height: 1.45; color: rgba(253,246,238,0.78); margin-bottom: 6px; }
-  .rec-card-because { font-size: 12px; line-height: 1.4; color: var(--ink-2); }
-  .rec-card-because b, .rec-primary-because b { font-weight: 600; }
-  .rec-card-because b { color: var(--ember-ink); }
-  .rec-primary-because b { color: var(--amber); }
-  .rec-card-tag {
-    align-self: flex-start; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--ember-ink); background: var(--ember-wash); padding: 3px 8px; border-radius: 999px;
-  }
-  .rec-card-title { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.35; }
-  .rec-card:hover .rec-card-title { color: var(--ember-ink); }
-  .rec-card-bottom { display: flex; align-items: center; justify-content: space-between; }
-  .rec-card-time { font-size: 12px; color: var(--ink-2); display: flex; align-items: center; gap: 4px; }
-  .rec-card-arrow {
-    width: 24px; height: 24px; border-radius: 50%; background: var(--surface-2); color: var(--ember-ink);
-    display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0;
-  }
+  .rec-card:hover, .rec-card:focus-visible { border-bottom-color: var(--ink); }
+  .rec-card > :first-child { grid-column: 1 / -1; margin-bottom: 0; }
+  .rec-card-tag { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); }
+  .rec-card-title { grid-column: 1; font-family: var(--font-display); font-weight: 700; font-size: clamp(19px, 2vw, 22px); color: var(--ink); line-height: 1.25; }
+  .rec-card:hover .rec-card-title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; }
+  .rec-card-bottom { grid-column: 2; display: flex; align-items: baseline; gap: 14px; }
+  .rec-card-time { font-size: 14.5px; color: var(--ink-2); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .rec-card-arrow { font-size: 18px; color: var(--ink-2); transition: transform var(--dur-base) var(--ease); }
+  .rec-card:hover .rec-card-arrow { transform: translateX(4px); color: var(--ink); }
 
-  /* ── Learning path stepper ── */
-  .stepper { position: relative; display: flex; align-items: flex-start; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
-  .stepper-step { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 84px; text-align: center; cursor: pointer; background: none; border: none; font-family: inherit; }
-  .stepper-step:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; border-radius: 8px; }
-  .stepper-connector { flex: 1; height: 1px; background: var(--line-strong); margin-top: 17px; min-width: 16px; }
+  /* ── Your learning path: the stages as big ember numbers (the stepper), the viewed
+       stage's lessons as ruled rows with a small ink tick once read. ── */
+  .path-head .hp-h2 { margin-bottom: 0; }
+  .milestone { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--ink); }
+  .milestone-name { margin-top: 12px; font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.4vw, 26px); line-height: 1.2; color: var(--ink); }
+  .milestone-count { margin-top: 6px; font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .milestone-bar-track { height: 2px; margin: 14px 0 12px; background: var(--line-strong); overflow: hidden; }
+  .milestone-bar-fill { height: 100%; background: var(--ink); width: 0%; transition: width 0.8s var(--ease); }
+  .milestone-next { font-size: 15.5px; color: var(--ink); }
+  @media (min-width: 900px) { .path-head { position: sticky; top: 32px; align-self: start; } }
+
+  .stepper { position: relative; display: flex; align-items: flex-start; gap: 0; margin-bottom: 28px; overflow-x: auto; padding: 4px 2px 6px; scrollbar-width: none; }
+  .stepper::-webkit-scrollbar { display: none; }
+  .stepper-step { display: flex; flex-direction: column; align-items: flex-start; flex: 1 1 0; min-width: 0; text-align: left; cursor: pointer; background: none; border: none; padding: 0 6px 0 0; font-family: inherit; color: var(--ink); }
+  .stepper-step:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+  .stepper-connector { display: none; }
   .stepper-dot {
-    width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-weight: 600; font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums;
-    background: var(--surface); border: 1.5px solid var(--line-strong); margin-bottom: 8px;
+    display: block; min-width: 1ch; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid transparent;
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 4.4vw, 56px); line-height: 0.9; letter-spacing: -0.03em;
+    color: var(--hp-accent); font-variant-numeric: tabular-nums lining-nums;
   }
-  .stepper-step.done .stepper-dot, .stepper-step.current .stepper-dot { background: var(--ember); border-color: var(--ember); color: #fff; }
-  /* Traveling dot: slides from the just-completed stage to the next one
+  .stepper-step:not(.done):not(.current) .stepper-dot { color: var(--ink-2); }
+  .stepper-step.current .stepper-dot { border-bottom-color: var(--hp-accent); }
+  .stepper-step:hover .stepper-name { text-decoration: underline; text-underline-offset: 4px; }
+  /* Travelling marker: slides from the just-completed stage to the next one
      (positioned inline by animateStepperTravel()). */
   .stepper-traveler {
-    position: absolute; border-radius: 50%; background: var(--ember); border: 1.5px solid var(--ember);
-    box-shadow: var(--shadow-2); pointer-events: none; z-index: 5;
+    position: absolute; border-bottom: 2px solid var(--hp-accent); pointer-events: none; z-index: 5;
     transition: left var(--dur-expressive) var(--ease-gentle), top var(--dur-expressive) var(--ease-gentle);
   }
-  .stepper-name { font-size: 12.5px; font-weight: 600; color: var(--ink); }
-  .stepper-tagline { font-size: 11.5px; color: var(--ink-2); margin-top: 1px; }
+  .stepper-name { font-size: 14.5px; font-weight: 600; line-height: 1.3; color: var(--ink); }
+  .stepper-tagline { font-size: 13.5px; line-height: 1.35; color: var(--ink-2); margin-top: 2px; }
+  @media (max-width: 599px) { .stepper-tagline { display: none; } .stepper-name { font-size: 13px; } .stepper-step { flex: 0 0 auto; min-width: 84px; padding-right: 14px; } }
 
-  .lesson-list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); overflow: hidden; }
-  .lesson-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; text-decoration: none; border-bottom: 1px solid var(--line); cursor: pointer; transition: background var(--dur-fast) ease; }
-  .lesson-row:last-child { border-bottom: none; }
-  .lesson-row:hover { background: var(--surface-2); }
-  .lesson-row[role="link"]:focus-visible { outline: 2px solid var(--ember); outline-offset: -2px; }
-  .lesson-num { font-weight: 600; font-size: 13px; color: var(--ink-3); width: 24px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .lesson-list { border-top: 1px solid var(--ink); }
+  .lesson-row { display: flex; align-items: baseline; gap: 16px; padding: 18px 2px; text-decoration: none; color: var(--ink); border-bottom: var(--hp-rule); cursor: pointer; transition: border-color var(--dur-fast) ease, background 500ms var(--ease-standard); }
+  .lesson-row:hover, .lesson-row:focus-within { border-bottom-color: var(--ink); }
+  .lesson-row[role="link"]:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .lesson-num { font-weight: 600; font-size: 14px; color: var(--ink-2); width: 30px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
   .lesson-body { flex: 1; min-width: 0; }
-  .lesson-title { font-size: 14.5px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
-  .lesson-sub { font-size: 12.5px; color: var(--ink-2); }
-  .lesson-meta { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-  .lesson-time { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
-  .lesson-check { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background var(--dur-responsive) var(--ease-standard); }
-  .lesson-check.done { background: var(--positive-wash); color: var(--positive); }
-  .lesson-check.current { background: var(--ember-wash); color: var(--ember-ink); }
-  .lesson-check.locked { color: var(--ink-3); }
-  .lesson-row.locked-row { opacity: 0.72; }
-  .hidden-by-search { display: none !important; }
-  .lesson-check-btn { all: unset; box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; cursor: pointer; }
-  .lesson-check-btn:hover { background: rgba(244,98,42,0.2); border-radius: 50%; }
-  .lesson-check-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .lesson-title { display: block; font-size: 18px; font-weight: 500; line-height: 1.35; color: var(--ink); }
+  @media (min-width: 768px) { .lesson-title { font-size: 19px; } }
+  .lesson-row:hover .lesson-title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+  .lesson-sub { display: block; margin-top: 3px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+  .lesson-meta { display: flex; align-items: center; gap: 14px; flex-shrink: 0; align-self: center; }
+  .lesson-time { font-size: 14px; color: var(--ink-2); white-space: nowrap; }
+  .lesson-check { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; }
+  .lesson-check.done { color: var(--ink); font-weight: 700; }
+  .lesson-check.current { color: var(--ink); border: 1px solid var(--line-strong); border-radius: 50%; }
+  .lesson-check.locked { color: var(--ink-2); }
+  .lesson-row.locked-row .lesson-title { color: var(--ink-2); }
+  .lesson-check-btn { all: unset; box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; cursor: pointer; border-radius: 50%; }
+  .lesson-check-btn:hover { background: var(--ink); color: var(--bg); }
+  .lesson-check-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   .lesson-check-draw path { transition: stroke-dashoffset 320ms var(--ease-standard); }
-  .lesson-row.just-completed { background: var(--positive-wash); transition: background 500ms var(--ease-standard); }
+  .lesson-row.just-completed { background: var(--hp-sand); }
+  @media (max-width: 599px) { .lesson-time { display: none; } .lesson-row { gap: 12px; } }
 
-  /* ── Sidebar ── */
-  .sidebar-col { display: grid; gap: 16px; }
-  .side-card-title { margin-bottom: 16px; }
-  .progress-stat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-  .progress-stat-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .progress-stat-icon.lessons { background: var(--ember-wash); color: var(--ember-ink); }
-  .progress-stat-icon.hours { background: var(--positive-wash); color: var(--positive); }
-  .progress-stat-icon.streak { background: rgba(249,168,37,0.15); color: #B7791F; }
-  .progress-stat-value { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); line-height: 1.2; font-variant-numeric: tabular-nums; }
-  .progress-stat-label { font-size: 12.5px; color: var(--ink-2); }
-  .week-dots { display: flex; justify-content: space-between; margin-top: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
-  .week-dot-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .week-dot-letter { font-size: 11px; color: var(--ink-3); }
-  .week-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line-strong); }
-  .week-dot.active { background: var(--ember); }
+  /* ── Progress and topics (the dark band): big numbers, the week, topic rows. ── */
+  .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; border-top: 1px solid var(--ink); padding-top: 20px; }
+  .stat-value { font-family: var(--font-display); font-weight: 700; font-size: clamp(40px, 5.6vw, 72px); line-height: 0.95; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+  .stat-value.hp-big.is-ember { color: var(--hp-accent); }
+  .stat-label { margin-top: 10px; font-size: 15px; line-height: 1.4; color: var(--ink-2); }
+  .week-dots { display: flex; justify-content: space-between; max-width: 420px; margin-top: 28px; padding-top: 16px; border-top: var(--hp-rule); }
+  .week-dot-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .week-dot-letter { font-size: 13px; color: var(--ink-2); }
+  .week-dot { width: 8px; height: 8px; background: none; box-shadow: inset 0 0 0 1.5px var(--line-strong); }
+  .week-dot.active { background: var(--ink); box-shadow: none; }
+  .topics-label { margin-bottom: 16px; }
+  #exploreTopics { border-top: 1px solid var(--ink); }
   .topic-link-row {
-    display: flex; align-items: center; justify-content: space-between; padding: 10px 0; text-decoration: none;
-    color: var(--ink); font-size: 14px; border-bottom: 1px solid var(--line);
-    transition: color var(--dur-responsive) var(--ease-standard);
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 16px 2px; text-decoration: none;
+    color: var(--ink); font-size: 18px; border-bottom: var(--hp-rule);
+    transition: border-color var(--dur-fast) ease;
   }
-  .topic-link-row:last-of-type { border-bottom: none; }
-  .topic-link-row:hover { color: var(--ember-ink); }
-  .topic-link-row.active { color: var(--ember-ink); font-weight: 600; }
+  .topic-link-row:hover { border-bottom-color: var(--ink); }
+  .topic-link-row:hover > span { transform: translateX(4px); }
+  .topic-link-row > span { color: var(--ink-2); transition: transform var(--dur-base) var(--ease); }
+  .topic-link-row.active { font-weight: 600; }
+  .topic-link-row.active > span { color: var(--ink); }
   .browse-all-btn {
-    display: block; margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--line);
-    font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none;
+    display: inline-block; margin-top: 20px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline;
+    text-decoration-color: var(--line-strong); text-underline-offset: 5px;
   }
-  .browse-all-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .browse-all-btn:hover { text-decoration-color: var(--ink); }
+  @media (min-width: 900px) { .lp-stats .hp-half > :first-child { grid-column: 1 / span 6; } }
 
-  .milestone-name { font-family: var(--font-display); font-weight: 700; font-size: 18px; color: var(--ink); margin-bottom: 4px; }
-  .milestone-count { font-size: 13px; color: var(--ink-2); margin-bottom: 12px; font-variant-numeric: tabular-nums; }
-  .milestone-bar-track { height: 6px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
-  .milestone-bar-fill { height: 100%; background: linear-gradient(90deg, var(--ember), var(--amber)); border-radius: 6px; width: 0%; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
-  .milestone-next { font-size: 13px; color: var(--ink); font-weight: 500; }
+  .lp-foot .app-footer { margin-top: 0; padding: 24px 0 32px; border-top: 0; font-size: 13px; color: var(--ink-2); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lesson-row, .rec-card, .rec-primary, .topic-link-row, .topic-link-row > span, .rec-card-arrow, .rec-primary-arrow { transition: none !important; }
+  }
 </style>
 </head>
 <body class="app" data-shell="app" data-active="learn">
 <script src="js/shell.js"></script>
 
-<main class="app-main">
+<main class="hp lp" id="main">
 
-  <header class="page-head rise" style="--i:0">
-    <div>
-      <div class="eyebrow">Learning Lab</div>
-      <h1 class="page-head-title">Money stuff, in plain English</h1>
-      <p class="page-head-sub">Short lessons that explain the options, each one tied back to your own numbers.</p>
-    </div>
-    <div class="page-head-actions desktop-only">
-      <div class="search-wrap">
-        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input type="text" class="search-input" id="searchInputDesktop" placeholder="Search lessons…" aria-label="Search lessons"/>
+  <header class="hp-hero lp-hero">
+    <div class="hp-wrap hp-two">
+      <div>
+        <div class="hp-label">Learning Lab</div>
+        <h1 class="hp-h1">Money stuff, in plain English</h1>
+        <p class="hp-lead">Short lessons that explain the options, each one tied back to your own numbers.</p>
+        <div class="lp-search">
+          <div class="lp-search-row desktop-only">
+            <div class="search-wrap">
+              <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="text" class="search-input" id="searchInputDesktop" placeholder="Search lessons…" aria-label="Search lessons"/>
+            </div>
+            <a href="account.html" class="desktop-avatar desktop-only" id="avatarInitial" aria-label="Account settings">·</a>
+          </div>
+          <div class="search-wrap mobile-only-search" id="mobileSearchWrap">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="text" class="search-input" id="searchInputMobile" placeholder="Search lessons…" aria-label="Search lessons"/>
+          </div>
+          <!-- Shown alongside filtered results while there's an active search term — one
+               shared hint reacts to either search input since both drive applySearch().
+               Deep-links into ask-firepath.html with ?q=. -->
+          <a href="ask-firepath.html" class="ask-firepath-hint" id="askFirepathHint">
+            Ask FirePath about “<span id="askFirepathHintQuery"></span>” <span>→</span>
+          </a>
+        </div>
       </div>
-      <a href="account.html" class="desktop-avatar desktop-only" id="avatarInitial" aria-label="Account settings">·</a>
-    </div>
-  </header>
 
-  <div class="learn-grid">
-    <div class="learn-main">
-
-      <div class="search-wrap mobile-only-search" id="mobileSearchWrap">
-        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input type="text" class="search-input" id="searchInputMobile" placeholder="Search lessons…" aria-label="Search lessons"/>
-      </div>
-
-      <!-- Shown alongside filtered results while there's an active search term — one
-           shared hint reacts to either search input since both drive applySearch().
-           Deep-links into ask-firepath.html with ?q=. -->
-      <a href="ask-firepath.html" class="ask-firepath-hint" id="askFirepathHint">
-        Ask FirePath about “<span id="askFirepathHintQuery"></span>” <span>→</span>
-      </a>
-
-      <div class="card continue-hero" id="continueHero">
-        <div class="eyebrow continue-eyebrow" id="continueEyebrow">Continue your path</div>
+      <div class="continue-hero" id="continueHero">
+        <div class="hp-label is-ink continue-eyebrow" id="continueEyebrow">Continue your path</div>
         <a href="learning_lab.html" class="continue-lesson-title" id="continueLessonTitle">Loading your path…</a>
         <div class="continue-meta-row">
-          <span class="continue-time" id="continueTime"></span>
           <a href="learning_lab.html" class="btn btn-ember continue-btn" id="continueBtn">Continue →</a>
+          <span class="continue-time" id="continueTime"></span>
         </div>
         <div class="progress-strip">
           <div class="progress-ring-wrap">
@@ -298,85 +296,75 @@
           </div>
         </div>
       </div>
+    </div>
+  </header>
 
-      <section class="learn-section rec-section" aria-labelledby="recHead">
-        <div class="section-head">
-          <h2 class="section-label" id="recHead">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3 6.5 7 .9-5.1 4.8 1.3 7L12 17.8 5.8 21.2l1.3-7L2 9.4l7-.9L12 2z"/></svg>
-            Areas to research further
-          </h2>
-          <a href="#pathSection" class="section-link">View all</a>
-        </div>
+  <section class="hp-sec is-sand rec-section" aria-labelledby="recHead">
+    <div class="hp-wrap hp-side">
+      <div class="hp-side-head">
+        <h2 class="hp-h2 is-mid" id="recHead">Areas to research further</h2>
+        <a href="#pathSection" class="hp-link is-quiet rec-head-link">View all</a>
+      </div>
+      <div class="hp-side-main">
         <div id="recPrimary"></div>
         <div class="rec-secondary-row" id="recSecondaryRow"></div>
-      </section>
+      </div>
+    </div>
+  </section>
 
-      <section class="learn-section path-section" id="pathSection" aria-labelledby="pathHead">
-        <div class="section-head">
-          <h2 class="section-label" id="pathHead">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
-            Your learning path
-          </h2>
+  <section class="hp-sec path-section" id="pathSection" aria-labelledby="pathHead">
+    <div class="hp-wrap hp-side">
+      <div class="hp-side-head path-head">
+        <h2 class="hp-h2 is-mid" id="pathHead">Your learning path</h2>
+        <div class="milestone" id="milestoneCard">
+          <div class="hp-label">Your next milestone</div>
+          <div class="milestone-name" id="milestoneName">Loading…</div>
+          <div class="milestone-count" id="milestoneCount"></div>
+          <div class="milestone-bar-track"><div class="milestone-bar-fill" id="milestoneBarFill"></div></div>
+          <div class="milestone-next" id="milestoneNext"></div>
         </div>
+      </div>
+      <div class="hp-side-main">
         <div class="stepper" id="stepper"></div>
         <div class="lesson-list" id="lessonList"></div>
-      </section>
-
-    </div>
-
-    <aside class="sidebar-col">
-      <div class="card side-card" id="milestoneCard">
-        <div class="eyebrow side-card-title">Your next milestone</div>
-        <div class="milestone-name" id="milestoneName">Loading…</div>
-        <div class="milestone-count" id="milestoneCount"></div>
-        <div class="milestone-bar-track"><div class="milestone-bar-fill" id="milestoneBarFill"></div></div>
-        <div class="milestone-next" id="milestoneNext"></div>
       </div>
+    </div>
+  </section>
 
-      <div class="card side-card">
-        <div class="eyebrow side-card-title">Your progress</div>
-        <div class="progress-stat-row">
-          <div class="progress-stat-icon lessons">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c0 1.1 2.7 2 6 2s6-.9 6-2v-5"/></svg>
+  <section class="hp-sec is-dark lp-stats" aria-labelledby="progressHead">
+    <div class="hp-wrap hp-half">
+      <div>
+        <h2 class="hp-label is-ink topics-label" id="progressHead">Your progress</h2>
+        <div class="stats">
+          <div>
+            <div class="stat-value hp-big is-ember" id="statLessons">—</div>
+            <div class="stat-label">Lessons completed</div>
           </div>
           <div>
-            <div class="progress-stat-value" id="statLessons">—</div>
-            <div class="progress-stat-label">Lessons completed</div>
-          </div>
-        </div>
-        <div class="progress-stat-row">
-          <div class="progress-stat-icon hours">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            <div class="stat-value" id="statHours">—</div>
+            <div class="stat-label">Hours invested (est.)</div>
           </div>
           <div>
-            <div class="progress-stat-value" id="statHours">—</div>
-            <div class="progress-stat-label">Hours invested (est.)</div>
-          </div>
-        </div>
-        <div class="progress-stat-row" style="margin-bottom: 0;">
-          <div class="progress-stat-icon streak">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c2 2 2 5 0 8a7 7 0 0 1-12 0c-2-3-1-7 2-10 1 1 1 3 2 3s0-4 2-8z"/></svg>
-          </div>
-          <div>
-            <div class="progress-stat-value" id="statStreak">—</div>
-            <div class="progress-stat-label">Day streak</div>
+            <div class="stat-value" id="statStreak">—</div>
+            <div class="stat-label">Day streak</div>
           </div>
         </div>
         <div class="week-dots" id="weekDots"></div>
       </div>
-
-      <div class="card side-card">
-        <div class="eyebrow side-card-title">Explore topics</div>
+      <div>
+        <h2 class="hp-label is-ink topics-label">Explore topics</h2>
         <div id="exploreTopics"></div>
         <a href="learning_lab.html" class="browse-all-btn">Browse all topics →</a>
       </div>
-    </aside>
-  </div>
+    </div>
+  </section>
 
-  <footer class="app-footer">
-    <span>Educational only — not financial advice.</span>
-    <nav aria-label="Footer"><a href="faq.html">FAQ</a><a href="assumptions.html">Assumptions</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></nav>
-  </footer>
+  <div class="hp-wrap lp-foot">
+    <footer class="app-footer">
+      <span>Educational only — not financial advice.</span>
+      <nav aria-label="Footer"><a href="faq.html">FAQ</a><a href="assumptions.html">Assumptions</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></nav>
+    </footer>
+  </div>
 </main>
 
 <script>
@@ -712,7 +700,7 @@
         recPrimaryEl.innerHTML = `
           <a href="${first.href}" class="rec-primary" data-search-text="${searchOf(first)}">
             <span class="rec-primary-body">
-              ${first.because ? `<span class="rec-primary-because">Based on your numbers: <b>${escHtml(first.because)}</b></span>` : '<span class="rec-primary-tag">NEXT UP</span>'}
+              ${first.because ? `<span class="rec-primary-because">Based on your numbers: <b>${escHtml(first.because)}</b></span>` : '<span class="rec-primary-tag">Next up</span>'}
               <span class="rec-primary-title">${first.title}</span>
               <span class="rec-primary-time">${first.sub ? first.sub + ' · ' : ''}${first.mins} min</span>
             </span>

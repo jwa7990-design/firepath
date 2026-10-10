@@ -22,210 +22,267 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/app.css"/>
+<link rel="stylesheet" href="css/fp-editorial.css"/>
 <link rel="stylesheet" href="css/freedom-path.css"/>
 <style>
-  /* ── Journey layout ──────────────────────────────────────
-     One question per row, most important first:
-       1. When does work become optional?      (hero + projection)
-       2. Where does my money stand?           (→ Money)
-       3. What should I do / what moves it?    (next move, → Strategy)
-       4. Am I making progress / what to learn (→ Learn)
-     Each section names the tab it previews, so Journey works as the hub. */
-  .journey-grid { display: grid; gap: 16px; }
-  @media (min-width: 1024px) {
-    .journey-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 20px; }
-    .span-12 { grid-column: span 12; }
-    .span-7 { grid-column: span 7; }
-    .span-5 { grid-column: span 5; }
-  }
+  /* ── Your Path: the Pro home ─────────────────────────────
+     Built on css/fp-editorial.css (.hp scope, .hp-wrap, .hp-sec tones, .hp-side,
+     .hp-half, .hp-h2, .hp-label). One question per band, most important first:
+       1. When does work become optional?   hero: the year in ember, the path, the chart
+       2. Where does my money stand?        sand: four big figures over rules (→ Money)
+       3. What could move it?               the one dark band: Your plan (→ Strategy)
+       4. Progress and sensitivity          cream: since last check-in, if returns differ
+       5. What to read                      sand: Learn
+     Rules, not cards. Ember: the year, the plan numerals, and the "time won back" figure. */
+  .jp { width: 100%; padding-bottom: calc(110px + env(safe-area-inset-bottom)); }   /* room for the phone tab bar */
+  @media (min-width: 1024px) { .jp { padding-bottom: 0; } }
+  .jp .num, .jp .hero-year, .jp .kpi-value { font-variant-numeric: tabular-nums lining-nums; }
+  .vh { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-  /* Mobile header row: greeting + menu button */
+  /* Quiet text link that names the tab a band previews ("Money →") */
+  .jp-more { font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 5px; white-space: nowrap; }
+  .jp-more:hover { text-decoration-color: var(--ink); }
+  .jp-links { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 18px; }
+  .jp-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px 24px; margin-bottom: 28px; }
+  @media (min-width: 900px) { .jp .hp-side-head.is-sticky { position: sticky; top: 32px; align-self: start; } }
+
+  /* ── Header: greeting, level, update ── */
+  .jp-head { padding: 24px 0 0; }
+  @media (min-width: 768px) { .jp-head { padding-top: 40px; } }
+  .jp-head-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 24px; padding-bottom: 20px; border-bottom: var(--hp-rule); }
   .head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; width: 100%; }
   @media (min-width: 1024px) { .head-row { width: auto; } .menu-btn { display: none; } }
-  .menu-btn { background: none; border: none; color: var(--ink); padding: 8px; margin: -6px -8px 0 0; border-radius: 50%; cursor: pointer; }
+  .menu-btn { background: none; border: none; color: var(--ink); padding: 8px; margin: -6px -8px 0 0; border-radius: 4px; cursor: pointer; }
   .menu-btn:hover { background: rgba(43,29,20,0.05); }
+  .jp-greet { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3vw, 34px); line-height: 1.12; letter-spacing: -0.015em; color: var(--ink); }
+  .jp-greet-sub { margin-top: 6px; font-size: 15px; color: var(--ink-2); }
+  .jp-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; }
+  .jp-persona { display: inline-flex; align-items: center; gap: 8px; padding: 6px 0; background: none; border: 0; cursor: pointer; font: 500 15px var(--font-ui); color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .jp-persona:hover { color: var(--ink); text-decoration-color: var(--ink); }
+  .jp-update { display: inline-flex; align-items: center; height: 42px; padding: 0 18px; border: 1px solid var(--ink); border-radius: var(--hp-r); font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
+  .jp-update:hover { background: var(--ink); color: var(--bg); }
 
-  /* Level prompt + Monday check banners */
-  .banner {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 18px;
-    border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
-    font-size: 13.5px; color: var(--ink-2); text-decoration: none;
-  }
+  /* Level prompt + Monday check: ruled lines, not boxes */
+  .banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 16px 0; border-bottom: var(--hp-rule); font-size: 16px; line-height: 1.5; color: var(--ink-2); text-decoration: none; }
   .banner strong { color: var(--ink); font-weight: 600; }
   .banner[hidden] { display: none; }
-  .banner-accent { background: #FFF7F2; border-color: rgba(244,98,42,0.22); }
-  .banner-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+  .banner-accent { gap: 14px; flex-wrap: nowrap; }
+  .banner-accent::before { content: ''; flex: none; width: 8px; height: 8px; background: var(--hp-accent); }
+  .banner-accent > span:first-child { flex: 1; min-width: 0; }
+  .banner-accent:hover strong { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .banner-actions { display: flex; gap: 10px 18px; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
+  .jp .banner .btn { height: 42px; padding: 0 18px; border-radius: var(--hp-r); font-size: 15px; font-weight: 600; }
+  .jp .banner .btn-quiet { background: none; border-color: var(--ink); }
+  .jp .banner .btn-quiet:hover { background: var(--ink); color: var(--bg); }
+  .arrow { flex-shrink: 0; color: var(--ink); transition: transform var(--dur-fast) ease; }
+  a:hover > .arrow { transform: translateX(4px); }
 
-  /* ── Hero ── */
-  .hero { padding: 0; overflow: hidden; }
-  .hero-inner { display: grid; }
-  @media (min-width: 1024px) { .hero-inner { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
-  .hero-copy { padding: 24px 20px 20px; display: flex; flex-direction: column; }
-  @media (min-width: 768px) { .hero-copy { padding: 32px 32px 28px; } }
-  .hero-year-row { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
-  .hero-year {
-    font-family: var(--font-display); font-weight: 700; letter-spacing: -0.03em; line-height: 0.9;
-    font-size: clamp(72px, 19vw, 112px); color: var(--ink); font-variant-numeric: lining-nums tabular-nums;
+  /* ── 1. Hero: the year in ember, the path as the anchor ── */
+  .jp-hero { padding: 32px 0 56px; }
+  @media (min-width: 768px) { .jp-hero { padding: 48px 0 88px; } }
+  .jp-hero-top { display: grid; gap: 20px; align-items: end; }
+  @media (min-width: 900px) {
+    .jp-hero-top { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; }
+    .jp-hero-figure { grid-column: 1 / span 6; }
+    .jp-hero-copy { grid-column: 8 / span 5; padding-bottom: 10px; }
   }
-  .hero-year.skeleton { width: 3.2ch; }
-  .hero-year-row .chip { margin-top: 8px; }
-  .hero-meta { margin-top: 12px; font-size: 15px; color: var(--ink-2); }
-  .hero-meta strong { color: var(--ink); font-weight: 600; }
-  .hero-range { margin-top: 4px; font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-  .hero-narrative { margin-top: 18px; font-size: 14px; line-height: 1.6; color: var(--ink-2); max-width: 44ch; }
+  .jp-hero-figure, .jp-hero-copy { min-width: 0; }
+  .hero-year-row { margin-top: 14px; }
+  .hero-year {
+    font-family: var(--font-display); font-weight: 700; letter-spacing: -0.04em; line-height: 0.86;
+    font-size: clamp(104px, 15vw, 188px); color: var(--hp-accent); overflow-wrap: anywhere;
+  }
+  .hero-year.skeleton { display: inline-block; width: 3.2ch; }
+  /* "▲ 1 pt since last check-in": the script sets class="chip chip-positive|negative". Plain text here. */
+  .jp #heroDelta { display: inline-flex; height: auto; margin-top: 16px; padding: 0; border: 0; background: none; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .jp #heroDelta.chip-negative { color: var(--ink-2); }
+  .jp #heroDelta[hidden] { display: none; }
+  .hero-meta { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.4vw, 28px); line-height: 1.25; letter-spacing: -0.01em; color: var(--ink); }
+  .hero-meta strong { font-weight: 700; }
+  .hero-range { margin-top: 10px; font-size: 16px; line-height: 1.5; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .hero-narrative { margin-top: 16px; padding-top: 16px; border-top: var(--hp-rule); max-width: 46ch; font-size: 17px; line-height: 1.6; color: var(--ink); }
 
-  /* Progress toward the freedom number, with milestones on the track */
-  .progress { margin-top: auto; padding-top: 28px; }
-  .progress-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; font-size: 13px; color: var(--ink-2); }
-  .progress-head strong { color: var(--ink); font-weight: 600; font-size: 14px; }
-  .track { position: relative; height: 8px; border-radius: 99px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); }
-  .track-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--ember), var(--amber)); transition: width 1.3s var(--ease); }
-  .milestone { position: absolute; top: 50%; width: 12px; height: 12px; margin-left: -6px; transform: translateY(-50%); border-radius: 50%; background: var(--surface); border: 2px solid var(--line-strong); }
-  .milestone.reached { border-color: var(--ember); background: var(--ember); }
-  .milestone-labels { position: relative; height: 34px; margin-top: 8px; font-size: 11.5px; color: var(--ink-3); }
-  .milestone-label { position: absolute; transform: translateX(-50%); white-space: nowrap; text-align: center; line-height: 1.3; }
+  /* The freedom path (js/freedom-path.js), full width under the year */
+  .hero-path { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--ink); min-width: 0; }
+  .hero-path[hidden] { display: none; }
+  @media (min-width: 768px) { .hero-path { margin-top: 56px; } }
+  .hero-path-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-bottom: 6px; }
+  .hero-path-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .hero-path-note { font-size: 14px; color: var(--ink-2); }
+  .hero-path-fig { margin: 0; }
+
+  /* Progress to the freedom number (left) and the growth chart (right) */
+  .jp-hero-foot { display: grid; gap: 40px; margin-top: 40px; }
+  @media (min-width: 900px) {
+    .jp-hero-foot { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; margin-top: 56px; }
+    .jp-hero-foot > .progress { grid-column: 1 / span 4; }
+    .jp-hero-foot > .hero-chart { grid-column: 6 / span 7; }
+  }
+  .progress { min-width: 0; padding-top: 18px; border-top: 1px solid var(--ink); }
+  .progress-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 10px; margin-bottom: 18px; font-size: 15px; color: var(--ink-2); }
+  .progress-head strong { font-family: var(--font-display); font-weight: 700; font-size: 32px; letter-spacing: -0.02em; color: var(--ink); margin-right: 4px; }
+  .track { position: relative; height: 4px; background: var(--line); }
+  .track-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--ink); transition: width 1.3s var(--ease); }
+  .milestone { position: absolute; top: 50%; width: 12px; height: 12px; margin-left: -6px; transform: translateY(-50%); border-radius: 50%; background: var(--bg); border: 2px solid var(--line-strong); }
+  .milestone.reached { border-color: var(--ink); background: var(--ink); }
+  .milestone-labels { position: relative; height: 40px; margin-top: 10px; font-size: 12.5px; color: var(--ink-2); }
+  .milestone-label { position: absolute; transform: translateX(-50%); white-space: nowrap; text-align: center; line-height: 1.35; }
   .milestone-label.edge-end { transform: translateX(-100%); text-align: right; }
   .milestone-label.edge-start { transform: translateX(-12px); text-align: left; }
-  .milestone-label b { display: block; font-weight: 600; color: var(--ink-2); }
-  .milestone-label.reached b { color: var(--ember-ink); }
+  .milestone-label b { display: block; font-weight: 600; color: var(--ink); }
 
-  /* The freedom path (js/freedom-path.js): under the date on phones, across the card's foot on desktop */
-  .hero-path { order: 2; min-width: 0; padding: 16px 20px 18px; border-top: 1px solid var(--line); }
-  .hero-path[hidden] { display: none; }
-  .hero-chart { order: 3; }
-  @media (min-width: 768px) { .hero-path { padding: 18px 32px 22px; } }
-  @media (min-width: 1024px) { .hero-path { order: 0; grid-column: 1 / -1; grid-row: 2; } .hero-chart { order: 0; } }
-  .hero-path-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
-  .hero-path-title { font-size: 13px; font-weight: 600; color: var(--ink); }
-  .hero-path-note { font-size: 12.5px; color: var(--ink-2); }
-  .hero-path-fig { margin: 2px 0 0; }
-
-  /* Projection chart panel */
-  .hero-chart { background: var(--surface-2); border-top: 1px solid var(--line); padding: 20px 12px 12px 8px; display: flex; flex-direction: column; min-width: 0; }
-  @media (min-width: 1024px) { .hero-chart { border-top: none; border-left: 1px solid var(--line); padding: 28px 24px 20px 16px; } }
-  .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 0 0 12px 12px; }
-  .chart-title { font-size: 13px; font-weight: 600; color: var(--ink); }
-  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend i { display: inline-block; width: 14px; height: 0; border-top: 2px solid var(--ink); }
+  .hero-chart { display: flex; flex-direction: column; min-width: 0; padding-top: 18px; border-top: 1px solid var(--ink); }
+  .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 16px; flex-wrap: wrap; padding: 0 0 14px; }
+  .chart-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .legend i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--ink); }
   .legend i.opt { border-top: 2px dashed var(--ember); }
   .chart-wrap { position: relative; flex: 1; min-height: 210px; }
   .chart-wrap svg { display: block; overflow: visible; }
-  .chart-wrap text { font-family: var(--font-ui); font-size: 11px; fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .chart-wrap text { font-family: var(--font-ui); font-size: 11.5px; fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+  /* Flat, faint area under the line (overrides the SVG's gradient fill) and a squarer year tag */
+  .chart-wrap path[fill="url(#pgFill)"] { fill: rgba(244, 98, 42, 0.07); }
+  .chart-wrap rect[rx="10"] { rx: 3px; ry: 3px; }
   .chart-tip {
-    position: absolute; top: 0; pointer-events: none; min-width: 150px; padding: 10px 12px; border-radius: 12px;
-    background: var(--ink); color: var(--bg); font-size: 12px; line-height: 1.5; box-shadow: var(--shadow-3);
+    position: absolute; top: 0; pointer-events: none; min-width: 150px; padding: 10px 12px; border-radius: 6px;
+    background: var(--ink); color: var(--bg); font-size: 12.5px; line-height: 1.5;
     opacity: 0; transition: opacity var(--dur-fast) ease; transform: translateX(-50%); z-index: 2;
   }
   .chart-tip.show { opacity: 1; }
   .chart-tip b { font-weight: 600; }
   .chart-tip .tip-row { display: flex; justify-content: space-between; gap: 16px; font-variant-numeric: tabular-nums; }
-  .chart-tip .tip-muted { color: rgba(253,246,238,0.6); }
-  .chart-foot { padding: 8px 0 0 12px; font-size: 11.5px; color: var(--ink-3); }
-  .chart-foot a { color: var(--ink-2); }
+  .chart-tip .tip-muted { color: rgba(253,246,238,0.72); }
+  .chart-foot { margin-top: 10px; padding-top: 12px; border-top: var(--hp-rule); font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+  .chart-foot a { color: var(--ink); white-space: nowrap; }
 
-  /* ── KPI tiles (→ Money) ── */
-  .kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-  @media (min-width: 1024px) { .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; } }
-  .kpi { padding: 18px; }
-  @media (min-width: 768px) { .kpi { padding: 20px 22px; } }
-  .kpi-label { font-size: 12.5px; color: var(--ink-2); font-weight: 500; }
-  .kpi-value { margin-top: 6px; font-size: clamp(22px, 5.5vw, 28px); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
-  .kpi-value.skeleton { width: 5ch; height: 1.2em; }
-  .kpi-sub { margin-top: 4px; font-size: 12px; color: var(--ink-3); min-height: 18px; }
+  /* ── 2. Your money: big serif figures over rules (sand) ── */
+  .kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
+  @media (min-width: 900px) { .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; } }
+  .kpi { display: block; min-width: 0; padding: 16px 0 18px; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); text-decoration: none; color: var(--ink); transition: border-color var(--dur-fast) ease; }
+  .kpi:hover { border-bottom-color: var(--ink); }
+  .kpi-label { font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
+  .kpi-value { margin-top: 10px; font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 4.4vw, 56px); line-height: 1; letter-spacing: -0.03em; color: var(--ink); }
+  .kpi-value.skeleton { width: 4ch; height: 1em; }
+  .kpi-sub { margin-top: 10px; font-size: 14px; line-height: 1.45; color: var(--ink-2); min-height: 20px; }
   .kpi-sub .delta-up, .kpi-sub .delta-down { font-weight: 600; }
+  /* Deltas on sand: darker green and the sand ember so both pass 4.5:1 */
+  .jp-money .delta-up { color: #1F5E23; }
+  .jp-money .delta-down { color: #A63C0C; }
 
-  /* ── Your plan (→ Strategy). Options from js/moves.js with the person's own status
-       on each (On it / Done / Not for me), saved through js/moves-status.js. ── */
-  .move-advice { margin-top: 14px; font-size: 12px; line-height: 1.5; color: var(--ink-2); }
-  .vh { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-  .plan-progress { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--ink-2); }
-  .plan-progress strong { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
-  .plan-bar { flex: 1; max-width: 220px; height: 6px; border-radius: 99px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; }
-  .plan-bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--ember), var(--amber)); transition: width var(--dur-slow) var(--ease); }
-  .plan-since { margin-top: 6px; font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+  /* ── 3. Your plan: the one dark band. Options from js/moves.js with the person's own
+       status on each (On it / Done / Not for me), saved through js/moves-status.js. ── */
+  .jp-plan #planHeading:focus { outline: none; }
+  .jp-plan #planHeading:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+  .plan-intro { margin-top: 16px; max-width: 40ch; font-size: 16.5px; line-height: 1.6; color: var(--ink-2); }
+  #planTop:not(:empty) { margin-top: 24px; padding-top: 18px; border-top: var(--hp-rule); }
+  .plan-progress { display: flex; align-items: center; gap: 16px; font-size: 15px; color: var(--ink-2); }
+  .plan-progress strong { font-family: var(--font-display); font-weight: 700; font-size: 26px; letter-spacing: -0.01em; color: var(--ink); margin-right: 4px; font-variant-numeric: tabular-nums; }
+  .plan-bar { flex: 1; max-width: 200px; height: 2px; background: var(--line-strong); overflow: hidden; }
+  .plan-bar i { display: block; height: 100%; background: var(--hp-accent); transition: width var(--dur-slow) var(--ease); }
+  .plan-since { margin-top: 12px; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
   .plan-since strong { color: var(--ink); font-weight: 600; }
-  .plan-note { font-size: 13.5px; line-height: 1.5; color: var(--ink); }
-  .plan-note:not(:empty) { margin-top: 14px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--surface-2); border: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
-  .plan-note a { color: var(--ember-ink); font-weight: 500; text-decoration: none; }
-  .plan-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .plan-list { list-style: none; margin: 14px 0 0; padding: 0; }
-  .opt { display: flex; gap: 12px; padding: 14px 0; border-top: 1px solid var(--line); }
-  .opt:first-child { border-top: none; }
-  .opt-num { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: 12.5px; font-weight: 600; color: var(--ember-ink); background: var(--ember-wash); font-variant-numeric: tabular-nums; }
-  .opt-body { flex: 1; min-width: 0; }
-  .opt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-  .opt-title { font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--ink); }
-  .opt-head .chip { flex-shrink: 0; height: 24px; font-size: 12px; }
-  .opt-impact { margin-top: 3px; font-size: 12.5px; font-weight: 600; color: var(--ember-ink); line-height: 1.45; }
-  .opt-why { margin-top: 4px; font-size: 13px; line-height: 1.55; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .opt-links { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; }
-  .opt-links a { color: var(--ember-ink); font-weight: 500; text-decoration: none; }
-  .opt-links a:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .opt-actions { margin-top: 10px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .jp-plan .jp-more { display: inline-block; margin-top: 24px; }
+  .plan-note { font-size: 15.5px; line-height: 1.5; color: var(--ink); }
+  .plan-note:not(:empty) { margin-bottom: 18px; padding: 12px 0; border-top: var(--hp-rule); border-bottom: var(--hp-rule); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
+  .plan-note:focus { outline: none; }
+  .plan-note a { color: var(--ink); font-weight: 500; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .plan-note a:hover { text-decoration-color: var(--ink); }
+  .plan-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+  .plan-list > .opt { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 0 14px; padding: 24px 0 22px; border-bottom: var(--hp-rule); transition: border-color var(--dur-fast) ease; }
+  @media (min-width: 768px) { .plan-list > .opt { grid-template-columns: 64px minmax(0, 1fr); gap: 0 20px; padding: 28px 0 26px; } }
+  .plan-list > .opt:hover, .plan-list > .opt:focus-within { border-bottom-color: var(--ink); }
+  .opt-num { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 3.4vw, 44px); line-height: 0.95; letter-spacing: -0.03em; color: var(--hp-accent); font-variant-numeric: tabular-nums lining-nums; }
+  .opt-num::before { content: '0'; }
+  .opt-body { min-width: 0; }
+  .opt-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+  .opt-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(21px, 2.2vw, 26px); line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
+  /* The short "−1.2 yrs" tag (aria-hidden; the full line below says it): plain figure, no pill */
+  .jp .opt-head .chip { flex-shrink: 0; height: auto; padding: 0; border: 0; background: none; font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .opt-impact { margin-top: 8px; font-size: 16px; font-weight: 500; line-height: 1.45; color: var(--ink); }
+  .opt-why { margin-top: 6px; max-width: 62ch; font-size: 15.5px; line-height: 1.6; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .opt-links { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: 15px; }
+  .opt-links a { color: var(--ink); font-weight: 500; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .opt-links a:hover { text-decoration-color: var(--ink); }
+  /* Status controls: quiet text buttons */
+  .opt-actions { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 22px; }
   .opt-btn {
-    min-height: 34px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface);
-    font: 500 13px/1 var(--font-ui); color: var(--ink); cursor: pointer; transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease;
+    min-height: 40px; padding: 0; border: 0; background: none; cursor: pointer;
+    font: 500 15px/1 var(--font-ui); color: var(--ink-2);
+    text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; text-decoration-thickness: 1px;
+    transition: color var(--dur-fast) ease, text-decoration-color var(--dur-fast) ease;
   }
-  .opt-btn:hover { background: var(--surface-2); border-color: var(--ink-3); }
-  .opt-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-  .opt-btn:disabled { opacity: 0.55; cursor: default; }
-  .opt-btn.quiet { border-color: transparent; background: none; color: var(--ink-2); padding: 0 8px; }
-  .opt-btn.quiet:hover { color: var(--ink); background: var(--surface-2); }
-  .opt-tag { display: inline-flex; align-items: center; gap: 5px; min-height: 26px; padding: 0 10px; border-radius: 999px; background: var(--ember-wash); color: var(--ember-ink); font-size: 12.5px; font-weight: 600; }
-  .opt-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ember); }
-  .plan-more { display: inline-block; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
-  .plan-more:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .plan-empty { margin-top: 14px; font-size: 14px; line-height: 1.6; color: var(--ink-2); }
-  .plan-empty a { color: var(--ember-ink); font-weight: 500; }
-  .plan-fold { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
-  .plan-fold summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--ink); padding: 4px 0; border-radius: 6px; }
-  .plan-fold summary:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-  .plan-fold ul { list-style: none; margin: 6px 0 0; padding: 0; }
-  .plan-fold li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 8px 0; font-size: 13.5px; color: var(--ink); }
-  .plan-fold li + li { border-top: 1px solid var(--line); }
-  .plan-fold .fold-sub { display: block; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+  .opt-btn:hover { color: var(--ink); text-decoration-color: var(--ink); }
+  .opt-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+  .opt-btn:disabled { opacity: 0.5; cursor: default; }
+  .opt-btn.quiet { font-weight: 600; color: var(--ink); }
+  .opt-tag { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .opt-tag::before { content: ''; width: 8px; height: 8px; background: var(--hp-accent); }
+  .plan-more { display: inline-block; margin-top: 18px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; text-decoration-thickness: 1px; }
+  .plan-more:hover { text-decoration-color: var(--ink); }
+  .plan-empty { padding-top: 18px; border-top: 1px solid var(--ink); max-width: 56ch; font-size: 17px; line-height: 1.6; color: var(--ink); }
+  .plan-empty a { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+  .plan-fold { margin-top: 18px; }
+  .plan-fold summary { display: inline-flex; align-items: center; gap: 8px; padding: 6px 0; list-style: none; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .plan-fold summary::-webkit-details-marker { display: none; }
+  .plan-fold summary::after { content: '+'; font-weight: 400; font-size: 17px; line-height: 1; transition: transform var(--dur-base) var(--ease); }
+  .plan-fold[open] summary::after { transform: rotate(45deg); }
+  .plan-fold summary:hover { color: var(--ink); text-decoration-color: var(--ink); }
+  .plan-fold summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+  .plan-fold ul { list-style: none; margin: 8px 0 0; padding: 0; border-top: var(--hp-rule); }
+  .plan-fold li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; padding: 12px 0; border-bottom: var(--hp-rule); font-size: 16px; color: var(--ink); }
+  .plan-fold .fold-sub { display: block; font-size: 14px; color: var(--ink-2); margin-top: 3px; }
+  .move-advice { margin-top: 28px; max-width: 62ch; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
 
-  /* ── If returns are different (→ What if…?) ── */
-  .lever { display: flex; align-items: center; gap: 14px; padding: 14px 0; text-decoration: none; border-top: 1px solid var(--line); }
-  .lever:first-child { border-top: none; padding-top: 2px; }
-  .lever-body { flex: 1; min-width: 0; }
-  .lever-title { font-size: 14.5px; font-weight: 600; color: var(--ink); }
-  .lever-desc { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
-  a.lever:hover .lever-title { color: var(--ember-ink); }
-  .lever-empty { font-size: 13.5px; color: var(--ink-2); }
-  .arrow { color: var(--ember-ink); flex-shrink: 0; transition: transform var(--dur-fast) ease; }
-  a:hover > .arrow { transform: translateX(2px); }
-
-  /* ── Progress ── */
-  .since-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); font-size: 14px; }
-  .since-row:first-child { border-top: none; padding-top: 2px; }
+  /* ── 4. Since your last check-in, and if returns are different ── */
+  .jp-check-col { min-width: 0; }
+  .jp-check-col + .jp-check-col { margin-top: 16px; }
+  @media (min-width: 900px) { .jp-check-col + .jp-check-col { margin-top: 0; } }
+  .jp-check .jp-sec-head { margin-bottom: 20px; }
+  .since-list, .levers { border-top: 1px solid var(--ink); }
+  .since-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 0; border-bottom: var(--hp-rule); font-size: 16px; }
   .since-label { color: var(--ink-2); }
-  .since-value { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
-  .since-value .before { color: var(--ink-3); font-weight: 400; }
-  .since-value.up .after { color: var(--positive); }
-  .progress-empty { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+  .since-value { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+  .since-value .before { font-family: var(--font-ui); font-size: 15px; font-weight: 400; letter-spacing: 0; color: var(--ink-2); }
+  .progress-empty { padding: 14px 0; font-size: 16px; color: var(--ink-2); line-height: 1.6; }
 
-  /* Freedom Unlocked — the one dark surface on the page, reserved for "earned" */
-  .fu { margin-top: 16px; border-radius: var(--r-md); background: linear-gradient(140deg, var(--espresso), var(--espresso-2)); color: var(--bg); padding: 20px; cursor: pointer; }
+  /* Time you've won back: the earned figure, in ember on cream */
+  .fu { margin-top: 28px; padding: 18px 0 16px; border-top: 2px solid var(--hp-accent); border-bottom: var(--hp-rule); cursor: pointer; }
   .fu[hidden] { display: none; }
-  .fu-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(253,246,238,0.55); }
-  .fu-figure { margin-top: 6px; font-family: var(--font-display); font-weight: 700; font-size: 34px; color: var(--amber); letter-spacing: -0.01em; }
-  .fu-figure small { font-family: var(--font-ui); font-size: 13px; font-weight: 500; color: rgba(253,246,238,0.65); margin: 0 10px 0 4px; letter-spacing: 0; }
-  .fu-text { margin-top: 6px; font-size: 13.5px; color: rgba(253,246,238,0.8); }
-  .fu-toggle { margin-top: 10px; font-size: 12px; color: rgba(253,246,238,0.5); }
-  .fu-history { display: none; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(253,246,238,0.12); }
+  .fu:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+  .fu-label { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+  .fu-figure { margin-top: 8px; font-family: var(--font-display); font-weight: 700; font-size: clamp(48px, 6vw, 72px); line-height: 1; letter-spacing: -0.03em; color: var(--hp-accent); }
+  .fu-figure small { font-family: var(--font-ui); font-size: 16px; font-weight: 500; color: var(--ink-2); margin: 0 14px 0 6px; letter-spacing: 0; }
+  .fu-text { margin-top: 12px; max-width: 52ch; font-size: 16px; line-height: 1.55; color: var(--ink); }
+  .fu-toggle { display: inline-block; margin-top: 12px; font-size: 14.5px; font-weight: 600; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; }
+  .fu:hover .fu-toggle { color: var(--ink); }
+  .fu-history { display: none; margin-top: 14px; border-top: var(--hp-rule); }
   .fu[aria-expanded="true"] .fu-history { display: block; }
-  .fu-history-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 12px; color: rgba(253,246,238,0.72); }
-  .fu-history-row.total { color: var(--amber); font-weight: 600; border-top: 1px solid rgba(253,246,238,0.12); margin-top: 4px; padding-top: 8px; }
-  .fu-history-note { margin-top: 8px; font-size: 11px; color: rgba(253,246,238,0.45); }
+  .fu-history-row { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: var(--hp-rule); font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .fu-history-row span:last-child { color: var(--ink); text-align: right; }
+  .fu-history-row.total { color: var(--ink); font-weight: 600; }
+  .fu-history-note { margin-top: 10px; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
 
-  /* ── Learn (→ Learn) ── */
-  .read { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--line); text-decoration: none; }
-  .read:first-child { border-top: none; padding-top: 2px; }
-  .read-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(124,92,168,0.1); color: var(--purple); display: grid; place-items: center; flex-shrink: 0; }
-  .read-title { flex: 1; font-size: 14px; font-weight: 500; color: var(--ink); line-height: 1.4; }
-  .read:hover .read-title { color: var(--ember-ink); }
+  .lever { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 18px; padding: 16px 0; border-bottom: var(--hp-rule); text-decoration: none; color: var(--ink); }
+  .lever-body { flex: 1; min-width: 0; }
+  .lever-title { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.25; color: var(--ink); }
+  .lever-desc { margin-top: 4px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+  a.lever:hover .lever-title { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .lever-empty { padding: 14px 0; font-size: 16px; color: var(--ink-2); }
+  /* "1 yr 2 mos later": the script renders a .chip; shown as a plain figure */
+  .jp .lever .chip { flex-shrink: 0; height: auto; padding: 0; border: 0; background: none; font-size: 16px; font-weight: 600; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .jp .lever .chip-negative { color: var(--ink-2); }
+  @media (max-width: 520px) { .lever { flex-direction: column; gap: 6px; } }
+
+  /* ── 5. Learn (sand) ── */
+  .jp-reads { border-top: 1px solid var(--ink); }
+  .read { display: flex; align-items: baseline; gap: 16px; padding: 18px 2px; border-bottom: var(--hp-rule); text-decoration: none; color: var(--ink); transition: border-color var(--dur-fast) ease; }
+  .read:hover, .read:focus-visible { border-bottom-color: var(--ink); }
+  .read-icon { display: none; }
+  .read-title { flex: 1; font-family: var(--font-display); font-weight: 700; font-size: clamp(19px, 2vw, 23px); line-height: 1.3; letter-spacing: -0.01em; color: var(--ink); }
+  .read:hover .read-title { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+
+  .jp-foot .app-footer { margin-top: 0; padding: 24px 0 32px; font-size: 13px; color: var(--ink-2); }
 
   /* ── Mobile "more" overlay ── */
   .explore { position: fixed; inset: 0; z-index: 200; background: var(--bg); transform: translateX(100%); transition: transform 0.35s var(--ease); overflow-y: auto; }
@@ -233,14 +290,19 @@
   .explore-close { position: absolute; top: 16px; right: 16px; background: none; border: none; padding: 8px; color: var(--ink); cursor: pointer; }
   .explore-inner { max-width: 480px; margin: 0 auto; padding: 72px 24px 48px; }
   .explore-group { margin-bottom: 32px; }
-  .explore-group .eyebrow { margin-bottom: 8px; }
-  .explore-link { display: block; padding: 8px 0; text-decoration: none; }
+  .explore-group .eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: none; color: var(--ink-2); }
+  .explore-group .eyebrow::before { content: ''; width: 28px; height: 1px; background: currentColor; opacity: 0.5; }
+  .explore-link { display: block; padding: 12px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
   .explore-link b { display: block; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); }
-  .explore-link span { font-size: 13px; color: var(--ink-2); }
-  .explore-link:hover b { color: var(--ember-ink); }
-  .explore-foot { display: flex; gap: 20px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 14px; }
-  .explore-foot a { color: var(--ink-2); text-decoration: none; }
+  .explore-link span { font-size: 14.5px; color: var(--ink-2); }
+  .explore-link:hover b { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .explore-foot { display: flex; flex-wrap: wrap; gap: 12px 20px; padding-top: 20px; border-top: 1px solid var(--ink); font-size: 15px; }
+  .explore-foot a { color: var(--ink-2); }
   @media (min-width: 1024px) { .explore { display: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kpi, .plan-list > .opt, .read, .arrow, .track-fill, .plan-bar i { transition: none !important; }
+  }
 </style>
 <script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
@@ -253,56 +315,68 @@
 <body class="app" data-shell="app" data-active="journey">
 <script src="js/shell.js"></script>
 
-<main class="app-main">
+<main class="hp jp" id="main">
 
-  <header class="page-head rise" style="--i:0">
-    <div class="head-row">
-      <div>
-        <h1 class="page-head-title" id="greetTitle">Welcome back.</h1>
-        <p class="page-head-sub" id="greetSub">&nbsp;</p>
+  <header class="jp-head rise" style="--i:0">
+    <div class="hp-wrap">
+      <div class="jp-head-row">
+        <div class="head-row">
+          <div>
+            <h1 class="jp-greet" id="greetTitle">Welcome back.</h1>
+            <p class="jp-greet-sub" id="greetSub">&nbsp;</p>
+          </div>
+          <button class="menu-btn" id="menuTrigger" aria-label="More" aria-controls="explore" aria-expanded="false">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+        </div>
+        <div class="jp-head-actions">
+          <button type="button" class="jp-persona" data-persona-open title="Change how FirePath talks to you">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+            <span data-persona-name></span>
+          </button>
+          <a href="firepath_pro.html?edit=true" class="jp-update">Update numbers</a>
+        </div>
       </div>
-      <button class="menu-btn" id="menuTrigger" aria-label="More" aria-controls="explore" aria-expanded="false">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-      </button>
-    </div>
-    <div class="page-head-actions">
-      <button type="button" class="chip" data-persona-open title="Change how FirePath talks to you">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-        <span data-persona-name></span>
-      </button>
-      <a href="firepath_pro.html?edit=true" class="btn btn-quiet">Update numbers</a>
+
+      <a href="welcome.html?next=journey.html" class="banner banner-accent" id="levelPrompt" data-persona-open hidden>
+        <span><strong>How much do you already know about money?</strong> Tell us and FirePath will explain things at your level.</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <div id="mondayCheck" hidden></div>
     </div>
   </header>
 
-  <div class="journey-grid">
-
-    <a href="welcome.html?next=journey.html" class="banner banner-accent span-12" id="levelPrompt" data-persona-open hidden>
-      <span><strong>How much do you already know about money?</strong> Tell us and FirePath will explain things at your level.</span>
-      <span class="arrow" aria-hidden="true">→</span>
-    </a>
-    <div class="span-12" id="mondayCheck" hidden></div>
-
-    <!-- 1 ── When does work become optional? ── -->
-    <section class="card hero span-12 rise" style="--i:1" aria-labelledby="heroEyebrow">
-      <div class="hero-inner">
-        <div class="hero-copy">
-          <div class="eyebrow" id="heroEyebrow" data-copy-fire="Projected FI date">Work becomes optional in</div>
+  <!-- 1 ── When does work become optional? The year, the path, the chart. ── -->
+  <section class="jp-hero rise" style="--i:1" aria-labelledby="heroEyebrow">
+    <div class="hp-wrap">
+      <div class="jp-hero-top">
+        <div class="jp-hero-figure">
+          <div class="hp-label is-ink" id="heroEyebrow" data-copy-fire="Projected FI date">Work becomes optional in</div>
           <div class="hero-year-row">
             <div class="hero-year skeleton" id="heroYear">2040</div>
-            <span class="chip" id="heroDelta" hidden></span>
           </div>
+          <span class="chip" id="heroDelta" hidden></span>
+        </div>
+        <div class="jp-hero-copy">
           <div class="hero-meta" id="heroMeta">&nbsp;</div>
           <div class="hero-range" id="heroRange" hidden></div>
           <p class="hero-narrative" id="heroNarrative"></p>
+        </div>
+      </div>
 
-          <div class="progress" id="progressBlock">
-            <div class="progress-head">
-              <span><strong class="num" id="progressPct">0%</strong> of your <span data-term="freedomNumberLabel">freedom number</span></span>
-              <span class="num" id="progressAmounts"></span>
-            </div>
-            <div class="track" id="track"><div class="track-fill" id="trackFill"></div></div>
-            <div class="milestone-labels" id="milestoneLabels"></div>
+      <div class="hero-path" id="heroPathWrap" hidden>
+        <div class="hero-path-head"><span class="hero-path-title">Your path</span><span class="hero-path-note" id="heroPathNote"></span></div>
+        <figure class="hero-path-fig" id="heroPath"></figure>
+      </div>
+
+      <div class="jp-hero-foot">
+        <div class="progress" id="progressBlock">
+          <div class="progress-head">
+            <span><strong class="num" id="progressPct">0%</strong> of your <span data-term="freedomNumberLabel">freedom number</span></span>
+            <span class="num" id="progressAmounts"></span>
           </div>
+          <div class="track" id="track"><div class="track-fill" id="trackFill"></div></div>
+          <div class="milestone-labels" id="milestoneLabels"></div>
         </div>
 
         <div class="hero-chart">
@@ -311,102 +385,98 @@
             <div class="legend" aria-hidden="true">
               <span><i></i>Current path</span>
               <span><i class="opt"></i>+$50 a week</span>
-                    </div>
+            </div>
           </div>
           <div class="chart-wrap" id="chartWrap">
             <div class="chart-tip" id="chartTip" role="status" aria-live="polite"></div>
           </div>
           <div class="chart-foot">Invested savings outside super (7% a year after inflation, less tax on its income), plus your super from 60. <a href="assumptions.html">How we calculate</a></div>
         </div>
-
-        <div class="hero-path" id="heroPathWrap" hidden>
-          <div class="hero-path-head"><span class="hero-path-title">Your path</span><span class="hero-path-note" id="heroPathNote"></span></div>
-          <figure class="hero-path-fig" id="heroPath"></figure>
-        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- 2 ── Where does my money stand? (→ Money) ── -->
-    <section class="span-12 rise" style="--i:2" aria-labelledby="moneyHead">
-      <div class="section-head">
-        <h2 class="section-label" id="moneyHead">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.5-3-2.5s-3 1.1-3 2.5 1.3 2.2 3 2.5c1.7.3 3 1.1 3 2.5s-1.3 2.5-3 2.5-3-1.1-3-2.5"/></svg>
-          Your money
-        </h2>
-        <a href="money.html" class="section-link">Money →</a>
+  <!-- 2 ── Where does my money stand? (→ Money) ── -->
+  <section class="hp-sec is-sand jp-money rise" style="--i:2" aria-labelledby="moneyHead">
+    <div class="hp-wrap">
+      <div class="jp-sec-head">
+        <h2 class="hp-h2 is-small" id="moneyHead">Your money</h2>
+        <a href="money.html" class="jp-more">Money →</a>
       </div>
       <div class="kpis" id="kpis">
-        <a href="money.html" class="card card-link kpi"><div class="kpi-label" data-copy-beginner="What you're worth">Net worth</div><div class="kpi-value skeleton" id="kpiNetWorth">$000K</div><div class="kpi-sub" id="kpiNetWorthSub"></div></a>
-        <a href="money.html" class="card card-link kpi"><div class="kpi-label" data-copy-beginner="Savings & investments" data-copy-fire="Portfolio (ex-super)">Invested</div><div class="kpi-value skeleton" id="kpiInvested">$000K</div><div class="kpi-sub" id="kpiInvestedSub"></div></a>
-        <a href="money.html" class="card card-link kpi"><div class="kpi-label">Super</div><div class="kpi-value skeleton" id="kpiSuper">$000K</div><div class="kpi-sub" id="kpiSuperSub"></div></a>
-        <a href="money.html" class="card card-link kpi"><div class="kpi-label" data-copy-fire="Savings rate (SR)">Savings rate</div><div class="kpi-value skeleton" id="kpiRate">00%</div><div class="kpi-sub" id="kpiRateSub"></div></a>
+        <a href="money.html" class="kpi"><div class="kpi-label" data-copy-beginner="What you're worth">Net worth</div><div class="kpi-value skeleton" id="kpiNetWorth">$000K</div><div class="kpi-sub" id="kpiNetWorthSub"></div></a>
+        <a href="money.html" class="kpi"><div class="kpi-label" data-copy-beginner="Savings & investments" data-copy-fire="Portfolio (ex-super)">Invested</div><div class="kpi-value skeleton" id="kpiInvested">$000K</div><div class="kpi-sub" id="kpiInvestedSub"></div></a>
+        <a href="money.html" class="kpi"><div class="kpi-label">Super</div><div class="kpi-value skeleton" id="kpiSuper">$000K</div><div class="kpi-sub" id="kpiSuperSub"></div></a>
+        <a href="money.html" class="kpi"><div class="kpi-label" data-copy-fire="Savings rate (SR)">Savings rate</div><div class="kpi-value skeleton" id="kpiRate">00%</div><div class="kpi-sub" id="kpiRateSub"></div></a>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- 3 ── Your plan (→ Strategy). Options and their modelled effect, never instructions.
-         The person marks each one On it / Done / Not for me (js/moves-status.js). ── -->
-    <section class="card span-7 rise" style="--i:3" aria-labelledby="planHeading">
-      <div class="section-head">
-        <h2 class="section-label" id="planHeading" tabindex="-1">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          Your plan
-        </h2>
-        <a href="strategy.html" class="section-link">All options →</a>
+  <!-- 3 ── Your plan (→ Strategy): the one dark band. Options and their modelled effect,
+       never instructions. The person marks each one On it / Done / Not for me (js/moves-status.js). ── -->
+  <section class="hp-sec is-dark jp-plan" aria-labelledby="planHeading">
+    <div class="hp-wrap hp-side">
+      <div class="hp-side-head is-sticky">
+        <h2 class="hp-h2 is-mid" id="planHeading" tabindex="-1">Your plan</h2>
+        <p class="plan-intro">Based on your numbers, areas you could research further. Ordered by how much each could move your projected date.</p>
+        <div id="planTop"></div>
+        <a href="strategy.html" class="jp-more">All options →</a>
       </div>
-      <p class="plan-since" style="margin:0 0 8px;">Based on your numbers, areas you could research further. Ordered by how much each could move your projected date.</p>
-      <div id="planTop"></div>
-      <div class="plan-note" id="planNote" role="status" aria-live="polite" tabindex="-1"></div>
-      <div id="planBody"><div class="skeleton" style="height:22px;width:60%"></div><div class="skeleton" style="height:14px;width:90%;margin-top:14px"></div><div class="skeleton" style="height:64px;margin-top:20px;border-radius:14px"></div></div>
-      <p class="move-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
-    </section>
+      <div class="hp-side-main">
+        <div class="plan-note" id="planNote" role="status" aria-live="polite" tabindex="-1"></div>
+        <div id="planBody"><div class="skeleton" style="height:22px;width:60%"></div><div class="skeleton" style="height:14px;width:90%;margin-top:14px"></div><div class="skeleton" style="height:64px;margin-top:20px;border-radius:4px"></div></div>
+        <p class="move-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
+      </div>
+    </div>
+  </section>
 
-    <section class="card span-5 rise" style="--i:4;align-self:start" aria-labelledby="leversHead">
-      <div class="section-head">
-        <h2 class="section-label" id="leversHead">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
-          If returns are different
-        </h2>
-        <a href="hearmeout.html" class="section-link">What if…? →</a>
-      </div>
-      <div id="levers"><div class="skeleton" style="height:44px"></div><div class="skeleton" style="height:44px;margin-top:12px"></div></div>
-    </section>
+  <!-- 4 ── Am I making progress? How sure is the date? ── -->
+  <div class="hp-sec jp-check">
+    <div class="hp-wrap hp-half">
+      <section class="jp-check-col rise" style="--i:3" aria-labelledby="progressHead">
+        <div class="jp-sec-head">
+          <h2 class="hp-h2 is-small" id="progressHead">Since your last check-in</h2>
+          <span class="jp-links" style="margin-top:0"><a href="progress.html" class="jp-more">Check in →</a><a href="about-you.html" class="jp-more">Milestones →</a></span>
+        </div>
+        <div id="sinceList" class="since-list"><p class="progress-empty">Your progress shows up here after your next visit — FirePath compares each check-in with the one before.</p></div>
+        <div class="fu" id="fuCard" role="button" tabindex="0" aria-expanded="false" hidden>
+          <div class="fu-label">Time you've won back</div>
+          <div class="fu-figure num" id="fuFigure"></div>
+          <div class="fu-text" id="fuText"></div>
+          <div class="fu-toggle" id="fuToggle">How this is calculated ▾</div>
+          <div class="fu-history" id="fuHistory"></div>
+        </div>
+      </section>
 
-    <!-- 4 ── Am I making progress? What should I learn? (→ Learn) ── -->
-    <section class="card span-7 rise" style="--i:5" aria-labelledby="progressHead">
-      <div class="section-head">
-        <h2 class="section-label" id="progressHead">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>
-          Since your last check-in
-        </h2>
-        <span style="display:flex;gap:14px;flex-wrap:wrap;"><a href="progress.html" class="section-link">Check in →</a><a href="about-you.html" class="section-link">Milestones →</a></span>
-      </div>
-      <div id="sinceList"><p class="progress-empty">Your progress shows up here after your next visit — FirePath compares each check-in with the one before.</p></div>
-      <div class="fu" id="fuCard" role="button" tabindex="0" aria-expanded="false" hidden>
-        <div class="fu-label">Time you've won back</div>
-        <div class="fu-figure num" id="fuFigure"></div>
-        <div class="fu-text" id="fuText"></div>
-        <div class="fu-toggle" id="fuToggle">How this is calculated ▾</div>
-        <div class="fu-history" id="fuHistory"></div>
-      </div>
-    </section>
-
-    <section class="card span-5 rise" style="--i:6" aria-labelledby="learnHead">
-      <div class="section-head">
-        <h2 class="section-label" id="learnHead">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></svg>
-          Picked for your level
-        </h2>
-        <a href="learn.html" class="section-link">Learn →</a>
-      </div>
-      <div id="learnList"></div>
-    </section>
-
+      <section class="jp-check-col rise" style="--i:4" aria-labelledby="leversHead">
+        <div class="jp-sec-head">
+          <h2 class="hp-h2 is-small" id="leversHead">If returns are different</h2>
+          <a href="hearmeout.html" class="jp-more">What if…? →</a>
+        </div>
+        <div id="levers" class="levers"><div class="skeleton" style="height:44px;margin-top:14px"></div><div class="skeleton" style="height:44px;margin-top:12px"></div></div>
+      </section>
+    </div>
   </div>
 
-  <footer class="app-footer">
-    <span>Educational only — not financial advice.</span>
-    <nav aria-label="Footer"><a href="faq.html">FAQ</a><a href="assumptions.html">Assumptions</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></nav>
-  </footer>
+  <!-- 5 ── What should I read? (→ Learn) ── -->
+  <section class="hp-sec is-sand jp-learn" aria-labelledby="learnHead">
+    <div class="hp-wrap hp-side">
+      <div class="hp-side-head">
+        <h2 class="hp-h2 is-small" id="learnHead">Picked for your level</h2>
+        <div class="jp-links"><a href="learn.html" class="jp-more">Learn →</a></div>
+      </div>
+      <div class="hp-side-main">
+        <div id="learnList" class="jp-reads"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="hp-wrap jp-foot">
+    <footer class="app-footer">
+      <span>Educational only — not financial advice.</span>
+      <nav aria-label="Footer"><a href="faq.html">FAQ</a><a href="assumptions.html">Assumptions</a><a href="terms.html">Terms</a><a href="privacy.html">Privacy</a></nav>
+    </footer>
+  </div>
 </main>
 
 <div class="explore" id="explore" aria-hidden="true">

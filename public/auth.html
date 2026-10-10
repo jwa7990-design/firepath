@@ -38,62 +38,111 @@
   <link rel="stylesheet" href="css/app.css"/>
   <script src="js/persona.js"></script>
   <script src="js/auth.js"></script>
+<link rel="stylesheet" href="css/fp-editorial.css"/>
 <style>
-  .auth-main { min-height: calc(100vh - var(--nav-h)); min-height: calc(100dvh - var(--nav-h)); display: flex; align-items: flex-start; justify-content: center; padding: 32px 16px calc(48px + env(safe-area-inset-bottom)); }
-  @media (min-width: 768px) { .auth-main { align-items: center; padding: 48px 32px 96px; } }
-  .auth-wrap { width: 100%; max-width: 420px; }
-  .auth-card { padding: 24px 20px 28px; }
-  @media (min-width: 768px) { .auth-card { padding: 32px 32px 36px; } }
+  /* Sign in: a calm editorial split. What Pro is on the left, the form on the right.
+     On phones the form comes first and the note sits under it. */
+  .auth-main { min-height: calc(100vh - var(--nav-h)); min-height: calc(100dvh - var(--nav-h)); display: flex; align-items: flex-start; padding: 32px 0 calc(56px + env(safe-area-inset-bottom)); }
+  @media (min-width: 900px) { .auth-main { align-items: center; padding: 56px 0 96px; } }
+  .auth-main > .hp-wrap { width: 100%; }
+  .auth-split { display: grid; gap: 48px; align-items: start; }
+  .auth-form-col { order: 1; min-width: 0; }
+  .auth-aside { order: 2; min-width: 0; padding-top: 28px; border-top: var(--hp-rule); }
+  @media (min-width: 900px) {
+    .auth-split { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; }
+    .auth-aside { order: 0; grid-column: 1 / span 5; padding-top: 6px; border-top: 0; }
+    .auth-form-col { grid-column: 7 / span 6; }
+  }
+  .auth-wrap { width: 100%; max-width: 440px; }
+  /* Reset password is for people who already have an account: no Pro note. */
+  .auth-main:has(#resetForm[style*="block"]) .auth-aside { display: none; }
+  .auth-main:has(#resetForm[style*="block"]) .auth-form-col { grid-column: 1 / span 6; }
 
-  .tabs { display: flex; padding: 3px; gap: 2px; margin-bottom: 28px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); }
-  .tab { flex: 1; height: 38px; border: none; background: none; border-radius: 999px; font: 500 13.5px var(--font-ui); color: var(--ink-2); cursor: pointer; transition: background var(--dur-fast) ease, color var(--dur-fast) ease, box-shadow var(--dur-fast) ease; }
+  /* The note */
+  .auth-price { margin-top: 18px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+  .auth-price .hp-big { font-size: clamp(64px, 8vw, 96px); line-height: 0.9; }
+  .auth-price-per { font-size: 17px; color: var(--ink); }
+  .auth-lead { margin-top: 18px; max-width: 40ch; font-size: 18px; line-height: 1.55; color: var(--ink); }
+  .auth-aside .hp-list-lg { margin-top: 24px; max-width: 440px; }
+  .auth-aside .hp-list-lg > li { font-size: 17px; padding: 14px 2px; }
+  .auth-fine { margin-top: 18px; max-width: 46ch; }
+
+  /* Tabs: two words with a rule, not a pill switch */
+  .tabs { display: flex; gap: 28px; margin-bottom: 32px; border-bottom: var(--hp-rule); }
+  .tab { position: relative; height: 44px; padding: 0; border: 0; background: none; font: 600 15px var(--font-ui); color: var(--ink-2); cursor: pointer; transition: color var(--dur-fast) ease; }
+  .tab::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: transparent; transition: background var(--dur-fast) ease; }
   .tab:hover { color: var(--ink); }
-  .tab.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
-  .tab:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .tab.active { color: var(--ink); }
+  .tab.active::after { background: var(--ink); }
+  .tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
 
-  .card-title { font-family: var(--font-display); font-weight: 700; font-size: 26px; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
-  .card-sub { font-size: 14.5px; color: var(--ink-2); line-height: 1.55; margin: 6px 0 24px; }
+  .card-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 3.6vw, 44px); line-height: 1.05; letter-spacing: -0.02em; color: var(--ink); }
+  .card-sub { max-width: 44ch; font-size: 16px; color: var(--ink-2); line-height: 1.6; margin: 12px 0 28px; }
+  .card-sub a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .card-sub a:hover { text-decoration-color: var(--ink); }
 
-  .input-group { display: grid; gap: 6px; margin-bottom: 16px; }
-  .input-label { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+  /* Inputs: the homepage's boxes */
+  .input-group { display: grid; gap: 6px; margin-bottom: 18px; }
+  .input-label { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .auth-main .input { height: 50px; padding: 0 14px; border-radius: var(--hp-r); border: 1px solid var(--line-strong); background: var(--bg); font-size: 17px; color: var(--ink); transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, box-shadow var(--dur-fast) ease; }
+  .auth-main .input::placeholder { color: var(--ink-3); }
+  .auth-main .input:hover { border-color: var(--ink-3); }
+  .auth-main .input:focus { outline: none; border-color: var(--ink); background: var(--surface); box-shadow: 0 0 0 3px rgba(43, 29, 20, 0.08); }
   .input-wrapper-pass { position: relative; }
-  .input-wrapper-pass input { padding-right: 48px; }
-  .eye-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; background: none; border: none; border-radius: 50%; cursor: pointer; color: var(--ink-3); display: flex; align-items: center; justify-content: center; }
-  .eye-btn:hover { color: var(--ink); background: var(--surface-2); }
+  .input-wrapper-pass input { padding-right: 52px; }
+  .eye-btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; background: none; border: none; border-radius: var(--hp-r); cursor: pointer; color: var(--ink-2); display: flex; align-items: center; justify-content: center; }
+  .eye-btn:hover { color: var(--ink); }
 
-  .cta-btn { margin-top: 8px; }
+  /* The one solid ember button */
+  .cta-btn { margin-top: 8px; height: 52px; border-radius: var(--hp-r); font-size: 15.5px; font-weight: 600; }
+  .cta-btn:active { transform: translateY(1px); }
+  .cta-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
   .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-  .auth-forgot { text-align: center; margin-top: 14px; }
-  .auth-forgot a { font-size: 13.5px; font-weight: 500; color: var(--ember-ink); text-decoration: none; }
-  .auth-forgot a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .auth-forgot { margin-top: 16px; }
+  .auth-forgot a { font-size: 14.5px; font-weight: 500; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  .auth-forgot a:hover { color: var(--ink); text-decoration-color: var(--ink); }
 
-  .error-msg { display: none; margin-top: 14px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--negative-wash); color: var(--negative); font-size: 13.5px; line-height: 1.5; }
-  .success-msg { display: none; margin-top: 14px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--positive-wash); color: var(--positive); font-size: 13.5px; line-height: 1.5; }
+  /* Messages: a short rule on the left, no tinted boxes */
+  .error-msg, .success-msg, .info-msg { display: none; padding: 2px 0 2px 14px; font-size: 15px; line-height: 1.55; }
+  .error-msg { margin-top: 16px; border-left: 2px solid var(--negative); color: var(--negative); }
+  .success-msg { margin-top: 16px; border-left: 2px solid var(--positive); color: var(--positive); }
+  .info-msg { margin-bottom: 24px; border-left: 2px solid var(--ink); color: var(--ink); }
+  .terms-note { margin-top: 14px; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+  .terms-note a { color: var(--ink); font-weight: 500; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .terms-note a:hover { text-decoration-color: var(--ink); }
 
-  .info-msg { display: none; margin-bottom: 18px; padding: 10px 14px; border-radius: var(--r-sm); background: var(--surface-2); border: 1px solid var(--line); color: var(--ink); font-size: 13.5px; line-height: 1.5; }
-  .terms-note { margin-top: 12px; text-align: center; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
-  .terms-note a { color: var(--ember-ink); font-weight: 500; text-decoration: none; }
-  .terms-note a:hover { text-decoration: underline; text-underline-offset: 3px; }
-
-  .captcha-slot { display: flex; justify-content: center; margin: 4px 0 8px; }
+  .captcha-slot { display: flex; justify-content: flex-start; margin: 4px 0 8px; }
   .captcha-slot:empty { display: none; }
-  .back-link { text-align: center; margin-top: 20px; }
-  .back-link a { font-size: 13.5px; color: var(--ink-2); text-decoration: none; }
-  .back-link a:hover { color: var(--ink); }
+  .back-link { margin-top: 28px; padding-top: 16px; border-top: var(--hp-rule); }
+  .back-link a { font-size: 14.5px; color: var(--ink-2); text-decoration: none; }
+  .back-link a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 </style>
 </head>
 <body class="site" data-shell="site" data-footer="none">
 <script src="js/shell.js"></script>
 
-<main class="auth-main">
-<div class="auth-wrap">
+<main class="hp auth-main">
+<div class="hp-wrap">
+<div class="auth-split">
 
-  <div class="card auth-card">
+  <aside class="auth-aside" aria-label="About FirePath Pro">
+    <p class="hp-label is-ink">FirePath Pro</p>
+    <p class="auth-price"><span class="hp-big is-ember">$6</span><span class="auth-price-per">a month (AUD)</span></p>
+    <p class="auth-lead">Your plan, saved. Every tool fills in your own numbers for you. No retyping.</p>
+    <ul class="hp-list-lg">
+      <li><span class="hp-mark is-ink" aria-hidden="true"></span><span>A personal AI read on your plan</span></li>
+      <li><span class="hp-mark is-ink" aria-hidden="true"></span><span>Your full plan, with super</span></li>
+      <li><span class="hp-mark is-ink" aria-hidden="true"></span><span>Ask FirePath</span></li>
+    </ul>
+    <p class="hp-l3 auth-fine">7-day free trial. Card needed to start. You won’t be charged until day 8. Cancel before then and you pay nothing.</p>
+  </aside>
+
+  <div class="auth-form-col">
+  <div class="auth-wrap">
     <div class="tabs" role="tablist">
       <button type="button" class="tab active" id="loginTab" onclick="showTab('login')">Sign in</button>
       <button type="button" class="tab" id="signupTab" onclick="showTab('signup')">Start free trial</button>
     </div>
-
     <p class="info-msg" id="authNotice" role="status"></p>
 
     <!-- Login -->
@@ -112,7 +161,7 @@
         </div>
       </div>
       <div class="captcha-slot" id="loginCaptcha"></div>
-      <button class="btn btn-primary btn-lg btn-block cta-btn" id="loginBtn" onclick="login()">Sign in →</button>
+      <button class="btn btn-ember btn-lg btn-block cta-btn" id="loginBtn" onclick="login()">Sign in →</button>
       <div class="auth-forgot">
         <a href="#" onclick="forgotPassword(event)">Forgot password?</a>
       </div>
@@ -135,7 +184,7 @@
         </div>
       </div>
       <div class="captcha-slot" id="signupCaptcha"></div>
-      <button class="btn btn-primary btn-lg btn-block cta-btn" id="signupBtn" onclick="signup()">Create account and start trial →</button>
+      <button class="btn btn-ember btn-lg btn-block cta-btn" id="signupBtn" onclick="signup()">Create account and start trial →</button>
       <p class="terms-note">By creating an account you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy policy</a>.</p>
       <p class="error-msg" id="signupError"></p>
       <p class="success-msg" id="signupSuccess">Check your email and tap the link to confirm — it takes you straight to your free trial.</p>
@@ -152,16 +201,17 @@
           <button type="button" class="eye-btn" onclick="toggleEye('resetPassword', this)" tabindex="-1" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
         </div>
       </div>
-      <button class="btn btn-primary btn-lg btn-block cta-btn" id="resetBtn" onclick="saveNewPassword()">Save new password →</button>
+      <button class="btn btn-ember btn-lg btn-block cta-btn" id="resetBtn" onclick="saveNewPassword()">Save new password →</button>
       <p class="error-msg" id="resetError"></p>
     </div>
 
+    <div class="back-link">
+      <a href="index.html">← Back to FirePath</a>
+    </div>
+  </div>
   </div>
 
-  <div class="back-link">
-    <a href="index.html">← Back to FirePath</a>
-  </div>
-
+</div>
 </div>
 </main>
 <script>

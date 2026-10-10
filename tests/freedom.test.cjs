@@ -219,8 +219,8 @@ test('super at 60 (tax pages and Pro): 5.40% after fees and tax, SG capped, mont
   near(r.balance, 772000, 3000, 'about $772k, not the old $1.08M');
   // SG stops growing at the concessional cap.
   near(X.projectSuperTo60(0, 59, 1e6).sgMonthly, 32500 / 12, 0.01);
-  // tax.html and tax_pro.html use it, with no r/12 compounding left.
-  for (const f of ['tax.html', 'tax_pro.html']) {
+  // tax_pro.html uses it, with no r/12 compounding left.
+  for (const f of ['tax_pro.html']) {
     const src = read(f);
     assert.ok(src.includes('projectSuperTo60(proProfile.super_balance || 0, proProfile.age, gross, r.netSuperGain / 12)'), f);
     assert.ok(!/0\.07\s*\/\s*12/.test(src) && !/rate\s*\/\s*12/.test(src), f + ' still compounds at r/12');

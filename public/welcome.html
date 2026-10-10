@@ -38,52 +38,69 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/app.css"/>
   <script src="js/persona.js"></script>
+  <link rel="stylesheet" href="css/fp-editorial.css"/>
   <style>
-  .welcome { max-width: 480px; margin: 0 auto; padding: 40px 16px calc(56px + env(safe-area-inset-bottom)); }
-  @media (min-width: 768px) { .welcome { padding-top: 64px; } }
-  .welcome-eyebrow { color: var(--ember-ink); margin-bottom: 10px; }
-  .welcome-title { font-family: var(--font-display); font-size: clamp(26px, 5vw, 32px); font-weight: 700; color: var(--ink); line-height: 1.2; letter-spacing: -0.01em; margin-bottom: 10px; }
-  .welcome-sub { font-size: 15px; color: var(--ink-2); line-height: 1.6; margin-bottom: 28px; }
+  /* Welcome: the question on the left, the three answers as a ruled list on the right. */
+  .welcome { padding: 40px 0 calc(64px + env(safe-area-inset-bottom)); }
+  @media (min-width: 768px) { .welcome { padding: 72px 0 96px; } }
+  .welcome .hp-two { row-gap: 36px; }
+  .welcome-title { max-width: 14ch; margin-top: 18px; font-size: clamp(36px, 4.6vw, 56px); }
+  .welcome-sub { margin-top: 18px; max-width: 42ch; font-size: 17px; line-height: 1.65; color: var(--ink-2); }
 
-  /* Same card look as the calculator onboarding */
-  .ob-persona-list { display: flex; flex-direction: column; gap: 12px; }
-  .ob-persona { display: flex; align-items: center; gap: 16px; padding: 20px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1); cursor: pointer; transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease), background var(--dur-fast) ease; }
-  .ob-persona:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
-  .ob-persona.selected { border-color: var(--ember); background: var(--ember-wash); box-shadow: var(--shadow-2); transform: none; }
-  .ob-persona:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  /* The picker (markup from js/persona.js): rows with a square mark, no cards */
+  .ob-persona-list { display: flex; flex-direction: column; border-top: 1px solid var(--ink); }
+  .ob-persona { position: relative; display: flex; align-items: center; gap: 18px; padding: 20px 2px; background: none; border: 0; border-radius: 0; border-bottom: var(--hp-rule); text-align: left; cursor: pointer; transition: border-color var(--dur-fast) ease; }
+  .ob-persona:hover { border-bottom-color: var(--ink); }
+  .ob-persona:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+  .ob-persona-icon { display: none; }
   .ob-persona-info { flex: 1; min-width: 0; }
-  .ob-persona-name { font-size: 15.5px; font-weight: 600; color: var(--ink); margin-bottom: 3px; }
-  .ob-persona-desc { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
-  .ob-persona-check { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line-strong); display: flex; align-items: center; justify-content: center; color: transparent; flex-shrink: 0; transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease; }
-  .ob-persona.selected .ob-persona-check { background: var(--ember); border-color: var(--ember); color: #fff; }
+  .ob-persona-name { font-family: var(--font-display); font-size: clamp(21px, 2.2vw, 25px); font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 4px; }
+  .ob-persona-desc { max-width: 52ch; font-size: 15.5px; color: var(--ink-2); line-height: 1.5; }
+  .ob-persona-check { order: -1; width: 18px; height: 18px; border-radius: 0; border: 1.5px solid var(--ink-2); display: flex; align-items: center; justify-content: center; color: transparent; flex-shrink: 0; transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease; }
+  .ob-persona-check svg { width: 12px; height: 12px; }
+  .ob-persona.selected { background: none; border-bottom-color: var(--ink); }
+  .ob-persona.selected .ob-persona-name { color: var(--hp-accent); }
+  .ob-persona.selected .ob-persona-check { background: var(--hp-accent); border-color: var(--hp-accent); color: #fff; }
 
-  .welcome-promise { margin-top: 20px; }
-  .welcome-promise-label { margin-bottom: 4px; }
+  .welcome-promise { margin-top: 28px; padding-left: 16px; border-left: 2px solid var(--ink); font-size: 16px; line-height: 1.6; color: var(--ink); }
+  .welcome-promise-label { margin-bottom: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); }
   .welcome-promise[hidden] { display: none; }
-  .welcome-next { margin-top: 16px; }
+  .welcome-next { margin-top: 28px; height: 52px; padding: 0 28px; border-radius: var(--hp-r); font-size: 15.5px; font-weight: 600; }
+  .welcome-next:active { transform: translateY(1px); }
+  .welcome-next:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  @media (max-width: 599px) { .welcome-next { width: 100%; } }
   .welcome-next[aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
-  .welcome-foot { margin-top: 20px; text-align: center; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
-  .welcome-foot a { color: var(--ember-ink); }
+  .welcome-foot { margin-top: 18px; max-width: 52ch; }
+  .welcome-foot a { color: var(--ink); }
+  @media (prefers-reduced-motion: reduce) { .ob-persona, .ob-persona-check { transition: none !important; } }
   </style>
 </head>
 <body class="site" data-shell="site" data-footer="none">
 <script src="js/shell.js"></script>
 
-<main class="welcome">
-  <div class="eyebrow welcome-eyebrow">Before we start</div>
-  <h1 class="welcome-title">How would you describe your money knowledge?</h1>
-  <p class="welcome-sub">There's no wrong answer. It changes how FirePath explains things and where you start — and you can switch any time.</p>
-
-  <div id="welcomePicker"></div>
-
-  <div class="callout welcome-promise" id="welcomePromise" hidden>
-    <div class="eyebrow welcome-promise-label">How FirePath will talk to you</div>
-    <div data-term="levelPromise"></div>
+<main class="hp welcome">
+<div class="hp-wrap">
+<div class="hp-two">
+  <div>
+    <p class="hp-label">Before we start</p>
+    <h1 class="hp-h1 welcome-title">How would you describe your money knowledge?</h1>
+    <p class="welcome-sub">There's no wrong answer. It changes how FirePath explains things and where you start — and you can switch any time.</p>
   </div>
 
-  <a class="btn btn-ember btn-lg btn-block welcome-next" id="welcomeNext" href="#" aria-disabled="true">Continue →</a>
+  <div>
+    <div id="welcomePicker"></div>
 
-  <p class="welcome-foot">Not sure? Pick the one that feels closest — you can change it later from Settings.</p>
+    <div class="welcome-promise" id="welcomePromise" hidden>
+      <p class="welcome-promise-label">How FirePath will talk to you</p>
+      <div data-term="levelPromise"></div>
+    </div>
+
+    <a class="btn btn-ember btn-lg welcome-next" id="welcomeNext" href="#" aria-disabled="true">Continue →</a>
+
+    <p class="hp-l3 welcome-foot">Not sure? Pick the one that feels closest — you can change it later from Settings.</p>
+  </div>
+</div>
+</div>
 </main>
 
 <script>

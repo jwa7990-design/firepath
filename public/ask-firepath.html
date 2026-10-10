@@ -22,6 +22,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/app.css"/>
+<link rel="stylesheet" href="/css/fp-editorial.css">
 <script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/safe-html.js"></script>
@@ -31,153 +32,152 @@
 <script src="js/moves.js"></script>
 <script src="js/interactions.js"></script>
 <style>
-  /* ── Chat layout: page header + scrolling thread + input bar pinned to the bottom.
-       The page itself doesn't scroll — the thread does — so the input bar always
-       sits in view. On mobile it's lifted above the shell's floating tab bar. ── */
+  /* ── Ask FirePath: an editorial chat. The page doesn't scroll — the thread does — so the
+       input bar always sits in view. Every row (head, thread, note, bar) centres a ~720px
+       reading column with padding, so the thread's scrollbar sits at the page edge.
+       On mobile the bar is lifted above the shell's tab bar. ── */
   html, body.app { height: 100%; }
   body.app { overflow: hidden; }
-  .ask-main {
-    display: flex; flex-direction: column; height: 100vh; height: 100dvh;
-    max-width: 760px; padding-bottom: 0;
-  }
-  @media (min-width: 768px) { .ask-main { padding-bottom: 0; } }
-  @media (min-width: 1024px) { .ask-main { padding-bottom: 0; padding-top: 40px; } }
+  .ask-main { --col: 720px; --gut: 16px; display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+  @media (min-width: 768px) { .ask-main { --gut: 32px; } }
+  .ask-main > * { padding-left: max(var(--gut), calc((100% - var(--col)) / 2)); padding-right: max(var(--gut), calc((100% - var(--col)) / 2)); }
   /* Visitors get the site shell (js/shell.js, data-public): a top nav instead of the
      rail and tab bar, so the column fits under the nav and the bar needs no tab-bar lift. */
   body.site .ask-main { height: calc(100vh - var(--nav-h)); height: calc(100dvh - var(--nav-h)); }
   body.site .chat-input-bar { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
   @media (min-width: 1024px) { body.site .chat-input-bar { padding-bottom: 28px; } }
-  .ask-main .page-head { flex-shrink: 0; margin-bottom: 0; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+
+  .ask-head { flex-shrink: 0; padding-top: 24px; padding-bottom: 18px; border-bottom: var(--hp-rule); }
+  @media (min-width: 768px) { .ask-head { padding-top: 40px; padding-bottom: 22px; } }
+  @media (min-width: 1024px) { .ask-head { padding-top: 48px; } }
+  .ask-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 4.4vw, 52px); line-height: 1.02; letter-spacing: -0.028em; color: var(--ink); }
+  .ask-sub { margin-top: 10px; max-width: 54ch; font-size: clamp(15px, 1.4vw, 17px); line-height: 1.5; color: var(--ink); }
 
   .chat-thread {
     flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
-    padding: 20px 2px 16px; display: flex; flex-direction: column; gap: 20px;
+    padding-top: 28px; padding-bottom: 20px; display: flex; flex-direction: column; gap: 0;
   }
 
-  .chat-starters { display: flex; flex-direction: column; gap: 8px; }
-  .chat-starters-label { margin-bottom: 4px; }
-
-  /* Suggestion chips — same family as .chip, sized up to be comfortable tap targets */
+  /* Starter questions: large text options on a ruled list, not pills */
+  .chat-starters { display: flex; flex-direction: column; }
+  .chat-starters-label { margin-bottom: 14px; }
+  .chat-starters .pill-chip { border-top: 0; }
+  .chat-starters-label + .pill-chip { border-top: 1px solid var(--ink); }
   .pill-chip {
-    align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; max-width: 100%;
-    min-height: 40px; padding: 8px 16px 8px 10px; border-radius: 999px; text-align: left;
-    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
-    font: 500 13.5px/1.35 var(--font-ui); color: var(--ink); cursor: pointer;
-    transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease);
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px; width: 100%;
+    padding: 16px 2px; background: none; border: 0; border-bottom: var(--hp-rule); border-radius: 0; text-align: left; cursor: pointer;
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(19px, 2.1vw, 24px); line-height: 1.25; letter-spacing: -0.01em; color: var(--ink);
+    transition: border-color var(--dur-fast) ease;
   }
-  .pill-chip:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); }
-  .pill-chip:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-  .pill-chip-icon {
-    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
-    background: var(--ember-wash); color: var(--ember-ink);
-    display: flex; align-items: center; justify-content: center;
-  }
+  .pill-chip::after { content: '→'; flex-shrink: 0; font-family: var(--font-ui); font-weight: 400; font-size: 18px; color: var(--ink-2); transition: transform var(--dur-base) var(--ease), color var(--dur-fast) ease; }
+  .pill-chip:hover { border-bottom-color: var(--ink); }
+  .pill-chip:hover::after { transform: translateX(4px); color: var(--ink); }
+  .pill-chip:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+  .pill-chip-icon { display: none; }
 
-  /* One turn = the user's bubble + FirePath's card reply + follow-up chips */
-  .chat-turn { display: flex; flex-direction: column; gap: 10px; animation: fp-rise var(--dur-slow) var(--ease) both; }
+  /* One turn = the question, then FirePath's answer; thin rules between turns */
+  .chat-turn { display: flex; flex-direction: column; gap: 16px; padding: 28px 0 30px; border-top: var(--hp-rule); animation: fp-rise var(--dur-slow) var(--ease) both; }
+  .chat-starters + .chat-turn, .chat-thread > .chat-turn:first-child { border-top: 0; padding-top: 4px; }
   .chat-bubble-user {
-    align-self: flex-end; max-width: 82%; background: var(--ink); color: var(--bg);
-    border-radius: 18px 18px 4px 18px; padding: 11px 16px; font-size: 14.5px; font-weight: 500; line-height: 1.45;
-    overflow-wrap: anywhere;
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.5vw, 28px); line-height: 1.2; letter-spacing: -0.015em;
+    color: var(--ink); overflow-wrap: anywhere;
   }
 
-  /* Reply cards — three tones for the three answer tiers */
-  .chat-card { border-radius: var(--r-lg); padding: 18px 20px; max-width: 100%; }
-  @media (min-width: 768px) { .chat-card { padding: 22px 24px; } }
-  .chat-card-supported { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); }
-  .chat-card-guided { background: #FFF7F2; border: 1px solid rgba(244,98,42,0.22); }
-  .chat-card-unsupported { background: var(--surface-2); border: 1px dashed var(--line-strong); }
-  .chat-tag {
-    display: inline-flex; align-items: center; margin-bottom: 12px; padding: 4px 10px; border-radius: 999px;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
-  }
-  .chat-card-supported .chat-tag { color: var(--positive); background: var(--positive-wash); }
-  .chat-card-guided .chat-tag { color: var(--ember-ink); background: var(--ember-wash); }
-  .chat-card-unsupported .chat-tag { color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); }
-  .chat-headline { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--ink); line-height: 1.35; letter-spacing: -0.005em; margin-bottom: 8px; }
-  .chat-headline strong { color: var(--ember-ink); font-weight: 700; }
-  .chat-body { font-size: 14.5px; color: var(--ink-2); line-height: 1.65; margin-bottom: 14px; }
+  /* Answers: no boxes. A small ink label, the words in a serif reading face. */
+  .chat-card { max-width: 100%; }
+  .chat-card-guided { padding-top: 16px; border-top: 2px solid var(--hp-accent); }
+  .chat-thread > .chat-card-guided { margin-bottom: 28px; }
+  .chat-card-unsupported { padding-top: 16px; border-top: 1px solid var(--ink); }
+  .chat-tag { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink); }
+  .chat-tag::before { content: ''; flex-shrink: 0; width: 8px; height: 8px; background: var(--hp-accent); }
+  .chat-card-supported .chat-tag::before { background: none; box-shadow: inset 0 0 0 1.5px var(--ink); }
+  .chat-headline { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1.3; margin-bottom: 8px; }
+  .chat-headline strong { color: var(--hp-accent); font-weight: 700; }
+  .chat-body { font-family: Georgia, 'Times New Roman', serif; font-size: 18px; line-height: 1.65; color: var(--ink); margin-bottom: 18px; overflow-wrap: break-word; }
+  @media (min-width: 768px) { .chat-body { font-size: 19px; } }
+  .chat-body p + p, .chat-body p + ul, .chat-body ul + p { margin-top: 0.8em; }
+  .chat-body strong { font-weight: 700; }
+  .chat-body ul, .chat-body ol { padding-left: 1.2em; }
   .chat-card-unsupported .chat-body { margin-bottom: 0; }
-  .chat-stat-row {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
-    padding: 12px 14px; margin-bottom: 14px;
-  }
-  .chat-stat-title { font-size: 14px; font-weight: 600; color: var(--ink); }
-  .chat-stat-label { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
-  .chat-stat-value { font-size: 15px; font-weight: 600; color: var(--ink); text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums lining-nums; }
+  .chat-stat-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 2px; margin-bottom: 14px; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); }
+  .chat-stat-title { font-size: 15px; font-weight: 600; color: var(--ink); }
+  .chat-stat-label { font-size: 13.5px; color: var(--ink-2); margin-top: 2px; }
+  .chat-stat-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--ink); text-align: right; flex-shrink: 0; font-variant-numeric: tabular-nums lining-nums; }
+  /* Links out: ruled rows with the arrow nudging on hover */
   .chat-learn-link {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md);
-    padding: 12px 14px; text-decoration: none; font-size: 13.5px; font-weight: 500; color: var(--ink);
-    transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 14px 2px; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); text-decoration: none;
+    font-size: 16px; font-weight: 600; color: var(--ink); transition: border-color var(--dur-fast) ease;
   }
-  .chat-learn-link span:last-child { color: var(--ember-ink); flex-shrink: 0; }
-  .chat-learn-link:hover { border-color: var(--ember); background: #FFF7F2; }
-  .chat-learn-link:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .chat-learn-link + .chat-learn-link { border-top: 0; }
+  .chat-learn-link span:last-child { flex-shrink: 0; color: var(--ink-2); transition: transform var(--dur-base) var(--ease); }
+  .chat-learn-link:hover { border-bottom-color: var(--ink); }
+  .chat-learn-link:hover span:first-child { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+  .chat-learn-link:hover span:last-child { transform: translateX(4px); color: var(--ink); }
+  .chat-learn-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
   /* General-advice note: always visible above the input, and repeated under each answer. */
-  .chat-advice { flex-shrink: 0; margin: 0; padding: 8px 2px 0; font-size: 12px; line-height: 1.5; color: var(--ink-2); }
+  .chat-advice { flex-shrink: 0; margin: 0; padding-top: 10px; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); }
   .chat-card .chat-advice { padding: 12px 0 0; }
-  .chat-followups { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chat-followups .pill-chip { align-self: auto; }
+  .chat-followups { display: flex; flex-direction: column; }
 
-  /* Input bar — sits above the mobile tab bar (≈76px + safe area), flush at desktop */
-  .chat-input-bar {
-    flex-shrink: 0; display: flex; align-items: flex-end; gap: 10px;
-    margin: 0 -16px; padding: 12px 16px calc(92px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--line); background: var(--bg);
+  /* Input bar: one clean bar, the send button inside it. Above the mobile tab bar
+     (≈76px + safe area), flush at desktop. */
+  .chat-input-bar { flex-shrink: 0; padding-top: 10px; padding-bottom: calc(92px + env(safe-area-inset-bottom)); background: var(--bg); }
+  @media (min-width: 1024px) { .chat-input-bar { padding-bottom: 28px; } }
+  .chat-input-box {
+    display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 18px;
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--hp-r);
+    transition: border-color var(--dur-fast) ease;
   }
-  @media (min-width: 768px) { .chat-input-bar { margin: 0 -32px; padding-left: 32px; padding-right: 32px; } }
-  @media (min-width: 1024px) { .chat-input-bar { margin: 0; padding: 14px 0 28px; } }
+  .chat-input-box:focus-within { border-color: var(--ink); }
   .chat-input {
-    flex: 1; min-width: 0; min-height: 48px; max-height: 100px; resize: none;
-    padding: 13px 16px; border-radius: 24px; border: 1px solid var(--line-strong); background: var(--surface);
-    font: 400 15px/1.4 var(--font-ui); color: var(--ink); box-shadow: var(--shadow-1);
-    transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+    flex: 1; min-width: 0; min-height: 44px; max-height: 100px; resize: none; padding: 11px 0; border: 0; background: none;
+    font: 400 16.5px/1.4 var(--font-ui); color: var(--ink);
   }
-  .chat-input:focus { outline: none; border-color: var(--ember); box-shadow: 0 0 0 3px var(--ember-wash); }
-  .chat-input::placeholder { color: var(--ink-3); }
+  .chat-input:focus { outline: none; }
+  .chat-input::placeholder { color: var(--ink-2); }
   .chat-send {
-    flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
+    flex-shrink: 0; width: 44px; height: 44px; border-radius: 6px; border: none; cursor: pointer;
     background: var(--ink); color: var(--bg);
     display: flex; align-items: center; justify-content: center;
-    transition: opacity var(--dur-fast) ease, transform var(--dur-fast) ease;
+    transition: opacity var(--dur-fast) ease, background var(--dur-fast) ease;
   }
   .chat-send:not(:disabled):hover { background: #3F2C1F; }
-  .chat-send:not(:disabled):active { transform: scale(0.96); }
-  .chat-send:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
-  .chat-send:disabled { opacity: 0.35; cursor: default; }
+  .chat-send:not(:disabled):active { transform: translateY(1px); }
+  .chat-send:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .chat-send:disabled { opacity: 0.3; cursor: default; }
+  @media (prefers-reduced-motion: reduce) { .pill-chip::after, .chat-learn-link span:last-child { transition: none !important; } }
 </style>
 </head>
 <body class="app" data-shell="app" data-footer="none" data-active="ask">
 <script src="js/shell.js"></script>
 
-<main class="app-main ask-main">
+<main class="hp ask-main" id="main">
 
-  <header class="page-head">
-    <div>
-      <h1 class="page-head-title">Ask FirePath</h1>
-      <p class="page-head-sub">Ask anything about your plan — answered by AI, with FirePath’s maths doing the sums.</p>
-    </div>
+  <header class="ask-head">
+    <h1 class="ask-title">Ask FirePath</h1>
+    <p class="ask-sub">Ask anything about your plan — answered by AI, with FirePath’s maths doing the sums.</p>
   </header>
 
   <div class="chat-thread" id="chatThread">
     <div class="chat-starters" id="chatStarters">
-      <div class="chat-starters-label eyebrow">Popular questions</div>
-      <button class="pill-chip" type="button"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I save an extra $250 a month?</button>
-      <button class="pill-chip" type="button"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I spend $150 less a week?</button>
-      <button class="pill-chip" type="button"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What if I retire at 40?</button>
-      <button class="pill-chip" type="button"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>What would paying off debt vs investing do to my date?</button>
-      <button class="pill-chip" type="button"><span class="pill-chip-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></span>How does salary sacrifice change my numbers?</button>
+      <p class="chat-starters-label hp-label is-ink">Popular questions</p>
+      <button class="pill-chip" type="button">What if I save an extra $250 a month?</button>
+      <button class="pill-chip" type="button">What if I spend $150 less a week?</button>
+      <button class="pill-chip" type="button">What if I retire at 40?</button>
+      <button class="pill-chip" type="button">What would paying off debt vs investing do to my date?</button>
+      <button class="pill-chip" type="button">How does salary sacrifice change my numbers?</button>
     </div>
   </div>
 
   <p class="chat-advice" id="askAdvice">General information, not financial advice. FirePath isn’t a licensed adviser.</p>
   <div class="chat-input-bar">
-    <textarea class="chat-input" id="askInput" rows="1" placeholder="Ask anything about your plan…"></textarea>
-    <button class="chat-send" id="askSubmit" aria-label="Send" disabled>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-    </button>
+    <div class="chat-input-box">
+      <textarea class="chat-input" id="askInput" rows="1" aria-label="Your question" placeholder="Ask anything about your plan…"></textarea>
+      <button class="chat-send" id="askSubmit" aria-label="Send" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
   </div>
 
 </main>
@@ -331,7 +331,7 @@
     }).trim();
     const linkHtml = links.slice(0, 2).map(l => `<a href="${l.href}" class="chat-learn-link"><span>${escapeHtml(l.label)}</span><span>→</span></a>`).join('');
     return `<div class="chat-card chat-card-supported">
-      <span class="chat-tag">${PLAN ? '✓ Built on your saved plan' : 'General answer. Save your full plan to get answers about your own numbers'}</span>
+      <span class="chat-tag">${PLAN ? 'Built on your saved plan' : 'General answer. Save your full plan to get answers about your own numbers'}</span>
       <div class="chat-body">${FirePathSafe.aiText(body)}</div>${linkHtml}<p class="chat-advice">General information, not financial advice. FirePath isn’t a licensed adviser.</p></div>`;
   }
   const notice = (tag, text, link) => `<div class="chat-card chat-card-guided"><span class="chat-tag">${tag}</span><div class="chat-body">${text}</div>${link || ''}</div>`;

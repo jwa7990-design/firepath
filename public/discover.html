@@ -41,116 +41,137 @@
   <!-- auth.js provides WORKER_URL (and getToken etc.) — must load before the page script -->
   <script src="js/auth.js"></script>
   <script src="js/calculations.js"></script>
+  <link rel="stylesheet" href="/css/fp-editorial.css"/>
   <style>
-  .discover { max-width: 640px; }
-  .discover .page-head { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .discover .section-link { margin-bottom: 6px; }
-  .discover .page-head-sub { font-size: 14px; max-width: 48ch; line-height: 1.6; }
+  /* ── Frame: full-width editorial sections beside the desktop rail, clear of the
+       phone tab bar. ── */
+  .dv { width: 100%; padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+  @media (min-width: 1024px) { .dv { padding-bottom: 0; } }
+
+  .dv-hero { padding: 32px 0 40px; }
+  @media (min-width: 768px) { .dv-hero { padding: 56px 0 64px; } }
+  .dv-back { display: inline-block; margin: 0 0 28px; font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none; }
+  .dv-back:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+  .dv-hero .hp-label { margin-bottom: 16px; }
+  .dv-hero .hp-h1 { max-width: 12ch; }
+
+  .dv-side { min-width: 0; }
+  @media (min-width: 900px) { .dv-side { position: sticky; top: 32px; align-self: start; } }
 
   /* Progress */
-  .progress-section { margin-bottom: 16px; }
-  .progress-header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; }
-  .progress-label { font-size: 13.5px; font-weight: 600; color: var(--ink); }
-  .progress-count { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .progress-track { height: 8px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); border-radius: 99px; overflow: hidden; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--ember), var(--amber)); border-radius: 99px; transition: width 0.6s var(--ease); }
-  .progress-pct { font-size: 12px; color: var(--ink-2); margin-top: 6px; text-align: right; font-variant-numeric: tabular-nums; }
+  .progress-section { padding-top: 18px; border-top: 1px solid var(--ink); }
+  .progress-header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .progress-count { margin-top: 14px; font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 3.4vw, 40px); line-height: 1.05; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+  .progress-track { height: 2px; margin-top: 18px; background: var(--line-strong); overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--ink); transition: width 0.6s var(--ease); }
+  .progress-pct { font-size: 15px; color: var(--ink-2); margin-top: 10px; font-variant-numeric: tabular-nums; }
 
-  /* Milestone toast */
-  .milestone { background: #FFF7F2; border: 1px solid rgba(244,98,42,0.22); border-radius: var(--r-lg); padding: 18px 20px; margin-bottom: 16px; display: none; }
+  /* Milestone note: an ember rule, no box. The JS still sets an emoji; it's not shown. */
+  .milestone { display: none; margin-top: 24px; padding-top: 14px; border-top: 2px solid var(--hp-accent); }
   .milestone.visible { display: block; animation: fp-rise var(--dur-slow) var(--ease) both; }
-  .milestone-emoji { font-size: 24px; margin-bottom: 6px; display: block; }
-  .milestone-text { font-size: 15px; color: var(--ink-2); line-height: 1.6; }
-  .milestone-text strong { color: var(--ember-ink); font-weight: 600; }
+  .milestone-emoji { display: none; }
+  .milestone-text { font-size: 16px; color: var(--ink-2); line-height: 1.6; }
+  .milestone-text strong { color: var(--ink); font-weight: 600; }
 
   /* Loading */
-  .loading-card { text-align: center; padding: 40px 24px; margin-bottom: 16px; }
-  .loading-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
-  .loading-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--ember); animation: fp-dot 1.2s ease infinite; }
+  .loading-card { padding: 24px 0; border-top: 1px solid var(--ink); }
+  .loading-dots { display: flex; gap: 8px; margin-bottom: 16px; }
+  .loading-dots span { width: 8px; height: 8px; background: var(--ink-2); animation: fp-dot 1.2s ease infinite; }
   .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
   .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes fp-dot { 0%, 80%, 100% { transform: translateY(0); opacity: 0.5; } 40% { transform: translateY(-6px); opacity: 1; } }
-  .loading-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+  @keyframes fp-dot { 0%, 80%, 100% { opacity: 0.35; } 40% { opacity: 1; } }
+  .loading-text { font-size: 16px; color: var(--ink-2); line-height: 1.6; }
 
-  /* Idea cards (rendered by JS) */
+  /* Ideas: a ruled list (rendered by JS; the AI text goes through FirePathSafe.escape) */
+  #stepsContainer:not(:empty) { border-top: 1px solid var(--ink); }
   .step-card {
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow-1);
-    padding: 20px; margin-bottom: 12px; display: flex; gap: 16px; align-items: flex-start; cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    transition: border-color var(--dur-fast) ease, box-shadow var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
+    display: flex; gap: 18px; align-items: flex-start; padding: 24px 2px 26px; border-bottom: var(--hp-rule); cursor: pointer;
+    -webkit-tap-highlight-color: transparent; transition: border-color var(--dur-fast) ease;
   }
-  .step-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-2); transform: translateY(-1px); }
-  .step-card.completed { background: var(--surface-2); box-shadow: none; }
+  .step-card:hover { border-bottom-color: var(--ink); }
   .step-checkbox {
-    width: 24px; height: 24px; border: 2px solid var(--line-strong); border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff;
-    transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease; margin-top: 2px;
+    width: 24px; height: 24px; margin-top: 4px; flex-shrink: 0; border: 1.5px solid var(--ink-2); border-radius: 4px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--ink);
+    transition: border-color var(--dur-fast) ease;
   }
-  .step-card.completed .step-checkbox { background: var(--positive); border-color: var(--positive); }
+  .step-card:hover .step-checkbox { border-color: var(--ink); }
+  .step-card.completed .step-checkbox { border-color: var(--ink); }
   .step-card.completed .step-checkbox::after { content: '✓'; }
   .step-body { flex: 1; min-width: 0; }
-  .step-number { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember-ink); margin-bottom: 4px; }
-  .step-card.completed .step-number { color: var(--positive); }
-  .step-title { font-size: 15.5px; font-weight: 600; margin-bottom: 6px; line-height: 1.35; color: var(--ink); }
-  .step-card.completed .step-title { text-decoration: line-through; color: var(--ink-2); }
-  .step-desc { font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-bottom: 10px; }
-  .step-why { font-size: 13px; background: var(--surface-2); border-left: 3px solid var(--amber); padding: 9px 12px; border-radius: 0 var(--r-sm) var(--r-sm) 0; color: var(--ink-2); line-height: 1.55; }
+  .step-number { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+  .step-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(21px, 2.3vw, 26px); line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 10px; }
+  .step-card.completed .step-title { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--ink-2); }
+  .step-desc { max-width: 62ch; font-size: 16.5px; color: var(--ink); line-height: 1.6; }
+  .step-why { margin-top: 10px; max-width: 62ch; font-size: 15px; color: var(--ink-2); line-height: 1.6; }
   .step-card.completed .step-why { display: none; }
+  .step-card.completed .step-desc { color: var(--ink-2); }
 
-  .regen-btn { width: 100%; margin-top: 8px; height: 48px; text-align: center; line-height: 46px; } /* JS sets display:block */
+  .regen-btn { margin-top: 24px; height: 48px; padding: 0 20px; border-radius: var(--hp-r); border: 1px solid var(--line-strong); background: none; color: var(--ink); } /* JS sets display:block */
+  .regen-btn:hover { border-color: var(--ink); background: none; }
 
-  .empty-card { text-align: center; padding: 40px 24px; }
-  .empty-emoji { font-size: 36px; margin-bottom: 14px; display: block; }
-  .empty-title { font-family: var(--font-display); font-size: 21px; font-weight: 700; margin-bottom: 8px; color: var(--ink); }
-  .empty-sub { font-size: 14px; color: var(--ink-2); line-height: 1.6; margin: 0 auto 22px; max-width: 40ch; }
-  /* .cta-btn is emitted by showEmpty() — styled to match .btn-ember */
+  .empty-card { padding: 24px 0; border-top: 1px solid var(--ink); }
+  .empty-title { font-family: var(--font-display); font-size: clamp(26px, 3vw, 34px); font-weight: 700; line-height: 1.1; margin-bottom: 10px; color: var(--ink); }
+  .empty-sub { font-size: 17px; color: var(--ink-2); line-height: 1.6; margin: 0 0 24px; max-width: 46ch; }
+  /* .cta-btn is emitted by showEmpty(): the solid ember button, same as the homepage */
   .cta-btn {
-    display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 24px; border-radius: 999px;
-    background: linear-gradient(135deg, var(--ember), var(--amber)); color: #fff; font: 500 15px var(--font-ui); text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 24px; border-radius: var(--hp-r);
+    background: var(--ember-ink); color: #fff; font: 600 15px var(--font-ui); text-decoration: none;
   }
-  .cta-btn:hover { filter: brightness(1.04); }
+  .cta-btn:hover { background: #A63C0C; }
 
-  .disclaimer { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 24px; line-height: 1.7; }
+  .disclaimer { max-width: 62ch; font-size: 14px; color: var(--ink-2); margin-top: 32px; line-height: 1.6; }
+
+  @media (prefers-reduced-motion: reduce) { .step-card, .step-checkbox { transition: none !important; } }
 </style>
 </head>
 <body class="app" data-shell="app" data-active="learn">
 <script src="js/shell.js"></script>
 
-<main class="app-main discover">
+<main class="hp dv discover" id="main">
 
-  <header class="page-head">
-    <a href="firepath_pro.html" class="section-link">← Back to FirePath</a>
-    <div class="eyebrow">Ideas for you</div>
-    <h1 class="page-head-title">Things worth a look 🔥</h1>
-    <p class="page-head-sub">Questions and ideas to look into, based on your situation. Tick them off as you go.</p>
+  <header class="hp-hero dv-hero">
+    <div class="hp-wrap">
+      <a href="firepath_pro.html" class="dv-back">← Back to FirePath</a>
+      <div class="hp-label">Ideas for you</div>
+      <h1 class="hp-h1">Things worth a look</h1>
+      <p class="hp-lead">Questions and ideas to look into, based on your situation. Tick them off as you go.</p>
+    </div>
   </header>
 
-  <div class="progress-section card" id="progressSection" style="display:none">
-    <div class="progress-header">
-      <span class="progress-label">Your progress</span>
-      <span class="progress-count" id="progressCount">0 of 0 explored</span>
+  <section class="hp-sec is-sand" aria-label="Your ideas">
+    <div class="hp-wrap hp-side">
+      <div class="hp-side-head dv-side">
+        <div class="progress-section" id="progressSection" style="display:none">
+          <div class="progress-header">
+            <span class="hp-label is-ink progress-label">Your progress</span>
+          </div>
+          <div class="progress-count" id="progressCount">0 of 0 explored</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+          <div class="progress-pct" id="progressPct">0% explored</div>
+        </div>
+
+        <div class="milestone" id="milestone">
+          <span class="milestone-emoji" id="milestoneEmoji" aria-hidden="true"></span>
+          <div class="milestone-text" id="milestoneText"></div>
+        </div>
+
+        <button class="regen-btn btn btn-quiet" id="regenBtn" style="display:none" onclick="regeneratePlan()">↺ Generate a fresh set of ideas</button>
+      </div>
+
+      <div class="hp-side-main">
+        <div id="loadingCard" class="loading-card">
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+          <p class="loading-text" id="loadingText">Finding things worth exploring for your situation...<br/>This only runs once — we'll save it for you.</p>
+        </div>
+
+        <div id="stepsContainer"></div>
+
+        <p class="disclaimer">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.<br/>These are questions and ideas to look into.</p>
+      </div>
     </div>
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill" style="width:0%"></div>
-    </div>
-    <div class="progress-pct" id="progressPct">0% explored</div>
-  </div>
-
-  <div class="milestone" id="milestone">
-    <span class="milestone-emoji" id="milestoneEmoji">🎉</span>
-    <div class="milestone-text" id="milestoneText"></div>
-  </div>
-
-  <div id="loadingCard" class="loading-card card">
-    <div class="loading-dots"><span></span><span></span><span></span></div>
-    <p class="loading-text" id="loadingText">Finding things worth exploring for your situation...<br/>This only runs once — we'll save it for you.</p>
-  </div>
-
-  <div id="stepsContainer"></div>
-
-  <button class="regen-btn btn btn-quiet" id="regenBtn" style="display:none" onclick="regeneratePlan()">↺ Generate a fresh set of ideas</button>
-
-  <p class="disclaimer">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.<br/>These are questions and ideas to look into.</p>
+  </section>
 
 </main>
 
@@ -322,8 +343,7 @@ Respond ONLY with a JSON array of exactly 5 items — no markdown, no backticks,
     } catch (err) {
       console.error(err);
       document.getElementById('loadingCard').innerHTML = `
-        <span style="font-size:32px;display:block;margin-bottom:12px">😔</span>
-        <p style="font-size:14px;color:var(--ink-2)">Couldn't generate your ideas right now. Please try again.</p>
+        <p style="font-size:16px;color:var(--ink-2)">Couldn't generate your ideas right now. Please try again.</p>
         <button onclick="generatePlan()" class="btn btn-primary" style="margin-top:16px;">Try again</button>
       `;
     }
@@ -340,21 +360,18 @@ Respond ONLY with a JSON array of exactly 5 items — no markdown, no backticks,
     const container = document.getElementById('stepsContainer');
     container.innerHTML = '';
 
-    const categoryEmoji = { save: '💰', invest: '📈', property: '🏠', admin: '📋', mindset: '🧠' };
-
     stepsData.forEach((step, i) => {
       const isComplete = completedSteps.has(i);
-      const emoji = categoryEmoji[step.category] || '✅';
       const div = document.createElement('div');
       div.className = 'step-card' + (isComplete ? ' completed' : '');
       div.onclick = () => toggleStep(i, div);
       div.innerHTML = `
         <div class="step-checkbox"></div>
         <div class="step-body">
-          <div class="step-number">${emoji} Idea ${i + 1}</div>
+          <div class="step-number">Idea ${i + 1}</div>
           <div class="step-title">${FirePathSafe.escape(step.title)}</div>
           <div class="step-desc">${FirePathSafe.escape(step.description)}</div>
-          <div class="step-why">💡 ${FirePathSafe.escape(step.why)}</div>
+          <div class="step-why">${FirePathSafe.escape(step.why)}</div>
         </div>
       `;
       container.appendChild(div);
@@ -423,8 +440,7 @@ Respond ONLY with a JSON array of exactly 5 items — no markdown, no backticks,
   function showEmpty() {
     document.getElementById('loadingCard').style.display = 'none';
     document.getElementById('stepsContainer').innerHTML = `
-      <div class="empty-card card">
-        <span class="empty-emoji">🔥</span>
+      <div class="empty-card">
         <div class="empty-title">Nothing to explore yet</div>
         <p class="empty-sub">Run your numbers in FirePath first — then come back here for ideas tailored to your situation.</p>
         <a href="firepath_pro.html" class="cta-btn">Go to FirePath →</a>
