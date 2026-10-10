@@ -240,6 +240,7 @@
   .stand-bar { height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; }
   .stand-fill { display: block; height: 100%; min-width: 3px; background: var(--ink); }
   .answer-fact { margin: 14px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+  .answer-note { margin: 10px 0 0; max-width: 60ch; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
   .answer-extra { margin: 12px 0 0; }
 
   /* 2 · The path, given the full measure */
@@ -632,6 +633,8 @@
                 <div class="stand-bar" id="standBar" role="progressbar" aria-labelledby="standLine" aria-valuemin="0" aria-valuemax="100"><span class="stand-fill" id="standFill"></span></div>
               </div>
               <p class="answer-fact" id="answerFact" hidden></p>
+              <p class="answer-note" id="answerCushion" hidden></p>
+              <p class="answer-note" id="answerPension" hidden></p>
               <p class="answer-extra" id="answerExtra" hidden></p>
             </div>
           </div>
@@ -649,7 +652,7 @@
           <details class="answer-how" id="answerHow">
             <summary>How we worked this out</summary>
             <p id="rangeDetail" hidden>Markets go up and down, so we ran 2,000 possible market outcomes on your plan. 8 in 10 land in the range above.</p>
-            <p>Your freedom number is about 25 times what you’d spend in a year.</p>
+            <p>Your freedom number is about 25 times what you’d spend in a year. If you’d stop work before 60, the date plans on a little more, because the money has to last longer: about 26.7 times in your 50s and 28.6 times before 50.</p>
             <p id="answerRate" hidden></p>
             <p id="standNote"></p>
           </details>
@@ -863,6 +866,8 @@
     renderPath(r);
     extra.hidden = true; extra.innerHTML = '';
     fact.hidden = true; fact.textContent = '';
+    const note = (id, text) => { const el = document.getElementById(id); el.textContent = text || ''; el.hidden = !text; };
+    note('answerCushion', null); note('answerPension', null);
     // Savings rate: a detail, so it lives in "How we worked this out".
     rate.textContent = `You’re saving ${r.sRate}% of your take-home pay.`;
     rate.hidden = !!r.alreadyFree || !(r.sRate > 0);   // a $0 saver is told in the answer itself
@@ -902,6 +907,11 @@
     if (line) parts.push(line);
     why.innerHTML = parts.join(' ');
     buildRange(plan, r.range);
+    // Why an early date plans on more than 25×, and what today's Age Pension rules could
+    // add from 67 (shown beside the date, never in it).
+    note('answerCushion', FirePathEngine.cushionNote(plan));
+    const homeowner = housingStatus === 'owning';
+    note('answerPension', _planInputs ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(_planInputs, { homeowner }), plan, homeowner) : null);
   }
 
   // The reveal: the big age counts up from today's to the freedom age while the path draws

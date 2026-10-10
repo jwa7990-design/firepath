@@ -922,6 +922,8 @@
             </div>
             <div id="savingsRateNote" class="result-note"></div>
             <div id="inflationNote" class="result-note"></div>
+            <div id="proCushion" class="result-note" hidden></div>
+            <div id="proPension" class="result-note" hidden></div>
             <div class="infl-row">
               <span>Today's dollars</span>
               <div id="inflationToggle" onclick="toggleInflation()" style="width:44px;height:24px;background:rgba(255,255,255,0.2);border-radius:var(--r-md);position:relative;cursor:pointer;transition:background 0.2s;"><div id="inflationThumb" style="width:20px;height:20px;background:var(--surface);border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;"></div></div>
@@ -2408,6 +2410,19 @@ async function saveProfile() {
     renderSuperInsuranceNote();
     renderSuperCapNote();
     renderDiv296Note();
+    renderHeadlineNotes();
+  }
+
+  // Beside the headline: why an early date plans on more than 25×, and what today's Age
+  // Pension rules could add from 67 (never in the date itself: the rules can change).
+  function renderHeadlineNotes() {
+    const plan = calcData && calcData.plan, pi = calcData && calcData.planInputs;
+    const set = (id, text) => { const el = document.getElementById(id); if (el) { el.textContent = text || ''; el.hidden = !text; } };
+    const cushion = FirePathEngine.cushionNote(plan);
+    set('proCushion', cushion);
+    const homeowner = !/rent/i.test(housingStatus || '');
+    const line = plan && plan.valid && !plan.alreadyFree && pi ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(pi, { homeowner }), plan, homeowner) : null;
+    set('proPension', line);
   }
 
   // Transfer balance cap: each person can move up to the cap (in today's dollars, as it's

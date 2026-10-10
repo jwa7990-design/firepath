@@ -37,7 +37,9 @@ const PEOPLE = [
   { name: '58, $7k/mo, saves $2.5k, $300k, $600k super', age: 58, takeHome: 7000, mSav: 2500, savings: 300000, super: 600000 },
 ];
 const fireNum = p => (p.takeHome - p.mSav) * 12 * 25;
-const planFor = p => E.freedomPlan({ age: p.age, savings: p.savings, monthlySavings: p.mSav, target: fireNum(p), superBalance: p.super, takeHomeMonthly: p.takeHome });
+const planFor = (p, extra) => E.freedomPlan(Object.assign({ age: p.age, savings: p.savings, monthlySavings: p.mSav, target: fireNum(p), superBalance: p.super, takeHomeMonthly: p.takeHome }, extra || {}));
+// The hand checks below are plain 25× (safeRate: false); the safer rate is tested on its own.
+const PLAIN = { safeRate: false };
 
 // Independent check, by brute force: for each possible stopping month, save until then,
 // then pay spending (freedom number ÷ 25 a year) from savings outside super, adding each
@@ -98,11 +100,11 @@ test('freedom plan: 58-year-old with $600k super is free at 62', () => {
 });
 
 test('freedom plan: everyone matches the independent hand check', () => {
-  for (const p of PEOPLE) assert.equal(planFor(p).months, handCheck(p), p.name);
+  for (const p of PEOPLE) assert.equal(planFor(p, PLAIN).months, handCheck(p), p.name);
   // The 35- and 28-year-olds stop well before 60: their savings bridge the years until
   // super unlocks (48 and 44, against 55 and 50 on savings alone).
   for (const [p, age, bridge] of [[PEOPLE[0], 48, 11.8], [PEOPLE[2], 44, 16.2]]) {
-    const plan = planFor(p);
+    const plan = planFor(p, PLAIN);
     assert.equal(plan.freedomAge, age, p.name);
     assert.equal(plan.phase, 'with-super', p.name);
     near(plan.bridgeYears, bridge, 0.1, p.name + ' bridge years');
@@ -122,14 +124,14 @@ test('freedom plan: 62 with enough super is already free; under 60 it is not', (
   const free = E.freedomPlan({ age: 62, savings: 100000, monthlySavings: 1000, target: 1e6, superBalance: 1.5e6 });
   assert.equal(free.alreadyFree, true);
   assert.equal(free.years, 0);
-  const locked = E.freedomPlan({ age: 50, savings: 100000, monthlySavings: 1000, target: 1e6, superBalance: 1.5e6 });
+  const locked = E.freedomPlan({ age: 50, savings: 100000, monthlySavings: 1000, target: 1e6, superBalance: 1.5e6, safeRate: false });
   assert.equal(locked.alreadyFree, false);   // $100k can't pay $40k a year for 10 years
   assert.equal(locked.months, bruteBridge({ age: 50, savings: 100000, mSav: 1000, target: 1e6, super: 1.5e6 }));
   assert.ok(locked.months > 0 && locked.months < 120, 'once savings can bridge to 60, before super unlocks');
 });
 
 test('freedom plan: partner super unlocks at the partner\'s own 60 (savings bridge until then)', () => {
-  const base = { age: 50, savings: 200000, monthlySavings: 0, target: 1e6, superBalance: 0 };
+  const base = { age: 50, savings: 200000, monthlySavings: 0, target: 1e6, superBalance: 0, safeRate: false };
   const older = E.freedomPlan(Object.assign({}, base, { partner: { superBalance: 900000, age: 60 } }));
   assert.equal(older.alreadyFree, true);                     // 200k + 900k now
   const younger = E.freedomPlan(Object.assign({}, base, { partner: { superBalance: 900000, age: 55 } }));
@@ -179,7 +181,7 @@ test('projectAccessible matches the plan: reaches the target on the freedom date
   assert.ok(E.projectAccessible(inputs, (plan.months - 1) / 12) < fireNum(p));
 });
 
-test('safe withdrawal rate by retirement age (not used by the headline yet)', () => {
+test('safe withdrawal rate by retirement age, and the headline plans on it', () => {
   assert.equal(E.safeWithdrawalRate(65), 0.04);
   assert.equal(E.safeWithdrawalRate(60), 0.04);
   assert.equal(E.safeWithdrawalRate(59), 0.0375);
@@ -187,8 +189,20 @@ test('safe withdrawal rate by retirement age (not used by the headline yet)', ()
   assert.equal(E.safeWithdrawalRate(49.9), 0.035);
   assert.equal(E.safeWithdrawalRate(35), 0.035);
   assert.equal(E.safeWithdrawalRate(NaN), 0.04);
-  // The headline freedom number is still 25×.
-  assert.equal(planFor(PEOPLE[0]).target, (6000 - 2000) * 12 * 25);
+  // The headline plans on the rate for the age it gives: 25× from 60, more before.
+  for (const p of PEOPLE) {
+    const plan = planFor(p), plain = planFor(p, PLAIN);
+    assert.equal(plan.baseTarget, fireNum(p));
+    near(plan.target, fireNum(p) * plan.targetMultiple, 1);
+    assert.ok(plan.months >= plain.months, p.name + ': never sooner than plain 25×');
+    if (plain.freedomAgeExact >= 60) assert.equal(plan.targetMultiple, 1, p.name);
+    // The multiple matches the stopping age (or is the cautious one on a boundary).
+    assert.ok(plan.targetMultiple >= 0.04 / E.safeWithdrawalRate(plan.freedomAgeExact) - 1e-9, p.name);
+  }
+  // The 35-year-old would stop at 48 on 25×; at 28.6× it's later, still before 60.
+  const p0 = planFor(PEOPLE[0]);
+  assert.ok(p0.targetMultiple > 1 && p0.freedomAgeExact > 48, 'early stopper plans on more');
+  assert.equal(planFor(PEOPLE[0], PLAIN).target, (6000 - 2000) * 12 * 25);
 });
 
 test('formatting: NaN and Infinity show "—", never "NaNyr NaNmo" or "$InfinityM"', () => {
@@ -316,9 +330,9 @@ test('cross-page: someone with debt gets the same freedom date on every page', (
   const p = PEOPLE[0], fire = fireNum(p), debt = 40000;
   const profile = { age: p.age, take_home_income: p.takeHome, savings_monthly: p.mSav, current_savings: p.savings, super_balance: p.super, freedom_number: fire, pay_cycle: 'monthly', debt_total: debt };
   const expected = planFor(p).freedomAge;
-  // Taking the debt off first would give a later age, so this test can tell the difference.
-  const netted = E.freedomPlan({ age: p.age, savings: p.savings - debt, monthlySavings: p.mSav, target: fire, superBalance: p.super, takeHomeMonthly: p.takeHome }).freedomAge;
-  assert.ok(netted > expected, `netting debt should move the date (${netted} vs ${expected})`);
+  // Taking the debt off first would give a later date, so this test can tell the difference.
+  const netted = E.freedomPlan({ age: p.age, savings: p.savings - debt, monthlySavings: p.mSav, target: fire, superBalance: p.super, takeHomeMonthly: p.takeHome }).months;
+  assert.ok(netted > planFor(p).months, `netting debt should move the date (${netted} vs ${planFor(p).months} months)`);
 
   // Free calculator: debt is typed in, but its plan inputs never read it.
   assert.ok(!/debt/i.test(grab(FREE, /_planInputs = (\{[\s\S]*?\n {4}\});/, 'free page _planInputs')), 'free page plan ignores debt');

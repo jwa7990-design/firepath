@@ -293,7 +293,8 @@ window.FirePathEngine = (function () {
       partner = { superBalance: Number(p.superBalance), age: known ? Number(p.age) : age, ageAssumed: !known, grossIncome: grossFrom(p) };
     }
     const superInsurance = Math.max(0, finiteOr(i.superInsurance, 0));
-    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner, superInsurance };
+    const pensionValue = Math.max(0, finiteOr(i.pensionValue, 0));
+    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner, superInsurance, pensionValue };
   }
 
   // How much you'd need outside super at this moment to stop work now: enough to pay your
@@ -334,12 +335,15 @@ window.FirePathEngine = (function () {
     // Super only counts once its owner is 60, so without an age it can't be counted.
     const own = n.age != null && n.superBalance > 0 ? { bal: n.superBalance, sg: sgNetMonthly(n.gross), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.age) * 12)) } : null;
     const pt = n.partner && n.partner.age != null ? { bal: n.partner.superBalance, sg: sgNetMonthly(n.partner.grossIncome), unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.partner.age) * 12)) } : null;
-    const pots = [own, pt].filter(Boolean);
+    // Age Pension line only (agePensionPlan): the pension's value from 67 (25× a year's
+    // pension) joins like a pot that "unlocks" then. It doesn't grow once paid.
+    const pen = n.pensionValue > 0 && n.age != null ? (() => { const k = Math.max(0, Math.round((PENSION_AGE - n.age) * 12)); return { bal: n.pensionValue / Math.pow(1 + rS, k), sg: 0, unlock: k, pension: true }; })() : null;
+    const pots = [own, pt, pen].filter(Boolean);
     const superPath = wantSuperPath ? [] : null;
     let out = n.savings, month = null, savingsOnly = null, outsideAt60 = null;
     const superAt = {};   // each pot's balance on its unlock month
     for (let m = 0; m <= PLAN_MAX_MONTHS; m++) {
-      for (const s of pots) if (m === s.unlock) superAt[s === own ? 'own' : 'partner'] = s.bal;
+      for (const s of pots) if (m === s.unlock && !s.pension) superAt[s === own ? 'own' : 'partner'] = s.bal;
       if (own && m === own.unlock) outsideAt60 = out;
       const need = outsideNeeded(n, pots.map(s => ({ bal: s.bal, k: s.unlock - m })), rO, rS);
       if (superPath) superPath.push(n.target - need);
@@ -351,7 +355,10 @@ window.FirePathEngine = (function () {
       out = out * (1 + rO) + n.monthlySavings;
       // SG keeps going while you're still working (i.e. until you're free). Your own
       // super also pays any insurance premiums (see premiumMonthly).
-      for (const s of pots) s.bal = Math.max(0, superGrow(s.bal, rS) + (month === null ? s.sg : 0) - (s === own ? premiumMonthly(n, m, month) : 0));
+      for (const s of pots) {
+        if (s.pension) { if (m < s.unlock) s.bal *= 1 + rS; continue; }
+        s.bal = Math.max(0, superGrow(s.bal, rS) + (month === null ? s.sg : 0) - (s === own ? premiumMonthly(n, m, month) : 0));
+      }
     }
     // Savings alone, for "before super" comparisons, if the walk stopped before they got there.
     if (savingsOnly === null && n.target > 0) {
@@ -365,7 +372,32 @@ window.FirePathEngine = (function () {
     return { month, savingsOnly, superPath, own, pt, superAt, outsideAt60 };
   }
 
+  // The headline. Stopping work early means money has to last longer, so the freedom
+  // number is planned on a safer withdrawal rate (safeWithdrawalRate): 25× spending from
+  // 60, 26.7× from 50, 28.6× before 50. The stopping age depends on the number, so this
+  // finds the multiple that agrees with the age it gives, taking the more cautious one
+  // when a date sits right on 50 or 60. inputs.safeRate === false keeps plain 25×.
+  // Adds: baseTarget (25× spending), targetMultiple, withdrawalRate.
   function freedomPlan(inputs, opts) {
+    const n0 = planInputs(inputs);
+    const base = n0 ? n0.target : null;
+    const at = mult => planAt(mult === 1 ? inputs : Object.assign({}, inputs, { target: base * mult, annualSpend: undefined }), opts);
+    const multFor = p => p.valid && p.freedomAgeExact != null ? 0.04 / safeWithdrawalRate(p.freedomAgeExact) : 1;
+    let plan = at(1), mult = 1;
+    if (plan.valid && !(inputs && inputs.safeRate === false)) {
+      for (let i = 0; i < 4; i++) {
+        const want = multFor(plan);
+        if (want === mult) break;
+        const next = at(want);
+        if (want < mult && multFor(next) > want) break;   // on a boundary: keep the cautious one
+        plan = next; mult = want;
+      }
+    }
+    if (plan.valid) Object.assign(plan, { baseTarget: base, targetMultiple: mult, withdrawalRate: 0.04 / mult });
+    return plan;
+  }
+
+  function planAt(inputs, opts) {
     const n = planInputs(inputs);
     if (!n) return { valid: false, reachable: false, alreadyFree: false, months: null, years: null, freedomAge: null, freedomYear: null };
     const w = walkPlan(n, false);
@@ -441,6 +473,49 @@ window.FirePathEngine = (function () {
     return null;
   }
 
+  // The freedom date if today's Age Pension rules still apply from 67 (shown as a second
+  // line beside the headline, never in it: the rules can change before then). On the same
+  // 25× basis as the headline: from 67, a year's pension stands in for 25× itself. The
+  // pension is means-tested on what you hold, and in the assets-test taper more savings can
+  // mean less pension, so this finds the smallest amount of your own money that, with the
+  // pension it earns, reaches the freedom number. Today's rates and limits, today's dollars.
+  // opts: { homeowner (default true), couple (default: has a partner) }.
+  // Returns null without an age or the pension tables, else { plan, pensionAnnual, ownAt67 }.
+  function agePensionPlan(inputs, opts) {
+    const n = planInputs(inputs);
+    if (!n || n.age == null || typeof calculateAgePension !== 'function') return null;
+    const o = opts || {};
+    const homeowner = o.homeowner !== false, couple = o.couple != null ? !!o.couple : !!n.partner;
+    const pensionOn = c => calculateAgePension(c, 0, homeowner, couple, c).annualPension || 0;
+    const T = n.target;
+    // Scan up in $1,000 steps for the first amount that's enough, then tighten to $10.
+    let lo = 0, hi = null;
+    for (let c = 0; c <= T; c += 1000) { if (c + 25 * pensionOn(c) >= T) { hi = c; break; } lo = c; }
+    if (hi === null || hi === 0) { if (hi === null) return { plan: freedomPlan(inputs), pensionAnnual: 0, ownAt67: T }; }
+    else { while (hi - lo > 10) { const mid = (lo + hi) / 2; if (mid + 25 * pensionOn(mid) >= T) hi = mid; else lo = mid; } }
+    const pensionAnnual = pensionOn(hi);
+    const plan = freedomPlan(Object.assign({}, inputs, { pensionValue: Math.min(T, 25 * pensionAnnual) }));
+    return { plan, pensionAnnual, ownAt67: hi };
+  }
+
+  // Plain-English lines for under a headline date (the same words on every page).
+  // Why an early date plans on more than 25×, or null.
+  function cushionNote(plan) {
+    if (!plan || !plan.valid || !(plan.targetMultiple > 1)) return null;
+    const x = String(Math.round(25 * plan.targetMultiple * 10) / 10);
+    const early = plan.withdrawalRate < 0.0375;
+    return `Stopping work ${early ? 'before 50' : 'in your 50s'} means your money may need to last ${early ? '45' : '35'} years or more, so this date plans on ${x}× your yearly spending (${fmtM(plan.target)}) instead of 25×.`;
+  }
+  // The Age Pension line (agePensionPlan's result against the headline), or null when it
+  // wouldn't bring the date forward by at least six months.
+  function agePensionLine(pp, headline, homeowner) {
+    if (!pp || !pp.plan || !pp.plan.valid || !(pp.pensionAnnual > 0) || !headline || !headline.valid) return null;
+    if (headline.months != null && pp.plan.months != null && headline.months - pp.plan.months < 6) return null;
+    if (pp.plan.months == null) return null;
+    const when = pp.plan.alreadyFree ? 'now' : `around ${pp.plan.freedomYear}${pp.plan.freedomAge != null ? `, age ${pp.plan.freedomAge}` : ''}`;
+    return `If today’s Age Pension rules still apply when you’re 67: ${when}. That counts about $${Math.round(pp.pensionAnnual / 100) * 100 >= 1000 ? (Math.round(pp.pensionAnnual / 100) * 100).toLocaleString('en-AU') : Math.round(pp.pensionAnnual)} a year of pension from 67${homeowner === false ? ', as a renter' : homeowner === true ? ', as a homeowner' : ''}. The rules can change before then, so your main date doesn’t rely on it.`;
+  }
+
   // A saved plan (an fp_profiles row, or FirePathNext.deviceProfile()) as freedomPlan
   // inputs, so Journey, Freedom gap and Pro read a saved plan the same way.
   // take_home_income is the household's monthly take-home; partner_income is the
@@ -483,7 +558,9 @@ window.FirePathEngine = (function () {
   // Returns simulateTimeToTarget's { early, likely, late, reachedShare } in months, or
   // null when there's no range to show (invalid, already free, or nothing growing).
   function freedomRange(inputs, opts) {
-    const n = planInputs(inputs);
+    // Same freedom number as the headline (including the safer rate for early stopping).
+    const head = freedomPlan(inputs);
+    const n = planInputs(head.valid && head.targetMultiple > 1 ? Object.assign({}, inputs, { target: head.target, annualSpend: undefined }) : inputs);
     if (!n) return null;
     const w = walkPlan(n, true);
     if (w.month === 0) return null;
@@ -640,5 +717,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();

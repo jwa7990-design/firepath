@@ -88,6 +88,7 @@
   .hero-meta strong { font-weight: 700; }
   .hero-range { margin-top: 10px; font-size: 16px; line-height: 1.5; color: var(--ink-2); font-variant-numeric: tabular-nums; }
   .hero-narrative { margin-top: 16px; padding-top: 16px; border-top: var(--hp-rule); max-width: 46ch; font-size: 17px; line-height: 1.6; color: var(--ink); }
+  .hero-note { margin-top: 12px; max-width: 52ch; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
 
   /* The freedom path (js/freedom-path.js), full width under the year */
   .hero-path { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--ink); min-width: 0; }
@@ -278,6 +279,8 @@
           <div class="hero-meta" id="heroMeta">&nbsp;</div>
           <div class="hero-range" id="heroRange" hidden></div>
           <p class="hero-narrative" id="heroNarrative"></p>
+          <p class="hero-note" id="heroCushion" hidden></p>
+          <p class="hero-note" id="heroPension" hidden></p>
         </div>
       </div>
 
@@ -472,7 +475,7 @@
     if (persona === 'fire') {
       return `${m.pct}% FI. ${money(remaining)} to go at a 4% SWR, ${money(m.monthlySavings)}/mo contributions, ${(m.plan.outsideReturn * 100).toFixed(1)}% after inflation and tax${m.plan.phase === 'with-super' ? ', super from 60' : ''}.`;
     }
-    return `You're ${m.pct}% of the way to your freedom number. At ${money(m.monthlySavings)} a month saved, you’d get there in ${m.freedomYear}.`;
+    return `You're ${m.pct}% of the way to your freedom number. At ${money(m.monthlySavings)} a month saved, work could become optional in ${m.freedomYear}.`;
   }
 
   function renderHero(m) {
@@ -500,6 +503,13 @@
       rangeEl.hidden = true;
     }
     $('heroNarrative').textContent = narrative(m);
+    // Under the date: why an early date plans on more than 25×, and (never in the date
+    // itself) what today's Age Pension rules could add from 67.
+    const cushion = Engine.cushionNote(m.plan);
+    $('heroCushion').textContent = cushion || ''; $('heroCushion').hidden = !cushion;
+    const homeowner = /own|mortgage|buy/i.test((m.p && m.p.housing_status) || '');
+    const pensionLine = isFree(m) ? null : Engine.agePensionLine(Engine.agePensionPlan(m.planInputs, { homeowner }), m.plan, homeowner);
+    $('heroPension').textContent = pensionLine || ''; $('heroPension').hidden = !pensionLine;
 
     $('progressPct').textContent = `${m.pct}%`;
     $('progressAmounts').textContent = `${money(m.savings)} of ${money(m.freedomNumber)}`;
