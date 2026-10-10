@@ -375,6 +375,37 @@ window.FirePathEngine = (function () {
     };
   }
 
+  // The "ease off saving" point: the first month from which you could stop adding to your
+  // savings and still reach freedom by `byAge` (65 unless given), on the same plan as the
+  // headline. Balances grow exactly as in walkPlan (savings and SG keep going until then),
+  // and each month is tested with freedomPlan and no further saving. Returns
+  // { months, age, year } (months 0 = already there), or null if it never happens before
+  // byAge, or without an age.
+  function coastPoint(inputs, opts) {
+    const n = planInputs(inputs);
+    if (!n || n.age == null) return null;
+    const byAge = (opts && opts.byAge) || 65;
+    const now = (opts && opts.now) || new Date();
+    const rO = monthlyRate(n.outsideReturn), rS = monthlyRate(SUPER_RETURN);
+    const pt = n.partner && n.partner.age != null ? n.partner : null;
+    let out = n.savings, own = n.superBalance || 0, ptBal = pt ? pt.superBalance || 0 : 0;
+    const sgOwn = own > 0 ? sgNetMonthly(n.gross) : 0, sgPt = pt ? sgNetMonthly(pt.grossIncome) : 0;
+    const last = Math.max(0, Math.round((byAge - n.age) * 12));
+    for (let m = 0; m <= last; m++) {
+      const later = freedomPlan(Object.assign({}, inputs, {
+        age: n.age + m / 12, savings: out, superBalance: own, monthlySavings: 0,
+        partner: pt ? Object.assign({}, inputs.partner, { superBalance: ptBal, age: pt.age + m / 12 }) : inputs.partner
+      }), { now });
+      if (later.reachable && later.freedomAgeExact !== null && later.freedomAgeExact <= byAge + 1e-9) {
+        return { months: m, age: n.age + m / 12, year: new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear() };
+      }
+      out = out * (1 + rO) + n.monthlySavings;
+      own = own * (1 + rS) + sgOwn;
+      if (pt) ptBal = ptBal * (1 + rS) + sgPt;
+    }
+    return null;
+  }
+
   // A saved plan (an fp_profiles row, or FirePathNext.deviceProfile()) as freedomPlan
   // inputs, so Journey, Freedom gap and Pro read a saved plan the same way.
   // take_home_income is the household's monthly take-home; partner_income is the
@@ -573,5 +604,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, projectAccessible, planInputsFromProfile, outsideSuperReturn, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, projectAccessible, planInputsFromProfile, outsideSuperReturn, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();

@@ -493,16 +493,12 @@
   .range-mc-sub { margin-bottom: 6px; color: var(--ink-2); }
   #lifeUnlockedCard { min-width: 0; }
   #lifeUnlockedGrid { display: block; border-top: 1px solid var(--ink); }
-  .pr .life-chip { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 2px 14px; align-items: baseline; padding: 14px 0; background: none; border: 0; border-bottom: var(--hp-rule); border-radius: 0; opacity: 1; }
-  .pr .life-chip .lc-icon { grid-row: 1 / span 2; width: 20px; height: 20px; color: var(--ink-2); transform: translateY(3px); }
-  .pr .life-chip.unlocked .lc-icon { color: var(--hp-accent); }
-  .pr .life-chip .lc-icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-  .pr .life-chip .lc-label { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.25; color: var(--ink); }
-  .pr .life-chip:not(.unlocked) .lc-label { color: var(--ink-2); }
-  .pr .life-chip .lc-state { grid-column: 3; grid-row: 1; font-size: 13.5px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink); }
-  .pr .life-chip.unlocked .lc-state { color: var(--ink); }
-  .pr .life-chip .lc-sub { grid-column: 2 / span 2; margin: 0; font-size: 14.5px; color: var(--ink-2); }
-  .pr .life-chip.unlocked { background: none; border-color: var(--line); opacity: 1; }
+  .pr .life-row { padding: 18px 0; border-bottom: var(--hp-rule); }
+  .pr .life-row .lr-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; }
+  .pr .life-row .lr-label { font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.25; color: var(--ink); }
+  .pr .life-row .lr-when { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--hp-accent); }
+  .pr .life-row .lr-what { margin: 8px 0 0; font-size: 15.5px; line-height: 1.55; color: var(--ink-2); max-width: 54ch; }
+  .pr .life-row .lr-eg { margin: 8px 0 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 
   /* 5 · Something to read + the one disclaimer: the dark band */
   .pr-next .hp-label { margin-bottom: 16px; }
@@ -1014,7 +1010,7 @@
         </div>
 
         <div id="lifeUnlockedCard" style="display:none;">
-          <h2 class="pr-sec-title">What your freedom number buys you</h2>
+          <h2 class="pr-sec-title">What your milestones could mean for you</h2>
           <div class="pro-card-sub" id="lifeUnlockedSub"></div>
           <div id="lifeUnlockedGrid"></div>
         </div>
@@ -1207,40 +1203,36 @@
     if(!card||!grid||fireNum<=0)return;
 
     const pc=getPersonaCopy();
-    // Same plan as the headline: already free counts super you can get to now, and "coast"
-    // means you'd still be free by 65 if you stopped adding to your savings today.
+    const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+    // Two real points on the same plan as the headline. "Ease off saving": the first month
+    // you could stop adding to your savings (still working, so super keeps growing) and be
+    // free by 65 (FirePathEngine.coastPoint). "Fully free": the headline date itself.
     const plan=calcData&&calcData.plan;
     const alreadyFree=plan?!!plan.alreadyFree:savings>=fireNum;
-    const coastPlan=planWith({monthlySavings:0});
-    const coastReached=alreadyFree||(!!coastPlan&&coastPlan.reachable&&coastPlan.freedomAgeExact!==null&&coastPlan.freedomAgeExact<=65);
-    const yearsAwayText=(y07!==null)?fmt(y07):null;
+    const coast=calcData&&calcData.planInputs?FirePathEngine.coastPoint(calcData.planInputs):null;
+    const when=(year,ageExact)=>`${year}${ageExact!=null?`, age ${Math.round(ageExact)}`:''}`;
 
-    sub.textContent=alreadyFree
-      ?`You've already hit your number. Here's what that means.`
-      :`What you get back, and when.`;
+    const coastWhen=alreadyFree||(coast&&coast.months===0)?'You’re there now'
+      :coast?`Around ${when(coast.year,coast.age)}`:'Not before 65 on these numbers';
+    const freeWhen=alreadyFree?'You’re there now'
+      :plan&&plan.reachable?`Around ${when(plan.freedomYear,plan.freedomAgeExact)}`:'Not within 100 years on these numbers';
 
-    const ICONS={
-      beach:'<path d="M4 20c3-1 13-1 16 0"/><path d="M12 20V9"/><path d="M4 9c0-4.4 3.6-8 8-8s8 3.6 8 8H4z"/>',
-      heart:'<path d="M12 20.5S3 14.8 3 8.9C3 5.6 5.5 3 8.6 3c1.8 0 3.4.9 4.4 2.3C14 3.9 15.6 3 17.4 3 20.5 3 23 5.6 23 8.9c0 5.9-9 11.6-9 11.6z"/>',
-      family:'<circle cx="8.5" cy="7.5" r="3"/><path d="M2.5 20c0-3.6 2.7-6.5 6-6.5s6 2.9 6 6.5"/><circle cx="17" cy="9" r="2.2"/><path d="M15 20c.2-2.6 1.9-4.6 4-4.6"/>',
-      guitar:'<path d="M9 17a3 3 0 1 1-3-3"/><path d="M6 14V4l11-2v11"/><path d="M17 15a3 3 0 1 1-3-3"/>',
-      globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.8 2.6 4.3 5.7 4.3 9s-1.5 6.4-4.3 9c-2.8-2.6-4.3-5.7-4.3-9s1.5-6.4 4.3-9z"/>'
-    };
+    sub.textContent='Two points on your path, and what people often do with them.';
 
-    const items=[
-      {icon:ICONS.beach,label:'Beach mornings',unlocked:coastReached,sub:coastReached?`at ${pc.coastTerm}`:`from ${pc.coastTerm}`},
-      {icon:ICONS.heart,label:'Less money stress',unlocked:coastReached,sub:coastReached?`at ${pc.coastTerm}`:`from ${pc.coastTerm}`},
-      {icon:ICONS.family,label:'Time with family',unlocked:true,sub:coastReached?`growing since ${pc.coastTerm}`:'growing as you save'},
-      {icon:ICONS.guitar,label:'Passion projects',unlocked:alreadyFree,sub:alreadyFree?`at ${pc.freedomTerm}`:(yearsAwayText?`${yearsAwayText} away, from ${pc.freedomTerm}`:`from ${pc.freedomTerm}`)},
-      {icon:ICONS.globe,label:'Travel flexibility',unlocked:alreadyFree,sub:alreadyFree?`at ${pc.freedomTerm}`:(yearsAwayText?`${yearsAwayText} away, from ${pc.freedomTerm}`:`from ${pc.freedomTerm}`)}
+    const rows=[
+      {label:cap(pc.coastTerm),when:coastWhen,reached:alreadyFree||(coast&&coast.months===0),
+       what:'From here, your savings could get you to freedom by 65 even if you stopped adding to them. You’d keep working, so your super keeps growing.',
+       eg:'less money stress, a lower-paid job they enjoy, more beach mornings.'},
+      {label:cap(pc.freedomTerm),when:freeWhen,reached:alreadyFree,
+       what:'Your savings, and your super from 60, could cover your spending. Work becomes optional.',
+       eg:'time with family, passion projects, travel when it suits them.'}
     ];
 
-    grid.innerHTML=items.map(it=>`
-      <div class="life-chip${it.unlocked?' unlocked':''}">
-        <span class="lc-icon"><svg viewBox="0 0 24 24">${it.icon}</svg></span>
-        <div class="lc-label">${it.label}</div>
-        <div class="lc-state">${it.unlocked?'Unlocked':''}</div>
-        <div class="lc-sub">${it.sub}</div>
+    grid.innerHTML=rows.map(r=>`
+      <div class="life-row${r.reached?' is-reached':''}">
+        <div class="lr-head"><span class="lr-label">${r.label}</span><span class="lr-when num">${r.when}</span></div>
+        <p class="lr-what">${r.what}</p>
+        <p class="lr-eg">Some people use it for: ${r.eg}</p>
       </div>
     `).join('');
 

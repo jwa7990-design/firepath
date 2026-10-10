@@ -344,3 +344,26 @@ test('Freedom options: its freedom ages come from freedomPlan, fed what Freedom 
   assert.ok(/savings: portfolio, grossIncome: planIncome\.grossIncome/.test(GAP), 'Freedom gap hands over savings before debt');
   assert.ok(/age, savings: ci\.savings, monthlySavings, annualSpend, superBalance,/.test(OPTIONS), 'Freedom options plans on those savings');
 });
+
+test('coastPoint: the first month you could stop saving and still be free by 65', () => {
+  for (const p of PEOPLE) {
+    const inputs = { age: p.age, savings: p.savings, monthlySavings: p.mSav, target: fireNum(p), superBalance: p.super, takeHomeMonthly: p.takeHome };
+    const c = E.coastPoint(inputs);
+    const head = E.freedomPlan(inputs);
+    if (!c) continue;
+    // Never later than the headline (being free means you can stop saving).
+    assert.ok(c.months <= head.months, `${p.name}: coast ${c.months} ≤ free ${head.months}`);
+    // Brute force: walk the same balances and confirm the month before doesn't qualify.
+    if (c.months > 0) {
+      const n = head.inputs, rO = E.monthlyRate(n.outsideReturn), rS = E.monthlyRate(E.SUPER_RETURN);
+      const sg = Math.min(n.gross * 0.12, ctx.__api.TAX_CONFIG.concessionalCap || 32500) / 12 * 0.85;
+      let out = n.savings, sup = n.superBalance;
+      for (let m = 0; m < c.months - 1; m++) { out = out * (1 + rO) + n.monthlySavings; sup = sup * (1 + rS) + sg; }
+      const before = E.freedomPlan(Object.assign({}, inputs, { age: p.age + (c.months - 1) / 12, savings: out, superBalance: sup, monthlySavings: 0 }));
+      assert.ok(!(before.reachable && before.freedomAgeExact <= 65), `${p.name}: month before coast doesn't qualify`);
+    }
+  }
+  // Already free → coast is now; no age → no answer.
+  assert.equal(E.coastPoint({ age: 40, savings: 2e6, monthlySavings: 0, target: 1e6 }).months, 0);
+  assert.equal(E.coastPoint({ savings: 1000, monthlySavings: 100, target: 1e6 }), null);
+});
