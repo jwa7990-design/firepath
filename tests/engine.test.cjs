@@ -445,3 +445,8 @@ test('Medicare levy surcharge: family thresholds (ATO 2026-27: $210k, +$1,500 pe
   // Top tier for families: over $328k combined → 1.5%.
   near(E.medicareLevySurcharge(200000, y, { partnerIncome: 140000, children: 0 }), 3000, 0.01);
 });
+
+test('transfer balance cap: $2M in 2025-26, $2.1M from 1 July 2026 (ATO)', () => {
+  assert.equal(E.TAX_YEARS['2025-26'].transferBalanceCap, 2000000);
+  assert.equal(E.TAX_YEARS['2026-27'].transferBalanceCap, 2100000);
+});

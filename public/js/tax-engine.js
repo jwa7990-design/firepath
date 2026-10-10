@@ -26,6 +26,9 @@ const TAX_YEARS = {
     lito: { maxOffset: 700, fullOffsetTo: 37500, phaseOut1End: 45000, phaseOut2Start: 45000, phaseOut2End: 66667 },
     concessionalCap: 30000,
     nonConcessionalCap: 120000,
+    // General transfer balance cap: the most you can move into a tax-free retirement
+    // pension. Above it, super stays in accumulation, earnings taxed at 15%. CPI-indexed.
+    transferBalanceCap: 2000000,
     superTaxRate: 0.15,
     sgRate: 0.12,
     // HELP/HECS (marginal system from 2025-26): 15c per $ over `start`; from `mid`, a
@@ -58,6 +61,7 @@ const TAX_YEARS = {
     lito: { maxOffset: 700, fullOffsetTo: 37500, phaseOut1End: 45000, phaseOut2Start: 45000, phaseOut2End: 66667 },
     concessionalCap: 32500,
     nonConcessionalCap: 130000,
+    transferBalanceCap: 2100000,   // from 1 July 2026 (ATO); first pensions from then get $2.1M
     superTaxRate: 0.15,
     sgRate: 0.12,
     help: { start: 69528, mid: 129717, midBase: 9028, top: 186050 },

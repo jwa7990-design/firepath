@@ -991,6 +991,7 @@
             <div id="superTimelineCard" style="display:none"></div>
             <div class="super-result-card" id="superResultCard" style="display:none"><div id="superResultText"></div></div>
             <p class="super-ins-note" id="superInsuranceNote" hidden></p>
+            <p class="super-ins-note" id="superCapNote" hidden></p>
             <p class="pr-fine">Super projected at 7% annual growth with employer contributions after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
           </div>
 
@@ -2404,6 +2405,21 @@ async function saveProfile() {
     if (!btn) return;
     btn.style.display = (age > 0 && superBal > 0) ? 'flex' : 'none';
     renderSuperInsuranceNote();
+    renderSuperCapNote();
+  }
+
+  // Transfer balance cap: each person can move up to the cap (in today's dollars, as it's
+  // indexed to inflation) into a tax-free retirement pension. Anything above it stays in
+  // super with earnings taxed at 15%. Flagged when projected super at 60 is over it.
+  function renderSuperCapNote() {
+    const el = document.getElementById('superCapNote');
+    const plan = calcData && calcData.plan, cap = TAX_CONFIG.transferBalanceCap;
+    if (!el || !plan || !plan.valid || !(cap > 0)) { if (el) el.hidden = true; return; }
+    const over = [['Your', plan.superAt60], ['Your partner’s', plan.partnerSuperAt60]]
+      .filter(([, b]) => b != null && b > cap);
+    if (!over.length) { el.hidden = true; return; }
+    el.innerHTML = `<strong>The transfer balance cap:</strong> ${over.map(([who, b]) => `${who} super is projected at about ${fmtM(b)} at 60`).join('; ')}, in today’s dollars. Up to ${fmtM(cap)}${plan.partnerSuperAt60 != null ? ' each' : ''} can go into a tax-free retirement pension. The rest stays in super, where its earnings are taxed at 15%. Our withdrawal figures treat it all as tax-free, so for you they’re a little optimistic. A licensed financial adviser can help with how to hold the amount over the cap.`;
+    el.hidden = false;
   }
 
   // Insurance through super: what the person's own premium costs (it's already in their

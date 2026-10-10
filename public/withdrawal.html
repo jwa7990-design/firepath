@@ -168,6 +168,7 @@
     </div>
     <p class="tl-note fp-plan-note" id="fpPlanNote" style="display:none;">Filled in from your saved plan — change any number.</p>
     <p class="tl-note">This is everything you have invested <strong>right now</strong>, not counting property, or super unless you can already get to it. Use today's value, not a future guess. If you won't start drawing on it for a while, the "years of growth" setting below grows it forward for you.</p>
+    <p class="tl-note" id="w-capNote" style="display:none;"></p>
   </div>
 
   <div class="tl-group">
@@ -447,6 +448,14 @@
 
   function calcWithdrawal() {
     const portfolio    = Math.max(0, numFrom('w-portfolio', 0));
+    // Transfer balance cap: up to the cap per person can sit in a tax-free retirement
+    // pension; super above it is taxed at 15% on earnings, which this planner doesn't take out.
+    const tbc = typeof TAX_CONFIG !== 'undefined' ? TAX_CONFIG.transferBalanceCap : null, capNote = document.getElementById('w-capNote');
+    if (capNote) {
+      const over = tbc > 0 && portfolio > tbc;
+      capNote.style.display = over ? '' : 'none';
+      if (over) capNote.textContent = `Over ${fmtDollars(tbc)}? If more than that is in one person’s super, the part above the transfer balance cap stays in super with its earnings taxed at 15%. This planner treats everything as tax-free, so results would be a little optimistic.`;
+    }
     const returnRate   = numFrom('w-returnRate', 7) / 100;
     const withdrawRate = numFrom('w-withdrawRate', 4) / 100;
     const years        = Math.max(0, Math.round(numFrom('w-years', 0)));
