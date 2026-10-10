@@ -47,6 +47,7 @@ const MODELLED: [string, boolean][] = [
   ['Carry-forward (unused) concessional contributions', true],
   ['Tax inside super and tax-free withdrawals after 60', true],
   ['The transfer balance cap ($2.1M in 2026–27): flagged when your super could go over it', true],
+  ['Division 296: extra tax on earnings for super balances over $3M (and $10M), from 1 July 2026', true],
   ['Super fund fees (median MySuper fund)', true],
   ['Insurance premiums inside super (your own figure, on Your full plan)', true],
   ['Super locked until 60, and a partner’s until their own 60', true],
@@ -56,7 +57,6 @@ const MODELLED: [string, boolean][] = [
   ['Withdrawal rates and how long money lasts', true],
   ['Market ups and downs: 2,000 possible market outcomes', true],
   ['Live RBA cash, inflation, savings and mortgage rates', true],
-  ['Division 296: extra tax on earnings for super balances over $3M, from 1 July 2026', false],
 ];
 // The key figures for the dark band, taken from the rows above so they can't drift.
 // The Age Pension age is filled from js/tax-engine.js by the script below.
@@ -200,6 +200,7 @@ const SOURCES = [
       fact('Super guarantee', 'What employers pay into your super', pct(c.sgRate), 'of salary'),
       fact('Concessional cap', 'Employer super + salary sacrifice + personal deductible', money(c.concessionalCap), 'a year'),
       fact('Non-concessional cap', 'After-tax contributions', money(c.nonConcessionalCap), 'a year'),
+      fact('Division 296', 'Extra tax on the share of super earnings above $3M (a further 10% above $10M), from 1 July 2026', '15%', 'extra'),
       fact('Transfer balance cap', 'The most each person can move into a tax-free retirement pension (indexed)', money(c.transferBalanceCap), 'per person'),
       fact('Contributions tax', 'Taxed inside super on the way in (30% above $250k: Division 293)', pct(c.superTaxRate), ''),
       fact('Age Pension age', 'Services Australia', P.eligibilityAge, 'years'),

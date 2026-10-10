@@ -387,3 +387,19 @@ test('superInsurance: premiums come out of super while working (+16 months), nev
   // Saved profiles carry it.
   assert.equal(E.planInputsFromProfile({ freedom_number: 1e6, super_insurance: 800 }).superInsurance, 800);
 });
+
+test('Division 296: extra tax on the share of super earnings over $3M (and $10M)', () => {
+  const m = E.monthlyRate(E.SUPER_RETURN);
+  // Under $3M: no change.
+  assert.equal(E.superGrow(2e6, m), 2e6 * (1 + m));
+  // $4M: a quarter is over $3M, so 15% extra on a quarter of the pre-tax earnings.
+  const earned = 4e6 * m;
+  near(E.superGrow(4e6, m), 4e6 + earned - (earned / 0.85) * 0.15 * 0.25, 0.01);
+  // $12M: both tiers.
+  const e12 = 12e6 * m, pre = e12 / 0.85;
+  near(E.superGrow(12e6, m), 12e6 + e12 - pre * 0.15 * (9 / 12) - pre * 0.10 * (2 / 12), 0.01);
+  // A big balance grows less than it would without the tax, so super at 60 is lower.
+  const i = { age: 45, savings: 800000, monthlySavings: 5000, target: 4e6, superBalance: 2500000, grossIncome: 250000 };
+  let plain = 2500000; for (let k = 0; k < 180; k++) plain = plain * (1 + m) + 0;
+  assert.ok(E.freedomPlan(i).superAt60 < plain + 180 * 3000, 'Division 296 slows growth');
+});

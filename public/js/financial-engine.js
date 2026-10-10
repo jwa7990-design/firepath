@@ -153,6 +153,19 @@ window.FirePathEngine = (function () {
   // (Protecting Your Super), so premiums run while you work, then 16 more months, and
   // never past 70 (when default cover typically ends).
   const INSURANCE_NET = 0.85, INSURANCE_TAIL_MONTHS = 16, INSURANCE_END_AGE = 70;
+  // Division 296 (law from 1 July 2026): with a total super balance over $3M, an extra 15%
+  // tax on the share of earnings relating to the part over $3M; over $10M, a further 10%
+  // on the share over $10M. Both CPI-indexed, so constant in today's dollars. Per person.
+  const DIV296 = [{ over: 3e6, rate: 0.15 }, { over: 10e6, rate: 0.10 }];
+  // A month's growth on one person's super: the after-tax return (rS), less any Division
+  // 296 tax on that month's earnings (worked back to before the fund's 15%).
+  function superGrow(bal, rS) {
+    const earned = bal * rS;
+    if (!(bal > DIV296[0].over) || !(earned > 0)) return bal + earned;
+    const before = earned / 0.85;
+    const extra = DIV296.reduce((t, d) => t + (bal > d.over ? before * d.rate * (bal - d.over) / bal : 0), 0);
+    return bal + earned - extra;
+  }
   function premiumMonthly(n, m, freeMonth) {
     if (!(n.superInsurance > 0) || n.age == null) return 0;
     if (n.age + m / 12 >= INSURANCE_END_AGE) return 0;
@@ -294,7 +307,12 @@ window.FirePathEngine = (function () {
     if (!later.length) return Math.max(0, n.target - nowSuper);
     // Work backwards from the last unlock: at that point the pooled money (outside plus
     // super already unlocked) plus the last pot must reach the freedom number.
-    const at = (p, k) => p.bal * Math.pow(1 + rS, k);
+    // Month by month only when Division 296 could bite (the pot passes $3M by then).
+    const at = (p, k) => {
+      const simple = p.bal * Math.pow(1 + rS, k);
+      if (!(simple > DIV296[0].over)) return simple;
+      let b = p.bal; for (let i = 0; i < k; i++) b = superGrow(b, rS); return b;
+    };
     const growth = k => Math.pow(1 + rO, k), annuity = k => rO > 0 ? (growth(k) - 1) / rO : k;
     let need = Math.max(0, n.target - at(later[later.length - 1], later[later.length - 1].k));
     for (let i = later.length - 1; i >= 0; i--) {
@@ -333,7 +351,7 @@ window.FirePathEngine = (function () {
       out = out * (1 + rO) + n.monthlySavings;
       // SG keeps going while you're still working (i.e. until you're free). Your own
       // super also pays any insurance premiums (see premiumMonthly).
-      for (const s of pots) s.bal = Math.max(0, s.bal * (1 + rS) + (month === null ? s.sg : 0) - (s === own ? premiumMonthly(n, m, month) : 0));
+      for (const s of pots) s.bal = Math.max(0, superGrow(s.bal, rS) + (month === null ? s.sg : 0) - (s === own ? premiumMonthly(n, m, month) : 0));
     }
     // Savings alone, for "before super" comparisons, if the walk stopped before they got there.
     if (savingsOnly === null && n.target > 0) {
@@ -417,8 +435,8 @@ window.FirePathEngine = (function () {
         return { months: m, age: n.age + m / 12, year: new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear(), savings: out };
       }
       out = out * (1 + rO) + n.monthlySavings;
-      own = Math.max(0, own * (1 + rS) + sgOwn - (own > 0 ? premiumMonthly(n, m, null) : 0));
-      if (pt) ptBal = ptBal * (1 + rS) + sgPt;
+      own = Math.max(0, superGrow(own, rS) + sgOwn - (own > 0 ? premiumMonthly(n, m, null) : 0));
+      if (pt) ptBal = superGrow(ptBal, rS) + sgPt;
     }
     return null;
   }
@@ -454,7 +472,7 @@ window.FirePathEngine = (function () {
     let out = n.savings;
     for (let m = 0; m < target; m++) {
       out = out * (1 + rO) + n.monthlySavings;
-      pots.forEach((s, k) => { s.bal = Math.max(0, s.bal * (1 + rS) + s.sg - (k === 0 && n.superBalance > 0 ? premiumMonthly(n, m, null) : 0)); });
+      pots.forEach((s, k) => { s.bal = Math.max(0, superGrow(s.bal, rS) + s.sg - (k === 0 && n.superBalance > 0 ? premiumMonthly(n, m, null) : 0)); });
     }
     return out + pots.reduce((t, s) => t + (target >= s.unlock ? s.bal : 0), 0);
   }
@@ -622,5 +640,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, projectAccessible, planInputsFromProfile, outsideSuperReturn, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();

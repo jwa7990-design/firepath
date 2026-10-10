@@ -992,6 +992,7 @@
             <div class="super-result-card" id="superResultCard" style="display:none"><div id="superResultText"></div></div>
             <p class="super-ins-note" id="superInsuranceNote" hidden></p>
             <p class="super-ins-note" id="superCapNote" hidden></p>
+            <p class="super-ins-note" id="superDiv296Note" hidden></p>
             <p class="pr-fine">Super projected at 7% annual growth with employer contributions after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
           </div>
 
@@ -2406,6 +2407,7 @@ async function saveProfile() {
     btn.style.display = (age > 0 && superBal > 0) ? 'flex' : 'none';
     renderSuperInsuranceNote();
     renderSuperCapNote();
+    renderDiv296Note();
   }
 
   // Transfer balance cap: each person can move up to the cap (in today's dollars, as it's
@@ -2419,6 +2421,18 @@ async function saveProfile() {
       .filter(([, b]) => b != null && b > cap);
     if (!over.length) { el.hidden = true; return; }
     el.innerHTML = `<strong>The transfer balance cap:</strong> ${over.map(([who, b]) => `${who} super is projected at about ${fmtM(b)} at 60`).join('; ')}, in today’s dollars. Up to ${fmtM(cap)}${plan.partnerSuperAt60 != null ? ' each' : ''} can go into a tax-free retirement pension. The rest stays in super, where its earnings are taxed at 15%. Our withdrawal figures treat it all as tax-free, so for you they’re a little optimistic. A licensed financial adviser can help with how to hold the amount over the cap.`;
+    el.hidden = false;
+  }
+
+  // Division 296 (from 1 July 2026): extra tax on earnings for super over $3M. Already in
+  // the plan's maths (FirePathEngine.superGrow); this says so when it applies.
+  function renderDiv296Note() {
+    const el = document.getElementById('superDiv296Note');
+    const plan = calcData && calcData.plan;
+    if (!el) return;
+    const big = plan && plan.valid ? [['Your', plan.superAt60], ['Your partner’s', plan.partnerSuperAt60]].filter(([, b]) => b != null && b > 3e6) : [];
+    if (!big.length) { el.hidden = true; return; }
+    el.innerHTML = `<strong>Division 296:</strong> ${big.map(([who, b]) => `${who} super is projected at about ${fmtM(b)} at 60`).join('; ')}, in today’s dollars. Since 1 July 2026, earnings on the share of a balance over $3M are taxed an extra 15% (and a further 10% over $10M). That’s already included in your plan.`;
     el.hidden = false;
   }
 
