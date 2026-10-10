@@ -36,10 +36,10 @@ export const STARTS: StartPage[] = [
       { q: 'How much do I need to start investing?', a: 'Not much. Many Australian investing platforms let you start with a few hundred dollars or less. What matters more is investing regularly.' },
     ] },
 
-  { slug: 'debt', door: 'I’ve got debt', title: 'Got debt? Which one first, and why', icon: 'card',
+  { slug: 'debt', door: 'I’ve got debt', title: 'Got debt?', icon: 'card',
     seoTitle: 'Should I pay off debt or invest? An Australian guide | FirePath',
     description: 'Credit cards, personal loans, buy now pay later, HECS and a mortgage are very different debts. Here’s how Australians often order them, and where investing fits in.',
-    lead: 'Not all debt is equal. Card debt usually costs more than investing earns, so the order debts are paid off can make a big difference.',
+    lead: 'Here are some techniques people use to work out which debt to reduce first. Not all debt is equal: card debt usually costs more than investing earns, so the order can make a big difference.',
     doorLine: 'Which debt first, and when to start investing.',
     steps: [
       { title: 'Seeing every debt and its rate', body: 'Credit cards, personal and car loans, buy now pay later, HECS/HELP and a mortgage. The interest rate is what usually decides the order.' },
