@@ -822,16 +822,50 @@ window.FirePathEngine = (function () {
   // start of each year for `years`, then applies that year's return. Returns the share
   // of paths that never run out, plus 10th/50th/90th percentile ending balances and the
   // year money runs out in a bad (10th percentile) path.
-  function simulateDrawdown({ portfolio, annualSpend, years, paths, seed, median, volatility, otherIncomeByYear }) {
+  // tax (optional): tax on the part held outside super, paid from the balance each year
+  // (retireeTax): { outsideShare, gainShare, age, ausShare, taxableOther(y) }. Super in
+  // retirement phase is tax-free, so outsideShare 0 means no tax, as before.
+  // One retired year's tax on money held outside super (today's tax rules): dividends
+  // (INCOME_YIELD) with franking credits, plus the gain realised by selling to fund the
+  // withdrawal beyond the dividends (held over a year: half is taxed). On a low income the
+  // tax-free threshold, low income offset and, from 67, SAPTO often bring it to nothing,
+  // and spare franking credits come back as a refund (a negative tax). Dividends not
+  // needed are reinvested, adding to the cost base.
+  //   { outsideValue, costBase, withdrawal (from outside super), age, ausShare, otherTaxable }
+  // Returns { tax, costBaseAfter, taxable }.
+  function retireeTax(o) {
+    const v = Math.max(0, o.outsideValue || 0), w = Math.max(0, o.withdrawal || 0);
+    let cost = Math.min(v, Math.max(0, o.costBase || 0));
+    const div = v * INCOME_YIELD, credit = v * frankingCredit(o.ausShare);
+    const sold = Math.max(0, Math.min(v, w - div));
+    const gainShare = v > 0 ? Math.max(0, 1 - cost / v) : 0;
+    const gain = sold * gainShare;
+    cost = Math.max(0, cost - sold * (1 - gainShare)) + Math.max(0, div - w);
+    const taxable = div + credit + gain * 0.5 + Math.max(0, o.otherTaxable || 0);
+    const senior = o.age != null && o.age >= PENSION_AGE ? 'single' : null;
+    const total = typeof calculateTax === 'function' ? calculateTax(taxable, undefined, senior ? { senior } : undefined).total : taxable * DEFAULT_MARGINAL_RATE;
+    return { tax: total - credit, costBaseAfter: cost, taxable };
+  }
+
+  function simulateDrawdown({ portfolio, annualSpend, years, paths, seed, median, volatility, otherIncomeByYear, tax }) {
     paths = paths || MC.paths;
     const next = returnSampler(seed == null ? 1 : seed, median, volatility);
+    const taxOn = tax && tax.outsideShare > 0;
     let survived = 0;
     const endings = [], depletedYears = [];
     for (let p = 0; p < paths; p++) {
       let bal = portfolio, depleted = null;
+      // Untaxed gain in the outside-super part, as a share of it (tracked as a cost base).
+      let outCost = taxOn ? portfolio * tax.outsideShare * (1 - Math.min(1, Math.max(0, tax.gainShare || 0))) : 0;
       for (let y = 0; y < years; y++) {
         const other = otherIncomeByYear ? otherIncomeByYear(y, bal) || 0 : 0;
-        bal -= Math.max(0, annualSpend - other);
+        const draw = Math.max(0, annualSpend - other);
+        if (taxOn) {
+          const t = retireeTax({ outsideValue: bal * tax.outsideShare, costBase: outCost, withdrawal: draw * tax.outsideShare,
+            age: tax.age != null ? tax.age + y : null, ausShare: tax.ausShare, otherTaxable: tax.taxableOther ? tax.taxableOther(y) || 0 : 0 });
+          outCost = t.costBaseAfter;
+          bal -= draw + t.tax;
+        } else bal -= draw;
         if (bal <= 0) { bal = 0; depleted = y; break; }
         bal *= 1 + next();
       }
@@ -957,5 +991,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, retireeTax, formatTimeSince, compareSnapshots };
 })();

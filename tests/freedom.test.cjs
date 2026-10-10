@@ -567,3 +567,20 @@ test('work after 67: the pension falls as you earn, so it takes more work than t
   const short = pic.workNeeded + pic.portfolioIncome + E.pensionWithWork(inputs, pic.workNeeded).annual - 50000;
   assert.ok(short >= -2 && short < 50, `closes the gap (${short})`);
 });
+
+test('retiree tax outside super: dividends, half the realised gain, offsets and franking', () => {
+  // $1M outside super, 30% untaxed gain, drawing $40k at 50 with a typical mix of Australian shares.
+  const t = E.retireeTax({ outsideValue: 1e6, costBase: 7e5, withdrawal: 40000, age: 50, ausShare: 0.4 });
+  const div = 1e6 * 0.03, credit = 1e6 * E.frankingCredit(0.4), gain = (40000 - div) * 0.3;
+  near(t.taxable, div + credit + gain * 0.5, 0.01);
+  near(t.tax, X.calculateTax(t.taxable).total - credit, 0.01);
+  // From 67, SAPTO lowers it further.
+  assert.ok(E.retireeTax({ outsideValue: 1e6, costBase: 7e5, withdrawal: 40000, age: 68, ausShare: 0.4 }).tax < t.tax);
+  // Nothing outside super: no tax, the drawdown is unchanged.
+  const base = { portfolio: 1e6, annualSpend: 40000, years: 30, median: 0.07 };
+  assert.equal(E.simulateDrawdown(Object.assign({}, base, { tax: { outsideShare: 0 } })).successRate, E.simulateDrawdown(base).successRate);
+  // A large drawdown with big untaxed gains pays tax, and lasts less often.
+  const big = { portfolio: 2e6, annualSpend: 120000, years: 40, median: 0.07 };
+  const taxed = E.simulateDrawdown(Object.assign({}, big, { tax: { outsideShare: 1, gainShare: 0.6, age: 45, ausShare: 0 } }));
+  assert.ok(taxed.successRate <= E.simulateDrawdown(big).successRate);
+});

@@ -216,6 +216,25 @@
       </div>
     </div>
     <p id="w-rateExplainer" class="rate-explainer">The 4% rule comes from research showing a 4% annual withdrawal lasted 30 years in most past periods for a spread of investments. Most, not all. For a longer retirement, many people use 3–3.5%.</p>
+    <details class="tl-group w-tax" id="w-taxBox">
+      <summary class="hp-label">Tax on investments outside super <span class="fb-opt">(optional)</span></summary>
+      <p class="tl-note" style="margin-top:8px">Super in retirement is tax-free after 60. Money outside super pays tax on dividends and, when you sell, on half the gain (the 50% discount). On a modest income, the tax-free threshold, offsets and franking credits often mean little or none.</p>
+      <div class="tl-row">
+        <label class="tl-field-label" for="w-outside">Of this, outside super</label>
+        <div class="slider-row-dark">
+          <input type="range" class="dark-slider" id="w-outside" min="0" max="100" step="5" value="100" oninput="wTaxTouched.outside=true;calcWithdrawal()"/>
+          <span class="slider-val" id="w-outsideVal">100%</span>
+        </div>
+      </div>
+      <div class="tl-row">
+        <label class="tl-field-label" for="w-gain">Growth not yet taxed</label>
+        <div class="slider-row-dark">
+          <input type="range" class="dark-slider" id="w-gain" min="0" max="90" step="5" value="30" oninput="calcWithdrawal()"/>
+          <span class="slider-val" id="w-gainVal">30%</span>
+        </div>
+      </div>
+      <p class="tl-note" id="w-taxNote" style="margin-top:0"></p>
+    </details>
   </div>
   </div>
 
@@ -564,7 +583,8 @@
     // The steady-return test can't show sequence risk. Run the same withdrawal through
     // 2,000 random market paths whose typical (median) return is the slider's. This sets
     // the comfort label everywhere on the page.
-    const mc = renderMonteCarlo(portfolioAtStart, annualIncome, returnRate, horizon);
+    const taxSpec = withdrawalTax(portfolioAtStart, annualIncome, retireAge);
+    const mc = renderMonteCarlo(portfolioAtStart, annualIncome, returnRate, horizon, taxSpec);
     const tier = mc ? comfortTier(mc.successRate) : null;
     const pct = mc ? Math.round(mc.successRate * 100) : null;
     const rateKey = numFrom('w-withdrawRate', 4);   // the slider's own value, so 3.5 looks up 3.5
@@ -597,7 +617,7 @@
       const income = portfolioAtStart * (rate / 100);
       const isActive = Math.abs(rate - rateKey) < 0.3;
       const rowMc = (window.FirePathEngine && FirePathEngine.simulateDrawdown)
-        ? FirePathEngine.simulateDrawdown({ portfolio: portfolioAtStart, annualSpend: income, years: horizon, median: returnRate }) : null;
+        ? FirePathEngine.simulateDrawdown({ portfolio: portfolioAtStart, annualSpend: income, years: horizon, median: returnRate, tax: taxSpec || undefined }) : null;
       const rowTier = rowMc ? comfortTier(rowMc.successRate) : null;
       const growthClass = !rowTier ? 'warning' : rowTier.cls === 'strong' ? 'positive' : rowTier.cls === 'okay' ? 'warning' : 'danger';
       const lastText = rowMc ? `Lasts ${horizon} yrs in ${Math.round(rowMc.successRate * 100)}% of futures` : '—';
@@ -713,10 +733,31 @@
   // Monte Carlo result: share of 2,000 seeded random-return futures in which the money
   // lasts the full horizon, the year it runs out in a bad (1 in 10) future, and the
   // typical (median) ending balance. All in today's money.
-  function renderMonteCarlo(portfolioAtStart, annualSpend, returnRate, horizon) {
+  // Tax on the part outside super (FirePathEngine.retireeTax): the two optional settings,
+  // with "outside super" defaulting to all of it before 60 (super's locked) and half from 60.
+  const wTaxTouched = { outside: false };
+  function withdrawalTax(portfolioAtStart, annualIncome, startAge) {
+    const E = window.FirePathEngine, out = document.getElementById('w-outside'), gain = document.getElementById('w-gain');
+    if (!E || !E.retireeTax || !out || !gain) return null;
+    if (!wTaxTouched.outside) out.value = startAge != null && startAge >= 60 ? 50 : 100;
+    const outsideShare = (+out.value) / 100, gainShare = (+gain.value) / 100;
+    document.getElementById('w-outsideVal').textContent = out.value + '%';
+    document.getElementById('w-gainVal').textContent = gain.value + '%';
+    const spec = { outsideShare, gainShare, age: startAge, ausShare: E.ausShareFor ? E.ausShareFor('etfs') : 0.4 };
+    const note = document.getElementById('w-taxNote');
+    if (!(outsideShare > 0)) { note.textContent = 'All in super: no tax on what you draw after 60.'; return spec; }
+    const v = portfolioAtStart * outsideShare;
+    const t = E.retireeTax({ outsideValue: v, costBase: v * (1 - gainShare), withdrawal: annualIncome * outsideShare, age: startAge, ausShare: spec.ausShare });
+    note.textContent = t.tax > 0
+      ? `About ${money(t.tax)} tax in the first year, paid from your savings. It's included in the 2,000-outcome test below.`
+      : t.tax < -1 ? `About ${money(-t.tax)} back in the first year: franking credits are more than the tax. It's included in the test below.`
+      : 'About no tax in the first year on these numbers.';
+    return spec;
+  }
+  function renderMonteCarlo(portfolioAtStart, annualSpend, returnRate, horizon, tax) {
     const wrap = document.getElementById('w-mc');
     if (!window.FirePathEngine || !FirePathEngine.simulateDrawdown || !(portfolioAtStart > 0)) { wrap.style.display = 'none'; return null; }
-    const mc = FirePathEngine.simulateDrawdown({ portfolio: portfolioAtStart, annualSpend, years: horizon, median: returnRate });
+    const mc = FirePathEngine.simulateDrawdown({ portfolio: portfolioAtStart, annualSpend, years: horizon, median: returnRate, tax: tax || undefined });
     const pct = Math.round(mc.successRate * 100);
     if (!mc || !Number.isFinite(mc.successRate)) { wrap.style.display = 'none'; return null; }
     const tier = comfortTier(mc.successRate);
