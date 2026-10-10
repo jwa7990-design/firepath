@@ -338,3 +338,16 @@ test('plan: progress counts open + done, never dismissed; limit trims open only'
   const empty = M.plan({}, {});
   deq(empty.progress, { done: 0, total: empty.open.length });
 });
+
+test('"Working less could be an option" uses the shared coast point (free by 65, super counted)', () => {
+  const E = M.__engine;
+  for (const p of [base, Object.assign({}, base, { age: 45, currentSavings: 20000, superBalance: 40000 }), Object.assign({}, base, { age: 30, currentSavings: 5000, superBalance: 10000, savingsType: 'etfs' }),
+    Object.assign({}, base, { age: 40, currentSavings: 150000, superBalance: 300000, savingsType: 'etfs' })]) {
+    const s = M.situationFromInputs(p);
+    const own = Math.max(0, s.takeHomeMonthly - (s.partnerTakeHomeMonthly || 0));
+    const c = E.coastPoint({ age: s.age, savings: s.currentSavings, monthlySavings: s.savingsMonthly, target: s.freedomNumber, superBalance: s.superBalance, grossIncome: s.grossIncome, takeHomeMonthly: own });
+    assert.equal(ids(p).includes('work-less'), !!(c && c.months === 0), JSON.stringify(p));
+  }
+  // A 40-year-old with $150k invested and $300k super is there now.
+  assert.ok(ids(Object.assign({}, base, { age: 40, currentSavings: 150000, superBalance: 300000, savingsType: 'etfs' })).includes('work-less'));
+});

@@ -521,14 +521,16 @@
     $('heroPathNote').textContent = since ? `The faint marker is your date in ${si.label}` : '';
   }
 
-  // Milestones on the progress track. Coast = the balance that grows to the freedom
-  // number by 60 with no further saving (same 7%), which is what "coast" means.
+  // Milestones on the progress track. Coast = the one definition every page uses
+  // (FirePathEngine.coastPoint): the savings from which you could stop adding, keep
+  // working (super keeps growing) and still be free by 65. Placed at those savings.
   function renderMilestones(m) {
     const persona = Persona.get();
     const list = [];
-    if (m.age && m.age < 58) {
-      const coastPct = Math.round(100 / Engine.projectPortfolio(1, 0, 60 - m.age, RATE));
-      if (coastPct >= 3 && coastPct <= 85) list.push({ at: coastPct, name: Persona.copy('coastTerm'), hint: persona === 'beginner' ? 'Grows on its own by 60' : 'FI by 60 without saving more' });
+    const coast = m.age && m.age < 65 && m.freedomNumber > 0 && Engine.coastPoint ? Engine.coastPoint(m.planInputs) : null;
+    if (coast) {
+      const coastPct = Math.round(Math.max(coast.savings, m.savings) / m.freedomNumber * 100);
+      if (coastPct >= 3 && coastPct <= 85) list.push({ at: coastPct, name: Persona.copy('coastTerm'), hint: persona === 'beginner' ? 'Free by 65 without saving more' : 'FI by 65 without saving more' });
     }
     list.push({ at: 50, name: persona === 'fire' ? '50% FI' : 'Halfway', hint: money(m.freedomNumber / 2) });
     list.push({ at: 100, name: persona === 'fire' ? 'FI' : 'Work optional', hint: money(m.freedomNumber) });

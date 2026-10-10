@@ -119,15 +119,18 @@ window.FirePathMoves = (function () {
   // super, then super from 60, after tax), built from the situation. `over` changes some
   // of its inputs for a "what if". undefined = the engine (or a usable number) isn't
   // there, so callers fall back to the simple yearsTo timeline.
-  function planYears(s, over) {
-    const eng = E();
-    if (!eng || typeof eng.freedomPlan !== 'function' || !(s.freedomNumber > 0)) return undefined;
+  function planInputsFor(s, over) {
     const ownTakeHome = s.takeHomeMonthly != null ? Math.max(0, s.takeHomeMonthly - (s.partnerTakeHomeMonthly || 0)) : null;
-    const inputs = Object.assign({
+    return Object.assign({
       age: s.age, savings: s.currentSavings || 0, monthlySavings: s.savingsMonthly || 0, target: s.freedomNumber,
       superBalance: s.superBalance || 0, grossIncome: s.grossIncome || null, takeHomeMonthly: ownTakeHome,
       partner: s.hasPartner && s.partnerSuper > 0 ? { superBalance: s.partnerSuper, age: s.partnerAge, takeHomeMonthly: s.partnerTakeHomeMonthly || 0 } : null,
     }, over || {});
+  }
+  function planYears(s, over) {
+    const eng = E();
+    if (!eng || typeof eng.freedomPlan !== 'function' || !(s.freedomNumber > 0)) return undefined;
+    const inputs = planInputsFor(s, over);
     let p = null;
     try { p = eng.freedomPlan(inputs); } catch (e) { return undefined; }
     return p && p.valid ? p.years : undefined;
@@ -236,9 +239,19 @@ window.FirePathMoves = (function () {
     { id: 'work-less', tier: 6, title: 'Working less could be an option', plan: 'Free',
       tool: { href: '/freedom-gap', label: 'See your freedom gap' }, article: 'what-is-coast-fire',
       applies(s) {
-        if (s.alreadyFree || s.age == null || s.age >= 65 || !(s.currentSavings > 0)) return false;
-        const grown = E().projectPortfolio(s.currentSavings, 0, 65 - s.age, REAL);
-        if (grown < s.freedomNumber) return false;
+        if (s.alreadyFree || s.age == null || s.age >= 65 || !(s.freedomNumber > 0)) return false;
+        // Coast, the one definition every page uses (FirePathEngine.coastPoint): stop adding
+        // to savings today, keep working (so super keeps growing), and still be free by 65.
+        const eng = E();
+        if (eng && typeof eng.coastPoint === 'function') {
+          const c = eng.coastPoint(planInputsFor(s));
+          if (!c || c.months !== 0) return false;
+          const stop = eng.freedomPlan(planInputsFor(s, { monthlySavings: 0 }));
+          const at = stop && stop.freedomAge != null ? ` (around age ${stop.freedomAge})` : '';
+          return { why: 'Your savings and super could get you to freedom by 65 even if you stopped adding to your savings today. You’d keep working, so your super keeps growing. So part-time work covering today’s costs is one possibility. Others keep saving for an earlier date.',
+            impact: { text: `On track to be free by 65 without saving more${at}` } };
+        }
+        if (!(s.currentSavings > 0) || E().projectPortfolio(s.currentSavings, 0, 65 - s.age, REAL) < s.freedomNumber) return false;
         return { why: 'Your savings would reach your freedom number by 65 even if you never added another dollar. So part-time work covering today’s costs is one possibility. Others keep saving for an earlier date.',
           impact: { text: 'On track for your number by 65 without saving more' } };
       } },

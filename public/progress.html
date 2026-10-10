@@ -470,6 +470,7 @@
   let checkinHistory = [];
   let calcData = {};
   let persona = null;
+  let planProfile = null;   // the synced profile, for the coast point (see coastNow)
 
   document.addEventListener('DOMContentLoaded', async function () {
     const token = getToken();
@@ -522,6 +523,7 @@
       localStorage.setItem('fp_last_calc', JSON.stringify(calcData));
     }
     persona = (profile && profile.persona) || localStorage.getItem('fp_persona') || null;
+    planProfile = profile;
 
     if (!calcData.fireNum) {
       // Empty state: nothing below can be worked out without a freedom number.
@@ -930,17 +932,17 @@
   // ── Milestones and "How you handle money" (moved here from the old About you page) ──
   const PERSONA_COPY = {
     beginner: {
-      badgeCoast: 'Halfway cushion', badgeLean: 'Covers the basics', badgeFI: 'Work becomes optional',
-      tlCoast: 'Saved enough that growth alone could carry you one day (rough estimate)',
+      badgeCoast: 'Could ease off saving', badgeLean: 'Covers the basics', badgeFI: 'Work becomes optional',
+      tlCoast: 'Saved enough to stop adding and still be free by 65',
       tlLean: 'Close to covering your basic living costs without working (rough estimate)',
       tlFI: 'Enough saved that work is optional',
-      note: 'A rough guide based on your savings compared with your freedom number. It’s not an exact calculation yet.'
+      note: '“Could ease off saving” uses your full plan. The others are a rough guide, comparing your savings with your freedom number.'
     },
     default: {
       badgeCoast: 'Coast FIRE reached', badgeLean: 'Lean FIRE', badgeFI: 'Work is optional',
-      tlCoast: 'Reached Coast FIRE (rough estimate)', tlLean: 'Reached Lean FIRE (rough estimate)',
+      tlCoast: 'Reached Coast FIRE (free by 65 without saving more)', tlLean: 'Reached Lean FIRE (rough estimate)',
       tlFI: 'Hit your freedom number',
-      note: 'Based on your savings compared with your freedom number. It’s a rough guide, not the full Coast/Lean FIRE sum yet.'
+      note: 'Coast FIRE uses your full plan (free by 65 without saving more). Lean FIRE is a rough guide: your savings compared with your freedom number.'
     }
   };
 
@@ -999,17 +1001,33 @@
     document.getElementById(btnId).hidden = extra === 0;
   }
 
+  // Coast, the one definition every page uses (FirePathEngine.coastPoint): the savings from
+  // which you could stop adding, keep working (super keeps growing) and still be free by 65.
+  // On the saved plan when there is one, else on this page's numbers with `savings` in.
+  // null = it doesn't happen before 65 (or no age).
+  function coastNow(savings) {
+    const E = window.FirePathEngine;
+    if (!E || !E.coastPoint) return null;
+    const base = planProfile && planProfile.freedom_number ? E.planInputsFromProfile(planProfile)
+      : { age: calcData.age, monthlySavings: calcData.mSav || 0, target: calcData.fireNum, superBalance: calcData.superBal || 0 };
+    return E.coastPoint(Object.assign({}, base, { savings }));
+  }
+
   function renderAchievementsAndTimeline(savings, freedomNumber, persona){
     const copy = PERSONA_COPY[persona] || PERSONA_COPY.default;
     const ratio = freedomNumber > 0 ? savings / freedomNumber : 0;
+    const coast = coastNow(savings);
+    const coastTarget = coast ? Math.max(coast.savings, coast.months === 0 ? 0 : savings) : null;
+    const byTarget = (a, b) => a.target - b.target;
     const badges = [
       { label: 'First $10k',    unlocked: savings >= 10000, target: 10000 },
       { label: 'First six figures',   unlocked: savings >= 100000, target: 100000 },
       { label: 'Quarter free', unlocked: ratio >= 0.25, target: freedomNumber * 0.25 },
-      { label: copy.badgeCoast, unlocked: ratio >= 0.4, target: freedomNumber * 0.4 },
       { label: copy.badgeLean,  unlocked: ratio >= 0.7, target: freedomNumber * 0.7 },
       { label: copy.badgeFI,    unlocked: ratio >= 1.0, target: freedomNumber }
     ];
+    if (coast) badges.push({ label: copy.badgeCoast, unlocked: coast.months === 0, target: coastTarget });
+    badges.sort(byTarget);
     const nextBadgeIdx = badges.findIndex(b => !b.unlocked);
     const badgeExtra = markTopThree(badges, nextBadgeIdx);
     document.getElementById('achvNote').textContent = copy.note;
@@ -1028,11 +1046,12 @@
     const timeline = [
       { label: 'Started FirePath', done: true, target: 0 },
       { label: 'Saved first $100k', done: savings >= 100000, target: 100000 },
-      { label: copy.tlCoast, done: ratio >= 0.4, target: freedomNumber * 0.4 },
       { label: copy.tlLean, done: ratio >= 0.7, target: freedomNumber * 0.7 },
       { label: copy.tlFI, done: ratio >= 1.0, target: freedomNumber },
       { label: 'Reached 1.5× your freedom number', done: ratio >= 1.5, target: freedomNumber * 1.5 }
     ];
+    if (coast) timeline.push({ label: copy.tlCoast, done: coast.months === 0, target: coastTarget });
+    timeline.sort(byTarget);
     const nextTlIdx = timeline.findIndex(t => !t.done);
     const tlExtra = markTopThree(timeline, nextTlIdx);
     document.getElementById('timeline').innerHTML = timeline.map((t, i) => {

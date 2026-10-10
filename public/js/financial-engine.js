@@ -379,7 +379,8 @@ window.FirePathEngine = (function () {
   // savings and still reach freedom by `byAge` (65 unless given), on the same plan as the
   // headline. Balances grow exactly as in walkPlan (savings and SG keep going until then),
   // and each month is tested with freedomPlan and no further saving. Returns
-  // { months, age, year } (months 0 = already there), or null if it never happens before
+  // { months, age, year, savings } (months 0 = already there; savings = the money outside
+  // super by then), or null if it never happens before
   // byAge, or without an age.
   function coastPoint(inputs, opts) {
     const n = planInputs(inputs);
@@ -397,7 +398,7 @@ window.FirePathEngine = (function () {
         partner: pt ? Object.assign({}, inputs.partner, { superBalance: ptBal, age: pt.age + m / 12 }) : inputs.partner
       }), { now });
       if (later.reachable && later.freedomAgeExact !== null && later.freedomAgeExact <= byAge + 1e-9) {
-        return { months: m, age: n.age + m / 12, year: new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear() };
+        return { months: m, age: n.age + m / 12, year: new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear(), savings: out };
       }
       out = out * (1 + rO) + n.monthlySavings;
       own = own * (1 + rS) + sgOwn;
