@@ -508,7 +508,9 @@
     const cushion = Engine.cushionNote(m.plan);
     $('heroCushion').textContent = cushion || ''; $('heroCushion').hidden = !cushion;
     const homeowner = /own|mortgage|buy/i.test((m.p && m.p.housing_status) || '');
-    const pensionLine = isFree(m) ? null : Engine.agePensionLine(Engine.agePensionPlan(m.planInputs, { homeowner }), m.plan, homeowner);
+    // Renters: Rent Assistance on the rent in their note (FirePathEngine.noteFacts).
+    const rentM = !homeowner && Engine.noteFacts ? Engine.noteFacts(m.p && m.p.context).rentMonthly || 0 : 0;
+    const pensionLine = isFree(m) ? null : Engine.agePensionLine(Engine.agePensionPlan(m.planInputs, { homeowner, rentFortnight: rentM * 12 / 26 }), m.plan, homeowner);
     $('heroPension').textContent = pensionLine || ''; $('heroPension').hidden = !pensionLine;
 
     $('progressPct').textContent = `${m.pct}%`;

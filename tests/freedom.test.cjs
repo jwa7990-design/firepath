@@ -538,3 +538,11 @@ test('Age Pension line with a mortgage: sized on spending without repayments onc
   const asIs = E.agePensionPlan(i, { homeowner: true });
   near(stillOwing.ownAt67, asIs.ownAt67, 20);
 });
+
+test('the note reads rent (and not "current" or "parents")', () => {
+  assert.equal(E.noteFacts('I pay $520 a week rent').rentMonthly, Math.round(520 * 52 / 12));
+  assert.equal(E.noteFacts('rent $2,200 a month').rentMonthly, 2200);
+  assert.equal(E.noteFacts('my current income is $900 a week').rentMonthly, undefined);
+  assert.equal(E.noteFacts('helping my parents $200 a week').rentMonthly, undefined);
+  assert.equal(E.noteFacts('I pay $___ a week rent').rentMonthly, undefined);
+});

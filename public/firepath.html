@@ -816,7 +816,7 @@
     _planInputs.mortgage = mortgage > 0 && facts.mortgageRepayMonthly > 0
       ? { balance: mortgage, repayMonthly: facts.mortgageRepayMonthly, spendMult: retirementSpendMultiplier } : null;
     Object.assign(situationInputs, { employerSuperRate: _planInputs.employerSuperRate, superInsurance: _planInputs.superInsurance,
-      ausShare: facts.ausShare, mortgageRepayMonthly: facts.mortgageRepayMonthly || 0 });
+      ausShare: facts.ausShare, mortgageRepayMonthly: facts.mortgageRepayMonthly || 0, rentMonthly: facts.rentMonthly || 0 });
     return { income, savingPerCycle, savings, superBal, debt, mortgage, age, context, pI, pS, mI, mSav, mS, fireNum, sRate, pAge, pSuper, hasPartner, situationInputs, planInputs: _planInputs };
   }
   // The note's tap-to-add prompts and "Counted" list (js/note-prompts.js).
@@ -826,10 +826,10 @@
     const np = FirePathNotePrompts.attach({
       textarea: document.getElementById('contextNote'),
       mount: document.getElementById('contextPrompts'),
-      context: () => ({ hasMortgage: money('fbMortgage') > 0, working: true, hasSuper: money('fbSuper') > 0,
+      context: () => ({ hasMortgage: money('fbMortgage') > 0, renting: (document.getElementById('fbHousing') || {}).value === 'renting', working: true, hasSuper: money('fbSuper') > 0,
         invests: ['etfs', 'mix'].includes((document.getElementById('fbHeld') || {}).value) })
     });
-    ['fbMortgage', 'fbSuper', 'fbHeld'].forEach(id => { const el = document.getElementById(id); if (el) { el.addEventListener('input', np.refresh); el.addEventListener('change', np.refresh); } });
+    ['fbMortgage', 'fbSuper', 'fbHeld', 'fbHousing'].forEach(id => { const el = document.getElementById(id); if (el) { el.addEventListener('input', np.refresh); el.addEventListener('change', np.refresh); } });
   });
 
   const PLAN_INVALID = "Please check your numbers: we need what you spend (take-home less savings) to work out your freedom number.";
@@ -938,7 +938,8 @@
     // add from 67 (shown beside the date, never in it).
     note('answerCushion', FirePathEngine.cushionNote(plan));
     const homeowner = housingStatus === 'owning';
-    note('answerPension', _planInputs ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(_planInputs, { homeowner }), plan, homeowner) : null);
+    const rentM = !homeowner ? FirePathEngine.noteFacts(r.context).rentMonthly || 0 : 0;   // Rent Assistance for renters
+    note('answerPension', _planInputs ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(_planInputs, { homeowner, rentFortnight: rentM * 12 / 26 }), plan, homeowner) : null);
   }
 
   // The reveal: the big age counts up from today's to the freedom age while the path draws

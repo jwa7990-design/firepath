@@ -1069,18 +1069,21 @@
   let priorFreedomYears=null,priorCalcCreatedAt=null; // populated by loadSavedInputs() on page load
   const fpGuest=localStorage.getItem('fp_guest');
 
-  function setHousing(btn){document.querySelectorAll('.housing-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');housingStatus=btn.dataset.housing;}
+  function setHousing(btn){document.querySelectorAll('[data-housing]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');housingStatus=btn.dataset.housing;if(notePrompts)notePrompts.refresh();}
   function setSavingsType(btn){document.querySelectorAll('[data-savings]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');savingsType=btn.dataset.savings;if(notePrompts)notePrompts.refresh();}
   // From the "anything else?" note (FirePathEngine.noteFacts), or the answers saved before
   // the note took over: Australian shares (0–1, null = not said), employer super rate,
   // super insurance, and mortgage repayments.
-  let ausShareAns=null,mortgageRepay=0,mortgageBal=0,notePrompts=null;
+  let ausShareAns=null,mortgageRepay=0,mortgageBal=0,rentMonthly=0,notePrompts=null;
+  // Renters' rent a fortnight (from the note), for Rent Assistance with the Age Pension.
+  function rentFortnight(){return /rent/i.test(housingStatus||'')&&rentMonthly>0?rentMonthly*12/26:0;}
   function applyNoteFacts(f,saved){
     saved=saved||{};
     ausShareAns=f.ausShare!=null?f.ausShare:(saved.aus_share!=null?saved.aus_share:null);
     employerRate=f.employerSuperRate||(saved.employer_super_rate>0.12?saved.employer_super_rate:null);
     superInsurance=f.superInsurance||(saved.super_insurance>0?saved.super_insurance:0);
     mortgageRepay=f.mortgageRepayMonthly||0;
+    rentMonthly=f.rentMonthly||0;
   }
   function mortgageInput(){return mortgageBal>0&&mortgageRepay>0?{balance:mortgageBal,repayMonthly:mortgageRepay,offset:offsetAmount||0,rate:offsetInterestRate>0?offsetInterestRate/100:null,spendMult:retirementSpendMultiplier||1}:null;}
   function adjustDependants(d){dependants=Math.max(0,Math.min(10,dependants+d));document.getElementById('dependantsVal').textContent=dependants;}
@@ -2431,7 +2434,7 @@ async function saveProfile() {
     notePrompts = FirePathNotePrompts.attach({
       textarea: document.getElementById('context'),
       mount: document.getElementById('contextPrompts'),
-      context: () => ({ hasMortgage: val('mortgageRemaining') > 0, working: true, hasSuper: val('superBalance') > 0, invests: savingsType === 'etfs' || savingsType === 'mix' })
+      context: () => ({ hasMortgage: val('mortgageRemaining') > 0, renting: /rent/i.test(housingStatus || ''), working: true, hasSuper: val('superBalance') > 0, invests: savingsType === 'etfs' || savingsType === 'mix' })
     });
     ['mortgageRemaining', 'superBalance'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', () => notePrompts.refresh()); });
   });
@@ -2444,7 +2447,7 @@ async function saveProfile() {
     const cushion = FirePathEngine.cushionNote(plan);
     set('proCushion', cushion);
     const homeowner = !/rent/i.test(housingStatus || '');
-    const line = plan && plan.valid && !plan.alreadyFree && pi ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(pi, { homeowner }), plan, homeowner) : null;
+    const line = plan && plan.valid && !plan.alreadyFree && pi ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(pi, { homeowner, rentFortnight: rentFortnight() }), plan, homeowner) : null;
     set('proPension', line);
   }
 
@@ -2541,7 +2544,7 @@ async function saveProfile() {
     const isHomeowner = housingStatus !== 'renting', isCouple = !!calcData.isCouple, work = annualWorkIncome || 0;
     const r = FirePathEngine.simulateDrawdown({ portfolio, annualSpend, years: 95 - fromAge, paths,
       // Work income counts in the pension's income test, less the Work Bonus ($300 a fortnight).
-      otherIncomeByYear: (y, bal) => work + (fromAge + y >= 67 && typeof calculateAgePension === 'function' ? calculateAgePension(bal, work, isHomeowner, isCouple, undefined, Object.assign({ workIncome: work }, pensionOpts(fromAge + y) || {})).annualPension || 0 : 0) });
+      otherIncomeByYear: (y, bal) => work + (fromAge + y >= 67 && typeof calculateAgePension === 'function' ? calculateAgePension(bal, work, isHomeowner, isCouple, undefined, Object.assign({ workIncome: work, rentFortnight: rentFortnight() }, pensionOpts(fromAge + y) || {})).annualPension || 0 : 0) });
     return Math.round(r.successRate * 100);
   }
 
@@ -2565,7 +2568,7 @@ async function saveProfile() {
     const isHomeowner = housingStatus !== 'renting', homeLabel = isHomeowner ? 'homeowner' : 'renter';
     const isCouple = !!calcData.isCouple, coupleLabel = isCouple ? 'couple' : 'single';
     if (typeof calculateAgePension === 'function' && effectiveSavings > 0) {
-      const pension = calculateAgePension(effectiveSavings, 0, isHomeowner, isCouple, undefined, pensionOpts(Math.max(67, effectiveFreedomAge || 67))); // deemed, not drawdowns
+      const pension = calculateAgePension(effectiveSavings, 0, isHomeowner, isCouple, undefined, Object.assign({ rentFortnight: rentFortnight() }, pensionOpts(Math.max(67, effectiveFreedomAge || 67)) || {})); // deemed, not drawdowns
       pensionAnnual = pension.annualPension;
       const gapAfterPension = Math.max(0, gap - pensionAnnual), gapAfterPensionWeekly = Math.round(gapAfterPension / 52);
       if (pensionAnnual > 0) {

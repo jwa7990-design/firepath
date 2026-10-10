@@ -475,3 +475,17 @@ test('Age Pension: work income counts, less the Work Bonus ($300 a fortnight eac
   const two = E.calculateAgePension(200000, 30000, true, true, undefined, { workIncome: [15000, 15000] }).annualPension;
   assert.ok(two > one);
 });
+
+test('Rent Assistance with the Age Pension: 75c per $1 over the threshold, capped, renters only', () => {
+  const base = E.calculateAgePension(50000, 0, false, false).annualPension;
+  // Single, $300 a fortnight: (300 − 157.80) × 0.75 a fortnight on top.
+  near(E.calculateAgePension(50000, 0, false, false, undefined, { rentFortnight: 300 }).annualPension - base, (300 - 157.80) * 0.75 * 26, 1);
+  // High rent: capped at $223.80 a fortnight.
+  near(E.calculateAgePension(50000, 0, false, false, undefined, { rentFortnight: 900 }).annualPension - base, 223.80 * 26, 1);
+  // Below the threshold, or homeowners: nothing.
+  assert.equal(E.calculateAgePension(50000, 0, false, false, undefined, { rentFortnight: 150 }).annualPension, base);
+  assert.equal(E.calculateAgePension(50000, 0, true, false, undefined, { rentFortnight: 900 }).annualPension, E.calculateAgePension(50000, 0, true, false).annualPension);
+  // Couples: combined figures.
+  const cb = E.calculateAgePension(80000, 0, false, true).annualPension;
+  near(E.calculateAgePension(80000, 0, false, true, undefined, { rentFortnight: 900 }).annualPension - cb, 211.00 * 26, 1);
+});

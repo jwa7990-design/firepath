@@ -578,14 +578,16 @@ window.FirePathEngine = (function () {
   // pension is means-tested on what you hold, and in the assets-test taper more savings can
   // mean less pension, so this finds the smallest amount of your own money that, with the
   // pension it earns, reaches the freedom number. Today's rates and limits, today's dollars.
-  // opts: { homeowner (default true), couple (default: has a partner) }.
+  // opts: { homeowner (default true), couple (default: has a partner), rentFortnight (renters) }.
   // Returns null without an age or the pension tables, else { plan, pensionAnnual, ownAt67 }.
   function agePensionPlan(inputs, opts) {
     const n = planInputs(inputs);
     if (!n || n.age == null || typeof calculateAgePension !== 'function') return null;
     const o = opts || {};
     const homeowner = o.homeowner !== false, couple = o.couple != null ? !!o.couple : !!n.partner;
-    const pensionOn = c => calculateAgePension(c, 0, homeowner, couple, c).annualPension || 0;
+    // Renters: Rent Assistance on the rent they pay (opts.rentFortnight), as today.
+    const rentOpts = !homeowner && o.rentFortnight > 0 ? { rentFortnight: o.rentFortnight } : undefined;
+    const pensionOn = c => calculateAgePension(c, 0, homeowner, couple, c, rentOpts).annualPension || 0;
     // The spending the pension has to meet from 67: like the headline, a mortgage paid off
     // by then no longer counts (if it runs past 67, its repayments still do).
     const mg = mortgageFor(inputs, n);
@@ -677,6 +679,7 @@ window.FirePathEngine = (function () {
   //   employerSuperRate    ("my employer pays 15% super", "17% super")
   //   superInsurance       ("super insurance about $800 a year")
   //   ausShare             ("about half my investments are in Australian shares", "none in Aussie shares")
+  //   rentMonthly          ("I pay $520 a week rent", "rent $2,200 a month")
   // Returns { …values, counted: [{ key, text }] }.
   function noteFacts(text) {
     const t = String(text || '').replace(/ /g, ' ');
@@ -691,6 +694,13 @@ window.FirePathEngine = (function () {
     if (m) {
       const v = perMonth(money(m[1]), m[2]);
       if (v >= 100 && v <= 50000) { out.mortgageRepayMonthly = Math.round(v); out.counted.push({ key: 'mortgage', text: `Mortgage repayments $${Math.round(v).toLocaleString('en-AU')} a month` }); }
+    }
+    // Rent (renters: for Rent Assistance with the Age Pension). "rent", not "current"/"parent".
+    m = t.match(new RegExp(String.raw`\brent\b[^\d$\n.]{0,20}?` + AMT + String.raw`\s*` + PER, 'i'))
+      || t.match(new RegExp(AMT + String.raw`\s*` + PER + String.raw`[^\n.\d]{0,15}?\brent\b`, 'i'));
+    if (m) {
+      const v = perMonth(money(m[1]), m[2]);
+      if (v >= 100 && v <= 30000) { out.rentMonthly = Math.round(v); out.counted.push({ key: 'rent', text: `Rent $${Math.round(v * 12 / 52).toLocaleString('en-AU')} a week` }); }
     }
     // Employer super rate above 12%.
     m = t.match(/(\d{2}(?:\.\d+)?)\s*%\s*(?:employer\s*)?super/i) || t.match(/super[^\d\n.]{0,30}?(\d{2}(?:\.\d+)?)\s*%/i);

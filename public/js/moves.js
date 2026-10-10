@@ -67,7 +67,7 @@ window.FirePathMoves = (function () {
       emergencyFund: typeof i.emergencyFund === 'boolean' ? i.emergencyFund : null,
       retirementSpendMultiplier: num(i.retirementSpendMultiplier) || 1, freedomNumber: num(i.freedomNumber),
       persona: i.persona || null, superInsurance: num(i.superInsurance) || 0, ausShare: num(i.ausShare), employerSuperRate: num(i.employerSuperRate),
-      mortgageRepayMonthly: num(i.mortgageRepayMonthly) || 0, offsetAmount: num(i.offsetAmount) || 0, mortgageRate: num(i.mortgageRate),
+      mortgageRepayMonthly: num(i.mortgageRepayMonthly) || 0, rentMonthly: num(i.rentMonthly) || 0, offsetAmount: num(i.offsetAmount) || 0, mortgageRate: num(i.mortgageRate),
     };
     s.cashSavings = s.savingsType === 'cash' ? s.currentSavings : s.savingsType === 'mix' ? s.currentSavings / 3 : null;
     s.grossIncome = num(i.grossIncome) || ownGross(s);
@@ -90,7 +90,7 @@ window.FirePathMoves = (function () {
       retirementSpendMultiplier: p.retirement_spend_multiplier, freedomNumber: p.freedom_number,
       grossIncome: p.gross_income, persona: p.persona,
       superInsurance: p.super_insurance > 0 ? p.super_insurance : facts.superInsurance, ausShare: p.aus_share != null ? p.aus_share : facts.ausShare,
-      employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate, mortgageRepayMonthly: facts.mortgageRepayMonthly,
+      employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate, mortgageRepayMonthly: facts.mortgageRepayMonthly, rentMonthly: facts.rentMonthly,
       offsetAmount: p.offset_amount, mortgageRate: p.offset_interest_rate > 0 ? p.offset_interest_rate / 100 : null,
     });
   }
@@ -293,7 +293,8 @@ window.FirePathMoves = (function () {
         // half of the couple rate is paid and the partner's super isn't counted yet.
         const partnerAt67 = s.partnerAge != null ? 67 + (s.partnerAge - s.age) : 67;
         const couple = s.hasPartner ? { partnerEligible: partnerAt67 >= 67, partnerSuper: s.partnerSuper || 0 } : undefined;
-        const p = calculateAgePension(assets, 0, s.housing !== 'renting', s.hasPartner, undefined, couple).annualPension;
+        const rentOpts = s.housing === 'renting' && s.rentMonthly > 0 ? { rentFortnight: s.rentMonthly * 12 / 26 } : {};
+        const p = calculateAgePension(assets, 0, s.housing !== 'renting', s.hasPartner, undefined, Object.assign(rentOpts, couple || {})).annualPension;
         if (!(p > 0)) return false;
         return { why: 'From 67, the Age Pension may top up what your savings pay. It’s means-tested on what you own and earn then.',
           impact: { dollars: p, text: `About ${money(p)} a year on today's figures` } };

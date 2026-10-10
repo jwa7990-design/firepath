@@ -108,6 +108,10 @@ const AGE_PENSION = {
   // Work Bonus (Services Australia): $300 a fortnight of each pensioner's work income isn't
   // counted in the income test (unused credit banks up to $11,800, not modelled here).
   workBonusFortnight: 300,
+  // Commonwealth Rent Assistance with the pension (Services Australia, 20 September 2026):
+  // 75c per $1 of fortnightly rent above `over`, up to `max`. Couple figures are combined.
+  // Added to the maximum rate before the means tests, like the supplements.
+  rentAssistance: { single: { over: 157.80, max: 223.80 }, couple: { over: 255.80, max: 211.00 } },
   // Maximum fortnightly rate incl. pension + energy supplements. Couple = combined.
   singleFortnight: 1237.70,
   coupleFortnight: 1866.00,
@@ -399,6 +403,7 @@ function deemedIncome(financialAssets, isCouple = false) {
 //                     instead of counting what you withdraw.
 //   financialAssets — the part of `assets` that's deemed (shares, ETFs, cash, account-
 //                     based super in pension phase). Defaults to all of `assets`.
+//   opts.rentFortnight — renters: the household's rent a fortnight, for Rent Assistance.
 //   opts.workIncome — the part of otherIncome that's work income (or [yours, partner's]):
 //                     the Work Bonus takes up to $300 a fortnight off each before the test.
 //   opts (couples only):
@@ -432,8 +437,11 @@ function calculateAgePension(assets, otherIncome = 0, isHomeowner = true, isCoup
   }
   a = Math.max(0, a); fa = Math.max(0, fa); inc = Math.max(0, inc);
 
+  // Rent Assistance for renters (o.rentFortnight: the household's rent a fortnight).
+  const ra = P.rentAssistance && !isHomeowner && num(o.rentFortnight) > 0 ? P.rentAssistance[isCouple ? 'couple' : 'single'] : null;
+  const rentAssistance = ra ? Math.min(ra.max, Math.max(0, (num(o.rentFortnight) - ra.over) * 0.75)) * 26 : 0;
   // Means tests work on the combined couple rate; each partner then gets half of it.
-  const maxPension = fullCoupleOrSingle;
+  const maxPension = fullCoupleOrSingle + rentAssistance;
   const limits = P.assets[isCouple ? 'couple' : 'single'][isHomeowner ? 'homeowner' : 'nonHomeowner'];
   const assetsReduction = Math.max(0, a - limits.full) * P.assets.taperPerDollarFortnight * 26;
   // Past the published cut-off no pension is paid, even where the taper leaves a few dollars.
