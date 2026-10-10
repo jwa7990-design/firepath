@@ -26,54 +26,54 @@ const schema = {
 
   <main id="main" class="hp">
   <header class="hp-hero">
-    <div class="hp-wrap faq-hero">
-      <div>
-        <p class="hp-label mk-kicker">Help centre</p>
-        <h1 class="hp-h1">Common questions</h1>
-        <p class="hp-lead">Plain answers to the things people ask most. Can't find what you need? Email us and a real person will reply.</p>
-      </div>
-      <nav class="faq-toc-desktop" aria-label="Topics">
-        <p class="hp-label is-ink">Topics</p>
-        <ol class="hp-rows">{FAQ.map((c, ci) => <li><a href={`#${c.id}`} data-toc={c.id}><span class="faq-toc-n num" aria-hidden="true">{String(ci + 1).padStart(2, '0')}</span><span class="faq-toc-t">{c.title}</span><span class="faq-toc-num num">{c.items.length}</span></a></li>)}</ol>
-      </nav>
+    <div class="hp-wrap">
+      <p class="hp-label mk-kicker">Help centre</p>
+      <h1 class="hp-h1">Common questions</h1>
+      <p class="hp-lead">Plain answers to the things people ask most. Can't find what you need? Email us and a real person will reply.</p>
     </div>
   </header>
 
-  <nav class="faq-toc" aria-label="Topics">
-    <details class="doc-toc-mobile faq-toc-mobile">
-      <summary><span class="hp-wrap faq-toc-bar">Topics <span class="faq-toc-chev" aria-hidden="true">+</span></span></summary>
-      <ol class="hp-wrap">{FAQ.map(c => <li><a href={`#${c.id}`}>{c.title}<span class="faq-toc-num num">{c.items.length}</span></a></li>)}</ol>
-    </details>
-  </nav>
-
-  <div class="faq-content">
-    {FAQ.map((c, ci) => (
-      <section class:list={['hp-sec faq-group', ci % 2 === 1 && 'is-sand']} id={c.id} data-doc-section aria-labelledby={`${c.id}-title`}>
-        <div class="hp-wrap hp-side">
-          <div class="hp-side-head faq-group-head">
-            <p class="faq-gn num" aria-hidden="true">{String(ci + 1).padStart(2, '0')}</p>
-            <h2 id={`${c.id}-title`} class="hp-h2">{c.title}</h2>
-            <span class="faq-group-count num">{c.items.length} questions</span>
-          </div>
-          <div class="hp-side-main faq-list" data-reveal>
-            {c.items.map(i => (
-              <div class="faq-item" id={`q-${i.id}`}>
-                <h3>
-                  <button class="faq-q" type="button" aria-expanded="false" aria-controls={`a-${i.id}`}>
-                    <span>{i.q}</span>
-                    <span class="faq-chev" aria-hidden="true">+</span>
-                  </button>
-                </h3>
-                <div class="faq-a" id={`a-${i.id}`} role="region" aria-label={i.q}>
-                  <div class="faq-a-inner"><p set:html={i.a}/></div>
-                </div>
-              </div>
-            ))}
-          </div>
+  <section class="hp-sec faq-body">
+    <div class="hp-wrap hp-side">
+      <nav class="hp-side-head faq-toc" aria-label="Topics">
+        <details class="doc-toc-mobile faq-toc-mobile">
+          <summary>Topics <span class="faq-toc-chev" aria-hidden="true">+</span></summary>
+          <ol>{FAQ.map(c => <li><a href={`#${c.id}`}>{c.title}<span class="faq-toc-num num">{c.items.length}</span></a></li>)}</ol>
+        </details>
+        <div class="faq-toc-desktop">
+          <p class="hp-label is-ink">Topics</p>
+          <ol>{FAQ.map((c, ci) => <li><a href={`#${c.id}`} data-toc={c.id}><span class="faq-toc-n num" aria-hidden="true">{String(ci + 1).padStart(2, '0')}</span><span class="faq-toc-t">{c.title}</span><span class="faq-toc-num num">{c.items.length}</span></a></li>)}</ol>
         </div>
-      </section>
-    ))}
-  </div>
+      </nav>
+
+      <div class="hp-side-main faq-content">
+        {FAQ.map((c, ci) => (
+          <section class="faq-group" id={c.id} data-doc-section aria-labelledby={`${c.id}-title`}>
+            <div class="faq-group-head">
+              <p class="faq-gn num" aria-hidden="true">{String(ci + 1).padStart(2, '0')}</p>
+              <h2 id={`${c.id}-title`} class="hp-h2 is-small">{c.title}</h2>
+              <span class="faq-group-count num">{c.items.length} questions</span>
+            </div>
+            <div class="faq-list" data-reveal>
+              {c.items.map(i => (
+                <div class="faq-item" id={`q-${i.id}`}>
+                  <h3>
+                    <button class="faq-q" type="button" aria-expanded="false" aria-controls={`a-${i.id}`}>
+                      <span>{i.q}</span>
+                      <span class="faq-chev" aria-hidden="true">+</span>
+                    </button>
+                  </h3>
+                  <div class="faq-a" id={`a-${i.id}`} role="region" aria-label={i.q}>
+                    <div class="faq-a-inner"><p set:html={i.a}/></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  </section>
 
   <section class="hp-sec is-dark faq-contact" aria-labelledby="faq-contact-title">
     <div class="hp-wrap mk-close">
