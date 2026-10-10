@@ -286,7 +286,7 @@ const freePageInputs = (() => {
   const obj = grab(FREE, /_planInputs = (\{[\s\S]*?\n {4}\});/, 'free page _planInputs');
   return new Function('age', 'savings', 'mSav', 'fireNum', 'superBal', 'toMonthly', 'income', 'pSuper', 'pAge', 'pI', 'return ' + obj);
 })();
-vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "cash", ausAnswer = null, employerRate = null;   // no insurance, cash: the cross-page comparisons\n'
+vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "cash", ausShareAns = null, employerRate = null; function mortgageInput() { return null; }   // no insurance, cash: the cross-page comparisons\n'
   + grab(PRO, /(function ownGrossIncome[\s\S]*?\n  \})/, 'Pro ownGrossIncome') + '\n'
   + grab(PRO, /(function freedomPlanInputs[\s\S]*?\n  \})/, 'Pro freedomPlanInputs')
   + '\nthis.__pro = freedomPlanInputs;', ctx);
@@ -483,4 +483,40 @@ test('aged care costs: official fees, means-tested shares, room payments and cap
   near(lump.refund, 500000 * (1 - 0.02 * 5), 0.01);
   // Help at home: a share of the budget by service type (level 4, full pensioner ≈ $2,335).
   near(E.agedCareCosts({ type: 'home', means: 'full', level: 4, years: 2 }).perYear, A.homeBudgets[3] * 0.9 * (0.3 * 0.05 + 0.4 * 0.175), 0.01);
+});
+
+test('mortgage: repayments count only until the loan is paid off; what is still owing is added', () => {
+  const i = { age: 38, savings: 120000, monthlySavings: 1500, target: 6000 * 12 * 25, superBalance: 150000, takeHomeMonthly: 7500, safeRate: false };
+  const plain = E.freedomPlan(i);
+  const withLoan = E.freedomPlan(Object.assign({}, i, { mortgage: { balance: 300000, repayMonthly: 2500, rate: 0.062 } }));
+  assert.ok(withLoan.months < plain.months, 'sooner once repayments stop');
+  // Paid off in about 15.6 years (188 months) at 6.2%.
+  assert.equal(withLoan.mortgage.payoffMonth, 188);
+  // The number is 25 × spending without repayments, plus the (today's dollars) balance still owing then.
+  near(withLoan.target, (6000 - 2500) * 12 * 25 + withLoan.mortgage.owingAtFreedom, 1);
+  // And that's consistent: freedom comes on the month the plan says.
+  const check = E.freedomPlan(Object.assign({}, i, { target: withLoan.target }));
+  assert.ok(Math.abs(check.months - withLoan.months) <= 1);
+  // Repayments that don't cover the interest, or no repayment given: nothing changes.
+  assert.equal(E.freedomPlan(Object.assign({}, i, { mortgage: { balance: 300000, repayMonthly: 1000, rate: 0.062 } })).months, plain.months);
+  assert.equal(E.freedomPlan(Object.assign({}, i, { mortgage: { balance: 300000 } })).months, plain.months);
+  // Saved plans read the repayment from the note.
+  const pi = E.planInputsFromProfile({ age: 38, freedom_number: 1.8e6, mortgage_remaining: 300000, context: 'Mortgage repayments $2,500 a month' });
+  assert.equal(pi.mortgage.repayMonthly, 2500);
+});
+
+test('the note: clear figures are read, anything else is left alone', () => {
+  const f = E.noteFacts('Mortgage repayments $2,400 a month. My employer pays 15% super. Super insurance about $800 a year. About half my investments are in Australian shares.');
+  assert.equal(f.mortgageRepayMonthly, 2400);
+  assert.equal(f.employerSuperRate, 0.15);
+  assert.equal(f.superInsurance, 800);
+  assert.equal(f.ausShare, 0.5);
+  assert.equal(E.noteFacts('we pay $1,100 a fortnight on the home loan').mortgageRepayMonthly, Math.round(1100 * 26 / 12));
+  assert.equal(E.noteFacts('mortgage 2.5k a month').mortgageRepayMonthly, 2500);
+  assert.equal(E.noteFacts('mortgage $600/week').mortgageRepayMonthly, 2600);
+  assert.equal(E.noteFacts('none in aussie shares').ausShare, 0);
+  // Not figures FirePath should use.
+  assert.equal(E.noteFacts('I have two kids under 5, a mortgage with 22 years left').counted.length, 0);
+  assert.equal(E.noteFacts('12% super').counted.length, 0);
+  assert.equal(E.noteFacts('').counted.length, 0);
 });

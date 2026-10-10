@@ -511,10 +511,7 @@
                   <label for="fbDependants">Kids or others who depend on you</label>
                   <div class="fb-sbox"><input id="fbDependants" type="text" inputmode="numeric" placeholder="0"/></div>
                 </div>
-                <div class="fb-field">
-                  <label for="fbEmployerRate">Employer super <span class="fb-opt">(if more than 12%)</span></label>
-                  <div class="fb-sbox"><input id="fbEmployerRate" type="text" inputmode="decimal" placeholder="12" maxlength="4"/><span aria-hidden="true">%</span></div>
-                </div>
+
               </div>
             </div>
 
@@ -561,6 +558,7 @@
                 <div class="fb-field">
                   <label for="contextNote" class="hp-sr">A note about your situation</label>
                   <textarea class="fb-note-text" id="contextNote" aria-describedby="contextHint" placeholder="Tell us a bit about your situation…"></textarea>
+                  <div id="contextPrompts"></div>
                 </div>
               </div>
             </div>
@@ -809,12 +807,31 @@
     };
     // Franking credits: a typical mix (about 40% Australian shares) if it's in shares/ETFs.
     _planInputs.ausShare = FirePathEngine.ausShareFor(savingsType);
-    // Employer super above the 12% guarantee (some universities and public service jobs).
-    const er = parseFloat(String((document.getElementById('fbEmployerRate') || {}).value || '').replace(/[^0-9.]/g, ''));
-    _planInputs.employerSuperRate = er > 12 ? Math.min(30, er) / 100 : null;
-    situationInputs.employerSuperRate = _planInputs.employerSuperRate;
+    // What the note says (FirePathEngine.noteFacts): mortgage repayments, employer super
+    // above 12%, insurance through super, Australian shares. Shown under the note as "Counted".
+    const facts = FirePathEngine.noteFacts(context);
+    if (facts.ausShare != null) _planInputs.ausShare = FirePathEngine.ausShareFor(savingsType, facts.ausShare);
+    _planInputs.employerSuperRate = facts.employerSuperRate || null;
+    _planInputs.superInsurance = facts.superInsurance || 0;
+    _planInputs.mortgage = mortgage > 0 && facts.mortgageRepayMonthly > 0
+      ? { balance: mortgage, repayMonthly: facts.mortgageRepayMonthly, spendMult: retirementSpendMultiplier } : null;
+    Object.assign(situationInputs, { employerSuperRate: _planInputs.employerSuperRate, superInsurance: _planInputs.superInsurance,
+      ausShare: facts.ausShare, mortgageRepayMonthly: facts.mortgageRepayMonthly || 0 });
     return { income, savingPerCycle, savings, superBal, debt, mortgage, age, context, pI, pS, mI, mSav, mS, fireNum, sRate, pAge, pSuper, hasPartner, situationInputs, planInputs: _planInputs };
   }
+  // The note's tap-to-add prompts and "Counted" list (js/note-prompts.js).
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!window.FirePathNotePrompts) return;
+    const money = id => parseFloat(String((document.getElementById(id) || {}).value || '').replace(/[^0-9.]/g, '')) || 0;
+    const np = FirePathNotePrompts.attach({
+      textarea: document.getElementById('contextNote'),
+      mount: document.getElementById('contextPrompts'),
+      context: () => ({ hasMortgage: money('fbMortgage') > 0, working: true, hasSuper: money('fbSuper') > 0,
+        invests: ['etfs', 'mix'].includes((document.getElementById('fbHeld') || {}).value) })
+    });
+    ['fbMortgage', 'fbSuper', 'fbHeld'].forEach(id => { const el = document.getElementById(id); if (el) { el.addEventListener('input', np.refresh); el.addEventListener('change', np.refresh); } });
+  });
+
   const PLAN_INVALID = "Please check your numbers: we need what you spend (take-home less savings) to work out your freedom number.";
 
   function calculate() {
@@ -1283,6 +1300,7 @@
 <script src="js/freedom-path.js"></script>
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
+<script src="js/note-prompts.js"></script>
 <script src="js/firepath-builder.js"></script>
 <script src="js/interactions.js"></script>
 <script>

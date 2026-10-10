@@ -67,6 +67,7 @@ window.FirePathMoves = (function () {
       emergencyFund: typeof i.emergencyFund === 'boolean' ? i.emergencyFund : null,
       retirementSpendMultiplier: num(i.retirementSpendMultiplier) || 1, freedomNumber: num(i.freedomNumber),
       persona: i.persona || null, superInsurance: num(i.superInsurance) || 0, ausShare: num(i.ausShare), employerSuperRate: num(i.employerSuperRate),
+      mortgageRepayMonthly: num(i.mortgageRepayMonthly) || 0, offsetAmount: num(i.offsetAmount) || 0, mortgageRate: num(i.mortgageRate),
     };
     s.cashSavings = s.savingsType === 'cash' ? s.currentSavings : s.savingsType === 'mix' ? s.currentSavings / 3 : null;
     s.grossIncome = num(i.grossIncome) || ownGross(s);
@@ -76,6 +77,8 @@ window.FirePathMoves = (function () {
   // From a Pro member's saved plan (fp_profiles row — see saveProfile in firepath_pro.html).
   function situationFromProfile(p) {
     p = p || {};
+    // The "anything else?" note fills in what the saved answers don't (FirePathEngine.noteFacts).
+    const facts = E() && E().noteFacts ? E().noteFacts(p.context) : {};
     const cycleToMonthly = (v, cycle) => !v ? 0 : cycle === 'weekly' ? v * 52 / 12 : cycle === 'fortnightly' ? v * 26 / 12 : v;
     return situationFromInputs({
       age: p.age, takeHomeMonthly: p.take_home_income, savingsMonthly: p.savings_monthly,
@@ -85,7 +88,10 @@ window.FirePathMoves = (function () {
       dependants: p.dependants, housing: p.housing_status, mortgageRemaining: p.mortgage_remaining,
       consumerDebt: p.debt_total, emergencyFund: p.has_emergency_fund,
       retirementSpendMultiplier: p.retirement_spend_multiplier, freedomNumber: p.freedom_number,
-      grossIncome: p.gross_income, persona: p.persona, superInsurance: p.super_insurance, ausShare: p.aus_share, employerSuperRate: p.employer_super_rate,
+      grossIncome: p.gross_income, persona: p.persona,
+      superInsurance: p.super_insurance > 0 ? p.super_insurance : facts.superInsurance, ausShare: p.aus_share != null ? p.aus_share : facts.ausShare,
+      employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate, mortgageRepayMonthly: facts.mortgageRepayMonthly,
+      offsetAmount: p.offset_amount, mortgageRate: p.offset_interest_rate > 0 ? p.offset_interest_rate / 100 : null,
     });
   }
 
@@ -128,6 +134,8 @@ window.FirePathMoves = (function () {
       superInsurance: s.superInsurance || 0,
       ausShare: E() && E().ausShareFor ? E().ausShareFor(s.savingsType, s.ausShare) : 0,
       employerSuperRate: s.employerSuperRate || null,
+      mortgage: s.mortgageRemaining > 0 && s.mortgageRepayMonthly > 0
+        ? { balance: s.mortgageRemaining, repayMonthly: s.mortgageRepayMonthly, offset: s.offsetAmount || 0, rate: s.mortgageRate || null, spendMult: s.retirementSpendMultiplier || 1 } : null,
     }, over || {});
   }
   function planYears(s, over) {

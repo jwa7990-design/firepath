@@ -421,7 +421,9 @@ window.FirePathEngine = (function () {
   function freedomPlan(inputs, opts) {
     const n0 = planInputs(inputs);
     const base = n0 ? n0.target : null;
-    const at = mult => planAt(mult === 1 ? inputs : Object.assign({}, inputs, { target: base * mult, annualSpend: undefined }), opts);
+    const mg = mortgageFor(inputs, n0);
+    const at = mult => mg ? planWithMortgage(inputs, opts, base, mult, mg)
+      : planAt(mult === 1 ? inputs : Object.assign({}, inputs, { target: base * mult, annualSpend: undefined }), opts);
     const multFor = p => p.valid && p.freedomAgeExact != null ? 0.04 / safeWithdrawalRate(p.freedomAgeExact) : 1;
     let plan = at(1), mult = 1;
     if (plan.valid && !(inputs && inputs.safeRate === false)) {
@@ -435,6 +437,63 @@ window.FirePathEngine = (function () {
     }
     if (plan.valid) Object.assign(plan, { baseTarget: base, targetMultiple: mult, withdrawalRate: 0.04 / mult });
     return plan;
+  }
+
+  // A mortgage that ends. Today's spending includes the repayments, but they stop when the
+  // loan is paid off. So the freedom number counts spending without them (25× the rest),
+  // plus whatever is still owing on the day you'd stop work: paying the remaining loan from
+  // savings comes to the same thing as keeping up the repayments. The loan runs in today's
+  // money (the repayment is fixed, so it shrinks with inflation), at the live mortgage rate
+  // unless given, with any offset cutting the interest. Needs the repayment: without it
+  // (or if it doesn't cover the interest) nothing changes.
+  //   inputs.mortgage: { balance, repayMonthly, offset, rate (yearly, e.g. 0.062), spendMult }
+  function mortgageFor(inputs, n) {
+    const m = inputs && inputs.mortgage;
+    if (!n || !m) return null;
+    const balance = Number(m.balance), repay = Number(m.repayMonthly);
+    if (!(balance > 0) || !(repay > 0)) return null;
+    const live = typeof FP_ASSUMPTIONS !== 'undefined' && FP_ASSUMPTIONS.mortgageRate > 0 ? FP_ASSUMPTIONS.mortgageRate / 100 : 0.062;
+    const rate = Number.isFinite(Number(m.rate)) && Number(m.rate) > 0 ? Number(m.rate) : live;
+    const infl = typeof FP_ASSUMPTIONS !== 'undefined' && FP_ASSUMPTIONS.longRunInflation > 0 ? FP_ASSUMPTIONS.longRunInflation : 0.025;
+    const offset = Math.max(0, Number(m.offset) || 0), i = rate / 12;
+    if (repay <= Math.max(0, balance - offset) * i) return null;   // never paid off: leave it be
+    const owing = [balance];   // nominal balance month by month until it's paid off
+    while (owing[owing.length - 1] > 0 && owing.length < 1200) {
+      const b = owing[owing.length - 1];
+      owing.push(Math.max(0, b + Math.max(0, b - offset) * i - repay));
+    }
+    const payoffMonth = owing.length - 1;
+    const realOwing = mm => mm >= payoffMonth ? 0 : owing[mm] / Math.pow(1 + infl, mm / 12);
+    const spendMult = Number(m.spendMult) > 0 ? Number(m.spendMult) : 1;
+    return { balance, repay, rate, offset, payoffMonth, realOwing, cut: repay * 12 * 25 * spendMult };
+  }
+  // The first month m where the plan, with the loan still owing at m added on, reaches
+  // freedom by m. The month freedom comes falls as the owing falls, so search between the
+  // date without any loan and the date with the whole loan.
+  function planWithMortgage(inputs, opts, base, mult, mg) {
+    const spendPart = Math.max(0, base - mg.cut) * mult;
+    const run = mm => planAt(Object.assign({}, inputs, { target: spendPart + mg.realOwing(mm), annualSpend: undefined }), opts);
+    const monthsOf = p => p.valid ? (p.months == null ? Infinity : p.months) : Infinity;
+    const noLoan = run(mg.payoffMonth);
+    if (!noLoan.valid) return noLoan;
+    let lo = monthsOf(noLoan), hi = Math.min(PLAN_MAX_MONTHS, monthsOf(run(0)));
+    if (!(lo <= hi)) hi = lo;
+    if (monthsOf(run(lo)) <= lo) hi = lo;
+    else { while (hi - lo > 1) { const mid = Math.floor((lo + hi) / 2); if (monthsOf(run(mid)) <= mid) hi = mid; else lo = mid; } }
+    const plan = run(hi);
+    if (plan.valid) {
+      const now = (opts && opts.now) || new Date();
+      plan.mortgage = { payoffMonth: mg.payoffMonth, payoffYear: new Date(now.getFullYear(), now.getMonth() + mg.payoffMonth, 1).getFullYear(),
+        owingAtFreedom: plan.months != null ? mg.realOwing(plan.months) : null, repayMonthly: mg.repay };
+    }
+    return plan;
+  }
+  // One line for under the date when the mortgage is counted, or null.
+  function mortgageNote(plan) {
+    const mo = plan && plan.valid && plan.mortgage;
+    if (!mo) return null;
+    const owing = mo.owingAtFreedom > 1000 ? ` You'd still owe about ${fmtM(mo.owingAtFreedom)} when you stop work, so that's added on.` : '';
+    return `Your mortgage is paid off around ${mo.payoffYear} on $${Math.round(mo.repayMonthly).toLocaleString('en-AU')} a month, so your freedom number counts the repayments only until then.${owing}`;
   }
 
   function planAt(inputs, opts) {
@@ -608,6 +667,53 @@ window.FirePathEngine = (function () {
     return `If today’s Age Pension rules still apply when you’re 67: ${when}. That counts about $${Math.round(pp.pensionAnnual / 100) * 100 >= 1000 ? (Math.round(pp.pensionAnnual / 100) * 100).toLocaleString('en-AU') : Math.round(pp.pensionAnnual)} a year of pension from 67${homeowner === false ? ', as a renter' : homeowner === true ? ', as a homeowner' : ''}. The rules can change before then, so your main date doesn’t rely on it.`;
   }
 
+  // Reads the "anything else?" note for figures FirePath can use. Only clear patterns are
+  // taken (a number next to the right words); anything else is left as a note. Pages show
+  // what was counted, so nothing changes a date without the person seeing it.
+  //   mortgageRepayMonthly ("mortgage repayments $2,400 a month", "$600 a week on the home loan")
+  //   employerSuperRate    ("my employer pays 15% super", "17% super")
+  //   superInsurance       ("super insurance about $800 a year")
+  //   ausShare             ("about half my investments are in Australian shares", "none in Aussie shares")
+  // Returns { …values, counted: [{ key, text }] }.
+  function noteFacts(text) {
+    const t = String(text || '').replace(/ /g, ' ');
+    const out = { counted: [] };
+    if (!t.trim()) return out;
+    const money = v => Number(String(v).replace(/[,\s$k]/gi, '')) * (/k$/i.test(String(v).trim()) ? 1000 : 1);
+    const perMonth = (v, per) => /week|wk/i.test(per) ? v * 52 / 12 : /fortnight|fn|f\/n/i.test(per) ? v * 26 / 12 : /year|yr|annual/i.test(per) ? v / 12 : v;
+    const AMT = String.raw`\$?\s*(\d[\d,]*(?:\.\d+)?\s*k?)`, PER = String.raw`(?:a|an|per|each|\/|every)?\s*(week|wk|fortnight|fn|f\/n|month|mth|mo|year|yr|annum)`;
+    // Mortgage repayments: words then amount, or amount then words.
+    let m = t.match(new RegExp(String.raw`(?:mortgage|home\s*loan)(?:\s*re)?(?:\s*payments?)?[^\d$\n.]{0,25}?` + AMT + String.raw`\s*` + PER, 'i'))
+      || t.match(new RegExp(AMT + String.raw`\s*` + PER + String.raw`[^\n.]{0,20}?(?:mortgage|home\s*loan)`, 'i'));
+    if (m) {
+      const v = perMonth(money(m[1]), m[2]);
+      if (v >= 100 && v <= 50000) { out.mortgageRepayMonthly = Math.round(v); out.counted.push({ key: 'mortgage', text: `Mortgage repayments $${Math.round(v).toLocaleString('en-AU')} a month` }); }
+    }
+    // Employer super rate above 12%.
+    m = t.match(/(\d{2}(?:\.\d+)?)\s*%\s*(?:employer\s*)?super/i) || t.match(/super[^\d\n.]{0,30}?(\d{2}(?:\.\d+)?)\s*%/i);
+    if (m) {
+      const r = Number(m[1]);
+      if (r > 12 && r <= 30) { out.employerSuperRate = r / 100; out.counted.push({ key: 'employer', text: `Employer super ${r}%` }); }
+    }
+    // Insurance through super (yearly unless said otherwise).
+    m = t.match(new RegExp(String.raw`insurance[^\d$\n.]{0,30}?` + AMT + String.raw`(?:\s*` + PER + ')?', 'i'));
+    if (m && /super/i.test(t)) {
+      const v = m[2] ? perMonth(money(m[1]), m[2]) * 12 : money(m[1]);
+      if (v >= 50 && v <= 20000) { out.superInsurance = Math.round(v); out.counted.push({ key: 'insurance', text: `Super insurance $${Math.round(v).toLocaleString('en-AU')} a year` }); }
+    }
+    // How much is in Australian shares.
+    m = t.match(/(none|no|nothing|a little|little|some|a quarter|a third|half|most|mostly|nearly all|almost all|all|\d{1,3}\s*%)[^\n.]{0,40}?(?:australian|aussie|asx)\s*shares/i);
+    if (m) {
+      const w = m[1].toLowerCase(), pct = w.match(/(\d{1,3})/);
+      const share = pct ? Math.min(100, Number(pct[1])) / 100
+        : /^(none|no|nothing)$/.test(w) ? 0 : /little/.test(w) ? 0.15 : /quarter/.test(w) ? 0.25 : /third/.test(w) ? 0.33
+        : /some/.test(w) ? 0.4 : /half/.test(w) ? 0.5 : /most|nearly|almost/.test(w) ? 0.7 : 1;
+      out.ausShare = share;
+      out.counted.push({ key: 'aus', text: share === 0 ? 'No Australian shares' : `About ${Math.round(share * 100)}% in Australian shares` });
+    }
+    return out;
+  }
+
   // A saved plan (an fp_profiles row, or FirePathNext.deviceProfile()) as freedomPlan
   // inputs, so Journey, Freedom gap and Pro read a saved plan the same way.
   // take_home_income is the household's monthly take-home; partner_income is the
@@ -616,15 +722,20 @@ window.FirePathEngine = (function () {
     p = p || {};
     const perMonth = v => !(v > 0) ? 0 : p.pay_cycle === 'weekly' ? v * 52 / 12 : p.pay_cycle === 'fortnightly' ? v * 26 / 12 : v;
     const partnerMonthly = perMonth(p.partner_income);
+    const facts = noteFacts(p.context);
     return {
       age: p.age, savings: p.current_savings || 0, monthlySavings: p.savings_monthly || 0,
       target: p.freedom_number, superBalance: p.super_balance || 0,
       grossIncome: p.gross_income > 0 ? p.gross_income : null,
       takeHomeMonthly: Math.max(0, (p.take_home_income || 0) - partnerMonthly),
       partner: p.partner_super > 0 ? { superBalance: p.partner_super, age: p.partner_age, takeHomeMonthly: partnerMonthly } : null,
-      superInsurance: p.super_insurance > 0 ? p.super_insurance : 0,
-      ausShare: ausShareFor(p.savings_type, p.aus_share),
-      employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : null
+      // From the saved answers, or the "anything else?" note (noteFacts).
+      superInsurance: p.super_insurance > 0 ? p.super_insurance : facts.superInsurance || 0,
+      ausShare: ausShareFor(p.savings_type, p.aus_share != null ? p.aus_share : facts.ausShare),
+      employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate || null,
+      mortgage: p.mortgage_remaining > 0 && facts.mortgageRepayMonthly > 0
+        ? { balance: p.mortgage_remaining, repayMonthly: facts.mortgageRepayMonthly, offset: p.offset_amount || 0, rate: p.offset_interest_rate > 0 ? p.offset_interest_rate / 100 : null, spendMult: p.retirement_spend_multiplier || 1 }
+        : null
     };
   }
 
@@ -811,5 +922,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();
