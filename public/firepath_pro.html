@@ -480,6 +480,8 @@
   .pro-card-sub { max-width: 54ch; margin: 0 0 20px; font-size: 16.5px; line-height: 1.6; color: var(--ink-2); }
   .pr .range-card { min-width: 0; padding: 0; margin: 0; background: none; border: 0; border-radius: 0; box-shadow: none; }
   #rangeRows { border-top: 1px solid var(--ink); }
+  .super-ins-note { margin: 18px 0 0; padding-top: 14px; border-top: var(--hp-rule); font-size: 15px; line-height: 1.6; color: var(--ink-2); max-width: 62ch; }
+  .super-ins-note strong { color: var(--ink); }
   .pr .range-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 16px 0; margin: 0; border-bottom: var(--hp-rule); background: none; font-size: 15.5px; }
   .pr .range-row.base { margin: 0; padding: 16px 0; background: none; border-bottom: var(--hp-rule); }
   .pr .range-label { color: var(--ink-2); font-weight: 400; min-width: 0; }
@@ -766,6 +768,16 @@
                   <div class="ob-super-note" id="superNote"></div>
                 </div>
 
+                <!-- Insurance through super (optional): premiums come out of the balance -->
+                <div class="ob-field">
+                  <label class="ob-label" for="superInsurance">Insurance through your super <span class="pr-opt">optional</span></label>
+                  <span class="ob-hint ob-hint-block">About how much it costs a year. It's on your super statement, usually under "insurance premiums". Not sure? Leave it blank.</span>
+                  <div class="ob-input-wrap">
+                    <span class="ob-input-prefix">$</span>
+                    <input class="ob-input-premium" type="number" id="superInsurance" placeholder="0" min="0" maxlength="7" oninput="superInsurance=Math.max(0,parseFloat(this.value)||0)"/>
+                  </div>
+                </div>
+
                 <div class="ob-divider"><span>Debt</span></div>
 
                 <!-- Debt -->
@@ -978,6 +990,7 @@
             </details>
             <div id="superTimelineCard" style="display:none"></div>
             <div class="super-result-card" id="superResultCard" style="display:none"><div id="superResultText"></div></div>
+            <p class="super-ins-note" id="superInsuranceNote" hidden></p>
             <p class="pr-fine">Super projected at 7% annual growth with employer contributions after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
           </div>
 
@@ -1099,8 +1112,10 @@
   }
   // Inputs for the shared freedom plan (FirePathEngine.freedomPlan in js/financial-engine.js),
   // the one headline freedom date every page uses: savings outside super until 60, then super too.
+  // Insurance through super, $ a year (optional; from the question or the saved plan).
+  let superInsurance=0;
   function freedomPlanInputs(age,superBal,ownMI,savings,mSav,fireNum,partner){
-    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI),
+    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI),superInsurance,
       partner:partner&&partner.superBal>0?{superBalance:partner.superBal,age:partner.ageAssumed?null:partner.age,grossIncome:partner.annualGross||0}:null};
   }
   // Years to freedom with some of this person's inputs changed, on the same plan as the
@@ -1375,7 +1390,7 @@
   // FirePathMoves.situationFromProfile reads, so this page ranks moves exactly like Journey.
   function movesProfile(){
     const cd=calcData||{},num=id=>{const el=document.getElementById(id);return el?parseFloat(el.value)||0:0;};
-    return {persona,pay_cycle:selectedCycle,take_home_income:cd.mIncome||0,savings_monthly:cd.mSav||0,current_savings:cd.savings||0,savings_type:savingsType||'cash',super_balance:cd.superBal||0,age:cd.age||null,housing_status:housingStatus||'renting',mortgage_remaining:cd.mortgage||0,debt_total:cd.debt||0,dependants:dependants||0,retirement_spend_multiplier:retirementSpendMultiplier||1,partner_income:num('partnerIncome'),partner_age:parseInt((document.getElementById('partnerAge')||{}).value)||null,partner_super:num('partnerSuper'),freedom_number:cd.fireNum||0,has_emergency_fund:hasEmergencyFund};
+    return {persona,pay_cycle:selectedCycle,take_home_income:cd.mIncome||0,savings_monthly:cd.mSav||0,current_savings:cd.savings||0,savings_type:savingsType||'cash',super_balance:cd.superBal||0,age:cd.age||null,housing_status:housingStatus||'renting',mortgage_remaining:cd.mortgage||0,debt_total:cd.debt||0,dependants:dependants||0,retirement_spend_multiplier:retirementSpendMultiplier||1,partner_income:num('partnerIncome'),partner_age:parseInt((document.getElementById('partnerAge')||{}).value)||null,partner_super:num('partnerSuper'),super_insurance:superInsurance||0,freedom_number:cd.fireNum||0,has_emergency_fund:hasEmergencyFund};
   }
   function rankedMoves(){
     if(!window.FirePathMoves)return null;
@@ -1462,6 +1477,7 @@
     const mSp = mI - mSav;
     const savings = p.current_savings || 0;
     const superBal = p.super_balance || 0;
+    superInsurance = p.super_insurance > 0 ? p.super_insurance : 0;
     const age = p.age || null;
     const debt = p.debt_total || 0;
     const mortgage = p.mortgage_remaining || 0;
@@ -1944,6 +1960,7 @@ function stopLoadingMessages() {
     if (p.savings_monthly != null && (p.savings_monthly || pSav)) document.getElementById('savingsAmount').value = Math.max(0, Math.round(toCycle(p.savings_monthly) - pSav));
     if (p.current_savings) document.getElementById('savings').value = p.current_savings;
     if (p.super_balance) document.getElementById('superBalance').value = p.super_balance;
+    if (p.super_insurance > 0) { document.getElementById('superInsurance').value = p.super_insurance; superInsurance = p.super_insurance; }
     if (p.age) document.getElementById('age').value = p.age;
     if (p.context) document.getElementById('context').value = p.context;
     if (p.debt_total) document.getElementById('debtTotal').value = p.debt_total;
@@ -1978,14 +1995,7 @@ async function saveProfile() {
   if (!fpToken || !fpUserId) return;
   const mI = calcData.mIncome || 0;
   try {
-    await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${fpToken}`,
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify({
+    const row = {
         id: fpUserId,
         email: localStorage.getItem('fp_email') || '',
         persona: persona || 'building',
@@ -2015,9 +2025,22 @@ async function saveProfile() {
         salary_sacrifice: salarySacrifice,
         offset_amount: offsetAmount,
         offset_interest_rate: offsetInterestRate,
-        has_emergency_fund: hasEmergencyFund
-      })
+        has_emergency_fund: hasEmergencyFund,
+        super_insurance: superInsurance || 0
+    };
+    const post = body => FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${fpToken}`,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify(body)
     });
+    const res = await post(row);
+    // Until the super_insurance column exists (supabase/006_super_insurance.sql), the
+    // database turns the whole row away: save everything else rather than nothing.
+    if (res && res.status === 400) { delete row.super_insurance; await post(row); }
   } catch(e) { console.log('Profile save failed', e); }
 
   // Financial Snapshot Engine — this is the one place every real profile change flows
@@ -2070,6 +2093,7 @@ async function saveProfile() {
       mSavAmt=parseFloat(document.getElementById('savingsAmount').value)||0;
       mSavs=parseFloat(document.getElementById('savings').value)||0;
       mSup=parseFloat(document.getElementById('superBalance').value)||0;
+      superInsurance=Math.max(0,parseFloat(document.getElementById('superInsurance').value)||0);
       mAge=parseInt(document.getElementById('age').value)||0;
       mCtx=document.getElementById('context').value;
       mDebt=parseFloat(document.getElementById('debtTotal').value)||0;
@@ -2379,6 +2403,30 @@ async function saveProfile() {
     const btn = document.getElementById('superTabBtn');
     if (!btn) return;
     btn.style.display = (age > 0 && superBal > 0) ? 'flex' : 'none';
+    renderSuperInsuranceNote();
+  }
+
+  // Insurance through super: what the person's own premium costs (it's already in their
+  // date), or, if they haven't said, what a $500-a-year premium would do. Same plan as
+  // the headline; only the premium changes.
+  function renderSuperInsuranceNote() {
+    const el = document.getElementById('superInsuranceNote');
+    if (!el) return;
+    const pi = calcData && calcData.planInputs;
+    if (!pi || !(pi.superBalance > 0) || !(pi.age > 0) || pi.age >= 70) { el.hidden = true; return; }
+    const own = superInsurance > 0, prem = own ? superInsurance : 500;
+    const withIns = FirePathEngine.freedomPlan(Object.assign({}, pi, { superInsurance: prem }));
+    const without = FirePathEngine.freedomPlan(Object.assign({}, pi, { superInsurance: 0 }));
+    if (!withIns.valid || !without.valid) { el.hidden = true; return; }
+    const dollars = without.superAt60 != null && withIns.superAt60 != null ? Math.max(0, without.superAt60 - withIns.superAt60) : null;
+    const months = withIns.months != null && without.months != null ? withIns.months - without.months : null;
+    const dateBit = months == null ? '' : months <= 0 ? ' It doesn’t change your freedom date.'
+      : ` It moves your freedom date by about ${months >= 12 ? (Math.round(months / 6) / 2) + ' years' : months + (months === 1 ? ' month' : ' months')}.`;
+    const superBit = dollars != null && pi.age < 60 ? ` takes about ${fmtM(dollars)} off your super at 60.` : ' comes out of your super each year.';
+    el.innerHTML = own
+      ? `<strong>Your super insurance</strong> (about ${fmtDollars(prem)} a year) is included in your plan. It${superBit}${dateBit}`
+      : `<strong>Insurance through super:</strong> if your fund charges about ${fmtDollars(prem)} a year, that${superBit}${dateBit} Premiums vary a lot between funds, so add your own figure in your numbers.`;
+    el.hidden = false;
   }
 
   function buildWithdrawalCard(savings, mSav, mI, fireNum, mSp, fy, isPro) {

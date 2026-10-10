@@ -147,6 +147,18 @@ window.FirePathEngine = (function () {
   // less 15% tax on earnings in accumulation. (0.07 − 0.0065) × 0.85 ≈ 5.40%.
   const SUPER_EXTRA_FEES = 0.0065;
   const SUPER_RETURN = (0.07 - SUPER_EXTRA_FEES) * (1 - 0.15);
+  // Insurance through super (superInsurance, $ a year, optional). Premiums come out of
+  // your super balance. Funds claim a tax deduction for them, so each $1 of premium costs
+  // the balance about 85c. Cover usually lapses after 16 months with no contributions
+  // (Protecting Your Super), so premiums run while you work, then 16 more months, and
+  // never past 70 (when default cover typically ends).
+  const INSURANCE_NET = 0.85, INSURANCE_TAIL_MONTHS = 16, INSURANCE_END_AGE = 70;
+  function premiumMonthly(n, m, freeMonth) {
+    if (!(n.superInsurance > 0) || n.age == null) return 0;
+    if (n.age + m / 12 >= INSURANCE_END_AGE) return 0;
+    if (freeMonth != null && m >= freeMonth + INSURANCE_TAIL_MONTHS) return 0;
+    return n.superInsurance * INSURANCE_NET / 12;
+  }
 
   // partner (optional): { superBalance, age } — the partner's super unlocks when *they*
   // reach 60, which can be years before or after you.
@@ -267,7 +279,8 @@ window.FirePathEngine = (function () {
       // Partner's age unknown: assume the same as yours (Pro's cards say so in small print).
       partner = { superBalance: Number(p.superBalance), age: known ? Number(p.age) : age, ageAssumed: !known, grossIncome: grossFrom(p) };
     }
-    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner };
+    const superInsurance = Math.max(0, finiteOr(i.superInsurance, 0));
+    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner, superInsurance };
   }
 
   // How much you'd need outside super at this moment to stop work now: enough to pay your
@@ -318,8 +331,9 @@ window.FirePathEngine = (function () {
       // or the balances at 60 for display.
       if (month !== null && !wantSuperPath && pots.every(s => m >= s.unlock)) break;
       out = out * (1 + rO) + n.monthlySavings;
-      // SG keeps going while you're still working (i.e. until you're free).
-      for (const s of pots) s.bal = s.bal * (1 + rS) + (month === null ? s.sg : 0);
+      // SG keeps going while you're still working (i.e. until you're free). Your own
+      // super also pays any insurance premiums (see premiumMonthly).
+      for (const s of pots) s.bal = Math.max(0, s.bal * (1 + rS) + (month === null ? s.sg : 0) - (s === own ? premiumMonthly(n, m, month) : 0));
     }
     // Savings alone, for "before super" comparisons, if the walk stopped before they got there.
     if (savingsOnly === null && n.target > 0) {
@@ -403,7 +417,7 @@ window.FirePathEngine = (function () {
         return { months: m, age: n.age + m / 12, year: new Date(now.getFullYear(), now.getMonth() + m, 1).getFullYear(), savings: out };
       }
       out = out * (1 + rO) + n.monthlySavings;
-      own = own * (1 + rS) + sgOwn;
+      own = Math.max(0, own * (1 + rS) + sgOwn - (own > 0 ? premiumMonthly(n, m, null) : 0));
       if (pt) ptBal = ptBal * (1 + rS) + sgPt;
     }
     return null;
@@ -422,7 +436,8 @@ window.FirePathEngine = (function () {
       target: p.freedom_number, superBalance: p.super_balance || 0,
       grossIncome: p.gross_income > 0 ? p.gross_income : null,
       takeHomeMonthly: Math.max(0, (p.take_home_income || 0) - partnerMonthly),
-      partner: p.partner_super > 0 ? { superBalance: p.partner_super, age: p.partner_age, takeHomeMonthly: partnerMonthly } : null
+      partner: p.partner_super > 0 ? { superBalance: p.partner_super, age: p.partner_age, takeHomeMonthly: partnerMonthly } : null,
+      superInsurance: p.super_insurance > 0 ? p.super_insurance : 0
     };
   }
 
@@ -439,7 +454,7 @@ window.FirePathEngine = (function () {
     let out = n.savings;
     for (let m = 0; m < target; m++) {
       out = out * (1 + rO) + n.monthlySavings;
-      for (const s of pots) s.bal = s.bal * (1 + rS) + s.sg;
+      pots.forEach((s, k) => { s.bal = Math.max(0, s.bal * (1 + rS) + s.sg - (k === 0 && n.superBalance > 0 ? premiumMonthly(n, m, null) : 0)); });
     }
     return out + pots.reduce((t, s) => t + (target >= s.unlock ? s.bal : 0), 0);
   }

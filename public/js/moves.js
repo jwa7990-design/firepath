@@ -66,7 +66,7 @@ window.FirePathMoves = (function () {
       consumerDebtKnown: num(i.consumerDebt) != null,   // a blank debt field is unknown, not "no debt"
       emergencyFund: typeof i.emergencyFund === 'boolean' ? i.emergencyFund : null,
       retirementSpendMultiplier: num(i.retirementSpendMultiplier) || 1, freedomNumber: num(i.freedomNumber),
-      persona: i.persona || null,
+      persona: i.persona || null, superInsurance: num(i.superInsurance) || 0,
     };
     s.cashSavings = s.savingsType === 'cash' ? s.currentSavings : s.savingsType === 'mix' ? s.currentSavings / 3 : null;
     s.grossIncome = num(i.grossIncome) || ownGross(s);
@@ -85,7 +85,7 @@ window.FirePathMoves = (function () {
       dependants: p.dependants, housing: p.housing_status, mortgageRemaining: p.mortgage_remaining,
       consumerDebt: p.debt_total, emergencyFund: p.has_emergency_fund,
       retirementSpendMultiplier: p.retirement_spend_multiplier, freedomNumber: p.freedom_number,
-      grossIncome: p.gross_income, persona: p.persona,
+      grossIncome: p.gross_income, persona: p.persona, superInsurance: p.super_insurance,
     });
   }
 
@@ -125,6 +125,7 @@ window.FirePathMoves = (function () {
       age: s.age, savings: s.currentSavings || 0, monthlySavings: s.savingsMonthly || 0, target: s.freedomNumber,
       superBalance: s.superBalance || 0, grossIncome: s.grossIncome || null, takeHomeMonthly: ownTakeHome,
       partner: s.hasPartner && s.partnerSuper > 0 ? { superBalance: s.partnerSuper, age: s.partnerAge, takeHomeMonthly: s.partnerTakeHomeMonthly || 0 } : null,
+      superInsurance: s.superInsurance || 0,
     }, over || {});
   }
   function planYears(s, over) {

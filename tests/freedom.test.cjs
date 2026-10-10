@@ -268,7 +268,7 @@ const freePageInputs = (() => {
   const obj = grab(FREE, /_planInputs = (\{[\s\S]*?\n {4}\});/, 'free page _planInputs');
   return new Function('age', 'savings', 'mSav', 'fireNum', 'superBal', 'toMonthly', 'income', 'pSuper', 'pAge', 'pI', 'return ' + obj);
 })();
-vm.runInContext('var savedProfileData = null;\n'
+vm.runInContext('var savedProfileData = null, superInsurance = 0;   // no insurance figure: the cross-page comparisons\n'
   + grab(PRO, /(function ownGrossIncome[\s\S]*?\n  \})/, 'Pro ownGrossIncome') + '\n'
   + grab(PRO, /(function freedomPlanInputs[\s\S]*?\n  \})/, 'Pro freedomPlanInputs')
   + '\nthis.__pro = freedomPlanInputs;', ctx);
@@ -366,4 +366,24 @@ test('coastPoint: the first month you could stop saving and still be free by 65'
   // Already free → coast is now; no age → no answer.
   assert.equal(E.coastPoint({ age: 40, savings: 2e6, monthlySavings: 0, target: 1e6 }).months, 0);
   assert.equal(E.coastPoint({ savings: 1000, monthlySavings: 100, target: 1e6 }), null);
+});
+
+test('superInsurance: premiums come out of super while working (+16 months), never past 70', () => {
+  const p = PEOPLE[0];
+  const inputs = { age: p.age, savings: p.savings, monthlySavings: p.mSav, target: fireNum(p), superBalance: p.super, takeHomeMonthly: p.takeHome };
+  const base = E.freedomPlan(inputs), none = E.freedomPlan(Object.assign({}, inputs, { superInsurance: 0 }));
+  assert.equal(none.months, base.months, 'blank or $0 changes nothing');
+  const ins = E.freedomPlan(Object.assign({}, inputs, { superInsurance: 1500 }));
+  assert.ok(ins.months >= base.months, 'premiums never bring the date forward');
+  assert.ok(ins.superAt60 < base.superAt60, 'super at 60 is lower');
+  // Premiums stop 16 months after freedom: super at 60 with premiums is lower by roughly
+  // the premiums paid (85c per $, grown), not by premiums all the way to 60.
+  const yrsPaid = Math.min(60 - p.age, ins.years + 16 / 12);
+  const maxCost = 1500 * 0.85 * yrsPaid * Math.pow(1 + E.SUPER_RETURN, 60 - p.age);
+  assert.ok(base.superAt60 - ins.superAt60 <= maxCost, 'cost bounded by premiums actually paid');
+  // A 70-year-old pays nothing.
+  const old = { age: 70, savings: 100000, monthlySavings: 1000, target: 2e6, superBalance: 300000 };
+  assert.equal(E.freedomPlan(Object.assign({}, old, { superInsurance: 2000 })).months, E.freedomPlan(old).months);
+  // Saved profiles carry it.
+  assert.equal(E.planInputsFromProfile({ freedom_number: 1e6, super_insurance: 800 }).superInsurance, 800);
 });
