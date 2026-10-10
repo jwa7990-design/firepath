@@ -136,7 +136,7 @@ function compoundWithContributions(principal, monthlyContrib, annualRate, years)
 function projectSuperTo60(balance, age, annualGross, extraNetMonthly, employerRate) {
   const years = Math.max(0, 60 - age), r = monthlyRate(FP_ASSUMPTIONS.superReturn);
   const cap = typeof TAX_CONFIG !== 'undefined' && TAX_CONFIG.concessionalCap > 0 ? TAX_CONFIG.concessionalCap : 32500;
-  const sgMonthly = Math.min(Math.max(0, annualGross || 0) * (employerRate > 0.12 ? Math.min(0.30, employerRate) : FP_ASSUMPTIONS.sgRate), cap) / 12;
+  const sgMonthly = Math.min(Math.max(0, annualGross || 0) * (employerRate === 0 ? 0 : employerRate > 0.12 ? Math.min(0.30, employerRate) : FP_ASSUMPTIONS.sgRate), cap) / 12;
   // Division 293 on employer super for incomes over $250,000 (income + contributions).
   const div293Monthly = 0.15 * Math.min(sgMonthly * 12, Math.max(0, (annualGross || 0) + sgMonthly * 12 - 250000)) / 12;
   const inMonthly = sgMonthly * 0.85 - div293Monthly + (extraNetMonthly || 0);

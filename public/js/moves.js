@@ -74,6 +74,7 @@ window.FirePathMoves = (function () {
       emergencyFund: typeof i.emergencyFund === 'boolean' ? i.emergencyFund : null,
       retirementSpendMultiplier: num(i.retirementSpendMultiplier) || 1, freedomNumber: num(i.freedomNumber),
       persona: i.persona || null, superInsurance: num(i.superInsurance) || 0, ausShare: num(i.ausShare), employerSuperRate: num(i.employerSuperRate),
+      selfEmployed: !!i.selfEmployed, ownSuperYear: num(i.ownSuperYear) || 0,
       mortgageRepayMonthly: num(i.mortgageRepayMonthly) || 0, rentMonthly: num(i.rentMonthly) || 0, offsetAmount: num(i.offsetAmount) || 0, mortgageRate: num(i.mortgageRate),
     };
     s.cashSavings = s.savingsType === 'cash' ? s.currentSavings : s.savingsType === 'mix' ? s.currentSavings / 3 : null;
@@ -98,6 +99,7 @@ window.FirePathMoves = (function () {
       grossIncome: p.gross_income, persona: p.persona,
       superInsurance: p.super_insurance > 0 ? p.super_insurance : facts.superInsurance, ausShare: p.aus_share != null ? p.aus_share : facts.ausShare,
       employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate, mortgageRepayMonthly: facts.mortgageRepayMonthly, rentMonthly: facts.rentMonthly,
+      selfEmployed: facts.selfEmployed, ownSuperYear: facts.ownSuperYear,
       offsetAmount: p.offset_amount, mortgageRate: p.offset_interest_rate > 0 ? p.offset_interest_rate / 100 : null,
     });
   }
@@ -141,7 +143,8 @@ window.FirePathMoves = (function () {
       superInsurance: s.superInsurance || 0, savingsType: s.savingsType || 'cash',
       homeowner: s.housing !== 'renting', rentFortnight: s.housing === 'renting' && s.rentMonthly > 0 ? s.rentMonthly * 12 / 26 : 0,
       ausShare: E() && E().ausShareFor ? E().ausShareFor(s.savingsType, s.ausShare) : 0,
-      employerSuperRate: s.employerSuperRate || null,
+      employerSuperRate: s.employerSuperRate || null, selfEmployed: s.selfEmployed, ownSuperYear: s.ownSuperYear || 0,
+      ausShareStated: s.ausShare != null ? s.ausShare : null, hasMortgage: s.mortgageRemaining > 0,
       mortgage: s.mortgageRemaining > 0 && s.mortgageRepayMonthly > 0
         ? { balance: s.mortgageRemaining, repayMonthly: s.mortgageRepayMonthly, offset: s.offsetAmount || 0, rate: s.mortgageRate || null, spendMult: s.retirementSpendMultiplier || 1 } : null,
     }, over || {});
@@ -208,7 +211,7 @@ window.FirePathMoves = (function () {
         const gain = now == null ? null : now - inv;
         if (gain != null && gain < 0.25) return false;
         return { why: 'Money in the bank has roughly kept pace with prices. A diversified fund has grown faster over the long run in the past, with bigger ups and downs and no guarantee. It depends on when you’ll need the money and how you feel about risk.',
-          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `Could mean reaching your number ${yearsText(gain)} than keeping it all in the bank` } };
+          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `Could mean reaching your number ${yearsText(gain)} than ${s.savingsType === 'mix' ? 'your current mix' : 'keeping it all in the bank'}` } };
       } },
     { id: 'start-saving', tier: 3, title: 'Starting with a small, automatic amount', plan: 'Free',
       tool: { href: '/hearmeout', label: 'See what $50 a week grows into' }, article: 'good-savings-rate',
@@ -249,12 +252,17 @@ window.FirePathMoves = (function () {
         if (s.age != null && s.age >= 67) return false;
         if (!(s.marginalRate >= 0.30)) return false;      // below ~30% the tax saving is small or nil
         // $5,000, or whatever room is left under the cap if that's less.
-        const room = calculateSalarySacrifice(s.grossIncome, 1, undefined, 0, { employerRate: s.employerSuperRate });
+        // Self-employed: no employer super, and the same saving comes from adding to super
+        // yourself and claiming a tax deduction (salary sacrifice needs an employer).
+        const opts = s.selfEmployed ? { employerRate: 0, otherConcessional: s.ownSuperYear || 0 } : { employerRate: s.employerSuperRate };
+        const room = calculateSalarySacrifice(s.grossIncome, 1, undefined, 0, opts);
         if (!room || room.capRoom < 1000) return false;    // employer super already fills the cap
         const amount = Math.min(5000, Math.floor(room.capRoom / 100) * 100);
-        const r = calculateSalarySacrifice(s.grossIncome, amount, undefined, 0, { employerRate: s.employerSuperRate });
+        const r = calculateSalarySacrifice(s.grossIncome, amount, undefined, 0, opts);
         const better = r.taxSaved - r.superTax;
         if (better < 300) return false;
+        if (s.selfEmployed) return { why: `Self-employed people can’t salary sacrifice, but you can put money into super yourself and claim it as a tax deduction. On your ${Math.round(s.marginalRate * 100)}% tax rate, it’s then taxed at 15% instead. The trade-off: you can’t get to it until 60.`,
+          impact: { dollars: better, text: `Adding ${money(amount)} a year to super yourself and claiming it could mean about ${money(better)} less tax` } };
         return { why: `On your ${Math.round(s.marginalRate * 100)}% tax rate, money sacrificed into super is taxed at 15% instead. The trade-off: you can’t get to it until 60, so it’s money you won’t be able to use before then.`,
           impact: { dollars: better, text: `${money(amount)} a year sacrificed could mean about ${money(better)} less tax` } };
       } },

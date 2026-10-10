@@ -374,7 +374,7 @@
     const planInputs = {
       age, savings: ci.savings, monthlySavings, annualSpend, superBalance,
       grossIncome: ci.grossIncome, takeHomeMonthly: ci.takeHomeMonthly, ausShare: ci.ausShare || 0,
-      superInsurance: ci.superInsurance || 0, employerSuperRate: ci.employerSuperRate || null, mortgage: ci.mortgage || null, savingsType: ci.savingsType || null,
+      superInsurance: ci.superInsurance || 0, employerSuperRate: ci.employerSuperRate || null, selfEmployed: ci.selfEmployed, ownSuperYear: ci.ownSuperYear || 0, hasMortgage: ci.hasMortgage, ausShareStated: ci.ausShareStated, mortgage: ci.mortgage || null, savingsType: ci.savingsType || null,
       partner: isCouple && partnerSuper > 0 ? { superBalance: partnerSuper, age: partnerAge, takeHomeMonthly: ci.partnerTakeHomeMonthly } : null
     };
     const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, partner, planInputs, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, gapNow, freedomPctToday };
@@ -587,7 +587,13 @@ Absolute rules:
         // Savings before debt and pay, for the freedom plan. Older handoffs without them:
         // the net figure, and no pay (no employer super, default tax rate).
         savings: inp2.savings != null ? n0(inp2.savings) : n0(inp2.portfolio),
-        grossIncome: n0(inp2.grossIncome) || null, takeHomeMonthly: n0(inp2.takeHomeMonthly), partnerTakeHomeMonthly: n0(inp2.partnerTakeHomeMonthly)
+        grossIncome: n0(inp2.grossIncome) || null, takeHomeMonthly: n0(inp2.takeHomeMonthly), partnerTakeHomeMonthly: n0(inp2.partnerTakeHomeMonthly),
+        // The rest of the saved plan's reading (and its note), so the dates match Freedom gap's.
+        ausShare: n0(inp2.ausShare), ausShareStated: inp2.ausShareStated != null ? n0(inp2.ausShareStated) : null,
+        superInsurance: n0(inp2.superInsurance), employerSuperRate: n0(inp2.employerSuperRate) || null,
+        selfEmployed: !!inp2.selfEmployed, ownSuperYear: n0(inp2.ownSuperYear), hasMortgage: typeof inp2.hasMortgage === 'boolean' ? inp2.hasMortgage : undefined,
+        mortgage: inp2.mortgage && n0(inp2.mortgage.balance) > 0 && n0(inp2.mortgage.repayMonthly) > 0 ? inp2.mortgage : null,
+        savingsType: typeof inp2.savingsType === 'string' ? inp2.savingsType : null
       };
 
       // Reuse the exact picture Freedom Gap already calculated for the intro line, rather

@@ -339,8 +339,10 @@ function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg, carryForwar
   grossIncome = Math.max(0, Number(grossIncome) || 0);
   sacrificeAmount = Math.min(Number(sacrificeAmount) || 0, grossIncome);
   if (sacrificeAmount <= 0) return null;
-  const employerRate = opts && opts.employerRate > c.sgRate ? Math.min(0.30, opts.employerRate) : c.sgRate;
-  const sgContrib = Math.min(grossIncome * employerRate, c.concessionalCap);
+  // employerRate 0: no employer super (self-employed). otherConcessional: other contributions
+  // already made this year (e.g. ones you claim a deduction for), which use up the same cap.
+  const employerRate = opts && opts.employerRate === 0 ? 0 : opts && opts.employerRate > c.sgRate ? Math.min(0.30, opts.employerRate) : c.sgRate;
+  const sgContrib = Math.min(grossIncome * employerRate + Math.max(0, Number(opts && opts.otherConcessional) || 0), c.concessionalCap);
   const capRoom = Math.max(0, c.concessionalCap + extraCap - sgContrib);
   const effective = Math.min(sacrificeAmount, capRoom);       // gets the concession
   const excess = sacrificeAmount - effective;                  // taxed at marginal rate

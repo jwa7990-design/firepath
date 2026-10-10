@@ -14,7 +14,8 @@
   const PROMPTS = [
     { key: 'mortgage', when: c => c.hasMortgage, label: 'Mortgage repayments', text: 'Mortgage repayments $___ a month', pick: '___' },
     { key: 'rent', when: c => c.renting, label: 'Rent', text: 'I pay $___ a week rent', pick: '___' },
-    { key: 'employer', when: c => c.working, label: 'Employer super above 12%', text: 'My employer pays ___% super', pick: '___' },
+    { key: 'employer', when: c => c.working, label: 'Employer super above 12%', text: 'My employer pays ___% super', pick: '___', hideIf: ['selfemployed'] },
+    { key: 'selfemployed', when: c => c.working, label: 'Self-employed', text: "I'm self-employed and put $___ a year into super myself", pick: '___', hideIf: ['employer'] },
     { key: 'insurance', when: c => c.hasSuper, label: 'Insurance through super', text: 'Super insurance about $___ a year', pick: '___' },
     { key: 'aus', when: c => c.invests, label: 'Australian shares', text: 'About half of my investments are in Australian shares', pick: 'half' },
   ];
@@ -60,7 +61,7 @@
       const facts = E.noteFacts(ta.value);
       const have = new Set(facts.counted.map(c => c.key));
       const ctx = (o.context && o.context()) || {};
-      const chips = PROMPTS.filter(p => p.when(ctx) && !have.has(p.key));
+      const chips = PROMPTS.filter(p => p.when(ctx) && !have.has(p.key) && !(p.hideIf || []).some(k => have.has(k)));
       mount.innerHTML = '';
       if (chips.length) {
         const lead = document.createElement('p');

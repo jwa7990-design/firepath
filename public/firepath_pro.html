@@ -1081,6 +1081,8 @@
     saved=saved||{};
     ausShareAns=f.ausShare!=null?f.ausShare:(saved.aus_share!=null?saved.aus_share:null);
     employerRate=f.employerSuperRate||(saved.employer_super_rate>0.12?saved.employer_super_rate:null);
+    selfEmployed=!!f.selfEmployed; ownSuperYear=f.ownSuperYear||0;
+    if(selfEmployed)employerRate=null;
     superInsurance=f.superInsurance||(saved.super_insurance>0?saved.super_insurance:0);
     mortgageRepay=f.mortgageRepayMonthly||0;
     rentMonthly=f.rentMonthly||0;
@@ -1136,8 +1138,10 @@
   let superInsurance=0;
   // Employer super rate (0–1) when above the 12% guarantee, else null.
   let employerRate=null;
+  // From the note: self-employed (no employer super), and super they add themselves each year.
+  let selfEmployed=false, ownSuperYear=0;
   function freedomPlanInputs(age,superBal,ownMI,savings,mSav,fireNum,partner){
-    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI,age),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,mortgage:mortgageInput(),savingsType:savingsType||'cash',homeowner:!/rent/i.test(housingStatus||''),rentFortnight:rentFortnight(),
+    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI,age),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,selfEmployed,ownSuperYear,ausShareStated:ausShareAns,hasMortgage:mortgageBal>0,mortgage:mortgageInput(),savingsType:savingsType||'cash',homeowner:!/rent/i.test(housingStatus||''),rentFortnight:rentFortnight(),
       partner:partner&&partner.superBal>0?{superBalance:partner.superBal,age:partner.ageAssumed?null:partner.age,grossIncome:partner.annualGross||0}:null};
   }
   // Years to freedom with some of this person's inputs changed, on the same plan as the

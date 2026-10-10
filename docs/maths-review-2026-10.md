@@ -73,3 +73,67 @@ Every fix has a test built from the checkers' own figures, so it can't quietly c
 3. **Couples stopping work on the same date:** kept as is.
 4. **Tax on investment income in retirement** uses today's working rate: kept as is (cautious).
 5. **Capital losses** in the Withdrawal planner aren't carried forward: cautious, small effect.
+
+## Round 2 (11 October 2026): 10 more people, aimed at the edges
+
+| # | Person |
+|---|---|
+| 16 | 40, mortgage with $80k in the offset |
+| 17 | 36, renter, savings "a mix" |
+| 18 | 41, single parent of 3, renting, no hospital cover |
+| 19 | 39, self-employed tradie |
+| 20 | Couple, 63 and 65, part-time |
+| 21 | 31, $40k credit card debt |
+| 22 | 52, mortgage running past 67 |
+| 23 | 66, then the same person at 67 |
+| 24 | 70, widowed renter, home care |
+| 25 | 44, public servant on 15.4% super |
+
+**What matched exactly again:**
+- tax (including the family Medicare levy surcharge and SAPTO);
+- super, insurance in super, salary sacrifice and the co-contribution;
+- Age Pension amounts, Rent Assistance and home care fees;
+- the Withdrawal planner's tax;
+- the date itself, once the checkers used the same inputs.
+
+### Bugs found and fixed
+1. **More savings can mean less Age Pension.**
+   - **What was wrong:** the pension line found the smallest amount of savings that, with the pension, reaches the number. It then treated anyone with more as covered. In the assets-test taper, each extra $1,000 cuts the pension by $78 a year. So people holding roughly $500k–$1.4M near pension age could be told "now" when they weren't free. Examples: a couple at 63/65 with $1.1M, and a 67-year-old with $600k.
+   - **Now:** each month is tested on the money the person would actually hold at 67, and the pension shown is the one on that amount.
+2. **Savings in an offset were counted twice.** They earned the offset return and also cut the loan's interest, which made dates about 7 months early. They now count once.
+3. **Repayments that don't cover the interest.**
+   - **What was wrong:** the mortgage was ignored and its repayments stayed in spending for ever. That created a cliff edge: $1,800 a month gave age 75, while $1,809 gave 71½.
+   - **Now:** what's owing is paid off when you stop, and a note says the loan isn't shrinking.
+4. **The Age Pension line with a mortgage running past 67** kept the repayments in, so the line never showed. It now pays the loan off when you stop, as the main date does.
+5. **Self-employed people were given 12% employer super.** For the example tradie, the date came out about 16 months early, super at 60 about $200k high, and "stop saving now" wrong. Now:
+   - the note box reads "self-employed", "sole trader" and "run my own business", plus super they add themselves;
+   - a tap-to-add chip "Self-employed" is offered;
+   - the tax idea says "add to super yourself and claim a deduction".
+6. **The note box missed** "None of my shares are Australian", "All my shares are international", "Most of my shares are Australian" and "Australian shares: none".
+7. **"If invested…" left out franking credits for cash savers,** which made it about 3–4 months too cautious.
+8. **Market range:**
+   - too narrow for cash savers (super is invested and moves too);
+   - ignored the Age Pension from 67;
+   - didn't pay the mortgage off on the day, so it could sit earlier than the date.
+9. **A renter's "mix" averaged in an offset account,** which they can't have.
+10. **Freedom options** dropped employer super, insurance, the mortgage and where savings sit when it took the plan over from Freedom gap.
+
+### Wording fixed
+- "Add your rent in the note" no longer shows once rent is counted.
+- For people 67 and over: "(less while you're earning)" instead of "once you stop work", which was wrong for people already retired.
+- The mortgage note:
+  - drops the misleading "so";
+  - says "savings and super" after 60;
+  - says when a loan won't be paid off before 90;
+  - says "sooner with your savings in the offset".
+- "Than your current mix" for mix savers on the investing idea.
+- "If invested…" adds that shares can fall, when the date is within five years.
+
+### For the owner to decide
+1. **Debt and the date:** $40k of card debt doesn't change the date, only the ideas list. Options:
+   - a short line saying so, and roughly how much clearing it first would move the date;
+   - "once your debt is cleared" on the invested line.
+2. **Far from 67:** should the one line under the date prefer something the person controls, like the savings line, over the Age Pension line when they're under about 50?
+3. **"If invested…" before a three-month buffer:** say "investing what you add beyond a 3-month buffer".
+4. **Spending after the kids leave:** an optional tap-to-add prompt for parents.
+5. **Home care for someone barely a part pensioner:** it uses the halfway rate (cautious). It could be scaled to how close they are to the full pension.
