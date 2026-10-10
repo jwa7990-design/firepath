@@ -135,3 +135,70 @@ Every fix has a test built from the checkers' own figures, so it can't quietly c
 3. **Short of a three-month buffer:** the investing line says "Investing what you add beyond a three-month buffer…".
 4. **Spending after the kids leave:** not now. The retirement spending setting (80%) covers it.
 5. **Home care for someone barely a part pensioner:** kept at the halfway rate (cautious).
+
+## Round 3 (11 October 2026): 15 people at the gaps, plus every page
+
+Clean (matched to the dollar or month):
+- #28 couple on weekly pay
+- #29 fortnightly couple with a mortgage
+- #30 19-year-old apprentice
+- #31 85-year-old with $1.9M
+- #33 spending 20% more with a mortgage
+- #35 already free at 46
+- #37 surgeon on $380k with HELP
+
+### Fixed
+1. **The years after stopping are now worked out month by month.**
+   - **How it works now:** savings are spent first while super keeps earning super's return. It works once, on stopping or at any super unlock, the money you can reach is the freedom number. A pot that unlocks later is extra.
+   - **What was wrong:** unlocked super was treated as earning the savings rate. For cash savers with a partner whose super unlocked 22 years later, $1 more of partner super pushed the date out 17 months (#27).
+   - **Also fixes:**
+     - the pension line was about 6 months late (#38);
+     - one to two months of caution (#29);
+     - negative "savings at 60" (#39).
+2. **The Age Pension when savings are spent down** (#36). Round 2 tested the pension only at the amount held. But spending down raises the pension, and money settles where savings plus 25× the pension cover spending. So anyone holding at least the smallest amount that works is covered.
+   - **Example:** a 68/72 couple with $910k is free now (it said 2035).
+   - **Kept from round 2:** the pension shown is the one on what you'd hold, and it rises as savings fall.
+3. **The pension line no longer takes credit for growth from 60 to 67** (#28, #30). It shows only when the pension itself moves the date by six months or more.
+4. **Partners:**
+   - a partner who works but has $0 super now gets employer super. The date was 11 months late, and in the wrong band (#26);
+   - "my partner is self-employed" is read (#27);
+   - when only you are 67, only your half of the couple rate counts (#27).
+5. **No employer super from 67** (#31, #36).
+6. **Market range:**
+   - each simulated path must also carry the years until super unlocks (#32);
+   - no range once free;
+   - it works out much faster now.
+7. **Odd inputs:** ages outside 15–109 count as unknown. Repayments bigger than spending aren't counted, and a note says to check them (#32).
+8. **Pages agree** (#40):
+   - Freedom gap and Freedom options pass homeowner and rent, so a 67+ renter's pension counts;
+   - Freedom options keeps Rent Assistance;
+   - What if… keeps the mortgage and the saved savings on "Keep the house" and "Stay put";
+   - every page shows the calendar year of the freedom month (not this year + rounded years);
+   - Ask FirePath uses the same range as every page;
+   - Pro reads old plans without a pay cycle as monthly;
+   - Pro works out a 67+ couple's gross pay as a couple.
+9. **Wording:**
+   - the debt line says "push it back to", and a small effect stays behind "More". From 50 it competes with the pension line;
+   - the cushion figure is spending only, and there's no cushion line when already free;
+   - the mortgage note gives one year and says "now" when already free;
+   - the savings line is hidden when investing lands on the same year and age;
+   - the ideas list:
+     - co-contribution not from 67;
+     - concession cards for pensioners;
+     - "on what you hold today" for the pension amount;
+     - "already covered" for spending less;
+     - debt interest "often 7–20%";
+   - HELP "stops once the debt is paid off";
+   - the aged care retention row explains it comes off the refund.
+
+### Checked and not a bug
+- **Withdrawal planner franking** (#34, #35): $1.26M × 1.6% Australian dividends × 75% franked × 30/70 = $6,480, as shown. The checkers applied the 75% twice.
+
+### For the owner to decide
+1. **People already retired (#34):** FirePath assumes everyone still works. Should it offer an "I've already stopped work" note that shows how long the money lasts instead of a date?
+2. **Long gaps before super (#39):** for someone stopping at 30, the years until 60 assume a steady return with no cushion. Should the safer rate also apply to those years?
+3. **Smaller:**
+   - a short caution for recent migrants (10 years' residence for the Age Pension);
+   - a note that a teenager's spending rises when they move out;
+   - the First Home Super Saver scheme as an idea;
+   - a flag when super will pass the $2M transfer balance cap or the $3M Division 296 line.
