@@ -639,13 +639,7 @@
                 <div class="stand-bar" id="standBar" role="progressbar" aria-labelledby="standLine" aria-valuemin="0" aria-valuemax="100"><span class="stand-fill" id="standFill"></span></div>
               </div>
               <p class="answer-fact" id="answerFact" hidden></p>
-              <p class="answer-note" id="answerCushion" hidden></p>
-              <p class="answer-note" id="answerPension" hidden></p>
-              <div class="answer-note answer-savings" id="answerSavings" hidden>
-                <p id="answerSavingsText"></p>
-                <p class="answer-savings-actions">Invested in shares or ETFs? <button type="button" class="fb-text" id="answerSavingsChange">Change</button></p>
-                <p class="answer-savings-learn">Areas you could research further: <a href="/learn/difference-saving-investing">saving vs investing</a> · <a href="/learn/what-is-an-index-fund">what an index fund is</a></p>
-              </div>
+              <div class="answer-note" id="answerNote" hidden></div>
               <p class="answer-extra" id="answerExtra" hidden></p>
             </div>
           </div>
@@ -834,9 +828,10 @@
   }
   // "Invested in shares or ETFs? Change": switch where the savings sit and work it out again.
   document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('answerSavingsChange');
-    if (!btn) return;
-    btn.addEventListener('click', () => {
+    const box = document.getElementById('answerNote');
+    if (!box) return;
+    box.addEventListener('click', e => {
+      if (!e.target.closest('[data-savings-change]')) return;
       const held = document.getElementById('fbHeld');
       if (held) { held.value = 'etfs'; held.dispatchEvent(new Event('change', { bubbles: true })); }
       savingsType = 'etfs';
@@ -919,8 +914,7 @@
     extra.hidden = true; extra.innerHTML = '';
     fact.hidden = true; fact.textContent = '';
     const note = (id, text) => { const el = document.getElementById(id); el.textContent = text || ''; el.hidden = !text; };
-    note('answerCushion', null); note('answerPension', null);
-    document.getElementById('answerSavings').hidden = true;
+    document.getElementById('answerNote').hidden = true;
     // Savings rate: a detail, so it lives in "How we worked this out".
     rate.textContent = `You’re saving ${r.sRate}% of your take-home pay.`;
     rate.hidden = !!r.alreadyFree || !(r.sRate > 0);   // a $0 saver is told in the answer itself
@@ -960,17 +954,12 @@
     if (line) parts.push(line);
     why.innerHTML = parts.join(' ');
     buildRange(plan, r.range);
-    // Why an early date plans on more than 25×, and what today's Age Pension rules could
-    // add from 67 (shown beside the date, never in it).
-    note('answerCushion', FirePathEngine.cushionNote(plan));
+    // One line under the date: the note that matters most for this person (the rest behind
+    // "More about this date"). A cash saver's note carries a one-tap Change.
     const homeowner = housingStatus === 'owning';
-    const rentM = !homeowner ? FirePathEngine.noteFacts(r.context).rentMonthly || 0 : 0;   // Rent Assistance for renters
-    note('answerPension', _planInputs ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(_planInputs, { homeowner, rentFortnight: rentM * 12 / 26 }), plan, homeowner, { rentFortnight: rentM * 12 / 26 }) : null);
-    // Savings counted as cash (the default): what investing could change, plus a one-tap fix.
-    const invested = _planInputs ? FirePathEngine.freedomPlan(Object.assign({}, _planInputs, { savingsType: 'etfs', ausShare: FirePathEngine.ausShareFor('etfs') })) : null;
-    const savingsText = FirePathEngine.savingsNote(plan, invested);
-    document.getElementById('answerSavingsText').textContent = savingsText || '';
-    document.getElementById('answerSavings').hidden = !savingsText;
+    const notes = _planInputs ? FirePathEngine.headlineNotes(_planInputs, plan, { homeowner, rentFortnight: _planInputs.rentFortnight || 0 }) : null;
+    if (window.FirePathDateNote) FirePathDateNote.render(document.getElementById('answerNote'), notes, { actions: {
+      savings: { inline: 'Invested in shares? <button type="button" class="fb-text" data-savings-change>Change</button>', more: 'A high-interest account keeps your money steady and has roughly kept pace with prices; shares have grown faster over long periods, with ups and downs along the way. Areas you could research further: <a href="/learn/difference-saving-investing">saving vs investing</a> · <a href="/learn/what-is-an-index-fund">what an index fund is</a>' } } });
   }
 
   // The reveal: the big age counts up from today's to the freedom age while the path draws
@@ -1333,6 +1322,7 @@
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
 <script src="js/note-prompts.js"></script>
+<script src="js/date-note.js"></script>
 <script src="js/firepath-builder.js"></script>
 <script src="js/interactions.js"></script>
 <script>

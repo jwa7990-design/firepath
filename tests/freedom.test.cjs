@@ -676,3 +676,14 @@ test('already Age Pension age: the main date counts today\'s pension', () => {
   // Under 67 the date never counts it.
   assert.ok(!(E.freedomPlan(E.planInputsFromProfile({ age: 55, take_home_income: 4500, savings_monthly: 600, current_savings: 40000, super_balance: 220000, freedom_number: 3900 * 300, pay_cycle: 'monthly' })).pensionIncluded > 0));
 });
+
+test('one line under the date: the note that moves the date most (67+ always first)', () => {
+  const pick = p => { const pi = E.planInputsFromProfile(Object.assign({ pay_cycle: 'monthly' }, p)); const plan = E.freedomPlan(pi); return E.headlineNotes(pi, plan, { homeowner: pi.homeowner, rentFortnight: pi.rentFortnight }); };
+  const cash = pick({ age: 35, take_home_income: 6000, savings_monthly: 2000, current_savings: 100000, super_balance: 80000, freedom_number: 4000 * 300 });
+  assert.equal(cash.main.key, 'savings');
+  const mortgage = pick({ age: 38, take_home_income: 7500, savings_monthly: 1500, current_savings: 120000, super_balance: 150000, savings_type: 'etfs', freedom_number: 6000 * 300, housing_status: 'mortgage', mortgage_remaining: 300000, context: 'Mortgage repayments $2,500 a month' });
+  assert.equal(mortgage.main.key, 'mortgage');
+  assert.ok(mortgage.others.length >= 1, 'the rest are kept for "More about this date"');
+  assert.equal(pick({ age: 68, take_home_income: 3800, savings_monthly: 300, current_savings: 150000, super_balance: 250000, freedom_number: 3500 * 300, housing_status: 'owner' }).main.key, 'pension67');
+  assert.equal(pick({ age: 30, take_home_income: 6500, savings_monthly: 2000, current_savings: 60000, super_balance: 45000, savings_type: 'etfs', freedom_number: 4500 * 300 }).main.key, 'cushion');
+});

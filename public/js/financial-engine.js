@@ -708,6 +708,39 @@ window.FirePathEngine = (function () {
     const early = plan.withdrawalRate < 0.0375;
     return `Stopping work ${early ? 'before 50' : 'in your 50s'} means your money may need to last ${early ? '45' : '35'} years or more, so this date plans on ${x}× your yearly spending (${fmtM(plan.target)}) instead of 25×.`;
   }
+  // The one line under the date: of everything worth saying about this person's date, the
+  // note that changes it most. Already Age Pension age always wins (it explains a "now");
+  // otherwise each note is scored by how many months it moves the date. The rest come back
+  // as `others` (pages put them behind "More about this date").
+  //   opts: { homeowner, rentFortnight }. Returns { main: { key, text }, others: [...] } or null.
+  function headlineNotes(inputs, plan, opts) {
+    if (!plan || !plan.valid || !inputs) return null;
+    const o = opts || {};
+    const months = p => p && p.valid && p.months != null ? p.months : null;
+    const gap = (a, b) => a != null && b != null ? Math.abs(a - b) : 0;
+    const notes = [];
+    if (plan.pensionIncluded > 0) notes.push({ key: 'pension67', text: cushionNote(plan), score: Infinity });
+    else {
+      const inv = freedomPlan(Object.assign({}, inputs, { savingsType: 'etfs', ausShare: ausShareFor('etfs', inputs.ausShare) }));
+      const sv = savingsNote(plan, inv);
+      if (sv) notes.push({ key: 'savings', text: sv, score: gap(months(plan), months(inv)) });
+      if (!plan.alreadyFree) {
+        const pp = agePensionPlan(inputs, { homeowner: o.homeowner, rentFortnight: o.rentFortnight });
+        const line = agePensionLine(pp, plan, o.homeowner, { rentFortnight: o.rentFortnight });
+        if (line) notes.push({ key: 'pension', text: line, score: gap(months(plan), months(pp && pp.plan)) });
+      }
+      const mn = mortgageNote(plan);
+      if (mn) notes.push({ key: 'mortgage', text: mn, score: gap(months(plan), months(freedomPlan(Object.assign({}, inputs, { mortgage: null })))) });
+      const cn = cushionNote(plan);
+      if (cn) notes.push({ key: 'cushion', text: cn, score: gap(months(plan), months(freedomPlan(Object.assign({}, inputs, { safeRate: false })))) });
+    }
+    if (!notes.length) return null;
+    const order = ['pension67', 'savings', 'pension', 'mortgage', 'cushion'];
+    notes.sort((a, b) => (b.score - a.score) || (order.indexOf(a.key) - order.indexOf(b.key)));
+    const strip = n => ({ key: n.key, text: n.text });
+    return { main: strip(notes[0]), others: notes.slice(1).map(strip) };
+  }
+
   // Savings counted as cash (or a mix): what the same plan would give if they were invested,
   // as information, not advice. investedPlan: freedomPlan with savingsType 'etfs'. null when
   // the savings are already invested or investing wouldn't move the date by six months.
@@ -718,7 +751,7 @@ window.FirePathEngine = (function () {
     if (plan.months != null && plan.months - investedPlan.months < 6) return null;
     const where = type === 'cash' ? 'cash in the bank' : 'a mix of bank, offset and investments';
     const when = investedPlan.alreadyFree ? 'now' : `around ${investedPlan.freedomYear}${investedPlan.freedomAge != null ? `, age ${investedPlan.freedomAge}` : ''}`;
-    return `Your savings are counted as ${where}. If they were invested in shares instead, this could be ${when}. A high-interest account keeps your money steady and has roughly kept pace with prices; shares have grown faster over long periods, with ups and downs along the way.`;
+    return `Your savings are counted as ${where}. Invested in shares, this could be ${when}.`;
   }
 
   // The Age Pension line (agePensionPlan's result against the headline), or null when it
@@ -1069,5 +1102,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, savingsNote, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, CASH_REAL_RETURN, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, retireeTax, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, savingsNote, headlineNotes, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, CASH_REAL_RETURN, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, retireeTax, formatTimeSince, compareSnapshots };
 })();
