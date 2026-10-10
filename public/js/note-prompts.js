@@ -14,8 +14,9 @@
   const PROMPTS = [
     { key: 'mortgage', when: c => c.hasMortgage, label: 'Mortgage repayments', text: 'Mortgage repayments $___ a month', pick: '___' },
     { key: 'rent', when: c => c.renting, label: 'Rent', text: 'I pay $___ a week rent', pick: '___' },
-    { key: 'employer', when: c => c.working, label: 'Employer super above 12%', text: 'My employer pays ___% super', pick: '___', hideIf: ['selfemployed'] },
-    { key: 'selfemployed', when: c => c.working, label: 'Self-employed', text: "I'm self-employed and put $___ a year into super myself", pick: '___', hideIf: ['employer'] },
+    { key: 'employer', when: c => c.working, label: 'Employer super above 12%', text: 'My employer pays ___% super', pick: '___', hideIf: ['selfemployed', 'retired'] },
+    { key: 'selfemployed', when: c => c.working, label: 'Self-employed', text: "I'm self-employed and put $___ a year into super myself", pick: '___', hideIf: ['employer', 'retired'] },
+    { key: 'retired', when: c => c.older, label: 'Stopped work', text: "I've stopped work and live off my savings and super", pick: 'savings and super', hideIf: ['employer', 'selfemployed'] },
     { key: 'insurance', when: c => c.hasSuper, label: 'Insurance through super', text: 'Super insurance about $___ a year', pick: '___' },
     { key: 'aus', when: c => c.invests, label: 'Australian shares', text: 'About half of my investments are in Australian shares', pick: 'half' },
   ];

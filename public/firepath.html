@@ -819,6 +819,7 @@
     if (facts.ausShare != null) _planInputs.ausShare = FirePathEngine.ausShareFor(savingsType, facts.ausShare);
     _planInputs.employerSuperRate = facts.employerSuperRate || null;
     _planInputs.selfEmployed = !!facts.selfEmployed;
+    _planInputs.retired = !!facts.retired;
     if (_planInputs.partner) _planInputs.partner.selfEmployed = !!facts.partnerSelfEmployed;
     _planInputs.ownSuperYear = facts.ownSuperYear || 0;
     _planInputs.ausShareStated = facts.ausShare != null ? facts.ausShare : null;
@@ -829,7 +830,7 @@
     _planInputs.mortgage = mortgage > 0 && facts.mortgageRepayMonthly > 0
       ? { balance: mortgage, repayMonthly: facts.mortgageRepayMonthly, spendMult: retirementSpendMultiplier } : null;
     Object.assign(situationInputs, { employerSuperRate: _planInputs.employerSuperRate, superInsurance: _planInputs.superInsurance,
-      selfEmployed: _planInputs.selfEmployed, ownSuperYear: _planInputs.ownSuperYear, partnerSelfEmployed: !!facts.partnerSelfEmployed,
+      selfEmployed: _planInputs.selfEmployed, ownSuperYear: _planInputs.ownSuperYear, partnerSelfEmployed: !!facts.partnerSelfEmployed, retired: !!facts.retired,
       ausShare: facts.ausShare, mortgageRepayMonthly: facts.mortgageRepayMonthly || 0, rentMonthly: facts.rentMonthly || 0 });
     return { income, savingPerCycle, savings, superBal, debt, mortgage, age, context, pI, pS, mI, mSav, mS, fireNum, sRate, pAge, pSuper, hasPartner, situationInputs, planInputs: _planInputs };
   }
@@ -853,7 +854,7 @@
     const np = FirePathNotePrompts.attach({
       textarea: document.getElementById('contextNote'),
       mount: document.getElementById('contextPrompts'),
-      context: () => ({ hasMortgage: money('fbMortgage') > 0, renting: (document.getElementById('fbHousing') || {}).value === 'renting', working: true, hasSuper: money('fbSuper') > 0,
+      context: () => ({ hasMortgage: money('fbMortgage') > 0, renting: (document.getElementById('fbHousing') || {}).value === 'renting', working: true, hasSuper: money('fbSuper') > 0, older: money('fbAge') >= 50,
         invests: ['etfs', 'mix'].includes((document.getElementById('fbHeld') || {}).value) })
     });
     ['fbMortgage', 'fbSuper', 'fbHeld', 'fbHousing'].forEach(id => { const el = document.getElementById(id); if (el) { el.addEventListener('input', np.refresh); el.addEventListener('change', np.refresh); } });
@@ -939,8 +940,19 @@
       return;
     }
 
-    // Not saving anything, or more than MAX_YEARS away: an honest, kind answer, not a date.
+    // Already stopped work (said in the note): how long the money could last, not a date.
     r.dateShown = false;
+    if (plan.retired && FirePathEngine.retiredNote) {
+      h.textContent = 'You’ve stopped work, so here’s how long your money could last';
+      why.textContent = FirePathEngine.retiredNote(plan);
+      fact.textContent = 'Markets won’t return the average every year. The Withdrawal planner shows how it holds up through a bad run.';
+      fact.hidden = false;
+      extra.innerHTML = '<a class="text-link" href="/withdrawal">Check it in the Withdrawal planner →</a>';
+      extra.hidden = false;
+      if (window.FirePathDateNote) FirePathDateNote.render(document.getElementById('answerNote'), null);
+      return;
+    }
+    // Not saving anything, or more than MAX_YEARS away: an honest, kind answer, not a date.
     if (!inReach(plan) || !(r.mSav > 0)) {
       h.textContent = 'At these numbers, work being optional is a long way off';
       why.innerHTML = r.mSav > 0
@@ -993,7 +1005,7 @@
   function pathOpts(r) { return { far: !r.alreadyFree && !inReach(r.plan) }; }
   function renderPath(r) {
     const box = document.getElementById('answerPath');
-    if (!window.FirePathViz || !r || !r.plan || !(r.age > 0)) { box.hidden = true; return; }
+    if (!window.FirePathViz || !r || !r.plan || !(r.age > 0) || (r.plan.retired && !r.alreadyFree)) { box.hidden = true; return; }   // stopped work: no path to a date
     box.hidden = false;
     // A fresh path every time the result opens, so the date always draws itself in
     // (the builder never shows it beforehand). Reduced motion shows the final picture.
@@ -1003,7 +1015,7 @@
   }
   function renderTryPath(r, preview) {
     const box = document.getElementById('tryPath');
-    if (!window.FirePathViz || !r || !r.plan || !(r.age > 0) || r.alreadyFree) { box.hidden = true; return; }
+    if (!window.FirePathViz || !r || !r.plan || !(r.age > 0) || r.alreadyFree || r.plan.retired) { box.hidden = true; return; }   // stopped work: no path to a date
     box.hidden = false;
     if (!_tryViz) _tryViz = FirePathViz.mount(box, { compact: true, idle: false, live: false });
     if (_pathFor !== r) { _pathFor = r; _previewKey = ''; _previewRange = null; clearTimeout(_previewTimer); }   // a new calculation

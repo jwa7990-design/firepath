@@ -358,8 +358,10 @@ window.FirePathEngine = (function () {
     // Self-employed (from the note): no employer super. ownSuperYear: what you put in yourself
     // each year (claimed as a deduction, so taxed 15% going in, within the same cap).
     const selfEmployed = !!i.selfEmployed;
-    const employerSuperRate = selfEmployed ? 0 : er > 0.12 ? Math.min(0.30, er) : null;
-    const ownSuperYear = Math.max(0, finiteOr(i.ownSuperYear, 0));
+    // Already stopped work (from the note): no wages, so no employer or own contributions.
+    const retired = !!i.retired;
+    const employerSuperRate = selfEmployed || retired ? 0 : er > 0.12 ? Math.min(0.30, er) : null;
+    const ownSuperYear = retired ? 0 : Math.max(0, finiteOr(i.ownSuperYear, 0));
     // Bridge spending a year (default: the freedom number ÷ 25), anything due on the day
     // you stop (upfrontAt(month) → $), and the earliest month freedom may land.
     const spendYear = Number.isFinite(i.spendYear) && i.spendYear >= 0 ? i.spendYear : target / 25;
@@ -367,7 +369,7 @@ window.FirePathEngine = (function () {
     const notBefore = Math.max(0, Math.round(finiteOr(i.notBeforeMonth, 0)));
     // Age Pension line: pensionOn(assets) → a year's pension on those assets (agePensionPlan).
     const pensionOn = typeof i.pensionOn === 'function' ? i.pensionOn : null;
-    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner, superInsurance, pensionValue, pensionOn, employerSuperRate, ownSuperYear, selfEmployed, hasMortgage, spendYear, upfrontAt, notBefore, savingsType };
+    return { age, savings, monthlySavings, target, superBalance, gross, marginalRate, outsideReturn, partner, superInsurance, pensionValue, pensionOn, employerSuperRate, ownSuperYear, selfEmployed, retired, hasMortgage, spendYear, upfrontAt, notBefore, savingsType };
   }
 
   // Stopping work at month `start`, with `out` outside super and the super pots as they
@@ -557,8 +559,10 @@ window.FirePathEngine = (function () {
     const mortgageCheck = !!(mg && n0 && mg.cut >= n0.target);
     if (mortgageCheck) mg = null;
     const spendPart = n0 ? Math.max(0, base - (mg ? mg.cut : 0)) : 0;
+    // Stopping early, the safer rate's cushion covers the years before super unlocks too: they
+    // draw spending × the same multiple (about 14% more before 50, 7% more in your 50s).
     const run = (mult, notBefore) => planAt(Object.assign({}, inputs, {
-      target: spendPart * mult, annualSpend: undefined, spendYear: spendPart / 25,
+      target: spendPart * mult, annualSpend: undefined, spendYear: spendPart / 25 * mult,
       upfrontAt: mg ? mg.realOwing : undefined, notBeforeMonth: notBefore || 0 }), opts);
     let plan, mult = 1;
     if (!n0) plan = planAt(inputs, opts);
@@ -583,7 +587,7 @@ window.FirePathEngine = (function () {
       if (mortgageCheck) plan.mortgageCheck = true;
       const owing = mg && plan.months != null ? mg.realOwing(plan.months) : 0;
       Object.assign(plan, { baseTarget: base, targetMultiple: mult, withdrawalRate: 0.04 / mult,
-        spendYear: spendPart / 25, target: spendPart * mult + owing });
+        spendYear: spendPart / 25 * mult, spendReal: spendPart / 25, target: spendPart * mult + owing });
       if (mg) {
         const now = (opts && opts.now) || new Date();
         const fin = Number.isFinite(mg.payoffMonth);
@@ -591,6 +595,10 @@ window.FirePathEngine = (function () {
           payoffAge: fin && n0.age != null ? n0.age + mg.payoffMonth / 12 : null, neverPaid: mg.neverPaid, inOffset: mg.inOffset && Number(inputs.mortgage.offset) > 0,
           owingAtFreedom: plan.months != null ? owing : null, repayMonthly: mg.repay };
       }
+    }
+    if (n0 && n0.retired && plan.valid) {
+      const fin = withRetired(plan, inputs, n0, spendPart / 25, mg);
+      if (fin) return fin;
     }
     // Already Age Pension age: the pension isn't a guess about future rules, so the date
     // counts it (today's rules, once you stop work). inputs.homeowner / rentFortnight as in
@@ -601,10 +609,65 @@ window.FirePathEngine = (function () {
       if (pp && pp.pensionMax > 0 && pp.plan.valid && later(pp.plan.months) < later(plan.months)) {
         pp.plan.pensionIncluded = Math.max(pp.pensionAnnual, 1);
         pp.plan.pensionRises = pp.pensionMax - pp.pensionAnnual > 1000;
+        if (n0.retired) pp.plan.retired = true;
         return pp.plan;
       }
     }
     return plan;
+  }
+
+  // Someone who has already stopped work: a date for "work becomes optional" means nothing,
+  // so unless they're already covered, the plan instead says how long their money lasts:
+  // spending (without the cushion) from savings first, then super once it unlocks, at the
+  // plan's returns, with today's Age Pension from 67 on what's left (it rises as savings
+  // fall). Anything still owing on a mortgage is paid off now. From 67 the pension is
+  // already in the date, so this runs only when that still isn't enough.
+  function withRetired(plan, inputs, n, spendYear, mg) {
+    plan.retired = true;
+    if (plan.alreadyFree || n.age == null) return null;
+    if (n.age >= PENSION_AGE && !(inputs && (inputs.pensionValue || inputs.noAutoPension))) {
+      // Let the pension-included plan decide first (below); come back only if it isn't free.
+      const withPension = freedomPlan(Object.assign({}, inputs, { retired: false, noRetiredCard: true }));
+      if (withPension.alreadyFree) return null;
+    }
+    const rO = monthlyRate(n.outsideReturn), rS = monthlyRate(SUPER_RETURN);
+    const homeowner = !inputs || inputs.homeowner !== false, couple = !!n.partner;
+    const rent = !homeowner && inputs && inputs.rentFortnight > 0 ? { rentFortnight: inputs.rentFortnight } : {};
+    const pensionOn = typeof calculateAgePension === 'function' ? a => calculateAgePension(a, 0, homeowner, couple, a, rent).annualPension || 0 : () => 0;
+    let o = n.savings - (mg ? mg.realOwing(0) : 0);
+    const pots = [{ bal: n.superBalance, unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.age) * 12)) }];
+    if (n.partner && n.partner.age != null) pots.push({ bal: n.partner.superBalance, unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.partner.age) * 12)) });
+    const assets = Math.max(0, n.savings) + pots.reduce((t, p) => t + p.bal, 0);
+    let pension = 0, pensionAt67 = null, runsOutAge = null, beforeSuper = false;
+    for (let t = 0; n.age + t / 12 < 100; t++) {
+      const age = n.age + t / 12;
+      if (age >= PENSION_AGE && t % 12 === 0) {
+        pension = pensionOn(Math.max(0, o) + pots.reduce((s2, p) => s2 + p.bal, 0));
+        if (pensionAt67 == null) pensionAt67 = pension;
+      }
+      o = o * (1 + rO) - (spendYear - (age >= PENSION_AGE ? pension : 0)) / 12;
+      pots.forEach(p => { p.bal = superGrow(p.bal, rS); });
+      if (o < 0) {
+        let short = -o; o = 0;
+        for (const p of pots) { if (p.unlock > t + 1) continue; const take = Math.min(short, p.bal); p.bal -= take; short -= take; }
+        if (short > 1e-6) { runsOutAge = age; beforeSuper = pots.some(p => p.unlock > t + 1 && p.bal > 0); break; }
+      }
+    }
+    return Object.assign(plan, { months: null, years: null, freedomAge: null, freedomAgeExact: null, freedomYear: null, reachable: false,
+      lasts: { spendYear, assets, drawRate: assets > 0 ? spendYear / assets : null, runsOutAge, beforeSuper, pensionAt67 } });
+  }
+  // The one line for someone who has stopped work.
+  function retiredNote(plan) {
+    if (!plan || !plan.valid || !plan.retired) return null;
+    if (plan.alreadyFree) return `You've stopped work, and your savings and super cover your freedom number.`;
+    const L = plan.lasts;
+    if (!L) return null;
+    const rate = L.drawRate != null ? `: ${(L.drawRate * 100).toFixed(1)}% of your ${fmtM(L.assets)}` : '';
+    const last = L.runsOutAge == null ? 'past age 100'
+      : L.beforeSuper ? `until about age ${Math.floor(L.runsOutAge)}, before your super unlocks at 60`
+      : `until about age ${Math.floor(L.runsOutAge)}`;
+    const pension = L.pensionAt67 != null && (L.runsOutAge == null || L.runsOutAge >= PENSION_AGE) ? ', with the Age Pension helping from 67 as your savings fall' : '';
+    return `You've stopped work and spend about $${Math.round(L.spendYear).toLocaleString('en-AU')} a year${rate}. A common guide is about 4% a year. On FirePath's returns your money could last ${last}${pension}.`;
   }
 
   // A mortgage that ends. Today's spending includes the repayments, but they stop when the
@@ -840,7 +903,7 @@ window.FirePathEngine = (function () {
     if (!plan || !plan.valid || !(plan.targetMultiple > 1) || plan.alreadyFree) return null;
     const x = String(Math.round(25 * plan.targetMultiple * 10) / 10);
     const early = plan.withdrawalRate < 0.0375;
-    return `Stopping work ${early ? 'before 50' : 'in your 50s'} means your money may need to last ${early ? '45' : '35'} years or more, so this date plans on ${x}× your yearly spending (${fmtM(plan.spendYear * 25 * plan.targetMultiple)}) instead of 25×.`;
+    return `Stopping work ${early ? 'before 50' : 'in your 50s'} means your money may need to last ${early ? '45' : '35'} years or more, so this date plans on ${x}× your yearly spending (${fmtM((plan.spendReal != null ? plan.spendReal : plan.spendYear) * 25 * plan.targetMultiple)}) instead of 25×, and on spending a little more until your super unlocks.`;
   }
   // The one line under the date: of everything worth saying about this person's date, the
   // note that changes it most. Already Age Pension age always wins (it explains a "now");
@@ -857,6 +920,10 @@ window.FirePathEngine = (function () {
     const months = p => p && p.valid && p.months != null ? p.months : null;
     const gap = (a, b) => a != null && b != null ? Math.abs(a - b) : 0;
     const notes = [];
+    if (plan.retired && !(plan.pensionIncluded > 0)) {
+      const rn = retiredNote(plan);
+      if (rn) return { main: { key: 'retired', text: rn }, others: [] };
+    }
     if (plan.pensionIncluded > 0) notes.push({ key: 'pension67', text: cushionNote(plan), score: Infinity });
     else {
       const debt = Math.max(0, Number(o.consumerDebt != null ? o.consumerDebt : inputs.consumerDebt) || 0);
@@ -1025,6 +1092,11 @@ window.FirePathEngine = (function () {
     // A partner who is self-employed: no employer super for them either.
     const partnerBits = t.split(/[.!?](?=\s|$)|\n/).filter(x => /partner|wife|husband|spouse/i.test(x)).join('. ');
     if (noEmployer.test(partnerBits)) { out.partnerSelfEmployed = true; out.counted.push({ key: 'partnerself', text: 'Partner self-employed: no employer super for them' }); }
+    // Already stopped work ("I've retired", "stopped work", "living off my super").
+    if (/\b(?:i['’]?m|i am|we['’]?re|we are|i['’]?ve|we['’]?ve|already|now)\s+(?:fully\s+|semi[-\s]?)?retired\b|\bretired\s+(?:now|already|last|in\s+\d{4})|stopped\s+work(?:ing)?|no\s+longer\s+work(?:ing)?|living\s+(?:off|on)\s+(?:my|our)\s+(?:super|savings|investments)|drawing\s+(?:down\s+)?(?:from\s+|on\s+)?(?:my|our)\s+super/i.test(own)) {
+      out.retired = true;
+      out.counted.push({ key: 'retired', text: 'Stopped work: no wages or employer super counted' });
+    }
     // Super you put in yourself each year ("I put in about $10,000 a year myself", "I add
     // $5k a year to super", "personal contributions $8,000 a year").
     m = own.match(new RegExp(String.raw`(?:i|we)\s+(?:put|add|pay|contribute|chuck|salary\s*sacrifice)(?:\s+in)?[^\d$\n.]{0,25}?` + AMT + String.raw`\s*` + PER + String.raw`[^\n.]{0,30}`, 'i'))
@@ -1082,7 +1154,7 @@ window.FirePathEngine = (function () {
       homeowner: !/rent/i.test(p.housing_status || ''),
       rentFortnight: /rent/i.test(p.housing_status || '') && facts.rentMonthly > 0 ? facts.rentMonthly * 12 / 26 : 0,
       employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate || null,
-      selfEmployed: !!facts.selfEmployed, ownSuperYear: facts.ownSuperYear || 0,
+      selfEmployed: !!facts.selfEmployed, ownSuperYear: facts.ownSuperYear || 0, retired: !!facts.retired,
       ausShareStated: p.aus_share != null ? p.aus_share : facts.ausShare != null ? facts.ausShare : null,
       hasMortgage: p.mortgage_remaining > 0, consumerDebt: p.debt_total > 0 ? p.debt_total : 0,
       mortgage: p.mortgage_remaining > 0 && facts.mortgageRepayMonthly > 0
@@ -1358,5 +1430,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, savingsNote, headlineNotes, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, CASH_REAL_RETURN, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, retireeTax, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, savingsNote, headlineNotes, retiredNote, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, CASH_REAL_RETURN, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, retireeTax, formatTimeSince, compareSnapshots };
 })();

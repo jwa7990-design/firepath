@@ -459,6 +459,9 @@
   function narrative(m) {
     const persona = Persona.get();
     const remaining = Math.max(0, m.freedomNumber - m.savings);
+    if (m.plan && m.plan.retired && !isFree(m)) {
+      return `You've stopped work. The focus now is making it last, and how your money holds up through a bad run of markets.`;
+    }
     if (isFree(m)) {
       return persona === 'fire'
         ? `FI reached. The job now is the drawdown, and how your withdrawal rate holds up against bad sequences.`
@@ -481,9 +484,13 @@
   function renderHero(m) {
     const yearEl = $('heroYear');
     yearEl.classList.remove('skeleton');
-    yearEl.textContent = m.freedomYear != null ? m.freedomYear : '100+ yrs';
+    const stopped = m.plan && m.plan.retired && !isFree(m) && m.plan.lasts;
+    yearEl.textContent = stopped ? 'Stopped work' : m.freedomYear != null ? m.freedomYear : '100+ yrs';
     const parts = [];
-    if (isFree(m)) {
+    if (stopped) {
+      const L = m.plan.lasts;
+      parts.push(L.runsOutAge == null ? 'Your money could last past age 100' : `Your money could last until about age <strong>${Math.floor(L.runsOutAge)}</strong>`);
+    } else if (isFree(m)) {
       parts.push("You've reached your number");
     } else if (m.months != null) {
       // The same freedom age the calculators show (freedomPlan rounds to the nearest year).
@@ -522,6 +529,7 @@
   function renderPath(m) {
     const wrap = $('heroPathWrap');
     if (!window.FirePathViz || !m || !m.plan || !m.plan.valid || !(m.age > 0)) { wrap.hidden = true; return; }
+    if (m.plan && m.plan.retired && !isFree(m)) { wrap.hidden = true; return; }   // stopped work: no path to a date
     wrap.hidden = false;
     if (!heroViz) heroViz = FirePathViz.mount($('heroPath'), { animateIn: true, live: false });
     const si = sinceInfo;

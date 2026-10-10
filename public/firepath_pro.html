@@ -1081,7 +1081,7 @@
     saved=saved||{};
     ausShareAns=f.ausShare!=null?f.ausShare:(saved.aus_share!=null?saved.aus_share:null);
     employerRate=f.employerSuperRate||(saved.employer_super_rate>0.12?saved.employer_super_rate:null);
-    selfEmployed=!!f.selfEmployed; ownSuperYear=f.ownSuperYear||0; partnerSelfEmployed=!!f.partnerSelfEmployed;
+    selfEmployed=!!f.selfEmployed; ownSuperYear=f.ownSuperYear||0; partnerSelfEmployed=!!f.partnerSelfEmployed; retired=!!f.retired;
     if(selfEmployed)employerRate=null;
     superInsurance=f.superInsurance||(saved.super_insurance>0?saved.super_insurance:0);
     mortgageRepay=f.mortgageRepayMonthly||0;
@@ -1142,9 +1142,9 @@
   // Employer super rate (0–1) when above the 12% guarantee, else null.
   let employerRate=null;
   // From the note: self-employed (no employer super), and super they add themselves each year.
-  let selfEmployed=false, ownSuperYear=0, partnerSelfEmployed=false;
+  let selfEmployed=false, ownSuperYear=0, partnerSelfEmployed=false, retired=false;
   function freedomPlanInputs(age,superBal,ownMI,savings,mSav,fireNum,partner){
-    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI,age,!!partner),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,selfEmployed,ownSuperYear,ausShareStated:ausShareAns,hasMortgage:mortgageBal>0,mortgage:mortgageInput(),savingsType:savingsType||'cash',homeowner:!/rent/i.test(housingStatus||''),rentFortnight:rentFortnight(),
+    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI,age,!!partner),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,selfEmployed,retired,ownSuperYear,ausShareStated:ausShareAns,hasMortgage:mortgageBal>0,mortgage:mortgageInput(),savingsType:savingsType||'cash',homeowner:!/rent/i.test(housingStatus||''),rentFortnight:rentFortnight(),
       partner:partner&&(partner.superBal>0||partner.annualGross>0)?{superBalance:partner.superBal||0,selfEmployed:partnerSelfEmployed,age:partner.ageAssumed?null:partner.age,grossIncome:partner.annualGross||0}:null};
   }
   // Years to freedom with some of this person's inputs changed, on the same plan as the
@@ -1326,6 +1326,7 @@
     if (!plan.alreadyFree && inReach(plan) && saving && FirePathEngine.freedomRange && cd.planInputs) {
       try { range = FirePathEngine.freedomRange(cd.planInputs); } catch (e) { range = null; }
     }
+    if (plan.retired && !plan.alreadyFree) { fig.hidden = true; return; }   // stopped work: no path to a date
     fig.hidden = false;
     if (_proViz) _proViz.destroy();
     _proViz = FirePathViz.mount(box, { animateIn: true, live: false });
@@ -1547,7 +1548,8 @@
       document.getElementById('resultSub').textContent = `Your freedom number is ${fmtM(fireNum)}. Once saving starts, this starts to change.`;
       document.getElementById('monthlySavingOut').textContent = '$0';
     } else {
-      document.getElementById('yearsOut').textContent = alreadyFree ? 'Already there! ' : withSuper ? `${fmt(headlineYears)} with super` : fmt(fy);
+      const stopped = plan.retired && !alreadyFree;   // stopped work: how long it lasts (the line under the date says)
+      document.getElementById('yearsOut').textContent = alreadyFree ? 'Already there! ' : stopped ? 'You’ve stopped work' : withSuper ? `${fmt(headlineYears)} with super` : fmt(fy);
       document.getElementById('freedomAgeOut').textContent = freedomAge || '—';
       document.getElementById('resultSub').textContent = `Saving ${fmtM(cs)} per ${cw} towards your ${persona === 'fire' ? 'FI' : 'freedom'} number of ${fmtM(fireNum)}.`;
       document.getElementById('monthlySavingOut').textContent = fmtM(cs);
@@ -2454,7 +2456,7 @@ async function saveProfile() {
     notePrompts = FirePathNotePrompts.attach({
       textarea: document.getElementById('context'),
       mount: document.getElementById('contextPrompts'),
-      context: () => ({ hasMortgage: val('mortgageRemaining') > 0, renting: /rent/i.test(housingStatus || ''), working: true, hasSuper: val('superBalance') > 0, invests: savingsType === 'etfs' || savingsType === 'mix' })
+      context: () => ({ older: val('age') >= 50, hasMortgage: val('mortgageRemaining') > 0, renting: /rent/i.test(housingStatus || ''), working: true, hasSuper: val('superBalance') > 0, invests: savingsType === 'etfs' || savingsType === 'mix' })
     });
     ['mortgageRemaining', 'superBalance'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', () => notePrompts.refresh()); });
   });

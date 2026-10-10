@@ -290,7 +290,7 @@ const freePageInputs = (() => {
   // The page then adds where the savings sit and the Australian-share mix (here: ETFs).
   return (...args) => Object.assign(build(...args), { savingsType: 'etfs', ausShare: E.ausShareFor('etfs') });
 })();
-vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "etfs", housingStatus = "owner", rentMonthly = 0; function rentFortnight() { return 0; } var _x = 0, ausShareAns = null, employerRate = null, selfEmployed = false, ownSuperYear = 0, partnerSelfEmployed = false, mortgageBal = 0; function mortgageInput() { return null; }   // no insurance, cash: the cross-page comparisons\n'
+vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "etfs", housingStatus = "owner", rentMonthly = 0; function rentFortnight() { return 0; } var _x = 0, ausShareAns = null, employerRate = null, selfEmployed = false, ownSuperYear = 0, partnerSelfEmployed = false, retired = false, mortgageBal = 0; function mortgageInput() { return null; }   // no insurance, cash: the cross-page comparisons\n'
   + grab(PRO, /(function ownGrossIncome[\s\S]*?\n  \})/, 'Pro ownGrossIncome') + '\n'
   + grab(PRO, /(function freedomPlanInputs[\s\S]*?\n  \})/, 'Pro freedomPlanInputs')
   + '\nthis.__pro = freedomPlanInputs;', ctx);
@@ -621,11 +621,13 @@ test('review: the safer rate lands exactly on a 50 or 60 boundary when that is t
   assert.equal(at60.targetMultiple, 1);
 });
 
-test('review: the bridge draws real spending, not the cushioned freedom number ÷ 25', () => {
-  // Checker 02: spends $54k; drawing $54k (not $61.7k) gives month 188.
+test('review: the bridge draws spending with the safer-rate cushion, never a mortgage payout', () => {
+  // Checker 02: spends $54k. Owner decision (review 3): stopping before 50, the years before
+  // super unlocks draw spending × the same cushion (28.6/25), so $61.7k: month 197 (was 188).
   const p = E.freedomPlan(E.planInputsFromProfile({ age: 30, take_home_income: 6500, savings_monthly: 2000, current_savings: 60000, super_balance: 45000, savings_type: 'etfs', freedom_number: 4500 * 300, pay_cycle: 'monthly', savings_type: 'etfs', context: 'About half of my investments are in Australian shares' }));
-  near(p.spendYear, 54000, 1);
-  assert.equal(p.months, 188);
+  near(p.spendReal, 54000, 1);
+  near(p.spendYear, 54000 * 28.57142857 / 25, 1);
+  assert.equal(p.months, 197);
 });
 
 test('review: a mortgage still owing is paid out of savings on the day you stop', () => {
@@ -804,7 +806,8 @@ test('review 2: savings held in the offset count once, not twice', () => {
   const pi = E.planInputsFromProfile({ age: 40, take_home_income: 8200, savings_monthly: 2400, current_savings: 80000, savings_type: 'offset', super_balance: 160000,
     freedom_number: 5800 * 12 * 25, pay_cycle: 'monthly', housing_status: 'owning', mortgage_remaining: 400000, offset_amount: 80000, context: 'Mortgage repayments $3,000 a month.' });
   const plan = E.freedomPlan(pi);
-  assert.ok(Math.abs(plan.months - 136) <= 1, `month ${plan.months} (the checker's 136)`);
+  // The checker's 136, plus the cushion on the years before super unlocks (owner decision, review 3).
+  assert.ok(Math.abs(plan.months - 138) <= 1, `month ${plan.months}`);
   assert.match(E.mortgageNote(plan), /sooner with your savings in the offset/);
   // The market range wraps the date.
   const r = E.freedomRange(pi);
@@ -886,4 +889,40 @@ test('owner decisions (review 2): debt note, buffer wording, no far-off pension 
   const n17 = E.headlineNotes(p17, E.freedomPlan(p17), { homeowner: false, rentFortnight: p17.rentFortnight });
   assert.notEqual(n17.main.key, 'pension');
   assert.ok(n17.others.some(n => n.key === 'pension'));
+});
+
+
+test('owner decisions (review 3): someone who has stopped work, and the cushion before super unlocks', () => {
+  // #34: 62, stopped work, living on super: no date, how long the money lasts instead.
+  const f = E.noteFacts("I've retired and live off my super.");
+  assert.equal(f.retired, true);
+  assert.equal(E.noteFacts('My partner has retired.').retired, undefined);
+  const pi = E.planInputsFromProfile({ age: 62, take_home_income: 4200, savings_monthly: 0, current_savings: 80000, savings_type: 'cash', super_balance: 750000,
+    freedom_number: 4200 * 12 * 25, pay_cycle: 'monthly', housing_status: 'owning', context: "I've retired and live off my super." });
+  const p = E.freedomPlan(pi);
+  assert.ok(p.retired && p.months == null && !p.alreadyFree);
+  near(p.lasts.drawRate, 50400 / 830000, 1e-6);
+  const n = E.headlineNotes(pi, p, { homeowner: true });
+  assert.equal(n.main.key, 'retired');
+  assert.match(n.main.text, /You've stopped work and spend about \$50,400 a year: 6\.1% of your \$830K\. A common guide is about 4% a year\./);
+  // No wages: no employer super, so no co-contribution or salary sacrifice ideas.
+  if (!ctx.FirePathMoves) vm.runInContext(read('js/moves.js'), ctx);
+  const M = ctx.FirePathMoves;
+  const ids = M.rank(M.situationFromProfile({ age: 62, take_home_income: 4200, savings_monthly: 0, current_savings: 80000, savings_type: 'cash', super_balance: 750000,
+    freedom_number: 4200 * 12 * 25, pay_cycle: 'monthly', housing_status: 'owning', context: "I've retired and live off my super." }), { limit: 20 }).all.map(m => m.id);
+  assert.ok(!ids.includes('co-contribution') && !ids.includes('salary-sacrifice'), ids.join(','));
+  // Spending more than it can carry runs out, and says when.
+  const short = E.freedomPlan(Object.assign({}, pi, { savings: 20000, superBalance: 150000 }));
+  assert.ok(short.lasts.runsOutAge > 62 && short.lasts.runsOutAge < 100);
+  // Stopped work and already covered: "free now", with the stopped-work line.
+  const rich = E.freedomPlan(Object.assign({}, pi, { superBalance: 1500000 }));
+  assert.ok(rich.alreadyFree);
+  assert.match(E.headlineNotes(Object.assign({}, pi, { superBalance: 1500000 }), rich, { homeowner: true }).main.text, /cover your freedom number/);
+
+  // #39: stopping before 50, the years before super unlocks carry the same cushion, so the date
+  // is later than without it, and the line says so.
+  const c = E.freedomPlan(E.planInputsFromProfile({ age: 29, take_home_income: 14000, savings_monthly: 9800, current_savings: 310000, savings_type: 'etfs', super_balance: 75000,
+    freedom_number: 4200 * 12 * 25 * 0.8, retirement_spend_multiplier: 0.8, pay_cycle: 'monthly', partner_super: 95000, partner_age: 31, partner_income: 6500, housing_status: 'renting', context: 'Mostly Australian shares.' }));
+  assert.ok(c.months > 18, String(c.months));
+  assert.match(E.cushionNote(c), /spending a little more until your super unlocks/);
 });

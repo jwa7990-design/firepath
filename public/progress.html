@@ -566,7 +566,7 @@
   // Years-to-go and freedom-date labels. 0 means already there — not "unknown".
   function yearsToGoLabel(y) { return y === null ? '—' : y === 0 ? 'Now' : Math.round(y) + ' yrs'; }
   // The calendar year the freedom month lands in (as every page's date), not this year + rounded years.
-  function freedomDateLabel(y) { if (y === null) return '100+ yrs'; if (y === 0) return 'Now'; const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + Math.round(y * 12), 1).getFullYear(); }
+  function freedomDateLabel(y) { if (y === null) return stoppedWork() ? 'Stopped work' : '100+ yrs'; if (y === 0) return 'Now'; const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + Math.round(y * 12), 1).getFullYear(); }
 
   // A commitment's total impact spread over every check-in between now and the (new)
   // freedom date — the extra saving has to keep going that long to buy those days back.
@@ -1025,6 +1025,8 @@
     return planProfile && planProfile.freedom_number ? E.planInputsFromProfile(planProfile)
       : { age: calcData.age, monthlySavings: calcData.mSav || 0, target: calcData.fireNum, superBalance: calcData.superBal || 0 };
   }
+  // Stopped work (said in the plan's note): there's no date to count down to.
+  function stoppedWork() { const E = window.FirePathEngine; try { const p = E && E.freedomPlan ? E.freedomPlan(planBase()) : null; return !!(p && p.retired && !p.alreadyFree); } catch (e) { return false; } }
   function planYearsFor(savings, monthly) {
     const E = window.FirePathEngine;
     if (!E || !E.freedomPlan || !calcData.fireNum) return null;

@@ -74,7 +74,7 @@ window.FirePathMoves = (function () {
       emergencyFund: typeof i.emergencyFund === 'boolean' ? i.emergencyFund : null,
       retirementSpendMultiplier: num(i.retirementSpendMultiplier) || 1, freedomNumber: num(i.freedomNumber),
       persona: i.persona || null, superInsurance: num(i.superInsurance) || 0, ausShare: num(i.ausShare), employerSuperRate: num(i.employerSuperRate),
-      selfEmployed: !!i.selfEmployed, ownSuperYear: num(i.ownSuperYear) || 0, partnerSelfEmployed: !!i.partnerSelfEmployed,
+      selfEmployed: !!i.selfEmployed, ownSuperYear: num(i.ownSuperYear) || 0, partnerSelfEmployed: !!i.partnerSelfEmployed, retired: !!i.retired,
       mortgageRepayMonthly: num(i.mortgageRepayMonthly) || 0, rentMonthly: num(i.rentMonthly) || 0, offsetAmount: num(i.offsetAmount) || 0, mortgageRate: num(i.mortgageRate),
     };
     s.cashSavings = s.savingsType === 'cash' ? s.currentSavings : s.savingsType === 'mix' ? s.currentSavings / 3 : null;
@@ -99,7 +99,7 @@ window.FirePathMoves = (function () {
       grossIncome: p.gross_income, persona: p.persona,
       superInsurance: p.super_insurance > 0 ? p.super_insurance : facts.superInsurance, ausShare: p.aus_share != null ? p.aus_share : facts.ausShare,
       employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate, mortgageRepayMonthly: facts.mortgageRepayMonthly, rentMonthly: facts.rentMonthly,
-      selfEmployed: facts.selfEmployed, ownSuperYear: facts.ownSuperYear, partnerSelfEmployed: facts.partnerSelfEmployed,
+      selfEmployed: facts.selfEmployed, ownSuperYear: facts.ownSuperYear, partnerSelfEmployed: facts.partnerSelfEmployed, retired: facts.retired,
       offsetAmount: p.offset_amount, mortgageRate: p.offset_interest_rate > 0 ? p.offset_interest_rate / 100 : null,
     });
   }
@@ -143,7 +143,7 @@ window.FirePathMoves = (function () {
       superInsurance: s.superInsurance || 0, savingsType: s.savingsType || 'cash',
       homeowner: s.housing !== 'renting', rentFortnight: s.housing === 'renting' && s.rentMonthly > 0 ? s.rentMonthly * 12 / 26 : 0,
       ausShare: E() && E().ausShareFor ? E().ausShareFor(s.savingsType, s.ausShare) : 0,
-      employerSuperRate: s.employerSuperRate || null, selfEmployed: s.selfEmployed, ownSuperYear: s.ownSuperYear || 0,
+      employerSuperRate: s.employerSuperRate || null, selfEmployed: s.selfEmployed, ownSuperYear: s.ownSuperYear || 0, retired: !!s.retired,
       ausShareStated: s.ausShare != null ? s.ausShare : null, hasMortgage: s.mortgageRemaining > 0, consumerDebt: s.consumerDebt || 0,
       mortgage: s.mortgageRemaining > 0 && s.mortgageRepayMonthly > 0
         ? { balance: s.mortgageRemaining, repayMonthly: s.mortgageRepayMonthly, offset: s.offsetAmount || 0, rate: s.mortgageRate || null, spendMult: s.retirementSpendMultiplier || 1 } : null,
@@ -216,6 +216,7 @@ window.FirePathMoves = (function () {
     { id: 'start-saving', tier: 3, title: 'Starting with a small, automatic amount', plan: 'Free',
       tool: { href: '/hearmeout', label: 'See what $50 a week grows into' }, article: 'good-savings-rate',
       applies(s) {
+        if (s.retired) return false;   // stopped work: saving-from-pay ideas don't apply
         if (s.alreadyFree || s.savingsMonthly > 0 || s.consumerDebt > 0 || (s.age != null && s.age >= 60)) return false;
         return { why: 'Even a small amount, set up to move automatically on payday, gets compounding going. It builds the habit, too.',
           impact: { text: 'A first step towards a real date' } };
@@ -223,6 +224,7 @@ window.FirePathMoves = (function () {
     { id: 'save-more', tier: 4, title: 'Saving a little more each week', plan: 'Free',
       tool: { href: '/hearmeout', label: 'Try different amounts' }, article: 'extra-50-a-week-impact',
       applies(s) {
+        if (s.retired) return false;   // stopped work: saving-from-pay ideas don't apply
         if (s.alreadyFree || !(s.savingsMonthly > 0) || s.consumerDebt > 0) return false;
         const base = s.yearsToFree;
         const more = yearsOr(s, { monthlySavings: s.savingsMonthly + 50 * 52 / 12 }, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly + 50 * 52 / 12, REAL));
@@ -235,6 +237,7 @@ window.FirePathMoves = (function () {
     { id: 'spend-less', tier: 4, title: 'Spending 10% less', plan: 'Free',
       tool: { href: '/firepath', label: 'Try it in the calculator' }, article: 'simple-budget-australia',
       applies(s) {
+        if (s.retired) return false;   // stopped work: saving-from-pay ideas don't apply
         if (s.alreadyFree || !(s.spendMonthly > 0) || s.consumerDebt > 0) return false;
         const cut = s.spendMonthly * 0.1;
         const after = yearsOr(s, { target: s.freedomNumber * 0.9, monthlySavings: (s.savingsMonthly || 0) + cut }, () => yearsTo(s.freedomNumber * 0.9, s.currentSavings, (s.savingsMonthly || 0) + cut, REAL));
@@ -249,7 +252,7 @@ window.FirePathMoves = (function () {
     { id: 'salary-sacrifice', tier: 5, title: 'Salary sacrificing into super', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Work out your numbers' }, article: 'salary-sacrifice-explained',
       applies(s) {
-        if (s.alreadyFree || s.consumerDebt > 0 || !has('calculateSalarySacrifice')) return false;
+        if (s.alreadyFree || s.retired || s.consumerDebt > 0 || !has('calculateSalarySacrifice')) return false;
         if (!(s.savingsMonthly > 0) || (s.bufferMonths != null && s.bufferMonths < 3)) return false;   // basics first
         if (s.age != null && s.age >= 67) return false;
         if (!(s.marginalRate >= 0.30)) return false;      // below ~30% the tax saving is small or nil
@@ -278,6 +281,7 @@ window.FirePathMoves = (function () {
     { id: 'work-less', tier: 6, title: 'Working less could be an option', plan: 'Free',
       tool: { href: '/freedom-gap', label: 'See your freedom gap' }, article: 'what-is-coast-fire',
       applies(s) {
+        if (s.retired) return false;   // stopped work: saving-from-pay ideas don't apply
         if (s.alreadyFree || s.age == null || s.age >= 65 || !(s.freedomNumber > 0)) return false;
         // Coast, the one definition every page uses (FirePathEngine.coastPoint): stop adding
         // to savings today, keep working (so super keeps growing), and still be free by 65.
@@ -331,7 +335,7 @@ window.FirePathMoves = (function () {
       tool: { href: '/compound', label: 'See what it grows to' }, article: 'super-co-contribution',
       applies(s) {
         // Needs income from work and to be under 71; from 67 FirePath takes income as a pension or investments.
-        if (s.alreadyFree || s.age == null || s.age >= 67 || !(s.grossIncome > 0) || !has('coContribution')) return false;
+        if (s.alreadyFree || s.retired || s.age == null || s.age >= 67 || !(s.grossIncome > 0) || !has('coContribution')) return false;
         const t = (typeof TAX_CONFIG !== 'undefined' && TAX_CONFIG.coContribution) || null;
         if (!t || s.grossIncome >= t.higher) return false;
         const add = coContribution(s.grossIncome, 1000);
