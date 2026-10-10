@@ -510,7 +510,7 @@
     const homeowner = /own|mortgage|buy/i.test((m.p && m.p.housing_status) || '');
     // Renters: Rent Assistance on the rent in their note (FirePathEngine.noteFacts).
     const rentM = !homeowner && Engine.noteFacts ? Engine.noteFacts(m.p && m.p.context).rentMonthly || 0 : 0;
-    const pensionLine = isFree(m) ? null : Engine.agePensionLine(Engine.agePensionPlan(m.planInputs, { homeowner, rentFortnight: rentM * 12 / 26 }), m.plan, homeowner);
+    const pensionLine = isFree(m) ? null : Engine.agePensionLine(Engine.agePensionPlan(m.planInputs, { homeowner, rentFortnight: rentM * 12 / 26 }), m.plan, homeowner, { rentFortnight: rentM * 12 / 26 });
     $('heroPension').textContent = pensionLine || ''; $('heroPension').hidden = !pensionLine;
 
     $('progressPct').textContent = `${m.pct}%`;

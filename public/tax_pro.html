@@ -648,7 +648,7 @@
       if (persona === 'beginner') {
         plainText.innerHTML = `You earn <strong>${fmtDollars(gross)}</strong> a year before tax.<br/><br/>The government takes <strong>${fmtDollars(r.total)}</strong> — ${whatsTaken}.${helpLine}<br/><br/>You keep <strong>${fmtDollars(r.takeHome)}</strong>. That's <strong>${fmtDollars(fortnightly)} per fortnight</strong> or <strong>${fmtDollars(weekly)} per week</strong>.<br/><br/>Your highest tax rate is <strong>${(marginal*100).toFixed(0)}%</strong> — but only on the dollars at the top. Your first $18,200 is tax-free.`;
       } else {
-        plainText.innerHTML = `On <strong>${fmtDollars(gross)}</strong> gross you take home <strong>${fmtDollars(r.takeHome)}/yr</strong> — <strong>${fmtDollars(fortnightly)}/fn</strong> after ${['tax', 'Medicare'].concat(r.mls > 0 ? ['the surcharge'] : [], r.help > 0 ? ['HELP'] : []).join(', ').replace(/, ([^,]*)$/, ' and $1')}.<br/><br/>Your marginal rate is <strong>${(marginal*100).toFixed(0)}%</strong> — every extra dollar earned or sacrificed is worth ${(marginal*100).toFixed(0)} cents in tax difference.`;
+        plainText.innerHTML = `On <strong>${fmtDollars(gross)}</strong> gross you take home <strong>${fmtDollars(r.takeHome)}/yr</strong> — <strong>${fmtDollars(fortnightly)}/fn</strong> after ${['tax', 'Medicare'].concat(r.mls > 0 ? ['the surcharge'] : [], r.help > 0 ? ['HELP'] : []).join(', ').replace(/, ([^,]*)$/, ' and $1')}.<br/><br/>Your marginal rate is <strong>${(marginal*100).toFixed(0)}%</strong> — each dollar you salary sacrifice saves about ${(marginal*100).toFixed(0)} cents in income tax${taxToggles.help || taxToggles.noCover ? ' (an extra dollar earned also adds to your HELP repayment or surcharge)' : ''}.`;
       }
     }
 
@@ -703,7 +703,9 @@
     const r = calculateSalarySacrifice(gross, sacrifice, undefined, carryForward, { senior: seniorStatus(), employerRate: employerRate() });
     if (!r) return;
     document.getElementById('t2Results').style.display = 'block';
-    document.getElementById('t2TaxSaved').textContent = '+' + fmtDollars(r.taxSaved) + '/yr';
+    // The 15% offset on any amount over the cap only cancels the fund's tax on it: it isn't a saving.
+    const realSaved = r.taxSaved - (r.excess > 0 ? r.excess * TAX_CONFIG.superTaxRate : 0);
+    document.getElementById('t2TaxSaved').textContent = '+' + fmtDollars(Math.round(realSaved)) + '/yr';
     document.getElementById('t2SuperTax').textContent = '-' + fmtDollars(r.superTax);
     document.getElementById('t2NetSuper').textContent = fmtDollars(r.netSuperGain) + ' into super';
     document.getElementById('t2TakeHomeCost').textContent = fmtDollars(r.takehomeCost) + '/yr (' + fmtDollars(Math.round(r.takehomeCost/52)) + '/week)';
@@ -722,6 +724,8 @@
     if (taxToggles.help || taxToggles.noCover) notes.push(`Salary sacrifice still counts towards your HELP and Medicare levy surcharge income, so it doesn't reduce those.`);
     if (calculateMarginalRate(gross, undefined, { senior: seniorStatus() }) < TAX_CONFIG.superTaxRate) notes.push(`At this income your tax rate is below the 15% super tax, so salary sacrifice doesn't save you income tax.`);
     if (r.div293 > 0) notes.push(`Division 293 applies at your income: an extra ${fmtDollars(r.div293)} tax on these contributions (included above).`);
+    const div293Employer = 0.15 * Math.min(r.sgContrib, Math.max(0, gross + r.sgContrib - 250000));
+    if (div293Employer > 0) notes.push(`Division 293 also applies to your employer's super: about ${fmtDollars(Math.round(div293Employer))} a year extra, which comes out of your super (counted in the super at 60 figures).`);
     if (r.listo > 0) notes.push(`The low income super tax offset refunds ${fmtDollars(r.listo)} of the contributions tax (included above).`);
     document.getElementById('t2CapWarningText').textContent = notes.join(' ');
     document.getElementById('t2CapWarning').style.display = notes.length ? 'flex' : 'none';
@@ -739,7 +743,7 @@
       const extra = Math.round(withExtra - withoutExtra);
       if (t2Compare) {
         t2Compare.innerHTML = `
-          <div class="comparison-item"><div class="comparison-rate orange">${fmtDollars(Math.round(withoutExtra))}</div><div class="comparison-label">Super at 60<br/>without this sacrifice</div></div>
+          <div class="comparison-item"><div class="comparison-rate orange">${fmtDollars(Math.round(withoutExtra))}</div><div class="comparison-label">Super at 60 if you keep working to 60<br/>without this sacrifice</div></div>
           <div class="comparison-item winner"><div class="comparison-rate green">${fmtDollars(Math.round(withExtra))}</div><div class="comparison-label">Super at 60<br/>with ${fmtDollars(sacrifice)}/yr sacrificed</div></div>
         `;
       }

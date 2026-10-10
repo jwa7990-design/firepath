@@ -163,8 +163,11 @@ test('super counts once its owner is 60: a retiree with enough is "free", not to
   const r = M.rank(retiree, { limit: 20 });
   assert.equal(r.situation.alreadyFree, true);                     // 900k + 650k ≥ 25 × $60k = $1.5M
   for (const id of ['salary-sacrifice', 'start-saving', 'save-more', 'spend-less']) assert.ok(!r.all.some(m => m.id === id), id);
-  // Under 60 the same super is locked, so it doesn't count yet.
-  assert.equal(M.rank(Object.assign({}, retiree, { age: 50 })).situation.alreadyFree, false);
+  // Under 60 super is locked: it only helps if savings outside super can pay the way to 60.
+  // $900k can carry $60k a year for 10 years, so at 50 this person is free (the same as the date says)…
+  assert.equal(M.rank(Object.assign({}, retiree, { age: 50 })).situation.alreadyFree, true);
+  // …but $300k can't, so with less outside super they're not, however much super they have.
+  assert.equal(M.rank(Object.assign({}, retiree, { age: 50, currentSavings: 300000, superBalance: 2000000 })).situation.alreadyFree, false);
 });
 
 test('basics before tax tricks: no salary sacrifice for someone not yet saving or without a buffer', () => {

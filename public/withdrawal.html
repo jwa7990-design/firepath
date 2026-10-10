@@ -743,7 +743,9 @@
     const outsideShare = (+out.value) / 100, gainShare = (+gain.value) / 100;
     document.getElementById('w-outsideVal').textContent = out.value + '%';
     document.getElementById('w-gainVal').textContent = gain.value + '%';
-    const spec = { outsideShare, gainShare, age: startAge, ausShare: E.ausShareFor ? E.ausShareFor('etfs') : 0.4 };
+    // Australian shares: the saved plan's figure (its note) when signed in, else a typical 40%.
+    const planAus = typeof fpPlanProfile !== 'undefined' && fpPlanProfile && E.planInputsFromProfile ? E.planInputsFromProfile(fpPlanProfile).ausShare : null;
+    const spec = { outsideShare, gainShare, age: startAge, ausShare: planAus != null && planAus > 0 ? planAus : (E.ausShareFor ? E.ausShareFor('etfs') : 0.4) };
     const note = document.getElementById('w-taxNote');
     if (!(outsideShare > 0)) { note.textContent = 'All in super: no tax on what you draw after 60.'; return spec; }
     const v = portfolioAtStart * outsideShare;

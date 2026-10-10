@@ -1111,9 +1111,11 @@
 
   // One person's gross pay. Their own: the figure saved from the tax page if there is one,
   // otherwise worked back from their take-home. Never household income.
-  function ownGrossIncome(monthlyTakeHome){
+  // From 67 the seniors' tax rules (SAPTO, the seniors' Medicare threshold) are worked back too.
+  function ownGrossIncome(monthlyTakeHome,age){
     const saved=savedProfileData&&savedProfileData.gross_income;
-    return saved>0?saved:estimateGrossFromNet(monthlyTakeHome*12);
+    const senior=age>=67?(typeof calcData!=='undefined'&&calcData&&calcData.isCouple?'couple':'single'):null;
+    return saved>0?saved:estimateGrossFromNet(monthlyTakeHome*12,60,senior?{senior}:undefined);
   }
   // Every super-at-60 figure on this page comes from projectSuperTo60 in js/calculations.js
   // (shared with the tax pages): SG capped at the concessional cap, 15% contributions tax,
@@ -1123,7 +1125,7 @@
   function partnerSuperInfo(superBal,age,cycleIncome,ownAge){
     if(!(superBal>0))return null;
     const known=age>0;
-    return {superBal,age:known?age:(ownAge||0),ageAssumed:!known,annualGross:cycleIncome>0?estimateGrossFromNet(toMonthly(cycleIncome)*12):0};
+    return {superBal,age:known?age:(ownAge||0),ageAssumed:!known,annualGross:cycleIncome>0?estimateGrossFromNet(toMonthly(cycleIncome)*12,60,(known?age:(ownAge||0))>=67?{senior:'couple'}:undefined):0};
   }
   // Inputs for the shared freedom plan (FirePathEngine.freedomPlan in js/financial-engine.js),
   // the one headline freedom date every page uses: savings outside super until 60, then super too.
@@ -1132,7 +1134,7 @@
   // Employer super rate (0–1) when above the 12% guarantee, else null.
   let employerRate=null;
   function freedomPlanInputs(age,superBal,ownMI,savings,mSav,fireNum,partner){
-    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,mortgage:mortgageInput(),
+    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI,age),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,mortgage:mortgageInput(),
       partner:partner&&partner.superBal>0?{superBalance:partner.superBal,age:partner.ageAssumed?null:partner.age,grossIncome:partner.annualGross||0}:null};
   }
   // Years to freedom with some of this person's inputs changed, on the same plan as the
@@ -2451,7 +2453,7 @@ async function saveProfile() {
     const cushion = FirePathEngine.cushionNote(plan);
     set('proCushion', cushion);
     const homeowner = !/rent/i.test(housingStatus || '');
-    const line = plan && plan.valid && !plan.alreadyFree && pi ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(pi, { homeowner, rentFortnight: rentFortnight() }), plan, homeowner) : null;
+    const line = plan && plan.valid && !plan.alreadyFree && pi ? FirePathEngine.agePensionLine(FirePathEngine.agePensionPlan(pi, { homeowner, rentFortnight: rentFortnight() }), plan, homeowner, { rentFortnight: rentFortnight() }) : null;
     set('proPension', line);
   }
 

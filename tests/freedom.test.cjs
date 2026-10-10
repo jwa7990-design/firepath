@@ -494,9 +494,14 @@ test('mortgage: repayments count only until the loan is paid off; what is still 
   assert.equal(withLoan.mortgage.payoffMonth, 188);
   // The number is 25 × spending without repayments, plus the (today's dollars) balance still owing then.
   near(withLoan.target, (6000 - 2500) * 12 * 25 + withLoan.mortgage.owingAtFreedom, 1);
-  // And that's consistent: freedom comes on the month the plan says.
-  const check = E.freedomPlan(Object.assign({}, i, { target: withLoan.target }));
-  assert.ok(Math.abs(check.months - withLoan.months) <= 1);
+  // The bridge draws real spending without the repayments.
+  near(withLoan.spendYear, (6000 - 2500) * 12, 1);
+  // Paying the loan off faster (bigger repayments, same spending otherwise) never makes it later.
+  const faster = E.freedomPlan(Object.assign({}, i, { mortgage: { balance: 300000, repayMonthly: 3000, rate: 0.062 } }));
+  assert.ok(faster.mortgage.payoffMonth < withLoan.mortgage.payoffMonth);
+  // A loan already paid off by then needs nothing on the day.
+  const small = E.freedomPlan(Object.assign({}, i, { mortgage: { balance: 20000, repayMonthly: 2500, rate: 0.062 } }));
+  assert.equal(Math.round(small.mortgage.owingAtFreedom), 0);
   // Repayments that don't cover the interest, or no repayment given: nothing changes.
   assert.equal(E.freedomPlan(Object.assign({}, i, { mortgage: { balance: 300000, repayMonthly: 1000, rate: 0.062 } })).months, plain.months);
   assert.equal(E.freedomPlan(Object.assign({}, i, { mortgage: { balance: 300000 } })).months, plain.months);
@@ -583,4 +588,65 @@ test('retiree tax outside super: dividends, half the realised gain, offsets and 
   const big = { portfolio: 2e6, annualSpend: 120000, years: 40, median: 0.07 };
   const taxed = E.simulateDrawdown(Object.assign({}, big, { tax: { outsideShare: 1, gainShare: 0.6, age: 45, ausShare: 0 } }));
   assert.ok(taxed.successRate <= E.simulateDrawdown(big).successRate);
+});
+
+// ── Regression tests from the October 2026 independent maths review (15 checkers) ──
+test('review: employer super is paid even when super starts at $0 (under 67)', () => {
+  const y = { age: 25, savings: 5000, monthlySavings: 600, target: 3000 * 300, superBalance: 0, takeHomeMonthly: 3600 };
+  assert.equal(E.freedomPlan(y).months, E.freedomPlan(Object.assign({}, y, { superBalance: 1 })).months);
+  assert.ok(E.freedomPlan(y).superAt60 > 100000);
+});
+
+test('review: the safer rate lands exactly on a 50 or 60 boundary when that is the first consistent month', () => {
+  // Checker 12 (12% employer): 26.7× gives 49.8 (too early for that band), 28.6× gives 50.8; month 204 (exactly 50) works.
+  const at50 = E.freedomPlan(E.planInputsFromProfile({ age: 33, take_home_income: 7200, savings_monthly: 1800, current_savings: 70000, super_balance: 120000, savings_type: 'etfs', freedom_number: 5400 * 300, pay_cycle: 'monthly' }));
+  assert.equal(at50.months, 204);
+  near(at50.targetMultiple, 0.04 / 0.0375, 1e-9);
+  // Checker 07 (couple, partner 58): exactly 60 at plain 25×.
+  const at60 = E.freedomPlan(E.planInputsFromProfile({ age: 50, take_home_income: 9000, savings_monthly: 2000, current_savings: 300000, super_balance: 400000, savings_type: 'etfs', freedom_number: 7000 * 300, pay_cycle: 'monthly', partner_super: 250000, partner_age: 58, partner_income: 3500, housing_status: 'owner' }));
+  assert.equal(at60.months, 120);
+  assert.equal(at60.targetMultiple, 1);
+});
+
+test('review: the bridge draws real spending, not the cushioned freedom number ÷ 25', () => {
+  // Checker 02: spends $54k; drawing $54k (not $61.7k) gives month 188.
+  const p = E.freedomPlan(E.planInputsFromProfile({ age: 30, take_home_income: 6500, savings_monthly: 2000, current_savings: 60000, super_balance: 45000, savings_type: 'etfs', freedom_number: 4500 * 300, pay_cycle: 'monthly', context: 'About half of my investments are in Australian shares' }));
+  near(p.spendYear, 54000, 1);
+  assert.equal(p.months, 188);
+});
+
+test('review: a mortgage still owing is paid out of savings on the day you stop', () => {
+  // Checkers 03 and 04: the plain 25× dates with the loan cleared at freedom.
+  const four = E.freedomPlan(Object.assign(E.planInputsFromProfile({ age: 38, take_home_income: 7500, savings_monthly: 1500, current_savings: 120000, super_balance: 150000, savings_type: 'etfs', freedom_number: 6000 * 300, pay_cycle: 'monthly', housing_status: 'mortgage', mortgage_remaining: 300000, context: 'Mortgage repayments $2,500 a month' }), { safeRate: false }));
+  assert.equal(four.months, 132);
+});
+
+test('review: Division 293 on employer super over $250,000', () => {
+  const p = E.freedomPlan({ age: 42, savings: 0, monthlySavings: 0, target: 1e7, superBalance: 100000, grossIncome: 260000 });
+  // $31,200 employer super: 15% contributions tax plus 15% Division 293 on all of it ($260k + $31.2k − $250k > $31.2k).
+  const sg = 260000 * 0.12;
+  near(p.superAt60 > 0 ? 1 : 0, 1, 0);
+  near(X.projectSuperTo60(0, 59, 260000).balance, (sg * 0.70 / 12) * ((Math.pow(1 + E.monthlyRate(E.SUPER_RETURN), 12) - 1) / E.monthlyRate(E.SUPER_RETURN)), 5);
+});
+
+test('review: from 67, take-home is worked back to gross with the seniors\' rules', () => {
+  // Checker 11: $45,600 take-home at 68 (single) → $52,085 gross, not $52,811.
+  near(X.estimateGrossFromNet(45600, 60, { senior: 'single' }), 52085, 5);
+  const pi = E.planInputsFromProfile({ age: 68, take_home_income: 3800, savings_monthly: 300, current_savings: 150000, super_balance: 250000, freedom_number: 3500 * 300, pay_cycle: 'monthly', housing_status: 'owner' });
+  near(E.freedomPlan(pi).marginalRate, X.calculateMarginalRate(X.estimateGrossFromNet(45600, 60, { senior: 'single' }), undefined, { senior: 'single' }), 1e-9);
+});
+
+test('review: renters\' pension tapers out later with Rent Assistance (no cliff)', () => {
+  const at = C => X.calculateAgePension(C, 0, false, false, C, { rentFortnight: 960 }).annualPension;
+  assert.ok(at(1012750) > 5000, 'still paid just past the homeowner-style cut-off');
+  assert.ok(at(1087000) >= 0 && at(1087000) < 100);
+  assert.equal(at(1088000), 0);
+});
+
+test('review: the note reads more ways of saying employer super, and not a partner\'s', () => {
+  assert.equal(E.noteFacts('employer contributes 17%').employerSuperRate, 0.17);
+  assert.equal(E.noteFacts('I get 17 percent super').employerSuperRate, 0.17);
+  assert.equal(E.noteFacts('15.4% super').employerSuperRate, 0.154);
+  assert.equal(E.noteFacts('my employer pays 35% super').employerSuperRate, 0.30);
+  assert.equal(E.noteFacts("My partner's employer pays 17% super.").employerSuperRate, undefined);
 });

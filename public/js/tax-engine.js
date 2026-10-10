@@ -289,18 +289,20 @@ function calculateMarginalRate(grossIncome, cfg, opts) {
 // annual take-home, via binary search. calculateTax() is monotonic (more gross
 // always means more take-home), so this converges reliably and exactly against
 // the real tax brackets, rather than approximating with a flat divisor.
-function estimateGrossFromNet(targetTakeHome, maxIterations = 60) {
+// opts as in calculateTax (e.g. { senior: 'single' } from 67, so SAPTO and the seniors'
+// Medicare threshold are worked back through too).
+function estimateGrossFromNet(targetTakeHome, maxIterations = 60, opts) {
   if (!targetTakeHome || targetTakeHome <= 0) return 0;
   let low = 0;
   let high = targetTakeHome * 2.5; // safe upper bound — effective tax rate never exceeds ~47%
   let guard = 0;
-  while (calculateTax(high).takeHome < targetTakeHome && guard < 30) {
+  while (calculateTax(high, undefined, opts).takeHome < targetTakeHome && guard < 30) {
     high *= 2;
     guard++;
   }
   for (let i = 0; i < maxIterations; i++) {
     const mid = (low + high) / 2;
-    const result = calculateTax(mid);
+    const result = calculateTax(mid, undefined, opts);
     if (Math.abs(result.takeHome - targetTakeHome) < 1) return Math.round(mid);
     if (result.takeHome < targetTakeHome) {
       low = mid;
@@ -445,7 +447,9 @@ function calculateAgePension(assets, otherIncome = 0, isHomeowner = true, isCoup
   const limits = P.assets[isCouple ? 'couple' : 'single'][isHomeowner ? 'homeowner' : 'nonHomeowner'];
   const assetsReduction = Math.max(0, a - limits.full) * P.assets.taperPerDollarFortnight * 26;
   // Past the published cut-off no pension is paid, even where the taper leaves a few dollars.
-  const pensionAfterAssets = a >= limits.nil ? 0 : Math.max(0, maxPension - assetsReduction);
+  // Rent Assistance raises the maximum rate, so the taper runs out that much later.
+  const nilCut = limits.nil + (rentAssistance > 0 ? rentAssistance / 26 / P.assets.taperPerDollarFortnight : 0);
+  const pensionAfterAssets = a >= nilCut ? 0 : Math.max(0, maxPension - assetsReduction);
 
   const deemed = deemedIncome(fa, isCouple);
   // o.workIncome: the part of otherIncome that's from work (a yearly figure, or one per

@@ -38,10 +38,17 @@ window.FirePathMoves = (function () {
     out.accessibleSavings = (s.currentSavings || 0)
       + (s.age != null && s.age >= 60 ? (s.superBalance || 0) : 0)
       + (s.hasPartner && (s.partnerAge != null ? s.partnerAge : s.age) >= 60 ? (s.partnerSuper || 0) : 0);
-    out.alreadyFree = freedomNumber > 0 && out.accessibleSavings >= freedomNumber;
     out.savingsRate = s.takeHomeMonthly > 0 && s.savingsMonthly != null ? s.savingsMonthly / s.takeHomeMonthly : null;
-    // On the shared plan when the engine has it, so "years sooner" matches the headline date.
-    out.yearsToFree = out.alreadyFree ? 0 : yearsOr(out, null, () => yearsTo(freedomNumber, out.accessibleSavings, s.savingsMonthly || 0, REAL));
+    // On the shared plan when the engine has it, so "already free" and "years sooner" match
+    // the headline date (super, the bridge to 60, the safer rate, a mortgage that ends).
+    const planY = freedomNumber > 0 ? planYears(out, null) : undefined;
+    if (planY !== undefined) {
+      out.alreadyFree = planY === 0;
+      out.yearsToFree = planY;
+    } else {
+      out.alreadyFree = freedomNumber > 0 && out.accessibleSavings >= freedomNumber;
+      out.yearsToFree = out.alreadyFree ? 0 : yearsTo(freedomNumber, out.accessibleSavings, s.savingsMonthly || 0, REAL);
+    }
     out.freedomAge = s.age != null && out.yearsToFree != null ? s.age + out.yearsToFree : null;
     out.stage = out.alreadyFree ? 'free'
       : !(s.savingsMonthly > 0) && !(s.currentSavings > 0) ? 'starting'
@@ -107,7 +114,7 @@ window.FirePathMoves = (function () {
   function ownGross(s) {
     if (!has('estimateGrossFromNet') || !(s.takeHomeMonthly > 0)) return null;
     const own = Math.max(0, s.takeHomeMonthly - (s.partnerTakeHomeMonthly || 0)) * 12;
-    return own > 0 ? estimateGrossFromNet(own) : null;
+    return own > 0 ? estimateGrossFromNet(own, 60, s.age >= 67 ? { senior: s.hasPartner ? 'couple' : 'single' } : undefined) : null;
   }
 
   // Years until savings pay the target at `rate` (real). null = more than 100 years.
@@ -238,12 +245,15 @@ window.FirePathMoves = (function () {
         if (!(s.savingsMonthly > 0) || (s.bufferMonths != null && s.bufferMonths < 3)) return false;   // basics first
         if (s.age != null && s.age >= 67) return false;
         if (!(s.marginalRate >= 0.30)) return false;      // below ~30% the tax saving is small or nil
-        const r = calculateSalarySacrifice(s.grossIncome, 5000, undefined, 0, { employerRate: s.employerSuperRate });
-        if (!r || r.capRoom < 1000) return false;          // employer super already fills the cap
+        // $5,000, or whatever room is left under the cap if that's less.
+        const room = calculateSalarySacrifice(s.grossIncome, 1, undefined, 0, { employerRate: s.employerSuperRate });
+        if (!room || room.capRoom < 1000) return false;    // employer super already fills the cap
+        const amount = Math.min(5000, Math.floor(room.capRoom / 100) * 100);
+        const r = calculateSalarySacrifice(s.grossIncome, amount, undefined, 0, { employerRate: s.employerSuperRate });
         const better = r.taxSaved - r.superTax;
         if (better < 300) return false;
         return { why: `On your ${Math.round(s.marginalRate * 100)}% tax rate, money sacrificed into super is taxed at 15% instead. The trade-off: you can’t get to it until 60, so it’s money you won’t be able to use before then.`,
-          impact: { dollars: better, text: `$5,000 a year sacrificed could mean about ${money(better)} less tax` } };
+          impact: { dollars: better, text: `${money(amount)} a year sacrificed could mean about ${money(better)} less tax` } };
       } },
     { id: 'offset-vs-invest', tier: 5, title: 'Offset account vs investing', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Compare for your rate' }, article: 'offset-vs-investing',
@@ -278,7 +288,7 @@ window.FirePathMoves = (function () {
         return { why: s.alreadyFree
             ? `You've reached your number at ${Math.round(s.age)}, before you can get to your super at 60. Your savings outside super will need to carry you until then.`
             : `You could be free around ${Math.round(s.freedomAge)}, before you can get to your super at 60. Your savings outside super will need to carry you until then.`,
-          impact: { text: `${Math.round(60 - s.freedomAge)} years to bridge` } };
+          impact: { text: (() => { const y = 60 - s.freedomAge; return y < 2 ? `About ${Math.max(1, Math.round(y * 12))} months to bridge` : `About ${Math.round(y)} years to bridge`; })() } };
       } },
     { id: 'stress-test', tier: 7, title: 'Whether your money will last', plan: 'Free',
       tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' }, article: 'drawing-down-in-retirement',
@@ -301,7 +311,7 @@ window.FirePathMoves = (function () {
         const rentOpts = s.housing === 'renting' && s.rentMonthly > 0 ? { rentFortnight: s.rentMonthly * 12 / 26 } : {};
         const p = calculateAgePension(assets, 0, s.housing !== 'renting', s.hasPartner, undefined, Object.assign(rentOpts, couple || {})).annualPension;
         if (!(p > 0)) return false;
-        return { why: 'From 67, the Age Pension may top up what your savings pay. It’s means-tested on what you own and earn then.',
+        return { why: 'From 67, once you stop work, the Age Pension may top up what your savings pay. It’s means-tested on what you own and earn then, so wages reduce it.',
           impact: { dollars: p, text: `About ${money(p)} a year on today's figures` } };
       } },
     { id: 'co-contribution', tier: 5, title: 'The government super co-contribution', plan: 'Free',
