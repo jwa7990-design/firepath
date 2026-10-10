@@ -74,13 +74,13 @@ const handCheck = p => bruteBridge({ age: p.age, takeHome: p.takeHome, mSav: p.m
 
 test('freedom plan: 45-year-old with $250k super is free at 62, with super', () => {
   // Gross ≈ $74,294 (take-home $60k), marginal rate 32% → outside return 7% − 3% × 32% = 6.04%.
-  // At 60 (15 years): savings ≈ $351k, super ≈ $723k (5.40% + SG $631/mo net) = $1.07M,
-  // short of $1.26M; together they get there 28 months later: 208 months, age 62.3.
+  // At 60 (15 years): savings ≈ $351k, super ≈ $770k (5.89% + SG $631/mo net) = $1.12M,
+  // short of $1.26M; together they get there 20 months later: 200 months, age 61.7.
   const p = PEOPLE[1], plan = planFor(p);
   near(plan.outsideReturn, 0.0604, 1e-9, 'outside-super return');
-  near(plan.superAt60, 722670, 500, 'super at 60');
+  near(plan.superAt60, 769748, 500, 'super at 60');
   near(plan.outsideAt60, 350778, 500, 'savings at 60');
-  assert.equal(plan.months, 208);
+  assert.equal(plan.months, 200);
   assert.equal(plan.months, handCheck(p));
   assert.equal(plan.freedomAge, 62);
   assert.equal(plan.phase, 'with-super');
@@ -90,10 +90,10 @@ test('freedom plan: 45-year-old with $250k super is free at 62, with super', () 
 });
 
 test('freedom plan: 58-year-old with $600k super is free at 62', () => {
-  // Gross ≈ $109,589, 32% → 6.04%. At 60: $401k + $690k = $1.09M < $1.35M; 53 months in all.
+  // Gross ≈ $109,589, 32% → 6.04%. At 60: $401k + $696k = $1.10M < $1.35M; 52 months in all.
   const p = PEOPLE[3], plan = planFor(p);
-  near(plan.superAt60, 690040, 500, 'super at 60');
-  assert.equal(plan.months, 53);
+  near(plan.superAt60, 696428, 500, 'super at 60');
+  assert.equal(plan.months, 52);
   assert.equal(plan.months, handCheck(p));
   assert.equal(plan.freedomAge, 62);
   assert.equal(plan.phase, 'with-super');
@@ -102,8 +102,8 @@ test('freedom plan: 58-year-old with $600k super is free at 62', () => {
 test('freedom plan: everyone matches the independent hand check', () => {
   for (const p of PEOPLE) assert.equal(planFor(p, PLAIN).months, handCheck(p), p.name);
   // The 35- and 28-year-olds stop well before 60: their savings bridge the years until
-  // super unlocks (48 and 44, against 55 and 50 on savings alone).
-  for (const [p, age, bridge] of [[PEOPLE[0], 48, 11.8], [PEOPLE[2], 44, 16.2]]) {
+  // super unlocks (48 and 43, against 55 and 50 on savings alone).
+  for (const [p, age, bridge] of [[PEOPLE[0], 48, 12.2], [PEOPLE[2], 43, 16.7]]) {
     const plan = planFor(p, PLAIN);
     assert.equal(plan.freedomAge, age, p.name);
     assert.equal(plan.phase, 'with-super', p.name);
@@ -224,13 +224,17 @@ test('formatting: NaN and Infinity show "—", never "NaNyr NaNmo" or "$Infinity
   assert.equal(X.yearsToGoalCapped(NaN, 1000, 100, 0.07), 9999);
 });
 
-test('super at 60 (tax pages and Pro): 5.40% after fees and tax, SG capped, monthly (1+r)^(1/12)', () => {
-  // Age 35, $80k super, $90k gross: SG $10,800 → $765/mo after 15% tax, for 300 months at 5.3975%.
+test('super at 60 (tax pages and Pro): 5.89% after fees and tax, SG capped, monthly (1+r)^(1/12)', () => {
+  // One super rate everywhere: calculations.js follows the engine's.
+  assert.equal(X.FP_ASSUMPTIONS.superReturn, E.SUPER_RETURN);
+  near(E.SUPER_RETURN, 0.0589, 0.0001);
+  near(E.SUPER_TAX_SHARE, 0.072, 0.001, 'about 7% tax on earnings');
+  // Age 35, $80k super, $90k gross: SG $10,800 → $765/mo after 15% tax, for 300 months at 5.89%.
   const r = X.projectSuperTo60(80000, 35, 90000);
   const i = Math.pow(1 + X.FP_ASSUMPTIONS.superReturn, 1 / 12) - 1;
   const n = 300, f = Math.pow(1 + i, n), c = 90000 * 0.12 / 12 * 0.85;
   near(r.balance, 80000 * f + c * (f - 1) / i, 1);
-  near(r.balance, 772000, 3000, 'about $772k, not the old $1.08M');
+  near(r.balance, 844000, 3000, 'about $844k');
   // SG stops growing at the concessional cap.
   near(X.projectSuperTo60(0, 59, 1e6).sgMonthly, 32500 / 12, 0.01);
   // tax_pro.html uses it, with no r/12 compounding left.
@@ -408,9 +412,9 @@ test('Division 296: extra tax on the share of super earnings over $3M (and $10M)
   assert.equal(E.superGrow(2e6, m), 2e6 * (1 + m));
   // $4M: a quarter is over $3M, so 15% extra on a quarter of the pre-tax earnings.
   const earned = 4e6 * m;
-  near(E.superGrow(4e6, m), 4e6 + earned - (earned / 0.85) * 0.15 * 0.25, 0.01);
+  near(E.superGrow(4e6, m), 4e6 + earned - (earned / (1 - E.SUPER_TAX_SHARE)) * 0.15 * 0.25, 0.01);
   // $12M: both tiers.
-  const e12 = 12e6 * m, pre = e12 / 0.85;
+  const e12 = 12e6 * m, pre = e12 / (1 - E.SUPER_TAX_SHARE);
   near(E.superGrow(12e6, m), 12e6 + e12 - pre * 0.15 * (9 / 12) - pre * 0.10 * (2 / 12), 0.01);
   // A big balance grows less than it would without the tax, so super at 60 is lower.
   const i = { age: 45, savings: 800000, monthlySavings: 5000, target: 4e6, superBalance: 2500000, grossIncome: 250000 };

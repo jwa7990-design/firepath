@@ -144,9 +144,19 @@ window.FirePathEngine = (function () {
   const PRESERVATION_AGE = 60, PENSION_AGE = 67;
   // Super grows at 7% real less the extra fees a typical super fund charges over a
   // low-cost index fund (median MySuper ≈ 0.85% a year vs ≈ 0.2%: APRA heatmap), then
-  // less 15% tax on earnings in accumulation. (0.07 − 0.0065) × 0.85 ≈ 5.40%.
+  // less the tax a fund actually pays in accumulation, which is less than 15% of the
+  // return: income (3% a year) is taxed at 15% but franking credits on its Australian
+  // shares (about 30% of a balanced fund) offset much of that, and gains held over a year
+  // are taxed at 10% (the one-third discount), here as if all realised every year. That's
+  // about 7% of earnings, so ≈ 5.9% a year. Still cautious: no tax-free retirement phase.
+  // The one place this is set: FP_ASSUMPTIONS.superReturn (calculations.js) follows it.
   const SUPER_EXTRA_FEES = 0.0065;
-  const SUPER_RETURN = (0.07 - SUPER_EXTRA_FEES) * (1 - 0.15);
+  const SUPER_BEFORE_TAX = 0.07 - SUPER_EXTRA_FEES;
+  const SUPER_FRANKING = Math.min(0.03, 0.04 * 0.30) * 0.75 * 0.30 / 0.70;
+  const SUPER_TAX = (0.03 + SUPER_FRANKING) * 0.15 - SUPER_FRANKING + (SUPER_BEFORE_TAX - 0.03) * 0.10;
+  const SUPER_RETURN = SUPER_BEFORE_TAX - SUPER_TAX;
+  const SUPER_TAX_SHARE = SUPER_TAX / SUPER_BEFORE_TAX;   // ≈ 7.2% of earnings
+  if (typeof FP_ASSUMPTIONS !== 'undefined') FP_ASSUMPTIONS.superReturn = SUPER_RETURN;
   // Insurance through super (superInsurance, $ a year, optional). Premiums come out of
   // your super balance. Funds claim a tax deduction for them, so each $1 of premium costs
   // the balance about 85c. Cover usually lapses after 16 months with no contributions
@@ -158,11 +168,11 @@ window.FirePathEngine = (function () {
   // on the share over $10M. Both CPI-indexed, so constant in today's dollars. Per person.
   const DIV296 = [{ over: 3e6, rate: 0.15 }, { over: 10e6, rate: 0.10 }];
   // A month's growth on one person's super: the after-tax return (rS), less any Division
-  // 296 tax on that month's earnings (worked back to before the fund's 15%).
+  // 296 tax on that month's earnings (worked back to before the fund's own tax).
   function superGrow(bal, rS) {
     const earned = bal * rS;
     if (!(bal > DIV296[0].over) || !(earned > 0)) return bal + earned;
-    const before = earned / 0.85;
+    const before = earned / (1 - SUPER_TAX_SHARE);
     const extra = DIV296.reduce((t, d) => t + (bal > d.over ? before * d.rate * (bal - d.over) / bal : 0), 0);
     return bal + earned - extra;
   }
@@ -743,5 +753,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();

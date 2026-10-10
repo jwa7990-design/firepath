@@ -128,7 +128,7 @@ function compoundWithContributions(principal, monthlyContrib, annualRate, years)
    One person's super at 60: today's balance plus employer super (SG,
    capped at the concessional cap) and any extra net contribution, after
    15% contributions tax, growing at FP_ASSUMPTIONS.superReturn (7% less
-   typical fund fees, less 15% earnings tax ≈ 5.4%), compounded monthly.
+   typical fund fees, less about 7% tax on earnings ≈ 5.9%), compounded monthly.
    Same rules as FirePathEngine.freedomPlan. Needs js/tax-engine.js for the
    cap (falls back to $32,500).
 ──────────────────────────────────────────────────────────── */
@@ -180,7 +180,10 @@ const FP_ASSUMPTIONS = {
   sgRate: 12 / 100,
   preservationAge: 60,
   investReturn: 0.07,      // long-run real return on growth assets
-  superReturn: (0.07 - 0.0065) * (1 - 0.15),  // less typical super fund fees above an index fund, then 15% earnings tax
+  // Super's after-tax return. Set by financial-engine.js (SUPER_RETURN: 7% less typical
+  // fund fees, less about 7% tax on earnings), which overwrites this when it loads; this
+  // copy is for pages without it. tests/freedom.test.cjs keeps the two equal.
+  superReturn: (0.07 - 0.0065) - ((0.03 + 0.012 * 0.75 * 0.3 / 0.7) * 0.15 - 0.012 * 0.75 * 0.3 / 0.7 + (0.07 - 0.0065 - 0.03) * 0.10),
   longRunInflation: 0.025, // for converting long projections into future dollars
   bankRealReturn: 0,       // derived below
   offsetRealReturn: 0,     // derived below
