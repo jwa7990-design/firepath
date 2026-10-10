@@ -375,7 +375,8 @@
       age, savings: ci.savings, monthlySavings, annualSpend, superBalance,
       grossIncome: ci.grossIncome, takeHomeMonthly: ci.takeHomeMonthly, ausShare: ci.ausShare || 0,
       superInsurance: ci.superInsurance || 0, employerSuperRate: ci.employerSuperRate || null, selfEmployed: ci.selfEmployed, ownSuperYear: ci.ownSuperYear || 0, hasMortgage: ci.hasMortgage, ausShareStated: ci.ausShareStated, mortgage: ci.mortgage || null, savingsType: ci.savingsType || null,
-      partner: isCouple && partnerSuper > 0 ? { superBalance: partnerSuper, age: partnerAge, takeHomeMonthly: ci.partnerTakeHomeMonthly } : null
+      homeowner: isHomeowner !== false, rentFortnight: isHomeowner === false ? ci.rentFortnight || 0 : 0,
+      partner: isCouple && (partnerSuper > 0 || ci.partnerTakeHomeMonthly > 0) ? { superBalance: partnerSuper || 0, age: partnerAge, takeHomeMonthly: ci.partnerTakeHomeMonthly, selfEmployed: ci.partnerSelfEmployed } : null
     };
     const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, partner, planInputs, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, gapNow, freedomPctToday };
     inp.fullStopSolve = solveFreedom(inp);
@@ -591,7 +592,7 @@ Absolute rules:
         // The rest of the saved plan's reading (and its note), so the dates match Freedom gap's.
         ausShare: n0(inp2.ausShare), ausShareStated: inp2.ausShareStated != null ? n0(inp2.ausShareStated) : null,
         superInsurance: n0(inp2.superInsurance), employerSuperRate: n0(inp2.employerSuperRate) || null,
-        selfEmployed: !!inp2.selfEmployed, ownSuperYear: n0(inp2.ownSuperYear), hasMortgage: typeof inp2.hasMortgage === 'boolean' ? inp2.hasMortgage : undefined,
+        selfEmployed: !!inp2.selfEmployed, partnerSelfEmployed: !!inp2.partnerSelfEmployed, ownSuperYear: n0(inp2.ownSuperYear), rentFortnight: n0(inp2.rentFortnight), hasMortgage: typeof inp2.hasMortgage === 'boolean' ? inp2.hasMortgage : undefined,
         mortgage: inp2.mortgage && n0(inp2.mortgage.balance) > 0 && n0(inp2.mortgage.repayMonthly) > 0 ? inp2.mortgage : null,
         savingsType: typeof inp2.savingsType === 'string' ? inp2.savingsType : null
       };

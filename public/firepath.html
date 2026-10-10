@@ -806,7 +806,7 @@
     // (A local copy: calculate() is what sets the page's _planInputs.)
     const _planInputs = {
       age, savings, monthlySavings: mSav, target: fireNum, superBalance: superBal, takeHomeMonthly: toMonthly(income),
-      partner: pSuper > 0 ? { superBalance: pSuper, age: pAge, takeHomeMonthly: pI > 0 ? toMonthly(pI) : 0 } : null
+      partner: pSuper > 0 || pI > 0 ? { superBalance: pSuper, age: pAge, takeHomeMonthly: pI > 0 ? toMonthly(pI) : 0 } : null
     };
     // Franking credits: a typical mix (about 40% Australian shares) if it's in shares/ETFs.
     _planInputs.ausShare = FirePathEngine.ausShareFor(savingsType);
@@ -819,6 +819,7 @@
     if (facts.ausShare != null) _planInputs.ausShare = FirePathEngine.ausShareFor(savingsType, facts.ausShare);
     _planInputs.employerSuperRate = facts.employerSuperRate || null;
     _planInputs.selfEmployed = !!facts.selfEmployed;
+    if (_planInputs.partner) _planInputs.partner.selfEmployed = !!facts.partnerSelfEmployed;
     _planInputs.ownSuperYear = facts.ownSuperYear || 0;
     _planInputs.ausShareStated = facts.ausShare != null ? facts.ausShare : null;
     _planInputs.hasMortgage = mortgage > 0;
@@ -828,7 +829,7 @@
     _planInputs.mortgage = mortgage > 0 && facts.mortgageRepayMonthly > 0
       ? { balance: mortgage, repayMonthly: facts.mortgageRepayMonthly, spendMult: retirementSpendMultiplier } : null;
     Object.assign(situationInputs, { employerSuperRate: _planInputs.employerSuperRate, superInsurance: _planInputs.superInsurance,
-      selfEmployed: _planInputs.selfEmployed, ownSuperYear: _planInputs.ownSuperYear,
+      selfEmployed: _planInputs.selfEmployed, ownSuperYear: _planInputs.ownSuperYear, partnerSelfEmployed: !!facts.partnerSelfEmployed,
       ausShare: facts.ausShare, mortgageRepayMonthly: facts.mortgageRepayMonthly || 0, rentMonthly: facts.rentMonthly || 0 });
     return { income, savingPerCycle, savings, superBal, debt, mortgage, age, context, pI, pS, mI, mSav, mS, fireNum, sRate, pAge, pSuper, hasPartner, situationInputs, planInputs: _planInputs };
   }

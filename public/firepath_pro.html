@@ -1081,7 +1081,7 @@
     saved=saved||{};
     ausShareAns=f.ausShare!=null?f.ausShare:(saved.aus_share!=null?saved.aus_share:null);
     employerRate=f.employerSuperRate||(saved.employer_super_rate>0.12?saved.employer_super_rate:null);
-    selfEmployed=!!f.selfEmployed; ownSuperYear=f.ownSuperYear||0;
+    selfEmployed=!!f.selfEmployed; ownSuperYear=f.ownSuperYear||0; partnerSelfEmployed=!!f.partnerSelfEmployed;
     if(selfEmployed)employerRate=null;
     superInsurance=f.superInsurance||(saved.super_insurance>0?saved.super_insurance:0);
     mortgageRepay=f.mortgageRepayMonthly||0;
@@ -1112,14 +1112,17 @@
     };
   }
   // A calendar year for a years-to-go figure: null = out of reach, 0 = already there.
-  function yearLabel(y,cy){return y===null?'100+ yrs':y===0?'Now':cy+Math.round(y);}
+  // The calendar year the freedom month lands in (the same as plan.freedomYear), not this year + rounded years.
+  function yearLabel(y,cy){if(y===null)return '100+ yrs';if(y===0)return 'Now';const d=new Date();return new Date(d.getFullYear(),d.getMonth()+Math.round(y*12),1).getFullYear();}
 
   // One person's gross pay. Their own: the figure saved from the tax page if there is one,
   // otherwise worked back from their take-home. Never household income.
   // From 67 the seniors' tax rules (SAPTO, the seniors' Medicare threshold) are worked back too.
-  function ownGrossIncome(monthlyTakeHome,age){
+  // couple (optional): known by the caller; otherwise from the last calculation.
+  function ownGrossIncome(monthlyTakeHome,age,couple){
     const saved=savedProfileData&&savedProfileData.gross_income;
-    const senior=age>=67?(typeof calcData!=='undefined'&&calcData&&calcData.isCouple?'couple':'single'):null;
+    const isCouple=couple!=null?couple:!!(typeof calcData!=='undefined'&&calcData&&calcData.isCouple);
+    const senior=age>=67?(isCouple?'couple':'single'):null;
     return saved>0?saved:estimateGrossFromNet(monthlyTakeHome*12,60,senior?{senior}:undefined);
   }
   // Every super-at-60 figure on this page comes from projectSuperTo60 in js/calculations.js
@@ -1139,10 +1142,10 @@
   // Employer super rate (0–1) when above the 12% guarantee, else null.
   let employerRate=null;
   // From the note: self-employed (no employer super), and super they add themselves each year.
-  let selfEmployed=false, ownSuperYear=0;
+  let selfEmployed=false, ownSuperYear=0, partnerSelfEmployed=false;
   function freedomPlanInputs(age,superBal,ownMI,savings,mSav,fireNum,partner){
-    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI,age),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,selfEmployed,ownSuperYear,ausShareStated:ausShareAns,hasMortgage:mortgageBal>0,mortgage:mortgageInput(),savingsType:savingsType||'cash',homeowner:!/rent/i.test(housingStatus||''),rentFortnight:rentFortnight(),
-      partner:partner&&partner.superBal>0?{superBalance:partner.superBal,age:partner.ageAssumed?null:partner.age,grossIncome:partner.annualGross||0}:null};
+    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI,age,!!partner),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausShareAns),employerSuperRate:employerRate,selfEmployed,ownSuperYear,ausShareStated:ausShareAns,hasMortgage:mortgageBal>0,mortgage:mortgageInput(),savingsType:savingsType||'cash',homeowner:!/rent/i.test(housingStatus||''),rentFortnight:rentFortnight(),
+      partner:partner&&(partner.superBal>0||partner.annualGross>0)?{superBalance:partner.superBal||0,selfEmployed:partnerSelfEmployed,age:partner.ageAssumed?null:partner.age,grossIncome:partner.annualGross||0}:null};
   }
   // Years to freedom with some of this person's inputs changed, on the same plan as the
   // headline — so every "what if" row is measured against the date at the top.
@@ -1201,7 +1204,7 @@
     if(typeof FirePathEngine==='undefined'||!FirePathEngine.freedomRange)return '';
     const mc=calcData&&calcData.planInputs?FirePathEngine.freedomRange(calcData.planInputs):null;
     if(!mc)return '';
-    const cy=new Date().getFullYear(),yr=m=>cy+Math.round(m/12);
+    const now=new Date(),yr=m=>new Date(now.getFullYear(),now.getMonth()+m,1).getFullYear();
     const missPct=Math.round((1-mc.reachedShare)*100);
     let line;
     if(mc.early===null)line=`At this rate it takes more than 50 years in most market outcomes.`;
@@ -1495,7 +1498,7 @@
     housingStatus = p.housing_status || 'renting';
     dependants = p.dependants || 0;
     persona = FirePathPersona.get();
-    selectedCycle = p.pay_cycle || selectedCycle;
+    selectedCycle = p.pay_cycle || 'monthly';   // old rows without a cycle were saved monthly (as every other page reads them)
     savingsType = p.savings_type || savingsType;
 
     const mI = p.take_home_income; // stored as a monthly figure by saveProfile()
@@ -1963,7 +1966,7 @@ function stopLoadingMessages() {
     const p = data[0];
     savedProfileData = p;
     if (p.ai_insight_text) { cachedInsight = p.ai_insight_text; cachedInsightAt = p.ai_insight_generated_at || null; }
-    if (p.pay_cycle) { selectedCycle = p.pay_cycle; document.querySelectorAll('.cycle-btn').forEach(b => b.classList.toggle('active', b.dataset.cycle === p.pay_cycle)); }
+    { const cyc = p.pay_cycle || 'monthly'; selectedCycle = cyc; document.querySelectorAll('.cycle-btn').forEach(b => b.classList.toggle('active', b.dataset.cycle === cyc)); }
     // The profile holds HOUSEHOLD totals (see saveProfile). Your own fields get household − partner,
     // and the partner's own figures go back in their fields, so nothing is counted twice.
     const toCycle = m => p.pay_cycle === 'weekly' ? m*12/52 : p.pay_cycle === 'fortnightly' ? m*12/26 : m;

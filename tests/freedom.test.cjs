@@ -290,11 +290,11 @@ const freePageInputs = (() => {
   // The page then adds where the savings sit and the Australian-share mix (here: ETFs).
   return (...args) => Object.assign(build(...args), { savingsType: 'etfs', ausShare: E.ausShareFor('etfs') });
 })();
-vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "etfs", housingStatus = "owner", rentMonthly = 0; function rentFortnight() { return 0; } var _x = 0, ausShareAns = null, employerRate = null, selfEmployed = false, ownSuperYear = 0, mortgageBal = 0; function mortgageInput() { return null; }   // no insurance, cash: the cross-page comparisons\n'
+vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "etfs", housingStatus = "owner", rentMonthly = 0; function rentFortnight() { return 0; } var _x = 0, ausShareAns = null, employerRate = null, selfEmployed = false, ownSuperYear = 0, partnerSelfEmployed = false, mortgageBal = 0; function mortgageInput() { return null; }   // no insurance, cash: the cross-page comparisons\n'
   + grab(PRO, /(function ownGrossIncome[\s\S]*?\n  \})/, 'Pro ownGrossIncome') + '\n'
   + grab(PRO, /(function freedomPlanInputs[\s\S]*?\n  \})/, 'Pro freedomPlanInputs')
   + '\nthis.__pro = freedomPlanInputs;', ctx);
-vm.runInContext('var fmtM = FirePathEngine.fmtM, isCouple = false, partnerSuper = 0, partnerAge = null, planIncome = { grossIncome: null, takeHomeMonthly: 0, partnerTakeHomeMonthly: 0 };\n'
+vm.runInContext('var fmtM = FirePathEngine.fmtM, isCouple = false, isHomeowner = true, partnerSuper = 0, partnerAge = null, planIncome = { grossIncome: null, takeHomeMonthly: 0, partnerTakeHomeMonthly: 0 };\n'
   + grab(GAP, /(function freedomDateLine[\s\S]*?\n  \})/, 'Freedom gap freedomDateLine')
   + '\nthis.__gap = freedomDateLine; this.__setGapIncome = v => { planIncome = v; };', ctx);
 
@@ -699,28 +699,104 @@ test('one line under the date: the note that moves the date most (67+ always fir
 
 
 // ── Maths review, round 2 (October 2026): regression tests from the checkers' people ──
-test('review 2: more money can mean less Age Pension, so the line tests what you would really hold', () => {
-  // #20: a couple, 63 and 65, $1.1M. Their real pension at 67 is small, so no "now".
-  const couple = E.planInputsFromProfile({ age: 63, take_home_income: 5200, savings_monthly: 600, current_savings: 300000, savings_type: 'cash', super_balance: 450000,
-    freedom_number: 4600 * 12 * 25, pay_cycle: 'monthly', partner_super: 350000, partner_age: 65, partner_income: 1800, housing_status: 'owning' });
-  const head = E.freedomPlan(couple);
-  const pp = E.agePensionPlan(couple, { homeowner: true });
-  assert.equal(E.agePensionLine(pp, head, true), null, 'no pension line');
-  // #23 at 67 with $600k: not free "now" (their pension is about $11k, not the full rate).
+test('review 3: the Age Pension as savings are spent down (more money never makes it worse)', () => {
+  // #36: a couple, 68 and 72, $910k. Spending the safe 4% plus their pension is a little short
+  // today, so savings fall; as they fall the pension rises, and they settle where it covers them.
+  const couple = E.planInputsFromProfile({ age: 68, take_home_income: 5000, savings_monthly: 200, current_savings: 180000, savings_type: 'cash', super_balance: 420000,
+    freedom_number: 4800 * 12 * 25, pay_cycle: 'monthly', partner_super: 310000, partner_age: 72, partner_income: 2300, housing_status: 'owning' });
+  const p = E.freedomPlan(couple);
+  assert.ok(p.alreadyFree, 'free now');
+  near(p.pensionIncluded, 16458, 60);
+  assert.match(E.cushionNote(p), /more as your savings are drawn down/);
+  // The spend-down itself: 4% real growth, spending less the pension on what's left, for 40 years.
+  let A = 910000;
+  for (let y = 0; y < 40; y++) { A = A * 1.04 - (4800 * 12 - ctx.calculateAgePension(A, 0, true, true, A).annualPension); assert.ok(A > 0, `year ${y}`); }
+  // #23 at 67 with $600k: covered now the same way.
   const rich = { age: 67, savings: 600000, monthlySavings: 300, target: 3200 * 12 * 25, superBalance: 0, takeHomeMonthly: 3500, savingsType: 'cash', homeowner: true };
-  const p67 = E.freedomPlan(rich);
-  assert.ok(!p67.alreadyFree, 'not free now');
-  // Whatever the date, the pension it counts is the one on the money held then.
-  const pp67 = E.agePensionPlan(rich, { homeowner: true });
-  if (pp67.pensionAnnual > 0) assert.ok(pp67.ownAt67 + 25 * pp67.pensionAnnual >= rich.target - 1);
+  assert.ok(E.freedomPlan(rich).alreadyFree);
+  // More savings never make the date later.
+  for (const extra of [100000, 300000, 600000]) assert.ok(E.freedomPlan(Object.assign({}, rich, { savings: rich.savings + extra })).alreadyFree);
   // #24: 70, renting, $210k: free now, counting the pension on $210k (about $37,700 with Rent Assistance).
   const widow = E.planInputsFromProfile({ age: 70, take_home_income: 2400, savings_monthly: 100, current_savings: 60000, savings_type: 'cash', super_balance: 150000,
     freedom_number: 2300 * 12 * 25, pay_cycle: 'monthly', housing_status: 'renting', context: 'I pay $420 a week rent.' });
   const w = E.freedomPlan(widow);
   assert.ok(w.alreadyFree);
   near(w.pensionIncluded, 37668, 60);
-  assert.match(E.cushionNote(w), /less while you're earning/);
   assert.equal(E.freedomRange(widow), null, 'no range once free');
+  // #28/#30: the line only shows when the pension itself moves the date (money also grows from
+  // 60 to 67, and that isn't put down to the pension).
+  for (const prof of [
+    { age: 42, take_home_income: 8000, savings_monthly: 1500, current_savings: 40000, savings_type: 'cash', super_balance: 140000, freedom_number: 6500 * 12 * 25, pay_cycle: 'weekly', partner_super: 120000, partner_age: 44, partner_income: 900, housing_status: 'renting', context: 'I pay $600 a week rent.' },
+    { age: 19, take_home_income: 2600, savings_monthly: 900, current_savings: 4000, savings_type: 'cash', super_balance: 3000, freedom_number: 1700 * 12 * 25, pay_cycle: 'monthly', housing_status: 'renting' },
+    { age: 55, take_home_income: 9000, savings_monthly: 2500, current_savings: 400000, savings_type: 'etfs', super_balance: 900000, freedom_number: 6500 * 12 * 25, pay_cycle: 'monthly', housing_status: 'owning' }]) {
+    const pi = E.planInputsFromProfile(prof), pp = E.agePensionPlan(pi, { homeowner: pi.homeowner, rentFortnight: pi.rentFortnight });
+    const line = E.agePensionLine(pp, E.freedomPlan(pi), pi.homeowner, { rentFortnight: pi.rentFortnight });
+    if (line) assert.ok(pp.gainMonths >= 6, `${prof.age}: ${pp.gainMonths}`);
+  }
+});
+
+test('review 3: after stopping, savings are spent first while super keeps earning; a later pot never makes it worse', () => {
+  // #27: 50 with a partner of 38, saving cash. Adding a dollar of partner super used to push the date out 17 months.
+  const base = { age: 50, take_home_income: 11000, savings_monthly: 3000, current_savings: 250000, savings_type: 'cash', super_balance: 520000,
+    freedom_number: 8000 * 12 * 25, pay_cycle: 'monthly', partner_age: 38, partner_income: 4000, housing_status: 'owning' };
+  const at = ps => E.freedomPlan(E.planInputsFromProfile(Object.assign({}, base, { partner_super: ps }))).months;
+  const m0 = at(0), m1 = at(1), m1k = at(1000), m100k = at(100000);
+  assert.ok(m1 <= m0 && m1k <= m1 && m100k <= m1k, `${m0} ${m1} ${m1k} ${m100k}`);
+  // #26: a partner who works but has $0 super still gets employer super (about the same as $1,000).
+  const p26 = { age: 34, take_home_income: 10500, savings_monthly: 3500, current_savings: 90000, savings_type: 'etfs', super_balance: 60000,
+    freedom_number: 7000 * 12 * 25, pay_cycle: 'monthly', partner_age: 32, partner_income: 4200, housing_status: 'renting' };
+  const z = E.freedomPlan(E.planInputsFromProfile(Object.assign({}, p26, { partner_super: 0 }))).months;
+  const k = E.freedomPlan(E.planInputsFromProfile(Object.assign({}, p26, { partner_super: 1000 }))).months;
+  assert.ok(Math.abs(z - k) <= 1, `${z} vs ${k}`);
+  // #39: savings at 60 are never shown below zero (the partner's super carries the last years).
+  const p39 = E.freedomPlan(E.planInputsFromProfile({ age: 29, take_home_income: 14000, savings_monthly: 9800, current_savings: 310000, savings_type: 'etfs', super_balance: 75000,
+    freedom_number: 4200 * 12 * 25 * 0.8, retirement_spend_multiplier: 0.8, pay_cycle: 'monthly', partner_super: 95000, partner_age: 31, partner_income: 6500, housing_status: 'renting', context: 'Mostly Australian shares.' }));
+  assert.ok(p39.outsideAt60 >= 0);
+  // #38: 58, renting, living on super from 60 to 67: the pension line lands where the checker found (month 76).
+  const p38 = E.planInputsFromProfile({ age: 58, take_home_income: 4300, savings_monthly: 400, current_savings: 22000, savings_type: 'cash', super_balance: 160000,
+    freedom_number: 3900 * 12 * 25, pay_cycle: 'monthly', housing_status: 'renting', debt_total: 8000, context: 'I pay $430 a week rent.' });
+  const pp38 = E.agePensionPlan(p38, { homeowner: false, rentFortnight: p38.rentFortnight });
+  assert.ok(Math.abs(pp38.plan.months - 76) <= 1, `month ${pp38.plan.months}`);
+});
+
+test('review 3: no employer super from 67; a self-employed partner; one partner not yet 67', () => {
+  // #31/#36: income from 67 is a pension or investments, not wages.
+  const old = { age: 72, savings: 100000, monthlySavings: 0, target: 3000 * 12 * 25, superBalance: 400000, takeHomeMonthly: 4000, savingsType: 'cash', homeowner: true, noAutoPension: true };
+  assert.equal(E.freedomPlan(old).months, E.freedomPlan(Object.assign({}, old, { takeHomeMonthly: 0 })).months);
+  // #27: "My partner is self-employed" → no employer super for them.
+  const f = E.noteFacts('My partner is self-employed and has no employer super.');
+  assert.equal(f.partnerSelfEmployed, true);
+  assert.equal(f.selfEmployed, undefined);
+  const prof = { age: 50, take_home_income: 11000, savings_monthly: 3000, current_savings: 250000, savings_type: 'cash', super_balance: 520000,
+    freedom_number: 8000 * 12 * 25, pay_cycle: 'monthly', partner_super: 110000, partner_age: 38, partner_income: 4000, housing_status: 'owning' };
+  const withSG = E.freedomPlan(E.planInputsFromProfile(prof));
+  const noSG = E.freedomPlan(E.planInputsFromProfile(Object.assign({}, prof, { context: 'My partner is self-employed and has no employer super.' })));
+  assert.ok(noSG.partnerSuperAt60 < withSG.partnerSuperAt60 - 100000);
+  // #27: at your 67 a partner of 55 isn't eligible: only your half of the couple rate counts.
+  const poorer = E.planInputsFromProfile(Object.assign({}, prof, { take_home_income: 5000, savings_monthly: 500, freedom_number: 4500 * 12 * 25 }));
+  const pp = E.agePensionPlan(poorer, { homeowner: true });
+  assert.ok(pp.partnerYounger);
+  assert.ok(pp.pensionMax <= 1866 * 26 / 2 + 1, String(pp.pensionMax));
+});
+
+test('review 3: odd inputs, the debt line and the mortgage check', () => {
+  // #32: ages outside 15–109 are treated as unknown.
+  assert.equal(E.freedomPlan({ age: 1, savings: 100000, monthlySavings: 2000, target: 1.5e6 }).freedomAge, null);
+  assert.equal(E.freedomPlan({ age: 119, savings: 100000, monthlySavings: 2000, target: 1.5e6 }).freedomAge, null);
+  // #32: nothing outside super → no simulated path is free before super unlocks at 60.
+  const r = E.freedomRange({ age: 35, savings: 0, monthlySavings: 0, target: 6000 * 12 * 25, superBalance: 400000, takeHomeMonthly: 8000, savingsType: 'cash' });
+  assert.ok(r == null || r.early >= 290, JSON.stringify(r));
+  // #32: repayments bigger than spending → not counted, and the note says so.
+  const big = E.freedomPlan({ age: 40, savings: 100000, monthlySavings: 2000, target: 6000 * 12 * 25, superBalance: 100000, takeHomeMonthly: 8000, mortgage: { balance: 500000, repayMonthly: 20000 } });
+  assert.ok(big.valid && big.months != null);
+  assert.match(E.mortgageNote(big), /look bigger than your spending/);
+  // #30: a small debt only adds a few months: never the main line, and never "move".
+  const teen = E.planInputsFromProfile({ age: 19, take_home_income: 2600, savings_monthly: 900, current_savings: 4000, savings_type: 'cash', super_balance: 3000,
+    freedom_number: 1700 * 12 * 25, pay_cycle: 'monthly', housing_status: 'renting', debt_total: 6000 });
+  const n = E.headlineNotes(teen, E.freedomPlan(teen), { homeowner: false });
+  assert.ok(!n || n.main.key !== 'debt');
+  // #35: already free → no cushion line.
+  assert.equal(E.cushionNote({ valid: true, alreadyFree: true, targetMultiple: 1.14, withdrawalRate: 0.035 }), null);
 });
 
 test('review 2: savings held in the offset count once, not twice', () => {
@@ -788,7 +864,7 @@ test('owner decisions (review 2): debt note, buffer wording, no far-off pension 
   const pi = E.planInputsFromProfile(prof), plan = E.freedomPlan(pi);
   const notes = E.headlineNotes(pi, plan, { homeowner: false });
   assert.equal(notes.main.key, 'debt');
-  assert.match(notes.main.text, /doesn't count your \$40,000 of debt\. Paying it off first could move it to around \d{4}, age \d+\./);
+  assert.match(notes.main.text, /doesn't count your \$40,000 of debt\. Paying it off first could push it back to around \d{4}, age \d+\./);
   const sv = notes.others.find(n => n.key === 'savings');
   assert.ok(sv && /once your debt is paid off/.test(sv.text), sv && sv.text);
   // Paying it off first is later than ignoring it: about 6 years of saving at 20% (the checker: ~11 months later).

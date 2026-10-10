@@ -74,7 +74,7 @@ window.FirePathMoves = (function () {
       emergencyFund: typeof i.emergencyFund === 'boolean' ? i.emergencyFund : null,
       retirementSpendMultiplier: num(i.retirementSpendMultiplier) || 1, freedomNumber: num(i.freedomNumber),
       persona: i.persona || null, superInsurance: num(i.superInsurance) || 0, ausShare: num(i.ausShare), employerSuperRate: num(i.employerSuperRate),
-      selfEmployed: !!i.selfEmployed, ownSuperYear: num(i.ownSuperYear) || 0,
+      selfEmployed: !!i.selfEmployed, ownSuperYear: num(i.ownSuperYear) || 0, partnerSelfEmployed: !!i.partnerSelfEmployed,
       mortgageRepayMonthly: num(i.mortgageRepayMonthly) || 0, rentMonthly: num(i.rentMonthly) || 0, offsetAmount: num(i.offsetAmount) || 0, mortgageRate: num(i.mortgageRate),
     };
     s.cashSavings = s.savingsType === 'cash' ? s.currentSavings : s.savingsType === 'mix' ? s.currentSavings / 3 : null;
@@ -99,7 +99,7 @@ window.FirePathMoves = (function () {
       grossIncome: p.gross_income, persona: p.persona,
       superInsurance: p.super_insurance > 0 ? p.super_insurance : facts.superInsurance, ausShare: p.aus_share != null ? p.aus_share : facts.ausShare,
       employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate, mortgageRepayMonthly: facts.mortgageRepayMonthly, rentMonthly: facts.rentMonthly,
-      selfEmployed: facts.selfEmployed, ownSuperYear: facts.ownSuperYear,
+      selfEmployed: facts.selfEmployed, ownSuperYear: facts.ownSuperYear, partnerSelfEmployed: facts.partnerSelfEmployed,
       offsetAmount: p.offset_amount, mortgageRate: p.offset_interest_rate > 0 ? p.offset_interest_rate / 100 : null,
     });
   }
@@ -139,7 +139,7 @@ window.FirePathMoves = (function () {
     return Object.assign({
       age: s.age, savings: s.currentSavings || 0, monthlySavings: s.savingsMonthly || 0, target: s.freedomNumber,
       superBalance: s.superBalance || 0, grossIncome: s.grossIncome || null, takeHomeMonthly: ownTakeHome,
-      partner: s.hasPartner && s.partnerSuper > 0 ? { superBalance: s.partnerSuper, age: s.partnerAge, takeHomeMonthly: s.partnerTakeHomeMonthly || 0 } : null,
+      partner: s.hasPartner && (s.partnerSuper > 0 || s.partnerTakeHomeMonthly > 0) ? { superBalance: s.partnerSuper || 0, age: s.partnerAge, takeHomeMonthly: s.partnerTakeHomeMonthly || 0, selfEmployed: !!s.partnerSelfEmployed } : null,
       superInsurance: s.superInsurance || 0, savingsType: s.savingsType || 'cash',
       homeowner: s.housing !== 'renting', rentFortnight: s.housing === 'renting' && s.rentMonthly > 0 ? s.rentMonthly * 12 / 26 : 0,
       ausShare: E() && E().ausShareFor ? E().ausShareFor(s.savingsType, s.ausShare) : 0,
@@ -184,8 +184,8 @@ window.FirePathMoves = (function () {
       tool: { href: '/hearmeout?scenario=loan', label: 'See what paying it off does' }, article: 'debt-vs-invest',
       applies(s) {
         if (!(s.consumerDebt > 0) || s.alreadyFree) return false;
-        return { why: `Cards and personal loans usually cost 15–20% a year. That’s higher than the 7% long-run return assumed for shares. Each dollar of your ${money(s.consumerDebt)} paid off saves that interest for certain. Some people also keep some cash or keep investing alongside. It depends on the rates, your buffer and how you feel about debt.`,
-          impact: { text: 'Each dollar paid off saves the 15–20% a year it would cost in interest' } };
+        return { why: `Credit cards often cost about 20% a year, and personal and car loans 7–15%. That’s often higher than the 7% long-run return assumed for shares. Each dollar of your ${money(s.consumerDebt)} paid off saves that interest for certain. Some people also keep some cash or keep investing alongside. It depends on the rates, your buffer and how you feel about debt.`,
+          impact: { text: 'Each dollar paid off saves the interest it costs (often 7–20% a year)' } };
       } },
     { id: 'build-buffer', tier: 2, title: 'Having a three-month cash buffer', plan: 'Free',
       tool: null, article: 'emergency-fund-australia',
@@ -242,7 +242,9 @@ window.FirePathMoves = (function () {
         const gain = s.yearsToFree == null ? null : s.yearsToFree - after;
         if (gain != null && gain < 0.25) return false;
         return { why: 'Spending less works twice: more to invest now, and a smaller number to reach.',
-          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `${money(cut)} a month less could mean reaching your number ${yearsText(gain)}` } };
+          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' }
+            : after === 0 ? { years: gain, text: `${money(cut)} a month less could mean your number is already covered` }
+            : { years: gain, text: `${money(cut)} a month less could mean reaching your number ${yearsText(gain)}` } };
       } },
     { id: 'salary-sacrifice', tier: 5, title: 'Salary sacrificing into super', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Work out your numbers' }, article: 'salary-sacrifice-explained',
@@ -323,12 +325,13 @@ window.FirePathMoves = (function () {
         const p = calculateAgePension(assets, 0, s.housing !== 'renting', s.hasPartner, undefined, Object.assign(rentOpts, couple || {})).annualPension;
         if (!(p > 0)) return false;
         return { why: 'From 67, once you stop work, the Age Pension may top up what your savings pay. It’s means-tested on what you own and earn then, so wages reduce it.',
-          impact: { dollars: p, text: `About ${money(p)} a year on today's figures` } };
+          impact: { dollars: p, text: `On what you hold today, about ${money(Math.round(p / 100) * 100)} a year (today's figures)` } };
       } },
     { id: 'co-contribution', tier: 5, title: 'The government super co-contribution', plan: 'Free',
       tool: { href: '/compound', label: 'See what it grows to' }, article: 'super-co-contribution',
       applies(s) {
-        if (s.alreadyFree || s.age == null || s.age >= 71 || !(s.grossIncome > 0) || !has('coContribution')) return false;
+        // Needs income from work and to be under 71; from 67 FirePath takes income as a pension or investments.
+        if (s.alreadyFree || s.age == null || s.age >= 67 || !(s.grossIncome > 0) || !has('coContribution')) return false;
         const t = (typeof TAX_CONFIG !== 'undefined' && TAX_CONFIG.coContribution) || null;
         if (!t || s.grossIncome >= t.higher) return false;
         const add = coContribution(s.grossIncome, 1000);
@@ -340,6 +343,8 @@ window.FirePathMoves = (function () {
       tool: { href: '/freedom-gap', label: 'See what the Age Pension could add' }, article: 'age-pension-explained',
       applies(s) {
         if (s.age == null || s.age < 60) return false;
+        if (s.age >= 67) return { why: 'People on the Age Pension get a Pensioner Concession Card automatically. If you’re not on the pension, you may be able to get a Commonwealth Seniors Health Card: there’s no assets test, and the income limit is about $105,000 for singles and $168,000 for couples. Both can mean cheaper medicines and other discounts.',
+          impact: { text: 'Cheaper medicines and other discounts' } };
         return { why: 'From 67, people on the Age Pension get a Pension Concession Card. Those who don’t may be able to get a Commonwealth Seniors Health Card: there’s no assets test, and the income limit is about $105,000 for singles and $168,000 for couples. Both can mean cheaper medicines and other discounts.',
           impact: { text: 'Cheaper medicines and other discounts' } };
       } },

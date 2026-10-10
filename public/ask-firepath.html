@@ -213,8 +213,8 @@
       const s = ranked.situation;
       let range = null;
       if (!s.alreadyFree && s.freedomNumber > 0) {
-        const mc = FirePathEngine.simulateTimeToTarget({ startPortfolio: s.accessibleSavings, monthlySavings: s.savingsMonthly || 0, target: s.freedomNumber });
-        range = mc;
+        // The same market range every page shows (super, the years before it unlocks, where savings sit).
+        try { range = FirePathEngine.freedomRange(FirePathEngine.planInputsFromProfile(p)); } catch (e) { range = null; }
       }
       return { profile: p, situation: s, moves: ranked.moves, range };
     } catch (e) { console.log('Plan load failed', e); return null; }
@@ -314,7 +314,7 @@
       if (s.grossIncome) lines.push(`- Estimated own gross income ${money(s.grossIncome)}${s.marginalRate != null ? `, marginal tax rate about ${Math.round(s.marginalRate * 100)}%` : ''}.`);
       lines.push(`- Freedom number ${money(s.freedomNumber)} (25 × yearly spending in retirement).`);
       lines.push(s.alreadyFree ? '- Already free: accessible savings cover the freedom number.'
-        : `- At 7% real: free in ${yrs(s.yearsToFree)}${s.freedomAge ? ` (around age ${Math.round(s.freedomAge)})` : ''}.` + (rng && rng.early != null ? ` Across 2,000 possible market outcomes, 8 in 10 land between ${yrs(rng.early / 12)} and ${rng.late != null ? yrs(rng.late / 12) : 'over 50 years'}.` : ''));
+        : `- On FirePath's plan (after tax and inflation, with super from 60): free in ${yrs(s.yearsToFree)}${s.freedomAge ? ` (around age ${Math.round(s.freedomAge)})` : ''}.` + (rng && rng.early != null ? ` Across 2,000 possible market outcomes, 8 in 10 land between ${yrs(rng.early / 12)} and ${rng.late != null ? yrs(rng.late / 12) : 'over 50 years'}.` : ''));
       if (p.context) lines.push(`- In their words: "${String(p.context).slice(0, 300)}"`);
       lines.push('', 'OPTIONS AND THEIR MODELLED EFFECT ON THIS PERSON\'S NUMBERS (from FirePath\'s own engine; listed by size of modelled effect, which is not a recommendation):');
       PLAN.moves.forEach((m, i) => lines.push(`${i + 1}. ${m.title} — ${m.impact.text}. ${m.why}`));

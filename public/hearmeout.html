@@ -456,18 +456,25 @@
   // Years to a freedom number on the same plan as every page's date (FirePathEngine.freedomPlan):
   // tax on investment income, super from 60, the safer rate for early stopping, and the
   // saved plan's age, super and pay when signed in. The scenario's return slider moves the
-  // return up or down from the usual 7%. Any mortgage is left to the scenario itself (the
-  // home and loan scenarios change it).
-  function hmoYears(fireNum, savings, monthly, rate) {
+  // return up or down from the usual 7%.
+  //   opts.addSaved: `savings` comes on top of the saved plan's savings (the home scenarios,
+  //     whose forms don't ask for savings). opts.keepMortgage: the saved plan's mortgage still
+  //     runs (everything except selling or downsizing, which clear it).
+  function hmoYears(fireNum, savings, monthly, rate, opts) {
     const E = window.FirePathEngine;
-    if (!E || !E.freedomPlan) return yearsToGoal(fireNum, savings, monthly, rate);
-    const base = Object.assign({}, typeof fpPlanProfile !== 'undefined' && fpPlanProfile && E.planInputsFromProfile ? E.planInputsFromProfile(fpPlanProfile) : {}, { mortgage: null });
-    const over = { target: fireNum, annualSpend: undefined, savings: Math.max(0, savings || 0), monthlySavings: Math.max(0, monthly || 0) };
+    const o = opts || {};
+    const saved = typeof fpPlanProfile !== 'undefined' && fpPlanProfile && E && E.planInputsFromProfile ? E.planInputsFromProfile(fpPlanProfile) : {};
+    const start = Math.max(0, savings || 0) + (o.addSaved ? Math.max(0, saved.savings || 0) : 0);
+    if (!E || !E.freedomPlan) return yearsToGoal(fireNum, start, monthly, rate);
+    const base = Object.assign({}, saved, o.keepMortgage ? {} : { mortgage: null });
+    const over = { target: fireNum, annualSpend: undefined, savings: start, monthlySavings: Math.max(0, monthly || 0) };
     const ref = E.freedomPlan(Object.assign({}, base, over, { safeRate: false }));
     if (!ref.valid) return null;
     const p = E.freedomPlan(Object.assign({}, base, over, { outsideReturn: ref.outsideReturn + ((Number.isFinite(rate) ? rate : 0.07) - 0.07) }));
     return p.valid ? p.years : null;
   }
+  // The calendar year a number of years from now lands in (not this year + rounded years).
+  function hmoYear(years) { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + Math.round(years * 12), 1).getFullYear(); }
   function hmoMoney(n) { return Number.isFinite(n) ? fmtM(n) : '—'; }
   // One comfort scale, from the share of market futures in which the money lasts
   // (same as the withdrawal planner).
@@ -543,10 +550,10 @@
     // Renting for life means your freedom number also has to pay the rent: 25 × a year's rent
     const rentTarget = fireNum > 0 ? fireNum + 25 * annualRent : 0;
     const sim = hmoRentSim(netEquity, monthlySav, annualRent, rentReal, returnRate, rentTarget, 15);
-    const currentYears = fireNum > 0 ? hmoYears(fireNum, 0, monthlySav, returnRate) : null;
-    const currentDate  = currentYears !== null ? currentYear + Math.round(currentYears) : null;
+    const currentYears = fireNum > 0 ? hmoYears(fireNum, 0, monthlySav, returnRate, { addSaved: true, keepMortgage: true }) : null;
+    const currentDate  = currentYears !== null ? hmoYear(currentYears) : null;
     const newYears     = fireNum > 0 ? sim.years : null;
-    const newDate      = newYears !== null ? currentYear + Math.round(newYears) : null;
+    const newDate      = newYears !== null ? hmoYear(newYears) : null;
     const yearsSaved   = currentYears !== null && newYears !== null ? Math.round(currentYears - newYears) : null;
     const yearsFromNow = newDate !== null ? newDate - currentYear : null;
     document.getElementById('h-currentDate').textContent = fireNum <= 0 ? '—' : currentDate !== null ? currentDate : '100+ yrs';
@@ -585,11 +592,11 @@
     if (amount <= 0) { document.getElementById('lump-results').style.display = 'none'; document.getElementById('lump-empty').style.display = 'block'; return; }
     document.getElementById('lump-results').style.display = 'block';
     document.getElementById('lump-empty').style.display = 'none';
-    const withoutYears = fireNum > 0 ? hmoYears(fireNum, existing, monthly, rate) : null;
-    const withYears    = fireNum > 0 ? hmoYears(fireNum, existing + amount, monthly, rate) : null;
+    const withoutYears = fireNum > 0 ? hmoYears(fireNum, existing, monthly, rate, { keepMortgage: true }) : null;
+    const withYears    = fireNum > 0 ? hmoYears(fireNum, existing + amount, monthly, rate, { keepMortgage: true }) : null;
     const diff = withoutYears !== null && withYears !== null ? withoutYears - withYears : null;
-    const withDate = withYears !== null ? currentYear + Math.round(withYears) : null;
-    document.getElementById('l-withoutDate').textContent = fireNum <= 0 ? '—' : withoutYears !== null ? currentYear + Math.round(withoutYears) : '100+ yrs';
+    const withDate = withYears !== null ? hmoYear(withYears) : null;
+    document.getElementById('l-withoutDate').textContent = fireNum <= 0 ? '—' : withoutYears !== null ? hmoYear(withoutYears) : '100+ yrs';
     document.getElementById('l-withDate').textContent    = withDate !== null ? withDate : '—';
     document.getElementById('l-yearsSaved').textContent  = fireNum <= 0 ? 'Add your freedom number' : diff && diff > 0 ? `${withDate - currentYear} yrs away · ${Math.round(diff)} yrs sooner` : 'Meaningful boost';
     document.getElementById('l-10yr').textContent        = hmoMoney(amount * Math.pow(1 + rate, 10));
@@ -609,11 +616,11 @@
     document.getElementById('downsize-results').style.display = 'block';
     document.getElementById('downsize-empty').style.display = 'none';
     const freed = Math.max(0, currentHome - newHome - costs - mortgage);
-    const currentYears = fireNum > 0 ? hmoYears(fireNum, 0, monthly, rate) : null;
-    const newYears     = fireNum > 0 ? hmoYears(fireNum, freed, monthly, rate) : null;
+    const currentYears = fireNum > 0 ? hmoYears(fireNum, 0, monthly, rate, { addSaved: true, keepMortgage: true }) : null;
+    const newYears     = fireNum > 0 ? hmoYears(fireNum, freed, monthly, rate, { addSaved: true }) : null;
     const diff = currentYears !== null && newYears !== null ? currentYears - newYears : null;
-    document.getElementById('d-currentDate').textContent = fireNum <= 0 ? '—' : currentYears !== null ? currentYear + Math.round(currentYears) : '100+ yrs';
-    document.getElementById('d-newDate').textContent     = newYears !== null ? currentYear + Math.round(newYears) : '—';
+    document.getElementById('d-currentDate').textContent = fireNum <= 0 ? '—' : currentYears !== null ? hmoYear(currentYears) : '100+ yrs';
+    document.getElementById('d-newDate').textContent     = newYears !== null ? hmoYear(newYears) : '—';
     document.getElementById('d-yearsSaved').textContent  = fireNum <= 0 ? 'Add your freedom number' : diff && diff > 0 ? Math.round(diff) + ' years sooner' : 'Meaningful boost';
     document.getElementById('d-freed').textContent       = hmoMoney(freed);
     document.getElementById('d-10yr').textContent        = hmoMoney(freed * Math.pow(1 + rate, 10));
@@ -634,8 +641,8 @@
     const buffer        = monthlyCost * months;
     const surplus       = Math.max(0, payout - buffer);
     const totalInvested = existing + surplus;
-    const freedomYears  = fireNum > 0 ? hmoYears(fireNum, totalInvested, monthlySav, rate) : null;
-    const freedomDate   = freedomYears !== null ? currentYear + Math.round(freedomYears) : null;
+    const freedomYears  = fireNum > 0 ? hmoYears(fireNum, totalInvested, monthlySav, rate, { keepMortgage: true }) : null;
+    const freedomDate   = freedomYears !== null ? hmoYear(freedomYears) : null;
     document.getElementById('r-buffer').textContent      = hmoMoney(buffer);
     document.getElementById('r-surplus').textContent     = hmoMoney(surplus);
     document.getElementById('r-10yr').textContent        = hmoMoney(surplus * Math.pow(1 + rate, 10));
@@ -689,7 +696,7 @@
       ? row(`Your share of a level ${c.level} budget (${hmoMoney(c.budget)} a year)`, p.contributions)
       : row('Basic daily fee (everyone pays this)', p.basic) + row('Hotelling contribution (means-tested)', p.hotelling)
         + row('Non-clinical care contribution (means-tested, capped)', p.nonClinical) + row('Daily payment for the room', p.accommodation)
-        + row('Kept from your lump sum this year (2%, for up to 5 years)', p.retention);
+        + row('Also kept from your lump sum this year (2%, for up to 5 years; it comes off your refund, so it isn\'t in the cost above)', p.retention);
     document.getElementById('ac-lumpRow').hidden = !(c.lumpSum > 0);
     document.getElementById('ac-refundRow').hidden = !(c.lumpSum > 0);
     document.getElementById('ac-lumpOut').textContent = hmoMoney(c.lumpSum);
@@ -808,14 +815,14 @@
     let bal = balance, months = 0, totalInterest = 0;
     while (bal > 0 && months < 600) { const interest = bal * loanMonthly; totalInterest += interest; bal = bal + interest - repayment; if (bal < 0) bal = 0; months++; }
     const payoffYears = months / 12;
-    const payoffDate  = currentYear + Math.round(payoffYears);
+    const payoffDate  = hmoYear(payoffYears);
     // Your existing savings keep growing while you pay the loan down
     const mr = monthlyRate(investRate);
     const portfolioAtPayoff = savings * Math.pow(1 + mr, months);
     const monthlyInvest = repayment;
     const freedomYears  = fireNum > 0 ? hmoYears(fireNum, portfolioAtPayoff, monthlyInvest, investRate) : null;
     const totalYears    = freedomYears !== null ? payoffYears + freedomYears : null;
-    const freedomDate   = totalYears !== null ? currentYear + Math.round(totalYears) : null;
+    const freedomDate   = totalYears !== null ? hmoYear(totalYears) : null;
     let p10 = portfolioAtPayoff;
     for (let m = 0; m < 120; m++) { p10 = p10 * (1 + mr) + monthlyInvest; }
     document.getElementById('lo-payoffTime').textContent    = fmt(payoffYears);
