@@ -231,9 +231,33 @@ window.FirePathEngine = (function () {
   const DEFAULT_MARGINAL_RATE = 0.30;
   const PLAN_MAX_MONTHS = 100 * 12;   // same horizon as yearsToGoal: null = "100+ yrs"
 
-  function outsideSuperReturn(marginalRate) {
+  // Franking credits: Australian companies have already paid 30% tax on the dividends
+  // they pay, and you're credited with it. The credit is added to your income and then
+  // taken off your tax, so on any rate below 30% part of it comes back (all of it on a
+  // 0% rate, as a refund). Only Australian shares carry them. ausShare: the share of your
+  // investments in Australian shares (0–1). Their dividends are taken as about 4% a year,
+  // about three-quarters franked, within the 3% total income above.
+  const AUS_DIV_YIELD = 0.04, FRANKED_SHARE = 0.75, COMPANY_TAX = 0.30;
+  function frankingCredit(ausShare) {
+    const a = Number.isFinite(ausShare) ? Math.min(1, Math.max(0, ausShare)) : 0;
+    const franked = Math.min(INCOME_YIELD, AUS_DIV_YIELD * a) * FRANKED_SHARE;
+    return franked * COMPANY_TAX / (1 - COMPANY_TAX);
+  }
+  function outsideSuperReturn(marginalRate, ausShare) {
     const t = Number.isFinite(marginalRate) && marginalRate >= 0 && marginalRate < 1 ? marginalRate : DEFAULT_MARGINAL_RATE;
-    return INVEST_RETURN - INCOME_YIELD * t;
+    // Dividends and their credits are taxed; the credits are then paid back against tax.
+    return INVEST_RETURN - INCOME_YIELD * t + frankingCredit(ausShare) * (1 - t);
+  }
+  // How much is in Australian shares: the person's answer if they gave one ('none' |
+  // 'some' | 'most', or a 0–1 number), else a typical diversified mix (about 40%) when
+  // their savings are in shares/ETFs or a mix, and none for cash or an offset.
+  const AUS_SHARE_ANSWERS = { none: 0, some: 0.4, most: 0.7 };
+  function ausShareFor(savingsType, answer) {
+    if (answer != null && answer !== '') {
+      if (Object.prototype.hasOwnProperty.call(AUS_SHARE_ANSWERS, answer)) return AUS_SHARE_ANSWERS[answer];
+      const n = Number(answer); if (Number.isFinite(n)) return Math.min(1, Math.max(0, n));
+    }
+    return savingsType === 'etfs' || savingsType === 'mix' ? 0.4 : 0;
   }
 
   // The safe withdrawal rate for someone stopping work at retireAge: 4% (25×) holds up
@@ -283,7 +307,8 @@ window.FirePathEngine = (function () {
     const senior = age != null && age >= PENSION_AGE ? (i.partner ? 'couple' : 'single') : null;
     const marginalRate = Number.isFinite(i.marginalRate) ? i.marginalRate
       : gross > 0 && typeof calculateMarginalRate === 'function' ? calculateMarginalRate(gross, undefined, senior ? { senior } : undefined) : DEFAULT_MARGINAL_RATE;
-    const outsideReturn = Number.isFinite(i.outsideReturn) ? i.outsideReturn : outsideSuperReturn(marginalRate);
+    const ausShare = Number.isFinite(i.ausShare) ? Math.min(1, Math.max(0, i.ausShare)) : 0;
+    const outsideReturn = Number.isFinite(i.outsideReturn) ? i.outsideReturn : outsideSuperReturn(marginalRate, ausShare);
     const superBalance = Math.max(0, finiteOr(i.superBalance, 0));
     let partner = null;
     const p = i.partner;
@@ -530,7 +555,8 @@ window.FirePathEngine = (function () {
       grossIncome: p.gross_income > 0 ? p.gross_income : null,
       takeHomeMonthly: Math.max(0, (p.take_home_income || 0) - partnerMonthly),
       partner: p.partner_super > 0 ? { superBalance: p.partner_super, age: p.partner_age, takeHomeMonthly: partnerMonthly } : null,
-      superInsurance: p.super_insurance > 0 ? p.super_insurance : 0
+      superInsurance: p.super_insurance > 0 ? p.super_insurance : 0,
+      ausShare: ausShareFor(p.savings_type, p.aus_share)
     };
   }
 
@@ -717,5 +743,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();

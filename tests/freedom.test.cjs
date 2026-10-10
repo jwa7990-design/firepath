@@ -282,7 +282,7 @@ const freePageInputs = (() => {
   const obj = grab(FREE, /_planInputs = (\{[\s\S]*?\n {4}\});/, 'free page _planInputs');
   return new Function('age', 'savings', 'mSav', 'fireNum', 'superBal', 'toMonthly', 'income', 'pSuper', 'pAge', 'pI', 'return ' + obj);
 })();
-vm.runInContext('var savedProfileData = null, superInsurance = 0;   // no insurance figure: the cross-page comparisons\n'
+vm.runInContext('var savedProfileData = null, superInsurance = 0, savingsType = "cash", ausAnswer = null;   // no insurance, cash: the cross-page comparisons\n'
   + grab(PRO, /(function ownGrossIncome[\s\S]*?\n  \})/, 'Pro ownGrossIncome') + '\n'
   + grab(PRO, /(function freedomPlanInputs[\s\S]*?\n  \})/, 'Pro freedomPlanInputs')
   + '\nthis.__pro = freedomPlanInputs;', ctx);
@@ -416,4 +416,27 @@ test('Division 296: extra tax on the share of super earnings over $3M (and $10M)
   const i = { age: 45, savings: 800000, monthlySavings: 5000, target: 4e6, superBalance: 2500000, grossIncome: 250000 };
   let plain = 2500000; for (let k = 0; k < 180; k++) plain = plain * (1 + m) + 0;
   assert.ok(E.freedomPlan(i).superAt60 < plain + 180 * 3000, 'Division 296 slows growth');
+});
+
+test('franking credits: Australian shares lift the after-tax return outside super', () => {
+  // 40% Australian shares: franked dividends = min(3%, 4% × 0.4) × 75% = 1.2%; credit = 1.2% × 30/70.
+  const credit = 0.012 * 0.3 / 0.7;
+  near(E.frankingCredit(0.4), credit, 1e-12);
+  assert.equal(E.frankingCredit(0), 0);
+  // The credit is taxed with the dividend, then paid back: worth credit × (1 − tax rate).
+  near(E.outsideSuperReturn(0.32, 0.4) - E.outsideSuperReturn(0.32, 0), credit * 0.68, 1e-12);
+  // On a 0% rate it all comes back (a refund).
+  near(E.outsideSuperReturn(0, 0.4), 0.07 + credit, 1e-12);
+  // Answers and defaults: none / some / most, else a typical mix only for shares or a mix.
+  assert.equal(E.ausShareFor('etfs', 'none'), 0);
+  assert.equal(E.ausShareFor('cash', 'most'), 0.7);
+  assert.equal(E.ausShareFor('etfs'), 0.4);
+  assert.equal(E.ausShareFor('mix', null), 0.4);
+  assert.equal(E.ausShareFor('cash'), 0);
+  assert.equal(E.ausShareFor('offset'), 0);
+  // Saved plans carry it, and it brings a date forward (never back).
+  const pi = E.planInputsFromProfile({ age: 35, freedom_number: 1.2e6, current_savings: 100000, savings_monthly: 2000, savings_type: 'etfs', aus_share: 0.7 });
+  assert.equal(pi.ausShare, 0.7);
+  const p = PEOPLE[0], without = planFor(p), withF = planFor(p, { ausShare: 0.7 });
+  assert.ok(withF.months <= without.months && withF.outsideReturn > without.outsideReturn);
 });

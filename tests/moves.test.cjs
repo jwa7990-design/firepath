@@ -105,7 +105,8 @@ test('impacts are measured on the headline plan: $50 a week more = the freedomPl
   // No super here, so the plan is savings alone and easy to check by hand.
   const E = M.__engine;
   const s = M.situationFromInputs(Object.assign({}, base, { savingsType: 'etfs', superBalance: 0 }));
-  const plan = monthly => E.freedomPlan({ age: 35, savings: 60000, monthlySavings: monthly, target: 1800000, superBalance: 0, grossIncome: s.grossIncome, takeHomeMonthly: 8000 });
+  // ETFs: a typical mix of Australian shares, so franking credits count (ausShareFor).
+  const plan = monthly => E.freedomPlan({ age: 35, savings: 60000, monthlySavings: monthly, target: 1800000, superBalance: 0, grossIncome: s.grossIncome, takeHomeMonthly: 8000, ausShare: E.ausShareFor('etfs') });
   const gain = plan(2000).years - plan(2000 + 50 * 52 / 12).years;
   const move = M.rank(s, { limit: 20 }).all.find(m => m.id === 'save-more');
   assert.ok(Math.abs(move.impact.years - gain) < 1e-9, `${move.impact.years} vs ${gain}`);
@@ -127,7 +128,7 @@ test('the headline the free calculator shows and the moves card agree for a part
   const E = M.__engine;
   const inp = Object.assign({}, base, { savingsType: 'etfs', hasPartner: true, partnerSuper: 150000, partnerAge: 40, partnerTakeHomeMonthly: 3000 });
   const s = M.situationFromInputs(inp);
-  const headline = E.freedomPlan({ age: 35, savings: 60000, monthlySavings: 2000, target: s.freedomNumber, superBalance: 90000, takeHomeMonthly: 5000,
+  const headline = E.freedomPlan({ age: 35, savings: 60000, monthlySavings: 2000, target: s.freedomNumber, superBalance: 90000, takeHomeMonthly: 5000, ausShare: E.ausShareFor('etfs'),
     partner: { superBalance: 150000, age: 40, takeHomeMonthly: 3000 } });
   assert.ok(Math.abs(s.yearsToFree - headline.years) < 1e-9, `${s.yearsToFree} vs ${headline.years}`);
 });

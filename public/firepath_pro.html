@@ -756,6 +756,17 @@
                   </div>
                 </div>
 
+                <!-- Australian shares (optional): franking credits. Shown for shares/ETFs or a mix. -->
+                <div class="ob-field" id="ob-ausShareField" hidden>
+                  <span class="ob-label">How much of your investments are Australian shares? <span class="pr-opt">optional</span></span>
+                  <span class="ob-hint ob-hint-block">Australian shares pay franking credits, which can lower your tax. Global ETFs don't. Not sure? Skip it and we'll assume a typical mix.</span>
+                  <div class="housing-group">
+                    <button class="housing-btn" data-aus="none" onclick="setAusShare(this)">None</button>
+                    <button class="housing-btn" data-aus="some" onclick="setAusShare(this)">Some</button>
+                    <button class="housing-btn" data-aus="most" onclick="setAusShare(this)">Most</button>
+                  </div>
+                </div>
+
                 <!-- Super -->
                 <div class="ob-field">
                   <label class="ob-label" for="superBalance">Superannuation <span class="pr-opt">optional</span></label>
@@ -1078,7 +1089,13 @@
   const fpGuest=localStorage.getItem('fp_guest');
 
   function setHousing(btn){document.querySelectorAll('.housing-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');housingStatus=btn.dataset.housing;}
-  function setSavingsType(btn){document.querySelectorAll('[data-savings]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');savingsType=btn.dataset.savings;}
+  function setSavingsType(btn){document.querySelectorAll('[data-savings]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');savingsType=btn.dataset.savings;syncAusShareField();}
+  // Australian shares answer ('none' | 'some' | 'most', or null = not said): franking credits.
+  let ausAnswer=null;
+  const AUS_SHARE_SAVED={none:0,some:0.4,most:0.7};
+  function setAusShare(btn){const on=!btn.classList.contains('active');document.querySelectorAll('[data-aus]').forEach(b=>b.classList.remove('active'));if(on)btn.classList.add('active');ausAnswer=on?btn.dataset.aus:null;}
+  function syncAusShareField(){const f=document.getElementById('ob-ausShareField');if(f)f.hidden=!(savingsType==='etfs'||savingsType==='mix');document.querySelectorAll('[data-aus]').forEach(b=>b.classList.toggle('active',b.dataset.aus===ausAnswer));}
+  function ausAnswerFromSaved(v){if(v==null)return null;const e=Object.entries(AUS_SHARE_SAVED).find(([,x])=>Math.abs(x-v)<0.01);return e?e[0]:null;}
   function adjustDependants(d){dependants=Math.max(0,Math.min(10,dependants+d));document.getElementById('dependantsVal').textContent=dependants;}
   // yearsToGoal, yearsToGoalCapped, fmt, fmtM, toMonthly and monthlyRate come from js/calculations.js.
 
@@ -1119,7 +1136,7 @@
   // Insurance through super, $ a year (optional; from the question or the saved plan).
   let superInsurance=0;
   function freedomPlanInputs(age,superBal,ownMI,savings,mSav,fireNum,partner){
-    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI),superInsurance,
+    return {age:age||null,savings,monthlySavings:mSav,target:fireNum,superBalance:superBal,grossIncome:ownGrossIncome(ownMI),superInsurance,ausShare:FirePathEngine.ausShareFor(savingsType,ausAnswer),
       partner:partner&&partner.superBal>0?{superBalance:partner.superBal,age:partner.ageAssumed?null:partner.age,grossIncome:partner.annualGross||0}:null};
   }
   // Years to freedom with some of this person's inputs changed, on the same plan as the
@@ -1394,7 +1411,7 @@
   // FirePathMoves.situationFromProfile reads, so this page ranks moves exactly like Journey.
   function movesProfile(){
     const cd=calcData||{},num=id=>{const el=document.getElementById(id);return el?parseFloat(el.value)||0:0;};
-    return {persona,pay_cycle:selectedCycle,take_home_income:cd.mIncome||0,savings_monthly:cd.mSav||0,current_savings:cd.savings||0,savings_type:savingsType||'cash',super_balance:cd.superBal||0,age:cd.age||null,housing_status:housingStatus||'renting',mortgage_remaining:cd.mortgage||0,debt_total:cd.debt||0,dependants:dependants||0,retirement_spend_multiplier:retirementSpendMultiplier||1,partner_income:num('partnerIncome'),partner_age:parseInt((document.getElementById('partnerAge')||{}).value)||null,partner_super:num('partnerSuper'),super_insurance:superInsurance||0,freedom_number:cd.fireNum||0,has_emergency_fund:hasEmergencyFund};
+    return {persona,pay_cycle:selectedCycle,take_home_income:cd.mIncome||0,savings_monthly:cd.mSav||0,current_savings:cd.savings||0,savings_type:savingsType||'cash',super_balance:cd.superBal||0,age:cd.age||null,housing_status:housingStatus||'renting',mortgage_remaining:cd.mortgage||0,debt_total:cd.debt||0,dependants:dependants||0,retirement_spend_multiplier:retirementSpendMultiplier||1,partner_income:num('partnerIncome'),partner_age:parseInt((document.getElementById('partnerAge')||{}).value)||null,partner_super:num('partnerSuper'),super_insurance:superInsurance||0,aus_share:ausAnswer?AUS_SHARE_SAVED[ausAnswer]:null,freedom_number:cd.fireNum||0,has_emergency_fund:hasEmergencyFund};
   }
   function rankedMoves(){
     if(!window.FirePathMoves)return null;
@@ -1482,6 +1499,7 @@
     const savings = p.current_savings || 0;
     const superBal = p.super_balance || 0;
     superInsurance = p.super_insurance > 0 ? p.super_insurance : 0;
+    ausAnswer = ausAnswerFromSaved(p.aus_share);
     const age = p.age || null;
     const debt = p.debt_total || 0;
     const mortgage = p.mortgage_remaining || 0;
@@ -1976,6 +1994,7 @@ function stopLoadingMessages() {
     if (p.dependants) { dependants = p.dependants; document.getElementById('dependantsVal').textContent = p.dependants; }
     if (p.housing_status) { housingStatus = p.housing_status; document.querySelectorAll('[data-housing]').forEach(b => b.classList.toggle('active', b.dataset.housing === p.housing_status)); }
     if (p.savings_type) { savingsType = p.savings_type; document.querySelectorAll('[data-savings]').forEach(b => b.classList.toggle('active', b.dataset.savings === p.savings_type)); }
+    ausAnswer = ausAnswerFromSaved(p.aus_share); syncAusShareField();
     if (p.retirement_spend_multiplier) { retirementSpendMultiplier = p.retirement_spend_multiplier; document.querySelectorAll('[data-spend]').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.spend) === p.retirement_spend_multiplier)); }
     if (p.persona && !FirePathPersona.hasChosen()) FirePathPersona.set(p.persona);
     if (FirePathPersona.hasChosen()) { persona = FirePathPersona.get(); const pb = document.getElementById('ob-persona-btn'); if (pb) pb.disabled = false; }
@@ -2030,7 +2049,8 @@ async function saveProfile() {
         offset_amount: offsetAmount,
         offset_interest_rate: offsetInterestRate,
         has_emergency_fund: hasEmergencyFund,
-        super_insurance: superInsurance || 0
+        super_insurance: superInsurance || 0,
+        aus_share: ausAnswer ? AUS_SHARE_SAVED[ausAnswer] : null
     };
     const post = body => FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles`, {
       method: 'POST',
@@ -2042,9 +2062,9 @@ async function saveProfile() {
       body: JSON.stringify(body)
     });
     const res = await post(row);
-    // Until the super_insurance column exists (supabase/006_super_insurance.sql), the
+    // Until the super_insurance / aus_share columns exist (supabase/006, 007), the
     // database turns the whole row away: save everything else rather than nothing.
-    if (res && res.status === 400) { delete row.super_insurance; await post(row); }
+    if (res && res.status === 400) { delete row.super_insurance; delete row.aus_share; await post(row); }
   } catch(e) { console.log('Profile save failed', e); }
 
   // Financial Snapshot Engine — this is the one place every real profile change flows

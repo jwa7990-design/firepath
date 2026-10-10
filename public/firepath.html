@@ -803,6 +803,8 @@
       age, savings, monthlySavings: mSav, target: fireNum, superBalance: superBal, takeHomeMonthly: toMonthly(income),
       partner: pSuper > 0 ? { superBalance: pSuper, age: pAge, takeHomeMonthly: pI > 0 ? toMonthly(pI) : 0 } : null
     };
+    // Franking credits: a typical mix (about 40% Australian shares) if it's in shares/ETFs.
+    _planInputs.ausShare = FirePathEngine.ausShareFor(savingsType);
     return { income, savingPerCycle, savings, superBal, debt, mortgage, age, context, pI, pS, mI, mSav, mS, fireNum, sRate, pAge, pSuper, hasPartner, situationInputs, planInputs: _planInputs };
   }
   const PLAN_INVALID = "Please check your numbers: we need what you spend (take-home less savings) to work out your freedom number.";

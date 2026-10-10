@@ -406,7 +406,7 @@
   // Pay from the saved plan, if there is one: employer super (SG) and the tax rate on
   // investment income in the freedom date. This page doesn't ask for income, so without a
   // saved plan there's no SG and a 30% rate (FirePathEngine.freedomPlan).
-  let planIncome = { grossIncome: null, takeHomeMonthly: 0, partnerTakeHomeMonthly: 0 };
+  let planIncome = { grossIncome: null, takeHomeMonthly: 0, partnerTakeHomeMonthly: 0, ausShare: 0 };
 
   // The freedom date: the shared plan every FirePath page uses for its headline (savings
   // outside super until 60, then super too; your partner's from their 60).
@@ -417,14 +417,15 @@
     if (!E.freedomPlan || !(currentAge > 0)) return '';
     const plan = E.freedomPlan({
       age: currentAge, savings, monthlySavings, annualSpend, superBalance,
-      grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly,
+      grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, ausShare: planIncome.ausShare,
       partner: isCouple && partnerSuper > 0 ? { superBalance: partnerSuper, age: partnerAge, takeHomeMonthly: planIncome.partnerTakeHomeMonthly } : null
     });
     if (!plan.valid) return '';
-    const num = fmtM(plan.target);
-    if (plan.alreadyFree) return ` Counting the super you can already get to, you have your full freedom number of <strong>${num}</strong> (25× your spending).`;
-    if (!plan.reachable) return ` At this rate your savings don't reach your full freedom number of ${num} (25× your spending) within 100 years.`;
-    return ` At your current saving, you reach your full freedom number of ${num} (25× your spending) at about <strong>age ${plan.freedomAge}</strong>, in ${plan.freedomYear}${plan.phase === 'with-super' ? ', counting your super from 60' : ''}.`;
+    // Stopping before 60 plans on a safer rate (more than 25×): say which multiple it is.
+    const num = fmtM(plan.target), times = `${String(Math.round(25 * (plan.targetMultiple || 1) * 10) / 10)}× your spending${plan.targetMultiple > 1 ? ', as stopping early means it has to last longer' : ''}`;
+    if (plan.alreadyFree) return ` Counting the super you can already get to, you have your full freedom number of <strong>${num}</strong> (${times}).`;
+    if (!plan.reachable) return ` At this rate your savings don't reach your full freedom number of ${num} (${times}) within 100 years.`;
+    return ` At your current saving, you reach your full freedom number of ${num} (${times}) at about <strong>age ${plan.freedomAge}</strong>, in ${plan.freedomYear}${plan.phase === 'with-super' ? ', counting your super from 60' : ''}.`;
   }
 
   // What Centrelink would assess at pension age: the portfolio from the scenario age,
@@ -641,7 +642,7 @@
         inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance: superBalance || 0, partnerSuper: isCouple ? partnerSuper : 0, partnerAge: isCouple ? partnerAge : null,   // partner's super kept separate: it unlocks at their 60, not yours
           // For Freedom Options' freedom ages (FirePathEngine.freedomPlan): savings before debt
           // and the saved plan's pay, so its dates match the one on this page.
-          savings: portfolio, grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, partnerTakeHomeMonthly: planIncome.partnerTakeHomeMonthly },
+          savings: portfolio, grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, partnerTakeHomeMonthly: planIncome.partnerTakeHomeMonthly, ausShare: planIncome.ausShare },
         picture: todayPicture,
         savedAt: new Date().toISOString()
       }));
@@ -871,7 +872,7 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
         partnerAge = p.partner_age > 0 ? p.partner_age : null;
         // Same reading of the saved plan as Pro and Journey (FirePathEngine.planInputsFromProfile).
         const pi = window.FirePathEngine.planInputsFromProfile ? window.FirePathEngine.planInputsFromProfile(p) : null;
-        if (pi) planIncome = { grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: pi.partner ? pi.partner.takeHomeMonthly : 0 };
+        if (pi) planIncome = { grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: pi.partner ? pi.partner.takeHomeMonthly : 0, ausShare: pi.ausShare || 0 };
         if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
         if (filled && fromDevice) FirePathNext.showDeviceNote(document.getElementById('fpPlanNote'));
         else if (filled) document.getElementById('fpPlanNote').style.display = 'block';
