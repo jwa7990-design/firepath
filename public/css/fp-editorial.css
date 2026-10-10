@@ -211,3 +211,26 @@
 @media (prefers-reduced-motion: reduce) {
   .hp-rows > li, .hp-go { transition: none !important; }
 }
+
+/* ============================================================
+   Hierarchy helpers (additive; nothing above uses them).
+   .hp-more   a quiet disclosure: <details class="hp-more"><summary>More</summary>…</details>
+              or a <button class="hp-more-btn" aria-expanded> that shows hidden rows.
+   .hp-l3     detail text: a step smaller and lighter (ink-2).
+   .hp-inline-links  a single quiet line of text links.
+   ============================================================ */
+.hp-l3 { font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.hp-more > summary, .hp-more-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 0; list-style: none; cursor: pointer;
+  background: none; border: 0; font: 600 14.5px var(--font-ui); color: var(--ink-2);
+  text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 4px;
+}
+.hp-more > summary::-webkit-details-marker { display: none; }
+.hp-more > summary::after, .hp-more-btn::after { content: '+'; font-weight: 400; font-size: 17px; line-height: 1; text-decoration: none; transition: transform var(--dur-base) var(--ease); }
+.hp-more[open] > summary::after, .hp-more-btn[aria-expanded="true"]::after { transform: rotate(45deg); }
+.hp-more > summary:hover, .hp-more-btn:hover { color: var(--ink); text-decoration-color: var(--ink); }
+.hp-more > summary:focus-visible, .hp-more-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+.hp-inline-links { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 22px; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.hp-inline-links a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.hp-inline-links a:hover { text-decoration-color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .hp-more > summary::after, .hp-more-btn::after { transition: none !important; } }

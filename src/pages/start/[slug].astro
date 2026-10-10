@@ -17,6 +17,19 @@ export function getStaticPaths() {
 const { page: p } = Astro.props as { page: StartPage };
 const reads = p.articles.map(s => ARTICLES.find(a => a.slug === s)).filter(Boolean);
 const others = STARTS.filter(x => x.slug !== p.slug);
+// Hierarchy: each step shows its first sentence; the rest (and its link) sits behind "More".
+// Links to the free calculator are dropped from the steps: the page's one button already goes there.
+const firstSentence = (t: string): [string, string] => {
+  const m = t.match(/^(.+?[.!?][”’]?)\s+(?=[A-Z“‘])([\s\S]*)$/);
+  return m ? [m[1], m[2]] : [t, ''];
+};
+const steps = p.steps.map(s => {
+  const [line, rest] = firstSentence(s.body);
+  const link = s.href && !/^\/firepath(\b|$)/.test(s.href) ? { href: s.href, cta: s.cta } : null;
+  return { title: s.title, line, rest, link };
+});
+const TOP = 3;
+const readsTop = reads.slice(0, TOP), readsRest = reads.slice(TOP);
 const url = `https://www.firepath.pro/start/${p.slug}`;
 const schema = [
   { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: p.faq.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) },
@@ -50,14 +63,20 @@ const schema = [
         <div class="hp-side-head">
           <h2 id="steps-title" class="hp-h2 is-mid">What to do, in order</h2>
         </div>
-        <ol class="hp-side-main mk-steps start-steps">
-          {p.steps.map((s, i) => (
+        <ol class="hp-side-main mk-steps start-steps start-steps-tight">
+          {steps.map((s, i) => (
             <li class="mk-step" data-reveal>
               <span class="mk-step-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <div>
                 <h3>{s.title}</h3>
-                <p>{s.body}</p>
-                {s.href && <a href={s.href} class="hp-link">{s.cta} →</a>}
+                <p class="start-step-line">{s.line}</p>
+                {s.rest ? (
+                  <details class="hp-more start-step-more">
+                    <summary>More<span class="hp-sr"> on “{s.title}”</span></summary>
+                    <p class="hp-l3">{s.rest}</p>
+                    {s.link && <a href={s.link.href} class="hp-link">{s.link.cta} →</a>}
+                  </details>
+                ) : s.link && <a href={s.link.href} class="hp-link start-step-link">{s.link.cta} →</a>}
               </div>
             </li>
           ))}
@@ -65,38 +84,49 @@ const schema = [
       </div>
     </section>
 
-    <section class="hp-sec is-sand start-tools" aria-labelledby="tools-title">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head">
-          <h2 id="tools-title" class="hp-h2 is-mid">Free tools for this</h2>
-          <p class="hp-body is-ink start-free"><span class="hp-mark is-ink" aria-hidden="true"></span>Free · no account</p>
+    <section class="hp-sec is-sand start-res" aria-label="Free tools and reading">
+      <div class="hp-wrap start-res-grid">
+        <div class="start-res-col start-tools">
+          <div class="start-res-head">
+            <h2 id="tools-title" class="hp-h2 is-mid">Free tools for this</h2>
+            <p class="hp-body is-ink start-free"><span class="hp-mark is-ink" aria-hidden="true"></span>Free · no account</p>
+          </div>
+          <ul class="start-list hp-rows" aria-labelledby="tools-title">
+            {p.tools.map(t => (
+              <li><a href={t.href} class="start-item">
+                <span class="start-item-title">{t.name}</span>
+                <span class="start-item-meta">{t.line}</span>
+                <span class="start-item-go hp-go" aria-hidden="true">→</span>
+              </a></li>
+            ))}
+          </ul>
         </div>
-        <ul class="hp-rules hp-rows">
-          {p.tools.map(t => (
-            <li><a href={t.href} class="hp-rule">
-              <span class="hp-rule-name">{t.name}</span>
-              <span class="hp-rule-line">{t.line}</span>
-              <span class="hp-rule-go" aria-hidden="true">→</span>
-            </a></li>
-          ))}
-        </ul>
-      </div>
-    </section>
-
-    <section class="hp-sec" aria-labelledby="reads-title">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head">
-          <h2 id="reads-title" class="hp-h2 is-mid">Read next</h2>
+        <div class="start-res-col">
+          <div class="start-res-head">
+            <h2 id="reads-title" class="hp-h2 is-mid">Read next</h2>
+          </div>
+          <ul class="start-list hp-rows" aria-labelledby="reads-title">
+            {readsTop.map(a => a && (
+              <li><a href={`/learn/${a.slug}`} class="start-item" title={a.description}>
+                <span class="start-item-title">{a.heading}</span>
+                <span class="start-item-meta num">{a.readMins} min read</span>
+              </a></li>
+            ))}
+          </ul>
+          {readsRest.length > 0 && (
+            <details class="hp-more start-reads-more">
+              <summary>Show all {reads.length}</summary>
+              <ul class="start-list hp-rows">
+                {readsRest.map(a => a && (
+                  <li><a href={`/learn/${a.slug}`} class="start-item" title={a.description}>
+                    <span class="start-item-title">{a.heading}</span>
+                    <span class="start-item-meta num">{a.readMins} min read</span>
+                  </a></li>
+                ))}
+              </ul>
+            </details>
+          )}
         </div>
-        <ul class="hp-side-main start-reads hp-rows">
-          {reads.map(a => a && (
-            <li><a href={`/learn/${a.slug}`} class="start-read">
-              <span class="start-read-title">{a.heading}</span>
-              <span class="start-read-line">{a.description}</span>
-              <span class="start-read-meta num">{a.readMins} min read</span>
-            </a></li>
-          ))}
-        </ul>
       </div>
     </section>
 
@@ -116,17 +146,6 @@ const schema = [
       </div>
     </section>
 
-    <section class="hp-sec is-sand start-others" aria-labelledby="others-title">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head">
-          <h2 id="others-title" class="hp-h2 is-mid">Not quite you?</h2>
-        </div>
-        <ul class="hp-side-main mk-doors start-doors">
-          {others.map(o => <li><a href={`/start/${o.slug}`}>{o.door}</a></li>)}
-        </ul>
-      </div>
-    </section>
-
     <section class="hp-sec is-dark start-end" aria-labelledby="end-title">
       <div class="hp-wrap">
         <div class="mk-close">
@@ -136,6 +155,12 @@ const schema = [
           </div>
           <div class="mk-actions"><a href="/firepath" class="mk-btn">Find my freedom date</a></div>
         </div>
+        <nav class="start-also" aria-labelledby="others-title">
+          <h2 id="others-title" class="start-also-label">Not quite you?</h2>
+          <ul class="hp-inline-links">
+            {others.map(o => <li><a href={`/start/${o.slug}`}>{o.door}</a></li>)}
+          </ul>
+        </nav>
         <p class="mk-note">FirePath is educational, not financial advice. Rules and figures are Australian and current for {new Date().getFullYear()}.</p>
       </div>
     </section>

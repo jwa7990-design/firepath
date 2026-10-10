@@ -15,7 +15,6 @@ export function getStaticPaths() {
   return ARTICLES.map(a => ({ params: { slug: a.slug }, props: { article: a } }));
 }
 const { article: a } = Astro.props as { article: Article };
-const related = relatedTo(a);
 const showToc = a.sections.length >= 3;
 const cleanHref = (h: string) => h.replace(/\.html$/, '');
 const tryLinks = a.cta?.links?.length ? a.cta.links : [{ href: '/firepath', label: 'Find my freedom date' }];
@@ -23,6 +22,22 @@ const tryLinks = a.cta?.links?.length ? a.cta.links : [{ href: '/firepath', labe
 // Label them so a free reader isn't surprised, and offer the free calculator alongside.
 const isProHref = (h: string) => /^\/?(tax_pro|tax|firepath_pro|journey|strategy|money)(\.html)?([?#].*)?$/.test(h);
 const hasProLink = tryLinks.some(l => isProHref(l.href));
+// Keep reading: the article's own "See also" links first, then related articles, top 3, no repeats.
+// (See also used to be a separate list at the end of the article.)
+const slugOf = (h: string) => (h.match(/^\/learn\/([^/?#]+?)(?:\.html)?(?:[?#].*)?$/) || [])[1];
+const keep: { href: string; title: string; meta: string }[] = [];
+for (const l of a.seeAlso || []) {
+  const s = slugOf(l.href);
+  const art = s ? ARTICLES.find(x => x.slug === s) : null;
+  if (s && s === a.slug) continue;
+  if (art) keep.push({ href: `/learn/${art.slug}`, title: art.heading, meta: `${art.badge} · ${art.readMins} min read` });
+  else if (!tryLinks.some(t => cleanHref(t.href) === cleanHref(l.href))) keep.push({ href: cleanHref(l.href), title: l.label, meta: 'Free tool' });   // skip if the try-it section already links there
+}
+for (const r of relatedTo(a, 6)) {
+  if (keep.length >= 3) break;
+  if (!keep.some(k => k.href === `/learn/${r.slug}`)) keep.push({ href: `/learn/${r.slug}`, title: r.heading, meta: `${r.badge} · ${r.readMins} min read` });
+}
+const related = keep.slice(0, 3);
 const schema = {
   '@context': 'https://schema.org', '@type': 'Article',
   headline: a.heading, description: a.description,
@@ -75,14 +90,6 @@ const breadcrumbs = {
       <article class="doc-content art-content">
         <div class="article-body" set:html={a.body}></div>
 
-        {a.seeAlso && (
-          <div class="art-seealso">
-            <p class="art-list-tag">See also</p>
-            <ul class="art-links">{a.seeAlso.map(l => <li><a href={cleanHref(l.href)}>{l.label}<span aria-hidden="true">→</span></a></li>)}</ul>
-          </div>
-        )}
-
-
         <p class="art-disclaimer">FirePath is here to help you learn. Nothing on this page is financial advice. Everyone’s situation is different, so for advice on yours, talk to a licensed financial adviser.</p>
       </article>
     </div>
@@ -116,10 +123,10 @@ const breadcrumbs = {
         </div>
         <ol class="art-related-list hp-rows hp-side-main">
           {related.map((r, i) => (
-            <li><a href={`/learn/${r.slug}`} class="art-related-card">
+            <li><a href={r.href} class="art-related-card">
               <span class="art-related-num hp-ember num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-              <span class="art-related-title">{r.heading}</span>
-              <span class="art-related-meta num">{r.badge} · {r.readMins} min read</span>
+              <span class="art-related-title">{r.title}</span>
+              <span class="art-related-meta num">{r.meta}</span>
               <span class="art-related-go hp-go" aria-hidden="true">→</span>
             </a></li>
           ))}

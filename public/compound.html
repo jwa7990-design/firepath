@@ -95,6 +95,28 @@
   .cost-banner-value { color: var(--hp-accent); font-size: clamp(64px, 9vw, 112px); line-height: 0.92; letter-spacing: -0.04em; margin: 10px 0 12px; }
   .cost-banner-sub { font-size: 15px; }
 
+  /* ── Hierarchy pass ──
+     The live column leads with the final figure and what it's made of, then three key
+     milestones (years 10, 20, 30) as one-line rows. "Show every milestone" brings back
+     every row with its bar, split and note. CSS only hides; the maths is unchanged. */
+  .tl-out .milestone-card:last-child .milestone-breakdown { justify-content: flex-start; gap: 4px 0; }
+  .tl-out .milestone-card:last-child .breakdown-compound::before { content: '·'; padding: 0 10px; font-weight: 400; color: var(--ink-2); }
+  .tl-out .milestone-card:last-child .milestone-insight { font-size: 15px; color: var(--ink-2); }
+  .tl-out .milestones:not(.is-all) .milestone-card:not(:last-child):not(.is-key) { display: none; }
+  .tl-out .milestones:not(.is-all) { border-bottom: var(--hp-rule); }
+  .tl-out .milestones:not(.is-all) .milestone-card:last-child { padding-bottom: 26px; border-bottom: 0; }
+  .tl-out .milestones:not(.is-all) .milestone-card.is-key:not(:last-child) { padding: 13px 0; border-bottom: 0; border-top: var(--hp-rule); }
+  .tl-out .milestones:not(.is-all) .milestone-card.is-key:not(:last-child) :is(.milestone-bar-wrap, .milestone-breakdown, .milestone-insight) { display: none; }
+  .tl-out .milestones:not(.is-all) .milestone-card.is-key:not(:last-child) .milestone-year { font-size: 14px; }
+  .tl-out .milestones:not(.is-all) .milestone-card.is-key:not(:last-child) .milestone-total { font-size: clamp(21px, 2.2vw, 25px); }
+  .tl-out .milestones:not(.is-all) .milestone-card:only-child { padding-bottom: 0; }
+  .tl-ms-more { margin-top: 14px; }
+  .tl-ms-more[hidden] { display: none; }
+  /* One next-step section (dark); the general-advice line shows once, in the disclaimer below it */
+  .tl-next .fp-next-advice { display: none; }
+  .tl-next .fp-next-foot { border-top: 0; padding-top: 4px; }
+  @media (min-width: 900px) { .tl-next .tl-disclaimer { margin-left: calc((100% - 264px) * 5 / 12 + 120px); } }
+
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { .milestones { animation: none; } }
 </style>
@@ -179,7 +201,7 @@
         <div class="hp-fig tl-fig" aria-live="polite">
           <div class="hp-label">How it grows, year by year</div>
           <div id="resultsEmpty"><p class="tl-empty">Add your age and what you invest to see it grow.</p></div>
-          <div id="resultsLive" style="display:none;"><div class="milestones" id="milestonesContainer"></div></div>
+          <div id="resultsLive" style="display:none;"><div class="milestones" id="milestonesContainer"></div><button type="button" class="hp-more-btn tl-ms-more" id="msMore" aria-expanded="false" aria-controls="milestonesContainer" hidden>Show every milestone</button></div>
         </div>
       </div>
     </div>
@@ -220,24 +242,13 @@
       </div>
     </section>
 
-    <section class="hp-number">
-      <div class="hp-wrap hp-half">
-        <div>
-          <div class="hp-label">Next</div>
-          <h2 class="tl-band-line">So what could it pay you?</h2>
-        </div>
-        <div>
-          <p class="tl-band-text">Once it’s built, how much could it pay you each year, and would it last? The Withdrawal planner works that out.</p>
-          <a class="tl-band-link" href="withdrawal.html">Open the Withdrawal planner →</a>
-        </div>
-      </div>
-    </section>
-
-    <section class="hp-sec tl-next">
+    <!-- One next step: the old dark "So what could it pay you?" band (→ Withdrawal planner)
+         is merged here; "Living off what you've built" makes the same point as its first item. -->
+    <section class="hp-sec is-dark tl-next">
       <div class="hp-wrap">
         <!-- What next for you — filled by js/next-steps.js -->
         <div id="fpNextSteps"></div>
-        <p class="tl-disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections assume steady returns, after inflation, so every figure is in today's money. Actual returns vary from year to year.</p>
+        <p class="tl-disclaimer">Projections assume steady returns, after inflation, so every figure is in today's money. Actual returns vary from year to year. FirePath is an educational tool. General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
       </div>
     </section>
   </div>
@@ -311,6 +322,14 @@
     FirePathNext.render(document.getElementById('fpNextSteps'), { exclude: '/compound', situation });
   }
   document.addEventListener('DOMContentLoaded', () => fpPrefillFromPlan().then(fpRenderNext, fpRenderNext));
+
+  // "Show every milestone": every row, with its bar, split and note. Stays open across recalculations.
+  document.getElementById('msMore').addEventListener('click', function () {
+    const open = this.getAttribute('aria-expanded') !== 'true';
+    this.setAttribute('aria-expanded', String(open));
+    this.textContent = open ? 'Show fewer milestones' : 'Show every milestone';
+    document.getElementById('milestonesContainer').classList.toggle('is-all', open);
+  });
 
   function setCycle(btn) {
     document.querySelectorAll('.cycle-btn').forEach(b => b.classList.remove('active'));
@@ -418,10 +437,11 @@
       const compoundPct = total > 0 ? (compound / total) * 100 : 0;
       const youPct      = 100 - compoundPct;
       const isHighlight = years === 20 || years === 30;
+      const isKey       = years === 10 || years === 20 || years === 30;   // shown before "Show every milestone"
       const insight     = getInsight(years, contributed, total, currentAge);
 
       const card = document.createElement('div');
-      card.className = 'milestone-card' + (isHighlight ? ' highlight' : '');
+      card.className = 'milestone-card' + (isHighlight ? ' highlight' : '') + (isKey ? ' is-key' : '');
       card.innerHTML = `
         <div class="milestone-head">
           <div class="milestone-year">Year ${years} — Age ${currentAge}</div>
@@ -441,6 +461,8 @@
       `;
       container.appendChild(card);
     });
+
+    document.getElementById('msMore').hidden = container.children.length < 2;
 
     // Cost of waiting
     const yearsTo60 = Math.max(0, 60 - age);
