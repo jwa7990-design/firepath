@@ -235,26 +235,33 @@
     if (!PLAN) return null;
     const s = PLAN.situation, q = question.toLowerCase();
     const base = s.yearsToFree;
+    // "After" figures on the same plan as the "before" one (FirePathMoves.planYears →
+    // FirePathEngine.freedomPlan); the simple timeline only if the engine isn't there.
+    const yearsWith = (over, fallback) => { const y = FirePathMoves.planYears ? FirePathMoves.planYears(s, over) : undefined; return y !== undefined ? y : fallback(); };
     let m = q.match(new RegExp(`save.*?${AMOUNT}\\s*(a|per|each|every)?\\s*(week|fortnight|month)`));
     if (m) {
       const extra = perMonth(parseAmount(m[1], m[2]), m[4]);
-      const after = FirePathMoves.yearsTo(s.freedomNumber, s.accessibleSavings, (s.savingsMonthly || 0) + extra, 0.07);
-      return `Saving an extra ${money(extra)} a month: freedom in ${yrs(after)} instead of ${yrs(base)} (7% a year after inflation, today's dollars).`;
+      const after = yearsWith({ monthlySavings: (s.savingsMonthly || 0) + extra }, () => FirePathMoves.yearsTo(s.freedomNumber, s.accessibleSavings, (s.savingsMonthly || 0) + extra, 0.07));
+      return `Saving an extra ${money(extra)} a month: freedom in ${yrs(after)} instead of ${yrs(base)} (same plan as your date: 7% a year after inflation less tax, super from 60, today's dollars).`;
     }
     m = q.match(new RegExp(`spend.*?${AMOUNT}\\s*less\\s*(a|per|each|every)?\\s*(week|fortnight|month)`));
     if (m) {
       const cut = perMonth(parseAmount(m[1], m[2]), m[4]);
       const newTarget = Math.max(0, s.freedomNumber - cut * 12 * 25 * (s.retirementSpendMultiplier || 1));
-      const after = FirePathMoves.yearsTo(newTarget, s.accessibleSavings, (s.savingsMonthly || 0) + cut, 0.07);
+      const after = yearsWith({ target: newTarget, monthlySavings: (s.savingsMonthly || 0) + cut }, () => FirePathMoves.yearsTo(newTarget, s.accessibleSavings, (s.savingsMonthly || 0) + cut, 0.07));
       return `Spending ${money(cut)} a month less (and saving it): freedom number ${money(newTarget)}, reached in ${yrs(after)} instead of ${yrs(base)}.`;
     }
     m = q.match(/retire.*?\b(\d{2})\b|\b(\d{2})\b.*?(retire|retirement)/);
     if (m && s.age) {
       const target = parseInt(m[1] || m[2], 10), years = target - s.age;
       if (years > 0 && years < 60) {
-        const at = FirePathEngine.projectPortfolio(s.accessibleSavings, s.savingsMonthly || 0, years, 0.07);
-        const income = at * 0.04, spend = s.freedomNumber / 25;
-        return `Retiring at ${target} (in ${years} years): savings outside super reach about ${money(at)}, paying ${money(income)} a year at 4% vs ${money(spend)} needed — ${income >= spend ? 'enough' : 'a shortfall of ' + money(spend - income) + ' a year'}.` + (target < 60 && s.superBalance > 0 ? ' Super stays locked until 60, so it can\'t help before then.' : '');
+        // The plan's after-tax return, and the safer withdrawal rate for that stopping age.
+        const head = PLAN.profile && FirePathEngine.planInputsFromProfile ? FirePathEngine.freedomPlan(Object.assign({}, FirePathEngine.planInputsFromProfile(PLAN.profile), { safeRate: false })) : null;
+        const rate = head && head.valid && Number.isFinite(head.outsideReturn) ? head.outsideReturn : 0.07;
+        const wr = FirePathEngine.safeWithdrawalRate ? FirePathEngine.safeWithdrawalRate(target) : 0.04;
+        const at = FirePathEngine.projectPortfolio(s.accessibleSavings, s.savingsMonthly || 0, years, rate);
+        const income = at * wr, spend = s.freedomNumber / 25;
+        return `Retiring at ${target} (in ${years} years): savings outside super reach about ${money(at)}, paying ${money(income)} a year at ${Math.round(wr * 1000) / 10}% (a safer rate the earlier you stop) vs ${money(spend)} needed — ${income >= spend ? 'enough' : 'a shortfall of ' + money(spend - income) + ' a year'}.` + (target < 60 && s.superBalance > 0 ? ' Super stays locked until 60, so it can\'t help before then.' : '');
       }
     }
     return null;

@@ -353,14 +353,20 @@
     // accumulation isn't counted until they reach pension age themselves.
     const partnerAt67 = partner ? (partnerAge || age) + y67 : null;
     const supers = (superBalance || 0) + (partner && partnerAt67 >= E.PENSION_AGE ? partnerSuper : 0);
-    const pensionAssets = projectPortfolio(portfolio, 0, y67) + (supers > 0 ? projectPortfolio(supers, 0, y67, E.SUPER_RETURN) : 0);
-    const picture = E.computeFreedomPicture({ portfolio, annualSpend, isHomeowner, isCouple, pensionAssets });
+    const ci0 = currentInputs;
+    // Growth outside super: the same after-tax return as the date (not a flat 7%).
+    const rateP = E.freedomPlan({ age, savings: 1, monthlySavings: 0, target: 1e12, safeRate: false, grossIncome: ci0.grossIncome, takeHomeMonthly: ci0.takeHomeMonthly, ausShare: ci0.ausShare || 0 });
+    const outRate = rateP.valid && Number.isFinite(rateP.outsideReturn) ? rateP.outsideReturn : 0.07;
+    const pensionAssets = projectPortfolio(portfolio, 0, y67, outRate) + (supers > 0 ? projectPortfolio(supers, 0, y67, E.SUPER_RETURN) : 0);
+    const pictureInputs = { portfolio, annualSpend, isHomeowner, isCouple, pensionAssets, rentFortnight: ci0.rentFortnight || 0 };
+    const picture = E.computeFreedomPicture(pictureInputs);
     const portfolioIncomeToday = picture.portfolioIncome;
     const gapToday = picture.gap;
     const pensionAnnualToday = picture.pensionAnnual;
     const gapAfterPensionToday = picture.gapAfterPension;
     // The pension isn't paid until 67, so anything "starting today" uses the full gap before then.
-    const gapNow = age >= E.PENSION_AGE ? gapAfterPensionToday : gapToday;
+    // From 67, work income also lowers the pension (after the Work Bonus): work needed comes from the engine.
+    const gapNow = age >= E.PENSION_AGE ? picture.workNeeded : gapToday;
     const freedomPctToday = picture.freedomPct;
     // The freedom plan's inputs, exactly as Freedom gap built its date: savings before debt
     // (like every page), super, your partner's super from their own 60, and the saved plan's pay.
@@ -368,6 +374,7 @@
     const planInputs = {
       age, savings: ci.savings, monthlySavings, annualSpend, superBalance,
       grossIncome: ci.grossIncome, takeHomeMonthly: ci.takeHomeMonthly, ausShare: ci.ausShare || 0,
+      superInsurance: ci.superInsurance || 0, employerSuperRate: ci.employerSuperRate || null, mortgage: ci.mortgage || null,
       partner: isCouple && partnerSuper > 0 ? { superBalance: partnerSuper, age: partnerAge, takeHomeMonthly: ci.partnerTakeHomeMonthly } : null
     };
     const inp = { portfolio, annualSpend, age, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance, partner, planInputs, portfolioIncomeToday, gapToday, pensionAnnualToday, gapAfterPensionToday, gapNow, freedomPctToday };

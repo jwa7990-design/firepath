@@ -406,7 +406,15 @@
   // Pay from the saved plan, if there is one: employer super (SG) and the tax rate on
   // investment income in the freedom date. This page doesn't ask for income, so without a
   // saved plan there's no SG and a 30% rate (FirePathEngine.freedomPlan).
-  let planIncome = { grossIncome: null, takeHomeMonthly: 0, partnerTakeHomeMonthly: 0, ausShare: 0 };
+  let planIncome = { grossIncome: null, takeHomeMonthly: 0, partnerTakeHomeMonthly: 0, ausShare: 0, superInsurance: 0, employerSuperRate: null, mortgage: null, rentFortnight: 0 };
+  // Growth on savings outside super: the same after-tax return as every page's date
+  // (7% less tax on the income it pays, plus franking), not a flat 7%.
+  function outsideRate(age) {
+    const E = window.FirePathEngine;
+    const p = E.freedomPlan({ age: age > 0 ? age : null, savings: 1, monthlySavings: 0, target: 1e12, safeRate: false,
+      grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, ausShare: planIncome.ausShare });
+    return p.valid && Number.isFinite(p.outsideReturn) ? p.outsideReturn : 0.07;
+  }
 
   // The freedom date: the shared plan every FirePath page uses for its headline (savings
   // outside super until 60, then super too; your partner's from their 60).
@@ -418,6 +426,7 @@
     const plan = E.freedomPlan({
       age: currentAge, savings, monthlySavings, annualSpend, superBalance,
       grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, ausShare: planIncome.ausShare,
+      superInsurance: planIncome.superInsurance, employerSuperRate: planIncome.employerSuperRate, mortgage: planIncome.mortgage,
       partner: isCouple && partnerSuper > 0 ? { superBalance: partnerSuper, age: partnerAge, takeHomeMonthly: planIncome.partnerTakeHomeMonthly } : null
     });
     if (!plan.valid) return '';
@@ -437,7 +446,7 @@
     const portfolioYears = Math.max(0, assessAge - (scenarioAge || 0));
     const superYears = Math.max(0, assessAge - (currentAge || scenarioAge || 0));
     const supers = superBalance + (isCouple ? partnerSuper : 0);
-    return E.projectPortfolio(portfolioAtScenario, 0, portfolioYears)
+    return E.projectPortfolio(portfolioAtScenario, 0, portfolioYears, outsideRate(currentAge))
       + (supers > 0 ? E.projectPortfolio(supers, 0, superYears, E.SUPER_RETURN) : 0);
   }
 
@@ -506,7 +515,7 @@
     const targetAgeNote = document.getElementById('targetAgeNote');
     if (targetAge && currentAge > 0 && targetAge > currentAge) {
       const yearsToTarget = targetAge - currentAge;
-      effectivePortfolio = Math.round(window.FirePathEngine.projectPortfolio(netPortfolio, monthlySavings, yearsToTarget, 0.07));
+      effectivePortfolio = Math.round(window.FirePathEngine.projectPortfolio(netPortfolio, monthlySavings, yearsToTarget, outsideRate(currentAge)));
       targetAgeNote.style.display = 'block';
       targetAgeNote.innerHTML = `Showing your picture at age <strong style="color:var(--ink)">${targetAge}</strong>. Your investments could grow to <strong style="color:var(--ink)">${fmtM(effectivePortfolio)}</strong> by then (7% growth${monthlySavings > 0 ? ' + your ongoing savings' : ''}).`;
       document.getElementById('resetTargetAgeBtn').style.display = 'inline-block';
@@ -517,7 +526,8 @@
 
     const scenarioAge = targetAge || currentAge;
     const pensionAssets = pensionAssetsAt(effectivePortfolio, superBalance, currentAge, scenarioAge);
-    const freedomPicture = window.FirePathEngine.computeFreedomPicture(Object.assign({ portfolio: effectivePortfolio, annualSpend, isHomeowner, isCouple, pensionAssets }, partnerPensionInputs(currentAge, scenarioAge)));
+    const pictureInputs = Object.assign({ portfolio: effectivePortfolio, annualSpend, isHomeowner, isCouple, pensionAssets, rentFortnight: planIncome.rentFortnight }, partnerPensionInputs(currentAge, scenarioAge));
+    const freedomPicture = window.FirePathEngine.computeFreedomPicture(pictureInputs);
     const { portfolioIncome, gap, pensionAnnual, pensionWeekly, gapAfterPension, freedomPct } = freedomPicture;
     // The pension is only paid from 67 — before that, the gap work has to close is the full gap.
     const pensionApplies = scenarioAge >= 67;
@@ -557,7 +567,10 @@
 
     // Your Freedom Story — a deterministic, always-visible summary. No AI call needed to
     // get the page's core insight; the AI outlook below is an optional deeper layer on top.
-    const hoursToCloseAfterPension = hourlyRate > 0 ? niceHours(gapNow / hourlyRate / 52) : null;
+    // Once the pension is paid, work income reduces it (after the Work Bonus), so the work
+    // needed comes from the engine, not the gap alone.
+    const workToClose = pensionApplies ? freedomPicture.workNeeded : gapNow;
+    const hoursToCloseAfterPension = hourlyRate > 0 ? niceHours(workToClose / hourlyRate / 52) : null;
     let story = `Your investments already cover <strong>${freedomPct}%</strong> of your annual spending — ${fmtM(portfolioIncome)} of the ${fmtM(annualSpend)} you expect to need.`;
     story += freedomDateLine(currentAge, portfolio, monthlySavings, annualSpend, superBalance);   // same date as every page: debt not taken off
     if (pensionAnnual > 0) {
@@ -619,7 +632,7 @@
 
     lastGapCalc = {
       inputs: { portfolio: effectivePortfolio, annualSpend, hourlyRate, currentAge, scenarioAge },
-      freedomPicture: freedomPicture,
+      freedomPicture: freedomPicture, pictureInputs,
       gapNow, pensionApplies,
       targetAge: targetAge || null,
       workBonusHours: null
@@ -642,7 +655,8 @@
         inputs: { portfolio: netPortfolio, annualSpend, age: currentAge, monthlySavings, hourlyRate, isHomeowner, isCouple, superBalance: superBalance || 0, partnerSuper: isCouple ? partnerSuper : 0, partnerAge: isCouple ? partnerAge : null,   // partner's super kept separate: it unlocks at their 60, not yours
           // For Freedom Options' freedom ages (FirePathEngine.freedomPlan): savings before debt
           // and the saved plan's pay, so its dates match the one on this page.
-          savings: portfolio, grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, partnerTakeHomeMonthly: planIncome.partnerTakeHomeMonthly, ausShare: planIncome.ausShare },
+          savings: portfolio, grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, partnerTakeHomeMonthly: planIncome.partnerTakeHomeMonthly, ausShare: planIncome.ausShare,
+          superInsurance: planIncome.superInsurance, employerSuperRate: planIncome.employerSuperRate, mortgage: planIncome.mortgage, rentFortnight: planIncome.rentFortnight },
         picture: todayPicture,
         savedAt: new Date().toISOString()
       }));
@@ -687,7 +701,10 @@
     const { hourlyRate } = lastGapCalc.inputs;
     const weeklyWorkIncome = hours * hourlyRate;
     const annualWorkIncome = weeklyWorkIncome * 52;
-    const remainingGap = Math.max(0, gap - annualWorkIncome);
+    // With the pension, work income also lowers the pension (after the Work Bonus).
+    const remainingGap = pensionApplies && lastGapCalc.pictureInputs
+      ? Math.max(0, lastGapCalc.inputs.annualSpend - lastGapCalc.freedomPicture.portfolioIncome - annualWorkIncome - window.FirePathEngine.pensionWithWork(lastGapCalc.pictureInputs, annualWorkIncome).annual)
+      : Math.max(0, gap - annualWorkIncome);
     const resultEl = document.getElementById('g-hoursResult');
 
     // Age Pension Work Bonus: the first $300/fortnight of employment income isn't counted
@@ -872,7 +889,13 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
         partnerAge = p.partner_age > 0 ? p.partner_age : null;
         // Same reading of the saved plan as Pro and Journey (FirePathEngine.planInputsFromProfile).
         const pi = window.FirePathEngine.planInputsFromProfile ? window.FirePathEngine.planInputsFromProfile(p) : null;
-        if (pi) planIncome = { grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: pi.partner ? pi.partner.takeHomeMonthly : 0, ausShare: pi.ausShare || 0 };
+        if (pi) {
+          // Everything the saved plan (and its note) says, so this page's date matches the others.
+          const facts = window.FirePathEngine.noteFacts ? window.FirePathEngine.noteFacts(p.context) : {};
+          planIncome = { grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: pi.partner ? pi.partner.takeHomeMonthly : 0, ausShare: pi.ausShare || 0,
+            superInsurance: pi.superInsurance || 0, employerSuperRate: pi.employerSuperRate || null, mortgage: pi.mortgage || null,
+            rentFortnight: p.housing_status === 'renting' && facts.rentMonthly > 0 ? facts.rentMonthly * 12 / 26 : 0 };
+        }
         if (p.housing_status) setHomeowner(p.housing_status !== 'renting');
         if (filled && fromDevice) FirePathNext.showDeviceNote(document.getElementById('fpPlanNote'));
         else if (filled) document.getElementById('fpPlanNote').style.display = 'block';

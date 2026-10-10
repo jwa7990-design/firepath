@@ -888,19 +888,41 @@ window.FirePathEngine = (function () {
     const rate = withdrawalRate == null ? 0.04 : withdrawalRate;
     const portfolioIncome = portfolio * rate;
     const gap = Math.max(0, annualSpend - portfolioIncome);
-    let pensionAnnual = 0, pensionWeekly = 0;
-    if (pensionAvailable()) {
-      try {
-        const opts = isCouple && partnerEligible != null ? { partnerEligible: !!partnerEligible, partnerSuper: partnerSuper || 0 } : undefined;
-        const pension = calculateAgePension(pensionAssets == null ? portfolio : pensionAssets, 0, isHomeowner, !!isCouple, undefined, opts);
-        pensionAnnual = pension.annualPension || 0;
-        pensionWeekly = pension.weeklyPension || 0;
-      } catch (e) {}
-    }
+    const p0 = pensionWithWork(inputs, 0);
+    const pensionAnnual = p0.annual, pensionWeekly = p0.weekly;
     const gapAfterPension = Math.max(0, gap - pensionAnnual);
     // floor, not round: 99.6% funded must not read as "100% — your portfolio funds it".
     const freedomPct = annualSpend > 0 ? Math.min(100, Math.floor((portfolioIncome / annualSpend) * 100)) : 0;
-    return { portfolioIncome, gap, pensionAnnual, pensionWeekly, gapAfterPension, freedomPct };
+    // Work to close the gap once the pension is paid: work income counts in the pension's
+    // income test (less the Work Bonus), so above that each $1 earned costs about 50c of
+    // pension and it takes more work than the gap alone suggests.
+    const workNeeded = workToClose(inputs, portfolioIncome);
+    return { portfolioIncome, gap, pensionAnnual, pensionWeekly, gapAfterPension, freedomPct, workNeeded };
+  }
+
+  // The Age Pension for these inputs with `work` $ a year of work income (Work Bonus and
+  // income test applied; renters' rentFortnight for Rent Assistance). 0 if unavailable.
+  function pensionWithWork(inputs, work) {
+    const { portfolio, isHomeowner, isCouple, pensionAssets, partnerEligible, partnerSuper, rentFortnight } = inputs;
+    if (!pensionAvailable()) return { annual: 0, weekly: 0 };
+    try {
+      const opts = Object.assign({ workIncome: Math.max(0, work || 0) },
+        isCouple && partnerEligible != null ? { partnerEligible: !!partnerEligible, partnerSuper: partnerSuper || 0 } : {},
+        !isHomeowner && rentFortnight > 0 ? { rentFortnight } : {});
+      const p = calculateAgePension(pensionAssets == null ? portfolio : pensionAssets, Math.max(0, work || 0), isHomeowner, !!isCouple, undefined, opts);
+      return { annual: p.annualPension || 0, weekly: p.weeklyPension || 0 };
+    } catch (e) { return { annual: 0, weekly: 0 }; }
+  }
+  // Yearly work income that, with the investments' income and the pension it leaves,
+  // covers the spending. 0 if nothing's needed.
+  function workToClose(inputs, portfolioIncome) {
+    const spend = inputs.annualSpend || 0;
+    const short = w => spend - portfolioIncome - w - pensionWithWork(inputs, w).annual;
+    if (short(0) <= 0) return 0;
+    let lo = 0, hi = Math.max(1, spend);
+    while (short(hi) > 0 && hi < spend * 4) hi *= 2;
+    for (let k = 0; k < 50 && hi - lo > 1; k++) { const mid = (lo + hi) / 2; if (short(mid) > 0) lo = mid; else hi = mid; }
+    return hi;
   }
  
   // ── Financial Snapshot Engine helpers ──
@@ -935,5 +957,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, formatTimeSince, compareSnapshots };
 })();

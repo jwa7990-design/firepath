@@ -546,3 +546,24 @@ test('the note reads rent (and not "current" or "parents")', () => {
   assert.equal(E.noteFacts('helping my parents $200 a week').rentMonthly, undefined);
   assert.equal(E.noteFacts('I pay $___ a week rent').rentMonthly, undefined);
 });
+
+test('no page works out a freedom date with the old simple 7% savings-only formula', () => {
+  // Check in, Tax & Strategy and Ask FirePath now use the shared plan.
+  const progress = read('progress.html'), tax = read('tax_pro.html'), ask = read('ask-firepath.html');
+  assert.ok(!/yearsToGoal\([^)]*0\.07\)/.test(progress), 'Check in');
+  assert.ok(progress.includes('function planYearsFor('), 'Check in uses the plan');
+  assert.ok(tax.includes('js/financial-engine.js') && tax.includes('E.freedomPlan(Object.assign({}, E.planInputsFromProfile(proProfile)'), 'Tax & Strategy');
+  assert.ok(ask.includes('FirePathMoves.planYears(s, over)'), 'Ask FirePath');
+  // Freedom gap and Freedom options grow savings at the plan's after-tax return.
+  assert.ok(!/projectPortfolio\([^)]*0\.07\)/.test(read('freedom-gap.html')), 'Freedom gap');
+});
+
+test('work after 67: the pension falls as you earn, so it takes more work than the gap alone', () => {
+  const inputs = { portfolio: 300000, annualSpend: 50000, isHomeowner: true, isCouple: false, pensionAssets: 300000 };
+  const pic = E.computeFreedomPicture(inputs);
+  assert.ok(pic.gapAfterPension > 0);
+  assert.ok(pic.workNeeded > pic.gapAfterPension, 'more than the gap after pension');
+  // And it actually closes the gap.
+  const short = pic.workNeeded + pic.portfolioIncome + E.pensionWithWork(inputs, pic.workNeeded).annual - 50000;
+  assert.ok(short >= -2 && short < 50, `closes the gap (${short})`);
+});

@@ -535,7 +535,7 @@
       document.getElementById('pathFill').style.width = pct + '%';
       document.getElementById('progressPct').textContent = pct + '%';
       document.getElementById('accPortfolio').textContent = fmtM(calcData.savings || 0);
-      const fy = yearsToGoal(calcData.fireNum, calcData.savings || 0, calcData.mSav || 0, 0.07);
+      const fy = planYearsFor(calcData.savings || 0, calcData.mSav || 0);
       document.getElementById('accYearsToGo').textContent = yearsToGoLabel(fy);
       document.getElementById('accFreedomDate').textContent = freedomDateLabel(fy);
       document.getElementById('ci-savings').value = calcData.savings || 0;
@@ -576,7 +576,7 @@
     if (yrs == null) {
       // Older commitments didn't store this — rebuild it from today's numbers.
       const commitMonthly = cd.cycle === 'weekly' ? cd.amount*52/12 : cd.cycle === 'fortnightly' ? cd.amount*26/12 : cd.amount;
-      yrs = calcData.fireNum ? yearsToGoal(calcData.fireNum, calcData.savings || 0, (calcData.mSav || 0) + commitMonthly, 0.07) : null;
+      yrs = calcData.fireNum ? planYearsFor(calcData.savings || 0, (calcData.mSav || 0) + commitMonthly) : null;
     }
     const days = (cd.totalDaysOff || 0) / Math.max(1, (yrs || 0) * checkinsPerYear);
     return days >= 1 ? Math.round(days * 10) / 10 : null;
@@ -590,8 +590,8 @@
     const fireNum = calcData.fireNum || 0;
     const savings = calcData.savings || 0;
     if (!fireNum) return null;
-    const currentYrs = yearsToGoal(fireNum, savings, currentMonthly, 0.07);
-    const newYrs = yearsToGoal(fireNum, savings, newTotalMonthly, 0.07);
+    const currentYrs = planYearsFor(savings, currentMonthly);
+    const newYrs = planYearsFor(savings, newTotalMonthly);
     if (currentYrs == null || newYrs == null) return null;
     const diff = currentYrs - newYrs;
     return diff > 0 ? diff : null;
@@ -690,8 +690,8 @@
     const newTotalMonthly = currentMonthly + commitMonthly;
     const fireNum = calcData.fireNum || 0;
     const savings = calcData.savings || 0;
-    const currentYrs = yearsToGoal(fireNum, savings, currentMonthly, 0.07);
-    const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
+    const currentYrs = planYearsFor(savings, currentMonthly);
+    const newYrs = fireNum > 0 ? planYearsFor(savings, newTotalMonthly) : null;
     const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
     const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
     const days = daysOff(diff);
@@ -711,8 +711,8 @@
     const newTotalMonthly = (calcData.mSav || 0) + commitMonthly;
     const fireNum = calcData.fireNum || 0;
     const savings = calcData.savings || 0;
-    const currentYrs = yearsToGoal(fireNum, savings, calcData.mSav || 0, 0.07);
-    const newYrs = fireNum > 0 ? yearsToGoal(fireNum, savings, newTotalMonthly, 0.07) : null;
+    const currentYrs = planYearsFor(savings, calcData.mSav || 0);
+    const newYrs = fireNum > 0 ? planYearsFor(savings, newTotalMonthly) : null;
     const diff = currentYrs && newYrs ? currentYrs - newYrs : null;
     const newDate = newYrs ? currentYear + Math.round(newYrs) : null;
     const days = daysOff(diff);
@@ -824,14 +824,14 @@
     if (calcData.fireNum) {
       const mSav = calcData.mSav || 0;
       const fireNum = calcData.fireNum;
-      ny = yearsToGoal(fireNum, newSavings, mSav, 0.07);
+      ny = planYearsFor(newSavings, mSav);
       pct = Math.min(Math.round((newSavings / fireNum) * 100), 100);
       document.getElementById('pathFill').style.width = pct + '%';
       document.getElementById('progressPct').textContent = pct + '%';
       document.getElementById('accPortfolio').textContent = fmtM(newSavings);
       document.getElementById('accYearsToGo').textContent = yearsToGoLabel(ny);
       document.getElementById('accFreedomDate').textContent = freedomDateLabel(ny);
-      const oy = yearsToGoal(fireNum, calcData.savings, mSav, 0.07);
+      const oy = planYearsFor(calcData.savings, mSav);
       // Time passing on plan isn't progress: the old projection already expected to be
       // this much closer by today. Only the part beyond that counts as "moved closer".
       // If we don't know when the old balance was recorded, don't claim a figure.
@@ -920,9 +920,12 @@
   function renderMilestones(fireNum, savings, mSav) {
     const c = document.getElementById('milestonesRoadmap'); if (!c) return;
     const ms = [0.25,0.5,0.75,1.0];
-    const ls = ['25%','50%','75%','Freedom!'];
+    const ls = ['25%','50%','75%','Work optional'];
+    // 25–75%: your savings growing at the plan's after-tax return. The last one is the
+    // date itself (super and all), the same as Your Path.
+    const rate = outsideRate();
     c.innerHTML = ms.map((p,i) => {
-      const t = fireNum*p, y = yearsToGoal(t,savings,mSav,0.07), yr = y ? currentYear+Math.round(y) : null, r = savings >= t;
+      const t = fireNum*p, y = p < 1 ? yearsToGoal(t,savings,mSav,rate) : planYearsFor(savings, mSav), yr = y != null ? currentYear+Math.round(y) : null, r = p < 1 ? savings >= t : y === 0;
       return `<div class="mem-ms${r ? ' is-done' : ''}">
         <span class="mem-ms-name"><span class="hp-mark${r ? '' : ' is-ink'}" aria-hidden="true"></span>${ls[i]} — ${fmtM(t)}</span>
         <span class="mem-ms-when">${r ? 'Done' : (yr ? yr : '100+ yrs')}</span></div>`;
@@ -1011,6 +1014,27 @@
     const base = planProfile && planProfile.freedom_number ? E.planInputsFromProfile(planProfile)
       : { age: calcData.age, monthlySavings: calcData.mSav || 0, target: calcData.fireNum, superBalance: calcData.superBal || 0 };
     return E.coastPoint(Object.assign({}, base, { savings }));
+  }
+
+  // Years to freedom on the same plan as every page's date (FirePathEngine.freedomPlan:
+  // super, tax, the safer rate, the note's figures), with savings and saving changed.
+  // null = not within 100 years (or no plan).
+  function planBase() {
+    const E = window.FirePathEngine;
+    return planProfile && planProfile.freedom_number ? E.planInputsFromProfile(planProfile)
+      : { age: calcData.age, monthlySavings: calcData.mSav || 0, target: calcData.fireNum, superBalance: calcData.superBal || 0 };
+  }
+  function planYearsFor(savings, monthly) {
+    const E = window.FirePathEngine;
+    if (!E || !E.freedomPlan || !calcData.fireNum) return null;
+    const p = E.freedomPlan(Object.assign({}, planBase(), { savings, monthlySavings: monthly }));
+    return p.valid ? p.years : null;
+  }
+  // Growth on savings outside super: the plan's after-tax return.
+  function outsideRate() {
+    const E = window.FirePathEngine;
+    const p = E && E.freedomPlan ? E.freedomPlan(Object.assign({}, planBase(), { safeRate: false })) : null;
+    return p && p.valid && Number.isFinite(p.outsideReturn) ? p.outsideReturn : 0.07;
   }
 
   function renderAchievementsAndTimeline(savings, freedomNumber, persona){

@@ -650,7 +650,7 @@
                   <span class="ob-label">In retirement, how much do you expect to spend?</span>
                   <span class="ob-hint ob-hint-block">This shapes your freedom number — there's no wrong answer.</span>
                   <div class="cycle-group is-sub">
-                    <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less<div class="cycle-sub">Mortgage paid, kids grown</div></button>
+                    <button class="cycle-btn" data-spend="0.8" onclick="setRetirementSpend(this)">Less<div class="cycle-sub">Kids grown, no work costs</div></button>
                     <button class="cycle-btn active" data-spend="1.0" onclick="setRetirementSpend(this)">Same<div class="cycle-sub">Similar lifestyle</div></button>
                     <button class="cycle-btn" data-spend="1.2" onclick="setRetirementSpend(this)">More<div class="cycle-sub">Travel, experiences</div></button>
                   </div>
@@ -1089,16 +1089,20 @@
   function adjustDependants(d){dependants=Math.max(0,Math.min(10,dependants+d));document.getElementById('dependantsVal').textContent=dependants;}
   // yearsToGoal, yearsToGoalCapped, fmt, fmtM, toMonthly and monthlyRate come from js/calculations.js.
 
-  // What money earns where it sits today — real returns built from the live RBA rates.
+  // What money earns where it sits today, after tax and inflation, on the same basis as the
+  // date: bank interest is taxed at your rate, an offset's saving is tax-free, and invested
+  // money earns the plan's after-tax return (7% less tax on its income, plus franking).
   function currentReturns(){
     const a=FP_ASSUMPTIONS,pct=x=>(x*100).toFixed(1);
+    const t=calcData&&calcData.plan&&Number.isFinite(calcData.plan.marginalRate)?calcData.plan.marginalRate:0.30;
+    const cash=a.savingsRate/100*(1-t)-a.cpi/100, inv=savingsReturn(), offset=a.offsetRealReturn, mix=(cash+offset+inv)/3;
     return {
-      rate:{cash:a.bankRealReturn,etfs:0.07,offset:a.offsetRealReturn,mix:a.mixRealReturn},
+      rate:{cash,etfs:inv,offset,mix},
       note:{
-        cash:`(${pct(a.bankRealReturn)}% real — bonus saver ${a.savingsRate}% less ${a.cpi}% inflation)`,
-        etfs:'(7% real return — already invested)',
-        offset:`(${pct(a.offsetRealReturn)}% real — mortgage rate ${a.mortgageRate}% less ${a.cpi}% inflation)`,
-        mix:`(${pct(a.mixRealReturn)}% real — an even blend of bank, offset and invested)`
+        cash:`(${pct(cash)}% after tax and inflation: bonus saver ${a.savingsRate}% less ${Math.round(t*100)}% tax, less ${a.cpi}% inflation)`,
+        etfs:`(${pct(inv)}% after tax and inflation — already invested)`,
+        offset:`(${pct(offset)}% after inflation, tax-free: mortgage rate ${a.mortgageRate}% less ${a.cpi}% inflation)`,
+        mix:`(${pct(mix)}% after tax and inflation — an even blend of bank, offset and invested)`
       }
     };
   }

@@ -384,6 +384,7 @@
 
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
+<script src="js/financial-engine.js"></script>
 <script>
   function fmtPct(r){return(r*100).toFixed(1)+'%';}
   // yearsToGoal comes from js/calculations.js (monthly rate (1+r)^(1/12)−1, not r/12).
@@ -785,9 +786,17 @@
     const t3Text = document.getElementById('t3ProInsightText');
     if (proProfile && proProfile.freedom_number && proProfile.savings_monthly != null) {
       const monthlyDiff = r.difference / 12;
-      const baseY = yearsToGoal(proProfile.freedom_number, proProfile.current_savings || 0, proProfile.savings_monthly, 0.07);
+      // On the same plan as every page's date (FirePathEngine.freedomPlan), with what you
+      // save each month shifted by the yearly difference.
       const shiftedMonthly = r.offsetBetter ? proProfile.savings_monthly - monthlyDiff : proProfile.savings_monthly + monthlyDiff;
-      const newY = yearsToGoal(proProfile.freedom_number, proProfile.current_savings || 0, shiftedMonthly, 0.07);
+      const planYrs = monthly => {
+        const E = window.FirePathEngine;
+        if (!E || !E.freedomPlan) return yearsToGoal(proProfile.freedom_number, proProfile.current_savings || 0, monthly, 0.07);
+        const p = E.freedomPlan(Object.assign({}, E.planInputsFromProfile(proProfile), { monthlySavings: Math.max(0, monthly) }));
+        return p.valid ? p.years : null;
+      };
+      const baseY = planYrs(proProfile.savings_monthly);
+      const newY = planYrs(shiftedMonthly);
       const diffYrs = (baseY !== null && newY !== null) ? baseY - newY : null;
       if (r.offsetBetter) {
         t3Text.innerHTML = diffYrs !== null

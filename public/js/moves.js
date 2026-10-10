@@ -148,12 +148,17 @@ window.FirePathMoves = (function () {
   }
   function yearsOr(s, over, fallback) { const y = planYears(s, over); return y !== undefined ? y : fallback(); }
 
-  const rateFor = type => {
+  // What money earns where it sits, after tax and inflation (the same basis as the date):
+  // bank interest taxed at your rate, an offset's saving tax-free, invested money at the
+  // plan's after-tax return, a mix an even blend of the three.
+  const rateFor = (type, s) => {
     const A = window.FP_ASSUMPTIONS || {};
-    return type === 'cash' ? (A.bankRealReturn != null ? A.bankRealReturn : 0.0087)
-      : type === 'offset' ? (A.offsetRealReturn != null ? A.offsetRealReturn : 0.022)
-      : type === 'mix' ? (A.mixRealReturn != null ? A.mixRealReturn : 0.034)
-      : REAL;
+    const t = s && Number.isFinite(s.marginalRate) ? s.marginalRate : 0.30;
+    const cash = A.savingsRate > 0 && A.cpi != null ? A.savingsRate / 100 * (1 - t) - A.cpi / 100 : (A.bankRealReturn != null ? A.bankRealReturn : 0.0087);
+    const offset = A.offsetRealReturn != null ? A.offsetRealReturn : 0.022;
+    const eng = E();
+    const invested = eng && eng.outsideSuperReturn ? eng.outsideSuperReturn(t, eng.ausShareFor ? eng.ausShareFor(type === 'mix' ? 'mix' : 'etfs', s && s.ausShare) : 0) : REAL;
+    return type === 'cash' ? cash : type === 'offset' ? offset : type === 'mix' ? (cash + offset + invested) / 3 : invested;
   };
   const yearsText = y => y >= 1 ? `${Math.round(y * 10) / 10} years sooner` : `${Math.max(1, Math.round(y * 12))} months sooner`;
   const money = n => '$' + Math.round(n).toLocaleString('en-AU');
@@ -187,7 +192,7 @@ window.FirePathMoves = (function () {
         if (!['cash', 'mix', 'offset'].includes(s.savingsType)) return false; // already invested
         if (s.savingsType === 'offset') return false;                          // offset vs invest is its own move
         if (s.bufferMonths != null && s.bufferMonths < 3) return false;        // buffer first
-        const now = yearsOr(s, { outsideReturn: rateFor(s.savingsType) }, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, rateFor(s.savingsType)));
+        const now = yearsOr(s, { outsideReturn: rateFor(s.savingsType, s) }, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, rateFor(s.savingsType, s)));
         const inv = yearsOr(s, null, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, REAL));
         if (inv == null) return false;
         const gain = now == null ? null : now - inv;
