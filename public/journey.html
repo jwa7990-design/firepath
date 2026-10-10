@@ -598,6 +598,10 @@
 
   function renderProjection(m) {
     const wrap = $('chartWrap');
+    // Stopped work and not covered: no savings growing to a date (the headline says how long it lasts).
+    const sec = wrap.closest('section') || wrap;
+    if (m.plan && m.plan.retired && !isFree(m)) { sec.hidden = true; return; }
+    sec.hidden = false;
     const tip = $('chartTip');
     const W = Math.max(280, wrap.clientWidth);
     const H = W < 520 ? 210 : 260;

@@ -693,8 +693,10 @@ test('one line under the date: the note that moves the date most (67+ always fir
   const cash = pick({ age: 35, take_home_income: 6000, savings_monthly: 2000, current_savings: 100000, super_balance: 80000, freedom_number: 4000 * 300 });
   assert.equal(cash.main.key, 'savings');
   const mortgage = pick({ age: 38, take_home_income: 7500, savings_monthly: 1500, current_savings: 120000, super_balance: 150000, savings_type: 'etfs', freedom_number: 6000 * 300, housing_status: 'mortgage', mortgage_remaining: 300000, context: 'Mortgage repayments $2,500 a month' });
-  assert.equal(mortgage.main.key, 'mortgage');
-  assert.ok(mortgage.others.length >= 1, 'the rest are kept for "More about this date"');
+  // The mortgage note explains the method, so a line that moves the date leads (review 4);
+  // the mortgage note stays behind "More about this date".
+  assert.notEqual(mortgage.main.key, 'mortgage');
+  assert.ok(mortgage.others.some(n => n.key === 'mortgage'), 'the mortgage note is kept for "More about this date"');
   assert.equal(pick({ age: 68, take_home_income: 3800, savings_monthly: 300, current_savings: 150000, super_balance: 250000, freedom_number: 3500 * 300, housing_status: 'owner' }).main.key, 'pension67');
   assert.equal(pick({ age: 30, take_home_income: 6500, savings_monthly: 2000, current_savings: 60000, super_balance: 45000, savings_type: 'etfs', freedom_number: 4500 * 300 }).main.key, 'cushion');
 });
@@ -925,4 +927,24 @@ test('owner decisions (review 3): someone who has stopped work, and the cushion 
     freedom_number: 4200 * 12 * 25 * 0.8, retirement_spend_multiplier: 0.8, pay_cycle: 'monthly', partner_super: 95000, partner_age: 31, partner_income: 6500, housing_status: 'renting', context: 'Mostly Australian shares.' }));
   assert.ok(c.months > 18, String(c.months));
   assert.match(E.cushionNote(c), /spending a little more until your super unlocks/);
+});
+
+test('review 4: stopped work — the couple pension by each partner\'s 67, the wording, and no date-based extras', () => {
+  // #42: a couple who have stopped work, small savings. Each partner's half starts at their own 67.
+  const mk = pAge => E.freedomPlan({ age: 64, savings: 50000, monthlySavings: 0, target: 5500 * 12 * 25, superBalance: 120000, takeHomeMonthly: 5500,
+    savingsType: 'cash', homeowner: false, rentFortnight: 1040, retired: true, partner: { superBalance: 80000, age: pAge, takeHomeMonthly: 0 } });
+  const younger = mk(61), same = mk(64), older = mk(67);
+  // A younger partner means only one half for three years: it can't last longer than both at 67 together.
+  assert.ok(younger.lasts.runsOutAge <= same.lasts.runsOutAge + 0.01, `${younger.lasts.runsOutAge} vs ${same.lasts.runsOutAge}`);
+  // An older partner already on the pension helps from today.
+  assert.ok(older.lasts.runsOutAge == null || older.lasts.runsOutAge > same.lasts.runsOutAge);
+  assert.ok(older.lasts.pensionNow > 0);
+  // #41: the pension is only mentioned if it comes, and when.
+  const base = { age: 62, savings: 80000, monthlySavings: 0, target: 4200 * 12 * 25, superBalance: 750000, takeHomeMonthly: 4200, savingsType: 'cash', homeowner: true, retired: true };
+  assert.match(E.retiredNote(E.freedomPlan(base)), /some Age Pension from about age \d+|past age 100\.$/);
+  const young = E.freedomPlan(Object.assign({}, base, { age: 57, savings: 60000 }));
+  assert.match(E.retiredNote(young), /before your super unlocks at 60\. Your super can carry you from 60/);
+  // No market range and no "ease off saving" point once someone has stopped work.
+  assert.equal(E.freedomRange(base), null);
+  assert.equal(E.coastPoint(base), null);
 });

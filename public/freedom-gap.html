@@ -426,13 +426,16 @@
     const plan = E.freedomPlan({
       age: currentAge, savings, monthlySavings, annualSpend, superBalance,
       grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, ausShare: planIncome.ausShare,
-      superInsurance: planIncome.superInsurance, employerSuperRate: planIncome.employerSuperRate, selfEmployed: planIncome.selfEmployed, ownSuperYear: planIncome.ownSuperYear, hasMortgage: planIncome.hasMortgage, ausShareStated: planIncome.ausShareStated, mortgage: planIncome.mortgage, savingsType: planIncome.savingsType,
+      superInsurance: planIncome.superInsurance, employerSuperRate: planIncome.employerSuperRate, selfEmployed: planIncome.selfEmployed, retired: planIncome.retired, ownSuperYear: planIncome.ownSuperYear, hasMortgage: planIncome.hasMortgage, ausShareStated: planIncome.ausShareStated, mortgage: planIncome.mortgage, savingsType: planIncome.savingsType,
       homeowner: isHomeowner, rentFortnight: isHomeowner ? 0 : planIncome.rentFortnight || 0,
       partner: isCouple && (partnerSuper > 0 || planIncome.partnerTakeHomeMonthly > 0) ? { superBalance: partnerSuper || 0, age: partnerAge, takeHomeMonthly: planIncome.partnerTakeHomeMonthly, selfEmployed: planIncome.partnerSelfEmployed } : null
     });
     if (!plan.valid) return '';
     // Stopping before 60 plans on a safer rate (more than 25×): say which multiple it is.
     const num = fmtM(plan.target), times = `${String(Math.round(25 * (plan.targetMultiple || 1) * 10) / 10)}× your spending${plan.targetMultiple > 1 ? ', as stopping early means it has to last longer' : ''}`;
+    // Stopped work and not covered: how long the money could last, not a date.
+    if (plan.retired && !plan.alreadyFree && E.retiredNote) return ' ' + E.retiredNote(plan).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    if (plan.alreadyFree && plan.pensionIncluded > 0) return ` With today's Age Pension (it rises as your savings are drawn down), your savings and super could cover your spending.`;
     if (plan.alreadyFree) return ` Counting the super you can already get to, you have your full freedom number of <strong>${num}</strong> (${times}).`;
     if (!plan.reachable) return ` At this rate your savings don't reach your full freedom number of ${num} (${times}) within 100 years.`;
     return ` At your current saving, you reach your full freedom number of ${num} (${times}) at about <strong>age ${plan.freedomAge}</strong>, in ${plan.freedomYear}${plan.phase === 'with-super' ? ', counting your super from 60' : ''}.`;
@@ -657,7 +660,7 @@
           // For Freedom Options' freedom ages (FirePathEngine.freedomPlan): savings before debt
           // and the saved plan's pay, so its dates match the one on this page.
           savings: portfolio, grossIncome: planIncome.grossIncome, takeHomeMonthly: planIncome.takeHomeMonthly, partnerTakeHomeMonthly: planIncome.partnerTakeHomeMonthly, ausShare: planIncome.ausShare,
-          superInsurance: planIncome.superInsurance, employerSuperRate: planIncome.employerSuperRate, selfEmployed: planIncome.selfEmployed, partnerSelfEmployed: planIncome.partnerSelfEmployed, ownSuperYear: planIncome.ownSuperYear, hasMortgage: planIncome.hasMortgage, ausShareStated: planIncome.ausShareStated, mortgage: planIncome.mortgage, rentFortnight: planIncome.rentFortnight, savingsType: planIncome.savingsType },
+          superInsurance: planIncome.superInsurance, employerSuperRate: planIncome.employerSuperRate, selfEmployed: planIncome.selfEmployed, retired: planIncome.retired, partnerSelfEmployed: planIncome.partnerSelfEmployed, ownSuperYear: planIncome.ownSuperYear, hasMortgage: planIncome.hasMortgage, ausShareStated: planIncome.ausShareStated, mortgage: planIncome.mortgage, rentFortnight: planIncome.rentFortnight, savingsType: planIncome.savingsType },
         picture: todayPicture,
         savedAt: new Date().toISOString()
       }));
@@ -894,7 +897,7 @@ Rules: 1. Reference the actual numbers given to you. 2. Explain that full financ
           // Everything the saved plan (and its note) says, so this page's date matches the others.
           const facts = window.FirePathEngine.noteFacts ? window.FirePathEngine.noteFacts(p.context) : {};
           planIncome = { grossIncome: pi.grossIncome, takeHomeMonthly: pi.takeHomeMonthly, partnerTakeHomeMonthly: pi.partner ? pi.partner.takeHomeMonthly : 0, ausShare: pi.ausShare || 0,
-            superInsurance: pi.superInsurance || 0, employerSuperRate: pi.employerSuperRate || null, selfEmployed: pi.selfEmployed, partnerSelfEmployed: !!(pi.partner && pi.partner.selfEmployed), ownSuperYear: pi.ownSuperYear || 0, hasMortgage: pi.hasMortgage, ausShareStated: pi.ausShareStated, mortgage: pi.mortgage || null, savingsType: pi.savingsType || null,
+            superInsurance: pi.superInsurance || 0, employerSuperRate: pi.employerSuperRate || null, selfEmployed: pi.selfEmployed, retired: !!pi.retired, partnerSelfEmployed: !!(pi.partner && pi.partner.selfEmployed), ownSuperYear: pi.ownSuperYear || 0, hasMortgage: pi.hasMortgage, ausShareStated: pi.ausShareStated, mortgage: pi.mortgage || null, savingsType: pi.savingsType || null,
             rentFortnight: p.housing_status === 'renting' && facts.rentMonthly > 0 ? facts.rentMonthly * 12 / 26 : 0 };
         }
         if (p.housing_status) setHomeowner(p.housing_status !== 'renting');

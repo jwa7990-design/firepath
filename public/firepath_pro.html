@@ -1240,11 +1240,24 @@
     return FirePathPersona.config(persona).copy;
   }
 
+  // Someone who has stopped work (said in the note) and isn't covered yet: no date, no saving
+  // goal. The headline says so; the line under it says how long the money could last.
+  function isStopped(){const p=calcData&&calcData.plan;return !!(p&&p.valid&&p.retired&&!p.alreadyFree);}
+  function applyStoppedHeadline(){
+    if(!isStopped())return;
+    const L=calcData.plan.lasts||{};
+    document.getElementById('yearsOut').textContent='You’ve stopped work';
+    document.getElementById('freedomAgeOut').textContent=L.runsOutAge==null?'100+':String(Math.floor(L.runsOutAge));
+    document.getElementById('freedomAgeLabel').textContent='Your money could last to about age';
+    document.getElementById('resultSub').textContent='How long your money could last is just below.';
+    const fan=document.getElementById('freedomAgeNote');if(fan)fan.textContent='';
+  }
   function buildLifeUnlockedCard(fireNum,savings,mSav,y07,age){
     const card=document.getElementById('lifeUnlockedCard');
     const sub=document.getElementById('lifeUnlockedSub');
     const grid=document.getElementById('lifeUnlockedGrid');
     if(!card||!grid||fireNum<=0)return;
+    if(isStopped()){card.style.display='none';return;}   // stopped work: no saving milestones
 
     const pc=getPersonaCopy();
     const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
@@ -1528,7 +1541,7 @@
     if (!plan.valid) return false;
     calcData = { mIncome: mI, mOwnIncome, mSpend: mSp, mSav, savings, superBal, fireNum, sRate, age, context, propVal: 0, debt, mortgage, housingStatus, dependants, isCouple, partner, planInputs: planIn, plan };
     const alreadyFree = plan.alreadyFree;
-    isZeroSavings = isZeroSavings && !alreadyFree;
+    isZeroSavings = isZeroSavings && !alreadyFree && !plan.retired;
     const fy = plan.years;
     const fyear = plan.freedomYear;
     const freedomAge = plan.freedomAge;
@@ -1558,6 +1571,7 @@
     if (rl) rl.textContent = 'Your FirePath Pro result';
     document.getElementById('freedomAgeLabel').textContent = persona === 'fire' && !withSuper && freedomAge && freedomAge < 60 ? 'Freedom age (pre-super)' : 'Your freedom age';
     document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
+    applyStoppedHeadline();
     document.getElementById('savingsRateNote').textContent = sRate + '% of income';
     document.getElementById('stat3label').textContent = csl;
 
@@ -2192,7 +2206,7 @@ async function saveProfile() {
       }
       calcData={mIncome:mI,mOwnIncome,mSpend:mSp,mSav,savings,superBal,fireNum,sRate,age,context,propVal:0,debt,mortgage,housingStatus,dependants,isCouple,partner,planInputs:planIn,plan};
       const alreadyFree=plan.alreadyFree;
-      isZeroSavings=isZeroSavings&&!alreadyFree;
+      isZeroSavings=isZeroSavings&&!alreadyFree&&!plan.retired;
       const fy=plan.years,fyear=plan.freedomYear;
 
       buildContextTags(savings,superBal,debt,mortgage,housingStatus,dependants);
@@ -2265,6 +2279,7 @@ async function saveProfile() {
             ? `Your savings carry you to 60, then your super takes over. Freedom number: ${fmtM(fireNum)}.`
             : `This counts your super from 60. Freedom number: ${fmtM(fireNum)}.`)
           : `Saving ${fmtM(cs)} per ${cw} towards your ${persona==='fire'?'FI':'freedom'} number of ${fmtM(fireNum)}.`;
+      applyStoppedHeadline();
 
       const isPro = localStorage.getItem('fp_is_pro') === 'true';
       if (isZeroSavings) {
@@ -2348,6 +2363,7 @@ async function saveProfile() {
     const el = document.getElementById('rangeCard');
     const rows = document.getElementById('rangeRows');
     if (!el || !rows) return;
+    if (isStopped()) { el.style.display = 'none'; return; }   // stopped work: no dates to compare
     if (typeof FP_ASSUMPTIONS === 'undefined' || FP_ASSUMPTIONS.bankRealReturn == null) return;   // real returns can be 0 or negative
     const cy = new Date().getFullYear();
     const { rate: rateMap, note: noteMap } = currentReturns();
@@ -2458,7 +2474,7 @@ async function saveProfile() {
       mount: document.getElementById('contextPrompts'),
       context: () => ({ older: val('age') >= 50, hasMortgage: val('mortgageRemaining') > 0, renting: /rent/i.test(housingStatus || ''), working: true, hasSuper: val('superBalance') > 0, invests: savingsType === 'etfs' || savingsType === 'mix' })
     });
-    ['mortgageRemaining', 'superBalance'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', () => notePrompts.refresh()); });
+    ['age', 'mortgageRemaining', 'superBalance'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', () => notePrompts.refresh()); });
   });
 
   // One line under the date: the note that matters most for this person (the rest behind
@@ -2659,6 +2675,7 @@ async function saveProfile() {
     const { fireNum, savings, mSav, mSpend, sRate, age } = calcData, INFLATION = FP_ASSUMPTIONS.longRunInflation, cy = new Date().getFullYear();
     // Same headline as the result screen (incl. the two-phase "with super" figure when that's what it shows).
     const fy = calcData.headlineYears !== undefined ? calcData.headlineYears : yearsToGoal(fireNum, savings, mSav, 0.07);
+    if (isStopped()) { document.getElementById('fireNumberOut').textContent = fmtM(fireNum); applyStoppedHeadline(); return; }
     const yearsText = fmt(fy) + (calcData.headlineWithSuper ? ' with super' : ''), freedomAge = age && fy !== null ? Math.round(age + fy) : null;
     if (inflationMode === 'nominal') {
       const futureFireNum = fireNum * Math.pow(1 + INFLATION, fy === null ? 25 : fy);

@@ -429,6 +429,16 @@
       if (!filled) return;
       if (fromDevice) FirePathNext.showDeviceNote(document.getElementById('fpPlanNote'));
       else document.getElementById('fpPlanNote').style.display = 'block';
+      // Stopped work (said in the plan's note): these are "what if" dates on the numbers in each scenario.
+      try {
+        const facts = window.FirePathEngine && FirePathEngine.noteFacts ? FirePathEngine.noteFacts(p.context) : {};
+        const note = document.getElementById('fpPlanNote');
+        if (facts.retired && note && !note.querySelector('.fp-stopped')) {
+          const extra = document.createElement('p'); extra.className = 'fp-stopped';
+          extra.textContent = 'You’ve told us you’ve stopped work, so the dates here are what each scenario would mean if you were saving the amount in it. The aged care scenario and the Withdrawal planner look at drawing your money down.';
+          note.appendChild(extra);
+        }
+      } catch (e) {}
       [calcHome, calcLoan, calcLump, calcCompound, calcWithdrawal, calcDownsize, calcRedundancy].forEach(f => { try { f(); } catch (e) {} });
     } catch (e) { console.log('Saved plan prefill skipped', e); }
   }
@@ -466,7 +476,9 @@
     const saved = typeof fpPlanProfile !== 'undefined' && fpPlanProfile && E && E.planInputsFromProfile ? E.planInputsFromProfile(fpPlanProfile) : {};
     const start = Math.max(0, savings || 0) + (o.addSaved ? Math.max(0, saved.savings || 0) : 0);
     if (!E || !E.freedomPlan) return yearsToGoal(fireNum, start, monthly, rate);
-    const base = Object.assign({}, saved, o.keepMortgage ? {} : { mortgage: null });
+    // Stopped work: each scenario still works out a date from its own numbers, with no employer
+    // super (no wages), rather than "how long it lasts".
+    const base = Object.assign({}, saved, o.keepMortgage ? {} : { mortgage: null }, saved.retired ? { retired: false, selfEmployed: true } : {});
     const over = { target: fireNum, annualSpend: undefined, savings: start, monthlySavings: Math.max(0, monthly || 0) };
     const ref = E.freedomPlan(Object.assign({}, base, over, { safeRate: false }));
     if (!ref.valid) return null;

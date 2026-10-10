@@ -202,3 +202,40 @@ Clean (matched to the dollar or month):
    - a note that a teenager's spending rises when they move out;
    - the First Home Super Saver scheme as an idea;
    - a flag when super will pass the $2M transfer balance cap or the $3M Division 296 line.
+
+## Round 4 (11 October 2026): the two owner decisions, 5 final checkers
+
+**Built:**
+1. **The safer-rate cushion covers the years before super unlocks.** Spending is about 14% more before 50 and about 7% more in your 50s.
+2. **"I've stopped work" in the note,** or the tap-to-add button for people 50 and over:
+   - no wages or employer super;
+   - instead of a date, how long the money could last, with the Age Pension as it comes in;
+   - "free now" if they're already covered.
+
+**Checked:**
+- #41 the retired 62-year-old, plus variants at 57 and 68
+- #42 a retired couple who rent
+- #43 a 28-year-old early stopper, with a test of the 50s band
+- #44 a 47-year-old with a partner, a mortgage and mixed savings
+
+Every figure matched the checkers' own month-by-month scripts.
+
+**Fixed:**
+- **The couple pension** in "how long it lasts" now starts each partner's half at their own 67. A younger partner's super stays out of the test until then (#42).
+- **Wording of the stopped-work line:**
+  - the pension is mentioned only if and when it comes in ("about $X a year now", "from 67", or "from about age N");
+  - before 60 it says "Your super can carry you from 60".
+- **The mortgage note** now leads the line under the date only when it's a warning. Otherwise the line that moves the date leads (#29, #44).
+- **Smaller wording:**
+  - "$1.12M";
+  - "you could stop now";
+  - "From 67, on what you hold today";
+  - no "(less while you're earning)" for someone who has stopped work.
+- **Every page for someone who has stopped work** (#45):
+  - no market range, "stop saving" point, path chart, projection chart, "Try it" sliders, savings promise or milestones;
+  - Pro shows "You've stopped work" on reopening a plan, on a fresh Calculate and with the dollars toggle, and hides the range and "Life unlocked" cards;
+  - Freedom gap and Freedom options pass "stopped work" on, and Freedom gap shows how long the money lasts;
+  - What if… works out its dates with no wages and says why;
+  - Ask FirePath gives the AI the stopped-work line.
+- **The free calculator and Freedom gap** say when someone is covered only because of the Age Pension.
+- **The tap-to-add buttons** update when age changes.

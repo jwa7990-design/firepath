@@ -740,7 +740,8 @@
   // With a promise: the check-in panel up top and the promise further down.
   // Without one: the set-up form takes the check-in's place.
   function showCommitState(has) {
-    document.getElementById('noCommitCard').style.display = has ? 'none' : 'block';
+    // Stopped work: a savings promise doesn't apply.
+    document.getElementById('noCommitCard').style.display = has || stoppedWork() ? 'none' : 'block';
     document.getElementById('hasCommitCard').style.display = has ? 'block' : 'none';
     document.getElementById('promiseSec').style.display = has ? 'block' : 'none';
   }
@@ -920,13 +921,16 @@
 
   function renderMilestones(fireNum, savings, mSav) {
     const c = document.getElementById('milestonesRoadmap'); if (!c) return;
+    const sec = document.getElementById('milestones');
+    if (sec) sec.style.display = stoppedWork() ? 'none' : '';   // stopped work: no saving milestones
+    if (stoppedWork()) return;
     const ms = [0.25,0.5,0.75,1.0];
     const ls = ['25%','50%','75%','Work optional'];
     // 25–75%: your savings growing at the plan's after-tax return. The last one is the
     // date itself (super and all), the same as Your Path.
     const rate = outsideRate();
     c.innerHTML = ms.map((p,i) => {
-      const t = fireNum*p, y = p < 1 ? yearsToGoal(t,savings,mSav,rate) : planYearsFor(savings, mSav), yr = y != null ? currentYear+Math.round(y) : null, r = p < 1 ? savings >= t : y === 0;
+      const t = fireNum*p, y = p < 1 ? yearsToGoal(t,savings,mSav,rate) : planYearsFor(savings, mSav), yr = y != null ? (y === 0 ? currentYear : freedomDateLabel(y)) : null, r = p < 1 ? savings >= t : y === 0;
       return `<div class="mem-ms${r ? ' is-done' : ''}">
         <span class="mem-ms-name"><span class="hp-mark${r ? '' : ' is-ink'}" aria-hidden="true"></span>${ls[i]} — ${fmtM(t)}</span>
         <span class="mem-ms-when">${r ? 'Done' : (yr ? yr : '100+ yrs')}</span></div>`;

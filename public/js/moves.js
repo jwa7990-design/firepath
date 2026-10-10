@@ -329,7 +329,7 @@ window.FirePathMoves = (function () {
         const p = calculateAgePension(assets, 0, s.housing !== 'renting', s.hasPartner, undefined, Object.assign(rentOpts, couple || {})).annualPension;
         if (!(p > 0)) return false;
         return { why: 'From 67, once you stop work, the Age Pension may top up what your savings pay. It’s means-tested on what you own and earn then, so wages reduce it.',
-          impact: { dollars: p, text: `On what you hold today, about ${money(Math.round(p / 100) * 100)} a year (today's figures)` } };
+          impact: { dollars: p, text: `${s.age < 67 ? 'From 67, on' : 'On'} what you hold today, about ${money(Math.round(p / 100) * 100)} a year (today's figures)` } };
       } },
     { id: 'co-contribution', tier: 5, title: 'The government super co-contribution', plan: 'Free',
       tool: { href: '/compound', label: 'See what it grows to' }, article: 'super-co-contribution',
