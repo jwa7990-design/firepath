@@ -586,7 +586,10 @@ window.FirePathEngine = (function () {
     const o = opts || {};
     const homeowner = o.homeowner !== false, couple = o.couple != null ? !!o.couple : !!n.partner;
     const pensionOn = c => calculateAgePension(c, 0, homeowner, couple, c).annualPension || 0;
-    const T = n.target;
+    // The spending the pension has to meet from 67: like the headline, a mortgage paid off
+    // by then no longer counts (if it runs past 67, its repayments still do).
+    const mg = mortgageFor(inputs, n);
+    const T = mg && mg.payoffMonth <= Math.max(0, Math.round((PENSION_AGE - n.age) * 12)) ? Math.max(0, n.target - mg.cut) : n.target;
     // Scan up in $1,000 steps for the first amount that's enough, then tighten to $10.
     let lo = 0, hi = null;
     for (let c = 0; c <= T; c += 1000) { if (c + 25 * pensionOn(c) >= T) { hi = c; break; } lo = c; }

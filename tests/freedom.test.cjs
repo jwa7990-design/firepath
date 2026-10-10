@@ -520,3 +520,21 @@ test('the note: clear figures are read, anything else is left alone', () => {
   assert.equal(E.noteFacts('12% super').counted.length, 0);
   assert.equal(E.noteFacts('').counted.length, 0);
 });
+
+test('Age Pension line with a mortgage: sized on spending without repayments once the loan is paid off by 67', () => {
+  const i = { age: 50, savings: 150000, monthlySavings: 1500, target: 5000 * 12 * 25, superBalance: 250000, takeHomeMonthly: 6500 };
+  const mortgage = { balance: 150000, repayMonthly: 2000, rate: 0.062 };   // paid off in about 8 years, well before 67
+  const withLoan = E.agePensionPlan(Object.assign({}, i, { mortgage }), { homeowner: true });
+  // The same as someone whose spending simply doesn't include the repayments.
+  const noRepay = E.agePensionPlan(Object.assign({}, i, { target: (5000 - 2000) * 12 * 25 }), { homeowner: true });
+  near(withLoan.pensionAnnual, noRepay.pensionAnnual, 1);
+  near(withLoan.ownAt67, noRepay.ownAt67, 20);
+  // The pension line never comes later than the date without it.
+  const head = E.freedomPlan(Object.assign({}, i, { mortgage }));
+  assert.ok(withLoan.plan.months <= head.months);
+  // A loan still running at 67 keeps its repayments in.
+  const long = { balance: 600000, repayMonthly: 3200, rate: 0.062 };
+  const stillOwing = E.agePensionPlan(Object.assign({}, i, { mortgage: long }), { homeowner: true });
+  const asIs = E.agePensionPlan(i, { homeowner: true });
+  near(stillOwing.ownAt67, asIs.ownAt67, 20);
+});
