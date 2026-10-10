@@ -2461,7 +2461,7 @@ async function saveProfile() {
   function renderHeadlineNotes() {
     const plan = calcData && calcData.plan, pi = calcData && calcData.planInputs;
     const homeowner = !/rent/i.test(housingStatus || '');
-    const notes = plan && plan.valid && pi ? FirePathEngine.headlineNotes(pi, plan, { homeowner, rentFortnight: rentFortnight() }) : null;
+    const notes = plan && plan.valid && pi ? FirePathEngine.headlineNotes(pi, plan, { homeowner, rentFortnight: rentFortnight(), consumerDebt: calcData.debt || 0 }) : null;
     if (window.FirePathDateNote) FirePathDateNote.render(document.getElementById('proNote'), notes, { actions: {
       savings: { inline: 'Invested in shares? <a href="firepath_pro.html?edit=true">Update →</a>', more: 'A high-interest account keeps your money steady and has roughly kept pace with prices; shares have grown faster over long periods, with ups and downs along the way. Areas you could research further: <a href="/learn/difference-saving-investing">saving vs investing</a> · <a href="/learn/what-is-an-index-fund">what an index fund is</a>' } } });
   }

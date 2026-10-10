@@ -129,11 +129,9 @@ Every fix has a test built from the checkers' own figures, so it can't quietly c
 - "Than your current mix" for mix savers on the investing idea.
 - "If invested…" adds that shares can fall, when the date is within five years.
 
-### For the owner to decide
-1. **Debt and the date:** $40k of card debt doesn't change the date, only the ideas list. Options:
-   - a short line saying so, and roughly how much clearing it first would move the date;
-   - "once your debt is cleared" on the invested line.
-2. **Far from 67:** should the one line under the date prefer something the person controls, like the savings line, over the Age Pension line when they're under about 50?
-3. **"If invested…" before a three-month buffer:** say "investing what you add beyond a 3-month buffer".
-4. **Spending after the kids leave:** an optional tap-to-add prompt for parents.
-5. **Home care for someone barely a part pensioner:** it uses the halfway rate (cautious). It could be scaled to how close they are to the full pension.
+### Owner decisions (11 October 2026)
+1. **Debt:** when someone has card or personal-loan debt, the line under the date says so first: "This date doesn't count your $40,000 of debt. Paying it off first could move it to around 2060, age 65." It assumes savings go to the debt, and the rest is paid from monthly saving at a typical 20% card rate. The investing line then says "once your debt is paid off".
+2. **Under 50:** the Age Pension line never takes the main spot. It stays behind "More about this date".
+3. **Short of a three-month buffer:** the investing line says "Investing what you add beyond a three-month buffer…".
+4. **Spending after the kids leave:** not now. The retirement spending setting (80%) covers it.
+5. **Home care for someone barely a part pensioner:** kept at the halfway rate (cautious).

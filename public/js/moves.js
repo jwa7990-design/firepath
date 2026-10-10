@@ -144,7 +144,7 @@ window.FirePathMoves = (function () {
       homeowner: s.housing !== 'renting', rentFortnight: s.housing === 'renting' && s.rentMonthly > 0 ? s.rentMonthly * 12 / 26 : 0,
       ausShare: E() && E().ausShareFor ? E().ausShareFor(s.savingsType, s.ausShare) : 0,
       employerSuperRate: s.employerSuperRate || null, selfEmployed: s.selfEmployed, ownSuperYear: s.ownSuperYear || 0,
-      ausShareStated: s.ausShare != null ? s.ausShare : null, hasMortgage: s.mortgageRemaining > 0,
+      ausShareStated: s.ausShare != null ? s.ausShare : null, hasMortgage: s.mortgageRemaining > 0, consumerDebt: s.consumerDebt || 0,
       mortgage: s.mortgageRemaining > 0 && s.mortgageRepayMonthly > 0
         ? { balance: s.mortgageRemaining, repayMonthly: s.mortgageRepayMonthly, offset: s.offsetAmount || 0, rate: s.mortgageRate || null, spendMult: s.retirementSpendMultiplier || 1 } : null,
     }, over || {});

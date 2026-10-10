@@ -754,7 +754,11 @@ window.FirePathEngine = (function () {
   // note that changes it most. Already Age Pension age always wins (it explains a "now");
   // otherwise each note is scored by how many months it moves the date. The rest come back
   // as `others` (pages put them behind "More about this date").
-  //   opts: { homeowner, rentFortnight }. Returns { main: { key, text }, others: [...] } or null.
+  // Debt (inputs.consumerDebt or opts.consumerDebt, cards and personal loans) isn't in the
+  // date itself; its note says what paying it off first would do, and the investing note
+  // then talks about after that. Under 50, the Age Pension line (rules decades away) is never
+  // the main line, only behind "More about this date".
+  //   opts: { homeowner, rentFortnight, consumerDebt }. Returns { main: { key, text }, others: [...] } or null.
   function headlineNotes(inputs, plan, opts) {
     if (!plan || !plan.valid || !inputs) return null;
     const o = opts || {};
@@ -763,15 +767,28 @@ window.FirePathEngine = (function () {
     const notes = [];
     if (plan.pensionIncluded > 0) notes.push({ key: 'pension67', text: cushionNote(plan), score: Infinity });
     else {
+      const debt = Math.max(0, Number(o.consumerDebt != null ? o.consumerDebt : inputs.consumerDebt) || 0);
+      const afterDebt = debt > 0 && !plan.alreadyFree ? debtFirstInputs(inputs, debt) : null;
+      if (debt > 0 && !plan.alreadyFree) {
+        const dn = debtNote(plan, afterDebt, debt);
+        if (dn) notes.push({ key: 'debt', text: dn, score: 1e9 });   // high-interest debt comes first
+      }
       // Invested: the Australian share they told us, else a typical mix (a cash saver's 0 is just the default).
       const stated = inputs.ausShareStated !== undefined ? inputs.ausShareStated : (inputs.savingsType === 'cash' || inputs.savingsType === 'offset' || !inputs.savingsType ? null : inputs.ausShare);
-      const inv = freedomPlan(Object.assign({}, inputs, { savingsType: 'etfs', ausShare: ausShareFor('etfs', stated) }));
-      const sv = savingsNote(plan, inv);
-      if (sv) notes.push({ key: 'savings', text: sv, score: gap(months(plan), months(inv)) });
+      const base = afterDebt || inputs;
+      const asIs = afterDebt ? freedomPlan(afterDebt) : plan;
+      const inv = freedomPlan(Object.assign({}, base, { savingsType: 'etfs', ausShare: ausShareFor('etfs', stated) }));
+      // Short of a three-month cash buffer (of what's in the bank): invest only what's added beyond it.
+      const n = asIs.inputs || {};
+      const cash = n.savingsType === 'mix' ? n.savings / 3 : n.savings;
+      const buffer = !afterDebt && n.savingsType && n.savingsType !== 'etfs' && plan.baseTarget > 0 && cash < plan.baseTarget / 25 / 12 * 3;
+      const sv = savingsNote(asIs, inv, { afterDebt: !!afterDebt, buffer });
+      if (sv) notes.push({ key: 'savings', text: sv, score: gap(months(asIs), months(inv)) });
       if (!plan.alreadyFree) {
         const pp = agePensionPlan(inputs, { homeowner: o.homeowner, rentFortnight: o.rentFortnight });
         const line = agePensionLine(pp, plan, o.homeowner, { rentFortnight: o.rentFortnight });
-        if (line) notes.push({ key: 'pension', text: line, score: gap(months(plan), months(pp && pp.plan)) });
+        const young = plan.inputs && plan.inputs.age != null && plan.inputs.age < 50;
+        if (line) notes.push({ key: 'pension', text: line, score: young ? -1 : gap(months(plan), months(pp && pp.plan)) });
       }
       const mn = mortgageNote(plan);
       if (mn) notes.push({ key: 'mortgage', text: mn, score: gap(months(plan), months(freedomPlan(Object.assign({}, inputs, { mortgage: null })))) });
@@ -779,16 +796,43 @@ window.FirePathEngine = (function () {
       if (cn) notes.push({ key: 'cushion', text: cn, score: gap(months(plan), months(freedomPlan(Object.assign({}, inputs, { safeRate: false })))) });
     }
     if (!notes.length) return null;
-    const order = ['pension67', 'savings', 'pension', 'mortgage', 'cushion'];
+    const order = ['pension67', 'debt', 'savings', 'pension', 'mortgage', 'cushion'];
     notes.sort((a, b) => (b.score - a.score) || (order.indexOf(a.key) - order.indexOf(b.key)));
+    // Nothing but a far-off Age Pension line: nothing goes under the date.
+    if (notes[0].score < 0) return null;
     const strip = n => ({ key: n.key, text: n.text });
     return { main: strip(notes[0]), others: notes.slice(1).map(strip) };
+  }
+
+  // The plan if cards and personal loans were paid off first: savings go to the debt, and
+  // what's left is cleared from monthly saving at a typical card rate (20% a year). The
+  // months spent clearing it show up as savings starting below zero, worth the saving it
+  // takes. null when the saving doesn't cover the interest.
+  const DEBT_RATE = 0.20;
+  function debtFirstInputs(inputs, debt) {
+    const savings = Math.max(0, Number(inputs.savings) || 0), monthly = Math.max(0, Number(inputs.monthlySavings) || 0);
+    if (savings >= debt) return Object.assign({}, inputs, { savings: savings - debt });
+    let left = debt - savings, k = 0;
+    const r = DEBT_RATE / 12;
+    if (!(monthly > left * r)) return null;
+    while (left > 0 && k < PLAN_MAX_MONTHS) { left = left * (1 + r) - monthly; k++; }
+    return Object.assign({}, inputs, { savings: -(k * monthly + Math.min(0, left)) });
+  }
+  function debtNote(plan, afterDebtInputs, debt) {
+    const amt = `$${Math.round(debt).toLocaleString('en-AU')}`;
+    if (!afterDebtInputs) return `This date doesn't count your ${amt} of debt, and what you save each month doesn't cover its interest at a typical card rate.`;
+    const p = freedomPlan(afterDebtInputs);
+    if (!p.valid || p.months == null) return `This date doesn't count your ${amt} of debt. Paying it off first could put your date out of reach on today's numbers.`;
+    if (plan.months != null && p.months - plan.months < 3) return null;
+    return `This date doesn't count your ${amt} of debt. Paying it off first could move it to around ${p.freedomYear}${p.freedomAge != null ? `, age ${p.freedomAge}` : ''}.`;
   }
 
   // Savings counted as cash (or a mix): what the same plan would give if they were invested,
   // as information, not advice. investedPlan: freedomPlan with savingsType 'etfs'. null when
   // the savings are already invested or investing wouldn't move the date by six months.
-  function savingsNote(plan, investedPlan) {
+  // opts: { afterDebt (invest once debt is paid off), buffer (short of three months in the bank) }.
+  function savingsNote(plan, investedPlan, opts) {
+    const so = opts || {};
     const type = plan && plan.valid && plan.inputs ? plan.inputs.savingsType : null;
     if (type !== 'cash' && type !== 'mix') return null;
     if (!investedPlan || !investedPlan.valid || investedPlan.months == null) return null;
@@ -797,7 +841,8 @@ window.FirePathEngine = (function () {
     const when = investedPlan.alreadyFree ? 'now' : `around ${investedPlan.freedomYear}${investedPlan.freedomAge != null ? `, age ${investedPlan.freedomAge}` : ''}`;
     // Within about five years of stopping, a fall in shares has little time to recover.
     const close = plan.months != null && plan.months <= 60 ? ' Shares can also fall, which matters more this close to stopping.' : '';
-    return `Your savings are counted as ${where}. Invested in shares, this could be ${when}.${close}`;
+    const how = so.afterDebt ? 'Invested in shares once your debt is paid off' : so.buffer ? 'Investing what you add beyond a three-month buffer' : 'Invested in shares';
+    return `Your savings are counted as ${where}. ${how}, this could be ${when}.${close}`;
   }
 
   // The Age Pension line (agePensionPlan's result against the headline), or null when it
@@ -934,7 +979,7 @@ window.FirePathEngine = (function () {
       employerSuperRate: p.employer_super_rate > 0 ? p.employer_super_rate : facts.employerSuperRate || null,
       selfEmployed: !!facts.selfEmployed, ownSuperYear: facts.ownSuperYear || 0,
       ausShareStated: p.aus_share != null ? p.aus_share : facts.ausShare != null ? facts.ausShare : null,
-      hasMortgage: p.mortgage_remaining > 0,
+      hasMortgage: p.mortgage_remaining > 0, consumerDebt: p.debt_total > 0 ? p.debt_total : 0,
       mortgage: p.mortgage_remaining > 0 && facts.mortgageRepayMonthly > 0
         ? { balance: p.mortgage_remaining, repayMonthly: facts.mortgageRepayMonthly, offset: p.offset_amount || 0, rate: p.offset_interest_rate > 0 ? p.offset_interest_rate / 100 : null, spendMult: p.retirement_spend_multiplier || 1 }
         : null

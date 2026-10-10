@@ -780,3 +780,34 @@ test('review 2: a renter\'s "mix" has no offset in it', () => {
   assert.ok(renter.outsideReturn > owner.outsideReturn);
   assert.ok(renter.months <= owner.months);
 });
+
+test('owner decisions (review 2): debt note, buffer wording, no far-off pension line under 50', () => {
+  // #21: 31, $40k of card debt, $5k cash, saves $800 a month.
+  const prof = { age: 31, take_home_income: 5200, savings_monthly: 800, current_savings: 5000, savings_type: 'cash', super_balance: 35000,
+    freedom_number: 4400 * 12 * 25, pay_cycle: 'monthly', housing_status: 'renting', debt_total: 40000 };
+  const pi = E.planInputsFromProfile(prof), plan = E.freedomPlan(pi);
+  const notes = E.headlineNotes(pi, plan, { homeowner: false });
+  assert.equal(notes.main.key, 'debt');
+  assert.match(notes.main.text, /doesn't count your \$40,000 of debt\. Paying it off first could move it to around \d{4}, age \d+\./);
+  const sv = notes.others.find(n => n.key === 'savings');
+  assert.ok(sv && /once your debt is paid off/.test(sv.text), sv && sv.text);
+  // Paying it off first is later than ignoring it: about 6 years of saving at 20% (the checker: ~11 months later).
+  const later = E.freedomPlan(Object.assign({}, pi, { savings: -73 * 800 }));
+  assert.ok(later.months > plan.months);
+  // Saving that doesn't cover the interest says so.
+  const tight = E.headlineNotes(Object.assign({}, pi, { monthlySavings: 300 }), E.freedomPlan(Object.assign({}, pi, { monthlySavings: 300 })), { homeowner: false });
+  assert.match(tight.main.text, /doesn't cover its interest/);
+
+  // #18: short of a three-month buffer → invest only what's added beyond it.
+  const p18 = E.planInputsFromProfile({ age: 41, take_home_income: 6200, savings_monthly: 600, current_savings: 15000, savings_type: 'cash', super_balance: 70000,
+    freedom_number: 5600 * 12 * 25, pay_cycle: 'monthly', housing_status: 'renting' });
+  const n18 = E.headlineNotes(p18, E.freedomPlan(p18), { homeowner: false });
+  assert.match(n18.main.text, /Investing what you add beyond a three-month buffer/);
+
+  // #17: 36, the Age Pension line moved the date most, but under 50 it stays behind "More".
+  const p17 = E.planInputsFromProfile({ age: 36, take_home_income: 7000, savings_monthly: 2000, current_savings: 60000, savings_type: 'mix', super_balance: 90000,
+    freedom_number: 5000 * 12 * 25 * 0.8, retirement_spend_multiplier: 0.8, pay_cycle: 'monthly', housing_status: 'renting', context: 'I pay $480 a week rent. Most of my shares are Australian.' });
+  const n17 = E.headlineNotes(p17, E.freedomPlan(p17), { homeowner: false, rentFortnight: p17.rentFortnight });
+  assert.notEqual(n17.main.key, 'pension');
+  assert.ok(n17.others.some(n => n.key === 'pension'));
+});
