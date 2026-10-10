@@ -27,16 +27,15 @@
 <style>
   /* ── Your Path: the Pro home ─────────────────────────────
      Built on css/fp-editorial.css (.hp scope, .hp-wrap, .hp-sec tones, .hp-side,
-     .hp-half, .hp-h2, .hp-label). One question per band, most important first:
-       1. When does work become optional?   hero: the year in ember, the path, the chart
-       2. Where does my money stand?        sand: four big figures over rules (→ Money)
-       3. What could move it?               the one dark band: Your plan (→ Strategy)
-       4. Progress and sensitivity          cream: since last check-in, if returns differ
-       5. What to read                      sand: Learn
+     .hp-h2, .hp-label). One job: "Where am I, and what's changed?"
+       1. Where am I?           hero: the year in ember, the path, progress (chart behind a toggle)
+       2. What's changed?       cream: since your last check-in, time won back
+       3. What could move it?   the one dark band: the top 3 ideas (the full list → Options)
+     One primary button: Check in (→ progress.html). Figures live on Money, the level in Settings.
      Rules, not cards. Ember: the year, the plan numerals, and the "time won back" figure. */
   .jp { width: 100%; padding-bottom: calc(110px + env(safe-area-inset-bottom)); }   /* room for the phone tab bar */
   @media (min-width: 1024px) { .jp { padding-bottom: 0; } }
-  .jp .num, .jp .hero-year, .jp .kpi-value { font-variant-numeric: tabular-nums lining-nums; }
+  .jp .num, .jp .hero-year { font-variant-numeric: tabular-nums lining-nums; }
   .vh { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
   /* Quiet text link that names the tab a band previews ("Money →") */
@@ -46,36 +45,24 @@
   .jp-sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px 24px; margin-bottom: 28px; }
   @media (min-width: 900px) { .jp .hp-side-head.is-sticky { position: sticky; top: 32px; align-self: start; } }
 
-  /* ── Header: greeting, level, update ── */
+  /* ── Header: greeting and the one primary button (Check in) ── */
   .jp-head { padding: 24px 0 0; }
   @media (min-width: 768px) { .jp-head { padding-top: 40px; } }
   .jp-head-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px 24px; padding-bottom: 20px; border-bottom: var(--hp-rule); }
-  .head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; width: 100%; }
-  @media (min-width: 1024px) { .head-row { width: auto; } .menu-btn { display: none; } }
-  .menu-btn { background: none; border: none; color: var(--ink); padding: 8px; margin: -6px -8px 0 0; border-radius: 4px; cursor: pointer; }
-  .menu-btn:hover { background: rgba(43,29,20,0.05); }
   .jp-greet { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3vw, 34px); line-height: 1.12; letter-spacing: -0.015em; color: var(--ink); }
   .jp-greet-sub { margin-top: 6px; font-size: 15px; color: var(--ink-2); }
   .jp-head-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; }
-  .jp-persona { display: inline-flex; align-items: center; gap: 8px; padding: 6px 0; background: none; border: 0; cursor: pointer; font: 500 15px var(--font-ui); color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; text-decoration-thickness: 1px; }
-  .jp-persona:hover { color: var(--ink); text-decoration-color: var(--ink); }
-  .jp-update { display: inline-flex; align-items: center; height: 42px; padding: 0 18px; border: 1px solid var(--ink); border-radius: var(--hp-r); font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; transition: background var(--dur-fast) ease, color var(--dur-fast) ease; }
-  .jp-update:hover { background: var(--ink); color: var(--bg); }
+  .jp .jp-checkin { height: 48px; padding: 0 26px; border-radius: var(--hp-r); font-size: 16px; font-weight: 600; }
+  .jp .jp-checkin:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-  /* Level prompt + Monday check: ruled lines, not boxes */
+  /* Monday check: a ruled line, not a box */
   .banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 16px 0; border-bottom: var(--hp-rule); font-size: 16px; line-height: 1.5; color: var(--ink-2); text-decoration: none; }
   .banner strong { color: var(--ink); font-weight: 600; }
   .banner[hidden] { display: none; }
-  .banner-accent { gap: 14px; flex-wrap: nowrap; }
-  .banner-accent::before { content: ''; flex: none; width: 8px; height: 8px; background: var(--hp-accent); }
-  .banner-accent > span:first-child { flex: 1; min-width: 0; }
-  .banner-accent:hover strong { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
   .banner-actions { display: flex; gap: 10px 18px; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
   .jp .banner .btn { height: 42px; padding: 0 18px; border-radius: var(--hp-r); font-size: 15px; font-weight: 600; }
   .jp .banner .btn-quiet { background: none; border-color: var(--ink); }
   .jp .banner .btn-quiet:hover { background: var(--ink); color: var(--bg); }
-  .arrow { flex-shrink: 0; color: var(--ink); transition: transform var(--dur-fast) ease; }
-  a:hover > .arrow { transform: translateX(4px); }
 
   /* ── 1. Hero: the year in ember, the path as the anchor ── */
   .jp-hero { padding: 32px 0 56px; }
@@ -132,6 +119,8 @@
   .milestone-label b { display: block; font-weight: 600; color: var(--ink); }
 
   .hero-chart { display: flex; flex-direction: column; min-width: 0; padding-top: 18px; border-top: 1px solid var(--ink); }
+  .hero-chart > summary { align-self: flex-start; }
+  .hero-chart[open] > summary { margin-bottom: 14px; }
   .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 16px; flex-wrap: wrap; padding: 0 0 14px; }
   .chart-title { font-size: 14px; font-weight: 600; color: var(--ink); }
   .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); }
@@ -156,21 +145,8 @@
   .chart-foot { margin-top: 10px; padding-top: 12px; border-top: var(--hp-rule); font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
   .chart-foot a { color: var(--ink); white-space: nowrap; }
 
-  /* ── 2. Your money: big serif figures over rules (sand) ── */
-  .kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 20px; }
-  @media (min-width: 900px) { .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; } }
-  .kpi { display: block; min-width: 0; padding: 16px 0 18px; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); text-decoration: none; color: var(--ink); transition: border-color var(--dur-fast) ease; }
-  .kpi:hover { border-bottom-color: var(--ink); }
-  .kpi-label { font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
-  .kpi-value { margin-top: 10px; font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 4.4vw, 56px); line-height: 1; letter-spacing: -0.03em; color: var(--ink); }
-  .kpi-value.skeleton { width: 4ch; height: 1em; }
-  .kpi-sub { margin-top: 10px; font-size: 14px; line-height: 1.45; color: var(--ink-2); min-height: 20px; }
-  .kpi-sub .delta-up, .kpi-sub .delta-down { font-weight: 600; }
-  /* Deltas on sand: darker green and the sand ember so both pass 4.5:1 */
-  .jp-money .delta-up { color: #1F5E23; }
-  .jp-money .delta-down { color: #A63C0C; }
 
-  /* ── 3. Your plan: the one dark band. Options from js/moves.js with the person's own
+  /* ── 3. Your plan (top 3): the one dark band. Options from js/moves.js with the person's own
        status on each (On it / Done / Not for me), saved through js/moves-status.js. ── */
   .jp-plan #planHeading:focus { outline: none; }
   .jp-plan #planHeading:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
@@ -182,7 +158,7 @@
   .plan-bar i { display: block; height: 100%; background: var(--hp-accent); transition: width var(--dur-slow) var(--ease); }
   .plan-since { margin-top: 12px; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
   .plan-since strong { color: var(--ink); font-weight: 600; }
-  .jp-plan .jp-more { display: inline-block; margin-top: 24px; }
+  .jp-plan .plan-more { margin-top: 22px; }
   .plan-note { font-size: 15.5px; line-height: 1.5; color: var(--ink); }
   .plan-note:not(:empty) { margin-bottom: 18px; padding: 12px 0; border-top: var(--hp-rule); border-bottom: var(--hp-rule); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
   .plan-note:focus { outline: none; }
@@ -222,24 +198,11 @@
   .plan-more:hover { text-decoration-color: var(--ink); }
   .plan-empty { padding-top: 18px; border-top: 1px solid var(--ink); max-width: 56ch; font-size: 17px; line-height: 1.6; color: var(--ink); }
   .plan-empty a { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
-  .plan-fold { margin-top: 18px; }
-  .plan-fold summary { display: inline-flex; align-items: center; gap: 8px; padding: 6px 0; list-style: none; cursor: pointer; font-size: 15px; font-weight: 600; color: var(--ink-2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; text-decoration-thickness: 1px; }
-  .plan-fold summary::-webkit-details-marker { display: none; }
-  .plan-fold summary::after { content: '+'; font-weight: 400; font-size: 17px; line-height: 1; transition: transform var(--dur-base) var(--ease); }
-  .plan-fold[open] summary::after { transform: rotate(45deg); }
-  .plan-fold summary:hover { color: var(--ink); text-decoration-color: var(--ink); }
-  .plan-fold summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
-  .plan-fold ul { list-style: none; margin: 8px 0 0; padding: 0; border-top: var(--hp-rule); }
-  .plan-fold li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; padding: 12px 0; border-bottom: var(--hp-rule); font-size: 16px; color: var(--ink); }
-  .plan-fold .fold-sub { display: block; font-size: 14px; color: var(--ink-2); margin-top: 3px; }
   .move-advice { margin-top: 28px; max-width: 62ch; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
 
-  /* ── 4. Since your last check-in, and if returns are different ── */
-  .jp-check-col { min-width: 0; }
-  .jp-check-col + .jp-check-col { margin-top: 16px; }
-  @media (min-width: 900px) { .jp-check-col + .jp-check-col { margin-top: 0; } }
+  /* ── 2. Since your last check-in ── */
   .jp-check .jp-sec-head { margin-bottom: 20px; }
-  .since-list, .levers { border-top: 1px solid var(--ink); }
+  .since-list { border-top: 1px solid var(--ink); }
   .since-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 0; border-bottom: var(--hp-rule); font-size: 16px; }
   .since-label { color: var(--ink-2); }
   .since-value { font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: -0.01em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
@@ -263,45 +226,13 @@
   .fu-history-row.total { color: var(--ink); font-weight: 600; }
   .fu-history-note { margin-top: 10px; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
 
-  .lever { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 18px; padding: 16px 0; border-bottom: var(--hp-rule); text-decoration: none; color: var(--ink); }
-  .lever-body { flex: 1; min-width: 0; }
-  .lever-title { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.25; color: var(--ink); }
-  .lever-desc { margin-top: 4px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
-  a.lever:hover .lever-title { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
-  .lever-empty { padding: 14px 0; font-size: 16px; color: var(--ink-2); }
-  /* "1 yr 2 mos later": the script renders a .chip; shown as a plain figure */
-  .jp .lever .chip { flex-shrink: 0; height: auto; padding: 0; border: 0; background: none; font-size: 16px; font-weight: 600; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .jp .lever .chip-negative { color: var(--ink-2); }
-  @media (max-width: 520px) { .lever { flex-direction: column; gap: 6px; } }
 
-  /* ── 5. Learn (sand) ── */
-  .jp-reads { border-top: 1px solid var(--ink); }
-  .read { display: flex; align-items: baseline; gap: 16px; padding: 18px 2px; border-bottom: var(--hp-rule); text-decoration: none; color: var(--ink); transition: border-color var(--dur-fast) ease; }
-  .read:hover, .read:focus-visible { border-bottom-color: var(--ink); }
-  .read-icon { display: none; }
-  .read-title { flex: 1; font-family: var(--font-display); font-weight: 700; font-size: clamp(19px, 2vw, 23px); line-height: 1.3; letter-spacing: -0.01em; color: var(--ink); }
-  .read:hover .read-title { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 1px; }
 
   .jp-foot .app-footer { margin-top: 0; padding: 24px 0 32px; font-size: 13px; color: var(--ink-2); }
 
-  /* ── Mobile "more" overlay ── */
-  .explore { position: fixed; inset: 0; z-index: 200; background: var(--bg); transform: translateX(100%); transition: transform 0.35s var(--ease); overflow-y: auto; }
-  .explore.open { transform: none; }
-  .explore-close { position: absolute; top: 16px; right: 16px; background: none; border: none; padding: 8px; color: var(--ink); cursor: pointer; }
-  .explore-inner { max-width: 480px; margin: 0 auto; padding: 72px 24px 48px; }
-  .explore-group { margin-bottom: 32px; }
-  .explore-group .eyebrow { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: none; color: var(--ink-2); }
-  .explore-group .eyebrow::before { content: ''; width: 28px; height: 1px; background: currentColor; opacity: 0.5; }
-  .explore-link { display: block; padding: 12px 0; border-bottom: 1px solid var(--line); text-decoration: none; }
-  .explore-link b { display: block; font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); }
-  .explore-link span { font-size: 14.5px; color: var(--ink-2); }
-  .explore-link:hover b { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
-  .explore-foot { display: flex; flex-wrap: wrap; gap: 12px 20px; padding-top: 20px; border-top: 1px solid var(--ink); font-size: 15px; }
-  .explore-foot a { color: var(--ink-2); }
-  @media (min-width: 1024px) { .explore { display: none; } }
 
   @media (prefers-reduced-motion: reduce) {
-    .kpi, .plan-list > .opt, .read, .arrow, .track-fill, .plan-bar i { transition: none !important; }
+    .plan-list > .opt, .track-fill, .plan-bar i { transition: none !important; }
   }
 </style>
 <script src="js/persona.js"></script>
@@ -320,28 +251,14 @@
   <header class="jp-head rise" style="--i:0">
     <div class="hp-wrap">
       <div class="jp-head-row">
-        <div class="head-row">
-          <div>
-            <h1 class="jp-greet" id="greetTitle">Welcome back.</h1>
-            <p class="jp-greet-sub" id="greetSub">&nbsp;</p>
-          </div>
-          <button class="menu-btn" id="menuTrigger" aria-label="More" aria-controls="explore" aria-expanded="false">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-          </button>
+        <div>
+          <h1 class="jp-greet" id="greetTitle">Welcome back.</h1>
+          <p class="jp-greet-sub" id="greetSub">&nbsp;</p>
         </div>
         <div class="jp-head-actions">
-          <button type="button" class="jp-persona" data-persona-open title="Change how FirePath talks to you">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-            <span data-persona-name></span>
-          </button>
-          <a href="firepath_pro.html?edit=true" class="jp-update">Update numbers</a>
+          <a href="progress.html" class="btn btn-ember jp-checkin">Check in</a>
         </div>
       </div>
-
-      <a href="welcome.html?next=journey.html" class="banner banner-accent" id="levelPrompt" data-persona-open hidden>
-        <span><strong>How much do you already know about money?</strong> Tell us and FirePath will explain things at your level.</span>
-        <span class="arrow" aria-hidden="true">→</span>
-      </a>
       <div id="mondayCheck" hidden></div>
     </div>
   </header>
@@ -379,7 +296,8 @@
           <div class="milestone-labels" id="milestoneLabels"></div>
         </div>
 
-        <div class="hero-chart">
+        <details class="hero-chart hp-more" id="chartFold">
+          <summary>See the projection chart</summary>
           <div class="chart-head">
             <div class="chart-title">Your projection</div>
             <div class="legend" aria-hidden="true">
@@ -391,82 +309,43 @@
             <div class="chart-tip" id="chartTip" role="status" aria-live="polite"></div>
           </div>
           <div class="chart-foot">Invested savings outside super (7% a year after inflation, less tax on its income), plus your super from 60. <a href="assumptions.html">How we calculate</a></div>
-        </div>
+        </details>
       </div>
     </div>
   </section>
 
-  <!-- 2 ── Where does my money stand? (→ Money) ── -->
-  <section class="hp-sec is-sand jp-money rise" style="--i:2" aria-labelledby="moneyHead">
+  <!-- 2 ── What's changed since last time? ── -->
+  <section class="hp-sec jp-check rise" style="--i:2" aria-labelledby="progressHead">
     <div class="hp-wrap">
       <div class="jp-sec-head">
-        <h2 class="hp-h2 is-small" id="moneyHead">Your money</h2>
-        <a href="money.html" class="jp-more">Money →</a>
+        <h2 class="hp-h2 is-small" id="progressHead">Since your last check-in</h2>
+        <a href="money.html" class="jp-more">Your numbers →</a>
       </div>
-      <div class="kpis" id="kpis">
-        <a href="money.html" class="kpi"><div class="kpi-label" data-copy-beginner="What you're worth">Net worth</div><div class="kpi-value skeleton" id="kpiNetWorth">$000K</div><div class="kpi-sub" id="kpiNetWorthSub"></div></a>
-        <a href="money.html" class="kpi"><div class="kpi-label" data-copy-beginner="Savings & investments" data-copy-fire="Portfolio (ex-super)">Invested</div><div class="kpi-value skeleton" id="kpiInvested">$000K</div><div class="kpi-sub" id="kpiInvestedSub"></div></a>
-        <a href="money.html" class="kpi"><div class="kpi-label">Super</div><div class="kpi-value skeleton" id="kpiSuper">$000K</div><div class="kpi-sub" id="kpiSuperSub"></div></a>
-        <a href="money.html" class="kpi"><div class="kpi-label" data-copy-fire="Savings rate (SR)">Savings rate</div><div class="kpi-value skeleton" id="kpiRate">00%</div><div class="kpi-sub" id="kpiRateSub"></div></a>
+      <div id="sinceList" class="since-list"><p class="progress-empty">Your progress shows up here after your next visit — FirePath compares each check-in with the one before.</p></div>
+      <div class="fu" id="fuCard" role="button" tabindex="0" aria-expanded="false" hidden>
+        <div class="fu-label">Time you've won back</div>
+        <div class="fu-figure num" id="fuFigure"></div>
+        <div class="fu-text" id="fuText"></div>
+        <div class="fu-toggle" id="fuToggle">How this is calculated ▾</div>
+        <div class="fu-history" id="fuHistory"></div>
       </div>
     </div>
   </section>
 
-  <!-- 3 ── Your plan (→ Strategy): the one dark band. Options and their modelled effect,
-       never instructions. The person marks each one On it / Done / Not for me (js/moves-status.js). ── -->
+  <!-- 3 ── The top 3 ideas (the full list is on Options): the one dark band. Options and their
+       modelled effect, never instructions. The person marks each one On it / Done / Not for me
+       (js/moves-status.js). ── -->
   <section class="hp-sec is-dark jp-plan" aria-labelledby="planHeading">
     <div class="hp-wrap hp-side">
       <div class="hp-side-head is-sticky">
         <h2 class="hp-h2 is-mid" id="planHeading" tabindex="-1">Your plan</h2>
         <p class="plan-intro">Based on your numbers, areas you could research further. Ordered by how much each could move your projected date.</p>
         <div id="planTop"></div>
-        <a href="strategy.html" class="jp-more">All options →</a>
       </div>
       <div class="hp-side-main">
         <div class="plan-note" id="planNote" role="status" aria-live="polite" tabindex="-1"></div>
         <div id="planBody"><div class="skeleton" style="height:22px;width:60%"></div><div class="skeleton" style="height:14px;width:90%;margin-top:14px"></div><div class="skeleton" style="height:64px;margin-top:20px;border-radius:4px"></div></div>
         <p class="move-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- 4 ── Am I making progress? How sure is the date? ── -->
-  <div class="hp-sec jp-check">
-    <div class="hp-wrap hp-half">
-      <section class="jp-check-col rise" style="--i:3" aria-labelledby="progressHead">
-        <div class="jp-sec-head">
-          <h2 class="hp-h2 is-small" id="progressHead">Since your last check-in</h2>
-          <span class="jp-links" style="margin-top:0"><a href="progress.html" class="jp-more">Check in →</a><a href="about-you.html" class="jp-more">Milestones →</a></span>
-        </div>
-        <div id="sinceList" class="since-list"><p class="progress-empty">Your progress shows up here after your next visit — FirePath compares each check-in with the one before.</p></div>
-        <div class="fu" id="fuCard" role="button" tabindex="0" aria-expanded="false" hidden>
-          <div class="fu-label">Time you've won back</div>
-          <div class="fu-figure num" id="fuFigure"></div>
-          <div class="fu-text" id="fuText"></div>
-          <div class="fu-toggle" id="fuToggle">How this is calculated ▾</div>
-          <div class="fu-history" id="fuHistory"></div>
-        </div>
-      </section>
-
-      <section class="jp-check-col rise" style="--i:4" aria-labelledby="leversHead">
-        <div class="jp-sec-head">
-          <h2 class="hp-h2 is-small" id="leversHead">If returns are different</h2>
-          <a href="hearmeout.html" class="jp-more">What if…? →</a>
-        </div>
-        <div id="levers" class="levers"><div class="skeleton" style="height:44px;margin-top:14px"></div><div class="skeleton" style="height:44px;margin-top:12px"></div></div>
-      </section>
-    </div>
-  </div>
-
-  <!-- 5 ── What should I read? (→ Learn) ── -->
-  <section class="hp-sec is-sand jp-learn" aria-labelledby="learnHead">
-    <div class="hp-wrap hp-side">
-      <div class="hp-side-head">
-        <h2 class="hp-h2 is-small" id="learnHead">Picked for your level</h2>
-        <div class="jp-links"><a href="learn.html" class="jp-more">Learn →</a></div>
-      </div>
-      <div class="hp-side-main">
-        <div id="learnList" class="jp-reads"></div>
       </div>
     </div>
   </section>
@@ -479,35 +358,6 @@
   </div>
 </main>
 
-<div class="explore" id="explore" aria-hidden="true">
-  <button class="explore-close" id="exploreClose" aria-label="Close menu">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-  </button>
-  <div class="explore-inner">
-    <div class="explore-group">
-      <div class="eyebrow">Explore</div>
-      <a href="freedom-gap.html" class="explore-link"><b>Freedom gap</b><span>How much your savings already pay for</span></a>
-      <a href="hearmeout.html" class="explore-link"><b>What if…?</b><span>Test real decisions before you make them</span></a>
-      <a href="ask-firepath.html" class="explore-link"><b>Ask FirePath</b><span>Ask anything about your plan</span></a>
-    </div>
-    <div class="explore-group">
-      <div class="eyebrow">Tools</div>
-      <a href="tax_pro.html" class="explore-link"><b>Tax tools</b><span>How tax can come down, legally</span></a>
-      <a href="withdrawal.html" class="explore-link"><b>Withdrawal planner</b><span>See if your money will last</span></a>
-      <a href="firepath_pro.html" class="explore-link"><b>Your full plan</b><span>The complete picture, including super</span></a>
-    </div>
-    <div class="explore-group">
-      <div class="eyebrow">You</div>
-      <a href="about-you.html" class="explore-link"><b>Milestones</b><span>Milestones and how you handle money</span></a>
-      <a href="learning_lab.html" class="explore-link"><b>Learning Lab</b><span>Short lessons built around your numbers</span></a>
-    </div>
-    <div class="explore-foot">
-      <a href="#" data-persona-open>Level: <span data-persona-name></span></a>
-      <a href="account.html">Settings</a>
-      <a href="auth.html?action=signout">Sign out</a>
-    </div>
-  </div>
-</div>
 
 <script>
 (function () {
@@ -841,81 +691,8 @@
     hit.addEventListener('pointerleave', hide);
   }
 
-  // ── KPIs ───────────────────────────────────────────────
-  function setKpi(id, value, sub) {
-    const el = $(id);
-    el.classList.remove('skeleton');
-    el.textContent = value;
-    $(id + 'Sub').innerHTML = sub;
-  }
-  function renderKpis(m, prev) {
-    const persona = Persona.get();
-    let nwSub = persona === 'beginner' ? 'What you own minus what you owe' : 'Assets less debts, incl. super';
-    if (prev && prev.picture && prev.picture.netWorth != null && prev.picture.netWorthFormulaVersion === 3) {
-      const d = m.netWorth - prev.picture.netWorth;
-      if (d) nwSub = `<span class="${d > 0 ? 'delta-up' : 'delta-down'}">${d > 0 ? '▲' : '▼'} ${money(Math.abs(d))}</span> since last check-in`;
-    }
-    setKpi('kpiNetWorth', money(m.netWorth), nwSub);
-    setKpi('kpiInvested', money(m.savings), persona === 'beginner' ? 'Money you can use before 60' : persona === 'fire' ? 'Accessible pre-preservation' : 'Outside super');
-    setKpi('kpiSuper', money(m.superBal), persona === 'beginner' ? "Locked until you're 60" : 'Preservation age 60');
-    let rateSub = `${money(m.monthlySavings)} a month`;
-    if (prev && prev.picture && prev.picture.savingsRate != null && m.savingsRate != null && prev.picture.savingsRate !== m.savingsRate) {
-      const d = m.savingsRate - prev.picture.savingsRate;
-      rateSub = `<span class="${d > 0 ? 'delta-up' : 'delta-down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)} pts</span> · ${rateSub}`;
-    }
-    setKpi('kpiRate', m.savingsRate != null ? `${m.savingsRate}%` : '—', rateSub);
-  }
-
-  // ── If returns are different — the same date with returns a point lower or higher.
-  //    A sensitivity check, not something to act on (the options live in Your plan). ─
-  const RETURNS_COPY = {
-    lower: {
-      beginner: ['If investments grow slower', 'Markets vary. This is 1% a year less growth than we assume.'],
-      building: ['Returns 1% lower', 'One point a year less than we assume. Worth knowing the downside.'],
-      fire: ['Return −1pt after inflation', 'Sensitivity to your return assumption.']
-    },
-    higher: {
-      beginner: ['If investments grow faster', '1% a year more growth than we assume. Possible, but not guaranteed.'],
-      building: ['Returns 1% higher', 'One point a year more than we assume. Not something to plan on.'],
-      fire: ['Return +1pt after inflation', 'Upside sensitivity. Not one to bank on.']
-    }
-  };
-  function renderLevers(m) {
-    const el = $('levers');
-    if (!(m.annualSpend > 0)) { el.innerHTML = '<p class="lever-empty">Add your numbers to see how sure your date is.</p>'; return; }
-    if (isFree(m)) {
-      // The date is already here; what matters now is whether the money lasts.
-      el.innerHTML = `<a class="lever" href="/withdrawal"><div class="lever-body"><div class="lever-title">You've reached your number. Will it last?</div><div class="lever-desc">See how your money holds up across 2,000 possible market outcomes, including a bad run in the first years.</div></div><span class="chip chip-positive">Free</span></a>`;
-      return;
-    }
-    const persona = Persona.get();
-    const base = m.months;
-    // Same plan as the headline date, with only the return changed.
-    const solve = rate => {
-      const r = Engine.freedomPlan(Object.assign({}, m.planInputs, { outsideReturn: rate }));
-      return r.valid ? r.months : null;
-    };
-    const rate = m.plan.outsideReturn;
-    const rows = [
-      { key: 'lower', months: solve(rate - 0.01) },
-      { key: 'higher', months: solve(rate + 0.01) }
-    ];
-    el.innerHTML = rows.map(r => {
-      const [title, desc] = RETURNS_COPY[r.key][persona];
-      let chip;
-      if (base == null && r.months == null) chip = '<span class="chip">No change</span>';
-      else if (base == null) chip = `<span class="chip chip-positive">Reachable in ${duration(r.months)}</span>`;
-      else if (r.months == null) chip = '<span class="chip chip-negative">100+ yrs</span>';
-      else {
-        const diff = base - r.months;
-        chip = Math.abs(diff) < 1 ? '<span class="chip">No change</span>'
-          : `<span class="chip ${diff > 0 ? 'chip-positive' : 'chip-negative'}">${duration(diff)} ${diff > 0 ? 'sooner' : 'later'}</span>`;
-      }
-      return `<div class="lever"><div class="lever-body"><div class="lever-title">${title}</div><div class="lever-desc">${desc}</div></div>${chip}</div>`;
-    }).join('');
-  }
-
-  // ── Your plan — FirePathMoves.plan() with the person's saved statuses. ─────
+  // ── Your plan (top 3) — FirePathMoves.plan() with the person's saved statuses. ─────
+  // The full list, with Done and Not for me, lives on Options (strategy.html).
   // Options are general information: what each change would do, never "you should".
   let moveStatuses = {};          // { moveId: { status, done_at, updated_at } }
   let statusesLoaded = false;
@@ -929,12 +706,6 @@
     if (!model || !model.situation || !window.FirePathMoves || typeof window.FirePathMoves.plan !== 'function') return null;
     try { return window.FirePathMoves.plan(model.situation, moveStatuses); } catch (e) { console.log('Plan failed', e); return null; }
   }
-  // The open option to point at first: one the person is on, else the top-ranked one.
-  function leadOption(p) {
-    if (!p || !p.open.length) return null;
-    return p.open.find(o => o.status === 'doing') || p.open[0];
-  }
-  const monthYear = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('en-AU', { month: 'short', year: 'numeric' }); };
   function impactHtml(o) {
     const imp = o.impact || {};
     if (imp.years > 0) {
@@ -1021,12 +792,9 @@
     const p = currentPlan();
     renderPlanTop(p);
     if (!p) { body.innerHTML = '<p class="plan-empty">Your options couldn’t load just now. Try refreshing the page.</p>'; return; }
-    // Keep any open <details> open across re-renders.
-    const wasOpen = new Set(Array.from(body.querySelectorAll('details[open]')).map(d => d.dataset.fold));
     let html = '';
     if (p.open.length) {
       html += `<ol class="plan-list">${p.open.slice(0, OPEN_SHOWN).map(optionHtml).join('')}</ol>`;
-      if (p.open.length > OPEN_SHOWN) html += `<a class="plan-more" href="strategy.html">Show all ${p.open.length} options →</a>`;
     } else if (p.done.length) {
       html += `<p class="plan-empty">You've worked through every option we can see for your numbers.</p>`;
     } else if (isFree(model)) {
@@ -1034,14 +802,8 @@
     } else {
       html += `<p class="plan-empty">We can't see any options for your numbers yet. Filling in a bit more in <a href="firepath_pro.html?edit=true">your plan’s inputs</a> helps us find them.</p>`;
     }
-    if (p.done.length) {
-      html += `<details class="plan-fold" data-fold="done"${wasOpen.has('done') ? ' open' : ''}><summary>Done (${p.done.length})</summary><ul>${p.done.map(d => `
-        <li><span>${escapeHtml(d.title)}<span class="fold-sub">${d.auto ? `Your numbers show this. ${escapeHtml(d.reason || '')}` : d.done_at ? `Marked done ${monthYear(d.done_at)}` : 'Marked done'}</span></span></li>`).join('')}</ul></details>`;
-    }
-    if (p.dismissed.length) {
-      html += `<details class="plan-fold" data-fold="dismissed"${wasOpen.has('dismissed') ? ' open' : ''}><summary>Not for me (${p.dismissed.length})</summary><ul>${p.dismissed.map(d => `
-        <li><span>${escapeHtml(d.title)}</span><button type="button" class="opt-btn" data-move="${escapeHtml(d.id)}" data-act="back" aria-label="Bring back ${escapeHtml(d.title)}"${pendingMoves.has(d.id) ? ' disabled' : ''}>Bring it back</button></li>`).join('')}</ul></details>`;
-    }
+    // Everything else (the rest of the list, Done, Not for me) is on Options.
+    html += `<a class="plan-more" href="strategy.html">See all options${p.open.length > OPEN_SHOWN ? ` (${p.open.length})` : ''} →</a>`;
     body.innerHTML = html;
     if (focus) restoreFocus(focus);
   }
@@ -1071,13 +833,11 @@
     pendingMoves.add(id);
     setNote({ kind: NOTE_FOR[act], id, title, prev: before[id] || null }, act === 'dismissed' ? 6000 : act === 'done' ? 0 : 4000);
     renderPlan({ id, act });
-    renderLearn();
     const r = await MS.set(id, status);
     pendingMoves.delete(id);
     if (r && r.ok) moveStatuses = await MS.load();
     else { moveStatuses = before; setNote(prevNote && prevNote.id !== id ? prevNote : null); }
     renderPlan({ id, act });
-    renderLearn();
   }
   async function undoMove(id, title) {
     const MS = window.FirePathMoveStatus;
@@ -1096,7 +856,6 @@
     if (r && r.ok) moveStatuses = await MS.load();
     else { moveStatuses = before; setNote(prevNote); }
     renderPlan({ id, act: 'doing' });
-    renderLearn();
   }
   document.addEventListener('click', e => {
     const b = e.target.closest('#planBody [data-act], #planNote [data-act]');
@@ -1110,62 +869,6 @@
     if (b.dataset.act === 'undo') undoMove(id, title);
     else changeMove(id, b.dataset.act, title);
   });
-
-  const LEARN_ICON = '<path d="M12 6.5c-1.8-1.3-4.2-1.8-6.5-1.5v13c2.3-.3 4.7.2 6.5 1.5"/><path d="M12 6.5c1.8-1.3 4.2-1.8 6.5-1.5v13c-2.3-.3-4.7.2-6.5 1.5"/><path d="M12 6.5v13.5"/>';
-
-  // ── Learn — three reads matched to the knowledge level ──
-  const READS = {
-    beginner: [
-      ['learn/how-compound-interest-works.html', 'How compound interest works, with real Australian examples'],
-      ['learn/what-is-an-index-fund.html', 'What is an index fund?'],
-      ['learn/good-savings-rate.html', "What's a good savings rate for my income?"]
-    ],
-    building: [
-      ['learn/salary-sacrifice-explained.html', 'How salary sacrifice actually works'],
-      ['learn/debt-vs-invest.html', 'Should I pay off debt or invest first?'],
-      ['learn/what-is-coast-fire.html', 'What is Coast FIRE — and could I already be there?']
-    ],
-    fire: [
-      ['learn/four-percent-rule-australia.html', 'The 4% rule — does it hold up for Australian FIRE?'],
-      ['learn/before-super-access.html', 'Bridging the gap before preservation age'],
-      ['learn/franking-credits-australia.html', 'Franking credits and your drawdown']
-    ]
-  };
-  // Article list with "who it's for" tags (/learn/articles.json). null until loaded;
-  // false if it couldn't load (then nothing is filtered — unknown never excludes).
-  let ARTICLES = null;
-  const slugOf = href => href.replace(/^\/?learn\//, '').replace(/\.html$/, '');
-  function fitsPerson(slug, s) {
-    if (!s || !ARTICLES || !window.FirePathMoves) return true;
-    const a = ARTICLES.find(x => x.slug === slug);
-    return !a || window.FirePathMoves.articleFits(a.for, s);
-  }
-  // The persona's three reads, minus any that don't fit this person. A dropped read
-  // is replaced by the article of the person's lead open option in Your plan (one they're
-  // on, else the top-ranked one), so it never points at a done or "not for me" option.
-  function readsFor(m) {
-    const s = m && m.situation;
-    let list = READS[Persona.get()].filter(([href]) => fitsPerson(slugOf(href), s));
-    if (list.length < 3 && s && window.FirePathMoves) {
-      const p = statusesLoaded ? currentPlan() : null;
-      const lead = p ? [leadOption(p)].concat(p.open).find(x => x && x.article) : null;
-      const slug = lead && lead.article;
-      if (slug && fitsPerson(slug, s) && !list.some(([href]) => slugOf(href) === slug)) {
-        const a = ARTICLES && ARTICLES.find(x => x.slug === slug);
-        if (a) list.push([`learn/${slug}.html`, a.heading]);
-      }
-    }
-    return list;
-  }
-  function renderLearn() {
-    if (ARTICLES === null) return;   // wait for the tags so an unsuitable read never flashes up
-    $('learnList').innerHTML = readsFor(model).map(([href, title]) => `
-      <a class="read" href="${href}">
-        <span class="read-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LEARN_ICON}</svg></span>
-        <span class="read-title">${escapeHtml(title)}</span>
-        <span class="arrow" aria-hidden="true">→</span>
-      </a>`).join('');
-  }
 
   // ── Progress ───────────────────────────────────────────
   function renderSince(rows) {
@@ -1249,10 +952,7 @@
     renderHero(model);
     renderPath(model);
     renderProjection(model);
-    renderKpis(model, prevSnapshot);
-    renderLevers(model);
     renderPlan();
-    renderLearn();
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -1279,16 +979,11 @@
       renderHeader(p);
       renderMondayCheck(p, token);
       renderAll();
-      fetch('/learn/articles.json').then(r => r.ok ? r.json() : false).catch(() => false).then(list => {
-        ARTICLES = Array.isArray(list) ? list : false;
-        renderLearn();
-      });
       // The person's status on each option (On it / Done / Not for me). {} if it can't load.
       (window.FirePathMoveStatus ? window.FirePathMoveStatus.load() : Promise.resolve({})).catch(() => ({})).then(st => {
         moveStatuses = st || {};
         statusesLoaded = true;
         renderPlan();
-        renderLearn();
       });
 
       // Re-render wording when the knowledge level changes; re-draw the chart on resize.
@@ -1298,6 +993,12 @@
         const w = $('chartWrap').clientWidth;
         if (model && Math.abs(w - lastW) > 4) { lastW = w; renderProjection(model); }
       }).observe($('chartWrap'));
+      // The chart sits behind a toggle: draw it at its real width when it opens.
+      $('chartFold').addEventListener('toggle', () => {
+        if (!$('chartFold').open || !model) return;
+        lastW = $('chartWrap').clientWidth;
+        renderProjection(model);
+      });
 
       const { savings, monthlySavings, annualSpend, freedomNumber, netWorth, pct } = model;
 
@@ -1311,7 +1012,6 @@
           if (prevSnapshot && prevSnapshot.picture && typeof prevSnapshot.picture.freedomPct === 'number') {
             const deltaPct = pct - prevSnapshot.picture.freedomPct;
             renderHeroDelta(deltaPct);
-            renderKpis(model, prevSnapshot);
 
             const rows = [{ label: Persona.get() === 'fire' ? 'FI %' : 'Progress to freedom number', before: `${prevSnapshot.picture.freedomPct}%`, after: `${pct}%`, positive: deltaPct > 0 }];
             if (prevSnapshot.inputs && prevSnapshot.inputs.monthlySavings != null && annualSpend > 0) {
@@ -1367,7 +1067,7 @@
         }
       } catch (e) { console.log('Freedom Unlocked calculation failed', e); }
 
-      // "Since {Month YYYY}" in Your plan: the oldest check-in that kept age and super
+      // "Since {Month YYYY}" over the top 3 ideas: the oldest check-in that kept age and super
       // (from October 2026), on the same plan both times. Older savings-only check-ins
       // are skipped for this line. Moved closer = the date then, as a calendar month,
       // less the date now.
@@ -1412,24 +1112,6 @@
     } catch (e) { console.log('Journey load failed', e); }
   });
 
-  // Level prompt — shown until a knowledge level is picked.
-  const levelPrompt = $('levelPrompt');
-  const syncPrompt = () => { levelPrompt.hidden = Persona.hasChosen(); };
-  syncPrompt();
-  Persona.onChange(syncPrompt);
-
-  // Mobile "more" menu
-  const explore = $('explore'), trigger = $('menuTrigger');
-  const setMenu = open => {
-    explore.classList.toggle('open', open);
-    explore.setAttribute('aria-hidden', open ? 'false' : 'true');
-    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
-    document.body.style.overflow = open ? 'hidden' : '';
-  };
-  trigger.addEventListener('click', () => setMenu(true));
-  $('exploreClose').addEventListener('click', () => setMenu(false));
-  explore.addEventListener('click', e => { if (e.target.closest('[data-persona-open]')) setMenu(false); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && explore.classList.contains('open')) setMenu(false); });
 })();
 </script>
 </body>

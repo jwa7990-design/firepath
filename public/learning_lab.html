@@ -18,7 +18,7 @@
   <meta charset="UTF-8"/>
 <meta name="robots" content="noindex"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>FirePath — Learning Lab</title>
+  <title>FirePath — Learn</title>
 <!-- seo:start -->
 <meta property="og:site_name" content="FirePath"/>
 <meta property="og:locale" content="en_AU"/>
@@ -84,8 +84,6 @@
     .topics-list:has(> .topic-section-divider:first-child) { border-top: 0; }
     .topic-section-divider:first-child { margin-top: 0; }
     .topic-section-divider + .topic-item { border-top: 0; }
-    /* Tax & Strategy: the top 3, then "Show all" */
-    #taxTopicsList.is-short > .topic-item:nth-child(n+4) { display: none; }
     .lab-more { margin-top: 16px; }
 
     /* ── Tracks: Real Questions as the featured row, the three steps as the dark band ── */
@@ -228,6 +226,7 @@
     .wn-btn:focus-visible, .wn-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
     .wn-link { padding: 4px 0; font-size: 15px; font-weight: 600; color: var(--ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; }
     .wn-link:hover { text-decoration-color: var(--ink); }
+    button.wn-link { background: none; border: 0; font: 600 15px var(--font-ui); }
 
     /* ── Glossary: word tabs, then a ruled definition list ── */
     .glossary-intro { max-width: 60ch; font-size: 17px; color: var(--ink); line-height: 1.6; margin-bottom: 24px; }
@@ -261,6 +260,37 @@
     .glossary-deep-result a { color: var(--ink) !important; text-decoration: underline; text-underline-offset: 3px; }
     .glossary-loading { color: var(--ink-2); }
     @media (prefers-reduced-motion: reduce) { .topic-arrow, .track-go, .glossary-chevron::after { transition: none !important; } }
+
+    /* ── Learn hub (this page is the Learn tab; learn.html redirects here) ── */
+    .lab-hero .hp-two { align-items: start; }
+    /* 1. Continue where you left off: an ember rule on top, the lesson, one button. */
+    .lab-continue { min-width: 0; padding-top: 20px; border-top: 2px solid var(--hp-accent); }
+    .lab-continue[hidden], #picksSection[hidden], .lab-more[hidden], .lab-none[hidden] { display: none; }
+    .lab-continue-title { display: block; margin: 14px 0 20px; max-width: 22ch; font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3vw, 36px); line-height: 1.12; letter-spacing: -0.02em; color: var(--ink); }
+    .lab-continue-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .lab-continue-btn { height: 50px; padding: 0 24px; border-radius: var(--hp-r); font-size: 15px; border: 0; cursor: pointer; }
+    .lab-continue-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+    .lab-continue .th-progress { margin-top: 24px; }
+    /* 3. The library: one search line, then the sections. Rows past the third wait for "Show all". */
+    .lab-search { position: relative; max-width: 460px; }
+    .lab-search-input { width: 100%; height: 50px; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; padding: 0 8px 0 30px; font: 400 17px var(--font-ui); color: var(--ink); }
+    .lab-search-input::placeholder { color: var(--ink-2); }
+    .lab-search-input:focus { outline: none; box-shadow: 0 1px 0 0 var(--ink); }
+    .lab-search-icon { position: absolute; left: 2px; top: 50%; transform: translateY(-50%); color: var(--ink-2); pointer-events: none; }
+    .lab-ask { display: none; align-items: center; gap: 6px; margin-top: 14px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; }
+    .lab-ask.shown { display: inline-flex; }
+    .lab-ask:hover { text-decoration-color: var(--ink); }
+    .lab-none { margin-top: 14px; font-size: 15.5px; color: var(--ink-2); }
+    .topics-list.is-short > .is-extra { display: none; }
+    .is-searching .topics-list.is-short > .is-extra { display: grid; }
+    .is-searching .topic-section-divider, .is-searching .lab-more { display: none !important; }
+    .hidden-by-search { display: none !important; }
+    .lab-track + .lab-track { margin-top: 48px; }
+    .lab-track-name { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 2.6vw, 30px); line-height: 1.15; letter-spacing: -0.015em; color: var(--ink); }
+    .lab-track-risk { margin: 6px 0 16px; display: flex; align-items: baseline; gap: 10px; font-size: 14.5px; font-weight: 600; color: var(--ink); }
+    .lab-pick-level { margin-top: 14px; max-width: 40ch; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+    .lab-pick-level a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; }
+    a.topic-item { text-decoration: none; color: var(--ink); }
   </style>
 </head>
 <body class="app" data-shell="app" data-active="learn">
@@ -268,108 +298,145 @@
 
 <main class="hp lab" id="main">
 
-  <!-- TRACK SELECTION VIEW -->
+  <!-- LEARN HUB (the Learn tab): continue, picked for your level, then the library -->
   <div id="trackView">
     <header class="hp-hero lab-hero">
-      <div class="hp-wrap">
-        <p class="hp-label is-ink">Learning Lab</p>
-        <h1 class="hp-h1">What do you want to learn?</h1>
-        <p class="hp-lead">Pick a track and we'll show you the lessons that match, in plain English. Every article is free to read.</p>
-        <div id="userContext" class="lab-note" style="display:none;"></div>
-        <div id="liveRatesBar" class="lab-note" style="display:none;">
-          <svg class="icon"><use href="/icons.svg#icon-live"/></svg> <strong>Live data:</strong> RBA cash rate <strong id="llCashRate">—</strong> · CPI <strong id="llCpi">—</strong> · Bank interest after inflation <strong id="llBank">—</strong> · Super guarantee <strong id="llSg">—</strong>
+      <div class="hp-wrap hp-two">
+        <div>
+          <p class="hp-label is-ink">Learn</p>
+          <h1 class="hp-h1">Money stuff, in plain English</h1>
+          <p class="hp-lead">Short lessons that explain the options. Every article is free to read.</p>
+          <div id="userContext" class="lab-note" style="display:none;"></div>
+          <div id="liveRatesBar" class="lab-note" style="display:none;">
+            <svg class="icon"><use href="/icons.svg#icon-live"/></svg> <strong>Live data:</strong> RBA cash rate <strong id="llCashRate">—</strong> · CPI <strong id="llCpi">—</strong> · Bank interest after inflation <strong id="llBank">—</strong> · Super guarantee <strong id="llSg">—</strong>
+          </div>
         </div>
+
+        <!-- 1. Continue where you left off (signed in, with at least one lesson read) -->
+        <section class="lab-continue" id="continueHero" aria-labelledby="continueEyebrow" hidden>
+          <h2 class="hp-label is-ink" id="continueEyebrow">Continue where you left off</h2>
+          <p class="lab-continue-title" id="continueTitle"></p>
+          <div class="lab-continue-row" id="continueRow"></div>
+          <div class="th-progress">
+            <div class="th-track"><div class="th-fill" id="continueFill" style="width:0%"></div></div>
+            <div class="th-meta"><span id="continueCount"></span><span id="continueStreak"></span></div>
+          </div>
+        </section>
       </div>
     </header>
 
-    <!-- Saved articles section -->
-    <section id="savedSection" style="display:none;" class="hp-sec">
+    <!-- 2. Picked for your level (the same picks Your Path used to show) -->
+    <section class="hp-sec is-sand" id="picksSection" aria-labelledby="picksHead" hidden>
       <div class="hp-wrap hp-side">
-        <div class="hp-side-head lab-head"><h2 class="hp-h2 is-mid">Saved articles</h2></div>
-        <div id="savedList" class="topics-list hp-side-main"></div>
+        <div class="hp-side-head lab-head">
+          <h2 class="hp-h2 is-mid" id="picksHead">Picked for your level</h2>
+          <p class="lab-pick-level" id="picksLevel">For <span data-persona-name></span>.</p>
+        </div>
+        <div class="topics-list hp-side-main" id="picksList"></div>
       </div>
     </section>
 
-    <section class="hp-sec">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head lab-head">
-          <p class="hp-label is-ink" aria-hidden="true">01</p>
-          <h2 class="hp-h2 is-mid">Start here — the foundations</h2>
+    <!-- 3. The library: search, saved, then the sections (top 3 each, then "Show all") -->
+    <div id="library">
+      <section class="hp-sec" aria-labelledby="libraryHead">
+        <div class="hp-wrap hp-side">
+          <div class="hp-side-head lab-head"><h2 class="hp-h2 is-mid" id="libraryHead">The library</h2></div>
+          <div class="hp-side-main">
+            <div class="lab-search">
+              <svg class="lab-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              <input type="search" class="lab-search-input" id="labSearch" placeholder="Search lessons…" aria-label="Search lessons" autocomplete="off"/>
+            </div>
+            <p class="lab-none" id="labNone" role="status" hidden>Nothing in the library matches that yet.</p>
+            <a href="ask-firepath.html" class="lab-ask" id="labAsk">Ask FirePath about “<span id="labAskQuery"></span>” <span aria-hidden="true">→</span></a>
+          </div>
         </div>
-        <div class="topics-list hp-side-main" id="foundationTopics"></div>
-      </div>
-    </section>
+      </section>
 
-    <section class="hp-sec is-sand">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head lab-head">
-          <p class="hp-label is-ink" aria-hidden="true">02</p>
-          <h2 class="hp-h2 is-mid">Tax &amp; Strategy</h2>
+      <!-- Saved articles section -->
+      <section id="savedSection" style="display:none;" class="hp-sec" data-lib-sec>
+        <div class="hp-wrap hp-side">
+          <div class="hp-side-head lab-head"><h2 class="hp-h2 is-mid">Saved articles</h2></div>
+          <div id="savedList" class="topics-list hp-side-main"></div>
         </div>
-        <div class="hp-side-main">
-          <div class="topics-list is-short" id="taxTopicsList"></div>
-          <button type="button" class="hp-more-btn lab-more" id="taxMore" aria-expanded="false" aria-controls="taxTopicsList">Show all 7</button>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="hp-sec">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head lab-head">
-          <p class="hp-label is-ink" aria-hidden="true">03</p>
-          <h2 class="hp-h2 is-mid">Start here</h2>
+      <section class="hp-sec is-sand" data-lib-sec>
+        <div class="hp-wrap hp-side">
+          <div class="hp-side-head lab-head">
+            <p class="hp-label is-ink" aria-hidden="true">01</p>
+            <h2 class="hp-h2 is-mid">Start here — the foundations</h2>
+          </div>
+          <div class="hp-side-main">
+            <div class="topics-list is-short" id="foundationTopics"></div>
+            <button type="button" class="hp-more-btn lab-more" data-more-for="foundationTopics" aria-expanded="false" aria-controls="foundationTopics">Show all</button>
+          </div>
         </div>
-        <div class="hp-side-main">
-          <button type="button" class="track-btn track-featured" onclick="selectTrack('life')">
-            <span class="track-badge">You</span>
-            <span class="track-name">Real Questions</span>
-            <span class="track-desc">The questions people type into Google, answered honestly in plain English. No jargon, no judgement.</span>
-            <span class="track-risk"><span class="hp-mark" aria-hidden="true"></span>Straight answers, plain English</span>
-            <span class="track-go" aria-hidden="true">→</span>
-          </button>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="hp-sec is-dark">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head lab-head">
-          <p class="hp-label is-ink" aria-hidden="true">04</p>
-          <h2 class="hp-h2 is-mid">Or work through it step by step</h2>
-          <p class="section-intro">These go deeper on investing, grouped by how much risk you want to take.</p>
+      <section class="hp-sec" data-lib-sec>
+        <div class="hp-wrap hp-side">
+          <div class="hp-side-head lab-head">
+            <p class="hp-label is-ink" aria-hidden="true">02</p>
+            <h2 class="hp-h2 is-mid">Tax &amp; Strategy</h2>
+          </div>
+          <div class="hp-side-main">
+            <div class="topics-list is-short" id="taxTopicsList"></div>
+            <button type="button" class="hp-more-btn lab-more" data-more-for="taxTopicsList" aria-expanded="false" aria-controls="taxTopicsList">Show all</button>
+          </div>
         </div>
-        <div class="track-selector hp-side-main">
-          <button type="button" class="track-btn" onclick="selectTrack('5')">
-            <span class="track-badge">Steady</span>
-            <span class="track-name">Build Wealth Slowly</span>
-            <span class="track-desc">Conservative growth with lower risk — around a 5% target return. Aimed at growing money without big swings.</span>
-            <span class="track-risk"><span class="hp-mark is-ink" aria-hidden="true"></span>Lower risk</span>
-            <span class="track-go" aria-hidden="true">→</span>
-          </button>
-          <button type="button" class="track-btn" onclick="selectTrack('7')">
-            <span class="track-badge">Standard</span>
-            <span class="track-name">The FIRE Standard</span>
-            <span class="track-desc">The figure most of the financial independence crowd uses — around a 7% target return. Spread-out index investing has hit this over long periods in the past.</span>
-            <span class="track-risk"><span class="hp-mark is-ink" aria-hidden="true"></span>Moderate risk</span>
-            <span class="track-go" aria-hidden="true">→</span>
-          </button>
-          <button type="button" class="track-btn" onclick="selectTrack('10')">
-            <span class="track-badge">Growth</span>
-            <span class="track-name">Grow Faster</span>
-            <span class="track-desc">Aiming for 10%+ returns, with bigger risks and bigger swings. These tend to suit long timelines and a strong stomach for the ups and downs.</span>
-            <span class="track-risk"><span class="hp-mark is-ink" aria-hidden="true"></span>Higher risk</span>
-            <span class="track-go" aria-hidden="true">→</span>
-          </button>
+      </section>
+
+      <section class="hp-sec is-sand" data-lib-sec>
+        <div class="hp-wrap hp-side">
+          <div class="hp-side-head lab-head">
+            <p class="hp-label is-ink" aria-hidden="true">03</p>
+            <h2 class="hp-h2 is-mid">Questions people ask</h2>
+            <p class="section-intro">Answered honestly, in plain English. No jargon, no judgement.</p>
+          </div>
+          <div class="hp-side-main">
+            <div class="topics-list is-short" id="lifeTopicsList"></div>
+            <button type="button" class="hp-more-btn lab-more" data-more-for="lifeTopicsList" aria-expanded="false" aria-controls="lifeTopicsList">Show all</button>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section class="hp-sec is-dark" data-lib-sec>
+        <div class="hp-wrap hp-side">
+          <div class="hp-side-head lab-head">
+            <p class="hp-label is-ink" aria-hidden="true">04</p>
+            <h2 class="hp-h2 is-mid">Or work through it step by step</h2>
+            <p class="section-intro">These go deeper on investing, grouped by how much risk you want to take.</p>
+          </div>
+          <div class="hp-side-main">
+            <div class="lab-track" data-lib-track>
+              <h3 class="lab-track-name">Build Wealth Slowly</h3>
+              <p class="lab-track-risk"><span class="hp-mark is-ink" aria-hidden="true"></span>Lower risk · around a 5% target return</p>
+              <div class="topics-list is-short" id="t5TopicsList"></div>
+              <button type="button" class="hp-more-btn lab-more" data-more-for="t5TopicsList" aria-expanded="false" aria-controls="t5TopicsList">Show all</button>
+            </div>
+            <div class="lab-track" data-lib-track>
+              <h3 class="lab-track-name">The FIRE Standard</h3>
+              <p class="lab-track-risk"><span class="hp-mark is-ink" aria-hidden="true"></span>Moderate risk · around a 7% target return</p>
+              <div class="topics-list is-short" id="t7TopicsList"></div>
+              <button type="button" class="hp-more-btn lab-more" data-more-for="t7TopicsList" aria-expanded="false" aria-controls="t7TopicsList">Show all</button>
+            </div>
+            <div class="lab-track" data-lib-track>
+              <h3 class="lab-track-name">Grow Faster</h3>
+              <p class="lab-track-risk"><span class="hp-mark is-ink" aria-hidden="true"></span>Higher risk · aiming for 10%+, with bigger swings</p>
+              <div class="topics-list is-short" id="t10TopicsList"></div>
+              <button type="button" class="hp-more-btn lab-more" data-more-for="t10TopicsList" aria-expanded="false" aria-controls="t10TopicsList">Show all</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="hp-wrap"><p class="disclaimer">Educational only — not financial advice. Always consider your personal circumstances.</p></div>
   </div>
-
   <!-- TOPIC LIST VIEW -->
   <div id="topicView" style="display:none;">
     <div class="lab-sand lab-top">
       <div class="hp-wrap">
-        <button class="back-btn" onclick="showTrackView()">← Back to tracks</button>
+        <button class="back-btn" onclick="showTrackView()">← Back to Learn</button>
         <div id="trackHero"></div>
       </div>
     </div>
@@ -386,7 +453,7 @@
   <div id="articleView" class="article-view">
     <div class="lab-sand art-top">
       <div class="hp-wrap">
-        <button class="back-btn" id="articleBackBtn" onclick="showTopicView()">← Back to topics</button>
+        <button class="back-btn" id="articleBackBtn" onclick="articleBack()">← Back to Learn</button>
         <div class="article-header">
           <div class="article-track-badge" id="articleBadge">Track</div>
           <h2 class="article-title" id="articleTitle">Loading...</h2>
@@ -431,6 +498,10 @@
 
 <script src="js/auth.js"></script>
 <script src="js/calculations.js"></script>
+<script src="js/tax-engine.js"></script>
+<script src="js/financial-engine.js"></script>
+<script src="js/moves.js"></script>
+<script src="js/moves-status.js"></script>
 <script>
   const userData = {
     income: parseFloat(localStorage.getItem('ap_income')) || 0,
@@ -456,6 +527,7 @@
 
   let readTopics = [];
   let savedTopics = [];
+  let readDates = [];   // when each lesson was read (for the streak on "Continue where you left off")
 
   // ── Safe values ──
   // Topic ids, tracks and titles can come from the address bar, this browser's
@@ -630,6 +702,7 @@
       const data = await res.json();
       if (Array.isArray(data)) {
         readTopics = data.filter(r => !r.saved).map(r => r.topic_id);
+        readDates = data.filter(r => !r.saved && r.read_at).map(r => new Date(r.read_at));
         savedTopics = data.filter(r => r.saved).map(r => ({ id: r.topic_id, title: cleanTitle(r.topic_title), track: r.track }));
         localStorage.setItem('fp_lab_read', JSON.stringify(readTopics));
         localStorage.setItem('fp_lab_saved', JSON.stringify(savedTopics));
@@ -695,7 +768,7 @@
     section.style.display = 'block';
     list.innerHTML = savedTopics.map(s => `
       <div class="topic-item saved" ${articleAttrs(s.id, s.track, s.title)}>
-        <div class="topic-left"><div><div class="topic-title">${escHtml(s.title)}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track === 'tax' ? 'Tax & Strategy' : s.track === 'life' ? 'Real Questions' : escHtml(s.track) + '% track'}</div></div></div>
+        <div class="topic-left"><div><div class="topic-title">${escHtml(s.title)}</div><div class="topic-sub">${s.track === 'foundation' ? 'Foundation' : s.track === 'tax' ? 'Tax & Strategy' : s.track === 'life' ? 'Questions people ask' : escHtml(s.track) + '% track'}</div></div></div>
         <span class="saved-badge"><span class="hp-mark" aria-hidden="true"></span>Saved</span>
       </div>`).join('');
   }
@@ -788,42 +861,45 @@
 
   let currentTrack = null;
   let currentTopic = null;
+  let articleBack = () => showTrackView();
 
-  function renderFoundationTopics() {
-    const el = document.getElementById('foundationTopics');
-    el.innerHTML = foundationTopics.map(t => {
-      const isRead = readTopics.includes(t.id);
-      const isSaved = savedTopics.some(s => s.id === t.id);
-      return `
-        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" ${articleAttrs(t.id, t.track, t.title)}>
+  // One library row. `readLabel` is the badge once it's been read.
+  function topicRow(t, track, readLabel) {
+    const isRead = readTopics.includes(t.id);
+    const isSaved = savedTopics.some(s => s.id === t.id);
+    return `
+        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" ${articleAttrs(t.id, track, t.title)}>
           <div class="topic-left">
             <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
           </div>
-          ${isRead ? '<span class="read-badge"><span class="hp-mark" aria-hidden="true"></span>Explored</span>' : isSaved ? '<span class="saved-badge"><span class="hp-mark" aria-hidden="true"></span>Saved</span>' : '<span class="topic-arrow" aria-hidden="true">→</span>'}
+          ${isRead ? `<span class="read-badge"><span class="hp-mark" aria-hidden="true"></span>${readLabel}</span>` : isSaved ? '<span class="saved-badge"><span class="hp-mark" aria-hidden="true"></span>Saved</span>' : '<span class="topic-arrow" aria-hidden="true">→</span>'}
         </div>`;
+  }
+
+  // A library section's list: every row is there (search looks at all of them), but
+  // anything after the third lesson is marked is-extra and waits for "Show all".
+  function renderLibraryList(elId, topics, track, readLabel) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    let n = 0;
+    el.innerHTML = topics.map(t => {
+      if (t.header) return `<div class="topic-section-divider${n >= 3 ? ' is-extra' : ''}">${t.header}</div>`;
+      const row = topicRow(t, track, readLabel);
+      return n++ >= 3 ? row.replace('class="topic-item ', 'class="topic-item is-extra ') : row;
     }).join('');
   }
 
-  function renderTaxTopics() {
-    const el = document.getElementById('taxTopicsList');
-    if (!el) return;
-    el.innerHTML = taxTopics.map(t => {
-      const isRead = readTopics.includes(t.id);
-      const isSaved = savedTopics.some(s => s.id === t.id);
-      return `
-        <div class="topic-item ${isRead ? 'read' : isSaved ? 'saved' : ''}" ${articleAttrs(t.id, 'tax', t.title)}>
-          <div class="topic-left">
-            <div><div class="topic-title">${t.title}</div><div class="topic-sub">${t.sub}</div></div>
-          </div>
-          ${isRead ? '<span class="read-badge"><span class="hp-mark" aria-hidden="true"></span>Explored</span>' : isSaved ? '<span class="saved-badge"><span class="hp-mark" aria-hidden="true"></span>Saved</span>' : '<span class="topic-arrow" aria-hidden="true">→</span>'}
-        </div>`;
-    }).join('');
+  function renderFoundationTopics() { renderLibraryList('foundationTopics', foundationTopics, 'foundation', 'Explored'); }
+  function renderTaxTopics() { renderLibraryList('taxTopicsList', taxTopics, 'tax', 'Explored'); }
+  function renderTrackLists() {
+    renderLibraryList('lifeTopicsList', trackTopics.life, 'life', 'Read');
+    ['5', '7', '10'].forEach(tr => renderLibraryList(`t${tr}TopicsList`, trackTopics[tr], tr, 'Read'));
   }
 
   function selectTrack(track) {
     currentTrack = track;
     const trackInfo = {
-      'life': { name: 'Real Questions', badge: 'tlife', label: 'You', desc: 'The questions people really ask, answered honestly and grounded in real numbers.', risk: 'Straight answers, plain English', noPercent: true },
+      'life': { name: 'Questions people ask', badge: 'tlife', label: 'You', desc: 'The questions people really ask, answered honestly and grounded in real numbers.', risk: 'Straight answers, plain English', noPercent: true },
       '5': { name: 'Build Wealth Slowly', badge: 't5', label: 'Steady', desc: 'Steadier growth with lower risk — around a 5% target return. These articles explain the building blocks of lower-risk investing.', risk: 'Lower risk · Often used by cautious investors or for shorter timelines', noPercent: true },
       '7': { name: 'The FIRE Standard', badge: 't7', label: 'Standard', desc: 'The benchmark used by the FIRE community — around a 7% target return. Index investing, compounding, and the maths behind financial independence.', risk: 'Moderate risk · The most commonly used FIRE assumption', noPercent: true },
       '10': { name: 'Grow Faster', badge: 't10', label: 'Growth', desc: 'Higher returns of 10%+ come with bigger risks. These articles explain how growth-focused investing works.', risk: 'Higher risk · Requires long timelines and strong risk tolerance', noPercent: true },
@@ -865,13 +941,15 @@
     showTopicView();
   }
 
+  // Where the hub was scrolled to when an article was opened from it, so "Back to
+  // Learn" lands the reader where they were.
+  let hubScrollY = null;
   function showTrackView() {
     document.getElementById('trackView').style.display = 'block';
     document.getElementById('topicView').style.display = 'none';
     document.getElementById('articleView').style.display = 'none';
-    renderFoundationTopics();
-    renderTaxTopics();
-    renderSavedArticles();
+    renderHub();
+    if (hubScrollY !== null) { window.scrollTo({ top: hubScrollY, behavior: 'instant' }); hubScrollY = null; }
   }
 
   function showTopicView() {
@@ -891,6 +969,15 @@
   async function openArticle(topicId, track, title) {
     title = cleanTitle(title);
     currentTopic = { id: topicId, track, title };
+    // "Back" goes to wherever the article was opened from: a track's list, or the hub.
+    // Opening one article from another (Read next lesson) keeps the first one's way back.
+    const backBtn = document.getElementById('articleBackBtn');
+    if (document.getElementById('topicView').style.display === 'block') {
+      articleBack = showTopicView; backBtn.textContent = '← Back to topics';
+    } else if (document.getElementById('trackView').style.display !== 'none') {
+      hubScrollY = window.scrollY;
+      articleBack = showTrackView; backBtn.textContent = '← Back to Learn';
+    }
 
     document.getElementById('trackView').style.display = 'none';
     document.getElementById('topicView').style.display = 'none';
@@ -899,12 +986,11 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const badgeClass = track === 'foundation' ? 'foundation' : track === 'tax' ? 'ttax' : track === 'life' ? 'tlife' : track === '5' ? 't5' : track === '7' ? 't7' : 't10';
-    const badgeLabel = track === 'foundation' ? 'Foundation' : track === 'tax' ? 'Tax & Strategy' : track === 'life' ? 'Real Questions' : track === '5' ? '5% Track' : track === '7' ? '7% Track' : '10%+ Track';
+    const badgeLabel = track === 'foundation' ? 'Foundation' : track === 'tax' ? 'Tax & Strategy' : track === 'life' ? 'Questions people ask' : track === '5' ? '5% Track' : track === '7' ? '7% Track' : '10%+ Track';
     document.getElementById('articleBadge').className = `article-track-badge ${badgeClass}`;
     document.getElementById('articleBadge').textContent = badgeLabel;
     document.getElementById('articleTitle').textContent = title;
     document.getElementById('articleMeta').textContent = topicId === 'acronyms' ? 'Interactive glossary · Free' : 'Article · Free to read';
-    document.getElementById('articleBackBtn').onclick = (track === 'foundation' || track === 'tax') ? showTrackView : showTopicView;
 
     if (topicId === 'acronyms') {
       document.getElementById('loadingState').style.display = 'none';
@@ -1210,11 +1296,11 @@ Respond ONLY with valid JSON:
           <div class="wn-text">${esc(next.why)}</div>
           <div class="wn-actions">
             <div ${articleAttrs(nextId, nextTrack, cleanTitle(next.title))} class="wn-btn">Read next lesson →</div>
-            <div onclick="showTopicView()" class="wn-link">Back to all topics</div>
+            <button type="button" onclick="articleBack()" class="wn-link">Back to all topics</button>
           </div>
         </div>`;
     } catch(e) {
-      nextEl.innerHTML = `<div class="wn"><div class="wn-label">Marked as read</div><div class="wn-actions"><div onclick="showTopicView()" class="wn-link">← Back to all topics</div></div></div>`;
+      nextEl.innerHTML = `<div class="wn"><div class="wn-label">Marked as read</div><div class="wn-actions"><button type="button" onclick="articleBack()" class="wn-link">← Back to all topics</button></div></div>`;
     }
   }
 
@@ -1230,19 +1316,228 @@ Respond ONLY with valid JSON:
   }
   showLiveRates();
 
-  // Tax & Strategy: the top 3, then "Show all" (layout only).
-  document.getElementById('taxMore').addEventListener('click', function () {
-    const open = this.getAttribute('aria-expanded') !== 'true';
-    this.setAttribute('aria-expanded', String(open));
-    this.textContent = open ? 'Show fewer' : `Show all ${taxTopics.length}`;
-    document.getElementById('taxTopicsList').classList.toggle('is-short', !open);
+  // ── The Learn hub ─────────────────────────────────────────────
+  // This page is the Learn tab (learn.html redirects here). Top to bottom:
+  // 1. Continue where you left off, 2. Picked for your level, 3. the library.
+
+  // The learning path, in order (what the old learn.html walked through):
+  // Foundations → Build Your Base → Optimise (tax) → Freedom → Advanced.
+  const PATH_ORDER = ['foundation', '5', 'tax', '7', '10'];
+  const PATH_NAMES = { foundation: 'Foundations', '5': 'Build Your Base', tax: 'Optimise', '7': 'Freedom', '10': 'Advanced' };
+  const EST_MINUTES = 6;   // a flat, honestly-labelled estimate (per-lesson time isn't tracked)
+  const topicsFor = track => track === 'foundation' ? foundationTopics : track === 'tax' ? taxTopics : (trackTopics[track] || []).filter(t => !t.header);
+  // Path lessons that are also Learn articles with "who it's for" tags. Most lesson ids
+  // are the article slug already; this maps the few that aren't (as learn.html did).
+  const LESSON_SLUG = { 'what-is-fire': 'what-is-fire-australia', 'compounding': 'how-compound-interest-works', 'saving-vs-investing': 'difference-saving-investing', 'two-phase': 'two-phase-freedom-timeline', 'acronyms': 'fire-glossary-australia', 'franking-credits': 'franking-credits-australia', 'four-percent': 'four-percent-rule-australia' };
+
+  // Filled in for signed-in members by loadHubData(): the article tags, the person's
+  // situation (from their saved profile) and where they stand on each option.
+  let hubArticles = null, hubSituation = null, hubStatuses = {}, hubReady = !(fpToken && fpUserId);
+  let pathSkip = new Set();   // path lessons that don't fit this person (e.g. the spouse offset when single)
+
+  async function loadHubData() {
+    if (hubReady) return;
+    try {
+      if (!window.FirePathMoves) return;
+      const [artRes, profRes, statuses] = await Promise.all([
+        fetch('/learn/articles.json').catch(() => null),
+        FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${encodeURIComponent(fpUserId)}`, {}, { onExpired: 'none' }).catch(() => null),
+        window.FirePathMoveStatus ? window.FirePathMoveStatus.load().catch(() => ({})) : Promise.resolve({})
+      ]);
+      const articles = artRes && artRes.ok ? await artRes.json() : null;
+      const rows = profRes && profRes.ok ? await profRes.json() : null;
+      const p = Array.isArray(rows) && rows.length ? rows[0] : null;
+      hubArticles = Array.isArray(articles) ? articles : null;
+      hubSituation = p ? window.FirePathMoves.situationFromProfile(p) : null;
+      hubStatuses = statuses || {};
+      if (hubArticles && hubSituation) {
+        const tagsFor = id => { const a = hubArticles.find(x => x.slug === (LESSON_SLUG[id] || id)); return a ? a.for : null; };
+        PATH_ORDER.forEach(tr => topicsFor(tr).forEach(t => {
+          if (!window.FirePathMoves.articleFits(tagsFor(t.id), hubSituation)) pathSkip.add(t.id);
+        }));
+      }
+    } catch (e) {
+      console.log('Learn hub data failed', e);
+    } finally {
+      hubReady = true;
+    }
+  }
+
+  // ── 1. Continue where you left off ──
+  function readStreak() {
+    const days = new Set(readDates.filter(d => !isNaN(d)).map(d => d.toDateString()));
+    let streak = 0;
+    const cursor = new Date();
+    while (days.has(cursor.toDateString())) { streak++; cursor.setDate(cursor.getDate() - 1); }
+    return streak;
+  }
+  function renderContinue() {
+    const el = document.getElementById('continueHero');
+    if (!el) return;
+    if (!fpToken || !fpUserId || !hubReady) { el.hidden = true; return; }
+    let next = null, nextTrack = null, total = 0, done = 0;
+    PATH_ORDER.forEach(tr => topicsFor(tr).forEach(t => {
+      if (pathSkip.has(t.id)) return;
+      total++;
+      if (readTopics.includes(t.id)) done++;
+      else if (!next) { next = t; nextTrack = tr; }
+    }));
+    if (!done) { el.hidden = true; return; }   // nothing started yet: the foundations below are the start
+    const title = document.getElementById('continueTitle');
+    const row = document.getElementById('continueRow');
+    if (next) {
+      document.getElementById('continueEyebrow').textContent = 'Continue where you left off';
+      title.textContent = next.title;
+      row.innerHTML = `<button type="button" class="btn btn-ember lab-continue-btn" ${articleAttrs(next.id, nextTrack, next.title)}>Continue →</button>
+        <span class="hp-l3">${escHtml(PATH_NAMES[nextTrack])} · ${EST_MINUTES} min</span>`;
+    } else {
+      document.getElementById('continueEyebrow').textContent = 'Path complete';
+      title.textContent = "You've read every lesson in your path";
+      row.innerHTML = '<span class="hp-l3">The library below has more, and the questions people ask.</span>';
+    }
+    const pct = total ? Math.round(done / total * 100) : 0;
+    document.getElementById('continueFill').style.width = pct + '%';
+    document.getElementById('continueCount').textContent = `${done} of ${total} lessons in your path`;
+    const streak = readStreak();
+    document.getElementById('continueStreak').textContent = streak ? `${streak}-day streak` : '';
+    el.hidden = false;
+  }
+
+  // ── 2. Picked for your level ──
+  // The three reads matched to the person's knowledge level (the same picks and rules
+  // Your Path's "Picked for your level" used): any that don't fit this person are
+  // dropped, and a dropped one is replaced by the article for their lead open option
+  // (one they're on, else the top-ranked one). A pick that's also a lesson here opens
+  // in the reader (so it can be marked complete or saved); the rest open the article.
+  const LEVEL_READS = {
+    beginner: [
+      ['learn/how-compound-interest-works.html', 'How compound interest works, with real Australian examples'],
+      ['learn/what-is-an-index-fund.html', 'What is an index fund?'],
+      ['learn/good-savings-rate.html', "What's a good savings rate for my income?"]
+    ],
+    building: [
+      ['learn/salary-sacrifice-explained.html', 'How salary sacrifice actually works'],
+      ['learn/debt-vs-invest.html', 'Should I pay off debt or invest first?'],
+      ['learn/what-is-coast-fire.html', 'What is Coast FIRE — and could I already be there?']
+    ],
+    fire: [
+      ['learn/four-percent-rule-australia.html', 'The 4% rule — does it hold up for Australian FIRE?'],
+      ['learn/before-super-access.html', 'Bridging the gap before preservation age'],
+      ['learn/franking-credits-australia.html', 'Franking credits and your drawdown']
+    ]
+  };
+  const slugOf = href => href.replace(/^\/?learn\//, '').replace(/\.html$/, '');
+  function fitsPerson(slug) {
+    if (!hubSituation || !hubArticles || !window.FirePathMoves) return true;
+    const a = hubArticles.find(x => x.slug === slug);
+    return !a || window.FirePathMoves.articleFits(a.for, hubSituation);
+  }
+  function levelReads() {
+    const P = window.FirePathPersona;
+    const level = P ? P.get() : 'building';
+    const list = (LEVEL_READS[level] || LEVEL_READS.building).filter(([href]) => fitsPerson(slugOf(href)));
+    if (list.length < 3 && hubSituation && window.FirePathMoves && typeof window.FirePathMoves.plan === 'function') {
+      let p = null;
+      try { p = window.FirePathMoves.plan(hubSituation, hubStatuses); } catch (e) { p = null; }
+      const leadOpt = p && p.open.length ? (p.open.find(o => o.status === 'doing') || p.open[0]) : null;
+      const lead = p ? [leadOpt].concat(p.open).find(x => x && x.article) : null;
+      const slug = lead && lead.article;
+      if (slug && fitsPerson(slug) && !list.some(([href]) => slugOf(href) === slug)) {
+        const a = hubArticles && hubArticles.find(x => x.slug === slug);
+        if (a) list.push([`learn/${slug}.html`, a.heading]);
+      }
+    }
+    return list;
+  }
+  // Article slug → the lesson that reads it here (first one wins), and its track.
+  const TOPIC_FOR_SLUG = {};
+  Object.keys(STATIC_TOPIC_MAP).forEach(id => { if (!(STATIC_TOPIC_MAP[id] in TOPIC_FOR_SLUG)) TOPIC_FOR_SLUG[STATIC_TOPIC_MAP[id]] = id; });
+  const trackOf = id => LAB_TRACKS.find(tr => topicsFor(tr).some(t => t.id === id)) || '';
+  function renderPicks() {
+    const sec = document.getElementById('picksSection');
+    if (!sec) return;
+    if (!hubReady) { sec.hidden = true; return; }   // wait for the tags so an unsuitable read never flashes up
+    const picks = levelReads();
+    document.getElementById('picksList').innerHTML = picks.map(([href, title]) => {
+      const slug = slugOf(href);
+      const id = TOPIC_FOR_SLUG[slug];
+      const track = id ? trackOf(id) : '';
+      const isRead = id && readTopics.includes(id);
+      const end = isRead ? '<span class="read-badge"><span class="hp-mark" aria-hidden="true"></span>Read</span>' : '<span class="topic-arrow" aria-hidden="true">→</span>';
+      const inner = `<div class="topic-left"><div><div class="topic-title">${escHtml(title)}</div></div></div>${end}`;
+      return id && track
+        ? `<div class="topic-item${isRead ? ' read' : ''}" ${articleAttrs(id, track, title)}>${inner}</div>`
+        : `<a class="topic-item" href="/learn/${encodeURIComponent(slug)}.html">${inner}</a>`;
+    }).join('');
+    // Where the level lives: Settings for members (the welcome flow asks it the first time).
+    const lvl = document.getElementById('picksLevel');
+    if (lvl) {
+      lvl.innerHTML = fpToken
+        ? 'For your level: <span data-persona-name></span>. You can change it in <a href="account.html">Settings</a>.'
+        : 'For your level: <span data-persona-name></span>.';
+      if (window.FirePathPersona && typeof window.FirePathPersona.apply === 'function') window.FirePathPersona.apply(lvl);
+    }
+    sec.hidden = !picks.length;
+  }
+
+  // ── 3. The library: search and "Show all" ──
+  function applySearch() {
+    const input = document.getElementById('labSearch');
+    const raw = input ? input.value.trim() : '';
+    const term = raw.toLowerCase();
+    const lib = document.getElementById('library');
+    lib.classList.toggle('is-searching', !!term);
+    lib.querySelectorAll('.topic-item').forEach(el => {
+      el.classList.toggle('hidden-by-search', !!term && !el.textContent.toLowerCase().includes(term));
+    });
+    lib.querySelectorAll('[data-lib-track], [data-lib-sec]').forEach(el => {
+      el.classList.toggle('hidden-by-search', !!term && !el.querySelector('.topic-item:not(.hidden-by-search)'));
+    });
+    const none = document.getElementById('labNone');
+    none.hidden = !term || !!lib.querySelector('.topic-item:not(.hidden-by-search)');
+    // Ask FirePath sits beside the results whenever there's a search term.
+    const ask = document.getElementById('labAsk');
+    if (term) {
+      document.getElementById('labAskQuery').textContent = raw;
+      ask.href = `ask-firepath.html?q=${encodeURIComponent(raw)}`;
+    }
+    ask.classList.toggle('shown', !!term);
+  }
+  document.getElementById('labSearch').addEventListener('input', applySearch);
+
+  function syncMoreButtons() {
+    document.querySelectorAll('[data-more-for]').forEach(btn => {
+      const list = document.getElementById(btn.dataset.moreFor);
+      const count = list ? list.querySelectorAll('.topic-item').length : 0;
+      btn.hidden = count <= 3;
+      btn.textContent = btn.getAttribute('aria-expanded') === 'true' ? 'Show fewer' : `Show all ${count}`;
+    });
+  }
+  document.querySelectorAll('[data-more-for]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      btn.setAttribute('aria-expanded', String(open));
+      document.getElementById(btn.dataset.moreFor).classList.toggle('is-short', !open);
+      syncMoreButtons();
+    });
   });
 
-   showUserContext();
-  loadLabProgress().then(() => {
+  function renderHub() {
+    renderContinue();
+    renderPicks();
     renderFoundationTopics();
     renderTaxTopics();
+    renderTrackLists();
     renderSavedArticles();
+    syncMoreButtons();
+    applySearch();
+  }
+  if (window.FirePathPersona) window.FirePathPersona.onChange(() => renderPicks());
+
+  showUserContext();
+  renderHub();   // the library straight away; continue and picks fill in once loaded
+  Promise.all([loadLabProgress(), loadHubData()]).then(() => {
+    renderHub();
 
     const params = new URLSearchParams(window.location.search);
     // Address-bar values are checked before use (and the title is cleaned again
@@ -1255,7 +1550,7 @@ Respond ONLY with valid JSON:
       openArticle(pTopic, pTrack, pTitle);
     } else {
       // Deep-link into a track's topic list without opening a specific article —
-      // used by learn.html's "Explore topics" links. Foundation/tax topics already
+      // used by old links from learn.html's "Explore topics". Foundation/tax topics already
       // render directly on the default track view, so only the standalone tracks
       // ('life', '5', '7', '10') need selectTrack() called explicitly.
       const pOpenTrack = cleanTrack(params.get('openTrack'));

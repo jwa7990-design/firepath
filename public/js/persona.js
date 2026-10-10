@@ -145,7 +145,7 @@ window.FirePathPersona = (function () {
   // Where each persona lands after the welcome page or signing in. `guest` is for
   // people without an account (the free calculator is the only guest-facing tool).
   const START_PAGES = {
-    beginner: { signedIn: 'learn.html', guest: 'firepath.html' },
+    beginner: { signedIn: 'learning_lab.html', guest: 'firepath.html' },
     building: { signedIn: 'journey.html', guest: 'firepath.html' },
     fire: { signedIn: 'strategy.html', guest: 'firepath.html' }
   };

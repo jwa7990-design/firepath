@@ -61,25 +61,23 @@
   .networth-skeleton { padding: 16px 0; border-top: 1px solid var(--ink); color: var(--ink-2); font-size: 16px; }
   @media (min-width: 900px) { .networth-breakdown { padding-top: 6px; } }
 
-  /* ── Your numbers: the tools as a ruled list ── */
-  .mp-tools-list { border-top: 1px solid var(--ink); }
-  .mp .fp-tool-slot { display: block; gap: 0; border-bottom: var(--hp-rule); transition: border-color var(--dur-fast) ease; }
-  .mp .fp-tool-slot:hover, .mp .fp-tool-slot:focus-within { border-bottom-color: var(--ink); }
-  .hub-card { display: flex; align-items: baseline; gap: 16px; padding: 20px 2px; text-decoration: none; color: var(--ink); }
-  .hub-card > div { flex: 1; min-width: 0; }
-  @media (min-width: 700px) { .hub-card > div { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); gap: 16px; align-items: baseline; } }
-  .hub-card-icon { display: none; }
-  .hub-card-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(21px, 2.2vw, 25px); line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
-  .hub-card-desc { margin-top: 4px; font-size: 15.5px; color: var(--ink-2); line-height: 1.5; }
-  @media (min-width: 700px) { .hub-card-desc { margin-top: 0; } }
-  .hub-card-arrow { flex-shrink: 0; font-size: 18px; color: var(--ink); transition: transform var(--dur-base) var(--ease); }
-  .hub-card:hover .hub-card-title { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; }
-  .hub-card:hover .hub-card-arrow { transform: translateX(4px); }
-  .mp .fp-bridge { display: block; padding: 0 2px 16px; font-size: 14.5px; color: var(--ink-2); }
-  .mp .fp-bridge-label { color: var(--ink); }
+  /* ── The figures: invested, super, savings rate (the same sources Your Path used) ── */
+  .networth-sub { margin-top: 12px; font-size: 15px; color: var(--ink-2); }
+  .mp-kpis { border-top: 1px solid var(--ink); }
+  .mp-kpi { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 18px 2px; border-bottom: var(--hp-rule); }
+  .mp-kpi-label { font-size: 17px; font-weight: 600; color: var(--ink); }
+  .mp-kpi-sub { margin-top: 4px; font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
+  .mp-kpi-value { font-family: var(--font-display); font-weight: 700; font-size: clamp(28px, 3.4vw, 40px); line-height: 1; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+  .mp-kpi-sub .delta-up { font-weight: 600; color: #1F5E23; }
+  .mp-kpi-sub .delta-down { font-weight: 600; color: #A63C0C; }
+  .mp-cta { margin-top: 28px; }
+  .mp-updated { margin-top: 12px; font-size: 14.5px; color: var(--ink-2); }
+  .mp-break { margin-top: 36px; }
+  .mp-break > summary { margin-bottom: 4px; }
+  .mp-break[open] > summary { margin-bottom: 20px; }
+  .mp-links { padding-top: 32px; padding-bottom: 8px; }
 
   .mp-foot .app-footer { margin-top: 0; padding: 24px 0 32px; font-size: 13px; color: var(--ink-2); }
-  @media (prefers-reduced-motion: reduce) { .hub-card-arrow, .mp .fp-tool-slot { transition: none !important; } }
 </style>
 </head>
 <body class="app" data-shell="app" data-active="money">
@@ -90,55 +88,58 @@
   <header class="mp-hero rise" style="--i:0">
     <div class="hp-wrap">
       <div class="hp-label">Money</div>
-      <h1 class="hp-h1" data-copy-fire="Net worth &amp; FI position.">Where your money stands.</h1>
-      <p class="hp-lead" data-copy-beginner="Everything you own, minus everything you owe. That leftover number is called your net worth." data-copy-fire="Assets less liabilities, and how far the portfolio covers spend.">Everything you own, everything you owe, and the one number that's left over.</p>
+      <h1 class="hp-h1">Your numbers.</h1>
+      <p class="hp-lead" data-copy-beginner="Everything you own, minus everything you owe. That leftover number is called your net worth." data-copy-fire="Assets less liabilities, what's invested, super and your savings rate.">What you own, what you owe, and how much you're putting away.</p>
       <div class="fp-why" data-persona-show="beginner">Net worth is the clearest single sign of progress. Your pay can go up and down, but if this number grows over time, more is going towards your freedom number, even if it starts small or below zero.</div>
+      <div class="mp-cta">
+        <a href="firepath_pro.html?edit=true" class="btn btn-primary btn-lg">Update my numbers</a>
+        <p class="mp-updated" id="mpUpdated"></p>
+      </div>
     </div>
   </header>
 
   <section class="hp-sec is-sand mp-pos" aria-labelledby="positionHead">
     <div class="hp-wrap">
       <h2 class="hp-label is-ink" id="positionHead">Your position</h2>
-      <div class="hp-two networth-card" id="networthCard">
-        <div>
-          <div class="networth-label">Net worth</div>
-          <div class="networth-figure hp-big is-ember" id="networthFigure">—</div>
-          <div class="networth-delta" id="networthDelta"></div>
+      <div class="networth-card" id="networthCard">
+        <div class="hp-two">
+          <div>
+            <div class="networth-label" data-copy-beginner="What you're worth">Net worth</div>
+            <div class="networth-figure hp-big is-ember" id="networthFigure">—</div>
+            <div class="networth-delta" id="networthDelta"></div>
+            <div class="networth-sub" id="networthSub"></div>
+          </div>
+          <div class="mp-kpis" id="mpKpis">
+            <div class="mp-kpi">
+              <div><div class="mp-kpi-label" data-copy-beginner="Savings &amp; investments" data-copy-fire="Portfolio (ex-super)">Invested</div><div class="mp-kpi-sub" id="kpiInvestedSub"></div></div>
+              <div class="mp-kpi-value" id="kpiInvested">—</div>
+            </div>
+            <div class="mp-kpi">
+              <div><div class="mp-kpi-label">Super</div><div class="mp-kpi-sub" id="kpiSuperSub"></div></div>
+              <div class="mp-kpi-value" id="kpiSuper">—</div>
+            </div>
+            <div class="mp-kpi">
+              <div><div class="mp-kpi-label" data-copy-fire="Savings rate (SR)">Savings rate</div><div class="mp-kpi-sub" id="kpiRateSub"></div></div>
+              <div class="mp-kpi-value" id="kpiRate">—</div>
+            </div>
+          </div>
         </div>
-        <div class="networth-breakdown" id="networthBreakdown">
-          <div class="networth-skeleton">Loading your numbers…</div>
-        </div>
+        <details class="hp-more mp-break">
+          <summary>What makes up your net worth</summary>
+          <div class="networth-breakdown" id="networthBreakdown">
+            <div class="networth-skeleton">Loading your numbers…</div>
+          </div>
+        </details>
       </div>
     </div>
   </section>
 
-  <section class="hp-sec mp-tools rise" style="--i:1" aria-labelledby="numbersHead">
-    <div class="hp-wrap hp-side">
-      <div class="hp-side-head">
-        <h2 class="hp-h2 is-small" id="numbersHead">Your numbers</h2>
-      </div>
-      <div class="hp-side-main">
-        <div class="mp-tools-list" data-tool-list>
-          <a href="freedom-gap.html" class="hub-card" data-tool="freedom-gap">
-            <span class="hub-card-icon" aria-hidden="true"></span>
-            <div>
-              <div class="hub-card-title" data-tool-title>Freedom gap</div>
-              <div class="hub-card-desc" data-tool-desc>How much your savings already pay for</div>
-            </div>
-            <span class="hub-card-arrow" aria-hidden="true">→</span>
-          </a>
-          <a href="firepath_pro.html" class="hub-card" data-tool="full-analysis">
-            <span class="hub-card-icon" aria-hidden="true"></span>
-            <div>
-              <div class="hub-card-title" data-tool-title>Your full plan</div>
-              <div class="hub-card-desc" data-tool-desc>Your complete picture, including super</div>
-            </div>
-            <span class="hub-card-arrow" aria-hidden="true">→</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
+  <div class="hp-wrap mp-links">
+    <p class="hp-inline-links">
+      <a href="freedom-gap.html">Freedom gap: how much your savings already pay for</a>
+      <a href="firepath_pro.html">See your full plan →</a>
+    </p>
+  </div>
 
   <div class="hp-wrap mp-foot">
     <footer class="app-footer">
@@ -169,7 +170,7 @@
 
       const data = await res.json();
       const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
-      if (!p) { revealCard(); return; }
+      if (!p) { document.getElementById('networthBreakdown').innerHTML = '<div class="networth-skeleton">No numbers yet. Use Update my numbers to add them.</div>'; revealCard(); return; }
 
       const savings = p.current_savings || 0;
       const debt = p.debt_total || 0;
@@ -186,7 +187,18 @@
       const assetsTotal = savings + superBal + offsetAmt;
       const liabilitiesTotal = debt + mortgage;
       const netWorth = assetsTotal - liabilitiesTotal;
-      const fmt = (window.FirePathEngine && window.FirePathEngine.fmtM) ? window.FirePathEngine.fmtM : (n => '$' + Math.round(n));
+      // Same formatter as Your Path used for these figures, so nothing changes when they move here.
+      const fmt = n => {
+        if (n == null || isNaN(n)) return '—';
+        const sign = n < 0 ? '−' : '';
+        const a = Math.abs(n);
+        if (a >= 1e6) return `${sign}$${(a / 1e6).toFixed(a >= 1e7 ? 1 : 2).replace(/\.?0+$/, '')}M`;
+        if (a >= 1e3) return `${sign}$${Math.round(a / 1e3)}K`;
+        return `${sign}$${Math.round(a)}`;
+      };
+      const persona = window.FirePathPersona ? window.FirePathPersona.get() : 'building';
+      const monthlySavings = p.savings_monthly || 0;
+      const savingsRate = p.savings_rate != null ? p.savings_rate : null;
 
       const assetRows = `
         <div class="networth-subgroup-label">Assets</div>
@@ -200,8 +212,24 @@
       document.getElementById('networthBreakdown').innerHTML = assetRows + liabilityRows;
       document.getElementById('networthFigure').textContent = fmt(netWorth);
 
-      // Delta vs Journey's own last snapshot — reuses the picture.netWorth field
-      // journey.html already saves, rather than tracking a separate history here.
+      // The figures that used to sit on Your Path (journey.html renderKpis): same sources,
+      // same wording per level.
+      document.getElementById('networthSub').textContent = persona === 'beginner' ? 'What you own minus what you owe' : 'Assets less debts, incl. super';
+      document.getElementById('kpiInvested').textContent = fmt(savings);
+      document.getElementById('kpiInvestedSub').textContent = persona === 'beginner' ? 'Money you can use before 60' : persona === 'fire' ? 'Accessible pre-preservation' : 'Outside super';
+      document.getElementById('kpiSuper').textContent = fmt(superBal);
+      document.getElementById('kpiSuperSub').textContent = persona === 'beginner' ? "Locked until you're 60" : 'Preservation age 60';
+      document.getElementById('kpiRate').textContent = savingsRate != null ? `${savingsRate}%` : '—';
+      const rateSubBase = `${fmt(monthlySavings)} a month`;
+      document.getElementById('kpiRateSub').textContent = rateSubBase;
+
+      if (p.updated_at) {
+        const days = Math.floor((Date.now() - new Date(p.updated_at).getTime()) / 864e5);
+        document.getElementById('mpUpdated').textContent = days <= 0 ? 'Numbers updated today' : days === 1 ? 'Numbers updated yesterday' : `Numbers updated ${days} days ago`;
+      }
+
+      // Delta vs Your Path's own last snapshot — reuses the picture.netWorth / savingsRate
+      // fields journey.html already saves, rather than tracking a separate history here.
       try {
         const snapRes = await FirePathAuth.fetch(`${WORKER_URL}/db/financial_snapshots?user_id=eq.${userId}&source=eq.journey&order=created_at.desc&limit=1`, { headers: { 'Authorization': `Bearer ${token}` } });
         if (snapRes.ok) {
@@ -217,6 +245,10 @@
               deltaEl.textContent = `${delta > 0 ? '▲' : '▼'} ${fmt(Math.abs(delta))} ${window.FirePathEngine.formatTimeSince(prevSnapshot.created_at)}`;
               deltaEl.classList.add('shown', delta > 0 ? 'positive' : 'negative');
             }
+          }
+          if (prevSnapshot && prevSnapshot.picture && prevSnapshot.picture.savingsRate != null && savingsRate != null && prevSnapshot.picture.savingsRate !== savingsRate) {
+            const d = savingsRate - prevSnapshot.picture.savingsRate;
+            document.getElementById('kpiRateSub').innerHTML = `<span class="${d > 0 ? 'delta-up' : 'delta-down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d)} pts</span> · ${rateSubBase}`;
           }
         }
       } catch (e) { console.log('Net worth delta failed', e); }

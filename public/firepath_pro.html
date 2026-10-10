@@ -390,6 +390,7 @@
   .super-explainer { margin: 0 0 var(--pr-gap); padding-top: 20px; border-top: 1px solid var(--ink); }
   .super-explainer-body { max-width: 62ch; font-size: 16.5px; line-height: 1.7; color: var(--ink-2); }
   .super-explainer-body strong { color: var(--ink); font-weight: 600; }
+  .super-explainer[open] > summary { margin-bottom: 12px; }
   .pr .super-result-card { display: none; margin: 0 0 20px; padding: 18px 0 0; background: none; border: 0; border-top: var(--hp-rule); border-radius: 0; box-shadow: none; }
   .pr .super-result-card.visible { display: block; }
   #superResultText { font-size: 16px; line-height: 1.65; color: var(--ink); }
@@ -975,10 +976,10 @@
           </div>
 
           <div class="rtab-content" id="rtab-super" style="display:none;">
-            <div class="super-explainer">
-              <h3 class="pr-block-title">How super fits your freedom plan</h3>
+            <details class="hp-more super-explainer">
+              <summary>How super fits your freedom plan</summary>
               <div class="super-explainer-body">Most Australians have <strong>two pots of money</strong> growing at the same time, and most calculators ignore one of them.<br/><br/><strong>Pot 1: your savings.</strong> Everything outside super: ETFs, cash, offset, shares. You can get to this any time. It's what FirePath uses to work out your freedom date.<br/><br/><strong>Pot 2: your super.</strong> Growing in the background, with your employer adding to it every pay. You can't get to it until 60, but it's growing the whole time.<br/><br/>So the question isn't only whether your savings can hit your freedom number on their own. It's how the two fit together, and what gap (if any) you need to close yourself.</div>
-            </div>
+            </details>
             <div id="superTimelineCard" style="display:none"></div>
             <div class="super-result-card" id="superResultCard" style="display:none"><div id="superResultText"></div></div>
             <p class="pr-fine">Super projected at 7% annual growth with employer contributions after 15% contributions tax. Withdrawals after age 60 are generally tax-free. Educational only — not financial advice.</p>
@@ -1310,6 +1311,8 @@
     if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
     await loadAssumptions(); await loadSavedInputs(); await loadProfile(); await checkProStatus();
     const up=new URLSearchParams(window.location.search);if(up.get('upgraded')==='true')alert('Welcome to FirePath Pro!');
+    // Came from Money's "Update my numbers": the way back goes to Money, not Your Path.
+    if (up.get('edit') === 'true') { const back = document.querySelector('.pr-top .tl-back'); if (back) { back.href = 'money.html'; back.textContent = '← Money'; } }
     const uel=document.getElementById('userStatus');
     if(localStorage.getItem('fp_email')){uel.textContent=`Signed in as ${localStorage.getItem('fp_email')}`;}
     else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" class="pr-ink">Sign in to save progress</a>`;}
@@ -1895,7 +1898,7 @@ function stopLoadingMessages() {
   async function dbInsert(table,data){if(!fpToken||!fpUserId)return;let ok=false;try{const res=await FirePathAuth.fetch(`${WORKER_URL}/db/${table}`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'return=minimal'},body:JSON.stringify({...data,user_id:fpUserId})});ok=res.ok;if(!ok)console.warn('Save failed',table,res.status);}catch(e){console.warn('Save failed',table,e);}if(!ok)FirePathAuth.notify(FirePathAuth.SAVE_FAILED_MSG);return ok;}
 
 
-  async function loadCheckinHistory(){if(!fpToken||!fpUserId)return;try{const res=await FirePathAuth.fetch(`${WORKER_URL}/db/checkins?user_id=eq.${fpUserId}&order=created_at.desc&limit=12`,{headers:{'Authorization':`Bearer ${fpToken}`}});const data=await res.json();if(Array.isArray(data)&&data.length>0){checkinHistory=data.map(d=>({month:new Date(d.created_at).toLocaleString('default',{month:'short',year:'numeric'}),savings:d.savings_total,sRate:d.savings_rate,diff:null}));streak=data.length;renderHistory();}}catch(e){}}
+  // Check-in history lives on progress.html (Check in & milestones); this page has no history list.
 
   async function saveUserContext(age,context){if(!fpToken||!fpUserId)return;try{await FirePathAuth.fetch(`${WORKER_URL}/db/calculations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${fpToken}`,'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({user_id:fpUserId,age:age||null,context:context||''})});}catch(e){}}
 

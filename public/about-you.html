@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="robots" content="noindex"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>FirePath — About You</title>
+  <meta http-equiv="refresh" content="0; url=progress.html#milestones"/>
+  <title>Redirecting… — FirePath Pro</title>
 <!-- seo:start -->
 <meta property="og:site_name" content="FirePath"/>
 <meta property="og:locale" content="en_AU"/>
@@ -18,264 +19,24 @@
 <link rel="manifest" href="/site.webmanifest"/>
 <meta name="theme-color" content="#FDF6EE"/>
 <!-- seo:end -->
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="css/app.css"/>
-<link rel="stylesheet" href="/css/fp-editorial.css">
-<script src="js/persona.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/tax-engine.js"></script>
-<script src="js/calculations.js"></script>
-<script src="js/financial-engine.js"></script>
-<script src="js/interactions.js"></script>
-<style>
-  /* About you: big serif statements over rules (fp-editorial.css). Page-only styles. */
-  body.app .mem { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
-  @media (min-width: 1024px) { body.app .mem { padding-bottom: 0; } }
-  .mem-hero { padding-top: 32px; }
-  @media (min-width: 768px) { .mem-hero { padding-top: 48px; } }
-  .mem-back { display: inline-block; margin-bottom: 22px; font-size: 14.5px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 5px; }
-  .mem-back:hover { text-decoration-color: var(--ink); }
-  .mem-hero .hp-lead { color: var(--ink); }
-  .mem-head .hp-h2 { margin-top: 14px; }
-  @media (min-width: 900px) { .mem-head { position: sticky; top: 32px; align-self: start; } }
-  .block-note { margin-top: 18px; max-width: 60ch; }
-  #loadingWrap:has(#loadingState[style*="none"]) { display: none; }
-
-  /* Loading / empty: one quiet line in the reading column */
-  .empty-state { padding: 8px 0; font-size: 19px; line-height: 1.55; color: var(--ink); max-width: 46ch; }
-  .empty-state a { color: var(--ink) !important; font-weight: 600; text-decoration: underline; text-decoration-color: var(--hp-accent); text-underline-offset: 5px; }
-
-  /* Achievements: one ruled row each, the label in serif; an ember square once reached,
-     an ink outline still to come, and the next one carries its distance in ember. */
-  .achv-strip { list-style: none; border-top: 1px solid var(--ink); }
-  .achv-badge { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 4px 16px; padding: 18px 2px; border-bottom: var(--hp-rule); }
-  @media (min-width: 768px) { .achv-badge { padding: 22px 2px; } }
-  .achv-badge .hp-mark { transform: translateY(-0.2em); }
-  .achv-label { font-family: var(--font-display); font-weight: 700; font-size: clamp(21px, 2.4vw, 28px); line-height: 1.2; letter-spacing: -0.01em; color: var(--ink-2); }
-  .achv-badge.unlocked .achv-label, .achv-badge.next .achv-label { color: var(--ink); }
-  .achv-state { font-size: 14px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
-  .achv-badge.unlocked .achv-state { color: var(--ink); }
-  .achv-distance { grid-column: 3; font-size: 15px; font-weight: 600; color: var(--hp-accent); white-space: nowrap; font-variant-numeric: tabular-nums lining-nums; }
-
-  /* Timeline: ruled rows down the page, with a thin ink line joining the marks */
-  .timeline { list-style: none; border-top: 1px solid var(--ink); }
-  .tl-item { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 4px 16px; padding: 18px 2px; border-bottom: var(--hp-rule); }
-  .tl-dot { grid-row: 1 / span 2; width: 12px; height: 12px; margin-top: 0.45em; border-radius: 50%; background: var(--hp-sand); box-shadow: inset 0 0 0 1.5px var(--ink-2); }
-  .tl-item.done .tl-dot { background: var(--ink); box-shadow: none; }
-  .tl-item.next .tl-dot { background: var(--hp-accent); box-shadow: none; }
-  .tl-label { font-size: 18px; line-height: 1.45; color: var(--ink-2); }
-  @media (min-width: 768px) { .tl-label { font-size: 19px; } }
-  .tl-item.done .tl-label { color: var(--ink); }
-  .tl-item.next .tl-label { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
-  .tl-distance { grid-column: 2; font-size: 15.5px; font-weight: 600; color: var(--hp-accent); font-variant-numeric: tabular-nums lining-nums; }
-
-  /* Money style: the one dark band. The type as a big serif statement, the scores as thin bars. */
-  .dna-type { font-family: var(--font-display); font-weight: 700; font-size: clamp(40px, 6vw, 72px); line-height: 1.02; letter-spacing: -0.03em; color: var(--hp-accent); margin: 0 0 32px; }
-  #dnaRows { border-top: 1px solid var(--ink); }
-  .dna-row { display: grid; grid-template-columns: 110px minmax(0, 1fr); align-items: center; gap: 16px; padding: 16px 2px; border-bottom: var(--hp-rule); }
-  @media (min-width: 768px) { .dna-row { grid-template-columns: 140px minmax(0, 1fr); padding: 18px 2px; } }
-  .dna-label { font-size: 18px; color: var(--ink); }
-  .dna-track { height: 2px; background: var(--line-strong); }
-  .dna-fill { height: 4px; margin-top: -1px; background: var(--ink); }
-</style>
+  <script>
+    // About you (milestones, achievements, timeline, how you handle money) now lives on
+    // the Check in page. This stub keeps old links and bookmarks working. A link's own
+    // #section wins; otherwise it lands on the milestones.
+    window.location.replace('progress.html' + window.location.search + (window.location.hash || '#milestones'));
+  </script>
+  <style>
+    /* Shown for a moment before the redirect: cream page, ink text, like the rest of the site. */
+    body { margin: 0; background: #FDF6EE; color: #2B1D14; font-family: 'DM Sans', system-ui, -apple-system, sans-serif; }
+    .redirect { max-width: 1120px; margin: 0 auto; padding: 72px 32px; font-size: 17px; line-height: 1.6; color: #65544A; }
+    .redirect a { color: #2B1D14; font-weight: 600; text-decoration: underline; text-decoration-color: #E2D5C8; text-underline-offset: 5px; text-decoration-thickness: 1px; }
+    .redirect a:hover { text-decoration-color: #2B1D14; }
+    @media (max-width: 767px) { .redirect { padding: 40px 16px; } }
+  </style>
 </head>
-<body class="app" data-shell="app" data-active="journey">
-<script src="js/shell.js"></script>
-
-
-<main class="hp mem" id="main">
-
-  <header class="hp-hero mem-hero">
-    <div class="hp-wrap">
-      <a href="journey.html" class="mem-back">← Your Path</a>
-      <h1 class="hp-h1">About you</h1>
-      <p class="hp-lead">Milestones you've reached, what's next, and how you handle money.</p>
-    </div>
-  </header>
-
-  <section class="hp-sec" id="loadingWrap"><div class="hp-wrap">
-    <p id="loadingState" class="empty-state">Loading...</p>
-  </div></section>
-
-  <div id="content" style="display:none;">
-    <section class="hp-sec" aria-labelledby="achvTitle">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head mem-head">
-          <p class="hp-label is-ink" aria-hidden="true">01</p>
-          <h2 class="hp-h2 is-mid" id="achvTitle">Achievements</h2>
-        </div>
-        <div class="hp-side-main">
-          <ul class="achv-strip" id="achvStrip"></ul>
-          <p class="block-note hp-l3" id="achvNote"></p>
-        </div>
-      </div>
-    </section>
-    <section class="hp-sec is-sand" aria-labelledby="tlTitle">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head mem-head">
-          <p class="hp-label is-ink" aria-hidden="true">02</p>
-          <h2 class="hp-h2 is-mid" id="tlTitle">Your timeline</h2>
-        </div>
-        <ol class="timeline hp-side-main" id="timeline"></ol>
-      </div>
-    </section>
-    <section class="hp-sec is-dark" aria-labelledby="dnaTitle">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head mem-head">
-          <p class="hp-label is-ink" aria-hidden="true">03</p>
-          <h2 class="hp-h2 is-mid" id="dnaTitle">How you handle money</h2>
-        </div>
-        <div class="hp-side-main">
-          <p class="dna-type" id="dnaType"></p>
-          <div id="dnaRows"></div>
-          <p class="block-note hp-l3" id="dnaNote"></p>
-        </div>
-      </div>
-    </section>
-  </div>
-
-</main>
-
-<script>
-
-  const PERSONA_COPY = {
-    beginner: {
-      badgeCoast: 'Halfway cushion', badgeLean: 'Covers the basics', badgeFI: 'Work becomes optional',
-      tlCoast: 'Saved enough that growth alone could carry you one day (rough estimate)',
-      tlLean: 'Close to covering your basic living costs without working (rough estimate)',
-      tlFI: 'Enough saved that work is optional',
-      note: 'A rough guide based on your savings compared with your freedom number. It’s not an exact calculation yet.'
-    },
-    default: {
-      badgeCoast: 'Coast FIRE reached', badgeLean: 'Lean FIRE', badgeFI: 'Work is optional',
-      tlCoast: 'Reached Coast FIRE (rough estimate)', tlLean: 'Reached Lean FIRE (rough estimate)',
-      tlFI: 'Hit your freedom number',
-      note: 'Based on your savings compared with your freedom number. It’s a rough guide, not the full Coast/Lean FIRE sum yet.'
-    }
-  };
-
-  function scoreSaver(savingsRate) {
-    if (!savingsRate) return 1;
-    return Math.max(1, Math.min(10, Math.round(savingsRate / 5)));
-  }
-  function scoreInvestor(savingsType) {
-    // Keys are the values onboarding actually stores in savings_type.
-    const map = { etfs: 9, mix: 6, offset: 4, cash: 2 };
-    return map[(savingsType || '').toLowerCase()] || 4;
-  }
-  function scoreRisk(debtTotal, mortgageRemaining, grossIncome) {
-    const leverage = debtTotal + mortgageRemaining;
-    if (!grossIncome || grossIncome <= 0) return leverage > 0 ? 6 : 2;
-    const ratio = leverage / grossIncome;
-    return Math.max(1, Math.min(10, Math.round(ratio * 2)));
-  }
-  function scoreSpending(retirementSpendMultiplier) {
-    const m = retirementSpendMultiplier || 0.8;
-    return Math.max(1, Math.min(10, Math.round(m * 10)));
-  }
-
-  function renderFinancialDNA(p) {
-    const saverScore = scoreSaver(p.savings_rate);
-    const investorScore = scoreInvestor(p.savings_type);
-    const rows = [
-      { label: 'Saver', score: saverScore },
-      { label: 'Investor', score: investorScore },
-      { label: 'Risk taken', score: scoreRisk(p.debt_total || 0, p.mortgage_remaining || 0, p.gross_income || (p.take_home_income > 0 ? estimateGrossFromNet(p.take_home_income * 12) : 0)) },
-      { label: 'Spending', score: scoreSpending(p.retirement_spend_multiplier) }
-    ];
-    document.getElementById('dnaRows').innerHTML = rows.map(r => `
-      <div class="dna-row">
-        <div class="dna-label">${r.label}</div>
-        <div class="dna-track" role="img" aria-label="${r.score} out of 10"><div class="dna-fill" style="width:${r.score*10}%"></div></div>
-      </div>`).join('');
-
-    let dnaType = 'The Steady Starter';
-    if (saverScore >= 7 && investorScore >= 7) dnaType = 'The All-Rounder';
-    else if (saverScore >= 7) dnaType = 'The Quiet Builder';
-    else if (investorScore >= 7) dnaType = 'The Investor';
-    document.getElementById('dnaType').textContent = dnaType;
-    document.getElementById('dnaNote').textContent = "A rough score from your saved numbers. It doesn’t count pay rises yet, because we don’t keep your history.";
-  }
-
-  function renderAchievementsAndTimeline(savings, freedomNumber, persona){
-    const copy = PERSONA_COPY[persona] || PERSONA_COPY.default;
-    const ratio = freedomNumber > 0 ? savings / freedomNumber : 0;
-    const badges = [
-      { label: 'First $10k',    unlocked: savings >= 10000, target: 10000 },
-      { label: 'First six figures',   unlocked: savings >= 100000, target: 100000 },
-      { label: 'Quarter free', unlocked: ratio >= 0.25, target: freedomNumber * 0.25 },
-      { label: copy.badgeCoast, unlocked: ratio >= 0.4, target: freedomNumber * 0.4 },
-      { label: copy.badgeLean,  unlocked: ratio >= 0.7, target: freedomNumber * 0.7 },
-      { label: copy.badgeFI,    unlocked: ratio >= 1.0, target: freedomNumber }
-    ];
-    const nextBadgeIdx = badges.findIndex(b => !b.unlocked);
-    document.getElementById('achvNote').textContent = copy.note;
-    document.getElementById('achvStrip').innerHTML = badges.map((b, i) => {
-      const isNext = i === nextBadgeIdx;
-      const remaining = isNext ? Math.max(0, b.target - savings) : 0;
-      return `
-      <li class="achv-badge ${b.unlocked?'unlocked':''} ${isNext?'next':''}">
-        <span class="hp-mark${b.unlocked ? '' : ' is-ink'}" aria-hidden="true"></span>
-        <span class="achv-label">${b.label}<span class="hp-sr">${b.unlocked ? ' (reached)' : ''}</span></span>
-        ${isNext && remaining > 0 ? `<span class="achv-distance">${fmtM(remaining)} away</span>` : ''}
-      </li>`;
-    }).join('');
-
-    const timeline = [
-      { label: 'Started FirePath', done: true, target: 0 },
-      { label: 'Saved first $100k', done: savings >= 100000, target: 100000 },
-      { label: copy.tlCoast, done: ratio >= 0.4, target: freedomNumber * 0.4 },
-      { label: copy.tlLean, done: ratio >= 0.7, target: freedomNumber * 0.7 },
-      { label: copy.tlFI, done: ratio >= 1.0, target: freedomNumber },
-      { label: 'Reached 1.5× your freedom number', done: ratio >= 1.5, target: freedomNumber * 1.5 }
-    ];
-    const nextTlIdx = timeline.findIndex(t => !t.done);
-    document.getElementById('timeline').innerHTML = timeline.map((t, i) => {
-      const isNext = i === nextTlIdx;
-      const remaining = isNext ? Math.max(0, t.target - savings) : 0;
-      return `
-      <li class="tl-item ${t.done?'done':''} ${isNext?'next':''}">
-        <span class="tl-dot" aria-hidden="true"></span>
-        <span class="tl-label">${t.label}<span class="hp-sr">${t.done ? ' (done)' : ''}</span></span>
-        ${isNext && remaining > 0 ? `<span class="tl-distance">${fmtM(remaining)} to go</span>` : ''}
-      </li>`;
-    }).join('');
-  }
-
-  document.addEventListener('DOMContentLoaded', async function() {
-    const token = getToken();
-    const userId = getUserId();
-    if (!token || !userId) { window.location.href = 'auth.html'; return; }
-    if (!(await requirePro())) return;   // accounts are part of Pro
-
-    try {
-      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
-      if (res.status === 401 || res.status === 403) { window.location.href = 'auth.html'; return; }
-      if (!res.ok) { document.getElementById('loadingState').textContent = "Couldn't load your data — try refreshing."; return; }
-
-      const data = await res.json();
-      const p = (Array.isArray(data) && data.length > 0) ? data[0] : null;
-      if (!p || !p.freedom_number) {
-        document.getElementById('loadingState').innerHTML = `Run your numbers first — everything on this page is built from your profile.<br><br><a href="firepath_pro.html" style="color:var(--fire-orange);">Run my numbers →</a>`;
-        return;
-      }
-
-      const savings = p.current_savings || 0;
-      const freedomNumber = p.freedom_number;
-
-      renderAchievementsAndTimeline(savings, freedomNumber, p.persona);
-      renderFinancialDNA(p);
-
-      document.getElementById('loadingState').style.display = 'none';
-      document.getElementById('content').style.display = 'block';
-      if (typeof FirePathMotion !== 'undefined') FirePathMotion.initReveal();
-    } catch(e) {
-      console.log('About You load failed', e);
-      document.getElementById('loadingState').textContent = "Couldn't load your data — try refreshing.";
-    }
-  });
-</script>
+<body>
+  <p class="redirect">
+    Redirecting to <a href="progress.html#milestones">your milestones</a>…
+  </p>
 </body>
 </html>

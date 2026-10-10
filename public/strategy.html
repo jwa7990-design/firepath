@@ -1,10 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-Q2QZ662MJ9', Object.assign({
+      // Privacy: send only the page's address, never what follows it (a question typed
+      // into Ask FirePath, a sign-in link's code), and keep Google's ad features off.
+      page_location: location.origin + location.pathname,
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false
+    }, document.referrer ? { page_referrer: document.referrer.split(/[?#]/)[0] } : {}));
+  </script>
 <meta charset="UTF-8"/>
 <meta name="robots" content="noindex"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>FirePath — Strategy</title>
+<title>Options — FirePath Pro</title>
 <!-- seo:start -->
 <meta property="og:site_name" content="FirePath"/>
 <meta property="og:locale" content="en_AU"/>
@@ -28,6 +42,7 @@
 <script src="js/tax-engine.js"></script>
 <script src="js/moves.js"></script>
 <script src="js/moves-status.js"></script>
+<script src="js/safe-html.js"></script>
 <link rel="stylesheet" href="/css/fp-editorial.css"/>
 <style>
   /* ── Frame: full-width editorial sections beside the desktop rail, clear of the
@@ -117,11 +132,6 @@
   .plan-empty { max-width: 56ch; font-size: 17px; line-height: 1.6; color: var(--ink-2); padding: 18px 0; border-top: 1px solid var(--ink); }
   .plan-empty a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
   .plan-advice { max-width: 62ch; font-size: 14px; color: var(--ink-2); line-height: 1.55; margin: 32px 0 0; }
-  .plan-cta {
-    display: inline-block; margin-top: 18px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline;
-    text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 5px;
-  }
-  .plan-cta:hover { text-decoration-color: var(--ink); }
   .plan-skel { height: 22px; margin-top: 14px; background: var(--line); }
 
   /* ── Tools: an editorial ruled list in the dark band. persona.js wraps each link in
@@ -149,14 +159,94 @@
   .hp .fp-bridge { display: block; margin: -8px 0 0; padding: 0 2px 18px; font-size: 14.5px; line-height: 1.5; color: var(--ink-2); text-decoration: none; }
   .hp .fp-bridge-label { font-weight: 600; color: var(--hp-accent); }
   .hp .fp-bridge:hover .fp-bridge-title { text-decoration: underline; text-underline-offset: 3px; }
-  .more-ideas { display: inline-block; margin-top: 24px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; }
-  .more-ideas:hover { text-decoration-color: var(--ink); }
   .sp-tools .fp-consider { margin-top: 20px; }
+
+  /* Shared by the last two bands: a short line under the heading, a quiet link after. */
+  .sp-sub { margin-top: 14px; max-width: 46ch; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+  .sp-more { display: inline-block; margin-top: 22px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-decoration-thickness: 1px; text-underline-offset: 5px; }
+  .sp-more:hover { text-decoration-color: var(--ink); }
+
+  /* ── If returns are different (moved from Your Path, same rows and chips) ── */
+  .levers { border-top: 1px solid var(--ink); }
+  .lever { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 18px; padding: 16px 0; border-bottom: var(--hp-rule); text-decoration: none; color: var(--ink); }
+  .lever-body { flex: 1; min-width: 0; }
+  .lever-title { font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.25; color: var(--ink); }
+  .lever-desc { margin-top: 4px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+  a.lever:hover .lever-title { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  a.lever:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .lever-empty { padding: 14px 0; font-size: 16px; color: var(--ink-2); }
+  /* "1 yr 2 mos later": the script renders a .chip; shown as a plain figure */
+  .sp .lever .chip { flex-shrink: 0; height: auto; padding: 0; border: 0; background: none; font-size: 16px; font-weight: 600; color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sp .lever .chip-negative { color: var(--ink-2); }
+  @media (max-width: 520px) { .lever { flex-direction: column; gap: 6px; } }
+
+  /* ── More ideas to look into (was discover.html) ── */
+  .sp-discover:focus { outline: none; }
+  .dv-side { min-width: 0; }
+  @media (min-width: 900px) { .dv-side { position: sticky; top: 32px; align-self: start; } }
+  .progress-section { margin-top: 22px; }
+  .progress-count { font-size: 15px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .progress-track { height: 2px; max-width: 200px; margin-top: 10px; background: var(--line-strong); overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--ink); transition: width 0.6s var(--ease); }
+  .progress-pct { display: none; }   /* the count already says it */
+  /* Milestone note: an ember rule, no box. The JS still sets an emoji; it's not shown. */
+  .milestone { display: none; margin-top: 24px; padding-top: 14px; border-top: 2px solid var(--hp-accent); }
+  .milestone.visible { display: block; animation: fp-rise var(--dur-slow) var(--ease) both; }
+  .milestone-emoji { display: none; }
+  .milestone-text { font-size: 16px; color: var(--ink-2); line-height: 1.6; }
+  .milestone-text strong { color: var(--ink); font-weight: 600; }
+  .loading-card { padding: 24px 0; border-top: 1px solid var(--ink); }
+  .loading-dots { display: flex; gap: 8px; margin-bottom: 16px; }
+  .loading-dots span { width: 8px; height: 8px; background: var(--ink-2); animation: fp-dot 1.2s ease infinite; }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes fp-dot { 0%, 80%, 100% { opacity: 0.35; } 40% { opacity: 1; } }
+  .loading-text { font-size: 16px; color: var(--ink-2); line-height: 1.6; }
+  /* Ideas: a ruled list of toggle buttons (the AI text goes through FirePathSafe.escape) */
+  .steps { list-style: none; margin: 0; padding: 0; }
+  .steps:not(:empty) { border-top: 1px solid var(--ink); }
+  .steps.is-short > li:nth-child(n+4) { display: none; }
+  .steps > li { border-bottom: var(--hp-rule); transition: border-color var(--dur-fast) ease; }
+  .steps > li:hover, .steps > li:focus-within { border-bottom-color: var(--ink); }
+  .step-card {
+    display: flex; gap: 18px; align-items: flex-start; width: 100%; padding: 22px 2px 24px; margin: 0; border: 0; background: none;
+    text-align: left; font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .step-card:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 4px; }
+  .step-card > span { display: block; }
+  .step-checkbox {
+    width: 24px; height: 24px; margin-top: 4px; flex-shrink: 0; border: 1.5px solid var(--ink-2); border-radius: 4px;
+    display: flex !important; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--ink);
+    transition: border-color var(--dur-fast) ease;
+  }
+  .step-card:hover .step-checkbox { border-color: var(--ink); }
+  .step-card.completed .step-checkbox { border-color: var(--ink); }
+  .step-card.completed .step-checkbox::after { content: '✓'; }
+  .step-body { flex: 1; min-width: 0; }
+  .step-body > span { display: block; }
+  .step-number { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-2); margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+  .step-title { font-family: var(--font-display); font-weight: 700; font-size: clamp(20px, 2.1vw, 24px); line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 10px; }
+  .step-card.completed .step-title { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--ink-2); }
+  .step-desc { max-width: 62ch; font-size: 16px; color: var(--ink); line-height: 1.6; }
+  .step-why { margin-top: 10px; max-width: 62ch; font-size: 15px; color: var(--ink-2); line-height: 1.6; }
+  .step-card.completed .step-why { display: none !important; }
+  .step-card.completed .step-desc { color: var(--ink-2); }
+  .steps-more { margin-top: 16px; }
+  .steps-more[hidden] { display: none; }
+  .regen-btn { margin-top: 20px; min-height: 44px; padding: 0 18px; border-radius: var(--hp-r); border: 1px solid var(--line-strong); background: none; color: var(--ink); font: 500 15px var(--font-ui); cursor: pointer; } /* JS sets display */
+  .regen-btn:hover { border-color: var(--ink); }
+  .regen-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  .empty-card { padding: 20px 0; }
+  .empty-title { font-family: var(--font-display); font-size: clamp(22px, 2.4vw, 28px); font-weight: 700; line-height: 1.15; margin-bottom: 8px; color: var(--ink); }
+  .empty-sub { font-size: 16px; color: var(--ink-2); line-height: 1.6; margin: 0; max-width: 46ch; }
+  .empty-sub a { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+  .disclaimer { max-width: 62ch; font-size: 14px; color: var(--ink-2); margin-top: 28px; line-height: 1.6; }
 
   .sp-foot .app-footer { margin-top: 0; padding: 24px 0 32px; border-top: 0; font-size: 13px; color: var(--ink-2); }
 
   @media (prefers-reduced-motion: reduce) {
-    .opt, .opt-btn, .hub-card-arrow, .plan-group > summary::after, .hub-list > .fp-tool-slot { transition: none !important; }
+    .opt, .opt-btn, .hub-card-arrow, .plan-group > summary::after, .hub-list > .fp-tool-slot, .steps > li, .step-checkbox, .progress-fill { transition: none !important; }
+    .loading-dots span { animation: none; }
   }
 </style>
 </head>
@@ -167,8 +257,8 @@
 
   <header class="hp-hero sp-hero">
     <div class="hp-wrap">
-      <div class="hp-label">Strategy</div>
-      <h1 class="hp-h1" data-copy-beginner="Small changes can move your date by years." data-copy-fire="Moves, stress tests, tax.">See what would bring your date closer.</h1>
+      <div class="hp-label">Options</div>
+      <h1 class="hp-h1">What could move your date?</h1>
       <p class="hp-lead" data-copy-beginner="Every tool here uses your own numbers, so what you see is about you." data-copy-fire="All modelled on your inputs. Assumptions are editable in each tool.">Each of these runs a real calculation on your own numbers.</p>
       <div class="fp-why" data-persona-show="beginner">The date you could stop needing to work isn't fixed. Saving a little more, paying less tax, or changing one big decision can bring it closer — these tools show by how much, before you commit to anything.</div>
       <div class="fp-tldr" data-persona-show="fire">Biggest movers are usually savings rate, CC headroom and your SWR assumption. The Withdrawal planner stress-tests the SWR behind the FI date.</div>
@@ -188,7 +278,6 @@
         <div class="plan-note" id="planNote" role="status" aria-live="polite" tabindex="-1"></div>
         <div id="planBody"><div class="plan-skel" style="width:60%"></div><div class="plan-skel" style="width:90%"></div><div class="plan-skel" style="height:64px"></div></div>
         <p class="plan-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
-        <a href="hearmeout.html" class="plan-cta">Try your own what-ifs →</a>
       </div>
     </div>
   </section>
@@ -196,13 +285,19 @@
   <section class="hp-sec is-dark sp-tools" aria-labelledby="toolsHead">
     <div class="hp-wrap hp-side">
       <div class="hp-side-head">
-        <h2 class="hp-h2 is-mid" id="toolsHead">Tools</h2>
+        <h2 class="hp-h2 is-mid" id="toolsHead">Tools people find helpful</h2>
         <div class="fp-consider" id="sacrificeConsider" data-persona-show="beginner building" style="display:none">Salary sacrificing into super, if your employer offers it, is taxed at 15% instead of your usual tax rate. The tax tool shows what it would do in your numbers.</div>
       </div>
       <div class="hp-side-main">
+        <!-- persona.js rewords these per level and puts the most relevant first. -->
         <div class="hub-list" id="hubCards" data-tool-list>
+          <a href="hearmeout.html" class="hub-card" data-tool="scenarios">
+            <span class="hub-card-title" data-tool-title>What if…?</span>
+            <span class="hub-card-desc" data-tool-desc>Test real financial decisions before you make them</span>
+            <span class="hub-card-arrow" aria-hidden="true">→</span>
+          </a>
           <a href="tax_pro.html" class="hub-card" data-tool="tax-tools">
-            <span class="hub-card-title" data-tool-title>Tax tools</span>
+            <span class="hub-card-title" data-tool-title>Tax &amp; Strategy</span>
             <span class="hub-card-desc" data-tool-desc>Legal ways to reduce tax</span>
             <span class="hub-card-arrow" aria-hidden="true">→</span>
           </a>
@@ -211,13 +306,62 @@
             <span class="hub-card-desc" data-tool-desc>See if your money will last</span>
             <span class="hub-card-arrow" aria-hidden="true">→</span>
           </a>
-          <a href="hearmeout.html" class="hub-card" data-tool="scenarios">
-            <span class="hub-card-title" data-tool-title>What if…?</span>
-            <span class="hub-card-desc" data-tool-desc>Test real financial decisions before you make them</span>
+          <a href="freedom-gap.html" class="hub-card" data-tool="freedom-gap">
+            <span class="hub-card-title" data-tool-title>Freedom gap</span>
+            <span class="hub-card-desc" data-tool-desc>How much of your spending your savings already cover</span>
             <span class="hub-card-arrow" aria-hidden="true">→</span>
           </a>
         </div>
-        <a href="discover.html" class="more-ideas">More ideas worth a look →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- If returns are different (moved here from Your Path): the same date with returns
+       a point lower or higher. A sensitivity check, not something to act on. -->
+  <section class="hp-sec sp-returns" aria-labelledby="leversHead">
+    <div class="hp-wrap hp-side">
+      <div class="hp-side-head">
+        <h2 class="hp-h2 is-small" id="leversHead">If returns are different</h2>
+        <p class="sp-sub">Markets don’t grow at the same rate every year. Here’s how your date shifts if returns are a point lower or higher than we assume.</p>
+      </div>
+      <div class="hp-side-main">
+        <div id="levers" class="levers"><div class="skeleton" style="height:44px;margin-top:14px"></div><div class="skeleton" style="height:44px;margin-top:12px"></div></div>
+        <a href="hearmeout.html" class="sp-more">Try your own what-ifs →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- More ideas to look into (was discover.html; old links land on #discover). -->
+  <section class="hp-sec is-sand sp-discover" id="discover" aria-labelledby="discoverHead" tabindex="-1">
+    <div class="hp-wrap hp-side">
+      <div class="hp-side-head dv-side">
+        <h2 class="hp-h2 is-small" id="discoverHead">More ideas to look into</h2>
+        <p class="sp-sub">Questions to look into, based on your situation. Tick them off as you go.</p>
+        <div class="progress-section" id="progressSection" style="display:none">
+          <div class="progress-count" id="progressCount">0 of 0 explored</div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+          <div class="progress-pct" id="progressPct">0% explored</div>
+        </div>
+
+        <div class="milestone" id="milestone" role="status" aria-live="polite">
+          <span class="milestone-emoji" id="milestoneEmoji" aria-hidden="true"></span>
+          <div class="milestone-text" id="milestoneText"></div>
+        </div>
+      </div>
+
+      <div class="hp-side-main">
+        <div id="loadingCard" class="loading-card" style="display:none">
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+          <p class="loading-text" id="loadingText">Finding things worth exploring for your situation...<br/>This only runs once — we'll save it for you.</p>
+        </div>
+
+        <ul id="stepsContainer" class="steps"></ul>
+        <button type="button" class="hp-more-btn steps-more" id="stepsMore" aria-expanded="false" aria-controls="stepsContainer" hidden>Show all</button>
+        <div><button type="button" class="regen-btn" id="regenBtn" style="display:none">↺ Generate a fresh set of ideas</button></div>
+
+        <p class="disclaimer">These are questions and ideas to look into, not advice.</p>
       </div>
     </div>
   </section>
@@ -237,6 +381,7 @@
     const userId = getUserId();
     if (!token || !userId) { window.location.href = 'auth.html'; return; }
     if (!(await requirePro())) return;   // accounts are part of Pro
+    document.dispatchEvent(new CustomEvent('fp:options-ready'));   // starts "More ideas to look into" (script below)
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const cards = document.querySelectorAll('.hub-card');
@@ -412,6 +557,82 @@
       if (b.dataset.act === 'undo') undo(id, title); else change(id, b.dataset.act, title);
     });
 
+    // ── If returns are different (moved from Your Path) — the same date with returns a
+    // point lower or higher. A sensitivity check, not something to act on. Same model
+    // fields and maths as Your Path had: Engine.freedomPlan on the saved profile.
+    const Engine = window.FirePathEngine;
+    const Persona = window.FirePathPersona;
+    let leverModel = null;
+    function duration(months) {
+      const m = Math.round(Math.abs(months));
+      const y = Math.floor(m / 12), r = m % 12;
+      if (Persona.get() === 'fire') return (y ? `${y}y ` : '') + (r || !y ? `${r}m` : '').trim();
+      const yp = y ? `${y} yr${y === 1 ? '' : 's'}` : '';
+      const mp = r ? `${r} mo${r === 1 ? '' : 's'}` : '';
+      return [yp, mp].filter(Boolean).join(' ') || 'under a month';
+    }
+    function buildLeverModel(p) {
+      const freedomNumber = p.freedom_number || 0;
+      const planInputs = Engine.planInputsFromProfile(p);
+      const plan = Engine.freedomPlan(planInputs, { now: new Date() });
+      let sit = null;
+      if (window.FirePathMoves) { try { sit = window.FirePathMoves.situationFromProfile(p); } catch (e) { sit = null; } }
+      return {
+        annualSpend: freedomNumber > 0 ? freedomNumber / 25 : 0,
+        months: plan.valid ? plan.months : null,   // null = not within 100 years (or no numbers yet)
+        plan, planInputs, situation: sit
+      };
+    }
+    // Already free: their accessible money covers the number (super counts from 60).
+    const isFree = m => !!((m.plan && m.plan.alreadyFree) || (m.situation && m.situation.alreadyFree));
+    const RETURNS_COPY = {
+      lower: {
+        beginner: ['If investments grow slower', 'Markets vary. This is 1% a year less growth than we assume.'],
+        building: ['Returns 1% lower', 'One point a year less than we assume. Worth knowing the downside.'],
+        fire: ['Return −1pt after inflation', 'Sensitivity to your return assumption.']
+      },
+      higher: {
+        beginner: ['If investments grow faster', '1% a year more growth than we assume. Possible, but not guaranteed.'],
+        building: ['Returns 1% higher', 'One point a year more than we assume. Not something to plan on.'],
+        fire: ['Return +1pt after inflation', 'Upside sensitivity. Not one to bank on.']
+      }
+    };
+    function renderLevers(m) {
+      const el = $('levers');
+      if (!m || !(m.annualSpend > 0)) { el.innerHTML = '<p class="lever-empty">Add your numbers to see how sure your date is.</p>'; return; }
+      if (isFree(m)) {
+        // The date is already here; what matters now is whether the money lasts.
+        el.innerHTML = `<a class="lever" href="/withdrawal"><div class="lever-body"><div class="lever-title">You've reached your number. Will it last?</div><div class="lever-desc">See how your money holds up across 2,000 possible market outcomes, including a bad run in the first years.</div></div><span class="chip chip-positive">Free</span></a>`;
+        return;
+      }
+      const persona = Persona.get();
+      const base = m.months;
+      // Same plan as the headline date, with only the return changed.
+      const solve = rate => {
+        const r = Engine.freedomPlan(Object.assign({}, m.planInputs, { outsideReturn: rate }));
+        return r.valid ? r.months : null;
+      };
+      const rate = m.plan.outsideReturn;
+      const rows = [
+        { key: 'lower', months: solve(rate - 0.01) },
+        { key: 'higher', months: solve(rate + 0.01) }
+      ];
+      el.innerHTML = rows.map(r => {
+        const [title, desc] = RETURNS_COPY[r.key][persona] || RETURNS_COPY[r.key].building;
+        let chip;
+        if (base == null && r.months == null) chip = '<span class="chip">No change</span>';
+        else if (base == null) chip = `<span class="chip chip-positive">Reachable in ${duration(r.months)}</span>`;
+        else if (r.months == null) chip = '<span class="chip chip-negative">100+ yrs</span>';
+        else {
+          const diff = base - r.months;
+          chip = Math.abs(diff) < 1 ? '<span class="chip">No change</span>'
+            : `<span class="chip ${diff > 0 ? 'chip-positive' : 'chip-negative'}">${duration(diff)} ${diff > 0 ? 'sooner' : 'later'}</span>`;
+        }
+        return `<div class="lever"><div class="lever-body"><div class="lever-title">${title}</div><div class="lever-desc">${desc}</div></div>${chip}</div>`;
+      }).join('');
+    }
+    if (Persona && Persona.onChange) Persona.onChange(() => { if (leverModel) renderLevers(leverModel); });
+
     try {
       const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${userId}`, { headers: { 'Authorization': `Bearer ${token}` } });
       if (res.status === 401 || res.status === 403) {
@@ -419,9 +640,13 @@
         window.location.href = 'auth.html?expired=1';
         return;
       }
-      if (!res.ok) { planCard.style.display = 'none'; return; }
+      if (!res.ok) { planCard.style.display = 'none'; $('levers').innerHTML = '<p class="lever-empty">This couldn’t load just now. Try refreshing the page.</p>'; return; }
       const data = await res.json();
       profile = (Array.isArray(data) && data.length > 0) ? data[0] : null;
+      try {
+        leverModel = profile && Engine ? buildLeverModel(profile) : null;
+        renderLevers(leverModel);
+      } catch (e) { console.log('Returns test failed', e); $('levers').innerHTML = '<p class="lever-empty">This couldn’t load just now. Try refreshing the page.</p>'; }
       if (!profile || !window.FirePathEngine || !window.FirePathMoves) { planCard.style.display = 'none'; return; }
       if (!(profile.freedom_number > 0)) {
         $('planBody').innerHTML = '<p class="plan-empty">Add your numbers in <a href="firepath_pro.html?edit=true">your plan’s inputs</a> to see your options.</p>';
@@ -440,8 +665,337 @@
     } catch (e) {
       console.log('Options failed to load', e);
       $('planBody').innerHTML = '<p class="plan-empty">Your options couldn’t load just now. Try refreshing the page.</p>';
+      if ($('levers').querySelector('.skeleton')) $('levers').innerHTML = '<p class="lever-empty">This couldn’t load just now. Try refreshing the page.</p>';
+    } finally {
+      // The bands above have their final height now, so an old discover.html link can land on #discover.
+      document.documentElement.dataset.optionsLoaded = '1';
+      document.dispatchEvent(new CustomEvent('fp:options-loaded'));
     }
   });
+</script>
+
+<script>
+  // ── More ideas to look into (was discover.html) ─────────────────────────────────
+  // The same saved AI idea list (learn_lab, topic action_plan), prompt, model and
+  // tick-off saving as before. Starts once the page script above has passed requirePro.
+  (function () {
+  const fpToken   = getToken();
+  const fpUserId  = getUserId();
+
+  const apFireNum    = parseFloat(localStorage.getItem('ap_fireNum'))    || 0;
+  const apMonthlySav = parseFloat(localStorage.getItem('ap_monthlySav')) || 0;
+  const apIncome     = parseFloat(localStorage.getItem('ap_income'))     || 0;
+  const apSavings    = parseFloat(localStorage.getItem('ap_savings'))    || 0;
+  const apSuper      = parseFloat(localStorage.getItem('ap_super'))      || 0;
+  const apAge        = parseFloat(localStorage.getItem('ap_age'))        || 0;
+  const apSRate      = parseFloat(localStorage.getItem('ap_sRate'))      || 0;
+  const apContext    = localStorage.getItem('ap_context')                || '';
+  const apPersona    = localStorage.getItem('fp_persona') || localStorage.getItem('ap_persona') || 'building';   // live level first
+  const apCycle      = localStorage.getItem('ap_cycle')                  || 'fortnightly';
+  const apScenario   = localStorage.getItem('ap_scenario')               || 'save_more';
+  const apFreedomYrs = parseFloat(localStorage.getItem('ap_freedomYrs')) || 0;
+
+  const SHOWN = 3;   // the top 3, then "Show all"
+  let steps = [];
+  let completedSteps = new Set();
+  let showAll = false;
+
+  document.addEventListener('fp:options-ready', async () => {
+    document.getElementById('regenBtn').addEventListener('click', regeneratePlan);
+    document.getElementById('stepsMore').addEventListener('click', toggleMore);
+    const saved = await loadSavedPlan();
+    if (saved) {
+      renderSteps(saved.steps, saved.completed);
+    } else if (apIncome > 0 || apContext) {
+      // Only on request here (it used to run on opening its own page), so a visit to
+      // Options doesn't start an AI call nobody asked for.
+      showStart();
+    } else {
+      showEmpty();
+    }
+    if (location.hash === '#discover') {
+      const land = () => {
+        const sec = document.getElementById('discover');
+        sec.scrollIntoView();
+        sec.focus({ preventScroll: true });
+      };
+      if (document.documentElement.dataset.optionsLoaded) land();
+      else document.addEventListener('fp:options-loaded', land, { once: true });
+    }
+  }, { once: true });
+
+  async function loadSavedPlan() {
+    if (!fpToken || !fpUserId) {
+      const local = localStorage.getItem('ap_saved_plan');
+      if (local) return JSON.parse(local);
+      return null;
+    }
+    try {
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/learn_lab?user_id=eq.${fpUserId}&topic=action_plan&order=created_at.desc&limit=1`, {
+        headers: { 'Authorization': `Bearer ${fpToken}` }
+      });
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0 && data[0].content) {
+        return JSON.parse(data[0].content);
+      }
+    } catch (e) { console.log('Load plan failed', e); }
+    return null;
+  }
+
+  async function savePlan(stepsData, completedData) {
+    const payload = { steps: stepsData, completed: Array.from(completedData) };
+    localStorage.setItem('ap_saved_plan', JSON.stringify(payload));
+    if (!fpToken || !fpUserId) return;
+    try {
+      await FirePathAuth.fetch(`${WORKER_URL}/db/learn_lab`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${fpToken}`,
+          'Prefer': 'resolution=merge-duplicates'
+        },
+        body: JSON.stringify({
+          user_id: fpUserId,
+          topic: 'action_plan',
+          content: JSON.stringify(payload)
+        })
+      });
+    } catch (e) { console.log('Save plan failed', e); }
+  }
+
+  async function generatePlan() {
+    const loading = document.getElementById('loadingCard');
+    loading.style.display = 'block';
+    loading.innerHTML = `<div class="loading-dots"><span></span><span></span><span></span></div>
+      <p class="loading-text" id="loadingText">Finding things worth exploring for your situation...<br/>This only runs once — we'll save it for you.</p>`;
+    document.getElementById('stepsContainer').innerHTML = '';
+    document.getElementById('stepsMore').hidden = true;
+    document.getElementById('regenBtn').style.display = 'none';
+    document.getElementById('progressSection').style.display = 'none';
+
+    const cycleWord = apCycle === 'weekly' ? 'week' : apCycle === 'fortnightly' ? 'fortnight' : 'month';
+    const scenarioLabel = {
+      save_more: 'save more money each cycle',
+      sell_home: 'sell their home and invest the equity',
+      lump_sum:  'invest a lump sum',
+      downsize:  'downsize their home',
+      redundancy:'make the most of a redundancy payout'
+    }[apScenario] || 'reach financial independence';
+
+    const prompt = `You are FirePath, a warm financial independence educational tool. Generate 5 personalised "things worth exploring" for this person — not action directives, but doors to open. Each one should spark curiosity and point toward a calculator, a question to investigate, or something to learn more about. Never tell them what to do. Open doors, don't push them through.
+
+Person details:
+- Income: $${Math.round(apIncome / (apCycle === 'weekly' ? 52/12 : apCycle === 'fortnightly' ? 26/12 : 1))} per ${cycleWord}
+- Currently saving: $${Math.round(apMonthlySav / (apCycle === 'weekly' ? 52/12 : apCycle === 'fortnightly' ? 26/12 : 1))} per ${cycleWord} (${apSRate}% savings rate)
+- Current savings/investments: $${apSavings}
+- Super balance: $${apSuper}
+- Age: ${apAge || 'not provided'}
+- Freedom number: $${Math.round(apFireNum)}
+- Years to freedom: ${apFreedomYrs ? Math.round(apFreedomYrs) : 'unknown'}
+- Persona: ${apPersona}
+- Their situation: ${apContext || 'not provided'}
+- Their chosen path: ${scenarioLabel}
+
+IMPORTANT: When the user mentions dollar amounts in their situation (e.g. "loses $6,000 per year"), treat these exactly as stated. Never assume monthly unless explicitly stated.
+
+Frame every step as curiosity and self-discovery — never as instruction. Use language like:
+- "Have you ever looked at..."
+- "Curious what X could mean for you?"
+- "It might be worth exploring whether..."
+- "Some people in this situation find it interesting to look at..."
+- "Run the numbers on X and see what comes up"
+
+NEVER write:
+- "Sell your X and redirect Y"
+- "You should invest in..."
+- "Cancel your X"
+- "Switch to..."
+
+Instead write:
+- "Curious what your grocery spend looks like? Some people find switching one shop a week to a cheaper supermarket makes a real difference — worth a look at your statements"
+- "Have you ever mapped out exactly where your money goes each week? Sometimes just seeing it is enough"
+- "Curious what your property equity could do? You can run that scenario yourself in What if…?"
+
+Also: never name specific products, funds, ETFs, brokers, banks, lenders, super funds, platforms or businesses, never say which option is best for them, and never use "you should" or "I recommend". Don't make up dollar figures that aren't in the person details above.
+
+For beginner personas, make it feel like a friend asking good questions — warm and non-judgmental. For FIRE personas, make it more analytical and data-focused.
+
+Keep the whole response under about 600 words so it fits the length limit and the JSON is complete.
+
+Respond ONLY with a JSON array of exactly 5 items — no markdown, no backticks, no explanation:
+[
+  {
+    "title": "Short curiosity-framed title — a question or observation",
+    "description": "1-2 short sentences opening a door, not directing action. Specific, warm, points toward exploration.",
+    "why": "One sentence on why this is worth a look for their specific situation.",
+    "category": "one of: save, invest, property, admin, mindset"
+  }
+]`;
+
+    try {
+      const res = await FirePathAuth.fetch(WORKER_URL, {
+        method: 'POST',
+        headers: aiHeaders(),
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-5',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+
+      const data = await res.json();
+      const raw = data.content[0].text.replace(/```json|```/gi, '').trim();
+      const parsed = JSON.parse(raw);
+
+      steps = parsed;
+      completedSteps = new Set();
+      await savePlan(steps, completedSteps);
+      renderSteps(steps, []);
+
+    } catch (err) {
+      console.error(err);
+      loading.innerHTML = `
+        <p style="font-size:16px;color:var(--ink-2)">Couldn't generate your ideas right now. Please try again.</p>
+        <button type="button" class="regen-btn" id="retryBtn">Try again</button>
+      `;
+      document.getElementById('retryBtn').addEventListener('click', generatePlan);
+    }
+  }
+
+  function renderSteps(stepsData, completedData) {
+    steps = stepsData;
+    completedSteps = new Set(completedData);
+
+    document.getElementById('loadingCard').style.display = 'none';
+    document.getElementById('progressSection').style.display = 'block';
+    document.getElementById('regenBtn').style.display = 'inline-block';
+
+    const container = document.getElementById('stepsContainer');
+    container.innerHTML = '';
+
+    // Each idea is a real toggle button, so it's reachable and works from the keyboard.
+    stepsData.forEach((step, i) => {
+      const isComplete = completedSteps.has(i);
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'step-card' + (isComplete ? ' completed' : '');
+      btn.setAttribute('aria-pressed', isComplete ? 'true' : 'false');
+      btn.onclick = () => toggleStep(i, btn);
+      btn.innerHTML = `
+        <span class="step-checkbox" aria-hidden="true"></span>
+        <span class="step-body">
+          <span class="step-number">Idea ${i + 1}<span class="vh"> (tick when explored)</span></span>
+          <span class="step-title">${FirePathSafe.escape(step.title)}</span>
+          <span class="step-desc">${FirePathSafe.escape(step.description)}</span>
+          <span class="step-why">${FirePathSafe.escape(step.why)}</span>
+        </span>
+      `;
+      li.appendChild(btn);
+      container.appendChild(li);
+    });
+
+    applyMore();
+    updateProgress();
+  }
+
+  function applyMore() {
+    const container = document.getElementById('stepsContainer');
+    const more = document.getElementById('stepsMore');
+    const extra = steps.length > SHOWN;
+    more.hidden = !extra;
+    container.classList.toggle('is-short', extra && !showAll);
+    more.setAttribute('aria-expanded', String(extra && showAll));
+    more.textContent = showAll ? 'Show fewer' : `Show all ${steps.length}`;
+  }
+  function toggleMore() {
+    showAll = !showAll;
+    applyMore();
+    if (showAll) {
+      const next = document.querySelectorAll('#stepsContainer .step-card')[SHOWN];
+      if (next) next.focus();
+    }
+  }
+
+  async function toggleStep(index, el) {
+    if (completedSteps.has(index)) {
+      completedSteps.delete(index);
+      el.classList.remove('completed');
+    } else {
+      completedSteps.add(index);
+      el.classList.add('completed');
+      checkMilestone();
+    }
+    el.setAttribute('aria-pressed', completedSteps.has(index) ? 'true' : 'false');
+    updateProgress();
+    await savePlan(steps, completedSteps);
+  }
+
+  function updateProgress() {
+    const total = steps.length;
+    const done  = completedSteps.size;
+    const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressCount').textContent = `${done} of ${total} explored`;
+    document.getElementById('progressPct').textContent = pct + '% explored';
+  }
+
+  function checkMilestone() {
+    const total = steps.length;
+    const done  = completedSteps.size;
+    const pct   = total > 0 ? Math.round((done / total) * 100) : 0;
+    const m     = document.getElementById('milestone');
+    const emoji = document.getElementById('milestoneEmoji');
+    const text  = document.getElementById('milestoneText');
+
+    if (done === 1) {
+      emoji.textContent = '✨';
+      text.innerHTML = `<strong>First idea explored!</strong> Nice one. Keep going.`;
+      m.classList.add('visible');
+    } else if (pct >= 50 && pct < 100 && done === Math.ceil(total / 2)) {
+      emoji.textContent = '🔥';
+      text.innerHTML = `<strong>Halfway through!</strong> You're asking the right questions. Keep exploring.`;
+      m.classList.add('visible');
+    } else if (done === total) {
+      emoji.textContent = '🎉';
+      text.innerHTML = `<strong>You've explored everything!</strong> Good work. Want a fresh set?`;
+      m.classList.add('visible');
+    } else {
+      m.classList.remove('visible');
+      return;
+    }
+    setTimeout(() => m.classList.remove('visible'), 8000);
+  }
+
+  async function regeneratePlan() {
+    if (!confirm('Generate a fresh set of ideas? Your current progress will be cleared.')) return;
+    localStorage.removeItem('ap_saved_plan');
+    completedSteps = new Set();
+    showAll = false;
+    await generatePlan();
+  }
+
+  function showStart() {
+    document.getElementById('loadingCard').style.display = 'none';
+    document.getElementById('stepsContainer').innerHTML = '';
+    const loading = document.getElementById('loadingCard');
+    loading.style.display = 'block';
+    loading.innerHTML = `<p class="loading-text">Five questions worth looking into, picked for your situation. It runs once and we save them for you.</p>
+      <button type="button" class="regen-btn" id="startBtn">Find ideas for my situation</button>`;
+    document.getElementById('startBtn').addEventListener('click', generatePlan);
+  }
+
+  function showEmpty() {
+    document.getElementById('loadingCard').style.display = 'none';
+    document.getElementById('stepsContainer').innerHTML = `
+      <li class="empty-card">
+        <div class="empty-title">Nothing to explore yet</div>
+        <p class="empty-sub">Run your numbers in <a href="firepath_pro.html">your full plan</a> first, then come back here for ideas based on your situation.</p>
+      </li>
+    `;
+  }
+  })();
 </script>
 </body>
 </html>

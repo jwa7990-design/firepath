@@ -18,7 +18,7 @@
   <meta charset="UTF-8"/>
 <meta name="robots" content="noindex"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>My progress — FirePath Pro</title>
+  <title>Check in — FirePath Pro</title>
 <!-- seo:start -->
 <meta property="og:site_name" content="FirePath"/>
 <meta property="og:locale" content="en_AU"/>
@@ -46,7 +46,7 @@
   <script src="js/moves-status.js"></script>
   <script src="js/interactions.js"></script>
   <style>
-    /* My progress: editorial layout on fp-editorial.css. Page-only styles. */
+    /* Check in: editorial layout on fp-editorial.css. Page-only styles. */
     body.app .mem { padding-bottom: calc(130px + env(safe-area-inset-bottom)); }
     @media (min-width: 1024px) { body.app .mem { padding-bottom: 0; } }
     .icon { width: 20px; height: 20px; flex-shrink: 0; vertical-align: -4px; }
@@ -59,6 +59,9 @@
     .user-status:empty { display: none; }
     .user-status a { color: var(--ink) !important; font-weight: 600; text-decoration: underline !important; text-decoration-color: var(--line-strong) !important; text-underline-offset: 4px; }
     .user-status a:hover { text-decoration-color: var(--ink) !important; }
+    .mem-sec-head { margin-bottom: 28px; }
+    .mem-small { margin-top: 14px; max-width: 46ch; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
+    .mem-small:empty { display: none; }
 
     /* Buttons: one solid ember primary, outlined secondaries (homepage .hp-btn look) */
     .mem-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; padding: 0 24px; border-radius: var(--hp-r); border: 1px solid transparent; background: var(--ember-ink); color: #fff; font: 600 15.5px var(--font-ui); text-decoration: none; cursor: pointer; transition: background var(--dur-fast) ease, border-color var(--dur-fast) ease; }
@@ -78,14 +81,19 @@
     .no-calc-text { margin-bottom: 28px; }
 
     /* Milestone flash (toggled .visible by showMilestone()): an ember rule and one big line */
-    .milestone { display: none; }
+    .milestone { display: none; margin-top: 20px; }
     .milestone.visible { display: block; animation: fp-rise var(--dur-slow) var(--ease) both; }
-    .milestone .hp-wrap > div { padding: 20px 0 22px; border-top: 2px solid var(--hp-accent); border-bottom: var(--hp-rule); }
+    .milestone > div { padding: 20px 0 22px; border-top: 2px solid var(--hp-accent); border-bottom: var(--hp-rule); }
     .milestone-emoji { display: none; }
     .milestone-text { font-family: var(--font-display); font-size: clamp(22px, 2.6vw, 30px); line-height: 1.3; letter-spacing: -0.01em; color: var(--ink); max-width: 36ch; }
     .milestone-text strong { color: var(--hp-accent); font-weight: 700; }
 
-    /* No commitment yet: the copy on the left, the form as the one dark panel on the right */
+    /* After a check-in: a short note under the panel (flame earned, options on the go) */
+    .mem-note { margin-top: 16px; padding: 16px 2px; border-top: 2px solid var(--hp-accent); border-bottom: var(--hp-rule); font-size: 17px; line-height: 1.5; color: var(--ink); }
+    .mem-note a { color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 4px; }
+    .mem-note a:hover { text-decoration-color: var(--ink); }
+
+    /* No promise yet: the copy on the left, the form as the one dark panel on the right */
     .commit-title { margin-top: 14px; }
     .commit-lead { color: var(--ink); }
     .commit-panel { margin-bottom: 24px; }
@@ -109,13 +117,13 @@
     .commit-amount input { flex: 1; min-width: 0; height: 100%; background: transparent; border: none; outline: none; color: #fff; font: 600 22px var(--font-ui); padding: 0 8px 0 0; font-variant-numeric: tabular-nums; }
     .commit-preview { display: none; padding: 16px 0 0; border-top: var(--hp-rule); font-size: 15.5px; color: var(--ink); line-height: 1.6; text-align: left; }
 
-    /* Has a commitment: the amount as the big ember figure, the streak as a row of marks */
-    .commit-display { margin-top: 14px; font-family: var(--font-display); font-size: clamp(40px, 5.2vw, 72px); line-height: 1; letter-spacing: -0.035em; font-weight: 700; color: var(--hp-accent); font-variant-numeric: tabular-nums lining-nums; }
+    /* Has a promise: the amount as the big ember figure, the streak as a row of marks */
+    .commit-display { font-family: var(--font-display); font-size: clamp(36px, 4.6vw, 60px); line-height: 1; letter-spacing: -0.035em; font-weight: 700; color: var(--hp-accent); font-variant-numeric: tabular-nums lining-nums; }
     .commit-line { margin-top: 18px; font-size: 18px; line-height: 1.45; color: var(--ink); font-variant-numeric: tabular-nums; }
     .commit-impact { margin-top: 8px; font-size: 16px; line-height: 1.5; color: var(--ink-2); }
     .commit-impact:empty, .commit-perflame:empty, .commit-cumulative:empty { display: none; }
     .commit-perflame { padding: 14px 2px; border-bottom: var(--hp-rule); font-size: 16px; line-height: 1.5; color: var(--ink); }
-    .streak-flames { display: grid; grid-template-columns: repeat(13, 12px); gap: 8px; padding: 22px 2px; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); }
+    .streak-flames { display: grid; grid-template-columns: repeat(13, 12px); gap: 8px; margin-top: 24px; padding: 22px 2px; border-top: 1px solid var(--ink); border-bottom: var(--hp-rule); }
     @media (min-width: 600px) { .streak-flames { grid-template-columns: repeat(26, 12px); } }
     @media (min-width: 900px) { .streak-flames { grid-template-columns: repeat(13, 14px); gap: 10px; } }
     .mem-flame { width: 100%; aspect-ratio: 1; box-shadow: inset 0 0 0 1.5px var(--line-strong); }
@@ -123,12 +131,12 @@
     .commit-cumulative { padding: 14px 2px; border-bottom: var(--hp-rule); font-size: 16px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
     .commit-change { margin-top: 24px; height: 46px; }
 
-    /* Check-in: the one calm panel */
+    /* Check-in: the one calm panel, first on the page */
     .mem-panel { padding: 24px 20px 26px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--hp-r); }
     @media (min-width: 768px) { .mem-panel { padding: 32px 36px 34px; } }
     .checkin-title { font-family: var(--font-display); font-size: clamp(26px, 3vw, 34px); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink); }
     .checkin-due { margin-top: 10px; font-size: 18px; line-height: 1.45; color: var(--ink); margin-bottom: 22px; }
-    .checkin-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 26px; }
+    .checkin-actions { display: flex; flex-wrap: wrap; gap: 10px; }
     .checkin-actions .mem-btn { flex: 1 1 180px; min-width: 0; }
     .checkin-update { border-top: var(--hp-rule); padding-top: 22px; }
     @media (min-width: 900px) { .checkin-update { border-top: 0; padding-top: 6px; } }
@@ -138,38 +146,58 @@
     .money-input span { padding: 0 10px 0 16px; color: var(--ink-2); font-size: 18px; }
     .money-input input { flex: 1; min-width: 0; height: 100%; background: transparent; border: none; outline: none; color: var(--ink); font: 600 19px var(--font-ui); padding: 0 8px 0 0; font-variant-numeric: tabular-nums; }
     .checkin-hint { font-size: 14px; color: var(--ink-2); }
-    /* What the page's script adds after the check-in panel (it sets its own inline look) */
-    .mem-checkin { min-width: 0; padding-bottom: 56px; }
-    .hp-sec.mem-commit { padding-bottom: 40px; }
-    @media (min-width: 768px) { .mem-checkin { padding-bottom: 88px; } .hp-sec.mem-commit { padding-bottom: 48px; } }
-    #hasCommitCard > div:not([class]), #optionsOnTheGo { max-width: var(--hp-max); margin: 0 auto !important; padding: 0 16px !important; background: none !important; border: 0 !important; border-radius: 0 !important; }
-    @media (min-width: 768px) { #hasCommitCard > div:not([class]), #optionsOnTheGo { padding: 0 32px !important; } }
-    #hasCommitCard > div:not([class]) > div { margin: 0 0 32px !important; padding: 16px 2px !important; background: none !important; border-radius: 0 !important; border-top: 2px solid var(--hp-accent); border-bottom: var(--hp-rule); text-align: left !important; font-size: 18px !important; color: var(--ink) !important; }
-    #optionsOnTheGo { margin-bottom: 32px !important; font-size: 17px !important; color: var(--ink) !important; }
-    #optionsOnTheGo a { color: var(--ink) !important; font-weight: 600 !important; text-decoration: underline !important; text-decoration-color: var(--line-strong) !important; text-underline-offset: 4px; }
+    .hp-sec.mem-checkin { padding-top: 8px; border-top: 0; }
+    @media (min-width: 768px) { .hp-sec.mem-checkin { padding-top: 16px; } }
 
-    /* Where you stand: three big figures over rules, the bar, then the milestones */
+    /* Progress to freedom: three big figures over rules, then the bar */
     .stats-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; border-top: 1px solid var(--ink); }
     @media (min-width: 768px) { .stats-row { gap: 24px; } }
     .stat-box { padding: 18px 0 16px; border-bottom: var(--hp-rule); min-width: 0; }
     .stat-box .stat-value { display: block; font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 5vw, 56px); line-height: 1; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; overflow-wrap: anywhere; }
     .stat-box:first-child .stat-value { color: var(--hp-accent); }
     .stat-name { display: block; margin-top: 10px; font-size: 14.5px; color: var(--ink-2); line-height: 1.35; }
-
-    .card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink); display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-    .card-title::before { content: ''; width: 28px; height: 1px; background: currentColor; }
-    .mem-block { margin-top: 48px; }
+    .path-block { margin-top: 32px; max-width: 640px; }
     .path-track { position: relative; height: 2px; background: var(--line-strong); margin: 14px 0 12px; }
     .path-fill { height: 6px; margin-top: -2px; background: var(--ink); transition: width 0.8s var(--ease); }
     .path-markers { display: flex; justify-content: space-between; font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
     .path-markers #progressPct { font-weight: 600; color: var(--ink); }
-    .path-markers svg { display: none; }
+
+    /* Milestones: small titled lists, each a run of ruled rows */
+    .card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink); display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .card-title::before { content: ''; width: 28px; height: 1px; background: currentColor; }
+    .mem-block + .mem-block { margin-top: 44px; }
     .milestones-roadmap { border-top: 1px solid var(--ink); }
     .mem-ms { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 16px 2px; border-bottom: var(--hp-rule); font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
     .mem-ms-name { display: flex; align-items: baseline; gap: 12px; }
     .mem-ms-name .hp-mark { transform: translateY(-0.15em); }
     .mem-ms-when { font-size: 16px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
     .mem-ms.is-done .mem-ms-when { color: var(--ink); }
+
+    /* Achievements (from the old About you page): an ember square once reached, an ink
+       outline still to come, and the next one carries its distance in ember. */
+    .achv-strip { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+    .achv-badge { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 4px 16px; padding: 16px 2px; border-bottom: var(--hp-rule); }
+    .achv-badge .hp-mark { transform: translateY(-0.15em); }
+    .achv-label { font-size: 18px; line-height: 1.4; color: var(--ink-2); }
+    .achv-badge.unlocked .achv-label { color: var(--ink); }
+    .achv-badge.next .achv-label { color: var(--ink); font-weight: 600; }
+    .achv-distance { font-size: 15px; font-weight: 600; color: var(--ember-ink); white-space: nowrap; font-variant-numeric: tabular-nums lining-nums; }
+
+    /* Timeline: ruled rows with a dot per step */
+    .timeline { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+    .tl-item { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 4px 12px; padding: 16px 2px; border-bottom: var(--hp-rule); }
+    .tl-dot { grid-row: 1 / span 2; width: 12px; height: 12px; margin-top: 0.4em; border-radius: 50%; background: var(--bg); box-shadow: inset 0 0 0 1.5px var(--ink-2); }
+    .tl-item.done .tl-dot { background: var(--ink); box-shadow: none; }
+    .tl-item.next .tl-dot { background: var(--hp-accent); box-shadow: none; }
+    .tl-label { font-size: 18px; line-height: 1.4; color: var(--ink-2); }
+    .tl-item.done .tl-label { color: var(--ink); }
+    .tl-item.next .tl-label { color: var(--ink); font-weight: 600; }
+    .tl-distance { grid-column: 2; font-size: 15px; font-weight: 600; color: var(--ember-ink); font-variant-numeric: tabular-nums lining-nums; }
+
+    /* Top 3 then "Show all": rows the script marks .is-extra stay hidden until opened */
+    .is-short > .is-extra { display: none; }
+    .mem-more { margin-top: 16px; }
+    .mem-more[hidden] { display: none; }
 
     /* History: ruled rows, top 3 then "Show all" */
     .history-item { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px 24px; align-items: baseline; padding: 16px 2px; border-bottom: var(--hp-rule); font-size: 17px; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
@@ -183,6 +211,14 @@
     #historyCard:not(:has(.history-item:nth-child(4))) #historyMore { display: none; }
     @media (max-width: 480px) { .history-item { grid-template-columns: minmax(0, 1fr) auto; } .history-item > span:nth-child(2) { grid-column: 1; grid-row: 2; font-size: 15px; color: var(--ink-2); } .history-change { grid-row: 1 / span 2; grid-column: 2; } }
 
+    /* How you handle money: a small closing section, the type in serif, the scores as thin bars */
+    .dna-type { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 3vw, 36px); line-height: 1.1; letter-spacing: -0.02em; color: var(--ink); margin: 0 0 20px; }
+    #dnaRows { border-top: 1px solid var(--ink); }
+    .dna-row { display: grid; grid-template-columns: 110px minmax(0, 1fr); align-items: center; gap: 16px; padding: 14px 2px; border-bottom: var(--hp-rule); }
+    .dna-label { font-size: 16px; color: var(--ink); }
+    .dna-track { height: 2px; background: var(--line-strong); }
+    .dna-fill { height: 4px; margin-top: -1px; background: var(--ink); }
+
     .mem-foot { padding: 28px 0 40px; border-top: var(--hp-rule); }
     .mem-foot .app-footer { margin-top: 0; padding-top: 0; border-top: 0; font-size: 13px; color: var(--ink-2); }
   </style>
@@ -195,129 +231,40 @@
   <header class="hp-hero mem-hero">
     <div class="hp-wrap">
       <a href="journey.html" class="mem-back">← Your Path</a>
-      <h1 class="hp-h1">My progress</h1>
-      <p class="hp-lead">Your savings commitment, check-ins and milestones.</p>
+      <h1 class="hp-h1">Check in</h1>
+      <p class="hp-lead">Log how this period went, then see how far you've come.</p>
       <div class="user-status" id="userStatus"></div>
     </div>
   </header>
 
-  <!-- No calc data warning -->
+  <!-- No calc data: the page's empty state -->
   <section id="noCalcWarning" class="hp-sec" style="display:none;">
     <div class="hp-wrap">
       <p class="hp-label is-ink">Your numbers</p>
       <h2 class="hp-h2 is-mid no-calc-title">Run your numbers first</h2>
-      <p class="hp-body is-ink no-calc-text">Your progress tracker uses your freedom number and savings rate from your last calculation.</p>
-      <a href="index.html" class="mem-btn">Find my freedom date →</a>
+      <p class="hp-body is-ink no-calc-text">Check-ins, progress and milestones are all built from your freedom number and savings.</p>
+      <a href="firepath_pro.html" class="mem-btn">Run my numbers →</a>
     </div>
   </section>
 
-  <!-- Milestone flash -->
-  <div class="milestone" id="milestone" role="status">
-    <div class="hp-wrap"><div>
-      <span class="milestone-emoji" id="milestoneEmoji" aria-hidden="true">🎉</span>
-      <div class="milestone-text" id="milestoneText"></div>
-    </div></div>
-  </div>
+  <div id="calcContent">
 
-  <!-- SECTION 1: Commitment -->
-  <div id="commitSection">
+    <!-- 1. Log your check-in (or, with no promise yet, set one up) -->
+    <section class="hp-sec mem-checkin" id="checkin" aria-label="Check in">
 
-    <!-- No commitment yet -->
-    <section id="noCommitCard" class="hp-sec commit-intro">
-      <div class="hp-wrap hp-two">
-        <div>
-          <p class="hp-label is-ink">Your commitment</p>
-          <h2 class="hp-h2 commit-title">Your savings promise</h2>
-          <p class="hp-body commit-lead">Pick an extra amount to save, then tick it off each time you do. Each tick earns a flame.</p>
-        </div>
-
-        <div class="hp-panel is-dark">
-          <div class="commit-panel">
-            <p class="hp-label is-ink commit-label">My commitment</p>
-
-            <!-- Suggested amounts -->
-            <div class="commit-field">
-              <div class="commit-field-label">Not sure? Try one of these — you can still change it below:</div>
-              <div class="commit-options" id="commitSuggestChips">
-                <button type="button" onclick="pickSuggestedAmount(25, this)" class="commit-suggest-chip">
-                  +$25<span id="chipDaysLabel-25">a week</span>
-                </button>
-                <button type="button" onclick="pickSuggestedAmount(50, this)" class="commit-suggest-chip">
-                  +$50<span id="chipDaysLabel-50">a week</span>
-                </button>
-                <button type="button" onclick="pickSuggestedAmount(100, this)" class="commit-suggest-chip">
-                  +$100<span id="chipDaysLabel-100">a week</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Frequency selector -->
-            <div class="commit-field">
-              <div class="commit-field-label">I'll save this extra amount every:</div>
-              <div class="commit-options">
-                <button onclick="setCommitCycle(this,'weekly')" data-cycle="weekly" class="commit-cycle-btn active-cycle">Weekly</button>
-                <button onclick="setCommitCycle(this,'fortnightly')" data-cycle="fortnightly" class="commit-cycle-btn">Fortnightly</button>
-                <button onclick="setCommitCycle(this,'monthly')" data-cycle="monthly" class="commit-cycle-btn">Monthly</button>
-              </div>
-            </div>
-
-            <!-- Amount input -->
-            <div class="commit-field">
-              <div class="commit-field-label">Extra amount I'll save:</div>
-              <div class="commit-amount">
-                <span>$</span>
-                <input type="number" id="commitAmount" placeholder="0" min="0" aria-label="Extra amount I'll save"
-                  oninput="clearChipSelection();updateCommitPreview()"/>
-              </div>
-            </div>
-
-            <!-- Preview -->
-            <div id="commitPreview" class="commit-preview" aria-live="polite"></div>
-          </div>
-
-          <button onclick="saveCommitment()" class="mem-btn is-block">
-            Save this commitment
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Has commitment -->
-    <div id="hasCommitCard" style="display:none;">
-
-      <!-- Commitment header -->
-      <section class="hp-sec mem-commit">
-        <div class="hp-wrap hp-two">
-          <div>
-            <p class="hp-label is-ink">Your commitment</p>
-            <div class="commit-display" id="commitDisplay">—</div>
-            <div class="commit-line" id="commitStreakLine">—</div>
-            <div class="commit-impact" id="commitImpactLine"></div>
-          </div>
-          <div>
-            <div id="streakFlames" class="streak-flames" aria-hidden="true"></div>
-            <div class="commit-perflame" id="commitPerFlameLine"></div>
-            <div class="commit-cumulative" id="commitCumulativeLine"></div>
-            <button onclick="resetCommitment()" class="mem-btn is-line commit-change">
-              Change commitment
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Check-in panel (JS inserts feedback after "#hasCommitCard > div:nth-child(2)" — keep it second) -->
-      <div class="mem-checkin fp-reveal">
+      <!-- Has a promise: the check-in panel (notes from the script go straight after #checkinPanel) -->
+      <div id="hasCommitCard" style="display:none;">
         <div class="hp-wrap">
-          <div class="mem-panel">
+          <div class="mem-panel" id="checkinPanel">
             <div class="hp-half">
               <div>
                 <h2 class="checkin-title">Log your check-in</h2>
                 <div class="checkin-due" id="checkinDueLabel">Did you hit your target this period?</div>
                 <div class="checkin-actions">
-                  <button onclick="logCheckin(true)" class="mem-btn">
+                  <button type="button" onclick="logCheckin(true)" class="mem-btn">
                     Yes, I hit it!
                   </button>
-                  <button onclick="logCheckin(false)" class="mem-btn is-line">
+                  <button type="button" onclick="logCheckin(false)" class="mem-btn is-line">
                     Not this time
                   </button>
                 </div>
@@ -325,54 +272,161 @@
 
               <!-- Update portfolio -->
               <div class="checkin-update">
-                <div class="checkin-update-label">Update how much you have invested (optional):</div>
+                <label class="checkin-update-label" for="ci-savings" style="display:block;">Update how much you have invested (optional):</label>
                 <div class="money-input">
                   <span>$</span>
-                  <input type="number" id="ci-savings" placeholder="Current total savings" min="0" aria-label="Current total savings"/>
+                  <input type="number" id="ci-savings" placeholder="Current total savings" min="0"/>
                 </div>
-                <div class="checkin-hint">This updates your freedom date in real time.</div>
+                <div class="checkin-hint">This updates your freedom date straight away.</div>
               </div>
+            </div>
+          </div>
+
+          <!-- Milestone flash -->
+          <div class="milestone" id="milestone" role="status">
+            <div>
+              <span class="milestone-emoji" id="milestoneEmoji" aria-hidden="true">🎉</span>
+              <div class="milestone-text" id="milestoneText"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Progress stats, bar and milestones -->
-      <section class="hp-sec is-sand mem-stand">
-        <div class="hp-wrap">
-          <div class="stats-row">
-            <div class="stat-box">
-              <span class="stat-value" id="accFreedomDate">—</span>
-              <span class="stat-name">Freedom date</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-value" id="accPortfolio">—</span>
-              <span class="stat-name">Invested today</span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-value" id="accYearsToGo">—</span>
-              <span class="stat-name">Years to go</span>
-            </div>
+      <!-- No promise yet: check-ins start once there's one -->
+      <div id="noCommitCard">
+        <div class="hp-wrap hp-two">
+          <div>
+            <p class="hp-label is-ink">Check in</p>
+            <h2 class="hp-h2 commit-title">First, set a savings promise</h2>
+            <p class="hp-body commit-lead">Pick an extra amount to save. Then check in each time you do it, and each tick earns a flame.</p>
           </div>
 
-          <div class="hp-half mem-block">
-            <div>
-              <h2 class="card-title">Progress to freedom</h2>
-              <div class="path-track"><div class="path-fill" id="pathFill" style="width:0%"></div></div>
-              <div class="path-markers"><span>Start</span><span id="progressPct">0%</span><span>Freedom <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></span></div>
+          <div class="hp-panel is-dark">
+            <div class="commit-panel">
+              <p class="hp-label is-ink commit-label">My savings promise</p>
+
+              <!-- Suggested amounts -->
+              <div class="commit-field">
+                <div class="commit-field-label">Not sure? Try one of these — you can still change it below:</div>
+                <div class="commit-options" id="commitSuggestChips">
+                  <button type="button" onclick="pickSuggestedAmount(25, this)" class="commit-suggest-chip">
+                    +$25<span id="chipDaysLabel-25">a week</span>
+                  </button>
+                  <button type="button" onclick="pickSuggestedAmount(50, this)" class="commit-suggest-chip">
+                    +$50<span id="chipDaysLabel-50">a week</span>
+                  </button>
+                  <button type="button" onclick="pickSuggestedAmount(100, this)" class="commit-suggest-chip">
+                    +$100<span id="chipDaysLabel-100">a week</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Frequency selector -->
+              <div class="commit-field">
+                <div class="commit-field-label">I'll save this extra amount every:</div>
+                <div class="commit-options">
+                  <button type="button" onclick="setCommitCycle(this,'weekly')" data-cycle="weekly" class="commit-cycle-btn active-cycle">Weekly</button>
+                  <button type="button" onclick="setCommitCycle(this,'fortnightly')" data-cycle="fortnightly" class="commit-cycle-btn">Fortnightly</button>
+                  <button type="button" onclick="setCommitCycle(this,'monthly')" data-cycle="monthly" class="commit-cycle-btn">Monthly</button>
+                </div>
+              </div>
+
+              <!-- Amount input -->
+              <div class="commit-field">
+                <div class="commit-field-label">Extra amount I'll save:</div>
+                <div class="commit-amount">
+                  <span>$</span>
+                  <input type="number" id="commitAmount" placeholder="0" min="0" aria-label="Extra amount I'll save"
+                    oninput="clearChipSelection();updateCommitPreview()"/>
+                </div>
+              </div>
+
+              <!-- Preview -->
+              <div id="commitPreview" class="commit-preview" aria-live="polite"></div>
             </div>
-            <div>
-              <h2 class="card-title">Your milestones</h2>
-              <div id="milestonesRoadmap" class="milestones-roadmap"></div>
-            </div>
+
+            <button type="button" onclick="saveCommitment()" class="mem-btn is-block">
+              Save my promise
+            </button>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-    </div>
+    <!-- 2. Progress to freedom -->
+    <section class="hp-sec is-sand" id="progress" aria-labelledby="progressTitle">
+      <div class="hp-wrap">
+        <h2 class="hp-h2 is-mid mem-sec-head" id="progressTitle">Progress to freedom</h2>
+        <div class="stats-row">
+          <div class="stat-box">
+            <span class="stat-value" id="accFreedomDate">—</span>
+            <span class="stat-name">Freedom date</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value" id="accPortfolio">—</span>
+            <span class="stat-name">Invested today</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-value" id="accYearsToGo">—</span>
+            <span class="stat-name">Years to go</span>
+          </div>
+        </div>
+        <div class="path-block">
+          <div class="path-track" aria-hidden="true"><div class="path-fill" id="pathFill" style="width:0%"></div></div>
+          <div class="path-markers"><span>Start</span><span id="progressPct">0%</span><span>Freedom</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Your savings promise (once set) -->
+    <section class="hp-sec" id="promiseSec" style="display:none;" aria-labelledby="promiseTitle">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 class="hp-h2 is-mid" id="promiseTitle">Your savings promise</h2>
+        </div>
+        <div class="hp-side-main">
+          <div class="commit-display" id="commitDisplay">—</div>
+          <div class="commit-line" id="commitStreakLine">—</div>
+          <div class="commit-impact" id="commitImpactLine"></div>
+          <div id="streakFlames" class="streak-flames" aria-hidden="true"></div>
+          <div class="commit-perflame" id="commitPerFlameLine"></div>
+          <div class="commit-cumulative" id="commitCumulativeLine"></div>
+          <button type="button" onclick="resetCommitment()" class="mem-btn is-line commit-change">
+            Change my promise
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Milestones (was the About you page; about-you.html redirects here) -->
+    <section class="hp-sec" id="milestones" aria-labelledby="milestonesTitle">
+      <div class="hp-wrap hp-side">
+        <div class="hp-side-head">
+          <h2 class="hp-h2 is-mid" id="milestonesTitle">Milestones</h2>
+          <p class="mem-small" id="achvNote"></p>
+        </div>
+        <div class="hp-side-main">
+          <div class="mem-block">
+            <h3 class="card-title">When you could get there</h3>
+            <div id="milestonesRoadmap" class="milestones-roadmap"></div>
+          </div>
+          <div class="mem-block">
+            <h3 class="card-title" id="achvTitle">Achievements</h3>
+            <ul class="achv-strip is-short" id="achvStrip" aria-labelledby="achvTitle"></ul>
+            <button type="button" class="hp-more-btn mem-more" id="achvMore" aria-expanded="false" aria-controls="achvStrip" hidden>Show all</button>
+          </div>
+          <div class="mem-block">
+            <h3 class="card-title" id="tlTitle">Your timeline</h3>
+            <ol class="timeline is-short" id="timeline" aria-labelledby="tlTitle"></ol>
+            <button type="button" class="hp-more-btn mem-more" id="timelineMore" aria-expanded="false" aria-controls="timeline" hidden>Show all</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div>
 
-  <!-- Check-in history -->
+  <!-- 5. Check-in history -->
   <section id="historyCard" class="hp-sec" style="display:none;">
     <div class="hp-wrap hp-side">
       <div class="hp-side-head">
@@ -385,6 +439,20 @@
     </div>
   </section>
 
+  <!-- How you handle money (from the old About you page; your level lives in Settings) -->
+  <section id="moneyStyle" class="hp-sec" style="display:none;" aria-labelledby="dnaTitle">
+    <div class="hp-wrap hp-side">
+      <div class="hp-side-head">
+        <h2 class="hp-h2 is-mid" id="dnaTitle">How you handle money</h2>
+        <p class="mem-small" id="dnaNote"></p>
+      </div>
+      <div class="hp-side-main">
+        <p class="dna-type" id="dnaType"></p>
+        <div id="dnaRows"></div>
+      </div>
+    </div>
+  </section>
+
   <div class="mem-foot"><div class="hp-wrap">
     <footer class="app-footer">
       <span>FirePath is an educational tool. We don't provide financial advice.</span>
@@ -393,7 +461,6 @@
   </div></div>
 
 </main>
-
 <script>
   // ── Auth & init ──
   const currentYear = new Date().getFullYear();
@@ -402,6 +469,7 @@
   let commitmentData = null;
   let checkinHistory = [];
   let calcData = {};
+  let persona = null;
 
   document.addEventListener('DOMContentLoaded', async function () {
     const token = getToken();
@@ -431,30 +499,34 @@
       try { calcData = JSON.parse(stored); } catch(e) { calcData = {}; }
     }
 
-    // localStorage is device-local — if this browser has never run analyse() here,
-    // fall back to the synced profile in Supabase so progress still works cross-device.
-    if (!calcData.fireNum) {
-      try {
-        const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${encodeURIComponent(fpUserId)}`);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0 && data[0].freedom_number) {
-          const p = data[0];
-          calcData = {
-            fireNum: p.freedom_number,
-            savings: p.current_savings || 0,
-            mSav: p.savings_monthly || 0,
-            sRate: p.savings_rate || 0,
-            superBal: p.super_balance || 0,
-            age: p.age || null,
-          };
-          localStorage.setItem('fp_last_calc', JSON.stringify(calcData));
-        }
-      } catch(e) { console.log('Profile fallback failed', e); }
+    // The synced profile: the fallback when this browser has never run analyse() here
+    // (localStorage is device-local), and the source for "How you handle money".
+    let profile = null;
+    try {
+      const res = await FirePathAuth.fetch(`${WORKER_URL}/db/fp_profiles?id=eq.${encodeURIComponent(fpUserId)}`);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) profile = data[0];
+    } catch(e) { console.log('Profile load failed', e); }
+
+    if (!calcData.fireNum && profile && profile.freedom_number) {
+      const p = profile;
+      calcData = {
+        fireNum: p.freedom_number,
+        savings: p.current_savings || 0,
+        mSav: p.savings_monthly || 0,
+        sRate: p.savings_rate || 0,
+        superBal: p.super_balance || 0,
+        age: p.age || null,
+      };
+      localStorage.setItem('fp_last_calc', JSON.stringify(calcData));
     }
+    persona = (profile && profile.persona) || localStorage.getItem('fp_persona') || null;
 
     if (!calcData.fireNum) {
+      // Empty state: nothing below can be worked out without a freedom number.
       document.getElementById('noCalcWarning').style.display = 'block';
+      document.getElementById('calcContent').style.display = 'none';
     } else {
       // Populate progress stats from stored calc
       const pct = Math.min(Math.round(((calcData.savings || 0) / calcData.fireNum) * 100), 100);
@@ -466,11 +538,23 @@
       document.getElementById('accFreedomDate').textContent = freedomDateLabel(fy);
       document.getElementById('ci-savings').value = calcData.savings || 0;
       renderMilestones(calcData.fireNum, calcData.savings || 0, calcData.mSav || 0);
+      renderAchievementsAndTimeline(calcData.savings || 0, calcData.fireNum, persona);
       renderSuggestChipLabels();
+      if (profile && profile.freedom_number) {
+        renderFinancialDNA(profile);
+        document.getElementById('moneyStyle').style.display = 'block';
+      }
     }
 
     await loadCheckinHistory();
     loadCommitment();
+
+    // Content arrives after load, so jump to a linked section (e.g. #milestones) once it's in
+    // place. A short wait: straight after a redirect the browser can drop an early scroll.
+    if (location.hash.length > 1) {
+      const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+      if (target && target.offsetParent !== null) setTimeout(() => target.scrollIntoView(), 50);
+    }
   });
 
   // ── Helpers ──
@@ -644,11 +728,18 @@
   }
 
   function resetCommitment() {
-    if (!confirm('Reset your commitment? Your streak will be lost.')) return;
+    if (!confirm('Change your savings promise? Your streak will be lost.')) return;
     localStorage.removeItem('fp_commitment');
     commitmentData = null;
-    document.getElementById('noCommitCard').style.display = 'block';
-    document.getElementById('hasCommitCard').style.display = 'none';
+    showCommitState(false);
+  }
+
+  // With a promise: the check-in panel up top and the promise further down.
+  // Without one: the set-up form takes the check-in's place.
+  function showCommitState(has) {
+    document.getElementById('noCommitCard').style.display = has ? 'none' : 'block';
+    document.getElementById('hasCommitCard').style.display = has ? 'block' : 'none';
+    document.getElementById('promiseSec').style.display = has ? 'block' : 'none';
   }
 
   function loadCommitment() {
@@ -658,13 +749,8 @@
   }
 
   function renderCommitmentView() {
-    if (!commitmentData) {
-      document.getElementById('noCommitCard').style.display = 'block';
-      document.getElementById('hasCommitCard').style.display = 'none';
-      return;
-    }
-    document.getElementById('noCommitCard').style.display = 'none';
-    document.getElementById('hasCommitCard').style.display = 'block';
+    if (!commitmentData) { showCommitState(false); return; }
+    showCommitState(true);
     const { amount, cycle, streak, hits, impactText } = commitmentData;
     const cycleLabel = cycle === 'weekly' ? 'week' : cycle === 'fortnightly' ? 'fortnight' : 'month';
     const totalPossible = cycle === 'weekly' ? 52 : cycle === 'fortnightly' ? 26 : 12;
@@ -711,7 +797,7 @@
     if (!commitmentData) return;
     const totalPossible = commitmentData.cycle === 'weekly' ? 52 : commitmentData.cycle === 'fortnightly' ? 26 : 12;
     if ((commitmentData.streak || 0) >= totalPossible) {
-      alert(`You've completed all ${totalPossible} check-ins for this commitment! Hit "Change commitment" to start a fresh one.`);
+      alert(`You've completed all ${totalPossible} check-ins for this commitment! Use "Change my promise" to start a fresh one.`);
       return;
     }
     const today = new Date().toDateString();
@@ -754,6 +840,7 @@
       calcData.savingsAsOf = new Date().toISOString();
       localStorage.setItem('fp_last_calc', JSON.stringify(calcData));
       renderMilestones(fireNum, newSavings, mSav);
+      renderAchievementsAndTimeline(newSavings, fireNum, persona);
       if (hit) showMilestone(closer, pct);
     }
 
@@ -775,11 +862,13 @@
 
     const perFlameDays = hit ? perFlameDaysFor(commitmentData) : null;
 
-    const feedbackEl = document.createElement('div');
+    const feedbackEl = document.createElement('p');
+    feedbackEl.className = 'mem-note';
+    feedbackEl.setAttribute('role', 'status');
     feedbackEl.innerHTML = hit
-      ? `<div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:#2E7D32;font-weight:500;margin-bottom:12px;">You earned a flame!${perFlameDays ? ` That's roughly <strong>${perFlameDays} day${perFlameDays === 1 ? '' : 's'}</strong> closer to freedom.` : ' Keep going.'}</div>`
-      : '<div style="background:#FFF7F3;border-radius:12px;padding:14px;text-align:center;font-size:14px;color:var(--warm-brown);font-weight:500;margin-bottom:12px;">No worries — next one is yours.</div>';
-    const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
+      ? `You earned a flame!${perFlameDays ? ` That's roughly <strong>${perFlameDays} day${perFlameDays === 1 ? '' : 's'}</strong> closer to freedom.` : ' Keep going.'}`
+      : 'No worries — next one is yours.';
+    const checkinCard = document.getElementById('checkinPanel');
     if (checkinCard) checkinCard.insertAdjacentElement('afterend', feedbackEl);
     setTimeout(() => feedbackEl.remove(), 4000);
   }
@@ -807,9 +896,9 @@
       const el = document.createElement('p');
       el.id = 'optionsOnTheGo';
       el.setAttribute('role', 'status');
-      el.style.cssText = 'margin:0 0 12px;padding:12px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line);font-size:13.5px;line-height:1.5;color:var(--ink);';
-      el.innerHTML = `You’ve got ${n} option${n === 1 ? '' : 's'} on the go. <a href="journey.html" style="color:var(--ember-ink);font-weight:500;text-decoration:none;">See your plan →</a>`;
-      const checkinCard = document.querySelector('#hasCommitCard > div:nth-child(2)');
+      el.className = 'mem-note';
+      el.innerHTML = `You’ve got ${n} option${n === 1 ? '' : 's'} on the go. <a href="journey.html">See your plan →</a>`;
+      const checkinCard = document.getElementById('checkinPanel');
       if (checkinCard) checkinCard.insertAdjacentElement('afterend', el);
     } catch (e) { console.log('Option count failed', e); }
   }
@@ -838,6 +927,127 @@
     }).join('');
   }
 
+  // ── Milestones and "How you handle money" (moved here from the old About you page) ──
+  const PERSONA_COPY = {
+    beginner: {
+      badgeCoast: 'Halfway cushion', badgeLean: 'Covers the basics', badgeFI: 'Work becomes optional',
+      tlCoast: 'Saved enough that growth alone could carry you one day (rough estimate)',
+      tlLean: 'Close to covering your basic living costs without working (rough estimate)',
+      tlFI: 'Enough saved that work is optional',
+      note: 'A rough guide based on your savings compared with your freedom number. It’s not an exact calculation yet.'
+    },
+    default: {
+      badgeCoast: 'Coast FIRE reached', badgeLean: 'Lean FIRE', badgeFI: 'Work is optional',
+      tlCoast: 'Reached Coast FIRE (rough estimate)', tlLean: 'Reached Lean FIRE (rough estimate)',
+      tlFI: 'Hit your freedom number',
+      note: 'Based on your savings compared with your freedom number. It’s a rough guide, not the full Coast/Lean FIRE sum yet.'
+    }
+  };
+
+  function scoreSaver(savingsRate) {
+    if (!savingsRate) return 1;
+    return Math.max(1, Math.min(10, Math.round(savingsRate / 5)));
+  }
+  function scoreInvestor(savingsType) {
+    // Keys are the values onboarding actually stores in savings_type.
+    const map = { etfs: 9, mix: 6, offset: 4, cash: 2 };
+    return map[(savingsType || '').toLowerCase()] || 4;
+  }
+  function scoreRisk(debtTotal, mortgageRemaining, grossIncome) {
+    const leverage = debtTotal + mortgageRemaining;
+    if (!grossIncome || grossIncome <= 0) return leverage > 0 ? 6 : 2;
+    const ratio = leverage / grossIncome;
+    return Math.max(1, Math.min(10, Math.round(ratio * 2)));
+  }
+  function scoreSpending(retirementSpendMultiplier) {
+    const m = retirementSpendMultiplier || 0.8;
+    return Math.max(1, Math.min(10, Math.round(m * 10)));
+  }
+
+  function renderFinancialDNA(p) {
+    const saverScore = scoreSaver(p.savings_rate);
+    const investorScore = scoreInvestor(p.savings_type);
+    const rows = [
+      { label: 'Saver', score: saverScore },
+      { label: 'Investor', score: investorScore },
+      { label: 'Risk taken', score: scoreRisk(p.debt_total || 0, p.mortgage_remaining || 0, p.gross_income || (p.take_home_income > 0 ? estimateGrossFromNet(p.take_home_income * 12) : 0)) },
+      { label: 'Spending', score: scoreSpending(p.retirement_spend_multiplier) }
+    ];
+    document.getElementById('dnaRows').innerHTML = rows.map(r => `
+      <div class="dna-row">
+        <div class="dna-label">${r.label}</div>
+        <div class="dna-track" role="img" aria-label="${r.label}: ${r.score} out of 10"><div class="dna-fill" style="width:${r.score*10}%"></div></div>
+      </div>`).join('');
+
+    let dnaType = 'The Steady Starter';
+    if (saverScore >= 7 && investorScore >= 7) dnaType = 'The All-Rounder';
+    else if (saverScore >= 7) dnaType = 'The Quiet Builder';
+    else if (investorScore >= 7) dnaType = 'The Investor';
+    document.getElementById('dnaType').textContent = dnaType;
+    document.getElementById('dnaNote').textContent = "A rough score from your saved numbers. It doesn’t count pay rises yet, because we don’t keep your history.";
+  }
+
+  // Top 3 of a list: the last one reached, the next one, and the one after
+  // (or the last three once everything's done). The rest wait behind "Show all".
+  function markTopThree(items, nextIdx) {
+    const n = items.length;
+    const start = nextIdx === -1 ? Math.max(0, n - 3) : Math.max(0, Math.min(nextIdx - 1, n - 3));
+    return i => (i < start || i >= start + 3) ? ' is-extra' : '';
+  }
+  function syncMore(listId, btnId) {
+    const extra = document.querySelectorAll(`#${listId} > .is-extra`).length;
+    document.getElementById(btnId).hidden = extra === 0;
+  }
+
+  function renderAchievementsAndTimeline(savings, freedomNumber, persona){
+    const copy = PERSONA_COPY[persona] || PERSONA_COPY.default;
+    const ratio = freedomNumber > 0 ? savings / freedomNumber : 0;
+    const badges = [
+      { label: 'First $10k',    unlocked: savings >= 10000, target: 10000 },
+      { label: 'First six figures',   unlocked: savings >= 100000, target: 100000 },
+      { label: 'Quarter free', unlocked: ratio >= 0.25, target: freedomNumber * 0.25 },
+      { label: copy.badgeCoast, unlocked: ratio >= 0.4, target: freedomNumber * 0.4 },
+      { label: copy.badgeLean,  unlocked: ratio >= 0.7, target: freedomNumber * 0.7 },
+      { label: copy.badgeFI,    unlocked: ratio >= 1.0, target: freedomNumber }
+    ];
+    const nextBadgeIdx = badges.findIndex(b => !b.unlocked);
+    const badgeExtra = markTopThree(badges, nextBadgeIdx);
+    document.getElementById('achvNote').textContent = copy.note;
+    document.getElementById('achvStrip').innerHTML = badges.map((b, i) => {
+      const isNext = i === nextBadgeIdx;
+      const remaining = isNext ? Math.max(0, b.target - savings) : 0;
+      return `
+      <li class="achv-badge ${b.unlocked?'unlocked':''} ${isNext?'next':''}${badgeExtra(i)}">
+        <span class="hp-mark${b.unlocked ? '' : ' is-ink'}" aria-hidden="true"></span>
+        <span class="achv-label">${b.label}<span class="hp-sr">${b.unlocked ? ' (reached)' : ''}</span></span>
+        ${isNext && remaining > 0 ? `<span class="achv-distance">${fmtM(remaining)} away</span>` : ''}
+      </li>`;
+    }).join('');
+    syncMore('achvStrip', 'achvMore');
+
+    const timeline = [
+      { label: 'Started FirePath', done: true, target: 0 },
+      { label: 'Saved first $100k', done: savings >= 100000, target: 100000 },
+      { label: copy.tlCoast, done: ratio >= 0.4, target: freedomNumber * 0.4 },
+      { label: copy.tlLean, done: ratio >= 0.7, target: freedomNumber * 0.7 },
+      { label: copy.tlFI, done: ratio >= 1.0, target: freedomNumber },
+      { label: 'Reached 1.5× your freedom number', done: ratio >= 1.5, target: freedomNumber * 1.5 }
+    ];
+    const nextTlIdx = timeline.findIndex(t => !t.done);
+    const tlExtra = markTopThree(timeline, nextTlIdx);
+    document.getElementById('timeline').innerHTML = timeline.map((t, i) => {
+      const isNext = i === nextTlIdx;
+      const remaining = isNext ? Math.max(0, t.target - savings) : 0;
+      return `
+      <li class="tl-item ${t.done?'done':''} ${isNext?'next':''}${tlExtra(i)}">
+        <span class="tl-dot" aria-hidden="true"></span>
+        <span class="tl-label">${t.label}<span class="hp-sr">${t.done ? ' (done)' : ''}</span></span>
+        ${isNext && remaining > 0 ? `<span class="tl-distance">${fmtM(remaining)} to go</span>` : ''}
+      </li>`;
+    }).join('');
+    syncMore('timeline', 'timelineMore');
+  }
+
   function renderHistory() {
     const card = document.getElementById('historyCard'), list = document.getElementById('historyList');
     if (checkinHistory.length === 0) { card.style.display = 'none'; return; }
@@ -846,12 +1056,14 @@
   }
 </script>
 <script>
-  // History: the latest 3, then "Show all" (layout only; the list itself is unchanged).
-  document.getElementById('historyMore').addEventListener('click', function () {
-    const open = this.getAttribute('aria-expanded') !== 'true';
-    this.setAttribute('aria-expanded', String(open));
-    this.textContent = open ? 'Show fewer' : 'Show all';
-    document.getElementById('historyList').classList.toggle('is-short', !open);
+  // History, achievements and timeline: the top 3, then "Show all" (layout only; the lists are unchanged).
+  [['historyMore', 'historyList'], ['achvMore', 'achvStrip'], ['timelineMore', 'timeline']].forEach(([btnId, listId]) => {
+    document.getElementById(btnId).addEventListener('click', function () {
+      const open = this.getAttribute('aria-expanded') !== 'true';
+      this.setAttribute('aria-expanded', String(open));
+      this.textContent = open ? 'Show fewer' : 'Show all';
+      document.getElementById(listId).classList.toggle('is-short', !open);
+    });
   });
 </script>
 <script src="js/quick-feedback-widget.js"></script>

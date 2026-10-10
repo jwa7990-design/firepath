@@ -71,8 +71,8 @@
   const APP_TABS = [
     ['journey', 'Your Path', 'journey.html'],
     ['money', 'Money', 'money.html'],
-    ['strategy', 'Strategy', 'strategy.html'],
-    ['learn', 'Learn', 'learn.html']
+    ['strategy', 'Options', 'strategy.html'],   // labelled "Options"; key and URL stay 'strategy'
+    ['learn', 'Learn', 'learning_lab.html']
   ];
 
   function renderApp() {
@@ -84,7 +84,6 @@
   </div>
   <a href="${url('ask-firepath.html')}" class="desktop-rail-ask${current('ask')}">${svg('ask', 15)}Ask FirePath</a>
   <div class="desktop-rail-footer">
-    <a href="${url('welcome.html')}" data-persona-open title="Change how FirePath talks to you">Level: <span data-persona-name>—</span></a>
     <a href="${url('account.html')}">Settings</a>
     <a href="${url('auth.html?action=signout')}">Sign out</a>
   </div>
