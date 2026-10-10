@@ -179,20 +179,29 @@ function helpRepayment(repaymentIncome, cfg) {
   return (r - h.start) * 0.15;
 }
 
-// Medicare levy surcharge (single, no private hospital cover). The rate applies to
-// the whole MLS income, not just the part over the threshold.
-function medicareLevySurcharge(mlsIncome, cfg) {
+// Medicare levy surcharge (no private hospital cover). The rate applies to the whole
+// of your own MLS income, not just the part over the threshold.
+// family (optional) — you have a spouse or a dependent child: { partnerIncome, children }.
+// Then the family thresholds apply (ATO: double the single ones, plus $1,500 for each
+// dependent child after the first), tested against your combined MLS income, and you pay
+// the rate on your own income.
+function medicareLevySurcharge(mlsIncome, cfg, family) {
   const tiers = (cfg || TAX_CONFIG).mls || [];
   const i = Number(mlsIncome);
   if (!Number.isFinite(i)) return 0;
+  const fam = family && typeof family === 'object';
+  const tested = fam ? i + Math.max(0, Number(family.partnerIncome) || 0) : i;
+  const lift = fam ? Math.max(0, (Math.floor(Number(family.children) || 0) - 1) * 1500) : 0;
   let rate = 0;
-  for (const t of tiers) if (i > t.from) rate = t.rate;
+  for (const t of tiers) if (tested > (fam ? t.from * 2 + lift : t.from)) rate = t.rate;
   return i * rate;
 }
 
 // calculateTax(gross, cfg, { help: true, noPrivateCover: true, reportableSuper })
 //  • help — has a HELP/HECS debt: the compulsory repayment comes out of take-home.
 //  • noPrivateCover — no private hospital cover: Medicare levy surcharge applies.
+//  • family — { partnerIncome, children } when you have a spouse or dependent child:
+//    the surcharge uses the family thresholds (see medicareLevySurcharge).
 //  • reportableSuper — salary sacrifice etc., which counts towards HELP and MLS income
 //    even though it isn't taxable income.
 //  • senior — 'single' or 'couple': 67 or over and eligible for the Age Pension (even if
@@ -208,7 +217,7 @@ function calculateTax(grossIncome, cfg, opts) {
   const sapto = Math.min(saptoFull, Math.max(0, incomeTax(grossIncome, c) - lito));   // non-refundable
   const tax = Math.max(0, incomeTax(grossIncome, c) - lito - sapto);
   const medicare = medicareLevy(grossIncome, c, saptoFull >= 1);
-  const mls = o.noPrivateCover ? medicareLevySurcharge(grossIncome + extraIncome, c) : 0;
+  const mls = o.noPrivateCover ? medicareLevySurcharge(grossIncome + extraIncome, c, o.family) : 0;
   const help = o.help ? helpRepayment(grossIncome + extraIncome, c) : 0;
   const total = tax + medicare + mls;          // tax proper; HELP is a loan repayment, shown separately
   const takeHome = grossIncome - total - help;

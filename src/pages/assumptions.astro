@@ -42,7 +42,7 @@ const WHY_7 = [
 ];
 const MODELLED: [string, boolean][] = [
   ['Income tax, LITO and Medicare levy (2025-26 and 2026-27)', true],
-  ['HELP repayments and the Medicare levy surcharge', true],
+  ['HELP repayments and the Medicare levy surcharge (single and family thresholds)', true],
   ['Salary sacrifice, the concessional cap, Division 293 and LISTO', true],
   ['Carry-forward (unused) concessional contributions', true],
   ['Tax inside super and tax-free withdrawals after 60', true],
@@ -55,7 +55,6 @@ const MODELLED: [string, boolean][] = [
   ['Withdrawal rates and how long money lasts', true],
   ['Market ups and downs: 2,000 possible market outcomes', true],
   ['Live RBA cash, inflation, savings and mortgage rates', true],
-  ['Family-tier Medicare levy surcharge thresholds', false],
   ['The transfer balance cap ($2.1M in 2026–27): the most you can move into a tax-free retirement pension', false],
   ['Division 296: extra tax on earnings for super balances over $3M, from 1 July 2026', false],
 ];
@@ -197,7 +196,7 @@ const SOURCES = [
       fact('Low income tax offset', 'Phases out completely at ' + money(c.lito.phaseOut2End), money(c.lito.maxOffset), 'maximum'),
       fact('Seniors and pensioners tax offset', 'From 67 · reduces above ' + money(c.sapto.single.shadeOut) + ', gone at ' + money(c.sapto.single.cutOut) + ' (single) · couples ' + money(c.sapto.couple.max) + ' each', money(c.sapto.single.max), 'maximum'),
       fact('HELP / HECS repayments', '15c per dollar above ' + money(c.help.start) + ' (optional on the Tax page)', money(c.help.start), 'threshold'),
-      fact('Medicare levy surcharge', 'Without private hospital cover, singles above ' + money(c.mls[0].from) + ' (optional)', pct(c.mls[0].rate, 1) + '–' + pct(c.mls[c.mls.length - 1].rate, 1), 'of income'),
+      fact('Medicare levy surcharge', 'Without private hospital cover, singles above ' + money(c.mls[0].from) + ', families above ' + money(c.mls[0].from * 2) + ' combined (optional)', pct(c.mls[0].rate, 1) + '–' + pct(c.mls[c.mls.length - 1].rate, 1), 'of income'),
       fact('Super guarantee', 'What employers pay into your super', pct(c.sgRate), 'of salary'),
       fact('Concessional cap', 'Employer super + salary sacrifice + personal deductible', money(c.concessionalCap), 'a year'),
       fact('Non-concessional cap', 'After-tax contributions', money(c.nonConcessionalCap), 'a year'),

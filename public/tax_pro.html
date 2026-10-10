@@ -376,7 +376,7 @@
 
   <section class="hp-sec tx-foot">
     <div class="hp-wrap">
-      <p class="page-foot">Based on <span id="taxYearLabel"></span> ATO tax rates. Take-home includes income tax, the low income tax offset (and, from 67, the seniors and pensioners tax offset) and the Medicare levy — plus HELP repayments and the Medicare levy surcharge (for higher earners without private hospital cover) when you tick those options in Tool 1. The surcharge uses the singles thresholds; families have higher ones. Educational only — not financial advice. <a href="assumptions.html">Our assumptions →</a></p>
+      <p class="page-foot">Based on <span id="taxYearLabel"></span> ATO tax rates. Take-home includes income tax, the low income tax offset (and, from 67, the seniors and pensioners tax offset) and the Medicare levy — plus HELP repayments and the Medicare levy surcharge (for higher earners without private hospital cover) when you tick those options in Tool 1. With a partner or children in your plan, the surcharge uses the family thresholds. Educational only — not financial advice. <a href="assumptions.html">Our assumptions →</a></p>
     </div>
   </section>
 
@@ -465,8 +465,21 @@
     if (!p || !(p.age >= 67)) return null;
     return (p.partner_age || p.partner_income > 0 || p.partner_super > 0) ? 'couple' : 'single';
   }
+  // A partner or dependent children: the Medicare levy surcharge uses the family
+  // thresholds, tested on your income plus your partner's (their gross, estimated from the
+  // take-home saved in your plan).
+  function familyMls() {
+    const p = proProfile;
+    if (!p) return null;
+    const children = Math.max(0, Math.floor(p.dependants || 0));
+    const hasPartner = !!(p.partner_age || p.partner_income > 0 || p.partner_super > 0);
+    if (!hasPartner && !children) return null;
+    const cycle = ['weekly','fortnightly','monthly'].includes(p.pay_cycle) ? p.pay_cycle : 'monthly';
+    const partnerTakeHome = p.partner_income > 0 ? toMonthly(p.partner_income, cycle) * 12 : 0;
+    return { partnerIncome: partnerTakeHome > 0 ? estimateGrossFromNet(partnerTakeHome) || 0 : 0, children };
+  }
   function taxOpts(reportableSuper) {
-    return { help: taxToggles.help, noPrivateCover: taxToggles.noCover, reportableSuper: reportableSuper || 0, senior: seniorStatus() };
+    return { help: taxToggles.help, noPrivateCover: taxToggles.noCover, reportableSuper: reportableSuper || 0, senior: seniorStatus(), family: familyMls() };
   }
   // Gross salary that gives this annual take-home, with HELP / surcharge taken out if ticked.
   function estimateOwnGross(annualTakeHome) {
@@ -647,7 +660,9 @@
     document.getElementById('t1MlsOut').textContent = '-' + fmtDollars(r.mls || 0);
     document.getElementById('t1MlsNote').textContent = r.mls > 0
       ? 'Because you don\'t have private hospital cover'
-      : `Nothing to pay — it starts above ${fmtDollars(TAX_CONFIG.mls[0].from)} (singles)`;
+      : (() => { const f = familyMls(); return f
+          ? `Nothing to pay — for families it starts above ${fmtDollars(TAX_CONFIG.mls[0].from * 2 + Math.max(0, f.children - 1) * 1500)} of combined income`
+          : `Nothing to pay — it starts above ${fmtDollars(TAX_CONFIG.mls[0].from)} (singles)`; })();
     document.getElementById('t1HelpRow').style.display = taxToggles.help ? 'flex' : 'none';
     document.getElementById('t1HelpOut').textContent = '-' + fmtDollars(r.help || 0);
     document.getElementById('t1HelpNote').textContent = r.help > 0

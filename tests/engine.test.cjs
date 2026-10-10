@@ -428,3 +428,20 @@ test('calculateTax: senior status applies SAPTO (non-refundable) and the seniors
   const ss = E.calculateSalarySacrifice(40000, 3000, y25, 0, { senior: 'single' });
   near(ss.taxSaved, 605, 1, 'senior salary sacrifice');
 });
+
+test('Medicare levy surcharge: family thresholds (ATO 2026-27: $210k, +$1,500 per child after the first)', () => {
+  const y = E.TAX_YEARS['2026-27'];
+  // Single on $110k: tier 1 (1%) of their own income.
+  near(E.medicareLevySurcharge(110000, y), 1100, 0.01);
+  // Same person with a partner on $90k: $200k combined is under $210k → nothing.
+  assert.equal(E.medicareLevySurcharge(110000, y, { partnerIncome: 90000, children: 0 }), 0);
+  // Partner on $110k: $220k combined → tier 1, 1% of own $110k.
+  near(E.medicareLevySurcharge(110000, y, { partnerIncome: 110000, children: 0 }), 1100, 0.01);
+  // Three children lift the threshold by $3,000: $211k combined is under $213k.
+  assert.equal(E.medicareLevySurcharge(110000, y, { partnerIncome: 101000, children: 3 }), 0);
+  assert.ok(E.medicareLevySurcharge(110000, y, { partnerIncome: 101000, children: 1 }) > 0, 'one child: no lift');
+  // Single parent: family threshold on their own income.
+  assert.equal(E.medicareLevySurcharge(150000, y, { partnerIncome: 0, children: 1 }), 0);
+  // Top tier for families: over $328k combined → 1.5%.
+  near(E.medicareLevySurcharge(200000, y, { partnerIncome: 140000, children: 0 }), 3000, 0.01);
+});
