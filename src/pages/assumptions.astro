@@ -49,6 +49,7 @@ const MODELLED: [string, boolean][] = [
   ['Super fund fees (median MySuper fund)', true],
   ['Super locked until 60, and a partner’s until their own 60', true],
   ['Age Pension: assets and income tests, deeming, couples', true],
+  ['SAPTO, the seniors and pensioners tax offset, from 67', true],
   ['Offset account vs investing', true],
   ['Withdrawal rates and how long money lasts', true],
   ['Market ups and downs: 2,000 possible market outcomes', true],
@@ -57,7 +58,6 @@ const MODELLED: [string, boolean][] = [
   ['Family-tier Medicare levy surcharge thresholds', false],
   ['The transfer balance cap ($2.1M in 2026–27): the most you can move into a tax-free retirement pension', false],
   ['Division 296: extra tax on earnings for super balances over $3M, from 1 July 2026', false],
-  ['SAPTO, the seniors and pensioners tax offset', false],
 ];
 // The key figures for the dark band, taken from the rows above so they can't drift.
 // The Age Pension age is filled from js/tax-engine.js by the script below.
@@ -195,6 +195,7 @@ const SOURCES = [
       fact('Income tax brackets ' + c.year, brackets + ' — tax-free up to ' + money(c.brackets[0].max), c.year, 'financial year'),
       fact('Medicare levy', 'Phases in above ' + money(c.medicareLevyThreshold) + ' (single)', pct(c.medicareLevy), 'of income'),
       fact('Low income tax offset', 'Phases out completely at ' + money(c.lito.phaseOut2End), money(c.lito.maxOffset), 'maximum'),
+      fact('Seniors and pensioners tax offset', 'From 67 · reduces above ' + money(c.sapto.single.shadeOut) + ', gone at ' + money(c.sapto.single.cutOut) + ' (single) · couples ' + money(c.sapto.couple.max) + ' each', money(c.sapto.single.max), 'maximum'),
       fact('HELP / HECS repayments', '15c per dollar above ' + money(c.help.start) + ' (optional on the Tax page)', money(c.help.start), 'threshold'),
       fact('Medicare levy surcharge', 'Without private hospital cover, singles above ' + money(c.mls[0].from) + ' (optional)', pct(c.mls[0].rate, 1) + '–' + pct(c.mls[c.mls.length - 1].rate, 1), 'of income'),
       fact('Super guarantee', 'What employers pay into your super', pct(c.sgRate), 'of salary'),

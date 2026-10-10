@@ -24,7 +24,7 @@ function load(date) {
   // exactly like classic <script> tags, when run in the same context.
   const src = ['tax-engine.js', 'calculations.js', 'financial-engine.js']
     .map(f => fs.readFileSync(path.join(__dirname, '..', 'public', 'js', f), 'utf8')).join('\n;\n')
-    + '\n;this.__api = { TAX_YEARS, TAX_CONFIG, AGE_PENSION, getCurrentTaxYear, calculateTax, helpRepayment, medicareLevySurcharge, calculateMarginalRate, calculateSalarySacrifice, estimateGrossFromNet, deemedIncome, calculateAgePension, fmtM, fmtDollars, fmt, yearsToGoal, monthlyRate, compoundWithContributions, FP_ASSUMPTIONS, realRate };';
+    + '\n;this.__api = { TAX_YEARS, TAX_CONFIG, AGE_PENSION, getCurrentTaxYear, calculateTax, seniorsOffset, helpRepayment, medicareLevySurcharge, calculateMarginalRate, calculateSalarySacrifice, estimateGrossFromNet, deemedIncome, calculateAgePension, fmtM, fmtDollars, fmt, yearsToGoal, monthlyRate, compoundWithContributions, FP_ASSUMPTIONS, realRate };';
   vm.runInContext(src, ctx);
   return Object.assign({}, ctx.__api, { Engine: ctx.FirePathEngine });
 }
@@ -397,3 +397,34 @@ test('LISTO uses adjusted taxable income: sacrifice can\'t bring you under $37,0
 
 // The shared freedom date, its range and the formatting guards live in their own file.
 require('./freedom.test.cjs');
+
+// ── Seniors and pensioners tax offset (ATO worked examples, 2025-26) ──
+test('SAPTO matches the ATO worked examples and 2026-27 thresholds', () => {
+  const y25 = E.TAX_YEARS['2025-26'], y26 = E.TAX_YEARS['2026-27'];
+  near(E.seniorsOffset(39000, y25, 'single'), 1720, 0.5, 'José');
+  assert.equal(E.seniorsOffset(32178, y25, 'single'), 2230, 'Simon: full offset');
+  assert.equal(E.seniorsOffset(85690, y25, 'single'), 0, 'Marko: over the cut-out');
+  assert.equal(E.seniorsOffset(33650, y25, 'couple'), 1270, 'Keith');
+  assert.equal(E.seniorsOffset(30000, y25, null), 0, 'not eligible');
+  // 2026-27: thresholds move with the tax cut, maximums don't.
+  assert.equal(E.seniorsOffset(36034, y26, 'single'), 2230);
+  assert.equal(E.seniorsOffset(53874, y26, 'single'), 0);
+  assert.equal(E.seniorsOffset(31847, y26, 'couple'), 1602);
+});
+
+test('calculateTax: senior status applies SAPTO (non-refundable) and the seniors Medicare threshold', () => {
+  const y25 = E.TAX_YEARS['2025-26'];
+  const plain = E.calculateTax(40000, y25), senior = E.calculateTax(40000, y25, { senior: 'single' });
+  assert.ok(senior.sapto > 0 && senior.total < plain.total);
+  assert.equal(senior.medicare, 0, 'under the $44,268 seniors threshold');
+  // Never more offset than tax: a single senior on $30k pays no tax and gets no refund.
+  const low = E.calculateTax(30000, y25, { senior: 'single' });
+  assert.equal(low.tax, 0); assert.ok(low.takeHome <= 30000);
+  // Over the cut-out it's the same as anyone else.
+  assert.equal(E.calculateTax(60000, y25, { senior: 'single' }).total, E.calculateTax(60000, y25).total);
+  // Salary sacrifice doesn't create extra SAPTO (sacrificed super counts back in).
+  // $40k → $37k: 16% bracket ($480) + LITO back ($125) = $605. If the offset were
+  // worked out on $37k instead of $40k it would be $375 bigger.
+  const ss = E.calculateSalarySacrifice(40000, 3000, y25, 0, { senior: 'single' });
+  near(ss.taxSaved, 605, 1, 'senior salary sacrifice');
+});

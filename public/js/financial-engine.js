@@ -254,8 +254,10 @@ window.FirePathEngine = (function () {
     if (![i.savings, i.monthlySavings, i.superBalance].every(v => v == null || v === '' || Number.isFinite(Number(v)))) return null;
     const age = finiteOr(i.age, 0) > 0 && i.age < 120 ? Number(i.age) : null;
     const gross = grossFrom(i);
+    // From 67 (Age Pension age) the seniors and pensioners tax offset can apply too.
+    const senior = age != null && age >= PENSION_AGE ? (i.partner ? 'couple' : 'single') : null;
     const marginalRate = Number.isFinite(i.marginalRate) ? i.marginalRate
-      : gross > 0 && typeof calculateMarginalRate === 'function' ? calculateMarginalRate(gross) : DEFAULT_MARGINAL_RATE;
+      : gross > 0 && typeof calculateMarginalRate === 'function' ? calculateMarginalRate(gross, undefined, senior ? { senior } : undefined) : DEFAULT_MARGINAL_RATE;
     const outsideReturn = Number.isFinite(i.outsideReturn) ? i.outsideReturn : outsideSuperReturn(marginalRate);
     const superBalance = Math.max(0, finiteOr(i.superBalance, 0));
     let partner = null;

@@ -228,6 +228,7 @@
               <div class="result-row"><span class="result-label">Gross income</span><span class="result-value" id="t1GrossOut">—</span></div>
               <div class="result-row"><span class="result-label">Income tax</span><span class="result-value red" id="t1TaxOut">—</span></div>
               <div class="result-row"><span class="result-label">Low income tax offset (LITO)</span><span class="result-value green" id="t1LitoOut">—</span></div>
+              <div class="result-row" id="t1SaptoRow" style="display:none"><span class="result-label">Seniors and pensioners tax offset (SAPTO)</span><span class="result-value green" id="t1SaptoOut">—</span></div>
               <div class="result-row"><span class="result-label">Medicare levy (2%)</span><span class="result-value red" id="t1MedicareOut">—</span></div>
               <div class="result-row" id="t1MlsRow" style="display:none;"><span class="result-label">Medicare levy surcharge<span class="result-sublabel" id="t1MlsNote"></span></span><span class="result-value red" id="t1MlsOut">—</span></div>
               <div class="result-row" id="t1HelpRow" style="display:none;"><span class="result-label">HELP repayment<span class="result-sublabel" id="t1HelpNote"></span></span><span class="result-value red" id="t1HelpOut">—</span></div>
@@ -375,7 +376,7 @@
 
   <section class="hp-sec tx-foot">
     <div class="hp-wrap">
-      <p class="page-foot">Based on <span id="taxYearLabel"></span> ATO tax rates. Take-home includes income tax, the low income tax offset and the Medicare levy — plus HELP repayments and the Medicare levy surcharge (for higher earners without private hospital cover) when you tick those options in Tool 1. The surcharge uses the singles thresholds; families have higher ones. Educational only — not financial advice. <a href="assumptions.html">Our assumptions →</a></p>
+      <p class="page-foot">Based on <span id="taxYearLabel"></span> ATO tax rates. Take-home includes income tax, the low income tax offset (and, from 67, the seniors and pensioners tax offset) and the Medicare levy — plus HELP repayments and the Medicare levy surcharge (for higher earners without private hospital cover) when you tick those options in Tool 1. The surcharge uses the singles thresholds; families have higher ones. Educational only — not financial advice. <a href="assumptions.html">Our assumptions →</a></p>
     </div>
   </section>
 
@@ -457,8 +458,15 @@
     runTool1();
     runTool2();
   }
+  // From 67 (Age Pension age) the seniors and pensioners tax offset applies too, using the
+  // saved age and whether there's a partner.
+  function seniorStatus() {
+    const p = proProfile;
+    if (!p || !(p.age >= 67)) return null;
+    return (p.partner_age || p.partner_income > 0 || p.partner_super > 0) ? 'couple' : 'single';
+  }
   function taxOpts(reportableSuper) {
-    return { help: taxToggles.help, noPrivateCover: taxToggles.noCover, reportableSuper: reportableSuper || 0 };
+    return { help: taxToggles.help, noPrivateCover: taxToggles.noCover, reportableSuper: reportableSuper || 0, senior: seniorStatus() };
   }
   // Gross salary that gives this annual take-home, with HELP / surcharge taken out if ticked.
   function estimateOwnGross(annualTakeHome) {
@@ -606,7 +614,7 @@
     if (gross < 1000) { document.getElementById('t1Results').style.display = 'none'; return; }
     debounceSaveGrossIncome(gross);
     const r = calculateTax(gross, undefined, taxOpts());
-    const marginal = calculateMarginalRate(gross);
+    const marginal = calculateMarginalRate(gross, undefined, { senior: seniorStatus() });
     const persona = proProfile ? proProfile.persona : (localStorage.getItem('fp_persona') || 'building');
     const fortnightly = Math.round(r.takeHome / 26);
     const weekly = Math.round(r.takeHome / 52);
@@ -631,6 +639,8 @@
     document.getElementById('t1GrossOut').textContent = fmtDollars(gross);
     document.getElementById('t1TaxOut').textContent = '-' + fmtDollars(r.tax);
     document.getElementById('t1LitoOut').textContent = '+' + fmtDollars(r.lito);
+    document.getElementById('t1SaptoRow').style.display = r.sapto > 0 ? '' : 'none';
+    document.getElementById('t1SaptoOut').textContent = '+' + fmtDollars(r.sapto || 0);
     document.getElementById('t1MedicareOut').textContent = '-' + fmtDollars(r.medicare);
     // Surcharge and HELP rows show only when ticked; $0 explains the threshold instead.
     document.getElementById('t1MlsRow').style.display = taxToggles.noCover ? 'flex' : 'none';
@@ -672,7 +682,7 @@
     const sacrifice = parseFloat(document.getElementById('t2Sacrifice').value) || 0;
     if (gross < 1000 || sacrifice <= 0) { document.getElementById('t2Results').style.display = 'none'; return; }
     const carryForward = Math.max(0, parseFloat(document.getElementById('t2CarryForward').value) || 0);
-    const r = calculateSalarySacrifice(gross, sacrifice, undefined, carryForward);
+    const r = calculateSalarySacrifice(gross, sacrifice, undefined, carryForward, { senior: seniorStatus() });
     if (!r) return;
     document.getElementById('t2Results').style.display = 'block';
     document.getElementById('t2TaxSaved').textContent = '+' + fmtDollars(r.taxSaved) + '/yr';
@@ -692,7 +702,7 @@
     if (r.excess > 0) notes.push(`Your employer's ${fmtDollars(r.sgContrib)} super guarantee already counts towards the ${capText}, so ${fmtDollars(r.excess)} of this is over it. The excess is added back to your taxable income (less a 15% offset), so it saves you nothing.`);
     if (carryForward > 0 && proProfile && (proProfile.super_balance || 0) >= CARRY_FORWARD_BALANCE_LIMIT) notes.push(`Your saved super balance is ${fmtDollars(proProfile.super_balance)}. Carry-forward is only allowed if your total super was under ${fmtDollars(CARRY_FORWARD_BALANCE_LIMIT)} on 30 June last year, so it probably isn't available to you.`);
     if (taxToggles.help || taxToggles.noCover) notes.push(`Salary sacrifice still counts towards your HELP and Medicare levy surcharge income, so it doesn't reduce those.`);
-    if (calculateMarginalRate(gross) < TAX_CONFIG.superTaxRate) notes.push(`At this income your tax rate is below the 15% super tax, so salary sacrifice doesn't save you income tax.`);
+    if (calculateMarginalRate(gross, undefined, { senior: seniorStatus() }) < TAX_CONFIG.superTaxRate) notes.push(`At this income your tax rate is below the 15% super tax, so salary sacrifice doesn't save you income tax.`);
     if (r.div293 > 0) notes.push(`Division 293 applies at your income: an extra ${fmtDollars(r.div293)} tax on these contributions (included above).`);
     if (r.listo > 0) notes.push(`The low income super tax offset refunds ${fmtDollars(r.listo)} of the contributions tax (included above).`);
     document.getElementById('t2CapWarningText').textContent = notes.join(' ');
@@ -733,7 +743,7 @@
     const offsetBalance = parseFloat(document.getElementById('t3OffsetBalance').value) || 0;
     const gross = parseFloat(document.getElementById('t3Gross').value) || 0;
     if (mortgageRate <= 0 || offsetBalance <= 0 || gross < 1000) { document.getElementById('t3Results').style.display = 'none'; return; }
-    const marginal = calculateMarginalRate(gross);
+    const marginal = calculateMarginalRate(gross, undefined, { senior: seniorStatus() });
     const r = calculateOffsetBenefit(mortgageRate, offsetBalance, marginal);
     document.getElementById('t3Results').style.display = 'block';
     document.getElementById('t3OffsetRate').textContent = fmtPct(r.offsetReturn);
@@ -790,7 +800,7 @@
     card.style.display = 'none';
 
     const r = calculateTax(gross, undefined, taxOpts());
-    const marginal = calculateMarginalRate(gross);
+    const marginal = calculateMarginalRate(gross, undefined, { senior: seniorStatus() });
     const helpStatus = taxToggles.help ? `HELP/HECS debt: yes — compulsory repayment ${fmtDollars(r.help)}/yr, already taken out of take-home` : 'HELP/HECS debt: none';
     const coverStatus = taxToggles.noCover ? `Private hospital cover: none — Medicare levy surcharge ${fmtDollars(r.mls)}/yr, included in take-home` : 'Private hospital cover: has cover (or not stated), so no Medicare levy surcharge';
     const sacrifice = parseFloat(document.getElementById('t2Sacrifice').value) || 0;

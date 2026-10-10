@@ -33,7 +33,13 @@ const TAX_YEARS = {
     help: { start: 67000, mid: 125000, midBase: 8700, top: 179285 },
     // Medicare levy surcharge for singles without private hospital cover (income for
     // MLS purposes = taxable income + reportable super contributions, among others).
-    mls: [{ from: 101000, rate: 0.01 }, { from: 118000, rate: 0.0125 }, { from: 158000, rate: 0.015 }]
+    mls: [{ from: 101000, rate: 0.01 }, { from: 118000, rate: 0.0125 }, { from: 158000, rate: 0.015 }],
+    // Seniors and pensioners tax offset (ATO, 2025-26): for Age Pension age (67) and
+    // eligible for a pension even if not paid it. Reduces 12.5c per $ of rebate income
+    // over the shade-out; nothing from the cut-out. Couple = each partner.
+    sapto: { single: { max: 2230, shadeOut: 34919, cutOut: 52759 }, couple: { max: 1602, shadeOut: 30994, cutOut: 43810 } },
+    // Medicare levy low-income threshold for people entitled to SAPTO (single, ATO 2025-26).
+    medicareLevyThresholdSenior: 44268
   },
   '2026-27': {
     year: '2026-27',
@@ -55,7 +61,12 @@ const TAX_YEARS = {
     superTaxRate: 0.15,
     sgRate: 0.12,
     help: { start: 69528, mid: 129717, midBase: 9028, top: 186050 },
-    mls: [{ from: 105000, rate: 0.01 }, { from: 123000, rate: 0.0125 }, { from: 164000, rate: 0.015 }]
+    mls: [{ from: 105000, rate: 0.01 }, { from: 123000, rate: 0.0125 }, { from: 164000, rate: 0.015 }],
+    // SAPTO 2026-27 (ATO, new tax cuts): thresholds move with the 15% rate; the maximum
+    // offsets don't change.
+    sapto: { single: { max: 2230, shadeOut: 36034, cutOut: 53874 }, couple: { max: 1602, shadeOut: 31847, cutOut: 44663 } },
+    // Not yet published for 2026-27: carries the 2025-26 figure, like the threshold above.
+    medicareLevyThresholdSenior: 44268
   }
 };
 
@@ -130,14 +141,31 @@ function lowIncomeOffset(grossIncome, cfg) {
 
 // Medicare levy with the low-income phase-in: nothing up to the threshold, then 10c per
 // dollar over it until that reaches the full 2% (at 1.25× the threshold). No cliff.
-function medicareLevy(grossIncome, cfg) {
-  if (grossIncome <= cfg.medicareLevyThreshold) return 0;
-  return Math.min((grossIncome - cfg.medicareLevyThreshold) * 0.10, grossIncome * cfg.medicareLevy);
+// `senior` (entitled to at least $1 of SAPTO) uses the higher seniors' threshold.
+function medicareLevy(grossIncome, cfg, senior) {
+  const threshold = senior && cfg.medicareLevyThresholdSenior ? cfg.medicareLevyThresholdSenior : cfg.medicareLevyThreshold;
+  if (grossIncome <= threshold) return 0;
+  return Math.min((grossIncome - threshold) * 0.10, grossIncome * cfg.medicareLevy);
 }
 
-// Total tax on a taxable income, unrounded: bracket tax less LITO, plus Medicare levy.
-function totalTaxRaw(grossIncome, c) {
-  return Math.max(0, incomeTax(grossIncome, c) - lowIncomeOffset(grossIncome, c)) + medicareLevy(grossIncome, c);
+// Seniors and pensioners tax offset. status: 'single' | 'couple' (each partner), anything
+// else = not eligible (under 67, or not eligible for a pension). rebateIncome ≈ taxable
+// income plus reportable super. Simplifications: a couple's cut-out test uses this
+// person's own income (the ATO halves the couple's combined income), and moving an
+// unused offset to a spouse isn't modelled. Non-refundable: callers cap it at the tax.
+function seniorsOffset(rebateIncome, cfg, status) {
+  const t = (cfg || TAX_CONFIG).sapto && (cfg || TAX_CONFIG).sapto[status];
+  const r = Number(rebateIncome);
+  if (!t || !Number.isFinite(r) || r >= t.cutOut) return 0;
+  return Math.max(0, t.max - Math.max(0, r - t.shadeOut) * 0.125);
+}
+
+// Total tax on a taxable income, unrounded: bracket tax less LITO (and SAPTO when
+// `senior` is 'single' or 'couple'), plus Medicare levy.
+// rebateIncome defaults to the taxable income (salary sacrifice adds back to it).
+function totalTaxRaw(grossIncome, c, senior, rebateIncome) {
+  const sapto = senior ? seniorsOffset(rebateIncome != null ? rebateIncome : grossIncome, c, senior) : 0;
+  return Math.max(0, incomeTax(grossIncome, c) - lowIncomeOffset(grossIncome, c) - sapto) + medicareLevy(grossIncome, c, sapto >= 1);
 }
 
 // Compulsory HELP repayment for the year on `repaymentIncome` (taxable income plus
@@ -167,30 +195,36 @@ function medicareLevySurcharge(mlsIncome, cfg) {
 //  • noPrivateCover — no private hospital cover: Medicare levy surcharge applies.
 //  • reportableSuper — salary sacrifice etc., which counts towards HELP and MLS income
 //    even though it isn't taxable income.
+//  • senior — 'single' or 'couple': 67 or over and eligible for the Age Pension (even if
+//    not paid it), so the seniors and pensioners tax offset and its Medicare threshold apply.
 function calculateTax(grossIncome, cfg, opts) {
   const c = cfg || TAX_CONFIG;
   grossIncome = Number(grossIncome);
-  if (!Number.isFinite(grossIncome) || grossIncome <= 0) return { tax: 0, medicare: 0, lito: 0, total: 0, takeHome: 0, effectiveRate: 0 };
+  if (!Number.isFinite(grossIncome) || grossIncome <= 0) return { tax: 0, medicare: 0, lito: 0, sapto: 0, total: 0, takeHome: 0, effectiveRate: 0 };
   const o = opts || {};
-  const lito = lowIncomeOffset(grossIncome, c);
-  const tax = Math.max(0, incomeTax(grossIncome, c) - lito);
-  const medicare = medicareLevy(grossIncome, c);
   const extraIncome = Math.max(0, Number(o.reportableSuper) || 0);
+  const lito = lowIncomeOffset(grossIncome, c);
+  const saptoFull = o.senior ? seniorsOffset(grossIncome + extraIncome, c, o.senior) : 0;
+  const sapto = Math.min(saptoFull, Math.max(0, incomeTax(grossIncome, c) - lito));   // non-refundable
+  const tax = Math.max(0, incomeTax(grossIncome, c) - lito - sapto);
+  const medicare = medicareLevy(grossIncome, c, saptoFull >= 1);
   const mls = o.noPrivateCover ? medicareLevySurcharge(grossIncome + extraIncome, c) : 0;
   const help = o.help ? helpRepayment(grossIncome + extraIncome, c) : 0;
   const total = tax + medicare + mls;          // tax proper; HELP is a loan repayment, shown separately
   const takeHome = grossIncome - total - help;
-  return { tax: Math.round(tax), medicare: Math.round(medicare), lito: Math.round(lito), mls: Math.round(mls), help: Math.round(help), total: Math.round(total), takeHome: Math.round(takeHome), effectiveRate: total / grossIncome };
+  return { tax: Math.round(tax), medicare: Math.round(medicare), lito: Math.round(lito), sapto: Math.round(sapto), mls: Math.round(mls), help: Math.round(help), total: Math.round(total), takeHome: Math.round(takeHome), effectiveRate: total / grossIncome };
 }
 
 // Tax on the next dollar earned — the true marginal rate, including the LITO being
 // withdrawn (5c then 1.5c per dollar) and the Medicare levy phasing in (10c per dollar),
 // not just the bracket rate. Measured over the next $100 so it's exact at any income.
-function calculateMarginalRate(grossIncome, cfg) {
+// opts.senior as in calculateTax: SAPTO being withdrawn (12.5c per $) counts too.
+function calculateMarginalRate(grossIncome, cfg, opts) {
   const c = cfg || TAX_CONFIG;
+  const senior = opts && opts.senior;
   grossIncome = Number(grossIncome);
   if (!Number.isFinite(grossIncome) || grossIncome < 0) return 0;
-  return Math.max(0, totalTaxRaw(grossIncome + 100, c) - totalTaxRaw(grossIncome, c)) / 100;
+  return Math.max(0, totalTaxRaw(grossIncome + 100, c, senior) - totalTaxRaw(grossIncome, c, senior)) / 100;
 }
 
 // Inverse of calculateTax — finds the annual gross income that produces a given
@@ -235,8 +269,11 @@ function estimateGrossFromNet(targetTakeHome, maxIterations = 60) {
 const DIV293_THRESHOLD = 250000;
 const LISTO = { incomeLimit: 37000, max: 500 };
 const CARRY_FORWARD_BALANCE_LIMIT = 500000;
-function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg, carryForward) {
+// opts.senior as in calculateTax. Sacrificed super counts back into SAPTO's rebate
+// income, so sacrificing doesn't raise the offset.
+function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg, carryForward, opts) {
   const c = cfg || TAX_CONFIG;
+  const senior = opts && opts.senior;
   const extraCap = Math.max(0, Number(carryForward) || 0);
   grossIncome = Math.max(0, Number(grossIncome) || 0);
   sacrificeAmount = Math.min(Number(sacrificeAmount) || 0, grossIncome);
@@ -247,8 +284,8 @@ function calculateSalarySacrifice(grossIncome, sacrificeAmount, cfg, carryForwar
   const excess = sacrificeAmount - effective;                  // taxed at marginal rate
   const newGross = grossIncome - effective;                    // taxable income after sacrifice
 
-  const before = totalTaxRaw(grossIncome, c);
-  const after = totalTaxRaw(newGross, c) - excess * c.superTaxRate;   // 15% excess offset
+  const before = totalTaxRaw(grossIncome, c, senior);
+  const after = totalTaxRaw(newGross, c, senior, grossIncome) - excess * c.superTaxRate;   // 15% excess offset
   const taxSaved = before - after;
 
   const div293 = (income, contribs) => 0.15 * Math.min(contribs, Math.max(0, income + contribs - DIV293_THRESHOLD));
