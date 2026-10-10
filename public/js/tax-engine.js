@@ -78,6 +78,27 @@ const TAX_YEARS = {
   }
 };
 
+// Aged care (Aged Care Act, 1 November 2025 fee arrangements). Indexed 20 March and
+// 20 September; Support at Home budgets from 1 October 2026. Sources: myagedcare.gov.au
+// (aged care home costs, accommodation costs, Support at Home costs) and health.gov.au
+// (Support at Home classification levels). Update `asAt` when you update them.
+const AGED_CARE = {
+  asAt: '2026-10-01',
+  basicDailyFee: 68.93,                 // 85% of the single basic Age Pension
+  hotellingMaxDaily: 22.15,             // means-tested hotelling contribution, at most
+  nonClinicalMaxDaily: 109.45,          // means-tested non-clinical care contribution, at most
+  nonClinicalLifetimeCap: 140652.80,    // or 4 years of contributions, whichever first
+  nonClinicalYearsCap: 4,
+  accommodationSupplementMaxDaily: 73.73,  // most a low-means resident pays towards a room
+  mpir: 0.0851,                         // interest rate for daily payments (1 Oct–31 Dec 2026)
+  radRetention: 0.02, radRetentionYears: 5,   // kept from a lump sum each year, for 5 years
+  // Support at Home: yearly budget by classification (10% goes to care management), and
+  // what you pay of each service type: clinical (incl. personal care), independence,
+  // everyday living.
+  homeBudgets: [11031.56, 16483.55, 22580.93, 30528.15, 40809.27, 49461.91, 59776.80, 80294.00],
+  homeContrib: { full: [0, 0.05, 0.175], part: [0, 0.275, 0.4875], self: [0, 0.50, 0.80] }
+};
+
 // Age Pension — DSS "Social Security Payment Parameters", 20 September 2026 indexation.
 // Assets full-pension thresholds and the income free area are the 1 July 2026 figures
 // (they reconcile exactly with the 20 September cut-offs: cut-off = threshold + max rate ÷ taper).

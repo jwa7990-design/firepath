@@ -308,6 +308,13 @@ window.FirePathMoves = (function () {
         return { why: 'From 67, people on the Age Pension get a Pension Concession Card. Those who don’t may be able to get a Commonwealth Seniors Health Card: there’s no assets test, and the income limit is about $105,000 for singles and $168,000 for couples. Both can mean cheaper medicines and other discounts.',
           impact: { text: 'Cheaper medicines and other discounts' } };
       } },
+    { id: 'aged-care', tier: 8, title: 'What aged care could cost', plan: 'Free',
+      tool: { href: '/hearmeout?scenario=agedcare', label: 'Try the aged care what-if' }, article: 'drawing-down-in-retirement',
+      applies(s) {
+        if (s.age == null || s.age < 70) return false;
+        return { why: 'Help at home or an aged care home later in life has its own costs: a basic daily fee, means-tested contributions and, in a home, a room that can be paid as a refundable lump sum or daily. The what-if shows a starting point from the official fees.',
+          impact: { text: 'A starting point from the official fees' } };
+      } },
     { id: 'spouse-contribution', tier: 8, title: 'Adding to your partner\'s super', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Check the offset' }, article: 'spouse-contribution-offset',
       applies(s) {

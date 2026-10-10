@@ -464,3 +464,23 @@ test('employer super above 12%: more super, sooner date, less salary sacrifice r
   // Saved plans carry it.
   assert.equal(E.planInputsFromProfile({ freedom_number: 1e6, employer_super_rate: 0.154 }).employerSuperRate, 0.154);
 });
+
+test('aged care costs: official fees, means-tested shares, room payments and caps', () => {
+  const A = ctx.AGED_CARE || vm.runInContext('AGED_CARE', ctx);
+  // Self-funded, daily payment on a $500k room: every fee at its maximum.
+  const self = E.agedCareCosts({ type: 'residential', means: 'self', years: 5, roomPrice: 500000, payBy: 'daily' });
+  near(self.perYear, (A.basicDailyFee + A.hotellingMaxDaily + A.nonClinicalMaxDaily) * 365 + 500000 * A.mpir, 0.01);
+  // The non-clinical contribution stops at the lifetime cap or after 4 years.
+  const nc = self.years.map(y => y.parts.nonClinical);
+  assert.ok(nc.reduce((t, v) => t + v, 0) <= A.nonClinicalLifetimeCap + 0.01);
+  assert.equal(nc[4], 0, 'nothing in year 5');
+  // Full pensioner: the basic daily fee only; the government supports the room.
+  const full = E.agedCareCosts({ type: 'residential', means: 'full', years: 3, roomPrice: 500000, payBy: 'lump' });
+  near(full.perYear, A.basicDailyFee * 365, 0.01);
+  assert.equal(full.lumpSum, 0);
+  // A lump sum comes back less 2% a year, for at most 5 years.
+  const lump = E.agedCareCosts({ type: 'residential', means: 'part', years: 7, roomPrice: 500000, payBy: 'lump' });
+  near(lump.refund, 500000 * (1 - 0.02 * 5), 0.01);
+  // Help at home: a share of the budget by service type (level 4, full pensioner ≈ $2,335).
+  near(E.agedCareCosts({ type: 'home', means: 'full', level: 4, years: 2 }).perYear, A.homeBudgets[3] * 0.9 * (0.3 * 0.05 + 0.4 * 0.175), 0.01);
+});

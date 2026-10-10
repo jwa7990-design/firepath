@@ -538,6 +538,58 @@ window.FirePathEngine = (function () {
     return { plan, pensionAnnual, ownAt67: hi };
   }
 
+  // Aged care costs, year by year, in today's dollars (the What if…? scenario). A starting
+  // point from the official fees (AGED_CARE in tax-engine.js), never a quote.
+  //   type: 'home' (Support at Home) | 'residential' (an aged care home)
+  //   means: 'full' (full pensioner) | 'part' (part pensioner or Seniors Health Card) |
+  //          'self' (self-funded, no card): sets the means-tested shares. 'part' takes the
+  //          middle of each range, as the real figure depends on a means assessment.
+  //   years: years in care. level: Support at Home classification 1–8. Home care assumes
+  //   30% clinical and personal care (free), 30% independence and 40% everyday living
+  //   services, after the 10% that goes to care management.
+  //   roomPrice, payBy: 'lump' | 'daily' | 'mix' (lumpAmount for a mix). Full pensioners
+  //   are taken as low-means residents: the government supports the room.
+  // Returns { years: [{ cost, parts }], total, lumpSum, refund, perYear } or null.
+  function agedCareCosts(o) {
+    const A = typeof AGED_CARE !== 'undefined' ? AGED_CARE : null;
+    if (!A || !o) return null;
+    const years = Math.max(1, Math.min(15, Math.round(o.years || 3)));
+    const means = o.means === 'full' || o.means === 'self' ? o.means : 'part';
+    const out = [];
+    let lumpSum = 0, retained = 0, nonClinicalPaid = 0;
+    if (o.type === 'home') {
+      const level = Math.max(1, Math.min(8, Math.round(o.level || 4)));
+      const services = A.homeBudgets[level - 1] * 0.9;
+      const c = A.homeContrib[means];
+      const yearly = services * (0.3 * c[0] + 0.3 * c[1] + 0.4 * c[2]);
+      for (let y = 0; y < years; y++) {
+        const pay = Math.max(0, Math.min(yearly, A.nonClinicalLifetimeCap - nonClinicalPaid));
+        nonClinicalPaid += pay;
+        out.push({ cost: pay, parts: { contributions: pay } });
+      }
+      return { type: 'home', level, budget: A.homeBudgets[level - 1], years: out, total: out.reduce((t, y) => t + y.cost, 0), lumpSum: 0, refund: 0, perYear: out[0].cost };
+    }
+    const share = means === 'full' ? 0 : means === 'part' ? 0.5 : 1;
+    const basic = A.basicDailyFee * 365;
+    const hotelling = A.hotellingMaxDaily * 365 * share;
+    const nonClinicalYear = A.nonClinicalMaxDaily * 365 * share;
+    const price = Math.max(0, Number(o.roomPrice) || 0);
+    let daily = 0;
+    if (means !== 'full') {
+      if (o.payBy === 'lump') lumpSum = price;
+      else if (o.payBy === 'mix') lumpSum = Math.min(price, Math.max(0, Number(o.lumpAmount) || 0));
+      daily = (price - lumpSum) * A.mpir;
+    }
+    for (let y = 0; y < years; y++) {
+      const nc = y < A.nonClinicalYearsCap ? Math.max(0, Math.min(nonClinicalYear, A.nonClinicalLifetimeCap - nonClinicalPaid)) : 0;
+      nonClinicalPaid += nc;
+      const keep = y < A.radRetentionYears ? lumpSum * A.radRetention : 0;   // comes off the refund
+      retained += keep;
+      out.push({ cost: basic + hotelling + nc + daily, parts: { basic, hotelling, nonClinical: nc, accommodation: daily, retention: keep } });
+    }
+    return { type: 'residential', years: out, total: out.reduce((t, y) => t + y.cost, 0), lumpSum, refund: Math.max(0, lumpSum - retained), retained, perYear: out[0].cost };
+  }
+
   // Plain-English lines for under a headline date (the same words on every page).
   // Why an early date plans on more than 25×, or null.
   function cushionNote(plan) {
@@ -759,5 +811,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, safeWithdrawalRate, computeFreedomPicture, formatTimeSince, compareSnapshots };
 })();
