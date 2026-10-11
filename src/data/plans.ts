@@ -11,7 +11,7 @@ export const FREE_FEATURES: string[] = [
   'What moves it: saving more, spending less, investing vs the bank',
   'Plan as a couple, with both incomes',
   'What if…? Sell the house, a lump sum, redundancy, downsizing, rent vs invest',
-  'Withdrawal planner: see if your money lasts 30 years',
+  'Withdrawal planner: see if your money could last 30 years',
   'Freedom gap: what part-time work and the Age Pension could add',
   'Compound interest: what regular saving grows into',
   'Plain-English guides in the Learning Lab',

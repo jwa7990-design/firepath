@@ -15,11 +15,11 @@ export interface StartPage {
 export const STARTS: StartPage[] = [
   { slug: 'just-starting', door: 'Just starting out', title: 'New to money?', icon: 'flame',
     seoTitle: 'How to Start Saving and Investing in Australia | FirePath',
-    description: 'New to saving and investing? A simple, plain-English first plan for Australians: know your numbers, build a small buffer, then let compounding work.',
+    description: 'New to saving and investing? A simple, plain-English first plan for Australians: knowing your numbers, a small buffer and how compounding works.',
     lead: 'You don’t need to know much to start. Here are some ways people approach it, in plain English.',
     doorLine: 'A simple first plan, one step at a time.',
     steps: [
-      { title: 'What are your numbers?', body: 'What comes in, what goes out and what could be set aside. Two minutes in the free calculator gives a real date, not a vague “someday”.', href: '/firepath', cta: 'Find my freedom date' },
+      { title: 'What are your numbers?', body: 'What comes in, what goes out and what could be set aside. Two minutes in the free calculator gives an estimated date, not a vague “someday”.', href: '/firepath', cta: 'Find my freedom date' },
       { title: 'Is a small cash buffer worth having?', body: 'Some people keep about three months of spending in an easy-to-reach savings account, so a surprise bill doesn’t derail things. Others start smaller and build it over time.' },
       { title: 'Could a small, automatic amount work?', body: 'A regular amount moved on payday, even $50 a week, can build the habit and gives compounding longer to work.', href: '/hearmeout', cta: 'See what $50 a week grows into' },
       { title: 'How does compounding work?', body: 'It’s money earning money, which then earns money too. Once it clicks, a lot of the rest makes sense.', href: '/learn/how-compound-interest-works', cta: 'How compounding works' },
@@ -106,7 +106,7 @@ export const STARTS: StartPage[] = [
 
   { slug: 'retirement', door: 'Nearly or already retired', title: 'Will it last?', icon: 'shield',
     seoTitle: 'Will my money last in retirement? An Australian guide | FirePath',
-    description: 'Nearly retired or already there? How to check your money lasts: withdrawal rates, the years before super at 60, the Age Pension at 67 and a bad early market.',
+    description: 'Nearly retired? How people check if their money could last: withdrawal rates, the years before super at 60, the Age Pension at 67 and a bad early market.',
     lead: 'Close to the finish line, the big question becomes “will my money last?” Here are some ways people approach it, honestly.',
     doorLine: 'Withdrawal rates, super at 60, the Age Pension.',
     steps: [

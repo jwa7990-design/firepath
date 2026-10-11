@@ -231,7 +231,7 @@ window.FirePathMoves = (function () {
         if (more == null) return false;
         const gain = base == null ? null : base - more;
         if (gain != null && gain < 0.25) return false;
-        return { why: 'An extra $50 a week, invested, grows along with everything else you’re saving.',
+        return { why: 'An extra $50 a week, invested, could grow along with everything else you’re saving.',
           impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `$50 a week more could mean reaching your number ${yearsText(gain)}` } };
       } },
     { id: 'spend-less', tier: 4, title: 'Spending 10% less', plan: 'Free',
@@ -276,7 +276,7 @@ window.FirePathMoves = (function () {
       applies(s) {
         if (s.housing !== 'mortgage' || !(s.mortgageRemaining > 0) || s.alreadyFree) return false;
         return { why: 'Every dollar in an offset saves your mortgage rate in interest, tax-free and guaranteed. Investing may earn more over time, with more ups and downs. It depends on your tax rate, your mortgage rate and how you feel about risk.',
-          impact: { text: 'Guaranteed interest saved vs likely higher growth' } };
+          impact: { text: 'Guaranteed interest saved vs possible higher growth' } };
       } },
     { id: 'work-less', tier: 6, title: 'Working less could be an option', plan: 'Free',
       tool: { href: '/freedom-gap', label: 'See your freedom gap' }, article: 'what-is-coast-fire',
@@ -292,19 +292,19 @@ window.FirePathMoves = (function () {
           const stop = eng.freedomPlan(planInputsFor(s, { monthlySavings: 0 }));
           const at = stop && stop.freedomAge != null ? ` (around age ${stop.freedomAge})` : '';
           return { why: 'Your savings and super could get you to freedom by 65 even if you stopped adding to your savings today. You’d keep working, so your super keeps growing. So part-time work covering today’s costs is one possibility. Others keep saving for an earlier date.',
-            impact: { text: `On track to be free by 65 without saving more${at}` } };
+            impact: { text: `On these numbers, free by 65 without saving more${at}` } };
         }
         if (!(s.currentSavings > 0) || E().projectPortfolio(s.currentSavings, 0, 65 - s.age, REAL) < s.freedomNumber) return false;
         return { why: 'Your savings would reach your freedom number by 65 even if you never added another dollar. So part-time work covering today’s costs is one possibility. Others keep saving for an earlier date.',
-          impact: { text: 'On track for your number by 65 without saving more' } };
+          impact: { text: 'On these numbers, your number by 65 without saving more' } };
       } },
     { id: 'bridge-to-60', tier: 6, title: 'The years before you can use super', plan: 'Free',
       tool: { href: '/freedom-gap', label: 'See the gap' }, article: 'before-super-access',
       applies(s) {
         if (s.age == null || s.age >= 60 || !(s.superBalance > 0) || s.freedomAge == null || s.freedomAge >= 60) return false;
         return { why: s.alreadyFree
-            ? `You've reached your number at ${Math.round(s.age)}, before you can get to your super at 60. Your savings outside super will need to carry you until then.`
-            : `You could be free around ${Math.round(s.freedomAge)}, before you can get to your super at 60. Your savings outside super will need to carry you until then.`,
+            ? `You've reached your number at ${Math.round(s.age)}, before you can get to your super at 60. Your savings outside super would need to carry you until then.`
+            : `You could be free around ${Math.round(s.freedomAge)}, before you can get to your super at 60. Your savings outside super would need to carry you until then.`,
           impact: { text: (() => { const y = 60 - s.freedomAge; return y < 2 ? `About ${Math.max(1, Math.round(y * 12))} months to bridge` : `About ${Math.round(y)} years to bridge`; })() } };
       } },
     { id: 'stress-test', tier: 7, title: 'Whether your money will last', plan: 'Free',

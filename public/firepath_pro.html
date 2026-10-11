@@ -667,7 +667,7 @@
                 <button class="ob-back" onclick="obGoTo(2)">← Back</button>
                 <div class="ob-eyebrow hp-label is-ink">About you</div>
                 <h2 class="ob-title">A little about your life</h2>
-                <p class="ob-sub">The more you tell us, the better the AI’s tip will fit your life.</p>
+                <p class="ob-sub">The more you tell us, the better the AI’s notes will fit your life.</p>
 
                 <!-- Age -->
                 <div class="ob-field">
@@ -731,7 +731,7 @@
                 <button class="ob-back" onclick="obGoTo(3)">← Back</button>
                 <div class="ob-eyebrow hp-label is-ink">The full picture</div>
                 <h2 class="ob-title">What have you already built?</h2>
-                <p class="ob-sub">Everything counts, even what's locked away in super. The more you share, the better the AI's tip.</p>
+                <p class="ob-sub">Everything counts, even what's locked away in super. The more you share, the better the AI's notes.</p>
 
                 <!-- Savings & investments -->
                 <div class="ob-field">
@@ -910,7 +910,7 @@
           <div class="pr-answer-side">
             <p class="result-sub" id="resultSub"></p>
             <div class="pr-stats">
-              <div><span class="pr-stat-value" id="fireNumberOut">—</span><span class="pr-stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span></span></div>
+              <div><span class="pr-stat-value" id="fireNumberOut">—</span><span class="pr-stat-name" id="stat2label">Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule": historically, taking out 4% a year has lasted 30+ years in most markets, but it isn't guaranteed.</span></span></span></div>
               <div><span class="pr-stat-value" id="monthlySavingOut">—</span><span class="pr-stat-name" id="stat3label">Saved / week</span></div>
             </div>
             <div id="savingsRateNote" class="result-note"></div>
@@ -2610,7 +2610,7 @@ async function saveProfile() {
       if (pensionAnnual > 0) {
         pensionHTML = `<div class="pr-callout is-first"><div class="pr-callout-title"> Age Pension at 67</div><div class="pr-row"><span>Estimated entitlement</span><span class="pr-v is-bold">${fmtM(pensionAnnual)}/yr (~${fmtM(pension.weeklyPension)}/week)</span></div><div class="pr-row"><span>Gap after pension</span><span class="pr-v is-bold">${fmtM(gapAfterPension)}/yr (${fmtM(gapAfterPensionWeekly)}/week)</span></div><div class="pr-fine">Based on assets test (${homeLabel}, ${coupleLabel}). Your actual entitlement depends on your full financial picture at 67.</div></div>`;
       } else {
-        pensionHTML = `<div class="pr-callout is-first"> With what you'll have, you probably won't get much Age Pension at 67, if any. Your savings do the heavy lifting.</div>`;
+        pensionHTML = `<div class="pr-callout is-first"> On these numbers, you probably wouldn't get much Age Pension at 67, if any. Your savings would do the heavy lifting.</div>`;
       }
     }
     const portfolioLabel = targetRetirementAge ? `at age ${targetRetirementAge}` : 'right now';
@@ -2635,16 +2635,16 @@ async function saveProfile() {
     const longevityYears = calcLongevity(portfolio, annualSpend, freedomAge, pensionAnnual, hours, hourlyRate);
     const runsOutAge = freedomAge ? freedomAge + longevityYears : null, lastsForever = longevityYears >= 9999;
     let longevityMsg = '';
-    if (lastsForever) { longevityMsg = `<div class="is-pos"> Your savings never run out at this level of work.</div>`; }
-    else if (runsOutAge && runsOutAge >= 90) { longevityMsg = `<div class="is-pos"> Your savings last until age ${runsOutAge}, well past 90.</div>`; }
-    else if (runsOutAge) { longevityMsg = `<div class="is-warn"> Your savings run out around age ${runsOutAge}. A few more hours of work, or saving a bit more now, would stretch it further.</div>`; }
+    if (lastsForever) { longevityMsg = `<div class="is-pos"> On these numbers, your savings don't run out at this level of work.</div>`; }
+    else if (runsOutAge && runsOutAge >= 90) { longevityMsg = `<div class="is-pos"> On these numbers, your savings last until age ${runsOutAge}, well past 90.</div>`; }
+    else if (runsOutAge) { longevityMsg = `<div class="is-warn"> On these numbers, your savings run out around age ${runsOutAge}. A few more hours of work, or saving a bit more now, would stretch it further.</div>`; }
     // Same picture across bumpy-market futures (the line above assumes a steady 7%).
     // 500 paths here, not 2,000, so dragging the slider stays smooth on a phone.
     const mcPct = lastsTo95Pct(portfolio, annualSpend, freedomAge, annualWorkIncome, 500);
     if (mcPct !== null) longevityMsg += `<div class="is-quiet">With real market ups and downs: lasts to 95 in <strong class="pr-ink">${mcPct}%</strong> of possible market outcomes.</div>`;
     let workMsg = '';
     if (hours === 0) { workMsg = `Not working at all: your savings and any Age Pension cover what they can.`; }
-    else if (remainingGap <= 0) { workMsg = `<strong>${hours} hrs/week</strong> at ~$${hourlyRate}/hr covers the full gap. <strong>You won't need to draw on your savings for living costs.</strong>`; }
+    else if (remainingGap <= 0) { workMsg = `<strong>${hours} hrs/week</strong> at ~$${hourlyRate}/hr covers the full gap. <strong>On these numbers, you wouldn't need to draw on your savings for living costs.</strong>`; }
     else { workMsg = `<strong>${hours} hrs/week</strong> covers $${Math.round(annualWorkIncome/1000)}K/yr, leaving a gap of <strong>${fmtM(remainingGap)}/yr (${fmtM(remainingGapWeekly)}/week)</strong> still to cover.`; }
     resultEl.innerHTML = `<div class="pr-mb">${workMsg}</div>${longevityMsg}`;
   }
@@ -2691,7 +2691,7 @@ async function saveProfile() {
       document.getElementById('yearsOut').textContent = yearsText;
       document.getElementById('freedomAgeOut').textContent = freedomAge || '—';
       renderInflationNote(fireNum, fy);
-      document.getElementById('stat2label').innerHTML = `Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule" — you can withdraw 4% per year and it should last 30+ years.</span></span>`;
+      document.getElementById('stat2label').innerHTML = `Freedom number <span class="info-icon" onclick="toggleTooltip(this)" style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);font-size:9px;font-style:normal;margin-left:4px;cursor:pointer;">i<span class="tooltip">Your freedom number is 25× your annual spending. Based on the "4% rule": historically, taking out 4% a year has lasted 30+ years in most markets, but it isn't guaranteed.</span></span>`;
     }
   }
 
@@ -2765,7 +2765,7 @@ async function saveProfile() {
     const yearsToDeposit=rate=>{if(savings>=t)return 0;if(mSav<=0)return null;const r=monthlyRate(rate),g=monthlyRate(priceGrowthReal);let b=savings,goal=t,m=0;while(b<goal&&m<1200){b=b*(1+r)+mSav;goal*=1+g;m++;}return m<1200?m/12:null;};
     const yb=yearsToDeposit(bank),y5=yearsToDeposit(0.05),diff=yb!==null&&y5!==null?yb-y5:null,inf=Math.round(t*Math.pow(1+priceGrowthReal,y5===null?3:y5)/1000)*1000;
     el.style.display='block';
-    el.innerHTML=`<div class="pr-block"><div class="pr-block-title"> Saving for a house deposit?</div><div class="pr-block-sub">Based on a $100K deposit target. At 4% property price growth, that'll cost roughly <strong class="pr-ink">$${Math.round(inf/1000)}K</strong> in today's dollars by the time you save it.</div><div class="pr-rows"><div class="pr-row"><span class="pr-l">In a bank (${(bank*100).toFixed(1)}% after inflation)</span><span class="pr-v">${yb!==null?fmt(yb)+' ('+(currentYear+Math.round(yb))+')':'100+ yrs'}</span></div><div class="pr-row"><span class="pr-l">At 5% growth after inflation</span><span class="pr-v is-ember is-bold">${y5!==null?fmt(y5)+' ('+(currentYear+Math.round(y5))+')':'100+ yrs'}</span></div><div class="pr-row"><span class="pr-l">Time you could save</span><span class="pr-v is-ember is-bold">${diff&&diff>0.1?fmt(diff)+' sooner':'similar timeline'}</span></div></div><p class="pr-fine">Educational only — not financial advice.</p></div>`;
+    el.innerHTML=`<div class="pr-block"><div class="pr-block-title"> Saving for a house deposit?</div><div class="pr-block-sub">Based on a $100K deposit target. At 4% property price growth, that could cost roughly <strong class="pr-ink">$${Math.round(inf/1000)}K</strong> in today's dollars by the time you save it.</div><div class="pr-rows"><div class="pr-row"><span class="pr-l">In a bank (${(bank*100).toFixed(1)}% after inflation)</span><span class="pr-v">${yb!==null?fmt(yb)+' ('+(currentYear+Math.round(yb))+')':'100+ yrs'}</span></div><div class="pr-row"><span class="pr-l">At 5% growth after inflation</span><span class="pr-v is-ember is-bold">${y5!==null?fmt(y5)+' ('+(currentYear+Math.round(y5))+')':'100+ yrs'}</span></div><div class="pr-row"><span class="pr-l">Time you could save</span><span class="pr-v is-ember is-bold">${diff&&diff>0.1?fmt(diff)+' sooner':'similar timeline'}</span></div></div><p class="pr-fine">Educational only — not financial advice.</p></div>`;
   }
 
   function buildZeroSavingsCard(mI, fireNum, isPro) {
@@ -2779,7 +2779,7 @@ async function saveProfile() {
     const yearIf = weekly => { const p = planWith({ monthlySavings: weekly * 52 / 12 }); return p && p.reachable && !p.alreadyFree ? p.freedomYear : null; };
     const smallDate = yearIf(smallSave), medDate = yearIf(medSave);
     el.style.display = 'block';
-    el.innerHTML = `<div class="pr-block"><div class="pr-block-title"> You're not saving yet, and that's okay</div><div class="pr-block-sub">Right now everything coming in is going out. Knowing that is the starting point. Even a small amount saved regularly makes a real difference.</div><div class="pr-rows is-ink">${smallDate ? `<div class="pr-row"><div><span class="pr-v">If you saved $${smallSave}/week</span><div class="pr-sub">A coffee a day</div></div><span class="pr-v is-ember is-bold">Free by ${smallDate}</span></div>` : ''}${medDate && medSave > smallSave ? `<div class="pr-row"><div><span class="pr-v">If you saved $${medSave}/week</span><div class="pr-sub">5% of your income</div></div><span class="pr-v is-ember is-bold">Free by ${medDate}</span></div>` : ''}</div><div class="pr-fine">Small is a fine place to start. More can always come later.</div></div>`;
+    el.innerHTML = `<div class="pr-block"><div class="pr-block-title"> You're not saving yet, and that's okay</div><div class="pr-block-sub">Right now everything coming in is going out. Knowing that is the starting point. Even a small amount saved regularly can make a real difference.</div><div class="pr-rows is-ink">${smallDate ? `<div class="pr-row"><div><span class="pr-v">If you saved $${smallSave}/week</span><div class="pr-sub">A coffee a day</div></div><span class="pr-v is-ember is-bold">Free by ${smallDate}</span></div>` : ''}${medDate && medSave > smallSave ? `<div class="pr-row"><div><span class="pr-v">If you saved $${medSave}/week</span><div class="pr-sub">5% of your income</div></div><span class="pr-v is-ember is-bold">Free by ${medDate}</span></div>` : ''}</div><div class="pr-fine">Small is a fine place to start. More can always come later.</div></div>`;
   }
 
   function buildWhatsNextTab(params) {
