@@ -511,8 +511,13 @@ window.FirePathEngine = (function () {
         if (!Number.isNaN(arr[mm])) return arr[mm];
         const ps = potsAt(mm), works = x => stopWorks(n, mm, x, ps, rO, rS, scale).ok;
         let lo = 0, hi = n.target;
-        if (works(0)) hi = 0;
-        else {
+        if (works(0)) {
+          // Already enough with nothing outside super: how far below zero could it go (super that
+          // unlocks then can carry a loan paid off that day)?
+          lo = -(n.target * 4 + n.upfrontAt(mm) + n.spendYear * 100); hi = 0;
+          if (works(lo)) hi = lo;
+          else while (hi - lo > tol) { const mid = (lo + hi) / 2; if (works(mid)) hi = mid; else lo = mid; }
+        } else {
           // Start near last month's answer (it moves little month to month), widening as needed.
           const prev = lastNeed.get(scale || 1);
           if (prev != null) {
@@ -533,7 +538,8 @@ window.FirePathEngine = (function () {
       // in between it changes smoothly, so it's blended.
       const special = new Set();
       pots.forEach(p => { special.add(p.unlock); special.add(p.unlock - 1); });
-      const isGrid = m => m % 6 === 0 || special.has(m) || m >= PLAN_MAX_MONTHS;
+      // …and every month within a year of the date itself, where the range is read most closely.
+      const isGrid = m => m % 6 === 0 || special.has(m) || m >= PLAN_MAX_MONTHS || (month != null && Math.abs(m - month) <= 12);
       extraAt = (m, scale) => {
         const mm = Math.min(m, PLAN_MAX_MONTHS);
         if (isGrid(mm)) return exact(mm, scale);
@@ -560,7 +566,7 @@ window.FirePathEngine = (function () {
     const base = n0 ? n0.target : null;
     let mg = mortgageFor(inputs, n0);
     // Repayments as big as all your spending can't be right: leave the mortgage out and say so.
-    const mortgageCheck = !!(mg && n0 && mg.cut >= n0.target);
+    const mortgageCheck = mortgageImplausible(mg, n0 && n0.target);
     if (mortgageCheck) mg = null;
     const spendPart = n0 ? Math.max(0, base - (mg ? mg.cut : 0)) : 0;
     // Stopping early, the safer rate's cushion covers the years before super unlocks too: they
@@ -653,6 +659,8 @@ window.FirePathEngine = (function () {
       ? (a, both, exempt) => calculateAgePension(a, 0, homeowner, couple, a, Object.assign({}, rent, couple && !both ? { partnerEligible: false, partnerSuper: exempt } : {})).annualPension || 0
       : () => 0;
     let o = n.savings - (mg ? mg.realOwing(0) : 0);
+    // Stopped work: any loan still owing is paid off now, so the note talks about today's balance.
+    if (plan.mortgage && mg) { plan.mortgage.owingAtFreedom = mg.realOwing(0); delete plan.mortgage.savedAfter; }
     const pots = [{ bal: n.superBalance, unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.age) * 12)) }];
     if (n.partner && n.partner.age != null) pots.push({ bal: n.partner.superBalance, unlock: Math.max(0, Math.round((PRESERVATION_AGE - n.partner.age) * 12)) });
     const assets = Math.max(0, n.savings) + pots.reduce((t, p) => t + p.bal, 0);
@@ -729,9 +737,13 @@ window.FirePathEngine = (function () {
     const spendMult = Number(m.spendMult) > 0 ? Number(m.spendMult) : 1;
     return { balance, repay, rate, offset, inOffset, neverPaid, payoffMonth, realOwing, cut: repay * 12 * 25 * spendMult };
   }
+  // Repayments as big as all spending, or leaving under $600 a month for everything else
+  // (a freedom number of under $180,000 without them), can't be right: the mortgage is left out
+  // and the note asks for the figures to be checked.
+  function mortgageImplausible(mg, target) { return !!(mg && target > 0 && target - mg.cut < 600 * 12 * 25); }
   // One line for under the date when the mortgage is counted, or null.
   function mortgageNote(plan) {
-    if (plan && plan.valid && plan.mortgageCheck) return 'Your mortgage repayments look bigger than your spending, so the mortgage isn\'t counted. It\'s worth checking the figures in your note.';
+    if (plan && plan.valid && plan.mortgageCheck) return 'Your mortgage repayments look bigger than your spending, or leave very little for everything else, so the mortgage isn\'t counted. It\'s worth checking the figures in your note.';
     const mo = plan && plan.valid && plan.mortgage;
     if (!mo) return null;
     const repay = `$${Math.round(mo.repayMonthly).toLocaleString('en-AU')} a month`;
@@ -741,7 +753,7 @@ window.FirePathEngine = (function () {
       : `On ${repay}, your mortgage would be paid off around ${mo.payoffYear}.`;
     const from = plan.freedomAgeExact != null && plan.freedomAgeExact >= PRESERVATION_AGE ? 'your savings and super' : 'your savings';
     const owing = mo.owingAtFreedom > 1000
-      ? ` Your freedom number leaves the repayments out, and the plan pays off the ${fmtM(mo.owingAtFreedom)} still owing (in today's dollars) from ${from} ${plan.alreadyFree ? 'now' : plan.freedomAgeExact != null && plan.freedomAgeExact > 100 ? 'when you stop' : `when you stop, around ${plan.freedomYear}`}.`
+      ? ` Your freedom number leaves the repayments out, and the plan pays off the ${fmtM(mo.owingAtFreedom)} still owing (in today's dollars) from ${from} ${plan.alreadyFree || plan.retired ? 'now' : plan.freedomYear == null || (plan.freedomAgeExact != null && plan.freedomAgeExact > 100) ? 'when you stop' : `when you stop, around ${plan.freedomYear}`}.`
       : ' Your freedom number leaves the repayments out.';
     // Paid off before the date: the date assumes saving stays the same afterwards.
     const freed = mo.savedAfter && mo.savedAfter.months != null && plan.months != null && plan.months - mo.savedAfter.months >= 6
@@ -864,7 +876,7 @@ window.FirePathEngine = (function () {
     // Any loan still owing is paid off on the day you stop (as in the headline), so the
     // repayments never count here.
     let mg = mortgageFor(inputs, n);
-    if (mg && mg.cut >= n.target) mg = null;   // repayments bigger than spending: left out, as in the headline
+    if (mortgageImplausible(mg, n.target)) mg = null;   // repayments that don't add up: left out, as in the headline
     const T = mg ? Math.max(0, n.target - mg.cut) : n.target;
     // Scan up in $1,000 steps for the first amount that's enough, then tighten to $10.
     let lo = 0, hi = null;
@@ -1243,7 +1255,12 @@ window.FirePathEngine = (function () {
     const w = walkPlan(n, true);
     if (w.month === 0) return null;
     if (!(n.monthlySavings > 0) && !(n.savings > 0) && w.month == null && !(w.extraAt(PLAN_MAX_MONTHS) > 0)) return null;
+    // Not before the headline's band starts (a date "from 60" can't land at 58 in a good path).
+    const age0 = n.age, mult = head.valid ? head.targetMultiple : 1;
+    const notBefore = age0 == null ? 0 : mult === 1 && age0 < PRESERVATION_AGE ? Math.ceil((PRESERVATION_AGE - age0) * 12 - 1e-9)
+      : mult > 1 && mult < 0.04 / safeWithdrawalRate(40) - 1e-9 && age0 < 50 ? Math.ceil((50 - age0) * 12 - 1e-9) : 0;
     return simulateTimeToTarget(Object.assign({}, opts || {}, {
+      notBefore,
       startPortfolio: n.savings, monthlySavings: Math.max(0, n.monthlySavings), target: n.target,
       median: n.outsideReturn, extraAt: w.extraAt,
       // Super is invested whatever the savings are: with cash savings, it's what moves the range
@@ -1358,7 +1375,8 @@ window.FirePathEngine = (function () {
   // extraAt(m, scale) (optional, from freedomRange): the same, worked out from the plan for
   // month m with super scaled by the markets so far (scale 1 = as planned), so a path only
   // counts as free once its savings can also carry it until super unlocks.
-  function simulateTimeToTarget({ startPortfolio, monthlySavings, target, paths, seed, median, volatility, extraByMonth, extraVolatility, extraAt }) {
+  function simulateTimeToTarget({ startPortfolio, monthlySavings, target, paths, seed, median, volatility, extraByMonth, extraVolatility, extraAt, notBefore }) {
+    const nb = notBefore > 0 ? notBefore : 0;
     paths = paths || MC.paths;
     const rand = seededRandom(seed == null ? 2 : seed);
     const mu = Math.log(1 + (median == null ? MC.median : median)), sigma = volatility == null ? MC.volatility : volatility;
@@ -1379,7 +1397,7 @@ window.FirePathEngine = (function () {
     const months = [];
     for (let p = 0; p < paths; p++) {
       let bal = startPortfolio, m = 0, r = 0, lf = 0, dlf = 0, e = extra(0, 0);
-      while (bal + e < target - 1 && m < MAX) {
+      while ((m < nb || bal + e < target - 1) && m < MAX) {
         if (m % 12 === 0) { const z = normalFrom(rand); r = monthlyRate(Math.exp(mu + sigma * z) - 1); dlf = sx * z / 12; }
         bal = bal * (1 + r) + monthlySavings;
         lf += dlf;

@@ -272,3 +272,37 @@ Twenty random, realistic profiles were generated with a fixed seed. They cover s
 - Now that "I've stopped work" can be said in the note, the default could be: employer super continues at any age unless the note says they've stopped work.
 
 **Owner decision (11 October 2026):** employer super continues at any age, as the law allows. It stops only when the note says the person has stopped work (or is self-employed).
+
+## Automated random-profile testing (11 October 2026)
+
+`tests/fuzz.test.cjs` makes random Australians, deliberately wider than real clients:
+- ages 16–92;
+- $0–$40k a month take-home;
+- up to $3–4M in savings and super;
+- couples with and without ages;
+- mortgages that never shrink or cost more than all spending;
+- every note pattern.
+
+Each one is checked against rules that must always hold:
+- no broken numbers;
+- the date's figures agree;
+- more money or a smaller number never makes the date later (or money run out sooner);
+- people who have stopped work get no date and no wage ideas;
+- no broken text in any line or idea;
+- the ideas list agrees with the date;
+- the Age Pension line is never later than the date;
+- "stop saving now" really gets there by 65;
+- the market range sits around the date.
+
+It caught two deliberately planted bugs before being trusted.
+
+- `npm test` runs 300 profiles every time; `npm run test:fuzz` runs 10,000.
+- Two full sets of 10,000 (seeds 20261011 and 777) now pass with no failures.
+
+**Fixed from the first 10,000:**
+- **Stopped work, a mortgage, not yet covered:** the mortgage note said "around null". It now says "now" and uses today's balance.
+- **Repayments that leave under $600 a month for everything else** get the "check your figures" note. They could give "free now" on a near-zero freedom number.
+- **Market range:**
+  - it follows the band's "not before 60/50" rule;
+  - it allows super to pay off a loan on the day it unlocks;
+  - it's worked out exactly within a year of the date.
