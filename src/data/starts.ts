@@ -14,7 +14,7 @@ export interface StartPage {
 
 export const STARTS: StartPage[] = [
   { slug: 'just-starting', door: 'Just starting out', title: 'New to money?', icon: 'flame',
-    seoTitle: 'How to start saving and investing in Australia — a simple first plan | FirePath',
+    seoTitle: 'How to Start Saving and Investing in Australia | FirePath',
     description: 'New to saving and investing? A simple, plain-English first plan for Australians: know your numbers, build a small buffer, then let compounding work.',
     lead: 'You don’t need to know much to start. Here are some ways people approach it, in plain English.',
     doorLine: 'A simple first plan, one step at a time.',
@@ -38,7 +38,7 @@ export const STARTS: StartPage[] = [
 
   { slug: 'debt', door: 'I’ve got debt', title: 'Got debt?', icon: 'card',
     seoTitle: 'Should I pay off debt or invest? An Australian guide | FirePath',
-    description: 'Credit cards, personal loans, buy now pay later, HECS and a mortgage are very different debts. Here’s how Australians often order them, and where investing fits in.',
+    description: 'Credit cards, personal loans, buy now pay later, HECS and a mortgage are very different debts. How Australians often order them, and where investing fits.',
     lead: 'Here are some techniques people use to work out which debt to reduce first. Not all debt costs the same: a credit card’s rate is often higher than the long-run return assumed for shares, so the order can make a big difference.',
     doorLine: 'Which debt first, and when to start investing.',
     steps: [
@@ -60,7 +60,7 @@ export const STARTS: StartPage[] = [
     ] },
 
   { slug: 'renting', door: 'Renting or saving to buy', title: 'Rent or buy?', icon: 'scale',
-    seoTitle: 'Rent or buy in Australia — what it means for early retirement | FirePath',
+    seoTitle: 'Rent or Buy? What It Means for Early Retirement | FirePath',
     description: 'Renting and investing the difference, or buying a home? What each means for when you could stop working in Australia, and how to plan either way.',
     lead: 'There’s no single right answer, and either way can work. Here are some ways people approach it, including what renting in retirement means for the plan.',
     doorLine: 'Rent and invest, or buy? Try both on your numbers.',
@@ -83,7 +83,7 @@ export const STARTS: StartPage[] = [
 
   { slug: 'building-wealth', door: 'Building wealth', title: 'Already saving?', icon: 'bars',
     seoTitle: 'How to reach financial independence faster in Australia | FirePath',
-    description: 'Already saving and investing? What moves your freedom date most in Australia: savings rate, where your money sits, salary sacrifice, offset vs invest and Coast FIRE.',
+    description: 'Already saving and investing? What moves your freedom date most: savings rate, where your money sits, salary sacrifice, offset vs invest and Coast FIRE.',
     lead: 'Once the basics are in place, a few things tend to do most of the work. Here are some ways people approach it. FirePath shows how much each could move your date, in years.',
     doorLine: 'The few things that move your date most.',
     steps: [
@@ -106,7 +106,7 @@ export const STARTS: StartPage[] = [
 
   { slug: 'retirement', door: 'Nearly or already retired', title: 'Will it last?', icon: 'shield',
     seoTitle: 'Will my money last in retirement? An Australian guide | FirePath',
-    description: 'Nearly retired or already there? How to check your money lasts in Australia: withdrawal rates, the years before you can get to your super at 60, the Age Pension at 67 and a bad market early on.',
+    description: 'Nearly retired or already there? How to check your money lasts: withdrawal rates, the years before super at 60, the Age Pension at 67 and a bad early market.',
     lead: 'Close to the finish line, the big question becomes “will my money last?” Here are some ways people approach it, honestly.',
     doorLine: 'Withdrawal rates, super at 60, the Age Pension.',
     steps: [

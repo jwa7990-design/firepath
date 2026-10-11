@@ -16,7 +16,9 @@ export function getStaticPaths() {
 }
 const { article: a } = Astro.props as { article: Article };
 const showToc = a.sections.length >= 3;
-const cleanHref = (h: string) => h.replace(/\.html$/, '');
+const cleanHref = (h: string) => h.replace(/\.html(?=$|[?#])/, '');
+// Links inside the article text: the clean address (/firepath, not /firepath.html), so there's no redirect hop.
+const cleanLinks = (html: string) => html.replace(/href="\/([a-z0-9_\/-]*?)(?:index)?\.html(#[^"]*)?"/gi, (m, p, hash) => `href="/${p}${hash || ''}"`);
 const tryLinks = a.cta?.links?.length ? a.cta.links : [{ href: '/firepath', label: 'Find my freedom date' }];
 // Pages behind a Pro account (js/auth.js requirePro sends everyone else to /upgrade).
 // Label them so a free reader isn't surprised, and offer the free calculator alongside.
@@ -43,14 +45,15 @@ const schema = {
   headline: a.heading, description: a.description,
   mainEntityOfPage: `https://www.firepath.pro/learn/${a.slug}`,
   author: { '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro' },
-  publisher: { '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro' },
+  publisher: { '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro', logo: { '@type': 'ImageObject', url: 'https://www.firepath.pro/icons/icon-512.png' } },
   articleSection: a.badge, inLanguage: 'en-AU',
   image: `https://www.firepath.pro/og/learn/${a.slug}.png`,
 };
 const breadcrumbs = {
   '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Learning Lab', item: 'https://www.firepath.pro/learn/' },
-    { '@type': 'ListItem', position: 2, name: a.heading, item: `https://www.firepath.pro/learn/${a.slug}` },
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.firepath.pro/' },
+    { '@type': 'ListItem', position: 2, name: 'Learning Lab', item: 'https://www.firepath.pro/learn/' },
+    { '@type': 'ListItem', position: 3, name: a.heading, item: `https://www.firepath.pro/learn/${a.slug}` },
   ],
 };
 ---
@@ -88,7 +91,7 @@ const breadcrumbs = {
       )}
 
       <article class="doc-content art-content">
-        <div class="article-body" set:html={a.body}></div>
+        <div class="article-body" set:html={cleanLinks(a.body)}></div>
 
         <p class="art-disclaimer">FirePath is here to help you learn. Nothing on this page is financial advice. Everyone’s situation is different, so for advice on yours, talk to a licensed financial adviser.</p>
       </article>

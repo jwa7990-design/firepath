@@ -19,9 +19,25 @@ interface Props {
 const { title, description, path, shell = 'site', active, footer = true, ogType = 'website', keywords, image = '/og/default.png', noindex = false } = Astro.props;
 const url = new URL(path, 'https://www.firepath.pro').href;
 const imageUrl = new URL(image, 'https://www.firepath.pro').href;
+// Search results show about 60 characters of a title: past that, the brand comes off the end
+// (Google shows the site name beside the result anyway).
+const pageTitle = title.length > 60 ? title.replace(/\s*[|—–]\s*FirePath( Pro)?$/, '') : title;
+// Breadcrumbs for search results (Home › Learning Lab › article), on public pages below the home page.
+const crumbName = title.replace(/\s*[|—–]\s*FirePath( Pro)?$/, '');
+const parts = path.replace(/\/$/, '').split('/').filter(Boolean);
+// (Articles, start pages and the retirement age page carry their own.)
+const ownCrumbs = parts[0] === 'start' || parts[0] === 'retirement-age-calculator' || (parts[0] === 'learn' && parts.length > 1);
+const crumbs = noindex || !parts.length || ownCrumbs ? null : {
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.firepath.pro/' },
+    ...(parts.length > 1 && parts[0] === 'learn' ? [{ '@type': 'ListItem', position: 2, name: 'Learning Lab', item: 'https://www.firepath.pro/learn/' }] : []),
+    { '@type': 'ListItem', position: parts.length > 1 && parts[0] === 'learn' ? 3 : 2, name: crumbName, item: url },
+  ],
+};
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-AU">
 <head>
   <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-Q2QZ662MJ9"></script>
   <script is:inline>
@@ -38,10 +54,11 @@ const imageUrl = new URL(image, 'https://www.firepath.pro').href;
   </script>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>{title}</title>
+  <title>{pageTitle}</title>
   {description && <meta name="description" content={description}/>}
   <link rel="canonical" href={url}/>
-  <meta property="og:title" content={title}/>
+  <meta property="og:title" content={pageTitle}/>
+  {crumbs && <script type="application/ld+json" is:inline set:html={JSON.stringify(crumbs)}></script>}
   {description && <meta property="og:description" content={description}/>}
   <meta property="og:url" content={url}/>
   <meta property="og:type" content={ogType}/>

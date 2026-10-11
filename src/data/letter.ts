@@ -10,4 +10,4 @@ export const LETTER = {
   "name": "Jay",
   "role": "Founder, FirePath · Support worker, Mid North Coast NSW"
 };
-export const HOME_DESCRIPTION = "Money shouldn't feel confusing. FirePath helps everyday Australians get their heads around tax, super and investing, in plain English.";
+export const HOME_DESCRIPTION = "See when work could become optional. A free Australian retirement and FIRE calculator with super, tax and the Age Pension built in, in plain English.";
