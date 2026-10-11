@@ -326,7 +326,9 @@ window.FirePathMoves = (function () {
         const partnerAt67 = s.partnerAge != null ? 67 + (s.partnerAge - s.age) : 67;
         const couple = s.hasPartner ? { partnerEligible: partnerAt67 >= 67, partnerSuper: s.partnerSuper || 0 } : undefined;
         const rentOpts = s.housing === 'renting' && s.rentMonthly > 0 ? { rentFortnight: s.rentMonthly * 12 / 26 } : {};
-        const p = calculateAgePension(assets, 0, s.housing !== 'renting', s.hasPartner, undefined, Object.assign(rentOpts, couple || {})).annualPension;
+        // Still earning from 67 (not "stopped work"): the income test counts that pay, after the Work Bonus.
+        const pay = s.age >= 67 && !s.retired && s.grossIncome > 0 ? s.grossIncome : 0;
+        const p = calculateAgePension(assets, pay, s.housing !== 'renting', s.hasPartner, undefined, Object.assign(rentOpts, couple || {}, pay ? { workIncome: pay } : {})).annualPension;
         if (!(p > 0)) return false;
         return { why: 'From 67, once you stop work, the Age Pension may top up what your savings pay. It’s means-tested on what you own and earn then, so wages reduce it.',
           impact: { dollars: p, text: `${s.age < 67 ? 'From 67, on' : 'On'} what you hold today, about ${money(Math.round(p / 100) * 100)} a year (today's figures)` } };

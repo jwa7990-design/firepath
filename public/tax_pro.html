@@ -480,7 +480,15 @@
     return { partnerIncome: partnerTakeHome > 0 ? estimateGrossFromNet(partnerTakeHome) || 0 : 0, children };
   }
   // Your employer's super rate from your plan, when it's above the 12% guarantee.
-  function employerRate() { return proProfile && proProfile.employer_super_rate > 0.12 ? proProfile.employer_super_rate : null; }
+  // What the saved plan's note says (FirePathEngine.noteFacts): self-employed or stopped work means
+  // no employer super; an employer rate above 12% counts if the plan didn't save one.
+  function noteFacts() { try { return proProfile && window.FirePathEngine && FirePathEngine.noteFacts ? FirePathEngine.noteFacts(proProfile.context || '') : {}; } catch (e) { return {}; } }
+  function employerRate() {
+    const f = noteFacts();
+    if (f.selfEmployed || f.retired) return 0;
+    if (proProfile && proProfile.employer_super_rate > 0.12) return proProfile.employer_super_rate;
+    return f.employerSuperRate > 0.12 ? f.employerSuperRate : null;
+  }
   function taxOpts(reportableSuper) {
     return { help: taxToggles.help, noPrivateCover: taxToggles.noCover, reportableSuper: reportableSuper || 0, senior: seniorStatus(), family: familyMls() };
   }
@@ -595,7 +603,9 @@
       taxCycle = savedCycle;
       document.querySelectorAll('.cycle-btn[data-taxcycle]').forEach(b => b.classList.toggle('active', b.dataset.taxcycle === savedCycle));
       document.getElementById('t1GrossLabel').textContent = TAX_CYCLE_LABELS[savedCycle][0];
-      document.getElementById('t1GrossHint').textContent = TAX_CYCLE_LABELS[savedCycle][1];
+      document.getElementById('t1GrossHint').textContent = noteFacts().retired
+        ? 'You’ve told us you’ve stopped work. Super paid to you from 60 is usually tax-free, so these figures are for any income from work or investments.'
+        : TAX_CYCLE_LABELS[savedCycle][1];
       document.getElementById('t1Gross').value = Math.round(approxAnnualGross / TAX_CYCLE_MULT[savedCycle]);
       document.getElementById('t2Gross').value = approxAnnualGross;
       document.getElementById('t3Gross').value = approxAnnualGross;
@@ -700,7 +710,7 @@
     const sacrifice = parseFloat(document.getElementById('t2Sacrifice').value) || 0;
     if (gross < 1000 || sacrifice <= 0) { document.getElementById('t2Results').style.display = 'none'; return; }
     const carryForward = Math.max(0, parseFloat(document.getElementById('t2CarryForward').value) || 0);
-    const r = calculateSalarySacrifice(gross, sacrifice, undefined, carryForward, { senior: seniorStatus(), employerRate: employerRate() });
+    const r = calculateSalarySacrifice(gross, sacrifice, undefined, carryForward, { senior: seniorStatus(), employerRate: employerRate(), otherConcessional: noteFacts().ownSuperYear || 0 });
     if (!r) return;
     document.getElementById('t2Results').style.display = 'block';
     // The 15% offset on any amount over the cap only cancels the fund's tax on it: it isn't a saving.

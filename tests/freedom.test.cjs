@@ -869,7 +869,7 @@ test('owner decisions (review 2): debt note, buffer wording, no far-off pension 
   const pi = E.planInputsFromProfile(prof), plan = E.freedomPlan(pi);
   const notes = E.headlineNotes(pi, plan, { homeowner: false });
   assert.equal(notes.main.key, 'debt');
-  assert.match(notes.main.text, /doesn't count your \$40,000 of debt\. Paying it off first could push it back to around \d{4}, age \d+\./);
+  assert.match(notes.main.text, /doesn't count your \$40,000 of debt\. Counting it, the date would be around \d{4}, age \d+\./);
   const sv = notes.others.find(n => n.key === 'savings');
   assert.ok(sv && /once your debt is paid off/.test(sv.text), sv && sv.text);
   // Paying it off first is later than ignoring it: about 6 years of saving at 20% (the checker: ~11 months later).
@@ -947,4 +947,44 @@ test('review 4: stopped work — the couple pension by each partner\'s 67, the w
   // No market range and no "ease off saving" point once someone has stopped work.
   assert.equal(E.freedomRange(base), null);
   assert.equal(E.coastPoint(base), null);
+});
+
+
+test('review 5 (20 random clients): own super, partners, the pension line, the mortgage and debt lines', () => {
+  const R = f => JSON.parse(f);
+  const prof = (o) => Object.assign({ pay_cycle: 'monthly', housing_status: 'owning' }, o);
+  // #07/#10: the tap-to-add wording "...and put $8,000 a year into super myself" is read.
+  const f = E.noteFacts("I'm self-employed and put $8,000 a year into super myself.");
+  assert.equal(f.selfEmployed, true); assert.equal(f.ownSuperYear, 8000);
+  // #11/#15: a partner with no super and no pay is still a partner (couple Age Pension rules).
+  const pi11 = E.planInputsFromProfile(prof({ age: 52, take_home_income: 11100, savings_monthly: 2550, current_savings: 63000, savings_type: 'mix', super_balance: 127000,
+    freedom_number: 8550 * 300, partner_age: 55, partner_super: 0, partner_income: 0 }));
+  assert.ok(pi11.partner && pi11.partner.age === 55);
+  // #18: repayments bigger than spending leave the mortgage out of the pension line too, so it shows.
+  const pi18 = E.planInputsFromProfile(prof({ age: 44, take_home_income: 3600, savings_monthly: 100, current_savings: 211000, savings_type: 'offset', super_balance: 103000,
+    freedom_number: 3500 * 300, mortgage_remaining: 500000, offset_amount: 150000, context: 'Mortgage repayments $4,300 a month.' }));
+  const pp18 = E.agePensionPlan(pi18, { homeowner: true });
+  assert.ok(pp18.pensionMax > 0 && pp18.plan.months < E.freedomPlan(pi18).months);
+  // #20: stopped work with a mortgage: the mortgage note stays behind "More about this date".
+  const pi20 = E.planInputsFromProfile(prof({ age: 63, take_home_income: 5200, savings_monthly: 200, current_savings: 220000, savings_type: 'cash', super_balance: 615000,
+    freedom_number: 5000 * 300 * 0.8, retirement_spend_multiplier: 0.8, mortgage_remaining: 610000, context: "Mortgage repayments $4,700 a month. I've stopped work and live off my savings and super." }));
+  const n20 = E.headlineNotes(pi20, E.freedomPlan(pi20), { homeowner: true });
+  assert.ok(n20.others.some(n => n.key === 'mortgage'));
+  // #17: under 50, a debt that barely moves the date doesn't take the main line.
+  const pi17 = E.planInputsFromProfile(prof({ age: 45, take_home_income: 7100, savings_monthly: 2300, current_savings: 399000, savings_type: 'cash', super_balance: 177000,
+    freedom_number: 4800 * 300, debt_total: 32500, context: 'My employer pays 17% super.' }));
+  const n17 = E.headlineNotes(pi17, E.freedomPlan(pi17), { homeowner: true });
+  assert.notEqual(n17.main.key, 'debt');
+  assert.match(n17.others.find(n => n.key === 'debt').text, /Counting it, the date would be around/);
+  // #19: a loan paid off before the date: the note says what saving the repayments could do.
+  const pi19 = E.planInputsFromProfile(prof({ age: 29, take_home_income: 7500, savings_monthly: 550, current_savings: 252000, savings_type: 'cash', super_balance: 72000,
+    freedom_number: 6950 * 300, mortgage_remaining: 445000, context: 'Mortgage repayments $4,350 a month.' }));
+  const p19 = E.freedomPlan(pi19);
+  assert.ok(p19.mortgage.savedAfter && p19.mortgage.savedAfter.months < p19.months - 24);
+  assert.match(E.mortgageNote(p19), /If the repayments went into savings instead, it could be around \d{4}/);
+  // #12: 75 and still earning $136k: the Age Pension idea counts that pay (so it's nil).
+  if (!ctx.FirePathMoves) vm.runInContext(read('js/moves.js'), ctx);
+  const ids = ctx.FirePathMoves.rank(ctx.FirePathMoves.situationFromProfile(prof({ age: 75, take_home_income: 8500, savings_monthly: 1850, current_savings: 318000, savings_type: 'cash',
+    super_balance: 147000, freedom_number: 6650 * 300 * 1.2, retirement_spend_multiplier: 1.2 })), { limit: 20 }).all.map(m => m.id);
+  assert.ok(!ids.includes('age-pension'), ids.join(','));
 });

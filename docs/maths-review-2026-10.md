@@ -239,3 +239,34 @@ Every figure matched the checkers' own month-by-month scripts.
   - Ask FirePath gives the AI the stopped-work line.
 - **The free calculator and Freedom gap** say when someone is covered only because of the Age Pension.
 - **The tap-to-add buttons** update when age changes.
+
+## Round 5 (11 October 2026): 20 random client profiles
+
+Twenty random, realistic profiles were generated with a fixed seed. They cover singles and couples, renters, mortgages and owners, cash, offset, mix and ETF savings, debts, weekly and fortnightly pay, self-employed people, people who have stopped work, and ages 27 to 75.
+
+**Two layers of checking:**
+- Automatic checks on all 20 (more money never makes a date later, no broken text, every page agrees, no wage ideas for someone who has stopped work, the range sits around the date). All held.
+- Five independent checkers, four clients each, worked every figure out from scratch. Every core figure (tax, gross pay, super, freedom number, band, date, mortgage) matched to the month or the dollar.
+
+**Fixed:**
+1. **"…and put $8,000 a year into super myself"** (the self-employed tap-to-add wording) now reads the $8,000. For two clients the date moved 31 months and 13 years.
+2. **A partner with no super and no pay** is still a partner, so the couple's Age Pension rules apply. Client 11 now gets a pension line.
+3. **Repayments bigger than spending** leave the mortgage out of the pension line too (as in the headline), so the line shows (client 18).
+4. **Someone who has stopped work and has a mortgage:** the mortgage note stays behind "More about this date" (client 20).
+5. **The Age Pension line's band:** the pension's value is sized on each band's own number (26.7× in the 50s), not plain 25× (client 04).
+6. **Debt line:**
+   - now worded "Counting it, the date would be around…", because "push it back" read as if paying off debt were bad;
+   - under 50 it leads only when it moves the date a year or more.
+7. **Mortgage note:**
+   - a loan paid off before the date now says what saving the freed-up repayments could do (the date itself still assumes saving stays the same);
+   - there's no "around 2056" when that would be past age 100.
+8. **The Age Pension idea** counts the pay of someone 67+ who is still working (client 12's was $21,900; on their $136k of pay it is nil).
+9. **Tax & Strategy** reads the note: self-employed or stopped work means no employer super, super you add yourself counts towards the cap, and someone who has stopped work is told super from 60 is usually tax-free.
+10. **The cushion line** says "a freedom number of $411K", not "your yearly spending ($411K)".
+
+**Checked and not a bug:** the "If invested" figures some checkers quoted came from the test script's own extra field, not from what the page shows.
+
+**For the owner to decide:** employer super from 67.
+- FirePath assumes none, a cautious default chosen because retirees used to get wages wrongly counted.
+- By law, employer super has no upper age limit (since July 2022). So someone still employed at 67+ gets it, and their date would come sooner.
+- Now that "I've stopped work" can be said in the note, the default could be: employer super continues at any age unless the note says they've stopped work.
