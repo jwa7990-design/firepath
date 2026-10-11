@@ -336,8 +336,8 @@ window.FirePathMoves = (function () {
     { id: 'co-contribution', tier: 5, title: 'The government super co-contribution', plan: 'Free',
       tool: { href: '/compound', label: 'See what it grows to' }, article: 'super-co-contribution',
       applies(s) {
-        // Needs income from work and to be under 71; from 67 FirePath takes income as a pension or investments.
-        if (s.alreadyFree || s.retired || s.age == null || s.age >= 67 || !(s.grossIncome > 0) || !has('coContribution')) return false;
+        // Needs income from work and to be under 71 (not for someone who has stopped work).
+        if (s.alreadyFree || s.retired || s.age == null || s.age >= 71 || !(s.grossIncome > 0) || !has('coContribution')) return false;
         const t = (typeof TAX_CONFIG !== 'undefined' && TAX_CONFIG.coContribution) || null;
         if (!t || s.grossIncome >= t.higher) return false;
         const add = coContribution(s.grossIncome, 1000);

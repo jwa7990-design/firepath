@@ -763,10 +763,14 @@ test('review 3: after stopping, savings are spent first while super keeps earnin
   assert.ok(Math.abs(pp38.plan.months - 76) <= 1, `month ${pp38.plan.months}`);
 });
 
-test('review 3: no employer super from 67; a self-employed partner; one partner not yet 67', () => {
-  // #31/#36: income from 67 is a pension or investments, not wages.
+test('employer super at any age unless stopped work; a self-employed partner; one partner not yet 67', () => {
+  // Owner decision (review 5): employer super has no upper age limit, so a 72-year-old still
+  // working gets it; someone who says they've stopped work doesn't (#31/#36).
   const old = { age: 72, savings: 100000, monthlySavings: 0, target: 3000 * 12 * 25, superBalance: 400000, takeHomeMonthly: 4000, savingsType: 'cash', homeowner: true, noAutoPension: true };
-  assert.equal(E.freedomPlan(old).months, E.freedomPlan(Object.assign({}, old, { takeHomeMonthly: 0 })).months);
+  const working = E.freedomPlan(old), noPay = E.freedomPlan(Object.assign({}, old, { takeHomeMonthly: 0 }));
+  assert.ok(working.months < noPay.months, `${working.months} vs ${noPay.months}`);
+  const stopped = E.freedomPlan(Object.assign({}, old, { retired: true }));
+  assert.equal(stopped.inputs.employerSuperRate, 0);
   // #27: "My partner is self-employed" → no employer super for them.
   const f = E.noteFacts('My partner is self-employed and has no employer super.');
   assert.equal(f.partnerSelfEmployed, true);

@@ -270,3 +270,5 @@ Twenty random, realistic profiles were generated with a fixed seed. They cover s
 - FirePath assumes none, a cautious default chosen because retirees used to get wages wrongly counted.
 - By law, employer super has no upper age limit (since July 2022). So someone still employed at 67+ gets it, and their date would come sooner.
 - Now that "I've stopped work" can be said in the note, the default could be: employer super continues at any age unless the note says they've stopped work.
+
+**Owner decision (11 October 2026):** employer super continues at any age, as the law allows. It stops only when the note says the person has stopped work (or is self-employed).
