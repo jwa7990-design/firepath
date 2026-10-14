@@ -1,7 +1,8 @@
 ---
 /**
  * The homepage's live freedom path: five inputs, the freedom age, the path drawn as an
- * SVG timeline and three what-if options. Markup only. public/js/home-path.js does the
+ * SVG timeline and three what-if options. Markup only. The page's headline goes in the
+ * "intro" slot, above the inputs (left column on wide screens; the result panel sits right). public/js/home-path.js does the
  * maths (FirePathEngine.freedomPlan + freedomRange); the shared renderer
  * public/js/freedom-path.js (FirePathViz) draws the path.
  * The example person below is also the fallback the script resets to.
@@ -20,7 +21,11 @@ const FIELDS = [
 ];
 ---
 <div class="hp-calc" id="hpCalc" data-example={JSON.stringify(EXAMPLE)}>
-  <form class="hp-inputs" id="hpForm" novalidate aria-describedby="hpWho">
+  <div class="hp-calc-side">
+  <slot name="intro"/>
+  <h2 class="hp-calc-q" id="hpCalcQ">When could you stop working?</h2>
+  <p class="hp-calc-sub"><span class="hp-wide">Type a few numbers to see the year work could become optional, and the path to get there. </span>Free, no account needed.</p>
+  <form class="hp-inputs" id="hpForm" novalidate aria-labelledby="hpCalcQ" aria-describedby="hpWho">
     <div class="hp-who">
       <p class="hp-who-label" id="hpWho" aria-live="polite" aria-atomic="true">
         <span class="hp-who-ex" id="hpWhoEx"><span class="hp-who-tag">Example person</span> <span class="hp-who-text">{exampleLine}</span></span>
@@ -41,12 +46,14 @@ const FIELDS = [
     </div>
     <p class="hp-today">All in today’s dollars.</p>
   </form>
+  </div>
 
   <div class="hp-out">
     <div class="hp-result" id="hpResult">
       <p class="hp-big" id="hpBig">Work could become optional at <strong class="hp-age num" id="hpAgeOut">50</strong></p>
       <p class="hp-when num" id="hpWhen">in 2044 · 17 years, 8 months from now</p>
       <p class="hp-range num" id="hpRange"></p>
+      <p class="hp-est">An estimate on today’s rules and a 7% return after inflation, not a promise. <a href="/faq#q-accurate">How accurate is this?</a></p>
     </div>
 
     <!-- The path: drawn by public/js/freedom-path.js (FirePathViz), styles in public/css/freedom-path.css -->

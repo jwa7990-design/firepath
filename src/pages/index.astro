@@ -2,17 +2,20 @@
 /**
  * Homepage. The freedom date and the path to it are the brand, so the page opens on a
  * live calculator (src/components/FreedomPath.astro + public/js/home-path.js, using the
- * shared engine), then five short sections, Jay's letter and the "Start where you are"
- * doors. Jay's letter comes word for word from src/data/letter.ts.
+ * shared engine), then three sections (01 Understand, 02 Explore, 03 Improve) and Jay's
+ * letter. Jay's letter comes word for word from src/data/letter.ts.
  */
 import Base from '../layouts/Base.astro';
 import FreedomPath from '../components/FreedomPath.astro';
 import { LETTER, HOME_DESCRIPTION } from '../data/letter';
 import { ARTICLES, FIRST_READS, type Article } from '../lib/learn';
 import { STARTS } from '../data/starts';
-import { PRO_PRICE, TRIAL_FINE_PRINT } from '../data/plans';
+import { PRO_PRICE, TRIAL_FINE_PRINT, FREE_FEATURES, PRO_FEATURES } from '../data/plans';
 import '../styles/home-path.css';
 
+// Free vs Pro, short: straight from plans.ts (the single source), first lines only.
+const FREE_SHORT = [FREE_FEATURES[0], FREE_FEATURES[1], FREE_FEATURES[4], 'The Withdrawal planner, Freedom gap and Compound interest', FREE_FEATURES[8]];
+const PRO_SHORT = PRO_FEATURES.slice(0, 6).map(([title]) => title);
 const firstReads = FIRST_READS.map(s => ARTICLES.find(a => a.slug === s)).filter((a): a is Article => !!a);
 const TOOLS = [
   { href: '/withdrawal', name: 'Withdrawal planner', line: 'See if your money could last, across 2,000 possible market outcomes.' },
@@ -35,25 +38,26 @@ const SCENARIOS = [
     { '@context': 'https://schema.org', '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro/', logo: 'https://www.firepath.pro/icons/icon-512.png', email: 'hello@firepath.pro', areaServed: 'AU' },
     { '@context': 'https://schema.org', '@type': 'WebSite', name: 'FirePath', url: 'https://www.firepath.pro/', inLanguage: 'en-AU' },
   ])}></script>
-  <main id="main" class="hp">
+  <main id="main" class="hp is-home">
 
-    <!-- Hero: the live freedom path -->
-    <header class="hp-hero">
+    <!-- Hero: the brand line, then the live freedom path (inputs left, result panel right) -->
+    <header class="hp-hero is-home">
       <div class="hp-wrap">
-        <div class="hp-hero-head">
-          <h1 class="hp-h1">When could you stop working?</h1>
-          <p class="hp-lead">Type a few numbers. See the year work could become optional, and the path to get there. Free, Australian, no account needed.</p>
-        </div>
-        <FreedomPath/>
+        <FreedomPath>
+          <div slot="intro" class="hp-hero-head">
+            <h1 class="hp-h1">Money shouldn’t feel confusing.</h1>
+            <p class="hp-lead">FirePath helps everyday Australians make sense of saving, super, tax and investing, in plain English.</p>
+          </div>
+        </FreedomPath>
       </div>
     </header>
 
-    <!-- 01 Find your number: the one dark band, with a spending slider tied to the hero -->
+    <!-- 01 Understand: your number (the one dark band), then why 60 matters with the Learning Lab picks -->
     <section class="hp-number" aria-labelledby="s1-title">
       <div class="hp-wrap hp-number-grid" data-reveal>
-        <p class="hp-num">01</p>
+        <p class="hp-num">01 · Understand</p>
         <div class="hp-number-copy">
-          <h2 id="s1-title" class="hp-h2">Find your number</h2>
+          <h2 id="s1-title" class="hp-h2">Your freedom number</h2>
           <p class="hp-number-big num"><span data-hp-number>$1,250,000</span></p>
           <p class="hp-number-sum num">25 × <span data-hp-spend>$50,000</span> a year</p>
           <div class="hp-slide">
@@ -63,21 +67,30 @@ const SCENARIOS = [
           </div>
         </div>
         <div class="hp-number-text">
-          <p>Your freedom number is about 25 times what you spend in a year. Drawn down slowly, about 4% a year, that amount has lasted 30 years or more in most past markets. Stopping work before 60 means it has to last longer, so FirePath plans on a little more then: about 26.7 times in your 50s and 28.6 times before 50. It counts your savings and your super together, and it moves with the spending you type in above.</p>
+          <p>About 25 times what you spend in a year. Drawn down slowly, about 4% a year, that has lasted 30 years or more in most past markets. Stopping before 60 means it has to last longer, so FirePath plans on a little more then.</p>
           <p class="hp-number-rule num">Every $1,000 a year less spending lowers it by $25,000.</p>
         </div>
       </div>
     </section>
 
-    <!-- 02 See your path: the visitor's own path, drawn larger and annotated -->
-    <section class="hp-sec hp-story" aria-labelledby="s2-title">
+    <section class="hp-sec hp-story" aria-labelledby="s1b-title">
       <div class="hp-wrap hp-two" data-reveal>
         <div>
-          <p class="hp-num">02</p>
-          <h2 id="s2-title" class="hp-h2">See your path</h2>
-          <p class="hp-body">In Australia most people can’t get to their super until 60. So if you stop work earlier, the money you hold outside super pays the way until then. That’s the bridge.</p>
-          <p class="hp-body">From 60 your super joins in and takes over. FirePath checks both parts: that your savings last until 60, and that savings and super together are enough after that.</p>
+          <h2 id="s1b-title" class="hp-h2">Why 60 matters</h2>
+          <p class="hp-body">Most Australians can’t get to their super until 60. Stop earlier, and the money you hold outside super pays the way until then. That’s the bridge. From 60 your super joins in, and FirePath checks both parts.</p>
           <a href="/learn/two-phase-freedom-timeline" class="hp-link">How the two parts work →</a>
+          <div class="hp-reads-box">
+            <p class="hp-fig-tag">Make sense of it: {ARTICLES.length} short guides in the Learning Lab</p>
+            <ol class="hp-reads is-compact">
+              {firstReads.map(a => (
+                <li><a href={`/learn/${a.slug}`} class="hp-read">
+                  <span class="hp-read-title">{a.heading}</span>
+                  <span class="hp-read-meta num">{a.readMins} min read</span>
+                </a></li>
+              ))}
+            </ol>
+            <a href="/learn/" class="hp-link">Browse the Learning Lab →</a>
+          </div>
         </div>
         <figure class="hp-story-fig" id="hpStory">
           <p class="hp-fig-tag" id="hpStoryTag">Your path, from the numbers above</p>
@@ -87,13 +100,13 @@ const SCENARIOS = [
       </div>
     </section>
 
-    <!-- 03 Change the variables: three live what-ifs on the visitor's numbers, then the tools -->
-    <section class="hp-sec" aria-labelledby="s3-title">
+    <!-- 02 Explore: three live what-ifs on the visitor's numbers, the spread of possible futures, then the tools -->
+    <section class="hp-sec hp-explore" aria-labelledby="s2-title">
       <div class="hp-wrap hp-side" data-reveal>
         <div class="hp-side-head">
-          <p class="hp-num">03</p>
-          <h2 id="s3-title" class="hp-h2">Change the variables</h2>
-          <p class="hp-body">Three things that happen in real life, worked out on the numbers above. Then tools people find helpful for the questions that come next. No account needed.</p>
+          <p class="hp-num">02 · Explore</p>
+          <h2 id="s2-title" class="hp-h2">Change the variables</h2>
+          <p class="hp-body">Things that happen in real life, worked out on the numbers above. No account needed.</p>
         </div>
         <div class="hp-side-main">
           <p class="hp-fig-tag">On your numbers <span class="num" id="hpScenNow"></span></p>
@@ -107,7 +120,19 @@ const SCENARIOS = [
             ))}
           </ul>
           <p class="hp-scen-note" id="hpScenNote">General information only. The year off pauses saving for 12 months while what you already have keeps growing.</p>
-          <p class="hp-fig-tag is-tools">Tools</p>
+        </div>
+      </div>
+      <div class="hp-wrap" data-reveal>
+        <figure class="hp-fut" id="hpFut">
+          <div class="hp-fut-head">
+            <p class="hp-fut-title num">2,000 possible futures</p>
+            <p class="hp-fut-sub" id="hpFutSub">Markets go up and down, so FirePath shows a likely range, not just one year. When work could become optional on your numbers, in 100 of the 2,000 market outcomes we test. Each dot is one outcome.</p>
+          </div>
+          <svg class="hp-fut-svg" id="hpFutSvg" aria-hidden="true" focusable="false" width="100%" height="180"></svg>
+          <figcaption class="hp-fut-cap num" id="hpFutCap" aria-live="polite"></figcaption>
+        </figure>
+        <div class="hp-tools">
+          <p class="hp-fig-tag is-tools">Tools for the questions that come next</p>
           <ul class="hp-rules">
             {TOOLS.map(t => (
               <li><a href={t.href} class="hp-rule">
@@ -121,55 +146,46 @@ const SCENARIOS = [
       </div>
     </section>
 
-    <!-- 04 Understand why: the spread of possible futures, then the Learning Lab -->
-    <section class="hp-sec hp-why" aria-labelledby="s4-title">
-      <div class="hp-wrap" data-reveal>
-        <div class="hp-learn-head">
-          <div>
-            <p class="hp-num">04</p>
-            <h2 id="s4-title" class="hp-h2">Understand why</h2>
-          </div>
-          <div class="hp-learn-side">
-            <p class="hp-body">Markets go up and down, so we show the likely range.</p>
-            <a href="/assumptions" class="hp-link">How we calculate →</a>
-          </div>
+    <!-- 03 Improve: questions worth looking into next, and Pro (free vs Pro from plans.ts, an example of Your plan) -->
+    <section class="hp-sec hp-doors" aria-labelledby="s3-title">
+      <div class="hp-wrap hp-side" data-reveal>
+        <div class="hp-side-head">
+          <p class="hp-num">03 · Improve</p>
+          <h2 id="s3-title" class="hp-h2">Start where you are</h2>
+          <p class="hp-body">Options people look into, and the next question worth asking, wherever you’re at.</p>
         </div>
-        <figure class="hp-fut" id="hpFut">
-          <div class="hp-fut-head">
-            <p class="hp-fut-title num">2,000 possible futures</p>
-            <p class="hp-fut-sub" id="hpFutSub">When work could become optional on your numbers, in 100 of the 2,000 market outcomes we test. Each dot is one outcome.</p>
-          </div>
-          <svg class="hp-fut-svg" id="hpFutSvg" aria-hidden="true" focusable="false" width="100%" height="180"></svg>
-          <figcaption class="hp-fut-cap num" id="hpFutCap" aria-live="polite"></figcaption>
-        </figure>
-        <div class="hp-reads-head">
-          <p class="hp-body">{ARTICLES.length} short guides in the Learning Lab, in plain English. Here are three to begin with.</p>
-        </div>
-        <ol class="hp-reads">
-          {firstReads.map(a => (
-            <li><a href={`/learn/${a.slug}`} class="hp-read">
-              <span class="hp-read-title">{a.heading}</span>
-              <span class="hp-read-meta num">{a.readMins} min read</span>
+        <ul class="hp-rules">
+          {STARTS.map(d => (
+            <li><a href={`/start/${d.slug}`} class="hp-rule">
+              <span class="hp-rule-name">{d.door}</span>
+              <span class="hp-rule-line">{d.doorLine}</span>
+              <span class="hp-rule-go" aria-hidden="true">→</span>
             </a></li>
           ))}
-        </ol>
-        <a href="/learn/" class="hp-link">Browse the Learning Lab →</a>
+        </ul>
       </div>
     </section>
 
-    <!-- 05 Keep moving: Pro, with a clearly labelled example of the Your plan card -->
-    <section class="hp-sec hp-pro" aria-labelledby="s5-title">
+    <section class="hp-sec hp-pro" aria-labelledby="s3b-title">
       <div class="hp-wrap hp-pro-grid" data-reveal>
         <div>
-          <p class="hp-num">05</p>
-          <h2 id="s5-title" class="hp-h2">Keep moving</h2>
-          <p class="hp-body">Get to know your numbers free, no account needed. When you want FirePath to keep up with you, Pro saves your plan, lays out areas you could research further, shows your progress since last time, and lets you Ask FirePath about your own numbers.</p>
-          <p class="hp-pro-price num"><strong>{PRO_PRICE.amount} a month</strong> after a {PRO_PRICE.trialDays}-day free trial.</p>
+          <h2 id="s3b-title" class="hp-h2">Free to explore. Pro when you want it to keep up.</h2>
+          <div class="hp-plans">
+            <div>
+              <p class="hp-plans-head">Free, no account</p>
+              <ul class="hp-plans-list">{FREE_SHORT.map(f => <li>{f}</li>)}</ul>
+            </div>
+            <div>
+              <p class="hp-plans-head">Pro adds</p>
+              <ul class="hp-plans-list">{PRO_SHORT.map(f => <li>{f}</li>)}</ul>
+            </div>
+          </div>
+          <p class="hp-pro-price num"><strong>{PRO_PRICE.amount} a month</strong> after a {PRO_PRICE.trialDays}-day free trial. Cancel any time.</p>
           <p class="hp-pro-fine">{TRIAL_FINE_PRINT}</p>
           <p class="hp-pro-links"><a href="/upgrade" class="hp-link">Try Pro free for {PRO_PRICE.trialDays} days →</a><a href="/pricing" class="hp-link is-quiet">Compare plans</a></p>
         </div>
         <figure class="hp-plan" data-hp-once aria-label="Example of Your plan (Pro), with made-up numbers">
-          <figcaption class="hp-fig-tag">Example of Your plan (Pro)</figcaption>
+          <figcaption class="hp-fig-tag">Example of Your plan (Pro), made-up numbers</figcaption>
           <div class="hp-plan-card">
             <div class="hp-plan-head">
               <span class="hp-plan-title">Your plan</span>
@@ -214,24 +230,6 @@ const SCENARIOS = [
       </div>
     </section>
 
-    <!-- Start where you are -->
-    <section class="hp-sec hp-doors" aria-labelledby="doors-title">
-      <div class="hp-wrap hp-side" data-reveal>
-        <div class="hp-side-head">
-          <h2 id="doors-title" class="hp-h2 is-small">Start where you are</h2>
-          <p class="hp-body">Questions people ask themselves, and tools that help, wherever you’re at.</p>
-        </div>
-        <ul class="hp-rules">
-          {STARTS.map(d => (
-            <li><a href={`/start/${d.slug}`} class="hp-rule">
-              <span class="hp-rule-name">{d.door}</span>
-              <span class="hp-rule-line">{d.doorLine}</span>
-              <span class="hp-rule-go" aria-hidden="true">→</span>
-            </a></li>
-          ))}
-        </ul>
-      </div>
-    </section>
   </main>
 
   <script is:inline src="/js/tax-engine.js"></script>
