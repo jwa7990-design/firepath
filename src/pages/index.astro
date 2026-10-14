@@ -2,13 +2,14 @@
 /**
  * Homepage. The freedom date and the path to it are the brand, so the page opens on a
  * live calculator (src/components/FreedomPath.astro + public/js/home-path.js, using the
- * shared engine), then three sections (01 Understand, 02 Explore, 03 Improve) and Jay's
- * letter. Jay's letter comes word for word from src/data/letter.ts.
+ * shared engine), then four calm sections: the timeline, where to start, free vs Pro and
+ * Jay's letter. One picture, one job per screen; everything else lives on its own page.
+ * Jay's letter comes word for word from src/data/letter.ts.
  */
 import Base from '../layouts/Base.astro';
 import FreedomPath from '../components/FreedomPath.astro';
 import { LETTER, HOME_DESCRIPTION } from '../data/letter';
-import { ARTICLES, FIRST_READS, type Article } from '../lib/learn';
+import { ARTICLES } from '../lib/learn';
 import { STARTS } from '../data/starts';
 import { PRO_PRICE, TRIAL_FINE_PRINT, FREE_FEATURES, PRO_FEATURES } from '../data/plans';
 import '../styles/home-path.css';
@@ -16,18 +17,11 @@ import '../styles/home-path.css';
 // Free vs Pro, short: straight from plans.ts (the single source), first lines only.
 const FREE_SHORT = [FREE_FEATURES[0], FREE_FEATURES[1], FREE_FEATURES[4], 'The Withdrawal planner, Freedom gap and Compound interest', FREE_FEATURES[8]];
 const PRO_SHORT = PRO_FEATURES.slice(0, 6).map(([title]) => title);
-const firstReads = FIRST_READS.map(s => ARTICLES.find(a => a.slug === s)).filter((a): a is Article => !!a);
 const TOOLS = [
-  { href: '/withdrawal', name: 'Withdrawal planner', line: 'See if your money could last, across 2,000 possible market outcomes.' },
-  { href: '/hearmeout', name: 'What if…?', line: 'Sell the house, a lump sum, redundancy, downsizing, rent vs invest.' },
-  { href: '/freedom-gap', name: 'Freedom gap', line: 'What part-time work and the Age Pension could add.' },
-  { href: '/compound', name: 'Compound interest', line: 'What regular saving grows into.' },
-];
-// Section 03's live what-ifs. public/js/home-path.js works each one out on the hero's numbers.
-const SCENARIOS = [
-  { key: 'windfall', name: 'A $20,000 windfall invested', href: '/hearmeout?scenario=lump', go: 'What if…?' },
-  { key: 'yearoff', name: 'Taking a year off at no saving', href: '/hearmeout', go: 'What if…?' },
-  { key: 'spendless', name: 'Spending $5,000 a year less', href: '/firepath', go: 'Find my freedom date' },
+  { href: '/withdrawal', name: 'Withdrawal planner' },
+  { href: '/hearmeout', name: 'What if…?' },
+  { href: '/freedom-gap', name: 'Freedom gap' },
+  { href: '/compound', name: 'Compound interest' },
 ];
 ---
 <Base title="FirePath: Retirement & FIRE Planner for Australians" description={HOME_DESCRIPTION} path="/">
@@ -52,27 +46,6 @@ const SCENARIOS = [
       </div>
     </header>
 
-    <!-- 01 Understand: your number (the one dark band), then why 60 matters with the Learning Lab picks -->
-    <section class="hp-number" aria-labelledby="s1-title">
-      <div class="hp-wrap hp-number-grid" data-reveal>
-        <p class="hp-num">01 · Understand</p>
-        <div class="hp-number-copy">
-          <h2 id="s1-title" class="hp-h2">Your freedom number</h2>
-          <p class="hp-number-big num"><span data-hp-number>$1,250,000</span></p>
-          <p class="hp-number-sum num">25 × <span data-hp-spend>$50,000</span> a year</p>
-          <div class="hp-slide">
-            <label for="hpSpendSlide">Move your yearly spending</label>
-            <input type="range" id="hpSpendSlide" min="30000" max="150000" step="1000" value="50000" aria-valuetext="$50,000 a year"/>
-            <div class="hp-slide-scale num" aria-hidden="true"><span>$30k</span><span>$150k</span></div>
-          </div>
-        </div>
-        <div class="hp-number-text">
-          <p>About 25 times what you spend in a year. Drawn down slowly, about 4% a year, that has lasted 30 years or more in most past markets. Stopping before 60 means it has to last longer, so FirePath plans on a little more then.</p>
-          <p class="hp-number-rule num">Every $1,000 a year less spending lowers it by $25,000.</p>
-        </div>
-      </div>
-    </section>
-
     <section class="hp-sec hp-story" aria-labelledby="s1b-title">
       <div class="hp-wrap" data-reveal>
         <div class="hp-tl-head">
@@ -85,64 +58,6 @@ const SCENARIOS = [
         </figure>
         <ol class="hp-stages" id="hpStages" aria-label="Your path, stage by stage"></ol>
         <p class="hp-tl-links"><a href="/learn/two-phase-freedom-timeline" class="hp-link">How the two parts work →</a><a href="/assumptions" class="hp-link is-quiet">How we calculate</a></p>
-        <div class="hp-reads-box">
-          <p class="hp-fig-tag">Make sense of it: {ARTICLES.length} short guides in the Learning Lab</p>
-          <ol class="hp-reads is-compact">
-            {firstReads.map(a => (
-              <li><a href={`/learn/${a.slug}`} class="hp-read">
-                <span class="hp-read-title">{a.heading}</span>
-                <span class="hp-read-meta num">{a.readMins} min read</span>
-              </a></li>
-            ))}
-          </ol>
-          <a href="/learn/" class="hp-link">Browse the Learning Lab →</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- 02 Explore: three live what-ifs on the visitor's numbers, the spread of possible futures, then the tools -->
-    <section class="hp-sec hp-explore" aria-labelledby="s2-title">
-      <div class="hp-wrap hp-side" data-reveal>
-        <div class="hp-side-head">
-          <p class="hp-num">02 · Explore</p>
-          <h2 id="s2-title" class="hp-h2">Change the variables</h2>
-          <p class="hp-body">Things that happen in real life, worked out on the numbers above. No account needed.</p>
-        </div>
-        <div class="hp-side-main">
-          <p class="hp-fig-tag">On your numbers <span class="num" id="hpScenNow"></span></p>
-          <ul class="hp-scens" id="hpScens">
-            {SCENARIOS.map(sc => (
-              <li><a href={sc.href} class="hp-scen" data-scen={sc.key}>
-                <span class="hp-scen-name">{sc.name}</span>
-                <span class="hp-scen-out num"><span aria-hidden="true">→ </span><span data-out>–</span></span>
-                <span class="hp-scen-meta"><span data-delta></span><span class="hp-scen-go">{sc.go} →</span></span>
-              </a></li>
-            ))}
-          </ul>
-          <p class="hp-scen-note" id="hpScenNote">General information only. The year off pauses saving for 12 months while what you already have keeps growing.</p>
-        </div>
-      </div>
-      <div class="hp-wrap" data-reveal>
-        <figure class="hp-fut" id="hpFut">
-          <div class="hp-fut-head">
-            <p class="hp-fut-title num">2,000 possible futures</p>
-            <p class="hp-fut-sub" id="hpFutSub">Markets go up and down, so FirePath shows a likely range, not just one year. When work could become optional on your numbers, in a sample of 100 market outcomes. Each dot is one outcome.</p>
-          </div>
-          <svg class="hp-fut-svg" id="hpFutSvg" aria-hidden="true" focusable="false" width="100%" height="180"></svg>
-          <figcaption class="hp-fut-cap num" id="hpFutCap" aria-live="polite"></figcaption>
-        </figure>
-        <div class="hp-tools">
-          <p class="hp-fig-tag is-tools">Tools for the questions that come next</p>
-          <ul class="hp-rules">
-            {TOOLS.map(t => (
-              <li><a href={t.href} class="hp-rule">
-                <span class="hp-rule-name">{t.name}</span>
-                <span class="hp-rule-line">{t.line}</span>
-                <span class="hp-rule-go" aria-hidden="true">→</span>
-              </a></li>
-            ))}
-          </ul>
-        </div>
       </div>
     </section>
 
@@ -150,7 +65,6 @@ const SCENARIOS = [
     <section class="hp-sec hp-doors" aria-labelledby="s3-title">
       <div class="hp-wrap hp-side" data-reveal>
         <div class="hp-side-head">
-          <p class="hp-num">03 · Improve</p>
           <h2 id="s3-title" class="hp-h2">Start where you are</h2>
           <p class="hp-body">Options people look into, and the next question worth asking, wherever you’re at.</p>
         </div>
@@ -164,10 +78,13 @@ const SCENARIOS = [
           ))}
         </ul>
       </div>
+      <div class="hp-wrap">
+        <p class="hp-more">More free tools: {TOOLS.map((t, i) => <>{i > 0 && <span aria-hidden="true"> · </span>}<a href={t.href}>{t.name}</a></>)}<span aria-hidden="true"> · </span><a href="/learn/">{ARTICLES.length} guides in the Learning Lab</a></p>
+      </div>
     </section>
 
     <section class="hp-sec hp-pro" aria-labelledby="s3b-title">
-      <div class="hp-wrap hp-pro-grid" data-reveal>
+      <div class="hp-wrap" data-reveal>
         <div>
           <h2 id="s3b-title" class="hp-h2">Free to explore. Pro when you want it to keep up.</h2>
           <div class="hp-plans">
@@ -184,21 +101,6 @@ const SCENARIOS = [
           <p class="hp-pro-fine">{TRIAL_FINE_PRINT}</p>
           <p class="hp-pro-links"><a href="/upgrade" class="hp-link">Try Pro free for {PRO_PRICE.trialDays} days →</a><a href="/pricing" class="hp-link is-quiet">Compare plans</a></p>
         </div>
-        <figure class="hp-plan" data-hp-once aria-label="Example of Your plan (Pro), with made-up numbers">
-          <figcaption class="hp-fig-tag">Example of Your plan (Pro), made-up numbers</figcaption>
-          <div class="hp-plan-card">
-            <div class="hp-plan-head">
-              <span class="hp-plan-title">Your plan</span>
-              <span class="hp-plan-count num">2 of 5 done</span>
-            </div>
-            <div class="hp-plan-bar" aria-hidden="true"><span></span></div>
-            <ul class="hp-plan-rows">
-              <li><span>Having a three-month cash buffer</span><span class="hp-plan-st is-done">Done</span></li>
-              <li><span>Saving a little more each week</span><span class="hp-plan-st is-doing">On it</span></li>
-            </ul>
-            <p class="hp-plan-moved num">Since March your date moved 8 months closer.</p>
-          </div>
-        </figure>
       </div>
     </section>
 

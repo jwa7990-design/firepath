@@ -1,19 +1,15 @@
-/* FirePath homepage: the live freedom path, and the story sections that reuse it.
+/* FirePath homepage: the live calculator and the timeline under it.
  *
  * Reads the five hero inputs, works out the freedom age with the shared engine
  * (FirePathEngine.freedomPlan, the "bridge to 60" rule) and its likely range
  * (freedomRange, 2,000 possible market outcomes), then:
- *   - draws the hero path (it draws itself in once on load, then glides on every change),
- *   - counts every number on the page to its new value,
- *   - works out the hero's what-if options and section 03's three life scenarios,
- *   - keeps section 01's spending slider and the hero's spending box in step,
- *   - draws the visitor's journey (From here to a freer future) and the spread of outcomes.
- * The hero path itself is drawn by the shared renderer (public/js/freedom-path.js,
- * FirePathViz), the same one the calculator, retirement age and Your Path pages use.
- * All motion runs through its one requestAnimationFrame loop (FirePathViz.loop), which
- * stops when nothing is moving. The idle touches (a slow pulse on the freedom marker,
- * a few dots drifting along the bridge) only run while the path is on screen and the
- * tab is visible. prefers-reduced-motion: no drawing in, no travel, no pulse, no drift.
+ *   - counts the result's numbers to their new values,
+ *   - keeps the freedom number line in step with the spending box,
+ *   - works out the three what-if options and says each one in words,
+ *   - draws the visitor's journey (From here to a freer future).
+ * Tweens share one requestAnimationFrame loop (FirePathViz.loop from freedom-path.js),
+ * which stops when nothing is moving. prefers-reduced-motion: numbers land at once and
+ * the timeline appears complete.
  * Needs tax-engine.js, calculations.js, financial-engine.js and freedom-path.js first.
  * Runs in the browser only; nothing typed here is sent anywhere.
  */
@@ -133,36 +129,9 @@
   let base = null;
   const whenText = v => `in ${Math.round(v[0])} · ${span(v[1], true)} from now`;
 
-  // ── The hero path ───────────────────────────────────────
-  // Drawn by FirePathViz (public/js/freedom-path.js). On load the line draws itself in
-  // once (only if the hero is on screen when the page opens) while the big age counts up;
-  // the range sentence fades in with the band. The hooks below keep the numbers in step.
-  const pathFig = $('hpPath');
+  // ── The result ──────────────────────────────────────────
   const ageOut = () => $('hpAgeOut');
   const when = $('hpWhen');
-  const viz = Viz && pathFig ? Viz.mount(pathFig, {
-    animateIn: 'onload',
-    watch: root,                  // the intro and idle motion follow the whole calculator, as before
-    onIntro(phase, info) {
-      if (phase === 'seed') {
-        if (!base || base.status !== 'ok') return;
-        root.classList.add('is-intro');
-        const a = ageOut();
-        untween(a); untween(when);
-        tween(a, 'age', [base.inputs.age], ageText);
-        tween(when, 'when', [THIS_YEAR, 0], whenText);
-      } else if (phase === 'play') {
-        tween(ageOut(), 'age', [base.plan.freedomAge], ageText, info.duration);
-        tween(when, 'when', [base.plan.freedomYear, base.plan.months], whenText, info.duration);
-      } else if (phase === 'reveal') {
-        setRange(base); root.classList.remove('is-intro');
-      } else if (phase === 'end') {
-        root.classList.remove('is-intro');
-        if (base) showResult(base);
-      }
-    }
-  }) : null;
-  const introOn = () => !!(viz && viz.isIntro());
 
   // ── Wiring ──────────────────────────────────────────────
   const big = $('hpBig'), rangeOut = $('hpRange');
@@ -210,7 +179,6 @@
     }
     const p = s.plan;
     if (!ageOut()) setBig('Work could become optional at <strong class="hp-age num" id="hpAgeOut"></strong>');
-    if (introOn()) return;        // the load animation counts these in
     tween(ageOut(), 'age', [p.freedomAge], ageText);
     tween(when, 'when', [p.freedomYear, p.months], whenText);
     setRange(s);
@@ -231,7 +199,7 @@
   function recompute() {
     const v = inputsNow();
     Object.values(ids).forEach(id => $(id).removeAttribute('aria-invalid'));
-    clearPreview(false);
+    clearPreview();
     const bad = invalidMessage(v);
     let s;
     if (bad) {
@@ -244,7 +212,6 @@
     base = s;
     showResult(s);
     updateFreedomNumber(v.spend);
-    syncSlider(v.spend);
     // Options
     chipScen = {};
     whatIf.hidden = s.status === 'invalid' || s.status === 'free';
@@ -253,36 +220,24 @@
       chipScen[c.dataset.chip] = s.status === 'invalid' || s.status === 'free' ? null : scenario(def.tweak(s.inputs), false);
       chipText(c, chipScen[c.dataset.chip]);
     });
-    paint(s, null);
     story.update(s);
-    scenarios(s);
-    futures.update(s);
   }
 
-  // The path shows `s`; with an option previewed, `alt` is shown and your own date stays as a ghost.
-  function paint(s, alt) {
-    if (!viz) return;
-    const opts = { age: s.inputs.age, message: s.message };
-    if (alt) { opts.preview = alt.plan || null; opts.previewRange = alt.range || null; }
-    viz.update(s.plan || null, s.range || null, opts);
-  }
-
-  function clearPreview(repaint) {
+  function clearPreview() {
     if (!active) return;
     active = null;
     chips.forEach(c => c.setAttribute('aria-pressed', 'false'));
     preview.textContent = '';
-    if (repaint && base) paint(base, null);
   }
 
   function choose(c) {
     const key = c.dataset.chip;
-    if (active === key) { clearPreview(true); return; }
+    if (active === key) { clearPreview(); return; }
     const s = chipScen[key];
     if (!s || !base) return;
     active = key;
     chips.forEach(o => o.setAttribute('aria-pressed', String(o === c)));
-    // The previewed option, with its own range, drawn on the path; your own date stays as a ghost.
+    // The previewed option, worked out in full, then said in words under the options.
     const full = s.status === 'ok' ? scenario(s.inputs, true) : s;
     const label = CHIPS[key].label;
     let msg;
@@ -296,7 +251,6 @@
       msg = `${label}: that would make work optional now.`;
     } else msg = '';
     preview.textContent = msg + (msg ? ' Tap again to go back.' : '');
-    paint(base, full);
   }
 
   chips.forEach(c => c.addEventListener('click', () => choose(c)));
@@ -336,33 +290,13 @@
     });
   });
 
-  // ── 01 Find your number: big figure + spending slider, in step with the hero ──
+  // ── The freedom number line under the result, in step with the spending box ──
   const numEl = document.querySelector('[data-hp-number]'), spendEl = document.querySelector('[data-hp-spend]');
-  const slider = $('hpSpendSlide');
-  let sliding = false;
   function updateFreedomNumber(spend, dur) {
     if (!numEl || !spendEl || !Number.isFinite(spend) || !(spend > 0)) return;
     // Rounded to the nearest $1,000 while it counts, exact when it lands.
     tween(numEl, 'money', [spend * 25], v => money(v[0] === spend * 25 ? v[0] : Math.round(v[0] / 1000) * 1000), dur);
     tween(spendEl, 'money', [spend], v => money(v[0] === spend ? v[0] : Math.round(v[0] / 100) * 100), dur);
-  }
-  function syncSlider(spend) {
-    if (!slider || sliding || !Number.isFinite(spend) || !(spend > 0)) return;
-    slider.value = String(clamp(Math.round(spend / 1000) * 1000, 30000, 150000));
-    slider.setAttribute('aria-valuetext', `${money(spend)} a year`);
-  }
-  if (slider) {
-    slider.addEventListener('input', () => {
-      const v = Number(slider.value);
-      sliding = true;
-      $(ids.spend).value = fmtNum(v);
-      slider.setAttribute('aria-valuetext', `${money(v)} a year`);
-      markEdited(true);
-      updateFreedomNumber(v, 260);
-      later();
-    });
-    slider.addEventListener('change', () => { sliding = false; });
-    slider.addEventListener('blur', () => { sliding = false; });
   }
 
   // ── Drawing helpers for the story sections ──────────────
@@ -617,150 +551,6 @@
     };
   })();
 
-  // ── 03 Change the variables: three life scenarios on the hero's numbers ──
-  const scenEls = Array.from(document.querySelectorAll('.hp-scen'));
-  const scenNow = $('hpScenNow'), scenNote = $('hpScenNote');
-  const SCEN = {
-    windfall: i => plan(Object.assign({}, i, { savings: i.savings + 20000 })),
-    spendless: i => i.target - 125000 > 0 ? plan(Object.assign({}, i, { target: i.target - 125000, monthlySavings: i.monthlySavings + 5000 / 12 })) : null,
-    // A year off with no saving: nothing goes in for 12 months while what you have keeps
-    // growing at the same rates, then the plan carries on from there, a year older.
-    yearoff: (i, bp) => {
-      if (!bp || !E.monthlyRate) return null;
-      const g = (r, n) => Math.pow(1 + E.monthlyRate(r), n);
-      const p = plan(Object.assign({}, i, { age: i.age + 1, savings: i.savings * g(bp.outsideReturn, 12), superBalance: i.superBalance * g(E.SUPER_RETURN || bp.superReturn, 12) }));
-      if (!p || !p.valid) return p;
-      if (p.months == null) return p;
-      const months = p.months + 12;
-      return Object.assign({}, p, { months, alreadyFree: false, freedomAge: Math.round(i.age + months / 12), freedomAgeExact: i.age + months / 12 });
-    },
-  };
-  function scenarios(s) {
-    if (!scenEls.length) return;
-    const ok = s.status === 'ok', far = s.status === 'far';
-    if (scenNow) scenNow.textContent = ok ? `(your date now: ${s.plan.freedomAge})` : '';
-    scenEls.forEach(a => {
-      const out = a.querySelector('[data-out]'), delta = a.querySelector('[data-delta]');
-      const key = a.dataset.scen;
-      if (!ok && !far) { untween(out); out.textContent = '–'; delta.textContent = s.status === 'free' ? 'Work could already be optional' : 'Add your numbers above'; return; }
-      const p = SCEN[key](s.inputs, s.plan);
-      const about = key === 'yearoff' ? 'about ' : '';
-      if (!p || !p.valid || !p.reachable || p.freedomAge == null || p.freedomAgeExact > 100) {
-        untween(out); out.textContent = 'not yet'; delta.textContent = far ? 'Still not within reach' : 'Out of reach on these numbers';
-        return;
-      }
-      if (p.alreadyFree) { untween(out); out.textContent = 'now'; delta.textContent = 'Work could be optional now'; return; }
-      tween(out, 'scen', [p.freedomAge], v => `age ${Math.round(v[0])}`);
-      if (far) { delta.textContent = 'Brings it within reach'; return; }
-      const d = s.plan.months - p.months;
-      delta.textContent = Math.abs(d) < 1 ? 'About the same date' : `${about}${span(Math.abs(d))} ${d > 0 ? 'sooner' : 'later'}`;
-    });
-    if (scenNote) scenNote.hidden = !(ok || far);
-  }
-
-  // ── 04 Understand why: 100 of the 2,000 possible futures, as dots ──
-  // Each dot is one simulated market outcome from the engine's own Monte Carlo
-  // (freedomRange run one path at a time, each with its own seed). The band and the
-  // middle line come from the full 2,000-outcome run the hero uses.
-  const futures = (function () {
-    const fig = $('hpFut'), sv = $('hpFutSvg'), cap = $('hpFutCap');
-    if (!fig || !sv) return { update() {} };
-    const N = 100;
-    const width = watchWidth(sv, () => { if (seen) render(false); });
-    let s = null, data = null, dirty = true, seen = false, played = false, h = 0;
-
-    function sample() {
-      dirty = false;
-      data = null;
-      if (!s || s.status !== 'ok' || s.lo == null) return;
-      const ages = [];
-      let beyond = 0;
-      for (let k = 0; k < N; k++) {
-        const r = range(s.inputs, { paths: 1, seed: 7001 + k });
-        if (r && r.early != null) ages.push(s.inputs.age + r.early / 12); else beyond++;
-      }
-      data = { ages, beyond };
-    }
-
-    function render(animate) {
-      if (dirty) sample();
-      if (!data) {
-        h = 0; sv.setAttribute('height', '0'); sv.innerHTML = '';
-        cap.textContent = !s || s.status === 'invalid' ? 'Add your numbers in the calculator above to see the spread.'
-          : s.status === 'free' ? 'On these numbers work could already be optional, so there’s no spread of dates to show. The Withdrawal planner tests whether your money lasts across 2,000 outcomes.'
-          : 'On these numbers work doesn’t become optional within a lifetime yet, so there’s no spread to show.';
-        return;
-      }
-      const W = Math.max(260, width()), narrow = W < 520;
-      const all = data.ages.concat([s.lo, s.hi]);
-      let a0 = Math.floor(Math.min.apply(null, all)) - 1, a1 = Math.ceil(Math.max.apply(null, all)) + 1;
-      const bucket = a1 - a0 > (narrow ? 26 : 40) ? 2 : 1;
-      const r = narrow ? 3 : 3.6, step = r * 2 + 1.6, pad = 8;
-      const cols = {};
-      data.ages.forEach(a => { const b = Math.floor((a - a0) / bucket); (cols[b] = cols[b] || []).push(a); });
-      const maxN = Math.max.apply(null, [1].concat(Object.keys(cols).map(k => cols[k].length)));
-      const plotH = Math.max(80, maxN * step + 34), base = plotH, H = plotH + 30;
-      if (h !== H) { h = H; sv.setAttribute('height', H); }
-      sv.setAttribute('viewBox', `0 0 ${f1(W)} ${H}`);
-      const x = a => f1(pad + (a - a0) / Math.max(1, a1 - a0) * (W - pad * 2));
-      const out = [];
-      // Likely band (10th to 90th percentile of all 2,000)
-      out.push(`<rect class="fpv-band" x="${x(s.lo)}" y="6" width="${f1(Math.max(2, x(s.hi) - x(s.lo)))}" height="${base - 6}" rx="3"/>`);
-      // Axis
-      out.push(`<line class="hp-axis" x1="${pad}" x2="${f1(W - pad)}" y1="${base}" y2="${base}"/>`);
-      const tick = (a1 - a0) > 30 ? 10 : 5;
-      for (let a = Math.ceil(a0 / tick) * tick; a <= a1; a += tick) out.push(`<text class="fpv-tick-t" x="${x(a)}" y="${base + 18}" text-anchor="middle">${a}</text>`);
-      // Dots, stacked by age
-      const dots = [];
-      Object.keys(cols).forEach(k => {
-        const cx = x(a0 + (Number(k) + 0.5) * bucket);
-        cols[k].forEach((a, i) => dots.push({ cx, cy: f1(base - r - 3 - i * step), k: Number(k), i }));
-      });
-      out.push('<g class="hp-dots">' + dots.map(d => `<circle class="hp-mc" cx="${d.cx}" cy="${d.cy}" r="${r}"/>`).join('') + '</g>');
-      // Middle outcome
-      if (s.mid != null) {
-        const mx = x(s.mid), t = `Middle outcome · ${Math.round(s.mid)}`, tw = textW(t, 12.5);
-        const lx = clamp(mx, pad + tw / 2, W - pad - tw / 2);
-        out.push(`<line class="hp-mid" x1="${mx}" x2="${mx}" y1="22" y2="${base}"/>`);
-        out.push(`<text class="fpv-lab is-free" x="${f1(lx)}" y="14" text-anchor="middle" font-size="12.5">${esc(t)}</text>`);
-      }
-      sv.innerHTML = out.join('');
-      const few = data.beyond ? ` ${data.beyond} of these 100 take longer than 50 years.` : '';
-      cap.textContent = s.hiOpen
-        ? `Most likely from ${Math.round(s.lo)}, and in some outcomes later than ${s.capAge}.${few}`
-        : `Eight in ten outcomes land between ${Math.round(s.lo)} and ${Math.round(s.hi)}. The shaded band is that likely range.${few}`;
-      if (!animate || reduce) return;
-      // Dots fall into place, left to right, each column stacking up.
-      const els = Array.from(sv.querySelectorAll('.hp-mc'));
-      const nCols = Math.max(1, Math.max.apply(null, dots.map(d => d.k)) + 1);
-      const t0 = performance.now();
-      els.forEach(c => c.setAttribute('opacity', '0'));
-      run('fut', now => {
-        let busy = false;
-        els.forEach((c, j) => {
-          const d = dots[j], delay = d.k / nCols * 520 + d.i * 22;
-          const k = clamp((now - t0 - delay) / 420, 0, 1), e = ease(k);
-          if (k < 1) busy = true;
-          c.setAttribute('cy', f1(d.cy - (1 - e) * 26));
-          c.setAttribute('opacity', op(e));
-        });
-        return busy;
-      });
-    }
-
-    onceInView(fig, () => { seen = true; render(!played); played = true; }, 0.25);
-
-    return {
-      update(next) {
-        s = next; dirty = true;
-        if (seen) render(false);            // after its first showing, changes land instantly
-      }
-    };
-  })();
-
-  // ── 05 and anything else that animates once in view (CSS does the motion) ──
-  document.querySelectorAll('[data-hp-once]').forEach(el => onceInView(el, () => el.classList.add('is-in'), 0.4));
-
   // ── Reduced motion ──────────────────────────────────────
   // Switching it on mid-visit lands everything on its final state. (The path renderer
   // pauses its own idle motion off screen, in hidden tabs and under reduced motion.)
@@ -772,8 +562,7 @@
     if (mq.addEventListener) mq.addEventListener('change', onMotion); else if (mq.addListener) mq.addListener(onMotion);
   }
 
-  if (!E || !E.freedomPlan || !viz) {
-    if (viz) viz.destroy();
+  if (!E || !E.freedomPlan) {
     setBig('The calculator didn’t load.');
     when.textContent = 'Try refreshing the page, or use the full calculator.';
     return;
