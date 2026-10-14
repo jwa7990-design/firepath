@@ -7,7 +7,7 @@
  *   - counts every number on the page to its new value,
  *   - works out the hero's what-if options and section 03's three life scenarios,
  *   - keeps section 01's spending slider and the hero's spending box in step,
- *   - draws the visitor's own path larger in 02, and the spread of outcomes in 04.
+ *   - draws the visitor's journey (From here to a freer future) and the spread of outcomes.
  * The hero path itself is drawn by the shared renderer (public/js/freedom-path.js,
  * FirePathViz), the same one the calculator, retirement age and Your Path pages use.
  * All motion runs through its one requestAnimationFrame loop (FirePathViz.loop), which
@@ -385,46 +385,79 @@
     io.observe(el);
   }
 
-  // ── 02 See your path: the visitor's own path, vertical, annotated ──
+  // ── From here to a freer future: the visitor's journey, to scale by age ──
+  // A picture of time, not money. Ages are to scale along the line; the line itself is
+  // level on purpose: the engine doesn't return a year-by-year balance, and a rising line
+  // would read as one. Every age and figure comes from the plan the hero already worked
+  // out (s.plan, FirePathEngine.freedomPlan): freedomAge / freedomYear, the years to 60,
+  // superAt60 and outsideAt60 (today's dollars). Nothing financial is worked out here.
+  // Wide (640px and up): left to right, milestones above the line, decade ticks below, the
+  // years from 60 shaded. Narrow: top to bottom. The stages under it are plain HTML, so the
+  // SVG is decorative (aria-hidden) and the caption sums it up for screen readers.
   const story = (function () {
-    const fig = $('hpStory'), sv = $('hpStorySvg'), cap = $('hpStoryCap');
+    const fig = $('hpStory'), sv = $('hpStorySvg'), cap = $('hpStoryCap'), stagesEl = $('hpStages');
     if (!fig || !sv) return { update() {} };
     const width = watchWidth(sv, () => render(drawn ? 1 : 0));
     let model = null, drawn = false, h = 0;
+    const about = n => money(Math.round(n / 1000) * 1000);
 
-    // Points (Today, freedom, 60) and the segments between them, in age order.
+    // Milestones (Today, work optional, 60), the stretches between them, and the stages text.
     function build(s) {
-      if (!s || s.status === 'invalid') return { msg: 'Add your numbers in the calculator above and your path draws here.' };
+      if (!s || s.status === 'invalid') return { msg: 'Add your numbers in the calculator above and your path draws here.', stages: [] };
       const age = s.inputs.age;
       if (s.status === 'far') return {
-        far: true, age,
+        far: true, age, stages: [],
         cap: 'On these numbers, work doesn’t become optional within a lifetime yet. Section 03 below shows what a few changes would do.'
       };
-      const free = s.status === 'free' ? age : s.plan.freedomAgeExact;
-      const freeAge = s.status === 'free' ? age : s.plan.freedomAge;
-      const pts = [], segs = [];
+      const p = s.plan, inp = s.inputs;
+      const free = s.status === 'free' ? age : p.freedomAgeExact;
+      const freeAge = s.status === 'free' ? age : p.freedomAge;
       const sixty = age < SUPER_AGE;
       let bridgeM = sixty && free < SUPER_AGE ? (SUPER_AGE - free) * 12 : 0;
       if (bridgeM < 1) bridgeM = 0;
-      if (s.status === 'free') pts.push({ age, kind: 'free', t: `Work optional now · ${age}`, sub: 'On these numbers' });
+      const superAt60 = p.superAt60 > 0 ? p.superAt60 : 0;
+      const outsideAt60 = p.outsideAt60 > 0 ? p.outsideAt60 : 0;
+      // No super to unlock: no bridge to cross and no 60 marker, savings go the whole way.
+      const opens = sixty && superAt60 > 0;
+      const bridgeShown = opens ? bridgeM : 0;
+      const pts = [];
+      if (s.status === 'free') pts.push({ age, a: String(age), kind: 'free', t: 'Work could be optional now', sub: 'On these numbers' });
       else {
-        pts.push({ age, kind: 'today', t: `Today · ${age}` });
-        pts.push({ age: free, kind: 'free', t: `Work optional · ${freeAge}`, sub: `in ${s.plan.freedomYear}` });
+        pts.push({ age, a: String(age), kind: 'today', t: 'Today',
+          sub: inp.savings + inp.superBalance > 0 ? `${about(inp.savings)} saved · ${about(inp.superBalance)} super` : 'Starting from scratch' });
+        // A date that rounds to 60 shares its age with the 60 marker: one label, carrying both.
+        const at60 = opens && freeAge === SUPER_AGE;
+        pts.push({ age: free, a: String(freeAge), kind: 'free', t: 'Work could become optional',
+          sub: at60 ? `in ${p.freedomYear} · about ${about(superAt60)} in super` : `in ${p.freedomYear}, on these numbers` });
       }
-      if (sixty && (bridgeM > 0 || free > SUPER_AGE + 0.1)) pts.push({ age: SUPER_AGE, kind: 'sixty', t: 'Super unlocks at 60' });
+      if (opens && freeAge !== SUPER_AGE && (bridgeM > 0 || free > SUPER_AGE + 0.1)) pts.push({ age: SUPER_AGE, a: '60', kind: 'sixty', t: 'Super unlocks', sub: `about ${about(superAt60)} in super` });
       pts.sort((a, b) => a.age - b.age || (a.kind === 'today' ? -1 : 1));
       const end = Math.max(SUPER_AGE, free) + 6;
-      pts.push({ age: end, kind: 'end' });
-      for (let i = 0; i < pts.length - 1; i++) {
-        const a = pts[i], b = pts[i + 1];
-        let kind, t = '', sub = '';
+      const segs = [];
+      const line = pts.concat([{ age: end, kind: 'end' }]);
+      for (let i = 0; i < line.length - 1; i++) {
+        const a = line[i], b = line[i + 1];
         const afterFree = a.age >= free && a.kind !== 'today';
-        if (!afterFree) { kind = 'work'; t = a.kind === 'today' ? 'Working and saving' : ''; }
-        else if (b.kind === 'sixty') { kind = 'bridge'; t = `Your savings carry you ${span(bridgeM)}`; sub = 'Money outside super pays the way'; }
-        else if (bridgeM > 0) { kind = 'after'; t = 'From 60 your super takes over'; }
-        else { kind = 'after'; t = 'Savings and super together from here'; }
-        segs.push({ a, b, kind, t, sub });
+        segs.push({ a, b, kind: !afterFree ? 'work' : b.kind === 'sixty' ? 'bridge' : 'after' });
       }
+
+      // The stages, in plain words. Same facts as the line, plus why each one matters.
+      const stages = [];
+      const markets = 'Markets won’t rise in a straight line, so the date could come earlier or later.';
+      if (s.status !== 'free') stages.push({ kind: 'work', when: `${age} to ${freeAge} · ${span(p.months)}`, t: 'Working and saving',
+        d: inp.monthlySavings > 0 ? `${money(inp.monthlySavings)} a month going in, with growth on top. ${markets}` : `Nothing new going in, so growth on what you hold does the work. ${markets}` });
+      if (bridgeShown > 0) stages.push({ kind: 'bridge', when: freeAge === SUPER_AGE ? `The last ${span(bridgeM)} before 60` : `${freeAge} to 60 · ${span(bridgeM)}`, t: 'Savings carry you',
+        d: 'Super stays locked until 60, so money outside super pays the way.' + (outsideAt60 ? ` On these numbers about ${about(outsideAt60)} could still be invested when you get there.` : '') });
+      if (!sixty) stages.push({ kind: 'after', when: `From ${freeAge}`, t: 'Savings and super together',
+        d: 'You can usually already get to your super, so savings and super could share the load from the day you stop.' });
+      else if (!superAt60) stages.push({ kind: 'after', when: `From ${freeAge}`, t: 'Savings carry the whole way',
+        d: 'No super entered above, so on these numbers your savings pay the way from the day you stop.' });
+      else if (bridgeM > 0) stages.push({ kind: 'after', when: 'From 60', t: 'Super joins in',
+        d: `Most Australians can get to their super from 60 once they’ve retired. On these numbers it could be about ${about(superAt60)} by then, sharing the load with your savings.` });
+      else stages.push({ kind: 'after', when: `From ${freeAge}`, t: 'Savings and super together',
+        d: `By ${freeAge} you can usually get to your super too (about ${about(superAt60)} at 60 on these numbers), so savings and super could share the load from the day you stop.` });
+
+      // The one-sentence summary (also what a screen reader hears for the picture).
       let c;
       if (s.status === 'free') c = sixty
         ? `On these numbers work could already be optional. Your savings would carry you ${span(bridgeM)} to 60, then super takes over.`
@@ -432,99 +465,151 @@
       else if (bridgeM > 0) c = `On these numbers work could become optional at ${freeAge}. Your savings carry you ${span(bridgeM)} to 60, then your super takes over.`;
       else if (sixty) c = `On these numbers your date, ${freeAge}, falls after 60. So there’s no bridge to cross: you could get to your super by then, and savings and super work together from the day you stop.`;
       else c = `On these numbers work could become optional at ${freeAge}. You can already get to your super, so savings and super work together from the day you stop.`;
-      return { pts, segs, cap: c };
+      return { pts, segs, start: age, end, sixty: opens, cap: c, stages };
     }
 
-    // y position for every point: years scaled, with room for the labels between.
-    function layout(m) {
-      const top = 22;
-      let y = top;
-      m.pts[0].y = y;
-      m.segs.forEach(sg => {
-        const yrs = sg.b.age - sg.a.age;
-        const min = sg.t ? (sg.sub ? 92 : 72) + (sg.a.sub ? 16 : 0) : 52;
-        y += clamp(yrs * 8, min, sg.kind === 'work' ? 220 : 140);
-        sg.b.y = y;
+    function renderStages() {
+      if (!stagesEl) return;
+      const st = model.stages || [];
+      stagesEl.style.setProperty('--n', String(Math.max(1, st.length)));
+      stagesEl.innerHTML = st.map(x => `<li class="hp-stage is-${x.kind}"><p class="hp-stage-when num">${esc(x.when)}</p><h3 class="hp-stage-t">${esc(x.t)}</h3><p class="hp-stage-d">${esc(x.d)}</p></li>`).join('');
+    }
+
+    // ── Wide: left to right ──
+    // Each milestone is a label block (age in the display face, a title, one short line)
+    // on a hairline above its marker. Blocks sit on the top tier unless that would collide
+    // with one already placed, then on the second tier. Most important placed first.
+    const AGE_FS = 30, T_FS = 13.5, SUB_FS = 12.5, BLOCK_H = 66, TIER_GAP = 12;
+    function blockW(pt) { return Math.max(textW(pt.a, AGE_FS) * 1.05, textW(pt.t, T_FS) * 1.04, pt.sub ? textW(pt.sub, SUB_FS) : 0); }
+    function renderWide(W, p) {
+      const padL = 8, padR = 8;
+      const x = a => padL + (a - model.start) / Math.max(1, model.end - model.start) * (W - padL - padR);
+      const order = ['free', 'today', 'sixty'];
+      const placed = [];
+      model.pts.slice().sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind)).forEach(pt => {
+        const mx = x(pt.age), w = blockW(pt);
+        const right = mx + 10 + w <= W;              // label to the right of its hairline, unless it would run off
+        const x0 = right ? mx : mx - 10 - w, x1 = right ? mx + 10 + w : mx;
+        let tier = 0;
+        while (tier < 2 && placed.some(q => q.tier === tier && x0 < q.x1 + 18 && x1 > q.x0 - 18)) tier++;
+        placed.push({ pt, mx, w, right, x0, x1, tier: Math.min(tier, 1) });
       });
-      return y + 10;
-    }
-
-    function render(p) {
-      if (!model) return;
-      const W = Math.max(260, width());
-      const narrow = W < 420;
-      const LX = 12, TX = 40, fs = narrow ? 14 : 15.5, fsub = narrow ? 12.5 : 13.5;
-      const out = [];
-      if (model.msg || model.far) {
-        const H = 150;
-        if (h !== H) { h = H; sv.setAttribute('height', H); }
-        sv.setAttribute('viewBox', `0 0 ${f1(W)} ${H}`);
-        const yEnd = f1(20 + (H - 40) * p);
-        if (model.far) {
-          out.push(`<circle class="fpv-today-dot" cx="${LX}" cy="20" r="5"/>`);
-          out.push(`<text class="hp-st" x="${TX}" y="25" font-size="${fs}">Today · ${esc(model.age)}</text>`);
-          out.push(`<line class="fpv-seg is-far" x1="${LX}" x2="${LX}" y1="20" y2="${yEnd}"/>`);
-          out.push(`<text class="hp-st is-sub" x="${TX}" y="${H / 2 + 8}" font-size="${fsub}" opacity="${p}">Not within reach on these numbers yet</text>`);
-        } else {
-          out.push(`<line class="fpv-seg is-after" x1="${LX}" x2="${LX}" y1="20" y2="${H - 20}"/>`);
-          out.push(`<text class="hp-st is-sub" x="${TX}" y="${H / 2}" font-size="${fsub}">${esc(model.msg)}</text>`);
-        }
-        sv.innerHTML = out.join('');
-        return;
-      }
-      const H = layout(model);
+      const tiers = placed.some(q => q.tier === 1) ? 2 : 1;
+      const Y = tiers * (BLOCK_H + TIER_GAP) + 26;      // the line
+      const H = Y + 44;
       if (h !== H) { h = H; sv.setAttribute('height', H); }
       sv.setAttribute('viewBox', `0 0 ${f1(W)} ${H}`);
-      const y0 = model.pts[0].y, yN = model.pts[model.pts.length - 1].y;
-      const head = y0 + (yN - y0) * p;
-      const seen = y => p <= 0 ? 0 : clamp((head - y) / 28 + 0.15, 0, 1);       // fades in as the line reaches it
-      const fit = (t, size) => textW(t, size) <= W - TX - 4;
-      // Segments
+      const xs = x(model.start), xe = x(model.end), head = xs + (xe - xs) * p;
+      const seen = xx => p <= 0 ? 0 : clamp((head - xx) / 40 + 0.2, 0, 1);
+      const out = [];
+      // The years from 60, shaded: super can usually be drawn from here.
+      if (model.sixty) {
+        const x6 = x(SUPER_AGE);
+        out.push(`<rect class="hp-tl-band" x="${f1(x6)}" y="0" width="${f1(W - x6)}" height="${f1(Y + 18)}"/>`);
+      }
+      // Decade (or five-year) ticks under the line. An age a milestone already shows is left out.
+      const step = (W - padL - padR) / Math.max(1, model.end - model.start) * 5 >= 56 ? 5 : 10;
+      for (let a = Math.ceil((model.start + 1) / step) * step; a < model.end; a += step) {
+        const tx = x(a);
+        out.push(`<line class="hp-tl-tick" x1="${f1(tx)}" x2="${f1(tx)}" y1="${Y + 7}" y2="${Y + 12}"/>`);
+        if (!model.pts.some(pt => Math.abs(pt.age - a) < 2)) out.push(`<text class="hp-tl-tick-t" x="${f1(tx)}" y="${Y + 30}" text-anchor="middle">${a}</text>`);
+      }
+      // The line, drawn left to right on first view.
       model.segs.forEach(sg => {
-        const y1 = sg.a.y, y2 = Math.min(sg.b.y, head);
-        if (y2 > y1) out.push(`<line class="fpv-seg is-${sg.kind}" x1="${LX}" x2="${LX}" y1="${f1(y1)}" y2="${f1(y2)}"/>`);
-        if (sg.t) {
-          const ym = Math.max((sg.a.y + sg.b.y) / 2, sg.a.sub ? sg.a.y + 46 : 0), o = seen(ym);   // clear of the point's own sub-line
-          if (o > 0) {
-            let t = sg.t;
-            if (!fit(t, fs)) t = t.replace('Your savings carry you', 'Savings carry you').replace(' together from here', ' together');
-            out.push(`<g opacity="${op(o)}"><text class="hp-st is-seg" x="${TX}" y="${f1(ym + (sg.sub ? -3 : 5))}" font-size="${fs}">${esc(t)}</text>`
-              + (sg.sub ? `<text class="hp-st is-sub" x="${TX}" y="${f1(ym + 16)}" font-size="${fsub}">${esc(sg.sub)}</text>` : '') + '</g>');
-          }
-        }
+        const x1 = x(sg.a.age), x2 = Math.min(x(sg.b.age), head);
+        if (x2 > x1) out.push(`<line class="hp-tl-seg is-${sg.kind}" x1="${f1(x1)}" x2="${f1(x2)}" y1="${Y}" y2="${Y}"/>`);
       });
-      // Points
-      model.pts.forEach(pt => {
-        if (pt.kind === 'end') return;
-        const o = seen(pt.y);
+      // Milestones: hairline, marker, label block.
+      placed.forEach(q => {
+        const o = seen(q.mx);
         if (o <= 0) return;
+        const pt = q.pt, ty = q.tier === 0 ? 4 : BLOCK_H + TIER_GAP + 4;   // block top
+        const tx = q.right ? q.mx + 10 : q.mx - 10, anchor = q.right ? 'start' : 'end';
         const g = [];
-        if (pt.kind === 'today') g.push(`<circle class="fpv-today-dot" cx="${LX}" cy="${pt.y}" r="5"/>`);
-        if (pt.kind === 'sixty') g.push(`<line class="fpv-sixty" x1="${LX - 9}" x2="${LX + 9}" y1="${pt.y}" y2="${pt.y}"/>`);
-        if (pt.kind === 'free') g.push(`<circle class="fpv-free-dot" cx="${LX}" cy="${pt.y}" r="8"/>`);
-        const big = pt.kind === 'free';
-        g.push(`<text class="hp-st${big ? ' is-free' : ''}" x="${TX}" y="${f1(pt.y + (pt.sub ? 1 : 5))}" font-size="${big ? fs + 4 : fs}">${esc(pt.t)}</text>`);
-        if (pt.sub) g.push(`<text class="hp-st is-sub" x="${TX}" y="${f1(pt.y + 20)}" font-size="${fsub}">${esc(pt.sub)}</text>`);
+        g.push(`<line class="hp-tl-lead" x1="${f1(q.mx)}" x2="${f1(q.mx)}" y1="${ty + 4}" y2="${Y - 12}"/>`);
+        if (pt.kind === 'today') g.push(`<circle class="hp-tl-today" cx="${f1(q.mx)}" cy="${Y}" r="6"/>`);
+        if (pt.kind === 'free') g.push(`<circle class="hp-tl-halo" cx="${f1(q.mx)}" cy="${Y}" r="13"/><circle class="fpv-free-dot" cx="${f1(q.mx)}" cy="${Y}" r="8"/>`);
+        if (pt.kind === 'sixty') g.push(`<line class="hp-tl-sixty" x1="${f1(q.mx)}" x2="${f1(q.mx)}" y1="${Y - 11}" y2="${Y + 11}"/>`);
+        g.push(`<text class="hp-tl-age${pt.kind === 'free' ? ' is-free' : ''}" x="${f1(tx)}" y="${ty + 26}" text-anchor="${anchor}" font-size="${AGE_FS}">${esc(pt.a)}</text>`);
+        g.push(`<text class="hp-tl-t" x="${f1(tx)}" y="${ty + 45}" text-anchor="${anchor}" font-size="${T_FS}">${esc(pt.t)}</text>`);
+        if (pt.sub) g.push(`<text class="hp-tl-sub" x="${f1(tx)}" y="${ty + 62}" text-anchor="${anchor}" font-size="${SUB_FS}">${esc(pt.sub)}</text>`);
         out.push(`<g opacity="${op(o)}">${g.join('')}</g>`);
       });
       sv.innerHTML = out.join('');
     }
 
+    // ── Narrow: top to bottom ──
+    // Markers down the left, each with its age, title and one short line; the stretch between
+    // them scaled by years (within limits so short stretches still have room for their label).
+    function renderNarrow(W, p) {
+      const LX = 12, TX = 40;
+      let y = 16;
+      model.pts[0].y = y;
+      model.segs.forEach(sg => {
+        const min = sg.a.sub ? 74 : 56;
+        y += clamp((sg.b.age - sg.a.age) * 6, min, sg.kind === 'work' ? 170 : 110);
+        sg.b.y = y;
+      });
+      const H = y + 8;
+      if (h !== H) { h = H; sv.setAttribute('height', H); }
+      sv.setAttribute('viewBox', `0 0 ${f1(W)} ${H}`);
+      const y0 = model.pts[0].y, head = y0 + (H - 8 - y0) * p;
+      const seen = yy => p <= 0 ? 0 : clamp((head - yy) / 28 + 0.15, 0, 1);
+      const out = [];
+      const p60 = model.pts.find(pt => pt.kind === 'sixty');
+      if (model.sixty && p60) out.push(`<rect class="hp-tl-band" x="0" y="${f1(p60.y - 14)}" width="${f1(W)}" height="${f1(H - p60.y + 14)}" rx="6"/>`);
+      model.segs.forEach(sg => {
+        const y1 = sg.a.y, y2 = Math.min(sg.b.y, head);
+        if (y2 > y1) out.push(`<line class="hp-tl-seg is-${sg.kind}" x1="${LX}" x2="${LX}" y1="${f1(y1)}" y2="${f1(y2)}"/>`);
+      });
+      model.pts.forEach(pt => {
+        const o = seen(pt.y);
+        if (o <= 0) return;
+        const g = [];
+        if (pt.kind === 'today') g.push(`<circle class="hp-tl-today" cx="${LX}" cy="${f1(pt.y)}" r="6"/>`);
+        if (pt.kind === 'free') g.push(`<circle class="hp-tl-halo" cx="${LX}" cy="${f1(pt.y)}" r="12"/><circle class="fpv-free-dot" cx="${LX}" cy="${f1(pt.y)}" r="7.5"/>`);
+        if (pt.kind === 'sixty') g.push(`<line class="hp-tl-sixty" x1="${LX - 10}" x2="${LX + 10}" y1="${f1(pt.y)}" y2="${f1(pt.y)}"/>`);
+        g.push(`<text class="hp-tl-t" x="${TX}" y="${f1(pt.y + 7)}" font-size="15"><tspan class="hp-tl-age${pt.kind === 'free' ? ' is-free' : ''}" font-size="24">${esc(pt.a)}</tspan><tspan dx="10">${esc(pt.t)}</tspan></text>`);
+        if (pt.sub) g.push(`<text class="hp-tl-sub" x="${TX}" y="${f1(pt.y + 27)}" font-size="13">${esc(pt.sub)}</text>`);
+        out.push(`<g opacity="${op(o)}">${g.join('')}</g>`);
+      });
+      sv.innerHTML = out.join('');
+    }
+
+    function render(p) {
+      if (!model) return;
+      const W = Math.max(260, width());
+      if (model.msg || model.far) {
+        const H = 110;
+        if (h !== H) { h = H; sv.setAttribute('height', H); }
+        sv.setAttribute('viewBox', `0 0 ${f1(W)} ${H}`);
+        const out = [`<line class="hp-tl-seg is-${model.far ? 'far' : 'after'}" x1="8" x2="${f1(W - 8)}" y1="40" y2="40"/>`];
+        if (model.far) out.push(`<circle class="hp-tl-today" cx="8" cy="40" r="6"/><text class="hp-tl-t" x="8" y="76" font-size="14">Today · ${esc(model.age)}. Not within reach on these numbers yet.</text>`);
+        else out.push(`<text class="hp-tl-sub" x="8" y="76" font-size="14">${esc(model.msg)}</text>`);
+        sv.innerHTML = out.join('');
+        return;
+      }
+      if (W >= 640) renderWide(W, p); else renderNarrow(W, p);
+    }
+
     onceInView(fig, () => {
       if (reduce || !model) { drawn = true; render(1); return; }
-      const t0 = performance.now(), D = 1500;
+      const t0 = performance.now(), D = 1200;
       run('story', now => {
         const k = Math.min(1, (now - t0) / D);
         render(easeInOut(k));
         if (k >= 1) { drawn = true; return false; }
         return true;
       });
+      // If frames stall (a throttled or hidden tab), show the finished picture anyway.
+      setTimeout(() => { if (!drawn) { stop('story'); drawn = true; render(1); } }, D + 400);
     }, 0.35);
 
     return {
       update(s) {
         model = build(s);
         if (cap) cap.textContent = model.cap || model.msg || '';
+        renderStages();
         if (reduce) drawn = true;
         if (drawn) render(1);
         else if (!tasks.has('story')) render(0);      // keeps its height until it draws in

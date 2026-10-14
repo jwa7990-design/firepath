@@ -166,17 +166,40 @@
 /* ── Story sections ────────────────────────────────────── */
 @media (min-width: 768px) { .hp-why, .hp-pro { padding: 72px 0; } }
 
-/* 02: the visitor's own path, drawn top to bottom */
-.hp-story-fig { margin: 0; min-width: 0; }
-.hp-story-svg { display: block; width: 100%; margin-top: 18px; overflow: visible; }
-.hp-story-cap { margin-top: 14px; max-width: 56ch; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
-.hp-st { fill: var(--ink); font-family: var(--font-ui); font-weight: 500; }
-.hp-st.is-free { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
-.hp-st.is-seg { fill: var(--ink-2); }
-.hp-st.is-sub { fill: var(--ink-2); font-weight: 400; }
-.hp-story-svg .fpv-seg { stroke-width: 2.5; }
-.hp-story-svg .fpv-seg.is-bridge { stroke-dasharray: 0.1 6; stroke-width: 3; }
-.hp-story-svg .fpv-seg.is-after { stroke: var(--ink-3); }
+/* From here to a freer future: the visitor's journey, to scale by age (home-path.js, story).
+   Ink up to the date, ember where work could become optional and across the bridge,
+   warm grey after 60; the years from 60 sit on a slightly deeper cream. Each stretch has
+   its own dash pattern too, so colour is never the only cue. */
+.hp-tl-head { max-width: 60ch; }
+.hp-story-fig { margin: 36px 0 0; min-width: 0; border-bottom: 0; padding-bottom: 0; }   /* the stages below bring their own rules */
+.hp-story-svg { display: block; width: 100%; overflow: visible; }
+.hp-tl-band { fill: var(--surface-2); }
+.hp-tl-seg { stroke-width: 2.5; stroke-linecap: round; fill: none; }
+.hp-tl-seg.is-work { stroke: var(--ink); }
+.hp-tl-seg.is-bridge { stroke: var(--ember-ink); stroke-dasharray: 0.1 6; stroke-width: 3; }
+.hp-tl-seg.is-after { stroke: var(--ink-3); stroke-dasharray: 10 5; stroke-width: 2; }
+.hp-tl-seg.is-far { stroke: var(--ink-3); stroke-dasharray: 2 6; }
+.hp-tl-today { fill: var(--bg); stroke: var(--ink); stroke-width: 2.5; }
+.hp-tl-halo { fill: none; stroke: var(--ember); stroke-width: 1.25; opacity: 0.5; }
+.hp-tl-sixty { stroke: var(--ink); stroke-width: 2; stroke-linecap: round; }
+.hp-tl-lead { stroke: var(--line-strong); stroke-width: 1; }
+.hp-tl-tick { stroke: var(--ink-3); stroke-width: 1; }
+.hp-tl-tick-t { fill: var(--ink-2); font-family: var(--font-ui); font-size: 12px; font-variant-numeric: tabular-nums lining-nums; }
+.hp-tl-age { fill: var(--ink); font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: lining-nums; }
+.hp-tl-age.is-free { fill: var(--ember-ink); }
+.hp-tl-t { fill: var(--ink); font-family: var(--font-ui); font-weight: 600; }
+.hp-tl-sub { fill: var(--ink-2); font-family: var(--font-ui); font-weight: 400; font-variant-numeric: tabular-nums lining-nums; }
+/* The stages: each one's top rule is drawn like its stretch of the line above. */
+.hp-stages { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 32px; margin: 28px 0 0; padding: 0; }
+@media (min-width: 768px) { .hp-stages { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); } }
+.hp-stage { padding: 14px 0 20px; border-top: 2.5px solid var(--ink); }
+.hp-stage.is-bridge { border-top: 3px dotted var(--ember-ink); }
+.hp-stage.is-after { border-top: 2px dashed var(--ink-3); }
+.hp-stage-when { font-size: 13px; color: var(--ink-2); }
+.hp-stage-t { margin-top: 4px; font-family: var(--font-display); font-weight: 700; font-size: 21px; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); }
+.hp-stage-d { margin-top: 6px; max-width: 40ch; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+.hp-tl-links { display: flex; flex-wrap: wrap; gap: 0 24px; margin-top: 4px; }
+.hp-story .hp-reads-box { max-width: 720px; margin-top: 48px; }
 
 /* 03: three life scenarios, worked out live */
 .hp-scens { list-style: none; margin-top: 12px; border-top: 1px solid var(--ink); }
@@ -309,15 +332,6 @@
   .hp.is-home .hp-sec { padding: 44px 0; }
   .hp.is-home .hp-number { padding: 56px 0; }
   .hp-pro .hp-plan { display: none; }
-}
-
-/* Why 60 matters: the guides come after the path in the markup, so on phones the picture follows
-   the text that explains it. From 900px they sit back under the text, beside the path. */
-.hp-story .hp-reads-box { margin-top: 0; }
-@media (min-width: 900px) {
-  .hp-story .hp-two > :first-child { grid-row: 1; }
-  .hp-story .hp-two > .hp-story-fig { grid-column: 7 / span 6; grid-row: 1 / span 2; }
-  .hp-story .hp-two > .hp-reads-box { grid-column: 1 / span 5; grid-row: 2; }
 }
 
 /* Phones: a little tighter around the headline and inputs, so the result age reaches the first
