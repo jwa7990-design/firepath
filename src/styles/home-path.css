@@ -69,7 +69,17 @@
   box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04), 0 18px 40px -24px rgba(43, 29, 20, 0.18);
 }
 @media (min-width: 600px) { .hp-out { padding: 28px 28px 24px; } }
-@media (min-width: 960px) { .hp-out { position: sticky; top: calc(var(--nav-h, 64px) + 20px); padding: 32px 36px 28px; } }
+@media (min-width: 960px) { .hp-out { position: sticky; top: calc(var(--nav-h, 64px) + 20px); padding: 28px 32px 24px; } }
+/* Laptops: the panel sits in its own column cell (stretched to the inputs' height) so it can stay
+   in view while you work down the inputs; the fine print goes in the row below, so the panel
+   never slides over it. */
+.hp-out-col { min-width: 0; }
+@media (min-width: 960px) {
+  .hp-calc { row-gap: 16px; }
+  .hp-calc-side { grid-column: 1; grid-row: 1; }
+  .hp-out-col { grid-column: 2; grid-row: 1; align-self: stretch; }
+  .hp-calc > .hp-fine { grid-column: 2; grid-row: 2; }
+}
 /* Estimate, not a promise: right under the number */
 .hp-est { margin-top: 10px; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
 .hp-est a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; white-space: nowrap; }
@@ -84,7 +94,7 @@
 .hp-calc[data-status="far"] .hp-when, .hp-calc[data-status="free"] .hp-when, .hp-calc[data-status="invalid"] .hp-when { max-width: 52ch; font-weight: 400; line-height: 1.5; color: var(--ink-2); }
 
 /* The path: its look lives in public/css/freedom-path.css (shared with other pages). */
-.hp-path { margin: 22px 0 0; padding-top: 6px; border-top: var(--hp-rule); min-height: 157px; }
+.hp-path { margin: 18px 0 0; padding-top: 6px; border-top: var(--hp-rule); min-height: 131px; }
 
 /* What-if options */
 .hp-whatif { margin-top: 20px; }
@@ -115,8 +125,13 @@
 .hp-btn:active { transform: translateY(1px); }
 .hp-quiet { font-size: 14.5px; color: var(--ink-2); text-decoration: none; }
 .hp-quiet:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
-.hp-fine { margin-top: 18px; padding-top: 14px; border-top: var(--hp-rule); font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+.hp-fine { margin-top: -12px; padding: 0 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
 .hp-fine a { color: var(--ink); white-space: nowrap; }
+@media (min-width: 960px) { .hp-fine { margin-top: 0; max-width: 62ch; } }
+/* The path's age row ("40 50 60") repeats the Today and 60 labels in this small hero chart, so it's
+   left out here. Homepage only: other pages that use the shared chart keep it. */
+.hp-path .fpv-tick, .hp-path .fpv-tick-t { display: none; }
+.hp-path .fpv-svg { margin-bottom: -26px; }   /* close the strip the hidden row leaves */
 @media (max-width: 420px) { .hp-btn { width: 100%; } }
 
 /* ── 01 Find your number: the one dark band ────────────── */
@@ -294,4 +309,29 @@
   .hp.is-home .hp-sec { padding: 44px 0; }
   .hp.is-home .hp-number { padding: 56px 0; }
   .hp-pro .hp-plan { display: none; }
+}
+
+/* Why 60 matters: the guides come after the path in the markup, so on phones the picture follows
+   the text that explains it. From 900px they sit back under the text, beside the path. */
+.hp-story .hp-reads-box { margin-top: 0; }
+@media (min-width: 900px) {
+  .hp-story .hp-two > :first-child { grid-row: 1; }
+  .hp-story .hp-two > .hp-story-fig { grid-column: 7 / span 6; grid-row: 1 / span 2; }
+  .hp-story .hp-two > .hp-reads-box { grid-column: 1 / span 5; grid-row: 2; }
+}
+
+/* Phones: a little tighter around the headline and inputs, so the result age reaches the first
+   screen on most phones. Type sizes stay readable (inputs 17px, body 16px+). */
+@media (max-width: 599px) {
+  .hp-hero.is-home { padding-top: 20px; }
+  .hp-hero .hp-h1 { font-size: 36px; }
+  .hp-hero.is-home .hp-lead { margin-top: 10px; font-size: 16px; }
+  .hp-calc-q { margin-top: 20px; padding-top: 14px; }
+  .hp-inputs { margin-top: 14px; }
+  .hp-who { margin-bottom: 12px; }
+  .hp-fields { row-gap: 10px; }
+  .hp-today { margin-top: 10px; }
+  .hp-calc { row-gap: 20px; }
+  .hp-fine { margin-top: -6px; }
+  .hp-out { padding-top: 18px; }
 }
