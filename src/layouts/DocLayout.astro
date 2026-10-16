@@ -22,7 +22,7 @@ interface Glance { icon: string; title: string; text: string; }
 interface Props {
   title: string;            // <title>
   heading: string;          // on-page h1
-  accent?: string;          // the rest of the heading (set in the same type, no accent styling)
+  accent?: string;          // the rest of the heading, on its own line in ember (.hp-ember)
   eyebrow: string;
   lead: string;
   description: string;
@@ -38,12 +38,12 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 ---
 <Base title={title} description={description} path={path}>
   <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
-  <main id="main" class="hp doc-ed">
+  <main id="main" class="hp is-new doc-ed">
   <header class="hp-hero doc-ed-hero">
     <div class="hp-wrap doc-ed-hero-grid">
       <div>
         <p class="hp-label">{eyebrow}</p>
-        <h1 class="hp-h1 doc-ed-title">{heading}{accent && <> {accent}</>}</h1>
+        <h1 class="hp-h1 doc-ed-title">{heading}{accent && <> <span class="hp-ember">{accent}</span></>}</h1>
       </div>
       <div class="doc-ed-hero-side">
         <p class="hp-lead">{lead}</p>

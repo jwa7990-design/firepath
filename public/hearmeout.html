@@ -65,6 +65,21 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   .hmo-in, .hmo-out { min-width: 0; }
   .hmo-out { padding-top: 20px; border-top: 1px solid var(--ink); }
+  /* Newer look: each scenario is one band (inputs left, results right), as the homepage calculator */
+  .is-new .scenario-panel.active { gap: 0; background: var(--surface); border: var(--hp-rule); border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04), 0 12px 32px -24px rgba(43, 29, 20, 0.14); }
+  .is-new .hmo-in, .is-new .hmo-out { padding: 22px 16px; }
+  .is-new .hmo-out { border-top: var(--hp-rule); }
+  .is-new .hmo-block .hp-label { gap: 0; font-size: 13px; letter-spacing: 0.02em; }
+  .is-new .hmo-block .hp-label::before { display: none; }
+  @media (min-width: 600px) { .is-new .hmo-in, .is-new .hmo-out { padding: 28px; } }
+  @media (min-width: 900px) {
+    .is-new .scenario-panel.active { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: 0; }
+    .is-new .hmo-in, .is-new .hmo-out { grid-column: auto; padding: 30px 36px; }
+    .is-new .scenario-panel.active { position: relative; }
+    .is-new .scenario-panel.active::before { content: ''; position: absolute; top: 0; bottom: 0; left: 45.4545%; border-left: var(--hp-rule); pointer-events: none; }
+    .is-new .hmo-out { border-top: 0; }
+  }
 
   /* ── Inputs: groups divided by hairlines ── */
   .hmo-in .hmo-block { padding: 0 0 28px; }
@@ -265,7 +280,7 @@
 </head>
 <body class="app" data-shell="app" data-public="true" data-active="strategy">
 <script src="js/shell.js"></script>
-<main class="tl hp hmo" id="main">
+<main class="tl hp is-new hmo" id="main">
   <header class="hp-hero tl-hero">
     <div class="hp-wrap hp-two hmo-hero">
       <div>
