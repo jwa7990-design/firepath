@@ -1,0 +1,34 @@
+---
+/**
+ * The homepage's lap of Australia: a quiet outline (Natural Earth, see src/data/australia.ts)
+ * with one ember route around the coast through a few cities. A picture of the kind of
+ * freedom people want, not data: no city carries any financial meaning. Decorative, so it's
+ * hidden from screen readers. The route draws in once (CSS); with reduced motion, or if
+ * animation doesn't run, it simply shows complete.
+ */
+import { AUS_VIEWBOX, AUS_MAINLAND, AUS_TASMANIA, AUS_LAP, AUS_CITIES } from '../data/australia';
+// Label placement beside each marker: [dx, dy, text-anchor]. "minor" labels hide on small screens.
+const LABELS: Record<string, [number, number, string]> = {
+  Darwin: [-6, -6, 'end'], Cairns: [8, -3, 'start'], Brisbane: [8, 3, 'start'], Sydney: [8, 4, 'start'],
+  Melbourne: [-5, 15, 'end'], Adelaide: [-7, 11, 'end'], Perth: [-8, 3, 'end'], Broome: [-7, -5, 'end'], Hobart: [8, 3, 'start'],
+};
+const MINOR = new Set(['Broome', 'Cairns', 'Adelaide', 'Hobart', 'Brisbane']);
+const cities = Object.entries(AUS_CITIES).map(([name, [x, y]]) => ({ name, x, y, l: LABELS[name], minor: MINOR.has(name) }));
+---
+<div class="hp-aus" aria-hidden="true">
+  <svg class="hp-aus-svg" viewBox={AUS_VIEWBOX} focusable="false">
+    <defs>
+      <filter id="hpAusGlow" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="2.4"/></filter>
+    </defs>
+    <path class="hp-aus-land" d={AUS_MAINLAND}/>
+    <path class="hp-aus-land" d={AUS_TASMANIA}/>
+    <path class="hp-aus-glow" d={AUS_LAP} pathLength="1" filter="url(#hpAusGlow)"/>
+    <path class="hp-aus-lap" d={AUS_LAP} pathLength="1"/>
+    {cities.map((c, i) => (
+      <g class={`hp-aus-city${c.minor ? ' is-minor' : ''}`} style={`--i:${i}`}>
+        <circle class="hp-aus-dot" cx={c.x} cy={c.y} r="2.6"/>
+        <text x={c.x + c.l[0]} y={c.y + c.l[1]} text-anchor={c.l[2]}>{c.name}</text>
+      </g>
+    ))}
+  </svg>
+</div>

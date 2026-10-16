@@ -1,8 +1,7 @@
 ---
 /**
  * The homepage's live calculator: five inputs, the freedom age and its range, the freedom
- * number and three what-if options. Markup only. The page's headline goes in the "intro"
- * slot, above the inputs (left column on wide screens; the result panel sits right).
+ * number and three what-if options, as one band under the hero. Markup only.
  * public/js/home-path.js does the maths (FirePathEngine.freedomPlan + freedomRange); the
  * picture of the path is the timeline section below the calculator.
  * The example person below is also the fallback the script resets to.
@@ -26,11 +25,10 @@ const GROUPS = [
   { legend: 'Each month and year, in today’s dollars', keys: ['monthly', 'spend'] },
 ];
 ---
+<!-- One band: the inputs on the left, the result on the right (stacked on phones). -->
 <div class="hp-calc" id="hpCalc" data-example={JSON.stringify(EXAMPLE)}>
   <div class="hp-calc-side">
-  <slot name="intro"/>
   <h2 class="hp-calc-q" id="hpCalcQ">When could you stop working?</h2>
-  <p class="hp-calc-sub"><span class="hp-wide">Type a few numbers to see the year work could become optional, and the path to get there. </span>Free, no account needed.</p>
   <form class="hp-inputs" id="hpForm" novalidate aria-labelledby="hpCalcQ" aria-describedby="hpWho">
     <div class="hp-who">
       <p class="hp-who-label" id="hpWho" aria-live="polite" aria-atomic="true">
@@ -51,7 +49,6 @@ const GROUPS = [
   </form>
   </div>
 
-  <div class="hp-out-col">
   <div class="hp-out">
     <div class="hp-result" id="hpResult">
       <!-- No age in the markup: the engine works it out on load (a built-in number could disagree with it). -->
@@ -78,7 +75,5 @@ const GROUPS = [
       <p class="hp-btn-note">Your pay, debts, home and a partner. Free, no account.</p>
     </div>
   </div>
-  <!-- Under the panel, not in it; on wide screens the two stay in view together beside the inputs -->
-  <p class="hp-fine">General information, not advice. Assumes 7% growth a year after inflation, less tax, and less super fund fees inside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>
-  </div>
 </div>
+<p class="hp-fine">General information, not advice. Assumes 7% growth a year after inflation, less tax, and less super fund fees inside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>

@@ -551,6 +551,14 @@
     };
   })();
 
+  // ── "Find my path" in the hero: to the calculator, cursor in the first box ──
+  const find = $('hpFind');
+  if (find) find.addEventListener('click', e => {
+    e.preventDefault();
+    root.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    setTimeout(() => { const a = $(ids.age); a.focus({ preventScroll: true }); a.select(); }, reduce ? 0 : 450);
+  });
+
   // ── Reduced motion ──────────────────────────────────────
   // Switching it on mid-visit lands everything on its final state. (The path renderer
   // pauses its own idle motion off screen, in hidden tabs and under reduced motion.)

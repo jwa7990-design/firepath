@@ -11,25 +11,60 @@
 
 .hp-calc input, .hp-when, .hp-range, .hp-chip strong, .hp-fnum { font-variant-numeric: tabular-nums lining-nums; }
 
-/* ── Hero: the headline and inputs on the page, the result in the one bordered panel ── */
-.hp-calc { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; }
-@media (min-width: 960px) { .hp-calc { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); column-gap: 56px; align-items: start; } }
-.hp-calc-side { min-width: 0; }
-/* Homepage hero spacing (the shared .hp-hero in fp-editorial.css is used by other pages too) */
-.hp-hero.is-home { padding: 32px 0 56px; }
-@media (min-width: 768px) { .hp-hero.is-home { padding: 56px 0 88px; } }
-.hp-hero.is-home .hp-hero-head { margin-bottom: 0; }
-.hp-hero .hp-h1 { max-width: 12ch; font-size: clamp(40px, 5.6vw, 68px); }
-.hp-hero .hp-lead { max-width: 40ch; }
-/* The calculator's own question, under the brand line */
-.hp-calc-q { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--ink); font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 2.4vw, 30px); line-height: 1.12; letter-spacing: -0.015em; color: var(--ink); }
-@media (min-width: 960px) { .hp-calc-q { margin-top: 36px; padding-top: 22px; } }
-@media (max-width: 599px) { .hp-calc-sub .hp-wide { display: none; } }   /* the intro above already says it on a phone */
-.hp-calc-sub { margin-top: 8px; max-width: 46ch; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+/* ── Hero: the headline beside a lap of Australia, then the calculator as one band ── */
+.hp-hero.is-home { padding: 24px 0 48px; }
+@media (min-width: 768px) { .hp-hero.is-home { padding: 48px 0 72px; } }
+.hp-lap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-items: center; }
+@media (min-width: 900px) { .hp-lap { grid-template-columns: minmax(0, 7fr) minmax(0, 6fr); column-gap: 24px; } }
+.hp-hero.is-home .hp-hero-head { margin-bottom: 0; position: relative; z-index: 1; }
+.hp-hero .hp-h1 { max-width: 11ch; font-size: clamp(42px, 6.4vw, 92px); line-height: 0.98; letter-spacing: -0.025em; }
+.hp-ember { color: var(--ember-ink); }
+.hp-hero .hp-lead { max-width: 42ch; margin-top: 20px; }
+.hp-lead strong { color: var(--ink); font-weight: 600; }
+.hp-hero-act { margin-top: 26px; }
+.hp-hero-act .hp-btn span { margin-left: 8px; }
+.hp-assure { margin-top: 14px; font-size: 14px; color: var(--ink-2); }
+.hp-assure [aria-hidden] { margin: 0 8px; color: var(--ink-3); }
+
+/* The lap of Australia (src/components/AusLap.astro): a faint outline, one ember route, small markers */
+.hp-aus { min-width: 0; }
+@media (min-width: 900px) { .hp-aus { margin: -24px -12px -4px -8px; } }   /* lets the map carry the hero, slightly past its column */
+.hp-aus-svg { display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; overflow: visible; }
+.hp-aus-land { fill: var(--surface-2); stroke: var(--line-strong); stroke-width: 0.9; stroke-linejoin: round; }
+.hp-aus-lap { fill: none; stroke: var(--ember-ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.hp-aus-glow { fill: none; stroke: var(--ember); stroke-width: 4; opacity: 0.35; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.hp-aus-dot { fill: var(--ember-ink); stroke: var(--bg); stroke-width: 1.4; }
+.hp-aus-city text { fill: var(--ink-2); font-family: var(--font-ui); font-size: 8px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+/* Draws in once on load; with reduced motion (or no animation) it simply shows complete */
+@media (prefers-reduced-motion: no-preference) {
+  .hp-aus-lap, .hp-aus-glow { animation: hpLap 2.6s cubic-bezier(0.45, 0, 0.2, 1) 0.2s backwards; }
+  .hp-aus-city { animation: hpCity 0.5s ease calc(0.5s + var(--i) * 0.22s) backwards; }
+}
+@keyframes hpLap { from { stroke-dashoffset: 1; } }
+@keyframes hpCity { from { opacity: 0; } }
+@media (max-width: 899px) { .hp-aus-svg { max-width: 420px; } }
+@media (max-width: 599px) {
+  .hp-aus { margin: 4px -4px 0; }
+  .hp-aus-svg { max-width: 340px; }
+  .hp-aus-city.is-minor text { display: none; }
+  .hp-aus-city text { font-size: 11px; }
+}
+
+/* The calculator band: inputs left, result right, one surface */
+.hp-calc {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 28px; position: relative; z-index: 1;
+  background: var(--surface); border: var(--hp-rule); border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04), 0 18px 40px -24px rgba(43, 29, 20, 0.18);
+}
+@media (min-width: 960px) { .hp-calc { grid-template-columns: minmax(0, 7fr) minmax(0, 6fr); margin-top: 8px; } }
+.hp-calc { scroll-margin-top: calc(var(--nav-h, 64px) + 16px); }   /* "Find my path" lands below the sticky header */
+.hp-calc-side { min-width: 0; padding: 22px 16px 22px; }
+@media (min-width: 600px) { .hp-calc-side { padding: 28px 28px 26px; } }
+@media (min-width: 960px) { .hp-calc-side { padding: 30px 36px 30px; } }
+.hp-calc-q { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.2vw, 28px); line-height: 1.12; letter-spacing: -0.015em; color: var(--ink); }
 
 /* Inputs, on the page */
-.hp-inputs { min-width: 0; margin-top: 18px; }
-.hp-hero.is-home .hp-lead { margin-top: 14px; }
+.hp-inputs { min-width: 0; margin-top: 14px; }
 .hp-who { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; margin-bottom: 18px; }
 /* Example person → Your numbers: the two labels share one grid cell and cross-fade. */
 .hp-who-label { display: grid; font-size: 14px; line-height: 1.5; color: var(--ink-2); min-width: 0; }
@@ -68,22 +103,10 @@
 .hp-box:focus-within { border-color: var(--ink); background: var(--surface); box-shadow: 0 0 0 3px rgba(43, 29, 20, 0.08); }
 .hp-box:has(input[aria-invalid="true"]) { border-color: var(--ember-ink); }
 
-/* Result: the product itself, in the one bordered panel */
-.hp-out {
-  padding: 22px 16px 22px; min-width: 0; background: var(--surface); border: var(--hp-rule); border-radius: 10px;
-  box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04), 0 18px 40px -24px rgba(43, 29, 20, 0.18);
-}
+/* Result: the right half of the band (below the inputs on phones) */
+.hp-out { min-width: 0; padding: 22px 16px 22px; border-top: var(--hp-rule); }
 @media (min-width: 600px) { .hp-out { padding: 28px 28px 24px; } }
-@media (min-width: 960px) { .hp-out { padding: 28px 32px 24px; } }
-/* Laptops: the panel sits in its own column cell (stretched to the inputs' height) so it can stay
-   in view while you work down the inputs; the fine print goes in the row below, so the panel
-   never slides over it. */
-.hp-out-col { min-width: 0; }
-@media (min-width: 960px) {
-  .hp-calc { row-gap: 16px; }
-  .hp-calc-side { grid-column: 1; grid-row: 1; }
-  .hp-out-col { grid-column: 2; grid-row: 1; position: sticky; top: calc(var(--nav-h, 64px) + 20px); }
-}
+@media (min-width: 960px) { .hp-out { padding: 30px 36px 28px; border-top: 0; border-left: var(--hp-rule); } }
 /* Estimate, not a promise: right under the number */
 .hp-est { margin-top: 10px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 .hp-est a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; white-space: nowrap; }
@@ -130,7 +153,7 @@
 }
 .hp-btn:hover { background: #A63C0C; }
 .hp-btn:active { transform: translateY(1px); }
-.hp-fine { margin-top: 14px; padding: 0 2px; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+.hp-fine { margin-top: 14px; padding: 0 4px; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
 .hp-fine a { color: var(--ink); white-space: nowrap; }
 @media (min-width: 960px) { .hp-fine { max-width: 62ch; } }
 @media (max-width: 420px) { .hp-btn { width: 100%; } }
@@ -235,13 +258,13 @@
    screen on most phones. Type sizes stay readable (inputs 17px, body 16px+). */
 @media (max-width: 599px) {
   .hp-hero.is-home { padding-top: 20px; }
-  .hp-hero .hp-h1 { font-size: 36px; }
-  .hp-hero.is-home .hp-lead { margin-top: 10px; font-size: 16px; }
-  .hp-calc-q { margin-top: 18px; padding-top: 12px; }
+  .hp-hero .hp-h1 { font-size: 42px; }
+  .hp-hero .hp-lead { margin-top: 14px; font-size: 16px; }
+  .hp-hero-act { margin-top: 20px; }
+  .hp-hero-act .hp-btn { width: 100%; }
   .hp-inputs { margin-top: 12px; }
   .hp-who { margin-bottom: 12px; }
   .hp-fields { row-gap: 10px; }
-  .hp-calc { row-gap: 16px; }
   .hp-group-fields { gap: 10px; }
   .hp-fine { margin-top: 12px; }
   .hp-out { padding-top: 16px; }
