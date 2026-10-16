@@ -9,9 +9,6 @@
 import Field from './HpField.astro';
 const EXAMPLE = { age: 32, savings: 60000, super: 50000, monthly: 2500, spend: 50000 };
 const fmt = (n: number) => n.toLocaleString('en-AU');
-const k = (n: number) => `$${Math.round(n / 1000)}k`;
-// "32 · $60k saved · $50k super · $2,500 a month · $50k a year"
-const exampleLine = `${EXAMPLE.age} · ${k(EXAMPLE.savings)} saved · ${k(EXAMPLE.super)} super · $${fmt(EXAMPLE.monthly)} a month · ${k(EXAMPLE.spend)} a year`;
 const FIELDS = [
   { id: 'hpAge', key: 'age', label: 'Age', money: false, value: String(EXAMPLE.age), unit: '' },
   { id: 'hpSavings', key: 'savings', label: 'Savings and investments', hint: 'outside super', money: true, value: fmt(EXAMPLE.savings), unit: '' },
@@ -32,7 +29,7 @@ const GROUPS = [
   <form class="hp-inputs" id="hpForm" novalidate aria-labelledby="hpCalcQ" aria-describedby="hpWho">
     <div class="hp-who">
       <p class="hp-who-label" id="hpWho" aria-live="polite" aria-atomic="true">
-        <span class="hp-who-ex" id="hpWhoEx"><span class="hp-who-tag">Example person</span> <span class="hp-who-text">{exampleLine}</span></span>
+        <span class="hp-who-ex" id="hpWhoEx"><span class="hp-who-tag">Example numbers.</span> <span class="hp-who-text">Change any of them to see yours.</span></span>
         <span class="hp-who-you" id="hpWhoYou"></span>
       </p>
       <button type="button" class="hp-reset" id="hpReset" hidden>Reset to example</button>
@@ -51,6 +48,8 @@ const GROUPS = [
 
   <div class="hp-out">
     <div class="hp-result" id="hpResult">
+      <!-- Until the visitor changes a number, the result is the example's, and says so (CSS, on .is-yours). -->
+      <p class="hp-out-ex">Example result</p>
       <!-- No age in the markup: the engine works it out on load (a built-in number could disagree with it). -->
       <p class="hp-big" id="hpBig">Work could become optional at <strong class="hp-age num" id="hpAgeOut">–</strong></p>
       <p class="hp-when num" id="hpWhen">Working it out from the example numbers…</p>
@@ -74,6 +73,6 @@ const GROUPS = [
       <a href="/firepath" class="hp-btn">Add more detail</a>
       <p class="hp-btn-note">Your pay, debts, home and a partner. Free, no account.</p>
     </div>
+    <p class="hp-fine">General information, not advice. Assumes 7% growth a year after inflation, less tax, and less super fund fees inside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>
   </div>
 </div>
-<p class="hp-fine">General information, not advice. Assumes 7% growth a year after inflation, less tax, and less super fund fees inside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>
