@@ -211,7 +211,7 @@ window.FirePathMoves = (function () {
         const gain = now == null ? null : now - inv;
         if (gain != null && gain < 0.25) return false;
         return { why: 'Money in the bank has roughly kept pace with prices. A diversified fund has grown faster over the long run in the past, with bigger ups and downs and no guarantee. It depends on when you’ll need the money and how you feel about risk.',
-          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `Could mean reaching your number ${yearsText(gain)} than ${s.savingsType === 'mix' ? 'your current mix' : 'keeping it all in the bank'}` } };
+          impact: gain == null ? { text: 'Could bring a date within reach, on these numbers' } : { years: gain, text: `Could mean reaching your number ${yearsText(gain)} than ${s.savingsType === 'mix' ? 'your current mix' : 'keeping it all in the bank'}` } };
       } },
     { id: 'start-saving', tier: 3, title: 'Starting with a small, automatic amount', plan: 'Free',
       tool: { href: '/hearmeout', label: 'See what $50 a week grows into' }, article: 'good-savings-rate',
@@ -219,7 +219,7 @@ window.FirePathMoves = (function () {
         if (s.retired) return false;   // stopped work: saving-from-pay ideas don't apply
         if (s.alreadyFree || s.savingsMonthly > 0 || s.consumerDebt > 0 || (s.age != null && s.age >= 60)) return false;
         return { why: 'Even a small amount, set up to move automatically on payday, gets compounding going. It builds the habit, too.',
-          impact: { text: 'A first step towards a real date' } };
+          impact: { text: 'A first step towards a date' } };
       } },
     { id: 'save-more', tier: 4, title: 'Saving a little more each week', plan: 'Free',
       tool: { href: '/hearmeout', label: 'Try different amounts' }, article: 'extra-50-a-week-impact',
@@ -232,7 +232,7 @@ window.FirePathMoves = (function () {
         const gain = base == null ? null : base - more;
         if (gain != null && gain < 0.25) return false;
         return { why: 'An extra $50 a week, invested, could grow along with everything else you’re saving.',
-          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' } : { years: gain, text: `$50 a week more could mean reaching your number ${yearsText(gain)}` } };
+          impact: gain == null ? { text: 'Could bring a date within reach, on these numbers' } : { years: gain, text: `$50 a week more could mean reaching your number ${yearsText(gain)}` } };
       } },
     { id: 'spend-less', tier: 4, title: 'Spending 10% less', plan: 'Free',
       tool: { href: '/firepath', label: 'Try it in the calculator' }, article: 'simple-budget-australia',
@@ -245,7 +245,7 @@ window.FirePathMoves = (function () {
         const gain = s.yearsToFree == null ? null : s.yearsToFree - after;
         if (gain != null && gain < 0.25) return false;
         return { why: 'Spending less works twice: more to invest now, and a smaller number to reach.',
-          impact: gain == null ? { text: 'Could turn "out of reach" into a real date' }
+          impact: gain == null ? { text: 'Could bring a date within reach, on these numbers' }
             : after === 0 ? { years: gain, text: `${money(cut)} a month less could mean your number is already covered` }
             : { years: gain, text: `${money(cut)} a month less could mean reaching your number ${yearsText(gain)}` } };
       } },
