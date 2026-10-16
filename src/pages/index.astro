@@ -11,17 +11,17 @@ import FreedomPath from '../components/FreedomPath.astro';
 import { LETTER, HOME_DESCRIPTION } from '../data/letter';
 import { ARTICLES } from '../lib/learn';
 import { STARTS } from '../data/starts';
-import { PRO_PRICE, TRIAL_FINE_PRINT, FREE_FEATURES, PRO_FEATURES } from '../data/plans';
+import { PRO_PRICE, TRIAL_FINE_PRINT } from '../data/plans';
 import '../styles/home-path.css';
 
-// Free vs Pro, short: straight from plans.ts (the single source), first lines only.
-const FREE_SHORT = [FREE_FEATURES[0], FREE_FEATURES[1], FREE_FEATURES[4], 'The Withdrawal planner, Freedom gap and Compound interest', FREE_FEATURES[8]];
-const PRO_SHORT = PRO_FEATURES.slice(0, 6).map(([title]) => title);
+// What Pro adds, in one line (the full lists live on /pricing and /features, from plans.ts).
+const PRO_ADDS = 'your full plan with super, tax worked out and an AI read on it';
 const TOOLS = [
   { href: '/withdrawal', name: 'Withdrawal planner' },
   { href: '/hearmeout', name: 'What if…?' },
   { href: '/freedom-gap', name: 'Freedom gap' },
   { href: '/compound', name: 'Compound interest' },
+  { href: '/retirement-age-calculator', name: 'Retirement age calculator' },
 ];
 ---
 <Base title="FirePath: Retirement & FIRE Planner for Australians" description={HOME_DESCRIPTION} path="/">
@@ -57,7 +57,7 @@ const TOOLS = [
           <figcaption class="hp-story-cap fpv-sr" id="hpStoryCap">Your path draws here from the numbers in the calculator above.</figcaption>
         </figure>
         <ol class="hp-stages" id="hpStages" aria-label="Your path, stage by stage"></ol>
-        <p class="hp-tl-links"><a href="/learn/two-phase-freedom-timeline" class="hp-link">How the two parts work →</a><a href="/assumptions" class="hp-link is-quiet">How we calculate</a></p>
+        <p class="hp-tl-links"><a href="/learn/two-phase-freedom-timeline" class="hp-link">How the two parts work →</a></p>
       </div>
     </section>
 
@@ -87,17 +87,7 @@ const TOOLS = [
       <div class="hp-wrap" data-reveal>
         <div>
           <h2 id="s3b-title" class="hp-h2">Free to explore. Pro when you want it to keep up.</h2>
-          <div class="hp-plans">
-            <div>
-              <p class="hp-plans-head">Free, no account</p>
-              <ul class="hp-plans-list">{FREE_SHORT.map(f => <li>{f}</li>)}</ul>
-            </div>
-            <div>
-              <p class="hp-plans-head">Pro adds</p>
-              <ul class="hp-plans-list">{PRO_SHORT.map(f => <li>{f}</li>)}</ul>
-            </div>
-          </div>
-          <p class="hp-pro-price num"><strong>{PRO_PRICE.amount} a month</strong> after a {PRO_PRICE.trialDays}-day free trial. Cancel any time.</p>
+          <p class="hp-body hp-pro-sum">Get to know your numbers free, no account needed. Pro (<strong>{PRO_PRICE.amount} a month</strong> after a {PRO_PRICE.trialDays}-day free trial, cancel any time) saves your plan and adds {PRO_ADDS}.</p>
           <p class="hp-pro-fine">{TRIAL_FINE_PRINT}</p>
           <p class="hp-pro-links"><a href="/upgrade" class="hp-link">Try Pro free for {PRO_PRICE.trialDays} days →</a><a href="/pricing" class="hp-link is-quiet">Compare plans</a></p>
         </div>

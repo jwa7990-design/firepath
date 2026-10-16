@@ -94,6 +94,7 @@
 /* The freedom number, one quiet line under the result */
 .hp-fnum { margin-top: 10px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 .hp-fnum strong { font-weight: 600; color: var(--ink); }
+.hp-nw { white-space: nowrap; }
 .hp-calc[data-status="invalid"] .hp-fnum { display: none; }
 .hp-calc[data-status="far"] .hp-when, .hp-calc[data-status="free"] .hp-when, .hp-calc[data-status="invalid"] .hp-when { max-width: 52ch; font-weight: 400; line-height: 1.5; color: var(--ink-2); }
 
@@ -116,7 +117,8 @@
 .hp-chip[aria-pressed="true"] .hp-chip-to { color: inherit; opacity: 0.7; }
 .hp-preview { min-height: 1.5em; margin-top: 10px; font-size: 14px; line-height: 1.5; color: var(--ink); }
 
-.hp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; margin-top: 22px; }
+.hp-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 22px; }
+.hp-btn-note { font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
 .hp-btn {
   display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 22px;
   border-radius: var(--hp-r); background: var(--ember-ink); color: #fff; text-decoration: none;
@@ -124,8 +126,6 @@
 }
 .hp-btn:hover { background: #A63C0C; }
 .hp-btn:active { transform: translateY(1px); }
-.hp-quiet { font-size: 14.5px; color: var(--ink-2); text-decoration: none; }
-.hp-quiet:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 .hp-fine { margin-top: -12px; padding: 0 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
 .hp-fine a { color: var(--ink); white-space: nowrap; }
 @media (min-width: 960px) { .hp-fine { margin-top: 0; max-width: 62ch; } }
@@ -168,8 +168,9 @@
 .hp-stage-d { margin-top: 6px; max-width: 40ch; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
 .hp-tl-links { display: flex; flex-wrap: wrap; gap: 0 24px; margin-top: 4px; }
 
-.hp-pro-price { margin-top: 18px; font-size: 17px; color: var(--ink); }
-.hp-pro-price strong { font-weight: 600; }
+/* Free vs Pro, one short paragraph (the full lists live on /pricing and /features) */
+.hp-pro-sum { max-width: 60ch; }
+.hp-pro-sum strong { font-weight: 600; color: var(--ink); }
 .hp-pro-fine { margin-top: 6px; font-size: 13.5px; color: var(--ink-2); }
 .hp-pro-links { display: flex; flex-wrap: wrap; gap: 0 24px; }
 
@@ -203,12 +204,6 @@
 /* Homepage sections sit a little closer than the shared default */
 @media (min-width: 768px) { .hp.is-home .hp-sec { padding: 72px 0; } }
 
-/* 03: free vs Pro, two short lists straight from plans.ts */
-.hp-plans { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px 28px; margin-top: 24px; }
-@media (min-width: 600px) { .hp-plans { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.hp-plans-head { padding-bottom: 8px; border-bottom: 1px solid var(--ink); font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink); }
-.hp-plans-list { list-style: none; margin: 0; padding: 0; }
-.hp-plans-list li { padding: 10px 0; border-bottom: var(--hp-rule); font-size: 15px; line-height: 1.45; color: var(--ink-2); }
 .hp-pro .hp-h2 { max-width: 18ch; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -218,7 +213,7 @@
 .hp-range a { color: var(--ink); text-underline-offset: 3px; }
 
 /* Touch targets: standalone links on the homepage are at least 24px tall (inline text links are exempt). */
-.hp.is-home .hp-link, .hp.is-home .hp-quiet { display: inline-block; padding-block: 4px; }
+.hp.is-home .hp-link { display: inline-block; padding-block: 4px; }
 .hp.is-home .hp-est a { display: inline-block; padding-block: 3px; }
 
 /* Phones: a shorter page. Tighter section spacing, and the example Your plan card is left out
