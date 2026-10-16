@@ -32,7 +32,7 @@
 .hp-hero.is-home .hp-lead { margin-top: 14px; }
 .hp-who { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; margin-bottom: 18px; }
 /* Example person → Your numbers: the two labels share one grid cell and cross-fade. */
-.hp-who-label { display: grid; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); min-width: 0; }
+.hp-who-label { display: grid; font-size: 14px; line-height: 1.5; color: var(--ink-2); min-width: 0; }
 .hp-who-ex, .hp-who-you { grid-area: 1 / 1; transition: opacity 260ms ease, transform 260ms var(--ease), visibility 0s linear 0s; }
 .hp-who-tag { display: inline-flex; align-items: center; gap: 8px; margin-right: 6px; font-weight: 600; color: var(--ink); }
 .hp-who-tag::before { content: ''; width: 16px; height: 1px; background: var(--ink); }
@@ -43,9 +43,15 @@
 .hp-calc.is-yours .hp-who-you { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
 .hp-reset { border: 0; background: none; padding: 0; font: inherit; font-size: 13px; white-space: nowrap; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .hp-reset:hover { color: var(--ink); }
-.hp-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 12px; align-items: end; }
-.hp-field-spend { grid-column: 1 / -1; }
-@media (min-width: 600px) and (max-width: 959px) { .hp-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); } .hp-field-spend { grid-column: auto; } }
+/* Inputs, grouped: age, then "What you have now", then "Each month and year" (two side by side) */
+.hp-fields { display: grid; gap: 16px; }
+/* Age is short: its label and box share one line (no half-empty row) */
+.hp-field-age { display: flex; align-items: center; gap: 14px; }
+.hp-field-age label { margin: 0; min-width: 2.5em; }
+.hp-field-age .hp-box { width: 104px; }
+.hp-group { min-width: 0; margin: 0; padding: 0; border: 0; }
+.hp-group legend { padding: 0; margin-bottom: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink-2); }
+.hp-group-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; }
 .hp-field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; line-height: 1.3; color: var(--ink); }
 .hp-hint { font-weight: 400; color: var(--ink-2); }
 .hp-box {
@@ -61,7 +67,6 @@
 .hp-box:hover { border-color: var(--ink-3); }
 .hp-box:focus-within { border-color: var(--ink); background: var(--surface); box-shadow: 0 0 0 3px rgba(43, 29, 20, 0.08); }
 .hp-box:has(input[aria-invalid="true"]) { border-color: var(--ember-ink); }
-.hp-today { margin-top: 14px; font-size: 12.5px; color: var(--ink-2); }
 
 /* Result: the product itself, in the one bordered panel */
 .hp-out {
@@ -69,7 +74,7 @@
   box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04), 0 18px 40px -24px rgba(43, 29, 20, 0.18);
 }
 @media (min-width: 600px) { .hp-out { padding: 28px 28px 24px; } }
-@media (min-width: 960px) { .hp-out { position: sticky; top: calc(var(--nav-h, 64px) + 20px); padding: 28px 32px 24px; } }
+@media (min-width: 960px) { .hp-out { padding: 28px 32px 24px; } }
 /* Laptops: the panel sits in its own column cell (stretched to the inputs' height) so it can stay
    in view while you work down the inputs; the fine print goes in the row below, so the panel
    never slides over it. */
@@ -77,11 +82,10 @@
 @media (min-width: 960px) {
   .hp-calc { row-gap: 16px; }
   .hp-calc-side { grid-column: 1; grid-row: 1; }
-  .hp-out-col { grid-column: 2; grid-row: 1; align-self: stretch; }
-  .hp-calc > .hp-fine { grid-column: 2; grid-row: 2; }
+  .hp-out-col { grid-column: 2; grid-row: 1; position: sticky; top: calc(var(--nav-h, 64px) + 20px); }
 }
 /* Estimate, not a promise: right under the number */
-.hp-est { margin-top: 10px; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+.hp-est { margin-top: 10px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 .hp-est a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; white-space: nowrap; }
 .hp-est a:hover { text-decoration-color: var(--ink); }
 .hp-big { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.1; letter-spacing: -0.015em; color: var(--ink); }
@@ -118,7 +122,7 @@
 .hp-preview { min-height: 1.5em; margin-top: 10px; font-size: 14px; line-height: 1.5; color: var(--ink); }
 
 .hp-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 22px; }
-.hp-btn-note { font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+.hp-btn-note { font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 .hp-btn {
   display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 22px;
   border-radius: var(--hp-r); background: var(--ember-ink); color: #fff; text-decoration: none;
@@ -126,9 +130,9 @@
 }
 .hp-btn:hover { background: #A63C0C; }
 .hp-btn:active { transform: translateY(1px); }
-.hp-fine { margin-top: -12px; padding: 0 2px; font-size: 12.5px; line-height: 1.55; color: var(--ink-2); }
+.hp-fine { margin-top: 14px; padding: 0 2px; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
 .hp-fine a { color: var(--ink); white-space: nowrap; }
-@media (min-width: 960px) { .hp-fine { margin-top: 0; max-width: 62ch; } }
+@media (min-width: 960px) { .hp-fine { max-width: 62ch; } }
 @media (max-width: 420px) { .hp-btn { width: 100%; } }
 
 /* ── Story sections ────────────────────────────────────── */
@@ -171,13 +175,18 @@
 /* Free vs Pro, one short paragraph (the full lists live on /pricing and /features) */
 .hp-pro-sum { max-width: 60ch; }
 .hp-pro-sum strong { font-weight: 600; color: var(--ink); }
-.hp-pro-fine { margin-top: 6px; font-size: 13.5px; color: var(--ink-2); }
+.hp-pro-fine { margin-top: 6px; font-size: 13px; color: var(--ink-2); }
 .hp-pro-links { display: flex; flex-wrap: wrap; gap: 0 24px; }
 
 /* Start where you are: one line of links to the tools and guides */
 .hp-more { margin-top: 20px; font-size: 15px; line-height: 1.7; color: var(--ink-2); }
 .hp-more a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
 .hp-more a:hover { text-decoration-color: var(--ink); }
+.hp-story .hp-more { margin-top: 8px; }
+/* Under Jay's letter: where the method, accuracy and questions live */
+.hp-trust { margin-top: 20px; font-size: 14px; line-height: 1.7; color: var(--ink-2); }
+.hp-trust a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.hp-trust a:hover { text-decoration-color: var(--ink); }
 .hp-pro .hp-wrap > div { max-width: 760px; }
 
 /* Jay's letter — no photo by choice; a big quote mark and plain facts carry it */
@@ -228,12 +237,12 @@
   .hp-hero.is-home { padding-top: 20px; }
   .hp-hero .hp-h1 { font-size: 36px; }
   .hp-hero.is-home .hp-lead { margin-top: 10px; font-size: 16px; }
-  .hp-calc-q { margin-top: 20px; padding-top: 14px; }
-  .hp-inputs { margin-top: 14px; }
+  .hp-calc-q { margin-top: 18px; padding-top: 12px; }
+  .hp-inputs { margin-top: 12px; }
   .hp-who { margin-bottom: 12px; }
   .hp-fields { row-gap: 10px; }
-  .hp-today { margin-top: 10px; }
-  .hp-calc { row-gap: 20px; }
-  .hp-fine { margin-top: -6px; }
-  .hp-out { padding-top: 18px; }
+  .hp-calc { row-gap: 16px; }
+  .hp-group-fields { gap: 10px; }
+  .hp-fine { margin-top: 12px; }
+  .hp-out { padding-top: 16px; }
 }

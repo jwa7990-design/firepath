@@ -9,13 +9,15 @@
 import Base from '../layouts/Base.astro';
 import FreedomPath from '../components/FreedomPath.astro';
 import { LETTER, HOME_DESCRIPTION } from '../data/letter';
-import { ARTICLES } from '../lib/learn';
+import { ARTICLES, FIRST_READS } from '../lib/learn';
 import { STARTS } from '../data/starts';
 import { PRO_PRICE, TRIAL_FINE_PRINT } from '../data/plans';
 import '../styles/home-path.css';
 
 // What Pro adds, in one line (the full lists live on /pricing and /features, from plans.ts).
 const PRO_ADDS = 'your full plan with super, tax worked out and an AI read on it';
+// A few first guides for under the timeline (the bridge guide is already linked there).
+const READS = FIRST_READS.filter(s => s !== 'two-phase-freedom-timeline').map(s => ARTICLES.find(a => a.slug === s)).filter(a => !!a);
 const TOOLS = [
   { href: '/withdrawal', name: 'Withdrawal planner' },
   { href: '/hearmeout', name: 'What if…?' },
@@ -58,6 +60,7 @@ const TOOLS = [
         </figure>
         <ol class="hp-stages" id="hpStages" aria-label="Your path, stage by stage"></ol>
         <p class="hp-tl-links"><a href="/learn/two-phase-freedom-timeline" class="hp-link">How the two parts work →</a></p>
+        <p class="hp-more">Worth a read: {READS.map((a, i) => <>{i > 0 && <span aria-hidden="true"> · </span>}<a href={`/learn/${a!.slug}`}>{a!.heading}</a></>)}<span aria-hidden="true"> · </span><a href="/learn/">all {ARTICLES.length} guides</a></p>
       </div>
     </section>
 
@@ -79,7 +82,7 @@ const TOOLS = [
         </ul>
       </div>
       <div class="hp-wrap">
-        <p class="hp-more">More free tools: {TOOLS.map((t, i) => <>{i > 0 && <span aria-hidden="true"> · </span>}<a href={t.href}>{t.name}</a></>)}<span aria-hidden="true"> · </span><a href="/learn/">{ARTICLES.length} guides in the Learning Lab</a></p>
+        <p class="hp-more">More free tools: {TOOLS.map((t, i) => <>{i > 0 && <span aria-hidden="true"> · </span>}<a href={t.href}>{t.name}</a></>)}</p>
       </div>
     </section>
 
@@ -118,6 +121,7 @@ const TOOLS = [
             <strong>— {LETTER.name}</strong>
             <span>{LETTER.role}</span>
           </p>
+          <p class="hp-trust"><a href="/assumptions">How we calculate</a><span aria-hidden="true"> · </span><a href="/faq#q-accurate">How accurate is FirePath?</a><span aria-hidden="true"> · </span><a href="/faq">FAQ</a></p>
         </div>
       </div>
     </section>

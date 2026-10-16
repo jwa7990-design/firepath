@@ -7,6 +7,7 @@
  * picture of the path is the timeline section below the calculator.
  * The example person below is also the fallback the script resets to.
  */
+import Field from './HpField.astro';
 const EXAMPLE = { age: 32, savings: 60000, super: 50000, monthly: 2500, spend: 50000 };
 const fmt = (n: number) => n.toLocaleString('en-AU');
 const k = (n: number) => `$${Math.round(n / 1000)}k`;
@@ -16,8 +17,13 @@ const FIELDS = [
   { id: 'hpAge', key: 'age', label: 'Age', money: false, value: String(EXAMPLE.age), unit: '' },
   { id: 'hpSavings', key: 'savings', label: 'Savings and investments', hint: 'outside super', money: true, value: fmt(EXAMPLE.savings), unit: '' },
   { id: 'hpSuper', key: 'super', label: 'Super', money: true, value: fmt(EXAMPLE.super), unit: '' },
-  { id: 'hpMonthly', key: 'monthly', label: 'Saved each month', money: true, value: fmt(EXAMPLE.monthly), unit: '' },
-  { id: 'hpSpend', key: 'spend', label: 'Yearly spending', money: true, value: fmt(EXAMPLE.spend), unit: 'a year' },
+  { id: 'hpMonthly', key: 'monthly', label: 'Saved each month', hint: 'not counting super', money: true, value: fmt(EXAMPLE.monthly), unit: '' },
+  { id: 'hpSpend', key: 'spend', label: 'Yearly spending', hint: 'now, and once you stop', money: true, value: fmt(EXAMPLE.spend), unit: 'a year' },
+];
+// Grouped the way people think about it: you, what you have, what comes and goes.
+const GROUPS = [
+  { legend: 'What you have now', keys: ['savings', 'super'] },
+  { legend: 'Each month and year, in today’s dollars', keys: ['monthly', 'spend'] },
 ];
 ---
 <div class="hp-calc" id="hpCalc" data-example={JSON.stringify(EXAMPLE)}>
@@ -34,17 +40,14 @@ const FIELDS = [
       <button type="button" class="hp-reset" id="hpReset" hidden>Reset to example</button>
     </div>
     <div class="hp-fields">
-      {FIELDS.map(f => (
-        <div class={`hp-field hp-field-${f.key}`}>
-          <label for={f.id}>{f.label}{f.hint && <span class="hp-hint"> {f.hint}</span>}</label>
-          <div class={f.money ? 'hp-box is-money' : 'hp-box'}>
-            {f.money && <span aria-hidden="true">$</span>}
-            <input id={f.id} name={f.key} value={f.value} inputmode={f.money ? 'decimal' : 'numeric'} autocomplete="off" spellcheck="false"/>
-          </div>
-        </div>
+      <Field f={FIELDS[0]}/>
+      {GROUPS.map(g => (
+        <fieldset class="hp-group">
+          <legend>{g.legend}</legend>
+          <div class="hp-group-fields">{g.keys.map(k => <Field f={FIELDS.find(f => f.key === k)!}/>)}</div>
+        </fieldset>
       ))}
     </div>
-    <p class="hp-today">All in today’s dollars.</p>
   </form>
   </div>
 
@@ -75,7 +78,7 @@ const FIELDS = [
       <p class="hp-btn-note">Your pay, debts, home and a partner. Free, no account.</p>
     </div>
   </div>
-  </div>
-  <!-- Below the panel, not in it: keeps the panel short enough to stay in view beside the inputs -->
+  <!-- Under the panel, not in it; on wide screens the two stay in view together beside the inputs -->
   <p class="hp-fine">General information, not advice. Assumes 7% growth a year after inflation, less tax, and less super fund fees inside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>
+  </div>
 </div>

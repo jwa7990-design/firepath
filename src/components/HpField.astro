@@ -1,0 +1,12 @@
+---
+/** One homepage calculator input: label (with an optional hint), the box, and a $ for money. */
+interface Props { f: { id: string; key: string; label: string; hint?: string; money: boolean; value: string } }
+const { f } = Astro.props;
+---
+<div class={`hp-field hp-field-${f.key}`}>
+  <label for={f.id}>{f.label}{f.hint && <span class="hp-hint"> {f.hint}</span>}</label>
+  <div class={f.money ? 'hp-box is-money' : 'hp-box'}>
+    {f.money && <span aria-hidden="true">$</span>}
+    <input id={f.id} name={f.key} value={f.value} inputmode={f.money ? 'decimal' : 'numeric'} autocomplete="off" spellcheck="false"/>
+  </div>
+</div>
