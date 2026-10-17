@@ -9,7 +9,7 @@ import { STARTS, type StartPage } from '../../data/starts';
 import { ARTICLES } from '../../lib/learn';
 import '../../styles/marketing.css';
 import '../../styles/start.css';
-import MiniPath from '../../components/MiniPath.astro';
+import '../../styles/brand-pages.css';
 
 export function getStaticPaths() {
   return STARTS.map(p => ({ params: { slug: p.slug }, props: { page: p } }));
@@ -42,19 +42,18 @@ const schema = [
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify(schema)}></script>
   {/* Shared editorial primitives. Loads before the page CSS (Astro adds bundled CSS after the head slot). */}
   <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
-  <main id="main" class="hp is-new">
-    <header class="hp-hero">
-      <div class="hp-wrap start-hero">
-        <div>
-          <p class="hp-label mk-kicker">{p.door}</p>
-          <h1 class="hp-h1 mk-h1-wide">{p.title}</h1>
+  <main id="main" class="hp is-new is-brand page-start">
+    <header class="hp-hero br-hero">
+      <div class="hp-wrap br-hero-grid">
+        <p class="hp-label">{p.door}</p>
+        <h1 class="hp-h1">{p.title}</h1>
+        <div class="br-hero-side">
           <p class="hp-lead">{p.lead}</p>
           <div class="mk-actions">
             <a href="/firepath" class="mk-btn">Find my freedom date</a>
             <span class="mk-aside">Free, 2 minutes, no account needed. See what could make a difference for you.</span>
           </div>
         </div>
-        <MiniPath class="start-motif"/>
       </div>
     </header>
 
@@ -65,7 +64,7 @@ const schema = [
         </div>
         <ol class="hp-side-main mk-steps start-steps start-steps-tight">
           {steps.map((s, i) => (
-            <li class="mk-step" data-reveal>
+            <li class="mk-step br-tile">
               <span class="mk-step-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <div>
                 <h3>{s.title}</h3>
@@ -146,7 +145,7 @@ const schema = [
       </div>
     </section>
 
-    <section class="hp-sec is-dark start-end" aria-labelledby="end-title">
+    <section class="hp-sec start-end" aria-labelledby="end-title">
       <div class="hp-wrap">
         <div class="mk-close">
           <div>
