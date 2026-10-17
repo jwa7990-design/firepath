@@ -1,11 +1,12 @@
 ---
 /**
- * The homepage hero's backdrop: Australia's coastline drawing itself, large and faint, from Darwin
- * clockwise (the same way as the lap) and never quite closing: the last stretch back into Darwin
- * stays open, the freer future still ahead. An ember dot rides the tip of the line.
+ * The homepage hero's backdrop: Australia's coastline burning like a lit fuse, large and faint, from
+ * Darwin clockwise (the same way as the lap). The whole coast is there from the start as an unlit,
+ * dotted cord; a spark runs along it with a short hot section behind, leaving a settled burnt line.
+ * When it gets back to Darwin the outline closes and glows once.
  * Outline from src/data/australia.ts (Natural Earth, public domain), re-ordered here so the line
  * starts at Darwin. Decorative (aria-hidden). Without JS, or with reduced motion, it simply shows
- * unfinished; home-path.js draws it in and lets scrolling carry it further (never past 93%).
+ * the finished map; home-path.js burns it in and lets scrolling carry it round.
  */
 import { AUS_VIEWBOX, AUS_MAINLAND, AUS_TASMANIA, AUS_CITIES } from '../data/australia';
 const pts = [...AUS_MAINLAND.matchAll(/[ML] ?(-?[\d.]+) (-?[\d.]+)/g)].map(m => [+m[1], +m[2]]);
@@ -17,12 +18,26 @@ let ring = pts.slice(start).concat(pts.slice(0, start));
 // Clockwise on screen (y down) means a positive shoelace sum; flip it if Natural Earth runs the other way.
 const area = ring.reduce((a, [x, y], i) => { const [x2, y2] = ring[(i + 1) % ring.length]; return a + (x * y2 - x2 * y); }, 0);
 if (area < 0) ring = [ring[0], ...ring.slice(1).reverse()];
-const coast = 'M' + ring.map(([x, y]) => `${x} ${y}`).join(' L');   // left open on purpose: no Z
+const coast = 'M' + ring.map(([x, y]) => `${x} ${y}`).join(' L');   // closed with Z where used: the fuse burns all the way round
 ---
 <div class="hp-outline" aria-hidden="true">
   <svg class="hp-outline-svg" viewBox={AUS_VIEWBOX} focusable="false" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <filter id="hpFuseGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter>
+    </defs>
     <path class="hp-outline-tas" d={AUS_TASMANIA}/>
-    <path class="hp-outline-line" id="hpOutline" d={coast} pathLength="1"/>
-    <circle class="hp-outline-tip" id="hpOutlineTip" r="2.4" cx={dx} cy={dy}/>
+    <!-- The unlit fuse: the whole coast, faint and dotted -->
+    <path class="hp-fuse-cord" d={coast + ' Z'}/>
+    <!-- What's burnt: the settled line, drawn up to the spark (closes when it reaches Darwin) -->
+    <path class="hp-outline-line" id="hpOutline" d={coast + ' Z'} pathLength="1"/>
+    <!-- The hot section just behind the spark, and its glow -->
+    <path class="hp-fuse-hot-glow" id="hpFuseHotGlow" d={coast + ' Z'} pathLength="1" filter="url(#hpFuseGlow)"/>
+    <path class="hp-fuse-hot" id="hpFuseHot" d={coast + ' Z'} pathLength="1"/>
+    <!-- The spark itself, and a few sparks thrown off it (home-path.js moves them) -->
+    <g class="hp-fuse-spark" id="hpOutlineTip" transform={`translate(${dx} ${dy})`}>
+      <circle class="hp-fuse-halo" r="5" filter="url(#hpFuseGlow)"/>
+      <circle class="hp-fuse-core" r="1.7"/>
+    </g>
+    <g class="hp-fuse-bits" id="hpFuseBits"></g>
   </svg>
 </div>

@@ -551,56 +551,92 @@
     };
   })();
 
-  // ── The hero: Australia's coastline drawing itself behind the headline, never quite closing ──
-  // On arrival the line draws in to 70%; on wide screens with motion allowed the stage then pins for
-  // about one extra screen and scrolling carries it on, but never past 93%: the last stretch back
-  // into Darwin stays open. An ember dot rides the tip. Phones draw in once (to 82%); reduced motion
-  // and no JS show it still, at 88% (the CSS default). Sets --od (drawn share) on the outline and --p
-  // (0 → 1 across the pinned stretch) on the scene; one rAF-throttled update per scroll, only on screen.
+  // ── The hero: Australia's coastline burning like a lit fuse behind the headline ──
+  // The spark burns quickly to 70% on arrival, then keeps creeping on its own (to 90% at most);
+  // on wide screens with motion allowed the stage pins for about one extra screen and scrolling
+  // burns it the rest of the way round. A fuse can't un-burn, so it only ever moves forward. When it
+  // reaches Darwin the outline closes, the spark goes out and the coast glows once (CSS). Phones:
+  // it burns all the way round by itself. Reduced motion / no JS: the finished map, no sparks.
+  // The animation runs only while it's burning and on screen; it stops for good once complete.
   (function () {
     const scene = $('hpScene'), wrap = scene && scene.querySelector('.hp-outline');
-    const line = $('hpOutline'), tip = $('hpOutlineTip');
+    const line = $('hpOutline'), spark = $('hpOutlineTip'), bitsG = $('hpFuseBits');
     if (!scene || !wrap || !line || !window.matchMedia) return;
-    const motionOk = !reduce;
     const fits = window.matchMedia('(min-width: 900px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)');
     const L = line.getTotalLength ? line.getTotalLength() : 0;
-    const MAX = 0.93;
-    let intro = motionOk ? 0 : 1, p = 0, ticking = false, visible = true;
-    function setDraw(od) {
+    const NS = 'http://www.w3.org/2000/svg';
+    let od = 0, p = 0, t0 = performance.now(), done = false, visible = true, looping = false;
+    const bits = [];
+    function set(burning) {
       wrap.style.setProperty('--od', od.toFixed(4));
-      if (L && tip) { const q = line.getPointAtLength(L * od); tip.setAttribute('cx', q.x.toFixed(1)); tip.setAttribute('cy', q.y.toFixed(1)); }
+      wrap.style.setProperty('--burning', burning ? '1' : '0');
+      if (L && spark) { const q = line.getPointAtLength(L * Math.min(od, 0.9999)); spark.setAttribute('transform', `translate(${q.x.toFixed(2)} ${q.y.toFixed(2)})`); return q; }
+      return null;
     }
-    function draw() {
-      const live = scene.classList.contains('is-live');
-      const base = live ? 0.7 : (motionOk ? 0.82 : 0.88);
-      setDraw(Math.min(MAX, base * intro + (live ? p * (MAX - 0.7) : 0)));
+    function finish() {
+      done = true; od = 1; set(false);
+      bits.splice(0).forEach(b => b.el.remove());
+      if (!reduce) wrap.classList.add('is-complete');
     }
-    function update() {
-      ticking = false;
-      if (scene.classList.contains('is-live')) {
+    if (reduce || !L) { finish(); }
+    // Where the fuse should have reached by now, from time and (on wide screens) scroll.
+    function target(now) {
+      const t = (now - t0) / 1000, live = scene.classList.contains('is-live');
+      if (!live) return t < 7 ? 0.5 - 0.5 * Math.cos(Math.PI * t / 7) : 1;    // phones: all the way round in 7 s
+      const intro = 0.7 * ease(Math.min(1, t / 2.8));
+      const crawl = t > 2.8 ? Math.min(0.9, 0.7 + (t - 2.8) * 0.002) : 0;
+      return Math.max(intro, crawl, p > 0 ? 0.7 + Math.min(1, p / 0.8) * 0.3 : 0);   // closes while the scene is still pinned
+    }
+    let last = 0;
+    function frame(now) {
+      if (done) return false;
+      const dt = last ? Math.min(0.1, (now - last) / 1000) : 1 / 60; last = now;
+      // Always burn towards where it should be, never jump: at most half the coast a second.
+      od = Math.min(1, od + clamp(target(now) - od, 0, 0.5 * dt));
+      if (od >= 0.999) { finish(); return false; }
+      const q = set(true);
+      // A few sparks thrown off the spark: short-lived, drifting and fading.
+      if (q && bits.length < 9 && Math.random() < 0.55) {
+        const el = document.createElementNS(NS, 'circle');
+        el.setAttribute('r', (0.35 + Math.random() * 0.45).toFixed(2));
+        bitsG.appendChild(el);
+        const ang = Math.random() * Math.PI * 2, sp = 3 + Math.random() * 7;
+        bits.push({ el, x: q.x, y: q.y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 2, life: 0, max: 0.35 + Math.random() * 0.35 });
+      }
+      for (let i = bits.length - 1; i >= 0; i--) {
+        const b = bits[i]; b.life += 1 / 60; b.vy += 9 / 60;
+        b.x += b.vx / 60; b.y += b.vy / 60;
+        const k = b.life / b.max;
+        if (k >= 1) { b.el.remove(); bits.splice(i, 1); continue; }
+        b.el.setAttribute('cx', b.x.toFixed(2)); b.el.setAttribute('cy', b.y.toFixed(2)); b.el.setAttribute('opacity', (1 - k).toFixed(2));
+      }
+      return visible && !document.hidden;
+    }
+    function burn() { if (!done && !looping && visible) { looping = true; last = 0; run('fuse', now => { const go = frame(now); if (!go) looping = false; return go; }); } }
+    let ticking = false;
+    function onScroll() {
+      if (ticking) return; ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        if (!scene.classList.contains('is-live')) return;
         const r = scene.getBoundingClientRect(), span = scene.offsetHeight - window.innerHeight;
         p = clamp(span > 0 ? -r.top / span : 1, 0, 1);
         scene.style.setProperty('--p', p.toFixed(3));
-      }
-      draw();
+        burn();
+      });
     }
-    function onScroll() { if (!ticking && visible) { ticking = true; requestAnimationFrame(update); } }
     function apply() {
       scene.classList.toggle('is-live', fits.matches);
       if (fits.matches) window.addEventListener('scroll', onScroll, { passive: true });
       else { window.removeEventListener('scroll', onScroll); scene.style.removeProperty('--p'); p = 0; }
-      update();
+      onScroll(); burn();
     }
-    if ('IntersectionObserver' in window) new IntersectionObserver(e => { visible = e[0].isIntersecting; if (visible) onScroll(); }).observe(scene);
+    if ('IntersectionObserver' in window) new IntersectionObserver(e => { visible = e[0].isIntersecting; if (visible) burn(); }).observe(scene);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) burn(); });
     if (fits.addEventListener) fits.addEventListener('change', apply); else if (fits.addListener) fits.addListener(apply);
-    wrap.classList.add('is-drawing');
-    apply();
-    // The draw-in on arrival: about 2.8 s, easing out. Falls back to the finished state if frames stall.
-    if (motionOk) {
-      const t0 = performance.now(), D = 2800;
-      run('outline', now => { intro = ease(Math.min(1, (now - t0) / D)); draw(); return intro < 1; });
-      setTimeout(() => { if (intro < 1) { stop('outline'); intro = 1; draw(); } }, D + 600);
-    }
+    if (!done) { set(false); apply(); }
+    // If frames never come (a throttled tab), show the finished map rather than a blank cord.
+    setTimeout(() => { if (!done && od < 0.05) finish(); }, 4000);
   })();
 
   // ── "Find my path" in the hero: to the calculator, cursor in the first box ──
