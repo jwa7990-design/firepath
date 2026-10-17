@@ -143,5 +143,17 @@ const breadcrumbs = {
     import { followSections } from '../../scripts/toc';
     followSections();
     document.querySelectorAll('.doc-toc-mobile a').forEach(el => el.addEventListener('click', () => el.closest('details')?.removeAttribute('open')));
+    // Reading progress for the Learning Lab dashboard (this device only): opened now, read once the
+    // reader reaches the "keep reading" list at the end.
+    import { setLast, markRead } from '../../scripts/lab-progress';
+    const slug = location.pathname.replace(/^\/learn\//, '').replace(/\/$/, '');
+    if (slug) {
+      setLast(slug);
+      const end = document.querySelector('.art-related-list');
+      if (end && 'IntersectionObserver' in window) {
+        const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { markRead(slug); io.disconnect(); } });
+        io.observe(end);
+      }
+    }
   </script>
 </Base>

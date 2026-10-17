@@ -2,6 +2,10 @@
 /**
  * Learning Lab hub (/learn/). Built from the article collection (src/lib/learn.ts),
  * so it can only ever list articles that exist — add an article and it appears here.
+ * Opens on a dashboard of tiles that float a little above the page (src/styles/learn-board.css):
+ * search, how much there is, what you've read and where to pick up (this device only,
+ * src/scripts/lab-progress.ts), suggestions from your calculator numbers, and one tile per shelf.
+ * The full library of shelves follows below it.
  */
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
@@ -9,10 +13,16 @@ import { ARTICLES, FIRST_READS, SHELVES, shelve, type Article } from '../../lib/
 import '../../styles/doc.css';
 import '../../styles/learn-hub.css';
 import '../../styles/learn-recs.css';
+import '../../styles/learn-board.css';
 
 const shelves = shelve();
 const firstReads = FIRST_READS.map(s => ARTICLES.find(a => a.slug === s)).filter((a): a is Article => !!a);
 const totalMins = ARTICLES.reduce((n, a) => n + a.readMins, 0);
+// For the dashboard's progress (worked out in the browser from what's been read on this device)
+const labData = {
+  s: shelves.map(sh => ({ id: sh.id, slugs: [...sh.articles, ...sh.themes.flatMap(t => t.articles)].map(a => a.slug) })),
+  t: Object.fromEntries(ARTICLES.map(a => [a.slug, [a.heading, a.readMins]])),
+};
 // "Worth exploring, based on your numbers" fill-ins, by situation (after the person's own move articles).
 const theme = (title: string) => SHELVES.find(s => s.id === 'questions')?.themes?.find(t => t.title === title)?.slugs || [];
 const retirementReads = ['four-percent-rule-australia', 'is-my-super-enough', 'before-super-access'];
@@ -41,55 +51,77 @@ const schema = {
 
   <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
   <main id="main" class="hp is-new hub-page">
-    <header class="hp-hero hub-hero">
-      <div class="hp-wrap hub-hero-grid">
-        <div>
-          <p class="hp-label">Learning Lab</p>
-          <h1 class="hp-h1 hub-title">Money, explained <span class="hp-ember">in plain English.</span></h1>
-        </div>
-        <div class="hub-hero-side">
-          <p class="hp-lead">Free guides to financial independence for everyday Australians, from the basics of FIRE to super, investing and tax. No jargon, no sales pitch.</p>
-          <p class="doc-meta-line hub-meta num">{ARTICLES.length} guides · {Math.round(totalMins / 60)} hours of reading · Australian rules</p>
-          <div class="hub-search">
-            <Icon name="search" size={18}/>
-            <input id="hubSearch" type="search" placeholder={`Search ${ARTICLES.length} guides…`} aria-label="Search the Learning Lab" autocomplete="off"/>
-            <span class="hub-search-count" id="hubCount" aria-live="polite"></span>
-          </div>
-          <nav class="hub-jump" aria-label="Shelves">
-            <ul>{shelves.map(s => <li><a href={`#${s.id}`}>{s.title}<span class="num">{s.count}</span></a></li>)}</ul>
-          </nav>
-        </div>
-      </div>
-    </header>
-
     <div class="hub" id="hub">
-      <!-- Filled in the browser from the numbers saved by the free calculator (this device only). -->
-      <section class="hp-sec is-dark hub-first hub-recs" id="hubRecs" aria-labelledby="recs-title" hidden>
+      <!-- The dashboard: tiles floating a little above the page -->
+      <section class="lab-board" aria-labelledby="labTitle">
         <div class="hp-wrap">
-          <div class="hub-first-head">
-            <h2 id="recs-title" class="hp-h2 hub-first-title">Worth exploring, based on your numbers</h2>
-            <p class="hub-recs-note">Areas you could research further, from the numbers you entered in the calculator · <a href="#" id="hubRecsClear">Clear</a></p>
-          </div>
-          <ol class="hub-first-list hub-recs-list hp-rows" id="hubRecsList"></ol>
-        </div>
-      </section>
+          <div class="lab-plane" id="labPlane">
+            <div class="lab-head">
+              <div>
+                <h1 class="lab-title" id="labTitle">Learning <span class="hp-ember">Lab</span></h1>
+                <p class="lab-lead">Money, explained in plain English. Free guides to financial independence for everyday Australians, from the basics of FIRE to super, investing and tax. No jargon, no sales pitch.</p>
+              </div>
+              <div class="lab-tile lab-search lab-z2">
+                <Icon name="search" size={18}/>
+                <input id="hubSearch" type="search" placeholder={`Search ${ARTICLES.length} guides…`} aria-label="Search the Learning Lab" autocomplete="off"/>
+                <span class="hub-search-count" id="hubCount" aria-live="polite"></span>
+              </div>
+            </div>
 
-      <section class="hp-sec hub-first hub-first-reads" aria-labelledby="first-title" data-hub-hide-on-search>
-        <div class="hp-wrap">
-          <div class="hub-first-head">
-            <h2 id="first-title" class="hp-h2 hub-first-title">New here? Three places to begin</h2>
+            <div class="lab-stats" data-hub-hide-on-search>
+              <div class="lab-tile lab-z1">
+                <p class="lab-k">Guides</p>
+                <p class="lab-n num">{ARTICLES.length}</p>
+                <p class="lab-sub num">{Math.round(totalMins / 60)} hours of reading · Australian rules</p>
+              </div>
+              <div class="lab-tile lab-z2">
+                <p class="lab-k">You’ve read</p>
+                <p class="lab-n is-ember num" id="labReadN">0</p>
+                <p class="lab-sub" id="labReadSub">Kept on this device only. Start anywhere.</p>
+              </div>
+              <!-- Until a guide has been opened on this device: the calculator; after that, where to pick up -->
+              <a class="lab-tile lab-last lab-z3" id="labLast" href="/firepath">
+                <p class="lab-k" id="labLastK">Try it on your numbers</p>
+                <p class="lab-last-t" id="labLastT">Find the year work could become optional</p>
+                <p class="lab-sub" id="labLastSub">Free · about 2 minutes · no account →</p>
+              </a>
+            </div>
+
+            <!-- Filled in the browser from the numbers saved by the free calculator (this device only). -->
+            <div class="lab-tile lab-recs lab-z2" id="hubRecs" hidden>
+              <div class="lab-tile-head">
+                <h2 id="recs-title" class="lab-k is-ember">Worth exploring, based on your numbers</h2>
+                <p class="hub-recs-note">Areas you could research further, from the numbers you entered in the calculator · <a href="#" id="hubRecsClear">Clear</a></p>
+              </div>
+              <ol class="lab-list" id="hubRecsList"></ol>
+            </div>
+
+            <div class="lab-tile lab-first lab-z2" data-hub-hide-on-search>
+              <div class="lab-tile-head"><h2 id="first-title" class="lab-k is-ember">New here? Three places to begin</h2></div>
+              <ol class="lab-list">
+                {firstReads.map((a, i) => (
+                  <li><a href={`/learn/${a.slug}`} class="hub-first-card">
+                    <span class="hub-first-num">{i + 1}</span>
+                    <span class="hub-first-text"><strong>{a.heading}</strong><span>{a.readMins} min read</span></span>
+                    <Icon name="arrow" size={18}/>
+                  </a></li>
+                ))}
+              </ol>
+            </div>
+
+            <ul class="lab-shelves" data-hub-hide-on-search aria-label="Shelves">
+              {shelves.map(sh => (
+                <li><a class="lab-tile lab-shelf lab-z1" href={`#${sh.id}`} data-shelf={sh.id}>
+                  <span class="lab-shelf-t">{sh.title}</span>
+                  <span class="lab-sub"><span class="num">{sh.count}</span> guides<span data-shelf-read></span></span>
+                  <span class="lab-bar" aria-hidden="true"><i data-shelf-bar></i></span>
+                </a></li>
+              ))}
+            </ul>
           </div>
-          <ol class="hub-first-list hp-rows">
-            {firstReads.map((a, i) => (
-              <li><a href={`/learn/${a.slug}`} class="hub-first-card">
-                <span class="hub-first-num">{i + 1}</span>
-                <span class="hub-first-text"><strong>{a.heading}</strong><span>{a.readMins} min read</span></span>
-                <Icon name="arrow" size={18}/>
-              </a></li>
-            ))}
-          </ol>
         </div>
       </section>
+      <script type="application/json" id="labData" is:inline set:html={JSON.stringify(labData)}></script>
 
       {shelves.map((s, si) => (
         <section class:list={['hp-sec hub-shelf', si % 2 === 0 && 'is-sand']} id={s.id} aria-labelledby={`${s.id}-title`} data-hub-shelf>
@@ -101,12 +133,12 @@ const schema = {
             </div>
             <div class="hp-side-main">
               {s.articles.length > 0 && (
-                <ul class="hub-list hp-rows">{s.articles.map(a => <li data-hub-card data-reveal><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
+                <ul class="hub-list hp-rows">{s.articles.map(a => <li data-hub-card data-reveal data-slug={a.slug}><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
               )}
               {s.themes.map(t => (
                 <div class="hub-theme" data-hub-theme>
                   <h3>{t.title}</h3>
-                  <ul class="hub-list hp-rows">{t.articles.map(a => <li data-hub-card data-reveal><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
+                  <ul class="hub-list hp-rows">{t.articles.map(a => <li data-hub-card data-reveal data-slug={a.slug}><a href={`/learn/${a.slug}`} class="hub-card"><span class="hub-card-title">{a.heading}</span><span class="hub-card-meta num">{a.readMins} min read</span><span class="hub-card-desc">{a.description}</span></a></li>)}</ul>
                 </div>
               ))}
             </div>
@@ -180,6 +212,63 @@ const schema = {
       const clear = document.getElementById('hubRecsClear');
       if (clear) clear.addEventListener('click', e => { e.preventDefault(); M.forget(); shelf.hidden = true; hub.classList.remove('has-recs'); });
     })();
+  </script>
+
+  <script>
+    // The dashboard: what's been read on this device, where to pick up, progress per shelf, ticks on read
+    // guides; and on wide screens with a mouse, the board leans very slightly towards the pointer.
+    import { getRead, getLast } from '../../scripts/lab-progress';
+    const data = JSON.parse(document.getElementById('labData')?.textContent || '{"s":[],"t":{}}') as { s: { id: string; slugs: string[] }[]; t: Record<string, [string, number]> };
+    const read = new Set(getRead().filter(x => data.t[x]));
+    const total = Object.keys(data.t).length;
+    const readN = document.getElementById('labReadN'), readSub = document.getElementById('labReadSub');
+    if (readN && read.size) { readN.textContent = String(read.size); if (readSub) readSub.textContent = `of ${total} guides · kept on this device only`; }
+    // Not new any more: the "three places to begin" tile steps aside
+    if (read.size) document.querySelector('.lab-first')?.classList.add('is-done');
+    // Pick up where you left off: the last guide opened, or if that's finished, the next unread one on its shelf
+    const last = getLast();
+    if (last && data.t[last.slug]) {
+      let slug = last.slug, kicker = 'Pick up where you left off';
+      if (read.has(slug)) {
+        const shelf = data.s.find(sh => sh.slugs.includes(slug));
+        const next = shelf?.slugs.find(x => !read.has(x));
+        if (next) { slug = next; kicker = 'Up next on that shelf'; } else kicker = 'Last opened';
+      }
+      const [title, mins] = data.t[slug];
+      const a = document.getElementById('labLast') as HTMLAnchorElement | null;
+      if (a) {
+        a.href = `/learn/${slug}`;
+        document.getElementById('labLastK')!.textContent = kicker;
+        document.getElementById('labLastT')!.textContent = title;
+        document.getElementById('labLastSub')!.textContent = `${mins} min read →`;
+      }
+    }
+    data.s.forEach(sh => {
+      const n = sh.slugs.filter(x => read.has(x)).length;
+      const tile = document.querySelector<HTMLElement>(`[data-shelf="${sh.id}"]`);
+      if (!tile || !n) return;
+      tile.querySelector('[data-shelf-read]')!.textContent = ` · ${n} read`;
+      (tile.querySelector('[data-shelf-bar]') as HTMLElement).style.width = `${Math.round(n / sh.slugs.length * 100)}%`;
+    });
+    document.querySelectorAll<HTMLElement>('[data-slug]').forEach(li => { if (read.has(li.dataset.slug!)) li.classList.add('is-read'); });
+
+    const plane = document.getElementById('labPlane');
+    const lean = window.matchMedia('(min-width: 900px) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+    const board = plane?.closest('.lab-board') as HTMLElement | null;
+    if (plane && board) {
+      let raf = 0;
+      board.addEventListener('pointermove', e => {
+        if (!lean.matches || raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          const r = board.getBoundingClientRect();
+          const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+          plane.style.setProperty('--ry', `${(x * 3).toFixed(2)}deg`);
+          plane.style.setProperty('--rx', `${(2 - y * 2.4).toFixed(2)}deg`);
+        });
+      });
+      board.addEventListener('pointerleave', () => { plane.style.removeProperty('--rx'); plane.style.removeProperty('--ry'); });
+    }
   </script>
 
   <script>
