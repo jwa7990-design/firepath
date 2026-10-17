@@ -392,3 +392,115 @@
 .doc-ed .doc-ed-hero .hp-label, :is(.doc-ed, .art-page) .doc-toc-label, .doc-ed .doc-notice-label { color: var(--ink); }
 .doc-ed .doc-ed-hero .hp-label::before, :is(.doc-ed, .art-page) .doc-toc-label::before, .doc-ed .doc-notice-label::before { opacity: 1; }
 :is(.doc-ed, .art-page) .doc-toc-mobile summary { color: var(--ink); }
+
+/* ── Chapter book (Oct 2026): Privacy, Terms, How we calculate ────────────────────────────────────
+   Same words; new shape. Giant Inter Tight title on the homepage's offset grid, a thin ember
+   reading line, "At a glance" as a night band of numbered tiles, a sticky rail whose big number
+   follows the chapter you're in, numbered chapter headings, a big closing question.
+   (Scroll-driven rules are longhands: the CSS minifier breaks the `animation` shorthand with a timeline.) */
+.doc-ed .doc-ed-hero { padding: 36px 0 56px; }
+@media (min-width: 900px) { .doc-ed .doc-ed-hero { padding: 56px 0 88px; } }
+.doc-ed .doc-ed-hero-grid { display: grid; gap: 0; }
+@media (min-width: 900px) {
+  .doc-ed .doc-ed-hero-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; align-items: end; }
+  .doc-ed .doc-ed-hero-grid > .doc-ed-micro { grid-column: 1 / span 4; grid-row: 1; }
+  .doc-ed .doc-ed-hero-grid > .doc-ed-title { grid-column: 1 / -1; grid-row: 2; }
+  .doc-ed .doc-ed-hero-grid > .doc-ed-lead { grid-column: 7 / span 6; grid-row: 3; }
+}
+.doc-ed-micro { font-family: var(--font-grotesk); font-size: 12px; font-weight: 600; line-height: 1.45; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
+.doc-ed .doc-ed-title {
+  margin-top: 22px; max-width: none; font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase;
+  font-size: clamp(48px, 9vw, 132px); line-height: 0.86; letter-spacing: -0.05em; color: var(--ink);
+}
+.doc-ed .doc-ed-title .hp-ember { display: block; color: var(--ember-ink); }
+.doc-ed .doc-ed-lead { margin-top: 28px; max-width: 54ch; font-size: 17px; line-height: 1.6; }
+@media (min-width: 900px) { .doc-ed .doc-ed-lead { margin-top: 44px; } }
+
+/* The reading line: fills left to right as you read (just under the header) */
+.doc-read-line { position: fixed; left: 0; right: 0; top: var(--nav-h); z-index: 90; height: 2px; background: var(--ember); transform-origin: 0 50%; transform: scaleX(0); pointer-events: none; }
+@supports (animation-timeline: scroll()) {
+  .doc-read-line { animation-name: docRead; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: scroll(root block); }
+}
+@supports not (animation-timeline: scroll()) { .doc-read-line { display: none; } }
+@keyframes docRead { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* Night band: At a glance (and the key figures on How we calculate, which follow straight on) */
+.doc-night, .doc-ed .doc-keyfigs {
+  --ink: #FDF6EE; --ink-2: rgba(253, 246, 238, 0.66); --line: rgba(253, 246, 238, 0.12);
+  color: var(--ink); border-top: 0;
+  background:
+    linear-gradient(rgba(253, 246, 238, 0.035) 1px, transparent 1px) 0 0 / 100% 40px,
+    linear-gradient(90deg, rgba(253, 246, 238, 0.035) 1px, transparent 1px) 0 0 / 40px 100%,
+    var(--espresso);
+}
+.doc-night { position: relative; padding: 56px 0 64px; background:
+    radial-gradient(60% 80% at 100% 0%, rgba(244, 98, 42, 0.16), transparent 60%),
+    linear-gradient(rgba(253, 246, 238, 0.035) 1px, transparent 1px) 0 0 / 100% 40px,
+    linear-gradient(90deg, rgba(253, 246, 238, 0.035) 1px, transparent 1px) 0 0 / 40px 100%,
+    var(--espresso); }
+@media (min-width: 900px) { .doc-night { padding: 80px 0 88px; } }
+.doc-night-head { display: grid; gap: 10px; margin-bottom: 32px; }
+@media (min-width: 900px) { .doc-night-head { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; margin-bottom: 44px; } }
+.doc-night-title { font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 6vw, 84px); line-height: 0.86; letter-spacing: -0.05em; color: var(--ink); }
+.doc-night-note { max-width: 44ch; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+@media (min-width: 900px) { .doc-night-note { justify-self: end; text-align: right; } }
+.doc-tiles { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+@media (min-width: 640px) { .doc-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .doc-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.doc-tile {
+  display: grid; grid-template-rows: auto 1fr auto; gap: 12px; min-height: 230px; padding: 22px 22px 24px;
+  border: 1px solid rgba(253, 246, 238, 0.12); border-radius: 16px; background: rgba(253, 246, 238, 0.03);
+  transition: border-color 260ms ease, background 260ms ease, transform 320ms var(--ease);
+}
+.doc-tile:hover { border-color: rgba(244, 98, 42, 0.6); background: rgba(244, 98, 42, 0.06); transform: translateY(-4px); }
+.doc-tile-n { font-family: var(--font-grotesk); font-weight: 800; font-size: 56px; line-height: 0.8; letter-spacing: -0.06em; color: var(--ember); text-shadow: 0 0 30px rgba(244, 98, 42, 0.4); }
+.doc-tile-t { align-self: end; font-family: var(--font-grotesk); font-weight: 700; font-size: 22px; line-height: 1.05; letter-spacing: -0.03em; color: var(--ink); }
+.doc-tile-d { font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+.doc-ed .doc-keyfigs { padding-top: 8px; }
+.doc-ed .doc-keyfigs .hp-label { color: var(--ink); }
+.doc-ed .doc-keyfigs-list { border-top-color: rgba(253, 246, 238, 0.28); }
+.doc-ed .doc-keyfig-val { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.06em; color: var(--ember); text-shadow: 0 0 36px rgba(244, 98, 42, 0.4); }
+.doc-ed .doc-keyfig-name { font-family: var(--font-grotesk); letter-spacing: -0.02em; color: var(--ink); }
+
+/* The rail: the current chapter as a big ember number, over the contents */
+.doc-rail-num { display: none; }
+@media (min-width: 900px) {
+  .doc-ed .doc-toc-desktop { position: sticky; top: calc(var(--nav-h) + 28px); }
+  .doc-rail-num { display: block; margin-bottom: 18px; font-family: var(--font-grotesk); font-weight: 800; font-size: 112px; line-height: 0.8; letter-spacing: -0.07em; color: var(--ember-ink); font-variant-numeric: tabular-nums; }
+}
+:is(.doc-ed) .doc-toc-label { font-family: var(--font-grotesk); font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+.doc-ed .doc-toc-desktop a { font-size: 14.5px; transition: color 200ms ease, padding 260ms var(--ease); }
+.doc-ed .doc-toc-desktop a[aria-current] { color: var(--ember-ink); padding-left: 10px; box-shadow: inset 2px 0 0 var(--ember); }
+.doc-ed .doc-toc-desktop a[aria-current] .doc-toc-num { color: var(--ember-ink); }
+.doc-ed .doc-toc-num { font-family: var(--font-grotesk); font-weight: 700; }
+
+/* Chapters: a big ember number, then the title in Inter Tight */
+.doc-ed .doc-section { padding: 16px 0 56px; }
+.doc-ed .doc-section + .doc-section { padding-top: 56px; }
+.doc-ed .doc-section > h2 { display: block; font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(30px, 3.6vw, 46px); line-height: 0.98; letter-spacing: -0.045em; color: var(--ink); }
+.doc-ed .doc-section > h2::before {
+  display: block; margin: 0 0 14px; font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(56px, 6vw, 84px);
+  line-height: 0.8; letter-spacing: -0.06em; color: var(--ember-ink); opacity: 0.9;
+}
+.doc-ed .doc-panel h3, .doc-ed .doc-card-name { font-family: var(--font-grotesk); letter-spacing: -0.01em; }
+.doc-ed .doc-panel h3 { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+.doc-ed .doc-card-name { font-size: 18px; font-weight: 700; }
+.doc-ed .doc-fact-val, .doc-ed .doc-chain-val { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.03em; }
+.doc-ed .doc-fact-val { font-size: 24px; }
+.doc-ed .doc-chain-step.is-result .doc-chain-val { color: var(--ember-ink); font-size: clamp(32px, 3.6vw, 44px); }
+.doc-ed .doc-notice { border-radius: 16px; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .doc-ed .doc-section > h2, .doc-ed .doc-tile, .doc-ed .doc-keyfig {
+      animation-name: docRise; animation-timing-function: linear; animation-fill-mode: both;
+      animation-timeline: view(); animation-range: entry 0% entry 55%;
+    }
+  }
+}
+@keyframes docRise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+
+/* The close: one big question and the email button */
+.doc-ed .doc-ed-contact { margin-top: 24px; padding: 36px 0 0; border-top: 2px solid var(--ink); }
+.doc-ed .doc-ed-contact h2 { font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase; font-size: clamp(40px, 5.4vw, 72px); line-height: 0.86; letter-spacing: -0.05em; }
+.doc-ed .doc-ed-contact .doc-btn { height: 52px; padding: 0 24px; border-radius: 999px; background: var(--espresso); color: #FDF6EE; }
+.doc-ed .doc-ed-contact .doc-btn:hover { background: var(--ember-ink); }

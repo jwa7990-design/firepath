@@ -1,8 +1,9 @@
 ---
 /**
- * Long-form page (Privacy, Terms, How we calculate): an editorial hero, an optional
- * "at a glance" ruled list, then contents + numbered sections on the 12-column grid
- * (public/css/fp-editorial.css), closing on a plain contact section.
+ * Long-form page (Privacy, Terms, How we calculate), laid out like a chapter book: a giant
+ * Inter Tight title on the offset grid with a thin ember reading line along the top, "at a
+ * glance" as a dark band of numbered tiles, then a sticky rail (the chapter you're in, as a big
+ * ember number, over the contents) beside numbered chapters, closing on a big question.
  *
  * Usage:
  *   <DocLayout title=… sections={[{ id: 'collect', title: 'What we collect' }, …]} glance={[…]}>
@@ -39,31 +40,28 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 <Base title={title} description={description} path={path}>
   <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
   <main id="main" class="hp is-new doc-ed">
+  <div class="doc-read-line" aria-hidden="true"></div>
   <header class="hp-hero doc-ed-hero">
     <div class="hp-wrap doc-ed-hero-grid">
-      <div>
-        <p class="hp-label">{eyebrow}</p>
-        <h1 class="hp-h1 doc-ed-title">{heading}{accent && <> <span class="hp-ember">{accent}</span></>}</h1>
-      </div>
-      <div class="doc-ed-hero-side">
-        <p class="hp-lead">{lead}</p>
-        <p class="doc-meta-line num">Updated {updated} · {readMins} min read</p>
-      </div>
+      <p class="doc-ed-micro num">{eyebrow}<br/>Updated {updated}<br/>{readMins} min read · {sections.length} parts</p>
+      <h1 class="doc-ed-title">{heading}{accent && <> <span class="hp-ember">{accent}</span></>}</h1>
+      <p class="hp-lead doc-ed-lead">{lead}</p>
     </div>
   </header>
 
   {glance && (
-    <section class="hp-sec is-sand doc-ed-glance" aria-labelledby="glance-title">
-      <div class="hp-wrap hp-side">
-        <div class="hp-side-head">
-          <h2 id="glance-title" class="hp-h2 is-small">At a glance</h2>
-          {glanceNote && <p class="hp-body">{glanceNote}</p>}
+    <section class="doc-night doc-ed-glance" aria-labelledby="glance-title">
+      <div class="hp-wrap">
+        <div class="doc-night-head">
+          <h2 id="glance-title" class="doc-night-title">At a glance</h2>
+          {glanceNote && <p class="doc-night-note">{glanceNote}</p>}
         </div>
-        <ul class="hp-rules doc-glance-rules">
-          {glance.map(g => (
-            <li class="doc-glance-row">
-              <strong class="doc-glance-name"><span class="hp-mark" aria-hidden="true"></span>{g.title}</strong>
-              <span class="doc-glance-text">{g.text}</span>
+        <ul class="doc-tiles">
+          {glance.map((g, i) => (
+            <li class="doc-tile">
+              <span class="doc-tile-n" aria-hidden="true">{num(i)}</span>
+              <strong class="doc-tile-t">{g.title}</strong>
+              <span class="doc-tile-d">{g.text}</span>
             </li>
           ))}
         </ul>
@@ -81,6 +79,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
         <ol>{sections.map((s, i) => <li><a href={`#${s.id}`}><span class="doc-toc-num">{num(i)}</span>{s.title}</a></li>)}</ol>
       </details>
       <div class="doc-toc-desktop">
+        <p class="doc-rail-num num" aria-hidden="true" id="docRailNum">01</p>
         <p class="doc-toc-label">On this page</p>
         <ol>{sections.map((s, i) => <li><a href={`#${s.id}`} data-toc={s.id}><span class="doc-toc-num">{num(i)}</span>{s.title}</a></li>)}</ol>
       </div>
@@ -103,6 +102,14 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
   <script>
     import { followSections } from '../scripts/toc';
     followSections();
+    // The rail's big number follows whichever chapter is current.
+    const railNum = document.getElementById('docRailNum');
+    const tocList = document.querySelector('.doc-toc-desktop ol');
+    if (railNum && tocList) {
+      const show = () => { const n = tocList.querySelector('a[aria-current] .doc-toc-num'); if (n && railNum.textContent !== n.textContent) railNum.textContent = n.textContent; };
+      new MutationObserver(show).observe(tocList, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
+      show();
+    }
     // Close the phone contents menu after choosing a section.
     document.querySelectorAll('.doc-toc-mobile a').forEach(a => a.addEventListener('click', () => a.closest('details')?.removeAttribute('open')));
   </script>

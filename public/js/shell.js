@@ -110,7 +110,18 @@
     ['faq', 'Questions', 'faq.html', 'Answers to common questions']
   ];
 
+  // The menu's display type is Inter Tight. Astro pages load it already; the hand-written pages don't,
+  // so add it once (same Google Fonts host the pages already use).
+  function ensureGrotesk() {
+    if (document.querySelector('link[href*="Inter+Tight"]')) return;
+    const l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=Inter+Tight:wght@600;700;800&display=swap';
+    document.head.appendChild(l);
+  }
+
   function renderSite() {
+    ensureGrotesk();
     const nav = `
 <header class="site-nav" id="siteNav">
   <a href="${url('index.html')}" class="site-logo">${svg('flame', 20)}<span>Fire<em>Path</em></span></a>
@@ -155,14 +166,15 @@
     const btn = document.getElementById('exploreBtn');
     const panel = document.getElementById('explorePanel');
     const close = document.getElementById('exploreClose');
-    const setOpen = open => {
+    const setOpen = (open, byKeys) => {
       if (open) { panel.hidden = false; requestAnimationFrame(() => panel.classList.add('open')); }
       else { panel.classList.remove('open'); setTimeout(() => { if (!panel.classList.contains('open')) panel.hidden = true; }, 260); }
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
       document.documentElement.classList.toggle('explore-open', open);
-      if (open) setTimeout(() => panel.querySelector('.explore-link').focus(), 60); else btn.focus();
+      // Focus moves into the menu; the focus ring only shows when it was opened from the keyboard.
+      if (open) setTimeout(() => panel.querySelector('.explore-link').focus({ focusVisible: !!byKeys }), 60); else btn.focus();
     };
-    btn.addEventListener('click', () => setOpen(panel.hidden));
+    btn.addEventListener('click', e => setOpen(panel.hidden, e.detail === 0));
     close.addEventListener('click', () => setOpen(false));
     panel.addEventListener('click', e => { if (e.target === panel) setOpen(false); });
     document.addEventListener('keydown', e => {
