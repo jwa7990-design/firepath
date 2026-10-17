@@ -519,3 +519,56 @@ html.explore-open { overflow: hidden; }
 }
 @keyframes fp-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media print { .fp-pending { opacity: 1 !important; transform: none !important; } .fp-progress { display: none !important; } }
+
+/* ── The Pro area (Oct 2026): your own space ─────────────────────────────────────────────────────
+   A dark espresso rail (and tab bar on phones) with a Pro badge marks every signed-in page as yours;
+   the content stays cream and calm like the rest of the site, in Inter Tight, with your path's marker
+   as the glowing orb. The rail is the page's one dark element, so dark panels inside become tiles. */
+.desktop-rail, .mobile-tabbar {
+  --ink: #FDF6EE; --ink-2: rgba(253, 246, 238, 0.62); --ink-3: rgba(253, 246, 238, 0.42); --line: rgba(253, 246, 238, 0.1); --bg: var(--espresso);
+  color: var(--ink);
+}
+@media (min-width: 1024px) {
+  .desktop-rail { background: radial-gradient(130% 36% at 0% 0%, rgba(244, 98, 42, 0.18), transparent 62%), var(--espresso); border-right: 0; }
+}
+.desktop-rail-logo em { font-style: normal; color: var(--ember); }
+.pro-badge {
+  margin-left: 2px; padding: 2px 7px; border-radius: 999px; background: var(--ember); color: var(--espresso);
+  font: 700 10px/1.45 var(--font-grotesk); letter-spacing: 0.12em; text-transform: uppercase;
+}
+.desktop-rail-item.active, .mobile-tabbar-item.active { color: var(--ember); }
+.desktop-rail-item .nav-indicator, .mobile-tabbar-item .nav-indicator { background: var(--ember); box-shadow: 0 0 10px rgba(244, 98, 42, 0.7); }
+.desktop-rail-ask { border-color: rgba(253, 246, 238, 0.32); color: var(--ink); border-radius: 999px; }
+.desktop-rail-ask:hover, .desktop-rail-ask.active { background: var(--ember); border-color: var(--ember); color: var(--espresso); }
+.desktop-rail a:focus-visible, .mobile-tabbar-item:focus-visible { outline-color: var(--ember); }
+.mobile-tabbar { background: var(--espresso); border-top: 0; }
+.ask-pill { background: var(--ember); border-color: var(--ember); color: var(--espresso); border-radius: 999px; box-shadow: 0 10px 24px -8px rgba(244, 98, 42, 0.6); }
+
+/* The content: Inter Tight throughout, big capital titles, tiles instead of dark panels */
+body.app main { --font-display: var(--font-grotesk); }
+body.app main .hp-hero .hp-label { font-family: var(--font-grotesk); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+body.app main .hp-hero .hp-label::before { background: var(--ember-ink); opacity: 1; }
+body.app main .hp-hero :is(.hp-h1, h1) {
+  font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase;
+  font-size: clamp(36px, 4.4vw, 66px); line-height: 0.92; letter-spacing: -0.05em; color: var(--ink);
+}
+body.app main .hp-hero .hp-ember { color: var(--ember-ink); }
+body.app main .hp-h2 { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.04em; line-height: 0.98; }
+body.app main :is(.hp-sec.is-dark, .hp-panel.is-dark) {
+  --ink: #2B1D14; --ink-2: #65544A; --ink-3: #9A8A80; --line: #EDE3DA; --line-strong: #E2D5C8;
+  --bg: #FDF6EE; --surface: #FFFFFF; --hp-accent: #A63C0C; --hp-rule: 1px solid var(--line); color: var(--ink);
+}
+body.app main .hp-sec.is-dark { background: var(--hp-sand); }
+body.app main .hp-panel {
+  border-radius: 18px; background: var(--surface); border: 1px solid #EFE3D6;
+  box-shadow: 0 16px 34px -22px rgba(43, 29, 20, 0.26), 0 2px 5px rgba(43, 29, 20, 0.04);
+}
+/* Your path's marker: the glowing orb */
+body.app .fpv-free-dot { fill: var(--ember); filter: drop-shadow(0 0 5px rgba(244, 98, 42, 0.75)) drop-shadow(0 0 12px rgba(244, 98, 42, 0.35)); }
+@media (prefers-reduced-motion: no-preference) {
+  body.app .fpv-free-dot { animation: proOrb 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+}
+@keyframes proOrb { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+/* Your Path: the greeting in big capitals, the date on one line */
+body.app main .jp-greet { font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase; font-size: clamp(32px, 4.4vw, 60px); line-height: 0.92; letter-spacing: -0.05em; }
+body.app main .hero-year { font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(88px, 11vw, 168px); letter-spacing: -0.065em; line-height: 0.85; white-space: nowrap; overflow-wrap: normal; }

@@ -76,9 +76,10 @@
   ];
 
   function renderApp() {
+    ensureGrotesk();
     const rail = `
 <nav class="desktop-rail" aria-label="Primary">
-  <a href="${url('journey.html')}" class="desktop-rail-logo">${svg('flame', 20)}FirePath</a>
+  <a href="${url('journey.html')}" class="desktop-rail-logo">${svg('flame', 20)}<span>Fire<em>Path</em></span><span class="pro-badge">Pro</span></a>
   <div class="desktop-rail-nav">
     ${APP_TABS.map(([k, label, href]) => `<a href="${url(href)}" class="desktop-rail-item${current(k)}">${indicator(k)}${svg(k, 18)}${label}</a>`).join('')}
   </div>
