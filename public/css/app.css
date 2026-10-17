@@ -285,32 +285,28 @@ button.chip { font-family: var(--font-ui); }
 .explore-btn:hover, .explore-btn[aria-expanded="true"] { background: var(--ink); color: var(--bg); }
 
 html.explore-open { overflow: hidden; }
-/* The menu is a night panel (like the homepage calculator): espresso, faint grid, an ember glow,
-   and the sections as huge Inter Tight capitals that light up ember. Colour tokens are redefined
-   inside it so everything below follows. */
+/* The menu: cream, like the rest of the site. The sections as huge Inter Tight capitals in ink that turn
+   ember on hover, a faint grid, and the free calculator as a soft white tile. */
 .explore {
-  --ink: #FDF6EE; --ink-2: rgba(253, 246, 238, 0.64); --line: rgba(253, 246, 238, 0.12); --line-strong: rgba(253, 246, 238, 0.28);
   position: fixed; inset: 0; z-index: 200; overflow-y: auto; overscroll-behavior: contain; color: var(--ink);
   background:
-    radial-gradient(70% 60% at 100% 0%, rgba(244, 98, 42, 0.18), transparent 60%),
-    linear-gradient(rgba(253, 246, 238, 0.035) 1px, transparent 1px) 0 0 / 100% 40px,
-    linear-gradient(90deg, rgba(253, 246, 238, 0.035) 1px, transparent 1px) 0 0 / 40px 100%,
-    var(--espresso);
+    linear-gradient(rgba(43, 29, 20, 0.035) 1px, transparent 1px) 0 0 / 100% 40px,
+    linear-gradient(90deg, rgba(43, 29, 20, 0.035) 1px, transparent 1px) 0 0 / 40px 100%,
+    var(--bg);
   opacity: 0; transition: opacity 240ms ease;
 }
 .explore.open { opacity: 1; }
 .explore[hidden] { display: none; }
-.explore a:focus-visible, .explore button:focus-visible { outline-color: var(--ember); }
+.explore a:focus-visible, .explore button:focus-visible { outline-color: var(--ember-ink); }
 .explore-inner { max-width: 1120px; min-height: 100%; margin: 0 auto; padding: 0 16px 40px; display: flex; flex-direction: column; }
 @media (min-width: 768px) { .explore-inner { padding: 0 32px 64px; } }
 .explore-top { display: flex; align-items: center; justify-content: space-between; height: var(--nav-h); border-bottom: 1px solid var(--line); }
-.explore .site-logo { color: var(--ink); }
 .explore-close {
   display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px 0 14px; border-radius: 8px;
-  border: 1px solid var(--line-strong); background: transparent; color: var(--ink); font: 600 14px/1 var(--font-ui); cursor: pointer;
+  border: 1px solid var(--ink); background: transparent; color: var(--ink); font: 600 14px/1 var(--font-ui); cursor: pointer;
   transition: background var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease;
 }
-.explore-close:hover { background: var(--ink); border-color: var(--ink); color: var(--espresso); }
+.explore-close:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 
 /* Layout: a small label, the sections big and wide, the free calculator and small links on the right.
    Stacked on phones. */
@@ -325,15 +321,15 @@ html.explore-open { overflow: hidden; }
   display: flex; align-items: center; gap: 10px;
   font-family: var(--font-grotesk); font-size: 11.5px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2);
 }
-.explore-kicker::before, .explore-card-kicker::before { content: ''; width: 24px; height: 1px; background: var(--ember); }
+.explore-kicker::before, .explore-card-kicker::before { content: ''; width: 24px; height: 1px; background: var(--ember-ink); }
 
-.explore-links { display: grid; border-top: 1px solid var(--line-strong); }
+.explore-links { display: grid; border-top: 1px solid var(--ink); }
 .explore-link {
   position: relative; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 12px;
   padding: 16px 2px 18px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink);
 }
 @media (min-width: 768px) { .explore-link { grid-template-columns: 52px minmax(0, 1fr) auto; padding: 20px 2px 22px; } }
-.explore-num { align-self: start; padding-top: 0.5em; font-family: var(--font-grotesk); font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: var(--ember); font-variant-numeric: tabular-nums; }
+.explore-num { align-self: start; padding-top: 0.5em; font-family: var(--font-grotesk); font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: var(--ember-ink); font-variant-numeric: tabular-nums; }
 .explore-text { display: grid; gap: 8px; }
 .explore-title {
   font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase;
@@ -345,20 +341,19 @@ html.explore-open { overflow: hidden; }
   display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line-strong); color: var(--ink);
   transition: transform 360ms var(--ease), background 260ms ease, border-color 260ms ease, color 260ms ease;
 }
-.explore-link:hover .explore-title, .explore-link:focus-visible .explore-title { color: var(--ember); transform: translateX(10px); }
-.explore-link:hover .explore-arrow, .explore-link:focus-visible .explore-arrow { background: var(--ember); border-color: var(--ember); color: var(--espresso); transform: translateX(4px); }
-.explore-link[aria-current="page"] .explore-title { color: var(--ember); }
-.explore-link[aria-current="page"] .explore-num::after { content: ' · here'; color: var(--ink-2); font-weight: 600; }
+.explore-link:hover .explore-title, .explore-link:focus-visible .explore-title { color: var(--ember-ink); transform: translateX(10px); }
+.explore-link:hover .explore-arrow, .explore-link:focus-visible .explore-arrow { background: var(--ember-ink); border-color: var(--ember-ink); color: #fff; transform: translateX(4px); }
+.explore-link[aria-current="page"] .explore-title { color: var(--ember-ink); }
 
 /* The free calculator */
-.explore-card { padding-top: 18px; border-top: 1px solid var(--line-strong); color: var(--ink); }
+.explore-card { padding: 22px 22px 18px; border-radius: 18px; background: var(--surface); border: 1px solid #EFE3D6; color: var(--ink); box-shadow: 0 24px 48px -30px rgba(43, 29, 20, 0.3), 0 2px 5px rgba(43, 29, 20, 0.04); }
 .explore-card-title { margin: 14px 0 22px; max-width: 18ch; font-family: var(--font-grotesk); font-weight: 700; font-size: clamp(24px, 2.4vw, 30px); line-height: 1.05; letter-spacing: -0.035em; }
 .explore-cta {
   display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 20px; border-radius: 8px;
-  background: var(--ember); color: var(--espresso); font-size: 15px; font-weight: 600; text-decoration: none;
-  box-shadow: 0 10px 30px -10px rgba(244, 98, 42, 0.7); transition: background var(--dur-fast) ease;
+  background: var(--ember-ink); color: #fff; font-size: 15px; font-weight: 600; text-decoration: none;
+  transition: background var(--dur-fast) ease;
 }
-.explore-cta:hover { background: #FF7A45; }
+.explore-cta:hover { background: #A93C0B; }
 .explore-card-links { display: grid; margin-top: 28px; border-top: 1px solid var(--line); }
 .explore-card-links a { padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; color: var(--ink-2); text-decoration: none; transition: color var(--dur-fast) ease; }
 .explore-card-links a:hover { color: var(--ink); }

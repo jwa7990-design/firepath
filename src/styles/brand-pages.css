@@ -1,0 +1,127 @@
+/* ── Brand pages (Oct 2026): Features, Pricing, FAQ in the site's current look ─────────────────────
+   Switched on with .hp.is-brand. Cream throughout, a giant Inter Tight title on the offset grid, Inter
+   Tight headings, content in soft floating tiles, and at most one dark tile per page (.is-dark-tile).
+   Same words, prices and plans as before (src/data/plans.ts, src/data/faq.ts). */
+
+/* Hero: kicker, giant title across, the intro parked bottom right */
+.is-brand .br-hero { padding: 40px 0 44px; border-bottom: 0; background: var(--bg); }
+@media (min-width: 900px) {
+  .is-brand .br-hero { padding: 64px 0 72px; }
+  .br-hero-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; align-items: end; }
+  .br-hero-grid > .hp-label { grid-column: 1 / span 4; grid-row: 1; }
+  .br-hero-grid > .hp-h1 { grid-column: 1 / -1; grid-row: 2; }
+  .br-hero-grid > .br-hero-side { grid-column: 7 / span 6; grid-row: 3; }
+}
+.is-brand .hp-hero .hp-label { font-family: var(--font-grotesk); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+.is-brand .hp-hero .hp-label::before { background: var(--ember-ink); opacity: 1; }
+.is-brand .br-hero .hp-h1 {
+  max-width: none; margin-top: 20px; font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase;
+  font-size: clamp(44px, 7vw, 108px); line-height: 0.88; letter-spacing: -0.05em; color: var(--ink);
+}
+.is-brand .br-hero .hp-h1 .hp-ember { display: block; color: var(--ember-ink); }
+.is-brand .br-hero-side { margin-top: 26px; }
+@media (min-width: 900px) { .is-brand .br-hero-side { margin-top: 40px; } }
+.is-brand .br-hero .hp-lead { margin-top: 0; max-width: 52ch; color: var(--ink-2); }
+
+/* Headings and sections */
+.is-brand .hp-sec { border-top: 0; }
+.is-brand .hp-h2 { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.04em; line-height: 0.98; }
+.is-brand .hp-label.mk-kicker, .is-brand .hp-label.is-ink { font-family: var(--font-grotesk); font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; }
+
+/* The tile: white, soft edge, a gentle shadow; the one dark tile per page */
+.br-tile {
+  position: relative; display: block; padding: 24px 24px 22px; border-radius: 18px; background: var(--surface); border: 1px solid #EFE3D6;
+  color: var(--ink); text-decoration: none; box-shadow: 0 16px 34px -22px rgba(43, 29, 20, 0.26), 0 2px 5px rgba(43, 29, 20, 0.04);
+  transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 300ms ease, border-color 300ms ease;
+}
+@media (min-width: 768px) { .br-tile { padding: 30px 30px 26px; } }
+a.br-tile:hover { transform: translateY(-4px); border-color: var(--line-strong); box-shadow: 0 26px 48px -26px rgba(43, 29, 20, 0.34), 0 3px 6px rgba(43, 29, 20, 0.05); }
+a.br-tile:focus-visible { outline: 2px solid var(--ember-ink); outline-offset: 3px; }
+.br-tile.is-dark-tile {
+  --ink: #FDF6EE; --ink-2: rgba(253, 246, 238, 0.7); --ink-3: rgba(253, 246, 238, 0.45); --line: rgba(253, 246, 238, 0.14); --line-strong: rgba(253, 246, 238, 0.28);
+  background: var(--espresso); border-color: var(--espresso); color: var(--ink);
+  box-shadow: 0 30px 60px -30px rgba(196, 72, 15, 0.45), 0 4px 10px rgba(43, 29, 20, 0.12);
+}
+.br-tile.is-dark-tile .mk-btn { background: var(--ember); border-color: var(--ember); color: var(--espresso); }
+.br-tile.is-dark-tile .mk-btn:hover { background: #FF7A45; border-color: #FF7A45; }
+
+/* Plans (Pricing, the Free or Pro block on Features) */
+.is-brand .mk-plan-name { border-bottom: 1px solid var(--line); }
+.is-brand .mk-plan-name :is(h2, h3) { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.04em; text-transform: uppercase; font-size: clamp(28px, 3vw, 38px); }
+.is-brand .mk-plan-tag { font-family: var(--font-grotesk); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+.is-brand .mk-price-n { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.06em; }
+.br-tile.is-dark-tile .mk-price-n.hp-ember { color: var(--ember); }
+.is-brand .hp-half { align-items: stretch; }
+.is-brand .price-trust { margin-top: 28px; }
+
+/* Questions as tile accordions (Pricing) */
+.is-brand .mk-qs { display: grid; gap: 10px; }
+.is-brand .mk-q { padding: 0 20px; border: 1px solid #EFE3D6; border-radius: 14px; background: var(--surface); box-shadow: 0 10px 24px -18px rgba(43, 29, 20, 0.22); }
+.is-brand .mk-q summary { font-family: var(--font-grotesk); font-weight: 700; letter-spacing: -0.015em; }
+.is-brand .mk-q summary:hover { text-decoration: none; color: var(--ember-ink); }
+.is-brand .mk-q[open] { border-color: var(--line-strong); }
+
+/* Chips (Features jump list) */
+.br-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
+.br-chips a { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); font-size: 14px; font-weight: 600; color: var(--ink); text-decoration: none; transition: border-color 200ms ease, color 200ms ease; }
+.br-chips a:hover { border-color: var(--ember-ink); color: var(--ember-ink); }
+.br-chips .num { font-size: 12px; color: var(--ember-ink); }
+
+/* The close: a big question, then the buttons (Pricing end, FAQ contact) */
+.is-brand .mk-close .hp-h2, .is-brand .faq-contact-title { font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase; font-size: clamp(36px, 5vw, 68px); line-height: 0.88; letter-spacing: -0.05em; color: var(--ink); }
+.is-brand .faq-contact, .is-brand .price-end { background: var(--bg); color: var(--ink); }
+.is-brand .faq-contact .hp-body, .is-brand .price-end .hp-body { color: var(--ink-2); }
+.is-brand .faq-contact .mk-close, .is-brand .price-end .mk-close { padding-top: 34px; border-top: 2px solid var(--ink); }
+
+/* ── Pricing ── */
+.page-pricing .price-proof-sec { background: var(--bg); color: var(--ink); }
+.page-pricing .price-proof-sec .hp-side { display: block; }
+.page-pricing .price-proof-sec .hp-side-head { max-width: 62ch; margin-bottom: 24px; }
+.page-pricing .price-proof { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; border: 0; }
+@media (min-width: 900px) { .page-pricing .price-proof { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; } }
+.page-pricing .price-proof > li {
+  padding: 24px 24px 22px; border: 1px solid #EFE3D6; border-radius: 18px; background: var(--surface);
+  box-shadow: 0 16px 34px -22px rgba(43, 29, 20, 0.26), 0 2px 5px rgba(43, 29, 20, 0.04);
+}
+.page-pricing .price-proof-big { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.055em; color: var(--ember-ink); }
+.page-pricing .price-proof-q span:first-child { font-family: var(--font-grotesk); font-weight: 700; letter-spacing: -0.015em; }
+.page-pricing .br-qs-sec { background: var(--surface-2); }
+
+/* ── Features ── */
+.page-features .tour-group .hp-side { display: block; }
+.page-features .tour-group .hp-side-head { position: static; max-width: 62ch; margin-bottom: 24px; }
+.page-features .tour-gn { display: block; margin: 0 0 10px; font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(48px, 5vw, 72px); line-height: 0.8; letter-spacing: -0.06em; color: var(--ember-ink); }
+.page-features .tour-gn::after { display: none; }
+.page-features .tour-gtitle { font-size: clamp(30px, 3.6vw, 48px); }
+.page-features .tour-list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; border: 0; }
+@media (min-width: 768px) { .page-features .tour-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .page-features .tour-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; } }
+.page-features .tour-list > li { border: 0; }
+.page-features .tour-row { display: flex; flex-direction: column; height: 100%; padding: 22px 22px 20px; }
+.page-features .tour-name { font-family: var(--font-grotesk); font-weight: 700; font-size: 21px; letter-spacing: -0.025em; }
+.page-features .tour-plan { font-family: var(--font-grotesk); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+.page-features .tour-go { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); color: var(--ember-ink); }
+.page-features .tour-compare { background: var(--surface-2); color: var(--ink); }
+.page-features .tour-compare-title { margin-bottom: 24px; font-size: clamp(32px, 4vw, 56px); text-transform: uppercase; }
+
+/* ── FAQ ── */
+@media (min-width: 900px) {
+  .page-faq .faq-toc-desktop { position: sticky; top: calc(var(--nav-h) + 28px); }
+  .page-faq .doc-rail-num { display: block; margin-bottom: 18px; font-family: var(--font-grotesk); font-weight: 800; font-size: 104px; line-height: 0.8; letter-spacing: -0.07em; color: var(--ember-ink); font-variant-numeric: tabular-nums; }
+}
+.page-faq .doc-rail-num { display: none; }
+@media (min-width: 900px) { .page-faq .doc-rail-num { display: block; } }
+.page-faq .faq-toc-desktop a[aria-current] { color: var(--ember-ink); }
+.page-faq .faq-toc-desktop a[aria-current] .faq-toc-n { color: var(--ember-ink); }
+.page-faq .faq-toc-n, .page-faq .faq-toc-t { font-family: var(--font-grotesk); }
+.page-faq .faq-group-head { align-items: baseline; }
+.page-faq .faq-gn { font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(40px, 4vw, 56px); line-height: 0.8; letter-spacing: -0.06em; color: var(--ember-ink); }
+.page-faq .faq-group-head .hp-h2 { font-size: clamp(26px, 3vw, 38px); }
+.page-faq .faq-list { display: grid; gap: 10px; border-top: 0; }
+.page-faq .faq-item { padding: 0 20px; border: 1px solid #EFE3D6; border-radius: 14px; background: var(--surface); box-shadow: 0 10px 24px -18px rgba(43, 29, 20, 0.22); }
+.page-faq .faq-item:hover, .page-faq .faq-item:focus-within { border-color: var(--line-strong); }
+.page-faq .faq-item.open { border-color: var(--ember-ink); box-shadow: 0 18px 36px -22px rgba(196, 72, 15, 0.3); }
+.page-faq .faq-q { font-family: var(--font-grotesk); font-weight: 700; letter-spacing: -0.015em; }
+.page-faq .faq-item.open .faq-q { color: var(--ember-ink); }
+.page-pricing .price-proof-big { font-size: clamp(40px, 3.8vw, 58px) !important; line-height: 0.95; white-space: nowrap; }
+.hp.is-brand.page-features .tour-gn, .hp.is-brand.page-faq .faq-gn { display: block !important; }

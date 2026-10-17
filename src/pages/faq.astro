@@ -6,6 +6,7 @@
 import Base from '../layouts/Base.astro';
 import '../styles/marketing.css';
 import '../styles/faq.css';
+import '../styles/brand-pages.css';
 import { FAQ } from '../data/faq';
 
 const schema = {
@@ -24,12 +25,14 @@ const schema = {
   {/* Shared editorial primitives. Loads before the page CSS (Astro adds bundled CSS after the head slot). */}
   <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
 
-  <main id="main" class="hp is-new">
-  <header class="hp-hero">
-    <div class="hp-wrap">
-      <p class="hp-label mk-kicker">Help centre</p>
+  <main id="main" class="hp is-new is-brand page-faq">
+  <header class="hp-hero br-hero">
+    <div class="hp-wrap br-hero-grid">
+      <p class="hp-label">Help centre</p>
       <h1 class="hp-h1">Common <span class="hp-ember">questions.</span></h1>
-      <p class="hp-lead">Plain answers to the things people ask most. Can't find what you need? Email us and a real person will reply.</p>
+      <div class="br-hero-side">
+        <p class="hp-lead">Plain answers to the things people ask most. Can't find what you need? Email us and a real person will reply.</p>
+      </div>
     </div>
   </header>
 
@@ -41,6 +44,7 @@ const schema = {
           <ol>{FAQ.map(c => <li><a href={`#${c.id}`}>{c.title}<span class="faq-toc-num num">{c.items.length}</span></a></li>)}</ol>
         </details>
         <div class="faq-toc-desktop">
+          <p class="doc-rail-num num" aria-hidden="true" id="docRailNum">01</p>
           <p class="hp-label is-ink">Topics</p>
           <ol>{FAQ.map((c, ci) => <li><a href={`#${c.id}`} data-toc={c.id}><span class="faq-toc-n num" aria-hidden="true">{String(ci + 1).padStart(2, '0')}</span><span class="faq-toc-t">{c.title}</span><span class="faq-toc-num num">{c.items.length}</span></a></li>)}</ol>
         </div>
@@ -75,7 +79,7 @@ const schema = {
     </div>
   </section>
 
-  <section class="hp-sec is-dark faq-contact" aria-labelledby="faq-contact-title">
+  <section class="hp-sec faq-contact" aria-labelledby="faq-contact-title">
     <div class="hp-wrap mk-close">
       <div>
         <h2 id="faq-contact-title" class="hp-h2 faq-contact-title">Still have a question?</h2>
@@ -109,6 +113,14 @@ const schema = {
 
     // Topic list follows your scrolling.
     followSections();
+    // The rail's big number follows the topic that's current.
+    const railNum = document.getElementById('docRailNum');
+    const tocList = document.querySelector('.faq-toc-desktop ol');
+    if (railNum && tocList) {
+      const show = () => { const n = tocList.querySelector('a[aria-current] .faq-toc-n'); if (n && railNum.textContent !== n.textContent) railNum.textContent = n.textContent; };
+      new MutationObserver(show).observe(tocList, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
+      show();
+    }
     // Close the phone topics menu after choosing one.
     document.querySelectorAll('.doc-toc-mobile a').forEach(a => a.addEventListener('click', () => a.closest('details')?.removeAttribute('open')));
   </script>
