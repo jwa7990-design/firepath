@@ -107,3 +107,9 @@ export function shelve() {
   }
   return shelves.map(s => ({ ...s, count: s.articles.length + s.themes.reduce((n, t) => n + t.articles.length, 0) }));
 }
+
+/** The shelf an article sits on (for its breadcrumb and the shelf dashboards). */
+export function shelfOf(slug: string): { id: string; title: string } | null {
+  const s = shelve().find(sh => sh.articles.some(a => a.slug === slug) || sh.themes.some(t => t.articles.some(a => a.slug === slug)));
+  return s ? { id: s.id, title: s.title } : null;
+}

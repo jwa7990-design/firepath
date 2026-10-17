@@ -1,0 +1,122 @@
+---
+/**
+ * One Learning Lab shelf as its own dashboard (/learn/shelf/<id>): the same floating board as the hub,
+ * with the shelf's title, how many guides and how long, what's been read on this shelf on this device,
+ * where to go next, then every guide on the shelf as a tile (grouped by theme where the shelf has them),
+ * and the other shelves to move on to. Built from src/lib/learn.ts, so it lists exactly what exists.
+ */
+import Base from '../../../layouts/Base.astro';
+import GuideTile from '../../../components/GuideTile.astro';
+import { shelve } from '../../../lib/learn';
+import '../../../styles/doc.css';
+import '../../../styles/learn-hub.css';
+import '../../../styles/learn-board.css';
+
+export function getStaticPaths() {
+  const shelves = shelve();
+  return shelves.map(s => ({ params: { id: s.id }, props: { shelf: s, others: shelves.filter(o => o.id !== s.id) } }));
+}
+const { shelf, others } = Astro.props as { shelf: ReturnType<typeof shelve>[number]; others: ReturnType<typeof shelve> };
+const all = [...shelf.articles, ...shelf.themes.flatMap(t => t.articles)];
+const mins = all.reduce((n, a) => n + a.readMins, 0);
+const first = all[0];
+const labData = { slugs: all.map(a => a.slug), t: Object.fromEntries(all.map(a => [a.slug, [a.heading, a.readMins]])) };
+const groups = shelf.themes.length ? shelf.themes : [{ title: '', articles: shelf.articles }];
+---
+<Base
+  title={`${shelf.title}: Learning Lab | FirePath`}
+  description={`${shelf.intro} ${shelf.count} free plain-English guides for Australians.`}
+  path={`/learn/shelf/${shelf.id}`}
+  active="learn"
+>
+  <link slot="head" rel="stylesheet" href="/css/fp-editorial.css"/>
+  <main id="main" class="hp is-new hub-page shelf-page">
+    <section class="lab-board" aria-labelledby="labTitle">
+      <div class="hp-wrap">
+        <div class="lab-plane" id="labPlane">
+          <nav class="lab-crumbs" aria-label="Breadcrumb"><a href="/learn/">Learning Lab</a><span aria-hidden="true">/</span><span>Shelf</span></nav>
+          <div class="lab-head">
+            <div>
+              <h1 class="lab-title is-shelf" id="labTitle">{shelf.title}</h1>
+              <p class="lab-lead">{shelf.intro}</p>
+            </div>
+          </div>
+          <div class="lab-stats">
+            <div class="lab-tile lab-z1">
+              <p class="lab-k">On this shelf</p>
+              <p class="lab-n num">{shelf.count}</p>
+              <p class="lab-sub num">guides · about {mins < 90 ? `${mins} minutes` : `${Math.round(mins / 60)} hours`} of reading</p>
+            </div>
+            <div class="lab-tile lab-z2">
+              <p class="lab-k">You’ve read</p>
+              <p class="lab-n is-ember num" id="labReadN">0</p>
+              <p class="lab-sub" id="labReadSub">of {shelf.count} here · kept on this device only</p>
+              <span class="lab-bar" aria-hidden="true"><i id="labReadBar"></i></span>
+            </div>
+            <a class="lab-tile lab-last lab-z3" id="labLast" href={`/learn/${first.slug}`}>
+              <p class="lab-k" id="labLastK">Start with</p>
+              <p class="lab-last-t" id="labLastT">{first.heading}</p>
+              <p class="lab-sub num" id="labLastSub">{first.readMins} min read →</p>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script type="application/json" id="labData" is:inline set:html={JSON.stringify(labData)}></script>
+
+    {groups.map((g, gi) => (
+      <section class:list={['shelf-group', gi % 2 === 1 && 'is-sand']} aria-label={g.title || shelf.title}>
+        <div class="hp-wrap">
+          {g.title && <h2 class="shelf-group-t">{g.title}<span class="num">{g.articles.length}</span></h2>}
+          <ul class="lab-guides">{g.articles.map((a, i) => <GuideTile a={a} n={i + 1}/>)}</ul>
+        </div>
+      </section>
+    ))}
+
+    <section class="shelf-more" aria-labelledby="more-title">
+      <div class="hp-wrap">
+        <h2 id="more-title" class="shelf-group-t">Other shelves</h2>
+        <ul class="lab-shelves">
+          {others.map(o => (
+            <li><a class="lab-tile lab-shelf" href={`/learn/shelf/${o.id}`} data-shelf={o.id}>
+              <span class="lab-shelf-t">{o.title}</span>
+              <span class="lab-sub"><span class="num">{o.count}</span> guides</span>
+            </a></li>
+          ))}
+        </ul>
+        <p class="shelf-back"><a href="/learn/" class="hp-link">← Back to the Learning Lab</a></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    import { getLast } from '../../../scripts/lab-progress';
+    import { tickRead, leanBoard } from '../../../scripts/lab-board';
+    const data = JSON.parse(document.getElementById('labData')?.textContent || '{"slugs":[],"t":{}}') as { slugs: string[]; t: Record<string, [string, number]> };
+    const read = tickRead();
+    const n = data.slugs.filter(s => read.has(s)).length;
+    if (n) {
+      document.getElementById('labReadN')!.textContent = String(n);
+      (document.getElementById('labReadBar') as HTMLElement).style.width = `${Math.round(n / data.slugs.length * 100)}%`;
+    }
+    // Where to go next on this shelf: the guide last opened here if it isn't finished, else the first unread one
+    const last = getLast();
+    let slug: string | undefined, kicker = '';
+    if (last && data.t[last.slug] && !read.has(last.slug)) { slug = last.slug; kicker = 'Pick up where you left off'; }
+    else if (n) { slug = data.slugs.find(s => !read.has(s)); kicker = slug ? 'Up next on this shelf' : ''; }
+    const tile = document.getElementById('labLast') as HTMLAnchorElement | null;
+    if (tile && slug) {
+      const [title, mins] = data.t[slug];
+      tile.href = `/learn/${slug}`;
+      document.getElementById('labLastK')!.textContent = kicker;
+      document.getElementById('labLastT')!.textContent = title;
+      document.getElementById('labLastSub')!.textContent = `${mins} min read →`;
+    } else if (tile && n && n === data.slugs.length) {
+      document.getElementById('labLastK')!.textContent = 'Shelf finished';
+      document.getElementById('labLastT')!.textContent = 'You’ve read every guide here';
+      document.getElementById('labLastSub')!.textContent = 'Back to the Learning Lab →';
+      tile.href = '/learn/';
+    }
+    leanBoard();
+  </script>
+</Base>

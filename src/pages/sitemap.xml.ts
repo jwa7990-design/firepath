@@ -4,7 +4,7 @@
  * you are" pages and the free tools. Pro and account pages are left out (and marked
  * noindex on the pages themselves).
  */
-import { ARTICLES } from '../lib/learn';
+import { ARTICLES, SHELVES } from '../lib/learn';
 import { STARTS } from '../data/starts';
 
 const SITE = 'https://www.firepath.pro';
@@ -17,6 +17,7 @@ export function GET() {
     ...FREE_TOOLS.map(p => [p, p === '/firepath' ? '0.9' : '0.8']),
     ['/retirement-age-calculator', '0.9'],
     ...STARTS.map(s => [`/start/${s.slug}`, '0.8']),
+    ...SHELVES.map(sh => [`/learn/shelf/${sh.id}`, '0.6']),
     ...ARTICLES.map(a => [`/learn/${a.slug}`, '0.7']),
   ];
   const body = `<?xml version="1.0" encoding="UTF-8"?>

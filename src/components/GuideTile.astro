@@ -1,0 +1,18 @@
+---
+/**
+ * One guide as a floating tile (Learning Lab hub library, shelf dashboards): its number on the shelf,
+ * the title, one line on what it covers, the reading time, and a tick once it's been read on this
+ * device (the page script adds .is-read). data-hub-card lets the hub search filter it.
+ */
+import type { Article } from '../lib/learn';
+interface Props { a: Article; n: number }
+const { a, n } = Astro.props;
+---
+<li class="lab-g" data-hub-card data-slug={a.slug}>
+  <a href={`/learn/${a.slug}`} class="lab-tile lab-guide">
+    <span class="lab-guide-n num" aria-hidden="true">{String(n).padStart(2, '0')}</span>
+    <span class="lab-guide-t">{a.heading}</span>
+    <span class="lab-guide-d">{a.description}</span>
+    <span class="lab-guide-m num">{a.readMins} min read<span class="lab-guide-read"> · Read</span></span>
+  </a>
+</li>

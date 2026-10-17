@@ -112,3 +112,84 @@
    the disclaimer, one try-it section and one reading list. Titles a step smaller. */
 .art-related .art-related-title { font-size: clamp(21px, 2.3vw, 27px); line-height: 1.2; }
 @media (min-width: 768px) { .art-related .art-related-card { padding: 24px 2px; } }
+
+/* ── Chapter book (Oct 2026): articles in the brand's type and shapes ──────────────────────────────
+   Same words. A cream hero with a small-caps kicker and a big Inter Tight title; numbered section
+   headings (the number matches the contents rail, whose big number follows the section you're in);
+   the asides as soft floating tiles; the try-it and keep-reading sections as tiles too.
+   (Scroll-driven rules are longhands: the CSS minifier breaks the `animation` shorthand with a timeline.) */
+.art-page .art-hero { background: var(--bg); padding: 36px 0 44px; }
+@media (min-width: 768px) { .art-page .art-hero { padding: 56px 0 72px; } }
+.art-page .art-hero .art-kicker { margin-bottom: 22px; font-family: var(--font-grotesk); }
+.art-page .art-hero .art-kicker::before { background: var(--ember); opacity: 1; }
+.art-crumbs, .art-kicker-time { font-family: var(--font-grotesk); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.art-page .art-title { max-width: 20ch; font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(40px, 5.8vw, 84px); line-height: 0.95; letter-spacing: -0.045em; }
+.art-page .art-hero .hp-lead { max-width: 56ch; margin-top: 24px; color: var(--ink-2); }
+.art-page .art-hero .art-meta { font-family: var(--font-grotesk); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+.art-page .art-hero .art-meta .hp-mark { background: var(--ember); }
+
+/* The rail */
+@media (min-width: 1024px) { .art-page .doc-toc-desktop { position: sticky; top: calc(var(--nav-h) + 28px); } }
+.art-page .doc-rail-num { color: var(--ember-ink); }
+@media (max-width: 1023px) { .art-page .doc-rail-num { display: none; } }
+.art-page .doc-toc-label { font-family: var(--font-grotesk); font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+.art-page .doc-toc-desktop a { font-size: 14px; transition: color 200ms ease, padding 260ms var(--ease); }
+.art-page .doc-toc-desktop a[aria-current] { color: var(--ember-ink); padding-left: 10px; box-shadow: inset 2px 0 0 var(--ember); }
+.art-page .doc-toc-desktop a[aria-current] .doc-toc-num { color: var(--ember-ink); }
+.art-page .doc-toc-num { font-family: var(--font-grotesk); font-weight: 700; }
+
+/* The text: numbered sections, Inter Tight headings, an easy measure */
+.art-page .article-body { counter-reset: art-sec; }
+.art-page .article-body p, .art-page .article-body li { font-size: 17.5px; line-height: 1.75; }
+.art-page .article-body h2 { margin-top: 2.6em; font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(28px, 3.2vw, 42px); line-height: 1; letter-spacing: -0.042em; color: var(--ink); }
+.art-page .article-body h2[data-doc-section] { counter-increment: art-sec; }
+.art-page .article-body h2[data-doc-section]::before {
+  content: counter(art-sec, decimal-leading-zero); display: block; margin-bottom: 12px;
+  font-size: clamp(48px, 5vw, 72px); line-height: 0.8; letter-spacing: -0.06em; color: var(--ember-ink);
+}
+.art-page .article-body h3 { font-family: var(--font-grotesk); font-weight: 700; letter-spacing: -0.025em; }
+.art-page .article-body strong { color: var(--ink); }
+
+/* Asides as soft tiles */
+.art-page .article-body :is(.highlight-box, .example-box, .steps-box, .warning-box, .misconception-box, .table-box) {
+  padding: 20px 22px; border: 1px solid #EFE3D6; border-radius: 16px; background: var(--surface);
+  box-shadow: 0 14px 30px -20px rgba(43, 29, 20, 0.24), 0 2px 5px rgba(43, 29, 20, 0.04);
+}
+.art-page .article-body .highlight-box { background: #FBF4EC; border-color: #F0DCC8; box-shadow: inset 3px 0 0 var(--ember-ink), 0 14px 30px -20px rgba(43, 29, 20, 0.24); }
+.art-page .article-body .warning-box { box-shadow: inset 3px 0 0 var(--negative), 0 14px 30px -20px rgba(43, 29, 20, 0.24); }
+.art-page .article-body :is(.misconception-label, .ex-label) { font-family: var(--font-grotesk); font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ember-ink); }
+.art-page .article-body :is(.misconception-label, .ex-label)::before { border-radius: 50%; }
+.art-page .article-body .closer-line {
+  max-width: 26ch; padding-top: 24px; border-top: 2px solid var(--ink); font-family: var(--font-grotesk); font-weight: 800;
+  font-size: clamp(26px, 3vw, 36px) !important; line-height: 1.05 !important; letter-spacing: -0.035em;
+}
+.art-page .article-body table:not([class]) th, .art-page .article-body table.savings-table th { font-family: var(--font-grotesk); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+.art-page .article-body table:not([class]) td:not(:first-child) { font-family: var(--font-grotesk); font-weight: 600; color: var(--ink); }
+
+/* Try it: one floating tile on sand */
+.art-page .art-try .hp-h2 { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+.art-page .art-try .art-try-kicker { font-family: var(--font-grotesk); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+.art-page .art-try .art-try-grid { padding: 28px 24px; border-radius: 22px; background: var(--surface); border: 1px solid #EFE3D6; box-shadow: 0 30px 60px -40px rgba(43, 29, 20, 0.35); }
+@media (min-width: 900px) { .art-page .art-try .art-try-grid { padding: 40px 44px; } }
+
+/* Keep reading: tiles on the dark band */
+.art-page .art-related .hp-h2 { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.04em; }
+.art-page .art-related-list { display: grid; gap: 12px; border-top: 0; }
+.art-page .art-related-list li { border-bottom: 0; }
+.art-page .art-related-card { padding: 20px 22px !important; border-radius: 16px; border: 1px solid rgba(253, 246, 238, 0.12); background: rgba(253, 246, 238, 0.04); transition: border-color 260ms ease, background 260ms ease, transform 300ms var(--ease); }
+.art-page .art-related-card:hover { border-color: rgba(244, 98, 42, 0.6); background: rgba(244, 98, 42, 0.07); transform: translateY(-3px); }
+.art-page .art-related-card:hover .art-related-title { text-decoration: none; }
+.art-page .art-related-num { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.05em; color: var(--ember); }
+.art-page .art-related-title { font-family: var(--font-grotesk); font-weight: 700; letter-spacing: -0.025em; }
+
+/* Headings ease up as they arrive */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .art-page .article-body h2, .art-page .article-body :is(.highlight-box, .example-box, .misconception-box) {
+      animation-name: artRise; animation-timing-function: linear; animation-fill-mode: both;
+      animation-timeline: view(); animation-range: entry 0% entry 50%;
+    }
+  }
+}
+@keyframes artRise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+.art-page .art-kicker-time { margin-left: 2px; } .art-page .art-kicker-time [aria-hidden] { margin-right: 6px; }

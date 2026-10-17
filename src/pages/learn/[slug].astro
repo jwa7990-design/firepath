@@ -1,13 +1,15 @@
 ---
 /**
- * One Learning Lab article. All 69 are built from this template and the files in
+ * One Learning Lab article, laid out like the chapter-book pages (Privacy, How we calculate): a big
+ * Inter Tight title, an ember reading line, a rail whose big number follows the section you're in,
+ * numbered section headings, the asides as soft tiles. All of them are built from this template and the files in
  * src/content/learn/. The body keeps its `<div class="article-body">` wrapper because
  * Learning Lab (learning_lab.html) and scripts/populate-learning-articles.cjs read it.
  */
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
 import MiniPath from '../../components/MiniPath.astro';
-import { ARTICLES, relatedTo, type Article } from '../../lib/learn';
+import { ARTICLES, relatedTo, shelfOf, type Article } from '../../lib/learn';
 import '../../styles/doc.css';
 import '../../styles/article-page.css';
 
@@ -16,6 +18,7 @@ export function getStaticPaths() {
 }
 const { article: a } = Astro.props as { article: Article };
 const showToc = a.sections.length >= 3;
+const shelf = shelfOf(a.slug);
 const cleanHref = (h: string) => h.replace(/\.html(?=$|[?#])/, '');
 // Links inside the article text: the clean address (/firepath, not /firepath.html), so there's no redirect hop.
 const cleanLinks = (html: string) => html.replace(/href="\/([a-z0-9_\/-]*?)(?:index)?\.html(#[^"]*)?"/gi, (m, p, hash) => `href="/${p}${hash || ''}"`);
@@ -63,10 +66,11 @@ const breadcrumbs = {
   <script slot="head" type="application/ld+json" is:inline set:html={JSON.stringify([schema, breadcrumbs])}></script>
 
   <main id="main" class="hp is-new art-page" data-progress>
+    <div class="doc-read-line" aria-hidden="true"></div>
     <header class="hp-hero art-hero">
       <div class="hp-wrap">
         <div class="hp-label is-ink art-kicker">
-          <nav class="art-crumbs" aria-label="Breadcrumb"><a href="/learn/">Learning Lab</a><span aria-hidden="true">/</span><span>{a.badge}</span></nav>
+          <nav class="art-crumbs" aria-label="Breadcrumb"><a href="/learn/">Learning Lab</a><span aria-hidden="true">/</span>{shelf ? <a href={`/learn/shelf/${shelf.id}`}>{shelf.title}</a> : <span>{a.badge}</span>}</nav>
           <span class="art-kicker-time num"><span aria-hidden="true">·</span> {a.readMins} min read</span>
         </div>
         <h1 class="hp-h1 art-title">{a.heading}</h1>
@@ -84,6 +88,7 @@ const breadcrumbs = {
             <ol>{a.sections.map((s, i) => <li><a href={`#${s.id}`}><span class="doc-toc-num">{String(i + 1).padStart(2, '0')}</span>{s.title}</a></li>)}</ol>
           </details>
           <div class="doc-toc-desktop">
+            <p class="doc-rail-num num" aria-hidden="true" id="docRailNum">01</p>
             <p class="doc-toc-label">In this article</p>
             <ol>{a.sections.map((s, i) => <li><a href={`#${s.id}`} data-toc={s.id}><span class="doc-toc-num">{String(i + 1).padStart(2, '0')}</span>{s.title}</a></li>)}</ol>
           </div>
@@ -142,6 +147,14 @@ const breadcrumbs = {
   <script>
     import { followSections } from '../../scripts/toc';
     followSections();
+    // The rail's big number follows the section that's current.
+    const railNum = document.getElementById('docRailNum');
+    const tocList = document.querySelector('.doc-toc-desktop ol');
+    if (railNum && tocList) {
+      const show = () => { const n = tocList.querySelector('a[aria-current] .doc-toc-num'); if (n && railNum.textContent !== n.textContent) railNum.textContent = n.textContent; };
+      new MutationObserver(show).observe(tocList, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
+      show();
+    }
     document.querySelectorAll('.doc-toc-mobile a').forEach(el => el.addEventListener('click', () => el.closest('details')?.removeAttribute('open')));
     // Reading progress for the Learning Lab dashboard (this device only): opened now, read once the
     // reader reaches the "keep reading" list at the end.
