@@ -585,14 +585,15 @@
       if (!live) return t < 7 ? 0.5 - 0.5 * Math.cos(Math.PI * t / 7) : 1;    // phones: all the way round in 7 s
       const intro = 0.7 * ease(Math.min(1, t / 2.8));
       const crawl = t > 2.8 ? Math.min(0.9, 0.7 + (t - 2.8) * 0.002) : 0;
-      return Math.max(intro, crawl, p > 0 ? 0.7 + Math.min(1, p / 0.8) * 0.3 : 0);   // closes while the scene is still pinned
+      return Math.max(intro, crawl, p > 0 ? 0.7 + Math.min(1, p / 0.3) * 0.3 : 0);   // closes in the first stretch, before the zoom
     }
     let last = 0;
     function frame(now) {
       if (done) return false;
       const dt = last ? Math.min(0.1, (now - last) / 1000) : 1 / 60; last = now;
-      // Always burn towards where it should be, never jump: at most half the coast a second.
-      od = Math.min(1, od + clamp(target(now) - od, 0, 0.5 * dt));
+      // Always burn towards where it should be, never jump: at most half the coast a second, faster once
+      // the zoom has started so it's always closed before the calculator arrives.
+      od = Math.min(1, od + clamp(target(now) - od, 0, (p > 0.25 ? 1.5 : 0.5) * dt));
       if (od >= 0.999) { finish(); return false; }
       const q = set(true);
       // A few sparks thrown off the spark: short-lived, drifting and fading.
@@ -622,13 +623,20 @@
         const r = scene.getBoundingClientRect(), span = scene.offsetHeight - window.innerHeight;
         p = clamp(span > 0 ? -r.top / span : 1, 0, 1);
         scene.style.setProperty('--p', p.toFixed(3));
+        // The push-in: still while the fuse closes, then easing in to 1.9x while the map slides to the
+        // centre of the screen, so the coast ends up framing the calculator.
+        const k = clamp((p - 0.25) / 0.75, 0, 1), e = k * k * (3 - 2 * k);
+        const svg = line.ownerSVGElement, W = wrap.clientWidth, sw = svg.clientWidth;
+        const left = W - sw - (parseFloat(getComputedStyle(svg).right) || 0);
+        scene.style.setProperty('--z', (1 + 0.9 * e).toFixed(3));
+        scene.style.setProperty('--dx', ((W / 2 - (left + sw / 2)) * e).toFixed(1) + 'px');
         burn();
       });
     }
     function apply() {
       scene.classList.toggle('is-live', fits.matches);
       if (fits.matches) window.addEventListener('scroll', onScroll, { passive: true });
-      else { window.removeEventListener('scroll', onScroll); scene.style.removeProperty('--p'); p = 0; }
+      else { window.removeEventListener('scroll', onScroll); scene.style.removeProperty('--p'); scene.style.removeProperty('--z'); scene.style.removeProperty('--dx'); p = 0; }
       onScroll(); burn();
     }
     if ('IntersectionObserver' in window) new IntersectionObserver(e => { visible = e[0].isIntersecting; if (visible) burn(); }).observe(scene);

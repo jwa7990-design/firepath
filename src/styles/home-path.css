@@ -61,25 +61,33 @@
 .hp-fuse-core { fill: #FFE1B3; }   /* the white-hot point of the spark */
 .hp-fuse-bits circle { fill: var(--ember); }
 /* When it closes at Darwin: the whole coast glows ember once, then settles */
-.hp-outline.is-complete .hp-outline-line { animation: hpFuseDone 1.6s ease-out both; }
+.hp-outline.is-complete .hp-outline-line { animation: hpFuseDone 1.6s ease-out backwards; }
 @keyframes hpFuseDone {
-  0% { stroke: var(--ember); stroke-opacity: 0.85; stroke-width: 1.6; }
-  100% { stroke: var(--ink); stroke-opacity: 0.3; stroke-width: 0.9; }
+  from { stroke: var(--ember); stroke-opacity: 0.85; stroke-width: 1.6; }   /* settles back to the line's own style */
 }
 @media (max-width: 899px) { .hp-outline-line { stroke-opacity: 0.2; } .hp-fuse-cord { stroke-opacity: 0.09; } }
 
-/* ── The scene (wide screens, motion allowed): the stage pins for about one extra screen; the headline
-   lifts away while the coastline creeps on (home-path.js sets --p, 0 → 1) ── */
-.hp-scene.is-live { height: calc(170vh - var(--nav-h, 64px)); }
+/* ── The scene (wide screens, motion allowed): the stage pins while you scroll. The fuse burns home in the
+   first stretch, the headline lifts away, then the camera pushes in to the middle of the continent until
+   the coast frames the screen, and the calculator slides up inside it. home-path.js sets --p (0 → 1),
+   --z (the zoom) and --dx (how far to slide the map to the centre). ── */
+.hp-scene.is-live { height: calc(260vh - var(--nav-h, 64px)); }
 .hp-scene.is-live .hp-scene-stage {
   position: sticky; top: var(--nav-h, 64px); height: calc(100vh - var(--nav-h, 64px));
   display: flex; flex-direction: column; justify-content: center; overflow: hidden;
 }
 .hp-scene.is-live .hp-hero-grid {
-  transform: translateY(calc(var(--p, 0) * -110px));
-  opacity: clamp(0, calc(1 - (var(--p, 0) - 0.5) * 2.6), 1);
+  transform: translateY(calc(var(--p, 0) * -180px));
+  opacity: clamp(0, calc(1 - (var(--p, 0) - 0.12) * 3.4), 1);
 }
-.hp-scene.is-live .hp-outline-svg { transform: translateY(-50%) scale(calc(1 + var(--p, 0) * 0.06)); transform-origin: 60% 50%; }
+.hp-scene.is-live .hp-outline-svg { transform: translate(var(--dx, 0px), -50%) scale(var(--z, 1)); transform-origin: 50% 50%; will-change: transform; }
+/* Keep the lines fine as the map grows, and let it sink back a little once the calculator arrives */
+.hp-scene.is-live :is(.hp-outline-line, .hp-outline-tas) { stroke-width: calc(0.9 / var(--z, 1) * 1.3); }
+.hp-scene.is-live .hp-outline-line { stroke-opacity: calc(0.3 + 0.25 * (var(--z, 1) - 1)); }
+.hp-scene.is-live .hp-fuse-cord { stroke-width: calc(0.6 / var(--z, 1) * 1.3); }
+.hp-scene.is-live .hp-outline { opacity: clamp(0.7, calc(1 - (var(--p, 0) - 0.7) * 1.2), 1); }
+/* The calculator rides up over the last part of the zoom */
+.hp-scene.is-live + .hp-wrap { position: relative; z-index: 2; margin-top: -55vh; }
 
 /* The lap now lives in the timeline section, beside its intro, and draws as it scrolls into view */
 .hp-tl-intro { display: grid; gap: 24px; align-items: center; }
