@@ -551,52 +551,56 @@
     };
   })();
 
-  // ── The hero scene: on wide screens with motion allowed, scrolling drives the lap round ──
-  // Sets --p (0 → 1 across the pinned stretch) and --draw (how much of the route is drawn) on the scene;
-  // CSS does the rest. Each city lights as the route reaches it. One rAF-throttled update per scroll,
-  // and only while the scene is on screen. Anything else (phones, short screens, reduced motion, no JS)
-  // keeps the still hero, where the route draws in once by itself.
+  // ── The hero: Australia's coastline drawing itself behind the headline, never quite closing ──
+  // On arrival the line draws in to 70%; on wide screens with motion allowed the stage then pins for
+  // about one extra screen and scrolling carries it on, but never past 93%: the last stretch back
+  // into Darwin stays open. An ember dot rides the tip. Phones draw in once (to 82%); reduced motion
+  // and no JS show it still, at 88% (the CSS default). Sets --od (drawn share) on the outline and --p
+  // (0 → 1 across the pinned stretch) on the scene; one rAF-throttled update per scroll, only on screen.
   (function () {
-    const scene = $('hpScene');
-    if (!scene || !window.matchMedia) return;
+    const scene = $('hpScene'), wrap = scene && scene.querySelector('.hp-outline');
+    const line = $('hpOutline'), tip = $('hpOutlineTip');
+    if (!scene || !wrap || !line || !window.matchMedia) return;
+    const motionOk = !reduce;
     const fits = window.matchMedia('(min-width: 900px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)');
-    const lap = scene.querySelector('.hp-aus-lap');
-    const cities = Array.from(scene.querySelectorAll('.hp-aus-city'));
-    let at = null, ticking = false, visible = true;
-    // Where along the route each city sits (0–1), found once from the path itself. Hobart, off the
-    // mainland, lights with Melbourne.
-    function measure() {
-      if (at || !lap || !lap.getTotalLength) return;
-      const L = lap.getTotalLength(), N = 600, pts = [];
-      for (let i = 0; i <= N; i++) { const q = lap.getPointAtLength(L * i / N); pts.push([q.x, q.y]); }
-      at = cities.map(g => {
-        const c = g.querySelector('circle'), x = +c.getAttribute('cx'), y = +c.getAttribute('cy');
-        let best = 0, bd = Infinity;
-        pts.forEach(([px, py], i) => { const d = (px - x) * (px - x) + (py - y) * (py - y); if (d < bd) { bd = d; best = i; } });
-        return { g, f: bd < 9 ? best / N : null };
-      });
-      const mel = at.find(o => /Melbourne/.test(o.g.textContent));
-      at.forEach(o => { if (o.f == null) o.f = mel ? mel.f : 1; });
+    const L = line.getTotalLength ? line.getTotalLength() : 0;
+    const MAX = 0.93;
+    let intro = motionOk ? 0 : 1, p = 0, ticking = false, visible = true;
+    function setDraw(od) {
+      wrap.style.setProperty('--od', od.toFixed(4));
+      if (L && tip) { const q = line.getPointAtLength(L * od); tip.setAttribute('cx', q.x.toFixed(1)); tip.setAttribute('cy', q.y.toFixed(1)); }
+    }
+    function draw() {
+      const live = scene.classList.contains('is-live');
+      const base = live ? 0.7 : (motionOk ? 0.82 : 0.88);
+      setDraw(Math.min(MAX, base * intro + (live ? p * (MAX - 0.7) : 0)));
     }
     function update() {
       ticking = false;
-      const r = scene.getBoundingClientRect(), span = scene.offsetHeight - window.innerHeight;
-      const p = clamp(span > 0 ? -r.top / span : 1, 0, 1);
-      const draw = clamp(p / 0.78, 0, 1);
-      scene.style.setProperty('--p', p.toFixed(3));
-      scene.style.setProperty('--draw', draw.toFixed(3));
-      if (at) at.forEach(o => o.g.classList.toggle('is-reached', draw >= o.f - 0.005));
+      if (scene.classList.contains('is-live')) {
+        const r = scene.getBoundingClientRect(), span = scene.offsetHeight - window.innerHeight;
+        p = clamp(span > 0 ? -r.top / span : 1, 0, 1);
+        scene.style.setProperty('--p', p.toFixed(3));
+      }
+      draw();
     }
     function onScroll() { if (!ticking && visible) { ticking = true; requestAnimationFrame(update); } }
     function apply() {
-      const on = fits.matches;
-      scene.classList.toggle('is-live', on);
-      if (on) { measure(); update(); window.addEventListener('scroll', onScroll, { passive: true }); }
-      else { window.removeEventListener('scroll', onScroll); scene.style.removeProperty('--p'); scene.style.removeProperty('--draw'); cities.forEach(g => g.classList.remove('is-reached')); }
+      scene.classList.toggle('is-live', fits.matches);
+      if (fits.matches) window.addEventListener('scroll', onScroll, { passive: true });
+      else { window.removeEventListener('scroll', onScroll); scene.style.removeProperty('--p'); p = 0; }
+      update();
     }
     if ('IntersectionObserver' in window) new IntersectionObserver(e => { visible = e[0].isIntersecting; if (visible) onScroll(); }).observe(scene);
     if (fits.addEventListener) fits.addEventListener('change', apply); else if (fits.addListener) fits.addListener(apply);
+    wrap.classList.add('is-drawing');
     apply();
+    // The draw-in on arrival: about 2.8 s, easing out. Falls back to the finished state if frames stall.
+    if (motionOk) {
+      const t0 = performance.now(), D = 2800;
+      run('outline', now => { intro = ease(Math.min(1, (now - t0) / D)); draw(); return intro < 1; });
+      setTimeout(() => { if (intro < 1) { stop('outline'); intro = 1; draw(); } }, D + 600);
+    }
   })();
 
   // ── "Find my path" in the hero: to the calculator, cursor in the first box ──

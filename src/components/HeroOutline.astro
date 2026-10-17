@@ -1,0 +1,28 @@
+---
+/**
+ * The homepage hero's backdrop: Australia's coastline drawing itself, large and faint, from Darwin
+ * clockwise (the same way as the lap) and never quite closing: the last stretch back into Darwin
+ * stays open, the freer future still ahead. An ember dot rides the tip of the line.
+ * Outline from src/data/australia.ts (Natural Earth, public domain), re-ordered here so the line
+ * starts at Darwin. Decorative (aria-hidden). Without JS, or with reduced motion, it simply shows
+ * unfinished; home-path.js draws it in and lets scrolling carry it further (never past 93%).
+ */
+import { AUS_VIEWBOX, AUS_MAINLAND, AUS_TASMANIA, AUS_CITIES } from '../data/australia';
+const pts = [...AUS_MAINLAND.matchAll(/[ML] ?(-?[\d.]+) (-?[\d.]+)/g)].map(m => [+m[1], +m[2]]);
+// Start at the coast point nearest Darwin.
+const [dx, dy] = AUS_CITIES.Darwin;
+let start = 0, best = Infinity;
+pts.forEach(([x, y], i) => { const d = (x - dx) ** 2 + (y - dy) ** 2; if (d < best) { best = d; start = i; } });
+let ring = pts.slice(start).concat(pts.slice(0, start));
+// Clockwise on screen (y down) means a positive shoelace sum; flip it if Natural Earth runs the other way.
+const area = ring.reduce((a, [x, y], i) => { const [x2, y2] = ring[(i + 1) % ring.length]; return a + (x * y2 - x2 * y); }, 0);
+if (area < 0) ring = [ring[0], ...ring.slice(1).reverse()];
+const coast = 'M' + ring.map(([x, y]) => `${x} ${y}`).join(' L');   // left open on purpose: no Z
+---
+<div class="hp-outline" aria-hidden="true">
+  <svg class="hp-outline-svg" viewBox={AUS_VIEWBOX} focusable="false" preserveAspectRatio="xMidYMid meet">
+    <path class="hp-outline-tas" d={AUS_TASMANIA}/>
+    <path class="hp-outline-line" id="hpOutline" d={coast} pathLength="1"/>
+    <circle class="hp-outline-tip" id="hpOutlineTip" r="2.4" cx={dx} cy={dy}/>
+  </svg>
+</div>
