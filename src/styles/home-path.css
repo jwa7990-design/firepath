@@ -68,9 +68,9 @@
 @media (max-width: 899px) { .hp-outline-line { stroke-opacity: 0.2; } .hp-fuse-cord { stroke-opacity: 0.09; } }
 
 /* ── The scene (wide screens, motion allowed): the stage pins while you scroll. The fuse burns home in the
-   first stretch and the headline lifts away; then the map steps back while the spark leaves Darwin and
-   draws a bow across the screen, and the calculator rises into it. home-path.js sets --p (0 → 1),
-   --mx (the map stepping back) and draws the bow. ── */
+   first stretch, the headline lifts away, then the camera pushes in to the middle of the continent until
+   the coast frames the screen, and the calculator slides up inside it. home-path.js sets --p (0 → 1),
+   --z (the zoom) and --dx (how far to slide the map to the centre). ── */
 .hp-scene.is-live { height: calc(260vh - var(--nav-h, 64px)); }
 .hp-scene.is-live .hp-scene-stage {
   position: sticky; top: var(--nav-h, 64px); height: calc(100vh - var(--nav-h, 64px));
@@ -80,26 +80,14 @@
   transform: translateY(calc(var(--p, 0) * -180px));
   opacity: clamp(0, calc(1 - (var(--p, 0) - 0.12) * 3.4), 1);
 }
-.hp-scene.is-live .hp-outline-svg { transform: translateY(-50%) scale(calc(1 - var(--mx, 0) * 0.14)); transform-origin: 50% 20%; will-change: transform; }
-.hp-scene.is-live .hp-outline { opacity: calc(1 - var(--mx, 0) * 0.82); }
-/* The bow (screen-space, over the stage; only in the scene) */
-.hp-bow { display: none; }
-.hp-scene.is-live .hp-bow { display: block; position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: visible; pointer-events: none; }
-.hp-bow-line { fill: none; stroke: var(--ember-ink); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 4px rgba(244, 98, 42, 0.55)); }
-.hp-bow-spark { fill: #FFE1B3; opacity: 0; filter: drop-shadow(0 0 6px var(--ember)) drop-shadow(0 0 14px var(--ember)); }
-.hp-bow.is-done .hp-bow-line { animation: hpBowDone 1.4s ease-out backwards; }
-@keyframes hpBowDone { from { stroke: var(--ember); stroke-width: 4; filter: drop-shadow(0 0 10px var(--ember)); } }
-/* The calculator rides up under the bow, fading in as it comes */
-.hp-scene.is-live + .hp-wrap { position: relative; z-index: 2; margin-top: -56vh; }
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .hp-scene.is-live + .hp-wrap .hp-calc {
-      animation-name: hpCalcIn; animation-timing-function: linear; animation-fill-mode: both;
-      animation-timeline: view(); animation-range: entry 0% entry 70%;
-    }
-  }
-}
-@keyframes hpCalcIn { from { opacity: 0; transform: translateY(60px) scale(0.96); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.hp-scene.is-live .hp-outline-svg { transform: translate(var(--dx, 0px), -50%) scale(var(--z, 1)); transform-origin: 50% 50%; will-change: transform; }
+/* Keep the lines fine as the map grows, and let it sink back a little once the calculator arrives */
+.hp-scene.is-live :is(.hp-outline-line, .hp-outline-tas) { stroke-width: calc(0.9 / var(--z, 1) * 1.3); }
+.hp-scene.is-live .hp-outline-line { stroke-opacity: calc(0.3 + 0.25 * (var(--z, 1) - 1)); }
+.hp-scene.is-live .hp-fuse-cord { stroke-width: calc(0.6 / var(--z, 1) * 1.3); }
+.hp-scene.is-live .hp-outline { opacity: clamp(0.7, calc(1 - (var(--p, 0) - 0.7) * 1.2), 1); }
+/* The calculator rides up over the last part of the zoom */
+.hp-scene.is-live + .hp-wrap { position: relative; z-index: 2; margin-top: -55vh; }
 
 /* The lap now lives in the timeline section, beside its intro, and draws as it scrolls into view */
 .hp-tl-intro { display: grid; gap: 24px; align-items: center; }
@@ -545,95 +533,3 @@
 @keyframes hpDeckSlide { from { transform: none; } to { transform: translateX(calc(-1 * var(--deck-d, 0px))); } }
 @media (max-height: 700px) { .hp-deck.is-pinned .hp-card { height: 300px; } .hp-deck.is-pinned .hp-deck-head { margin-bottom: 18px; } }
 @media (max-width: 599px) { .hp-card { height: 340px; } }
-
-/* ── The calculator as a stage: a 3D path to the horizon behind, one question at a time ──────────
-   (.is-stage, on top of the night panel above). The 3D scene fills the panel; the questions, then the
-   result, sit in a column on the left over a soft scrim. Phones: the scene is a band on top. */
-.hp-calc.is-stage { display: block; position: relative; padding: 0; border-radius: 24px; min-height: 0; }
-.hp-3d { position: relative; height: 240px; overflow: hidden; }
-.hp-3d canvas { display: block; width: 100%; height: 100%; }
-.hp-calc-ui { position: relative; z-index: 1; }
-.hp-calc.is-stage :is(.hp-calc-side, .hp-out) { padding: 24px 20px 28px; border: 0; background: none; }
-@media (min-width: 960px) {
-  .hp-calc.is-stage { min-height: clamp(600px, 76vh, 740px); }
-  .hp-3d { position: absolute; inset: 0; height: auto; }
-  .hp-calc-ui { display: flex; min-height: inherit; }
-  .hp-calc-ui::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 62%; pointer-events: none; background: linear-gradient(90deg, rgba(36, 25, 16, 0.94) 0%, rgba(36, 25, 16, 0.82) 55%, rgba(36, 25, 16, 0) 100%); }
-  .hp-calc.is-stage :is(.hp-calc-side, .hp-out) { position: relative; width: min(540px, 48%); padding: 44px 48px; display: flex; flex-direction: column; }
-}
-/* Before the reveal the questions show; after it, the result */
-.hp-calc.is-stage .hp-out { display: none; }
-.hp-calc.is-stage.is-revealed .hp-calc-side { display: none; }
-.hp-calc.is-stage.is-revealed .hp-out { display: block; animation: hpStepIn 600ms var(--ease) both; }
-@media (min-width: 960px) { .hp-calc.is-stage.is-revealed .hp-out { display: flex; } }
-.hp-result:focus { outline: none; }
-.hp-result:focus-visible { outline: 2px solid var(--ember); outline-offset: 6px; border-radius: 6px; }
-
-/* The title and the example line, small */
-.hp-calc.is-stage .hp-calc-q { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); line-height: 1.3; }
-.hp-calc.is-stage .hp-inputs { margin-top: 10px; display: flex; flex-direction: column; flex: 1; }
-.hp-calc.is-stage .hp-who { margin-bottom: 0; }
-.hp-calc.is-stage .hp-who-label { font-size: 13px; }
-
-/* One question */
-.hp-steps { margin-top: 28px; }
-@media (min-width: 960px) { .hp-steps { margin-top: auto; padding-top: 40px; } }
-.hp-calc .hp-step[hidden] { display: none !important; }   /* the old field layout rules would otherwise show it */
-.hp-step:not([hidden]) { animation: hpStepIn 480ms var(--ease) both; }
-@keyframes hpStepIn { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
-.hp-step-n { font-family: var(--font-grotesk); font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: var(--ember); }
-.hp-step-n span { color: var(--ink-3); }
-.hp-calc.is-stage .hp-step .hp-step-q {
-  display: block; margin: 12px 0 22px; max-width: 13ch; font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase;
-  font-size: clamp(32px, 3.4vw, 50px); line-height: 0.92; letter-spacing: -0.045em; color: var(--ink);
-}
-.hp-calc.is-stage .hp-step .hp-box { width: auto; height: auto; padding: 0 0 8px; gap: 8px; align-items: baseline; border-bottom: 2px solid var(--line-strong); }
-.hp-calc.is-stage .hp-step .hp-box input { width: 100%; height: auto; font-size: clamp(52px, 6vw, 88px); font-weight: 800; line-height: 1; letter-spacing: -0.05em; }
-.hp-calc.is-stage .hp-step .hp-box > span:first-child { font-size: clamp(26px, 2.6vw, 38px); font-weight: 700; }
-.hp-box-unit { flex: none; font-family: var(--font-grotesk); font-size: 15px; font-weight: 600; color: var(--ink-3); white-space: nowrap; }
-.hp-step-hint { margin-top: 12px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
-.hp-step-err { min-height: 1.4em; margin-top: 10px; font-size: 14px; line-height: 1.45; color: #FF9B70; }
-.hp-step-err:empty { min-height: 0; margin-top: 0; }
-.hp-step-nav { display: flex; align-items: center; gap: 14px; margin-top: 22px; }
-.hp-step-back, .hp-edit {
-  height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--line-strong); background: none;
-  font: 600 15px/1 var(--font-ui); color: var(--ink); cursor: pointer; transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
-}
-.hp-step-back:hover, .hp-edit:hover { border-color: rgba(253, 246, 238, 0.6); background: rgba(253, 246, 238, 0.05); }
-.hp-step-back[hidden] { display: none; }
-.hp-step-dots { display: flex; gap: 6px; margin-right: auto; }
-.hp-step-back:not([hidden]) + .hp-step-dots { margin-left: 4px; }
-.hp-step-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(253, 246, 238, 0.2); transition: background 300ms ease, box-shadow 300ms ease, transform 300ms var(--ease); }
-.hp-calc[data-step="1"] .hp-step-dots i:nth-child(-n+1), .hp-calc[data-step="2"] .hp-step-dots i:nth-child(-n+2),
-.hp-calc[data-step="3"] .hp-step-dots i:nth-child(-n+3), .hp-calc[data-step="4"] .hp-step-dots i:nth-child(-n+4),
-.hp-calc[data-step="5"] .hp-step-dots i { background: var(--ember); box-shadow: 0 0 8px rgba(244, 98, 42, 0.7); }
-.hp-step-next {
-  display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 24px; border: 0; border-radius: 999px;
-  background: var(--ember); color: var(--espresso); font: 700 16px/1 var(--font-ui); cursor: pointer;
-  box-shadow: 0 10px 30px -10px rgba(244, 98, 42, 0.8); transition: background var(--dur-fast) ease, transform var(--dur-fast) ease;
-}
-.hp-step-next:hover { background: #FF7A45; }
-.hp-step-next:active { transform: translateY(1px); }
-.hp-step-skip { align-self: flex-start; margin-top: 16px; padding: 4px 0; border: 0; background: none; font: 500 13.5px var(--font-ui); color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.hp-step-skip:hover { color: var(--ink); }
-.hp-calc.is-stage :is(.hp-step-back, .hp-step-next, .hp-step-skip, .hp-edit, .hp-sum-b):focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
-
-/* The result */
-.hp-calc.is-stage .hp-big .hp-age { font-size: clamp(120px, 12vw, 184px); }
-.hp-sum { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
-.hp-sum:empty { display: none; }
-.hp-sum-b { height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(253, 246, 238, 0.04); font: 500 13px/1 var(--font-ui); color: var(--ink-2); cursor: pointer; transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease; }
-.hp-sum-b:hover { border-color: var(--ember); color: var(--ink); }
-.hp-calc.is-stage .hp-whatif { margin-top: 20px; }
-.hp-calc.is-stage .hp-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 22px; }
-.hp-calc.is-stage .hp-btn-note { margin-top: 10px; font-size: 13px; }
-.hp-calc.has-3d .hp-track { display: none; }
-.hp-fine-out { margin-top: 14px; padding-top: 0; border-top: 0; text-align: center; }
-
-/* No 3D (no WebGL, or it failed): a calm flat floor instead of the scene */
-.hp-calc.no-3d .hp-3d {
-  background:
-    radial-gradient(60% 40% at 70% 42%, rgba(244, 98, 42, 0.28), transparent 70%),
-    linear-gradient(transparent 55%, rgba(244, 98, 42, 0.05));
-}
-.hp-calc.no-3d .hp-3d canvas { display: none; }
