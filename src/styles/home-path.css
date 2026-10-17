@@ -85,7 +85,7 @@
 .hp-scene.is-live :is(.hp-outline-line, .hp-outline-tas) { stroke-width: calc(0.9 / var(--z, 1) * 1.3); }
 .hp-scene.is-live .hp-outline-line { stroke-opacity: calc(0.3 + 0.25 * (var(--z, 1) - 1)); }
 .hp-scene.is-live .hp-fuse-cord { stroke-width: calc(0.6 / var(--z, 1) * 1.3); }
-.hp-scene.is-live .hp-outline { opacity: clamp(0.7, calc(1 - (var(--p, 0) - 0.7) * 1.2), 1); }
+.hp-scene.is-live .hp-outline { opacity: clamp(0, calc(1 - (var(--p, 0) - 0.55) * 3.4), 1); }   /* gone by the time the calculator arrives */
 /* The calculator rides up over the last part of the zoom */
 .hp-scene.is-live + .hp-wrap { position: relative; z-index: 2; margin-top: -55vh; }
 
@@ -536,7 +536,7 @@
 
 /* ── The calculator as a fuse ruler (.is-ruler) ───────────────────────────────────────────────────
    One calm cream card: the question and the big ember age; one line of ages from today, burnt to the
-   age work could become optional with a flickering 🔥 at the point; the five inputs in a row; then the
+   age work could become optional with a glowing ember orb at the point; the five inputs in a row; then the
    words and the what-ifs side by side, and the fine print. */
 .hp-calc.is-ruler {
   display: block; padding: 26px 20px 22px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line);
@@ -565,29 +565,20 @@
   transition: width 1100ms cubic-bezier(0.45, 0, 0.2, 1);
 }
 .hp-calc.is-ruler .hp-track-sixty { position: absolute; top: -7px; width: 1px; height: 17px; left: calc(var(--s) * 100%); background: var(--ink-3); }
-/* The fire: sits on the line at the burning point, flickers, and travels when the age changes */
-.hp-track-fire {
-  position: absolute; left: 0; bottom: -4px; z-index: 1; display: block; transform: translateX(-50%);
-  font-size: 38px; line-height: 1; pointer-events: none; user-select: none;
-  transition: left 1100ms cubic-bezier(0.45, 0, 0.2, 1);
+/* The orb: a glowing ember point on the line at the age; it breathes gently and travels when the age changes */
+.hp-track-orb {
+  position: absolute; left: 0; top: 50%; z-index: 1; width: 16px; height: 16px; border-radius: 50%; transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 38% 34%, #FFF4E6 0%, #FFC48E 32%, var(--ember) 68%, #C4480F 100%);
+  box-shadow: 0 0 0 4px rgba(244, 98, 42, 0.16), 0 0 16px 4px rgba(244, 98, 42, 0.55), 0 0 42px 12px rgba(244, 98, 42, 0.22);
+  transition: left 1100ms cubic-bezier(0.45, 0, 0.2, 1); pointer-events: none;
 }
-.hp-track-fire::before { content: ''; position: absolute; left: 50%; bottom: 2px; width: 56px; height: 40px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(244, 98, 42, 0.35), transparent); z-index: -1; }
 .hp-calc.is-ruler .hp-track.is-lit .hp-track-fill { width: calc(var(--f) * 100%); }
-.hp-calc.is-ruler .hp-track.is-lit .hp-track-fire { left: calc(var(--f) * 100%); }
-@media (prefers-reduced-motion: no-preference) {
-  .hp-track-fire { animation: hpFlicker 1.3s steps(1, end) infinite, hpSway 2.6s ease-in-out infinite; transform-origin: 50% 100%; }
-  .hp-track-fire::before { animation: hpGlow 0.9s ease-in-out infinite alternate; }
+.hp-calc.is-ruler .hp-track.is-lit .hp-track-orb { left: calc(var(--f) * 100%); }
+@media (prefers-reduced-motion: no-preference) { .hp-track-orb { animation: hpOrb 2.4s ease-in-out infinite; } }
+@keyframes hpOrb {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(244, 98, 42, 0.14), 0 0 14px 3px rgba(244, 98, 42, 0.5), 0 0 36px 10px rgba(244, 98, 42, 0.18); transform: translate(-50%, -50%) scale(1); }
+  50% { box-shadow: 0 0 0 7px rgba(244, 98, 42, 0.1), 0 0 22px 6px rgba(244, 98, 42, 0.65), 0 0 56px 18px rgba(244, 98, 42, 0.28); transform: translate(-50%, -50%) scale(1.1); }
 }
-@keyframes hpFlicker {
-  0% { filter: brightness(1) saturate(1); } 12% { filter: brightness(1.18) saturate(1.2); } 21% { filter: brightness(0.92); }
-  37% { filter: brightness(1.1) saturate(1.15); } 52% { filter: brightness(0.96); } 68% { filter: brightness(1.22) saturate(1.25); }
-  81% { filter: brightness(0.94); } 100% { filter: brightness(1); }
-}
-@keyframes hpSway {
-  0%, 100% { transform: translateX(-50%) rotate(-3deg) scale(1, 1); } 25% { transform: translateX(-50%) rotate(2deg) scale(1.04, 0.97); }
-  50% { transform: translateX(-50%) rotate(-1deg) scale(0.97, 1.06); } 75% { transform: translateX(-50%) rotate(3deg) scale(1.03, 0.98); }
-}
-@keyframes hpGlow { from { opacity: 0.55; transform: translateX(-50%) scale(0.9); } to { opacity: 1; transform: translateX(-50%) scale(1.12); } }
 .hp-calc.is-ruler .hp-track-labels { position: relative; height: 20px; margin-top: 12px; font-family: var(--font-grotesk); font-size: 12.5px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .hp-calc.is-ruler .hp-track-labels span { position: absolute; top: 0; white-space: nowrap; }
 .hp-calc.is-ruler .hp-track-from { left: 0; }
@@ -596,7 +587,7 @@
 .hp-calc.is-ruler .hp-track.is-lit .hp-track-to { left: calc(var(--f) * 100%); }
 .hp-calc.is-ruler .hp-track-end { right: 0; color: var(--ink-3); font-weight: 500; }
 .hp-calc.is-ruler .hp-track.no-sixty :is(.hp-track-sixty, .hp-track-60) { display: none; }
-@media (max-width: 599px) { .hp-calc.is-ruler .hp-track-to { font-size: 11.5px; } .hp-track-fire { font-size: 32px; } }
+@media (max-width: 599px) { .hp-calc.is-ruler .hp-track-to { font-size: 11.5px; } }
 
 /* The five inputs, in a row: small caps label, big number on a line */
 .hp-calc.is-ruler .hp-inputs { margin-top: 26px; }

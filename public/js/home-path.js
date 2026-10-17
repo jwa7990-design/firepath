@@ -155,7 +155,7 @@
   function setBig(html) { big.innerHTML = html; }
 
   // The fuse ruler: ages to scale from today out to 75 (or a little past the date), burnt from today to
-  // the age work could become optional, with the 🔥 at that point. Display only; CSS moves the fire
+  // the age work could become optional, with a glowing orb at that point. Display only; CSS moves the orb
   // along when the numbers change, and the first time it comes into view it burns in from today.
   const track = $('hpTrack');
   function setTrack(s) {
