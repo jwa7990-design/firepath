@@ -172,6 +172,11 @@
   function showResult(s) {
     root.dataset.status = s.status;
     setTrack(s);
+    // Tell the 3D scene what the result already says (it draws nothing the words don't).
+    const detail = { status: s.status, age: s.inputs && Number.isFinite(s.inputs.age) ? s.inputs.age : null, free: s.status === 'ok' ? s.plan.freedomAge : null };
+    root.dataset.age = detail.age == null ? '' : String(detail.age);
+    root.dataset.free = detail.free == null ? '' : String(detail.free);
+    root.dispatchEvent(new CustomEvent('fp:result', { detail }));
     if (s.status !== 'ok') { untween(when); untween(rangeOut); }
     if (s.status === 'invalid') {
       setBig('Your freedom age <strong class="hp-age is-quiet">–</strong>');
@@ -291,6 +296,60 @@
     schedule();
     $(ids.age).focus();
   });
+
+  // ── One question at a time ──────────────────────────────
+  // All five inputs are always in the form (the maths reads them as before); only one is shown.
+  // Next (or Enter) checks the box you're on, the last one reveals the result, and your answers
+  // stay on the result screen as buttons back to each question.
+  const stepEls = Array.from(root.querySelectorAll('.hp-step'));
+  const stepBack = $('hpStepBack'), stepNext = $('hpStepNext'), stepSkip = $('hpStepSkip'), stepErr = $('hpStepErr');
+  const sumEl = $('hpSum'), editBtn = $('hpEdit'), resultEl = $('hpResult');
+  const STEP_KEYS = ['age', 'savings', 'super', 'monthly', 'spend'];
+  let step = 0;
+  function announce(revealed) { root.dispatchEvent(new CustomEvent('fp:step', { detail: { step, revealed } })); }
+  function goStep(i, focus) {
+    step = clamp(i, 0, stepEls.length - 1);
+    root.classList.remove('is-revealed');
+    stepEls.forEach((el, k) => { el.hidden = k !== step; });
+    root.dataset.step = String(step + 1);
+    stepBack.hidden = step === 0;
+    stepNext.innerHTML = step === stepEls.length - 1 ? 'Show my date <span aria-hidden="true">→</span>' : 'Next <span aria-hidden="true">→</span>';
+    stepErr.textContent = '';
+    announce(false);
+    if (focus !== false) { const inp = stepEls[step].querySelector('input'); inp.focus({ preventScroll: true }); inp.select(); }
+  }
+  function renderSum() {
+    const v = inputsNow();
+    const txt = {
+      age: Number.isFinite(v.age) ? `Age ${Math.round(v.age)}` : 'Age',
+      savings: Number.isFinite(v.savings) ? `${money(v.savings)} saved` : 'Saved',
+      super: Number.isFinite(v.super) ? `${money(v.super)} super` : 'Super',
+      monthly: Number.isFinite(v.monthly) ? `${money(v.monthly)} a month` : 'Each month',
+      spend: Number.isFinite(v.spend) ? `${money(v.spend)} a year` : 'Each year',
+    };
+    sumEl.innerHTML = STEP_KEYS.map((k, i) => `<button type="button" class="hp-sum-b" data-step="${i}" aria-label="Change: ${txt[k]}">${txt[k]}</button>`).join('');
+  }
+  function reveal() {
+    clearTimeout(typeTimer); recompute();
+    renderSum();
+    stepErr.textContent = '';
+    root.classList.add('is-revealed');
+    root.dataset.step = 'done';
+    announce(true);
+    resultEl.focus({ preventScroll: true });
+  }
+  $('hpForm').addEventListener('submit', e => {
+    e.preventDefault();
+    clearTimeout(typeTimer); recompute();   // marks any box that doesn't read
+    const inp = stepEls[step].querySelector('input');
+    if (inp.getAttribute('aria-invalid') === 'true') { stepErr.textContent = when.textContent; inp.focus(); return; }
+    if (step < stepEls.length - 1) goStep(step + 1); else reveal();
+  });
+  stepBack.addEventListener('click', () => goStep(step - 1));
+  stepSkip.addEventListener('click', reveal);
+  editBtn.addEventListener('click', () => goStep(0));
+  sumEl.addEventListener('click', e => { const b = e.target.closest('.hp-sum-b'); if (b) goStep(Number(b.dataset.step)); });
+  goStep(0, false);
 
   let typeTimer = 0;
   function schedule() { clearTimeout(typeTimer); recompute(); }
@@ -630,6 +689,34 @@
       return visible && !document.hidden;
     }
     function burn() { if (!done && !looping && visible) { looping = true; last = 0; run('fuse', now => { const go = frame(now); if (!go) looping = false; return go; }); } }
+    // The bow: the spark leaves Darwin (the coast's first point), climbs to the top of the screen and splits
+    // in two, drawing a bow from edge to edge that the calculator rises into. Screen-space SVG over the stage.
+    const bow = $('hpBow'), stage = scene.querySelector('.hp-scene-stage');
+    const bRise = $('hpBowRise'), bL = $('hpBowL'), bR = $('hpBowR'), s1 = $('hpBowS1'), s2 = $('hpBowS2');
+    function head(path, k) { const q = path.getPointAtLength(path.getTotalLength() * k); return q; }
+    function place(c, path, k, on) {
+      if (!on) { c.style.opacity = '0'; return; }
+      const q = head(path, k); c.setAttribute('cx', q.x.toFixed(1)); c.setAttribute('cy', q.y.toFixed(1)); c.style.opacity = '1';
+    }
+    function drawBow(pp) {
+      if (!bow || !stage || !line.getScreenCTM) return;
+      const r = stage.getBoundingClientRect(), W = r.width, H = r.height;
+      if (!W || !H) return;
+      bow.setAttribute('viewBox', `0 0 ${W.toFixed(0)} ${H.toFixed(0)}`);
+      const m = line.getScreenCTM(), o = line.getPointAtLength(0);
+      const dx = m.a * o.x + m.c * o.y + m.e - r.left, dy = m.b * o.x + m.d * o.y + m.f - r.top;
+      const px = W / 2, py = H * 0.07, ey = H * 0.44, f = n => n.toFixed(1);
+      bRise.setAttribute('d', `M${f(dx)} ${f(dy)} C${f(dx)} ${f(py + (dy - py) * 0.35)} ${f(px + (dx - px) * 0.45)} ${f(py)} ${f(px)} ${f(py)}`);
+      bR.setAttribute('d', `M${f(px)} ${f(py)} C${f(W * 0.78)} ${f(py)} ${f(W * 0.97)} ${f(H * 0.16)} ${f(W * 0.97)} ${f(ey)}`);
+      bL.setAttribute('d', `M${f(px)} ${f(py)} C${f(W * 0.22)} ${f(py)} ${f(W * 0.03)} ${f(H * 0.16)} ${f(W * 0.03)} ${f(ey)}`);
+      const rise = clamp((pp - 0.32) / 0.14, 0, 1), half = clamp((pp - 0.46) / 0.3, 0, 1);
+      bRise.style.strokeDashoffset = String(1 - rise);
+      bL.style.strokeDashoffset = bR.style.strokeDashoffset = String(1 - half);
+      place(s1, rise < 1 ? bRise : bR, rise < 1 ? rise : half, rise > 0 && half < 1);
+      place(s2, bL, half, half > 0 && half < 1);
+      bow.classList.toggle('is-done', half >= 1);
+    }
+
     let ticking = false;
     function onScroll() {
       if (ticking) return; ticking = true;
@@ -639,20 +726,16 @@
         const r = scene.getBoundingClientRect(), span = scene.offsetHeight - window.innerHeight;
         p = clamp(span > 0 ? -r.top / span : 1, 0, 1);
         scene.style.setProperty('--p', p.toFixed(3));
-        // The push-in: still while the fuse closes, then easing in to 1.9x while the map slides to the
-        // centre of the screen, so the coast ends up framing the calculator.
-        const k = clamp((p - 0.25) / 0.75, 0, 1), e = k * k * (3 - 2 * k);
-        const svg = line.ownerSVGElement, W = wrap.clientWidth, sw = svg.clientWidth;
-        const left = W - sw - (parseFloat(getComputedStyle(svg).right) || 0);
-        scene.style.setProperty('--z', (1 + 0.9 * e).toFixed(3));
-        scene.style.setProperty('--dx', ((W / 2 - (left + sw / 2)) * e).toFixed(1) + 'px');
+        // Once the coast has closed, the map steps back and the fuse draws the bow.
+        scene.style.setProperty('--mx', clamp((p - 0.3) / 0.2, 0, 1).toFixed(3));
+        drawBow(p);
         burn();
       });
     }
     function apply() {
       scene.classList.toggle('is-live', fits.matches);
       if (fits.matches) window.addEventListener('scroll', onScroll, { passive: true });
-      else { window.removeEventListener('scroll', onScroll); scene.style.removeProperty('--p'); scene.style.removeProperty('--z'); scene.style.removeProperty('--dx'); p = 0; }
+      else { window.removeEventListener('scroll', onScroll); scene.style.removeProperty('--p'); scene.style.removeProperty('--mx'); p = 0; }
       onScroll(); burn();
     }
     if ('IntersectionObserver' in window) new IntersectionObserver(e => { visible = e[0].isIntersecting; if (visible) burn(); }).observe(scene);
@@ -697,7 +780,7 @@
   if (find) find.addEventListener('click', e => {
     e.preventDefault();
     root.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
-    setTimeout(() => { const a = $(ids.age); a.focus({ preventScroll: true }); a.select(); }, reduce ? 0 : 450);
+    setTimeout(() => { goStep(0); }, reduce ? 0 : 450);
   });
 
   // ── Reduced motion ──────────────────────────────────────

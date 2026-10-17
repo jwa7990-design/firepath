@@ -1,83 +1,104 @@
 ---
 /**
- * The homepage's live calculator: five inputs, the freedom age and its range, the freedom
- * number and three what-if options, as one band under the hero. Markup only.
- * public/js/home-path.js does the maths (FirePathEngine.freedomPlan + freedomRange); the
- * picture of the path is the timeline section below the calculator.
+ * The homepage's live calculator, as a stage: a Three.js scene behind (an ember path running to the
+ * horizon, with gates at today, the work-optional age and 60; src/scripts/horizon.ts), five questions
+ * asked one at a time, then the result. Markup only.
+ * public/js/home-path.js does the maths (FirePathEngine.freedomPlan + freedomRange) and the steps; every
+ * input keeps its id, so the maths and the checks don't change. The 3D scene only draws what the
+ * result already says (decorative, aria-hidden); without WebGL it falls back to a calm flat stage.
  * The example person below is also the fallback the script resets to.
  */
-import Field from './HpField.astro';
 const EXAMPLE = { age: 32, savings: 60000, super: 50000, monthly: 2500, spend: 50000 };
 const fmt = (n: number) => n.toLocaleString('en-AU');
-const FIELDS = [
-  { id: 'hpAge', key: 'age', label: 'Age', money: false, value: String(EXAMPLE.age), unit: '' },
-  { id: 'hpSavings', key: 'savings', label: 'Savings and investments', hint: 'outside super', money: true, value: fmt(EXAMPLE.savings), unit: '' },
-  { id: 'hpSuper', key: 'super', label: 'Super', money: true, value: fmt(EXAMPLE.super), unit: '' },
-  { id: 'hpMonthly', key: 'monthly', label: 'Saved each month', hint: 'not counting super', money: true, value: fmt(EXAMPLE.monthly), unit: '' },
-  { id: 'hpSpend', key: 'spend', label: 'Yearly spending', hint: 'now, and once you stop', money: true, value: fmt(EXAMPLE.spend), unit: 'a year' },
-];
-// Grouped the way people think about it: you, what you have, what comes and goes.
-const GROUPS = [
-  { legend: 'What you have now', keys: ['savings', 'super'] },
-  { legend: 'Each month and year, in today’s dollars', keys: ['monthly', 'spend'] },
+const STEPS = [
+  { id: 'hpAge', key: 'age', q: 'How old are you?', hint: '', money: false, value: String(EXAMPLE.age), unit: 'years old' },
+  { id: 'hpSavings', key: 'savings', q: 'How much have you got saved and invested?', hint: 'Outside super: savings accounts, shares, ETFs.', money: true, value: fmt(EXAMPLE.savings), unit: '' },
+  { id: 'hpSuper', key: 'super', q: 'And how much is in your super?', hint: 'Your balance today.', money: true, value: fmt(EXAMPLE.super), unit: '' },
+  { id: 'hpMonthly', key: 'monthly', q: 'How much do you put away each month?', hint: 'Not counting super.', money: true, value: fmt(EXAMPLE.monthly), unit: 'a month' },
+  { id: 'hpSpend', key: 'spend', q: 'What would you want to spend each year?', hint: 'Now, and once you stop. In today’s dollars.', money: true, value: fmt(EXAMPLE.spend), unit: 'a year' },
 ];
 ---
-<!-- One band: the inputs on the left, the result on the right (stacked on phones). -->
-<div class="hp-calc is-night" id="hpCalc" data-example={JSON.stringify(EXAMPLE)}>
-  <div class="hp-calc-side">
-  <h2 class="hp-calc-q" id="hpCalcQ">When could you stop working?</h2>
-  <form class="hp-inputs" id="hpForm" novalidate aria-labelledby="hpCalcQ" aria-describedby="hpWho">
-    <div class="hp-who">
-      <p class="hp-who-label" id="hpWho" aria-live="polite" aria-atomic="true">
-        <span class="hp-who-ex" id="hpWhoEx"><span class="hp-who-tag">Example numbers.</span> <span class="hp-who-text">Change any of them to see yours.</span></span>
-        <span class="hp-who-you" id="hpWhoYou"></span>
-      </p>
-      <button type="button" class="hp-reset" id="hpReset" hidden>Reset to example</button>
-    </div>
-    <div class="hp-fields">
-      <Field f={FIELDS[0]}/>
-      {GROUPS.map(g => (
-        <fieldset class="hp-group">
-          <legend>{g.legend}</legend>
-          <div class="hp-group-fields">{g.keys.map(k => <Field f={FIELDS.find(f => f.key === k)!}/>)}</div>
-        </fieldset>
-      ))}
-    </div>
-  </form>
-  </div>
+<div class="hp-calc is-night is-stage" id="hpCalc" data-example={JSON.stringify(EXAMPLE)} data-step="1">
+  <!-- The 3D path to the horizon (decorative: the words beside it say everything) -->
+  <div class="hp-3d" aria-hidden="true"><canvas id="hp3d"></canvas></div>
 
-  <div class="hp-out">
-    <div class="hp-result" id="hpResult">
-      <!-- Until the visitor changes a number, the result is the example's, and says so (CSS, on .is-yours). -->
-      <p class="hp-out-ex">Example result</p>
-      <!-- No age in the markup: the engine works it out on load (a built-in number could disagree with it). -->
-      <p class="hp-big" id="hpBig">Work could become optional at <strong class="hp-age num" id="hpAgeOut">–</strong></p>
-      <p class="hp-when num" id="hpWhen">Working it out from the example numbers…</p>
-      <p class="hp-range num" id="hpRange"></p>
-      <!-- The same answer as a line, to scale from today to 75 (decorative; the words above say it all) -->
-      <div class="hp-track" id="hpTrack" aria-hidden="true" hidden>
-        <div class="hp-track-line"><i class="hp-track-fill"></i><b class="hp-track-sixty"></b><span class="hp-track-dot"></span></div>
-        <div class="hp-track-labels"><span class="hp-track-from"></span><span class="hp-track-60">60</span><span class="hp-track-to"></span></div>
+  <div class="hp-calc-ui">
+    <div class="hp-calc-side">
+      <h2 class="hp-calc-q" id="hpCalcQ">When could you stop working?</h2>
+      <form class="hp-inputs" id="hpForm" novalidate aria-labelledby="hpCalcQ" aria-describedby="hpWho">
+        <div class="hp-who">
+          <p class="hp-who-label" id="hpWho" aria-live="polite" aria-atomic="true">
+            <span class="hp-who-ex" id="hpWhoEx"><span class="hp-who-tag">Example numbers.</span> <span class="hp-who-text">Change any of them to see yours.</span></span>
+            <span class="hp-who-you" id="hpWhoYou"></span>
+          </p>
+          <button type="button" class="hp-reset" id="hpReset" hidden>Reset to example</button>
+        </div>
+        <div class="hp-steps">
+          {STEPS.map((f, i) => (
+            <div class={`hp-step hp-field hp-field-${f.key}`} data-step={i + 1} hidden={i > 0}>
+              <p class="hp-step-n num" aria-hidden="true">{String(i + 1).padStart(2, '0')}<span> / 05</span></p>
+              <label class="hp-step-q" for={f.id}>{f.q}</label>
+              <div class={f.money ? 'hp-box is-money' : 'hp-box'}>
+                {f.money && <span aria-hidden="true">$</span>}
+                <input id={f.id} name={f.key} value={f.value} inputmode={f.money ? 'decimal' : 'numeric'} autocomplete="off" spellcheck="false" aria-describedby={f.hint ? `${f.id}Hint` : undefined}/>
+                {f.unit && <span class="hp-box-unit" aria-hidden="true">{f.unit}</span>}
+              </div>
+              {f.hint && <p class="hp-step-hint" id={`${f.id}Hint`}>{f.hint}</p>}
+            </div>
+          ))}
+        </div>
+        <p class="hp-step-err" id="hpStepErr" role="alert"></p>
+        <div class="hp-step-nav">
+          <button type="button" class="hp-step-back" id="hpStepBack" hidden><span aria-hidden="true">←</span> Back</button>
+          <span class="hp-step-dots" aria-hidden="true">{STEPS.map(() => <i></i>)}</span>
+          <button type="submit" class="hp-step-next" id="hpStepNext">Next <span aria-hidden="true">→</span></button>
+        </div>
+        <button type="button" class="hp-step-skip" id="hpStepSkip">Skip to the result</button>
+      </form>
+    </div>
+
+    <div class="hp-out">
+      <div class="hp-result" id="hpResult" tabindex="-1">
+        <!-- Until the visitor changes a number, the result is the example's, and says so (CSS, on .is-yours). -->
+        <p class="hp-out-ex">Example result</p>
+        <!-- No age in the markup: the engine works it out on load (a built-in number could disagree with it). -->
+        <p class="hp-big" id="hpBig">Work could become optional at <strong class="hp-age num" id="hpAgeOut">–</strong></p>
+        <p class="hp-when num" id="hpWhen">Working it out from the example numbers…</p>
+        <p class="hp-range num" id="hpRange"></p>
+        <!-- The same answer as a line, to scale (shown when there's no 3D scene) -->
+        <div class="hp-track" id="hpTrack" aria-hidden="true" hidden>
+          <div class="hp-track-line"><i class="hp-track-fill"></i><b class="hp-track-sixty"></b><span class="hp-track-dot"></span></div>
+          <div class="hp-track-labels"><span class="hp-track-from"></span><span class="hp-track-60">60</span><span class="hp-track-to"></span></div>
+        </div>
+        <p class="hp-fnum num">Your freedom number is about <strong data-hp-number>$1,250,000</strong>: <span class="hp-nw">25 × <span data-hp-spend>$50,000</span></span>, your yearly spending. Stopping before 60, FirePath aims a bit higher.</p>
+        <p class="hp-est">An estimate, not a promise. <a href="/faq#q-accurate">How accurate is this?</a></p>
       </div>
-      <p class="hp-fnum num">Your freedom number is about <strong data-hp-number>$1,250,000</strong>: <span class="hp-nw">25 × <span data-hp-spend>$50,000</span></span>, your yearly spending. Stopping before 60, FirePath aims a bit higher.</p>
-      <p class="hp-est">An estimate, not a promise. <a href="/faq#q-accurate">How accurate is this?</a></p>
-    </div>
 
+      <!-- Your answers, each one a way back to its question -->
+      <div class="hp-sum" id="hpSum" role="group" aria-label="Your answers"></div>
 
-    <div class="hp-whatif" id="hpWhatIf">
-      <p class="hp-whatif-head">What-ifs to explore <span>Tap one to see what it changes</span></p>
-      <div class="hp-chips" role="group" aria-label="What-if options">
-        <button type="button" class="hp-chip" data-chip="week100" aria-pressed="false">+$100 a week <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
-        <button type="button" class="hp-chip" data-chip="spend10" aria-pressed="false">Spend 10% less <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
-        <button type="button" class="hp-chip" data-chip="both" aria-pressed="false">Both <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+      <div class="hp-whatif" id="hpWhatIf">
+        <p class="hp-whatif-head">What-ifs to explore <span>Tap one to see what it changes</span></p>
+        <div class="hp-chips" role="group" aria-label="What-if options">
+          <button type="button" class="hp-chip" data-chip="week100" aria-pressed="false">+$100 a week <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+          <button type="button" class="hp-chip" data-chip="spend10" aria-pressed="false">Spend 10% less <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+          <button type="button" class="hp-chip" data-chip="both" aria-pressed="false">Both <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+        </div>
+        <p class="hp-preview" id="hpPreview" aria-live="polite"></p>
       </div>
-      <p class="hp-preview" id="hpPreview" aria-live="polite"></p>
-    </div>
 
-    <div class="hp-actions">
-      <a href="/firepath" class="hp-btn">Add more detail</a>
-      <p class="hp-btn-note">Your pay, debts, home and a partner. Free, no account.</p>
+      <div class="hp-actions">
+        <a href="/firepath" class="hp-btn">Add more detail</a>
+        <button type="button" class="hp-edit" id="hpEdit">Change my numbers</button>
+      </div>
+      <p class="hp-btn-note">Add more detail: your pay, debts, home and a partner. Free, no account.</p>
     </div>
-    <p class="hp-fine">General information, not advice. Assumes 7% growth a year after inflation, less tax, and less super fund fees inside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>
   </div>
 </div>
+<p class="hp-fine hp-fine-out">General information, not advice. Assumes 7% growth a year after inflation, less tax, and less super fund fees inside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>
+
+<script>
+  import { startHorizon } from '../scripts/horizon';
+  const root = document.getElementById('hpCalc');
+  if (root) startHorizon(root);
+</script>
