@@ -17,6 +17,9 @@ import { PRO_PRICE, TRIAL_FINE_PRINT } from '../data/plans';
 import '../styles/home-path.css';
 
 // What Pro adds, in one line (the full lists live on /pricing and /features, from plans.ts).
+// Phase 2 statements, split into words so they can light up one by one as they scroll through.
+const CHAPTER = ['Money', 'shouldn’t', 'feel', 'confusing.'];
+const OPENER = LETTER.opener.replace(/^["“]+|["”]+$/g, '').split(' ');
 const PRO_ADDS = 'your full plan with super, tax worked out and an AI read on it';
 // A few first guides for under the timeline (the bridge guide is already linked there).
 const READS = FIRST_READS.filter(s => s !== 'two-phase-freedom-timeline').map(s => ARTICLES.find(a => a.slug === s)).filter(a => !!a);
@@ -38,14 +41,14 @@ const TOOLS = [
   ])}></script>
   <main id="main" class="hp is-home">
 
-    <!-- Hero: big type over Australia's coastline drawing itself in the background, never quite closing.
+    <!-- Hero: big type over Australia's coastline burning round like a fuse in the background.
          Wide screens with motion allowed: the stage pins briefly and scrolling carries the line further. -->
     <header class="hp-hero is-home is-lap">
       <div class="hp-scene" id="hpScene">
         <div class="hp-scene-stage">
           <HeroOutline/>
           <div class="hp-wrap hp-hero-grid">
-            <p class="hp-micro">Money<br/>shouldn’t<br/>feel<br/>confusing.</p>
+            <p class="hp-micro">Money tools<br/>in plain<br/>English.</p>
             <h1 class="hp-h1">From here to a <span class="hp-ember">freer future.</span></h1>
             <div class="hp-hero-side">
               <p class="hp-lead">See how today’s decisions could shape your future, and when work could become optional.</p>
@@ -59,6 +62,13 @@ const TOOLS = [
         <FreedomPath/>
       </div>
     </header>
+
+    <!-- Chapter line: big words that light up one by one as they scroll through (CSS); elsewhere they simply show -->
+    <div class="hp-chapter">
+      <div class="hp-wrap">
+        <p class="hp-chapter-line">{CHAPTER.map((w, i) => <>{i > 0 && ' '}<span class="hp-w" style={`--i:${i}`}>{w}</span></>)}</p>
+      </div>
+    </div>
 
     <section class="hp-sec hp-story" aria-labelledby="s1b-title">
       <div class="hp-wrap" data-reveal>
@@ -114,6 +124,11 @@ const TOOLS = [
 
     <!-- Jay's letter -->
     <section class="hp-sec hp-letter" id="why" aria-labelledby="letter-title">
+      <div class="hp-wrap">
+        <h2 id="letter-title" class="hp-label">Why I built this</h2>
+        {/* Jay's opener, word for word, as the closing statement; the words light up as it scrolls through */}
+        <blockquote class="hp-manifesto">{OPENER.map((w, i) => <>{i > 0 && ' '}<span class="hp-w" style={`--i:${i}`}>{w}</span></>)}</blockquote>
+      </div>
       <div class="hp-wrap hp-letter-grid" data-reveal>
         {/* No photo by choice: the letter is the feature. A real person, in his own words. */}
         <aside class="hp-letter-side" aria-label="About the founder">
@@ -125,9 +140,6 @@ const TOOLS = [
           </dl>
         </aside>
         <div class="hp-letter-copy">
-          <h2 id="letter-title" class="hp-label">Why I built this</h2>
-          <span class="hp-quote-mark" aria-hidden="true">&ldquo;</span>
-          <blockquote class="hp-quote">{LETTER.opener.replace(/^["“]+|["”]+$/g, '')}</blockquote>
           <div class="hp-letter-body">
             {LETTER.paragraphs.map(p => <p set:html={p}/>)}
           </div>

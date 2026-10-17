@@ -378,17 +378,17 @@
       // The stages, in plain words. Same facts as the line, plus why each one matters.
       const stages = [];
       const markets = 'Markets won’t rise in a straight line, so the date could come earlier or later.';
-      if (s.status !== 'free') stages.push({ kind: 'work', when: `${age} to ${freeAge} · ${span(p.months)}`, t: 'Working and saving',
+      if (s.status !== 'free') stages.push({ kind: 'work', big: age, when: `${age} to ${freeAge} · ${span(p.months)}`, t: 'Working and saving',
         d: inp.monthlySavings > 0 ? `${money(inp.monthlySavings)} a month going in, with growth on top. ${markets}` : `Nothing new going in, so growth on what you hold does the work. ${markets}` });
-      if (bridgeShown > 0) stages.push({ kind: 'bridge', when: freeAge === SUPER_AGE ? `The last ${span(bridgeM)} before 60` : `${freeAge} to 60 · ${span(bridgeM)}`, t: 'Savings carry you',
+      if (bridgeShown > 0) stages.push({ kind: 'bridge', big: freeAge, when: freeAge === SUPER_AGE ? `The last ${span(bridgeM)} before 60` : `${freeAge} to 60 · ${span(bridgeM)}`, t: 'Savings carry you',
         d: 'Super stays locked until 60, so money outside super pays the way.' + (outsideAt60 ? ` On these numbers about ${about(outsideAt60)} could still be invested when you get there.` : '') });
-      if (!sixty) stages.push({ kind: 'after', when: `From ${freeAge}`, t: 'Savings and super together',
+      if (!sixty) stages.push({ kind: 'after', big: freeAge, when: `From ${freeAge}`, t: 'Savings and super together',
         d: 'You can usually already get to your super, so savings and super could share the load from the day you stop.' });
-      else if (!superAt60) stages.push({ kind: 'after', when: `From ${freeAge}`, t: 'Savings carry the whole way',
+      else if (!superAt60) stages.push({ kind: 'after', big: freeAge, when: `From ${freeAge}`, t: 'Savings carry the whole way',
         d: 'No super entered above, so on these numbers your savings pay the way from the day you stop.' });
-      else if (bridgeM > 0) stages.push({ kind: 'after', when: 'From 60', t: 'Super joins in',
+      else if (bridgeM > 0) stages.push({ kind: 'after', big: SUPER_AGE, when: 'From 60', t: 'Super joins in',
         d: `Most Australians can get to their super from 60 once they’ve retired. On these numbers it could be about ${about(superAt60)} by then, sharing the load with your savings.` });
-      else stages.push({ kind: 'after', when: `From ${freeAge}`, t: 'Savings and super together',
+      else stages.push({ kind: 'after', big: freeAge, when: `From ${freeAge}`, t: 'Savings and super together',
         d: `By ${freeAge} you can usually get to your super too (about ${about(superAt60)} at 60 on these numbers), so savings and super could share the load from the day you stop.` });
 
       // The one-sentence summary (also what a screen reader hears for the picture).
@@ -406,7 +406,7 @@
       if (!stagesEl) return;
       const st = model.stages || [];
       stagesEl.style.setProperty('--n', String(Math.max(1, st.length)));
-      stagesEl.innerHTML = st.map(x => `<li class="hp-stage is-${x.kind}"><p class="hp-stage-when num">${esc(x.when)}</p><h3 class="hp-stage-t">${esc(x.t)}</h3><p class="hp-stage-d">${esc(x.d)}</p></li>`).join('');
+      stagesEl.innerHTML = st.map(x => `<li class="hp-stage is-${x.kind}"><p class="hp-stage-age num" aria-hidden="true">${esc(String(x.big))}</p><p class="hp-stage-when num">${esc(x.when)}</p><h3 class="hp-stage-t">${esc(x.t)}</h3><p class="hp-stage-d">${esc(x.d)}</p></li>`).join('');
     }
 
     // ── Wide: left to right ──

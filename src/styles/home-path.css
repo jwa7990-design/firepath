@@ -85,10 +85,12 @@
 .hp-tl-intro { display: grid; gap: 24px; align-items: center; }
 @media (min-width: 900px) { .hp-tl-intro { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); column-gap: 40px; } }
 .hp-tl-lap { max-width: 440px; width: 100%; justify-self: center; }
+/* Scroll-driven rules are written as longhands on purpose: the build's minifier folds `animation` +
+   `animation-timeline` into one shorthand, which browsers reject, and the animation silently disappears. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .hp-tl-lap .hp-aus-lap, .hp-tl-lap .hp-aus-glow { animation: hpLap linear both; animation-timeline: view(); animation-range: entry 20% cover 55%; }
-    .hp-tl-lap .hp-aus-city { animation: hpCity linear both; animation-timeline: view(); animation-range: entry 30% cover 55%; }
+    .hp-tl-lap .hp-aus-lap, .hp-tl-lap .hp-aus-glow { animation-name: hpLap; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: view(); animation-range: entry 20% cover 55%; }
+    .hp-tl-lap .hp-aus-city { animation-name: hpCity; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: view(); animation-range: entry 30% cover 55%; }
   }
 }
 
@@ -286,8 +288,6 @@
 .hp-facts dd { font-size: 15px; color: var(--ink); }
 .hp-facts a { color: var(--ember-ink); text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 899px) { .hp-quote-mark { font-size: 88px; } .hp-letter-side { order: 2; } }
-.hp-letter-copy .hp-quote-mark { margin: 24px 0 0; height: 0.42em; overflow: visible; }
-.hp-letter-copy .hp-quote-mark + .hp-quote { margin-top: 0; }
 @media (min-width: 900px) { .hp-letter-side { padding-top: 34px; } }
 .hp-letter { background: var(--surface-2); }
 .hp-letter-grid { display: grid; gap: 32px; }
@@ -338,8 +338,63 @@
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
     .hp.is-home :is(.hp-sec .hp-h2, .hp-story-fig, .hp-stage) {
-      animation: hpRise linear both; animation-timeline: view(); animation-range: entry 0% entry 45%;
+      animation-name: hpRise; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: view(); animation-range: entry 0% entry 45%;
     }
   }
 }
 @keyframes hpRise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+/* ── Phase 2: the Inter Tight voice through the homepage ──────────────────────────────────────
+   Big statements in Inter Tight (the chapter line, the stage ages, Jay's opener); headings, the
+   result number, timeline ages and labels move across too. Body text stays DM Sans. */
+.hp.is-home :is(.hp-sec .hp-h2, .hp-calc-q) { font-family: var(--font-grotesk); font-weight: 700; letter-spacing: -0.035em; line-height: 1; }
+.hp.is-home .hp-sec .hp-h2 { font-size: clamp(32px, 4.4vw, 56px); }
+.hp.is-home .hp-age { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.05em; }
+.hp.is-home .hp-tl-age { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.04em; }
+.hp.is-home .hp-stage-t, .hp.is-home .hp-sig strong { font-family: var(--font-grotesk); letter-spacing: -0.025em; }
+.hp.is-home .hp-label { font-family: var(--font-grotesk); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
+
+/* The chapter line: four huge words on an offset grid, the last in ember */
+.hp-chapter { padding: 72px 0 8px; view-timeline: --hpChapter block; }
+.hp-chapter-line { margin: 0; font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase; font-size: clamp(52px, 11.5vw, 184px); line-height: 0.86; letter-spacing: -0.05em; color: var(--ink); }
+.hp-chapter-line .hp-w { display: block; }
+.hp-chapter-line .hp-w:nth-child(2) { padding-left: 18%; }
+.hp-chapter-line .hp-w:nth-child(3) { padding-left: 6%; }
+.hp-chapter-line .hp-w:nth-child(4) { padding-left: 30%; color: var(--ember-ink); }
+@media (max-width: 599px) {
+  .hp-chapter { padding-top: 48px; }
+  .hp-chapter-line { font-size: 15.5vw; }
+  .hp-chapter-line .hp-w:nth-child(2) { padding-left: 12%; }
+  .hp-chapter-line .hp-w:nth-child(4) { padding-left: 4%; }
+}
+
+/* The stages: each one leads with its age, big */
+.hp-stage-age { margin: 0 0 6px; font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(64px, 8vw, 116px); line-height: 0.84; letter-spacing: -0.055em; color: var(--ink); }
+.hp-stage.is-bridge .hp-stage-age { color: var(--ember-ink); }
+.hp-stage.is-after .hp-stage-age { color: var(--ink-3); }
+.hp-stage { padding-top: 18px; }
+
+/* Jay's opener: the closing statement, full width */
+.hp-manifesto { margin: 20px 0 48px; max-width: 22ch; font-family: var(--font-grotesk); font-weight: 700; font-size: clamp(32px, 5.2vw, 72px); line-height: 1.02; letter-spacing: -0.04em; color: var(--ink); quotes: none; view-timeline: --hpManifesto block; }
+@media (min-width: 900px) { .hp-manifesto { margin-bottom: 64px; } }
+
+/* Word by word: each word lights up in turn as the statement scrolls through the screen.
+   Scroll-driven CSS only; elsewhere (and with reduced motion) the words simply show. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hp-chapter-line .hp-w {
+      animation-name: hpWord; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: --hpChapter;
+      animation-range: cover calc(18% + var(--i) * 7%) cover calc(28% + var(--i) * 7%);
+    }
+    .hp-chapter-line .hp-w:nth-child(even) { --dx: 40px; }
+    .hp-manifesto .hp-w {
+      animation-name: hpWordFade; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: --hpManifesto;
+      animation-range: cover calc(12% + var(--i) * 1.6%) cover calc(18% + var(--i) * 1.6%);
+    }
+    .hp.is-home .hp-stages .hp-stage { animation-range: entry 0% entry 60%; }
+    .hp.is-home .hp-stages .hp-stage:nth-child(2) { animation-range: entry 10% entry 70%; }
+    .hp.is-home .hp-stages .hp-stage:nth-child(3) { animation-range: entry 20% entry 80%; }
+  }
+}
+@keyframes hpWord { from { opacity: 0.08; transform: translateX(var(--dx, -40px)); } to { opacity: 1; transform: none; } }
+@keyframes hpWordFade { from { opacity: 0.14; } to { opacity: 1; } }
