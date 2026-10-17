@@ -551,6 +551,54 @@
     };
   })();
 
+  // ── The hero scene: on wide screens with motion allowed, scrolling drives the lap round ──
+  // Sets --p (0 → 1 across the pinned stretch) and --draw (how much of the route is drawn) on the scene;
+  // CSS does the rest. Each city lights as the route reaches it. One rAF-throttled update per scroll,
+  // and only while the scene is on screen. Anything else (phones, short screens, reduced motion, no JS)
+  // keeps the still hero, where the route draws in once by itself.
+  (function () {
+    const scene = $('hpScene');
+    if (!scene || !window.matchMedia) return;
+    const fits = window.matchMedia('(min-width: 900px) and (min-height: 640px) and (prefers-reduced-motion: no-preference)');
+    const lap = scene.querySelector('.hp-aus-lap');
+    const cities = Array.from(scene.querySelectorAll('.hp-aus-city'));
+    let at = null, ticking = false, visible = true;
+    // Where along the route each city sits (0–1), found once from the path itself. Hobart, off the
+    // mainland, lights with Melbourne.
+    function measure() {
+      if (at || !lap || !lap.getTotalLength) return;
+      const L = lap.getTotalLength(), N = 600, pts = [];
+      for (let i = 0; i <= N; i++) { const q = lap.getPointAtLength(L * i / N); pts.push([q.x, q.y]); }
+      at = cities.map(g => {
+        const c = g.querySelector('circle'), x = +c.getAttribute('cx'), y = +c.getAttribute('cy');
+        let best = 0, bd = Infinity;
+        pts.forEach(([px, py], i) => { const d = (px - x) * (px - x) + (py - y) * (py - y); if (d < bd) { bd = d; best = i; } });
+        return { g, f: bd < 9 ? best / N : null };
+      });
+      const mel = at.find(o => /Melbourne/.test(o.g.textContent));
+      at.forEach(o => { if (o.f == null) o.f = mel ? mel.f : 1; });
+    }
+    function update() {
+      ticking = false;
+      const r = scene.getBoundingClientRect(), span = scene.offsetHeight - window.innerHeight;
+      const p = clamp(span > 0 ? -r.top / span : 1, 0, 1);
+      const draw = clamp(p / 0.78, 0, 1);
+      scene.style.setProperty('--p', p.toFixed(3));
+      scene.style.setProperty('--draw', draw.toFixed(3));
+      if (at) at.forEach(o => o.g.classList.toggle('is-reached', draw >= o.f - 0.005));
+    }
+    function onScroll() { if (!ticking && visible) { ticking = true; requestAnimationFrame(update); } }
+    function apply() {
+      const on = fits.matches;
+      scene.classList.toggle('is-live', on);
+      if (on) { measure(); update(); window.addEventListener('scroll', onScroll, { passive: true }); }
+      else { window.removeEventListener('scroll', onScroll); scene.style.removeProperty('--p'); scene.style.removeProperty('--draw'); cities.forEach(g => g.classList.remove('is-reached')); }
+    }
+    if ('IntersectionObserver' in window) new IntersectionObserver(e => { visible = e[0].isIntersecting; if (visible) onScroll(); }).observe(scene);
+    if (fits.addEventListener) fits.addEventListener('change', apply); else if (fits.addListener) fits.addListener(apply);
+    apply();
+  })();
+
   // ── "Find my path" in the hero: to the calculator, cursor in the first box ──
   const find = $('hpFind');
   if (find) find.addEventListener('click', e => {
