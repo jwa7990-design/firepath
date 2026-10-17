@@ -90,24 +90,29 @@ const TOOLS = [
     </section>
 
     <!-- 03 Improve: questions worth looking into next, and Pro (free vs Pro from plans.ts, an example of Your plan) -->
-    <section class="hp-sec hp-doors" aria-labelledby="s3-title">
-      <div class="hp-wrap hp-side" data-reveal>
-        <div class="hp-side-head">
+    <!-- Start where you are: five tall cards. Wide screens: the section pins and scrolling slides them sideways
+         (home-path.js switches it on); elsewhere they're a row you can swipe. -->
+    <section class="hp-sec hp-doors hp-deck" id="hpDeck" aria-labelledby="s3-title">
+      <div class="hp-deck-pin">
+        <div class="hp-wrap hp-deck-head">
           <h2 id="s3-title" class="hp-h2">Start where you are</h2>
           <p class="hp-body">Options people look into, and the next question worth asking, wherever you’re at.</p>
         </div>
-        <ul class="hp-rules">
-          {STARTS.map(d => (
-            <li><a href={`/start/${d.slug}`} class="hp-rule">
-              <span class="hp-rule-name">{d.door}</span>
-              <span class="hp-rule-line">{d.doorLine}</span>
-              <span class="hp-rule-go" aria-hidden="true">→</span>
-            </a></li>
-          ))}
-        </ul>
-      </div>
-      <div class="hp-wrap">
-        <p class="hp-more">More free tools: {TOOLS.map((t, i) => <>{i > 0 && <span aria-hidden="true"> · </span>}<a href={t.href}>{t.name}</a></>)}</p>
+        <div class="hp-deck-view">
+          <ol class="hp-deck-track" id="hpDeckTrack">
+            {STARTS.map((d, i) => (
+              <li class="hp-deck-item"><a href={`/start/${d.slug}`} class="hp-card">
+                <span class="hp-card-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                <span class="hp-card-t">{d.door}</span>
+                <span class="hp-card-d">{d.doorLine}</span>
+                <span class="hp-card-go" aria-hidden="true">→</span>
+              </a></li>
+            ))}
+          </ol>
+        </div>
+        <div class="hp-wrap">
+          <p class="hp-more">More free tools: {TOOLS.map((t, i) => <>{i > 0 && <span aria-hidden="true"> · </span>}<a href={t.href}>{t.name}</a></>)}</p>
+        </div>
       </div>
     </section>
 

@@ -363,7 +363,7 @@
 .hp.is-home .hp-label { font-family: var(--font-grotesk); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
 
 /* The chapter line: four huge words on an offset grid, the last in ember */
-.hp-chapter { padding: 72px 0 8px; view-timeline: --hpChapter block; }
+.hp-chapter { padding: 72px 0 8px; view-timeline: --hpChapter block; overflow-x: clip; }   /* the words slide in from the sides; no sideways scroll */
 .hp-chapter-line { margin: 0; font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase; font-size: clamp(52px, 11.5vw, 184px); line-height: 0.86; letter-spacing: -0.05em; color: var(--ink); }
 .hp-chapter-line .hp-w { display: block; }
 .hp-chapter-line .hp-w:nth-child(2) { padding-left: 18%; }
@@ -406,3 +406,130 @@
 }
 @keyframes hpWord { from { opacity: 0.08; transform: translateX(var(--dx, -40px)); } to { opacity: 1; transform: none; } }
 @keyframes hpWordFade { from { opacity: 0.14; } to { opacity: 1; } }
+
+/* ── The calculator, night mode: a dark instrument panel the hero's zoom lands on ─────────────────
+   Same markup and maths; the colour tokens are redefined inside the panel so the rules above follow,
+   then the type changes: labels as small caps, numbers big in Inter Tight, the answer glowing ember. */
+.hp-calc.is-night {
+  --ink: #FDF6EE; --ink-2: rgba(253, 246, 238, 0.66); --ink-3: rgba(253, 246, 238, 0.42);
+  --line: rgba(253, 246, 238, 0.12); --line-strong: rgba(253, 246, 238, 0.24); --surface: transparent;
+  --hp-rule: 1px solid var(--line);
+  color: var(--ink); border: 1px solid rgba(253, 246, 238, 0.08); border-radius: 18px; overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(244, 98, 42, 0.16), transparent 55%),
+    linear-gradient(rgba(253, 246, 238, 0.035) 1px, transparent 1px) 0 0 / 100% 32px,
+    linear-gradient(90deg, rgba(253, 246, 238, 0.035) 1px, transparent 1px) 0 0 / 32px 100%,
+    var(--espresso);
+  box-shadow: 0 40px 80px -40px rgba(36, 25, 16, 0.55), 0 2px 6px rgba(36, 25, 16, 0.12);
+}
+.hp-calc.is-night .hp-calc-q { color: var(--ink); font-size: clamp(24px, 2.4vw, 32px); }
+/* Labels: small caps, quiet */
+.hp-calc.is-night :is(.hp-field label, .hp-group legend, .hp-whatif-head, .hp-big) {
+  font-family: var(--font-grotesk); font-size: 11.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2);
+}
+.hp-calc.is-night .hp-hint { display: block; margin-top: 2px; text-transform: none; letter-spacing: 0; font-family: var(--font-ui); font-size: 12px; font-weight: 400; color: var(--ink-3); }
+.hp-calc.is-night .hp-group legend { color: var(--ember); margin-bottom: 10px; }
+.hp-calc.is-night .hp-fields { gap: 26px; }
+.hp-calc.is-night .hp-group-fields { gap: 20px; }
+.hp-calc.is-night .hp-field-age { display: block; }
+.hp-calc.is-night .hp-field-age label { margin-bottom: 6px; }
+.hp-calc.is-night .hp-field-age .hp-box { width: 120px; }
+/* Inputs: no boxes, just big numbers on a line that lights up ember when you're in it */
+.hp-calc.is-night .hp-box { height: 54px; padding: 0 2px; border: 0; border-bottom: 1px solid var(--line-strong); border-radius: 0; background: none; }
+.hp-calc.is-night .hp-box span { font-family: var(--font-grotesk); font-size: 20px; font-weight: 600; color: var(--ink-3); }
+.hp-calc.is-night .hp-box input { font-family: var(--font-grotesk); font-size: clamp(26px, 2.4vw, 32px); font-weight: 700; letter-spacing: -0.03em; color: var(--ink); caret-color: var(--ember); }
+.hp-calc.is-night .hp-box:hover { border-bottom-color: rgba(253, 246, 238, 0.5); }
+.hp-calc.is-night .hp-box:focus-within { border-bottom-color: var(--ember); background: none; box-shadow: 0 1px 0 0 var(--ember), 0 14px 22px -16px rgba(244, 98, 42, 0.6); }
+.hp-calc.is-night .hp-box:has(input[aria-invalid="true"]) { border-bottom-color: var(--ember); }
+.hp-calc.is-night .hp-who-tag, .hp-calc.is-night .hp-who-you { color: var(--ink); }
+.hp-calc.is-night .hp-who-you::before { background: var(--ember); box-shadow: 0 0 10px var(--ember); }
+/* The answer: huge, ember, glowing */
+.hp-calc.is-night .hp-out { background: rgba(0, 0, 0, 0.16); }
+.hp-calc.is-night .hp-out-ex { border-color: var(--line-strong); color: var(--ink-2); font-family: var(--font-grotesk); letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; }
+.hp-calc.is-night .hp-big .hp-age {
+  display: block; margin-top: 8px; font-size: clamp(112px, 12vw, 176px); line-height: 0.8; letter-spacing: -0.06em;
+  color: var(--ember); text-shadow: 0 0 42px rgba(244, 98, 42, 0.45), 0 0 2px rgba(255, 190, 140, 0.4);
+}
+.hp-calc.is-night .hp-big .hp-age.is-word { font-size: clamp(48px, 5vw, 72px); line-height: 0.95; letter-spacing: -0.04em; text-transform: none; }
+.hp-calc.is-night .hp-big .hp-age.is-quiet { color: var(--ink-3); text-shadow: none; }
+.hp-calc.is-night .hp-when { margin-top: 18px; font-size: 17px; color: var(--ink); }
+.hp-calc.is-night :is(.hp-est, .hp-fnum, .hp-range, .hp-fine, .hp-btn-note) a { color: var(--ink); text-decoration-color: var(--line-strong); }
+.hp-calc.is-night .hp-range a { color: var(--ember); }
+/* The track: today → work optional, to scale */
+.hp-track { margin-top: 22px; --f: 0.5; --s: 0.8; }
+.hp-track[hidden] { display: none; }
+.hp-track-line { position: relative; height: 2px; background: repeating-linear-gradient(90deg, var(--line-strong) 0 3px, transparent 3px 7px); }
+.hp-track-fill { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--f) * 100%); background: linear-gradient(90deg, rgba(244, 98, 42, 0.35), var(--ember)); transition: width 600ms var(--ease); }
+.hp-track-sixty { position: absolute; top: -5px; width: 1px; height: 12px; left: calc(var(--s) * 100%); background: var(--ink-3); }
+.hp-track-dot { position: absolute; top: 50%; left: calc(var(--f) * 100%); width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #FFE1B3; box-shadow: 0 0 0 3px var(--ember), 0 0 18px 4px rgba(244, 98, 42, 0.6); transition: left 600ms var(--ease); }
+.hp-track::before { content: ''; display: block; }
+.hp-track-line::before { content: ''; position: absolute; left: 0; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--ink); }
+.hp-track-labels { position: relative; height: 18px; margin-top: 10px; font-family: var(--font-grotesk); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.hp-track-labels span { position: absolute; top: 0; white-space: nowrap; }
+.hp-track-from { left: 0; }
+.hp-track-60 { left: calc(var(--s) * 100%); transform: translateX(-50%); }
+.hp-track-to { left: calc(var(--f) * 100%); transform: translateX(-50%); color: var(--ember); transition: left 600ms var(--ease); }
+.hp-track.no-sixty :is(.hp-track-sixty, .hp-track-60) { display: none; }
+/* What-ifs and the button */
+.hp-calc.is-night .hp-chip { height: 40px; border-color: var(--line-strong); border-radius: 999px; background: rgba(253, 246, 238, 0.04); color: var(--ink); }
+.hp-calc.is-night .hp-chip:hover { border-color: rgba(253, 246, 238, 0.55); }
+.hp-calc.is-night .hp-chip strong { font-family: var(--font-grotesk); color: var(--ember); }
+.hp-calc.is-night .hp-chip[aria-pressed="true"] { background: var(--ember); border-color: var(--ember); color: var(--espresso); }
+.hp-calc.is-night .hp-chip[aria-pressed="true"] strong { color: var(--espresso); }
+.hp-calc.is-night .hp-btn { background: var(--ember); color: var(--espresso); box-shadow: 0 10px 30px -10px rgba(244, 98, 42, 0.7); }
+.hp-calc.is-night .hp-btn:hover { background: #FF7A45; }
+.hp-calc.is-night .hp-reset { color: var(--ink-2); }
+.hp-calc.is-night :focus-visible { outline-color: var(--ember); }
+
+/* ── Start where you are: the sideways deck ──────────────────────────────────────────────────────
+   Default: a row of tall cards you can swipe (scroll-snap). Wide screens with motion allowed, where
+   scroll-driven animation works: home-path.js adds .is-pinned and --deck-d (how far the row must
+   travel), the section pins, and scrolling down slides the row sideways. */
+.hp-deck { --g: 16px; }
+@media (min-width: 768px) { .hp-deck { --g: 32px; } }
+.hp-deck-head { margin-bottom: 28px; }
+.hp-deck-head .hp-body { margin-top: 12px; }
+.hp-deck-view {
+  overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
+  padding-inline: max(var(--g), calc((100% - var(--hp-max)) / 2 + var(--g)));
+  scroll-padding-inline: max(var(--g), calc((100% - var(--hp-max)) / 2 + var(--g)));
+}
+.hp-deck-view::-webkit-scrollbar { display: none; }
+.hp-deck-track { display: flex; gap: 16px; width: max-content; margin: 0; padding: 4px 0 12px; list-style: none; }
+.hp-deck-item { flex: 0 0 auto; width: min(78vw, 360px); scroll-snap-align: start; }
+@media (min-width: 900px) { .hp-deck-item { width: clamp(320px, 27vw, 400px); } }
+.hp-card {
+  position: relative; display: grid; grid-template-rows: auto 1fr auto auto; gap: 12px;
+  height: clamp(320px, 54vh, 470px); padding: 26px 26px 24px; border-radius: 18px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none;
+  box-shadow: 0 1px 2px rgba(43, 29, 20, 0.04), 0 18px 40px -30px rgba(43, 29, 20, 0.25);
+  transition: background 320ms var(--ease), color 320ms var(--ease), transform 320ms var(--ease), border-color 320ms var(--ease);
+}
+.hp-card-n { font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(56px, 5vw, 80px); line-height: 0.8; letter-spacing: -0.06em; color: var(--ember-ink); font-variant-numeric: tabular-nums; }
+.hp-card-t { align-self: end; font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(30px, 2.8vw, 42px); line-height: 0.9; letter-spacing: -0.045em; text-transform: uppercase; }
+.hp-card-d { max-width: 28ch; font-size: 15px; line-height: 1.5; color: var(--ink-2); transition: color 320ms var(--ease); }
+.hp-card-go {
+  display: grid; place-items: center; justify-self: end; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--line-strong); font-size: 18px; transition: background 320ms var(--ease), border-color 320ms var(--ease), color 320ms var(--ease), transform 320ms var(--ease);
+}
+.hp-card:hover, .hp-card:focus-visible { background: var(--espresso); border-color: var(--espresso); color: #FDF6EE; transform: translateY(-6px); }
+.hp-card:hover .hp-card-n, .hp-card:focus-visible .hp-card-n { color: var(--ember); }
+.hp-card:hover .hp-card-d, .hp-card:focus-visible .hp-card-d { color: rgba(253, 246, 238, 0.7); }
+.hp-card:hover .hp-card-go, .hp-card:focus-visible .hp-card-go { background: var(--ember); border-color: var(--ember); color: var(--espresso); transform: translateX(4px); }
+.hp-card:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+.hp-deck .hp-more { margin-top: 20px; }
+
+/* Pinned: the stage sticks for --deck-d of extra scroll while the row slides across */
+.hp-deck.is-pinned { height: calc(100vh - var(--nav-h, 64px) + var(--deck-d, 0px)); padding: 0; view-timeline: --hpDeck block; }
+.hp-deck.is-pinned .hp-deck-pin {
+  position: sticky; top: var(--nav-h, 64px); height: calc(100vh - var(--nav-h, 64px));
+  display: flex; flex-direction: column; justify-content: center; overflow: hidden;
+}
+.hp-deck.is-pinned .hp-deck-view { overflow: visible; scroll-snap-type: none; }
+.hp-deck.is-pinned .hp-deck-track {
+  animation-name: hpDeckSlide; animation-timing-function: linear; animation-fill-mode: both;
+  animation-timeline: --hpDeck; animation-range: contain 0% contain 100%;
+}
+@keyframes hpDeckSlide { from { transform: none; } to { transform: translateX(calc(-1 * var(--deck-d, 0px))); } }
+@media (max-height: 700px) { .hp-deck.is-pinned .hp-card { height: 300px; } .hp-deck.is-pinned .hp-deck-head { margin-bottom: 18px; } }
+@media (max-width: 599px) { .hp-card { height: 340px; } }

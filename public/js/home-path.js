@@ -154,8 +154,24 @@
 
   function setBig(html) { big.innerHTML = html; }
 
+  // The track under the age: today → work optional, to scale out to 75, with 60 marked. Display only.
+  const track = $('hpTrack');
+  function setTrack(s) {
+    if (!track) return;
+    if (!s || s.status !== 'ok') { track.hidden = true; return; }
+    const from = Math.round(s.inputs.age), to = Math.round(s.plan.freedomAge), end = Math.max(75, to + 3);
+    const at = a => clamp((a - from) / Math.max(1, end - from), 0, 1).toFixed(3);
+    track.style.setProperty('--f', at(to));
+    track.style.setProperty('--s', at(SUPER_AGE));
+    track.classList.toggle('no-sixty', from >= SUPER_AGE || Math.abs(to - SUPER_AGE) < 5);
+    track.querySelector('.hp-track-from').textContent = from + ' today';
+    track.querySelector('.hp-track-to').textContent = String(to);
+    track.hidden = false;
+  }
+
   function showResult(s) {
     root.dataset.status = s.status;
+    setTrack(s);
     if (s.status !== 'ok') { untween(when); untween(rangeOut); }
     if (s.status === 'invalid') {
       setBig('Your freedom age <strong class="hp-age is-quiet">–</strong>');
@@ -645,6 +661,35 @@
     if (!done) { set(false); apply(); }
     // If frames never come (a throttled tab), show the finished map rather than a blank cord.
     setTimeout(() => { if (!done && od < 0.05) finish(); }, 4000);
+  })();
+
+  // ── Start where you are: the sideways deck ──
+  // Wide screens with motion allowed (and scroll-driven animation): pin the section and let scrolling
+  // slide the row across (CSS does the sliding; this measures how far). Otherwise it stays a swipe row.
+  (function () {
+    const deck = $('hpDeck'), track = $('hpDeckTrack');
+    if (!deck || !track || !window.matchMedia || !(window.CSS && CSS.supports && CSS.supports('animation-timeline: view()'))) return;
+    const fits = window.matchMedia('(min-width: 900px) and (min-height: 600px) and (prefers-reduced-motion: no-preference)');
+    const view = track.parentElement;
+    function measure() {
+      if (!fits.matches) { deck.classList.remove('is-pinned'); deck.style.removeProperty('--deck-d'); return; }
+      deck.classList.add('is-pinned');
+      const pad = parseFloat(getComputedStyle(view).paddingRight) || 0;
+      const d = Math.max(0, track.scrollWidth + pad * 2 - view.clientWidth);
+      deck.style.setProperty('--deck-d', Math.round(d) + 'px');
+    }
+    measure();
+    let t = 0;
+    window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(measure, 150); });
+    if (fits.addEventListener) fits.addEventListener('change', measure);
+    // Keyboard: tabbing to a card that's slid off to the side scrolls the page until it's in view.
+    track.addEventListener('focusin', e => {
+      if (!deck.classList.contains('is-pinned')) return;
+      const item = e.target.closest('.hp-deck-item'); if (!item) return;
+      const d = parseFloat(deck.style.getPropertyValue('--deck-d')) || 0;
+      const x = clamp(item.offsetLeft - track.firstElementChild.offsetLeft, 0, d);
+      window.scrollTo({ top: deck.getBoundingClientRect().top + window.scrollY + x, behavior: 'auto' });
+    });
   })();
 
   // ── "Find my path" in the hero: to the calculator, cursor in the first box ──
