@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="css/app.css"/>
 <link rel="stylesheet" href="css/fp-editorial.css"/>
 <link rel="stylesheet" href="css/fp-tools.css"/>
+<link rel="stylesheet" href="css/fp-product.css"/>
 <script src="js/persona.js"></script>
 <script src="js/safe-html.js"></script>
 <style>
@@ -124,6 +125,15 @@
   .mc-headline strong { display: block; margin: 6px 0 14px; font-family: var(--font-display); font-weight: 700; font-size: clamp(88px, 12vw, 156px); line-height: 1; letter-spacing: -0.045em; color: var(--ink); }
   .mc-verdict { font-size: 14px; }
   .mc-detail { font-size: 15px; }
+  /* Product layer: "Will your money last?" is the second result, on its own panel, clearly second to the income */
+  .is-product .wd-last #w-mc { padding: 22px 16px; background: var(--surface); border: var(--hp-rule); border-radius: 10px; }
+  @media (min-width: 600px) { .is-product .wd-last #w-mc { padding: 26px 28px; } }
+  .is-product .mc-headline { font-size: 16px; }
+  .is-product .mc-headline strong { margin: 2px 0 10px; font-size: clamp(44px, 5vw, 56px); letter-spacing: -0.03em; }
+  .is-product .mc-verdict { display: block; margin: 8px 0 0; }
+  /* The badge repeats the market test's verdict and balance; it stays as the fallback when the test can't run */
+  .is-product .wd-last .hp-side-main:has(#w-mc[style*="flex"]) #w-confidenceBadge { display: none; }
+  .is-product .longevity-compare { margin-top: 16px; border-top: var(--hp-rule); }
   .longevity-years { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 2.4vw, 28px); }
   .buffer-note { font-size: 17px; }
   /* What if I spend more? (sand): larger rows, a darkening rule on hover */
@@ -144,7 +154,7 @@
 <body class="app" data-shell="app" data-public="true" data-active="strategy">
 <script src="js/shell.js"></script>
 
-<main class="tl hp is-new" id="main">
+<main class="tl hp is-new is-product" id="main">
 
   <header class="hp-hero tl-hero">
     <div class="hp-wrap">
@@ -167,7 +177,7 @@
       <div class="input-wrap"><span class="input-prefix-dark">$</span><input type="number" class="dark-input" id="w-portfolio" placeholder="1000000" oninput="calcWithdrawal()"/></div>
     </div>
     <p class="tl-note fp-plan-note" id="fpPlanNote" style="display:none;">Filled in from your saved plan — change any number.</p>
-    <p class="tl-note">This is everything you have invested <strong>right now</strong>, not counting property, or super unless you can already get to it. Use today's value, not a future guess. If you won't start drawing on it for a while, the "years of growth" setting below grows it forward for you.</p>
+    <p class="tl-note">Everything you have invested now, not counting your home, or super you can’t get to yet. Use today’s value.</p>
     <p class="tl-note" id="w-capNote" style="display:none;"></p>
   </div>
 
@@ -187,18 +197,8 @@
         <span class="slider-val" id="w-withdrawRateVal">4%</span>
       </div>
     </div>
-    <div class="tl-row">
-      <label class="tl-field-label" for="w-years">Years of growth before you start drawing</label>
-      <div class="slider-row">
-        <input type="range" class="dark-slider" id="w-years" min="0" max="40" value="0" oninput="calcWithdrawal()"/>
-        <span class="slider-val" id="w-yearsVal">Start now</span>
-      </div>
-      <p class="tl-note" id="w-yearsNote" style="margin-top:0;">Set to 0 if you're drawing on your savings from today. Each extra year grows today's balance at your return. It doesn't add any new savings.</p>
-    </div>
-    <div class="tl-row">
-      <label class="tl-field-label" for="w-age">Your age today <span class="tl-opt">(optional)</span></label>
-      <div class="input-wrap"><input type="number" class="dark-input" id="w-age" min="16" max="100" placeholder="e.g. 45" style="padding-left:14px;" oninput="calcWithdrawal()"/></div>
-    </div>
+    
+    
     <div class="tl-row">
       <span class="tl-field-label" id="w-horizonLabel">How long should it last?</span>
       <div class="segmented horizon-group" role="group" aria-labelledby="w-horizonLabel">
@@ -208,15 +208,31 @@
       </div>
       <p class="tl-note" id="w-horizonNote" style="margin-top:0;">Stopping work before 50? Your money may need to last 40 years or more.</p>
     </div>
-    <div class="tl-row">
+    
+    <p id="w-rateExplainer" class="rate-explainer">The 4% rule comes from research showing a 4% annual withdrawal lasted 30 years in most past periods for a spread of investments. Most, not all. For a longer retirement, many people use 3–3.5%.</p>
+    <details class="tl-group pr-more" id="w-moreBox">
+<summary class="hp-label">More settings <span class="fb-opt">(years of growth, age, inflation)</span></summary>
+<div class="tl-row">
+      <label class="tl-field-label" for="w-years">Years of growth before you start drawing</label>
+      <div class="slider-row">
+        <input type="range" class="dark-slider" id="w-years" min="0" max="40" value="0" oninput="calcWithdrawal()"/>
+        <span class="slider-val" id="w-yearsVal">Start now</span>
+      </div>
+      <p class="tl-note" id="w-yearsNote" style="margin-top:0;">Set to 0 if you're drawing on your savings from today. Each extra year grows today's balance at your return. It doesn't add any new savings.</p>
+    </div>
+<div class="tl-row">
+      <label class="tl-field-label" for="w-age">Your age today <span class="tl-opt">(optional)</span></label>
+      <div class="input-wrap"><input type="number" class="dark-input" id="w-age" min="16" max="100" placeholder="e.g. 45" style="padding-left:14px;" oninput="calcWithdrawal()"/></div>
+    </div>
+<div class="tl-row">
       <label class="tl-field-label" for="w-inflation">Expected inflation rate (only used to show future dollars)</label>
       <div class="slider-row">
         <input type="range" class="dark-slider" id="w-inflation" min="1" max="6" value="2.5" step="0.5" oninput="document.getElementById('w-inflationVal').textContent=this.value+'%';calcWithdrawal()"/>
         <span class="slider-val" id="w-inflationVal">2.5%</span>
       </div>
     </div>
-    <p id="w-rateExplainer" class="rate-explainer">The 4% rule comes from research showing a 4% annual withdrawal lasted 30 years in most past periods for a spread of investments. Most, not all. For a longer retirement, many people use 3–3.5%.</p>
-    <details class="tl-group w-tax" id="w-taxBox">
+</details>
+<details class="tl-group w-tax" id="w-taxBox">
       <summary class="hp-label">Tax on investments outside super <span class="fb-opt">(optional)</span></summary>
       <p class="tl-note" style="margin-top:8px">Super in retirement is tax-free after 60. Money outside super pays tax on dividends and, when you sell, on half the gain (the 50% discount). On a modest income, the tax-free threshold, offsets and franking credits often mean little or none.</p>
       <div class="tl-row">
@@ -278,46 +294,7 @@
   </div>
 
   <div id="results" style="display:none">
-
-    <!-- One-year story — a single readable flow instead of scanning a table -->
-    <section class="hp-sec">
-      <div class="hp-wrap hp-half">
-        <div>
-          <div class="tl-block">
-            <h2 class="hp-h2 is-small">Your first year of withdrawals, step by step</h2>
-            <div class="tl-rows" style="margin-top:24px;">
-              <div class="data-row"><span class="data-label">Start of year</span><span class="data-value" id="w-yearStart">—</span></div>
-              <div class="data-row"><span class="data-label">↓ Income paid to you</span><span class="data-value out" id="w-yearPaid">—</span></div>
-              <div class="data-row"><span class="data-label">↓ Investment returns</span><span class="data-value up" id="w-yearReturn">—</span></div>
-              <div class="data-row total"><span class="data-label">End of year</span><span class="data-value up" id="w-yearEnd">—</span></div>
-            </div>
-          </div>
-          <div class="tl-block">
-            <div class="hp-label">Looking further ahead</div>
-            <div class="tl-rows" style="margin-top:16px;">
-              <div class="data-row">
-                <span class="data-label">10 years after you start withdrawing</span>
-                <span class="data-value" id="w-10yr">—</span>
-              </div>
-              <div class="data-row">
-                <span class="data-label">20 years after you start withdrawing</span>
-                <span class="data-value" id="w-20yr">—</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Portfolio journey chart -->
-        <figure class="hp-fig tl-fig">
-          <div class="hp-label">Your savings over time</div>
-          <p class="tl-note" style="margin-top:0;">The line shows what your investments are worth through retirement, on your current settings.</p>
-          <div id="w-chartContainer" class="chart-wrap"></div>
-        </figure>
-      </div>
-    </section>
-
-    <!-- ── Longevity + AI Outlook ── -->
-    <section class="hp-sec tl-sec-lg wd-last">
+<section class="hp-sec tl-sec-lg wd-last">
       <div class="hp-wrap hp-side">
         <div class="hp-side-head">
           <h2 class="hp-h2 is-small">Will your money last?</h2>
@@ -368,8 +345,35 @@
         </div>
       </div>
     </section>
-
-    <section class="hp-sec tl-sec-lg is-sand wd-more">
+<section class="hp-sec pr-sec">
+<div class="hp-wrap">
+<figure class="pr-chart">
+<figcaption class="pr-chart-head"><h2 class="pr-h2">What happens to your savings over time?</h2><p class="pr-chart-sub">On your current settings, through retirement.</p></figcaption>
+<div id="w-chartContainer" class="chart-wrap"></div>
+<div class="pr-chart-sum"><div class="tl-rows" style="margin-top:16px;">
+              <div class="data-row">
+                <span class="data-label">10 years after you start withdrawing</span>
+                <span class="data-value" id="w-10yr">—</span>
+              </div>
+              <div class="data-row">
+                <span class="data-label">20 years after you start withdrawing</span>
+                <span class="data-value" id="w-20yr">—</span>
+              </div>
+            </div>
+          </div></div>
+</figure>
+<details class="pr-fold">
+<summary>Your first year of withdrawals, step by step</summary>
+<div class="tl-rows" style="margin-top:24px;">
+              <div class="data-row"><span class="data-label">Start of year</span><span class="data-value" id="w-yearStart">—</span></div>
+              <div class="data-row"><span class="data-label">↓ Income paid to you</span><span class="data-value out" id="w-yearPaid">—</span></div>
+              <div class="data-row"><span class="data-label">↓ Investment returns</span><span class="data-value up" id="w-yearReturn">—</span></div>
+              <div class="data-row total"><span class="data-label">End of year</span><span class="data-value up" id="w-yearEnd">—</span></div>
+            </div>
+</details>
+</div>
+</section>
+<section class="hp-sec tl-sec-lg is-sand wd-more">
       <div class="hp-wrap hp-side">
         <div class="hp-side-head">
           <h2 class="hp-h2 is-small" id="w-compareTitle">What if I spend more?</h2>
@@ -380,23 +384,20 @@
         </div>
       </div>
     </section>
-
-    <!-- Deterministic takeaway — computed from the numbers, not the AI, so it's always available instantly -->
-    <section class="hp-number">
+<section class="hp-number">
       <div class="hp-wrap hp-side">
         <div class="hp-side-head"><div class="hp-label">Your takeaway</div></div>
         <div class="hp-side-main"><div id="w-takeaway" class="takeaway"></div></div>
       </div>
     </section>
-
-    <section class="hp-sec tl-next">
+<section class="hp-sec tl-next">
       <div class="hp-wrap">
         <!-- What next for you — filled by js/next-steps.js -->
         <div id="fpNextSteps"></div>
         <p class="tl-disclaimer">These numbers assume your investments grow at the rate you've chosen, with capital gains, dividends and everything combined. Actual returns vary and depend on what you're invested in. General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
       </div>
     </section>
-  </div>
+</div>
 
 </main>
 
