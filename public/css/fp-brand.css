@@ -1,0 +1,126 @@
+/* ============================================================
+   FirePath — brand layer for the hand-written pages (Oct 2026).
+   The same look as the Astro brand pages (src/styles/brand-pages.css): cream, a giant Inter Tight
+   title on the offset grid, Inter Tight headings, content in soft floating tiles, at most one dark
+   tile per page. Switched on with .hp.is-brand; loaded last so it sits over each page's own styles.
+   Pages: the full calculator (firepath.html, .page-calc), Feedback (.page-feedback).
+   Same words, same maths, same scripts: this file only changes how things look.
+   ============================================================ */
+
+/* ── Shared ── */
+/* Inside these pages the old display serif becomes Inter Tight, so nothing is left in Playfair (the logo sits outside <main> and keeps it) */
+.hp.is-brand { --font-display: var(--font-grotesk); }
+.hp.is-brand .hp-sec { border-top: 0; }
+.hp.is-brand .hp-hero .hp-label { font-family: var(--font-grotesk); font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+.hp.is-brand .hp-hero .hp-label::before { background: var(--ember-ink); opacity: 1; }
+.hp.is-brand .hp-hero .hp-h1 {
+  max-width: none; margin-top: 18px; font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase;
+  font-size: clamp(44px, 7vw, 108px); line-height: 0.88; letter-spacing: -0.05em; color: var(--ink);
+}
+.hp.is-brand .hp-hero .hp-h1 .hp-ember { display: block; color: var(--ember-ink); }
+.hp.is-brand .hp-hero .hp-lead { max-width: 52ch; color: var(--ink-2); }
+@media (min-width: 900px) {
+  .hp.is-brand .br-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 24px; align-items: end; }
+  .hp.is-brand .br-grid > .hp-label { grid-column: 1 / span 4; grid-row: 1; }
+  .hp.is-brand .br-grid > .hp-h1 { grid-column: 1 / -1; grid-row: 2; }
+  .hp.is-brand .br-grid > .hp-lead { grid-column: 7 / span 6; grid-row: 3; margin-top: 40px; }
+}
+.hp.is-brand .hp-h2 { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.04em; line-height: 0.98; }
+.br-tile-look, .hp.is-brand .br-tile {
+  border-radius: 18px; background: var(--surface); border: 1px solid #EFE3D6;
+  box-shadow: 0 16px 34px -22px rgba(43, 29, 20, 0.26), 0 2px 5px rgba(43, 29, 20, 0.04);
+}
+
+/* ── The full calculator: questions on the left, the live path as a floating tile on the right ── */
+.page-calc .fb-hero { background: var(--bg); padding: 40px 0 36px; border-bottom: 0; }
+@media (min-width: 900px) { .page-calc .fb-hero { padding: 60px 0 56px; } }
+.page-calc .fb-body { background: var(--bg); }
+.page-calc .fb-col-label, .page-calc .fb-live > .hp-label { font-family: var(--font-grotesk); font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; }
+.page-calc .fb-col-label::before, .page-calc .fb-live > .hp-label::before { background: var(--ember-ink); opacity: 1; }
+.page-calc .fb-prompt { font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(30px, 3.4vw, 46px); line-height: 1; letter-spacing: -0.04em; }
+.page-calc .fb-input { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.045em; color: var(--ink); caret-color: var(--ember-ink); }
+.page-calc .fb-input::placeholder { color: var(--ink-3); }
+.page-calc .fb-box:focus-within { border-bottom-color: var(--ember-ink); }
+.page-calc .fb-cur, .page-calc .fb-unit { font-family: var(--font-grotesk); }
+.page-calc .fb-line { font-family: var(--font-grotesk); letter-spacing: -0.01em; }
+/* Choices as pills */
+.page-calc .fb-choice { gap: 10px; }
+.page-calc .fb-opt-btn {
+  min-height: 48px; padding: 0 20px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface);
+  font-family: var(--font-grotesk); font-weight: 700; font-size: clamp(17px, 1.6vw, 20px); color: var(--ink); text-decoration: none;
+  transition: border-color 200ms ease, background 200ms ease, color 200ms ease;
+}
+.page-calc .fb-opt-btn:hover { border-color: var(--ember-ink); color: var(--ember-ink); }
+.page-calc .fb-opt-btn[aria-pressed="true"] { background: var(--ember-ink); border-color: var(--ember-ink); color: #fff; }
+.page-calc .fb-choice.is-small .fb-opt-btn { min-height: 40px; padding: 0 14px; font-size: 15px; }
+.page-calc .fb-go, .page-calc .fb-btn { border-radius: 8px; }
+/* Add more detail, as a tile */
+.page-calc .fb-more { margin-top: 28px; padding: 0 22px; border: 1px solid #EFE3D6; border-radius: 18px; background: var(--surface); box-shadow: 0 16px 34px -22px rgba(43, 29, 20, 0.22); }
+.page-calc .fb-more-title, .page-calc .fb-group-title { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.03em; }
+.page-calc .fb-spend { font-family: var(--font-grotesk); }
+/* The live path: a floating white tile that stays in view */
+.page-calc .fb-live {
+  padding: 26px 26px 22px; border: 1px solid #EFE3D6; border-radius: 22px; background: var(--surface);
+  box-shadow: 0 30px 60px -36px rgba(43, 29, 20, 0.34), 0 3px 8px rgba(43, 29, 20, 0.05);
+}
+@media (min-width: 900px) { .page-calc .fb-live { position: sticky; top: calc(var(--nav-h) + 24px); align-self: start; padding: 32px 32px 26px; } }
+.page-calc .fb-big { font-family: var(--font-grotesk); font-weight: 800; letter-spacing: -0.035em; }
+.page-calc .fb-big .hp-age, .page-calc .fb-big strong { font-family: var(--font-grotesk); color: var(--ember-ink); }
+
+/* Results */
+.page-calc .fr-answer { background: var(--bg); border-bottom: 0; }
+.page-calc .fr-answer .hp-label { font-family: var(--font-grotesk); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
+.page-calc .answer-headline { max-width: 16ch; font-family: var(--font-grotesk); font-weight: 800; font-size: clamp(36px, 4.6vw, 68px); line-height: 0.98; letter-spacing: -0.045em; }
+.page-calc .answer-headline :is(strong, .num, .hp-age, em) { font-family: var(--font-grotesk); font-style: normal; color: var(--ember-ink); }
+.page-calc .fr-path .hp-wrap > .fr-path-fig, .page-calc .fr-try .hp-wrap, .page-calc .fr-moves .hp-wrap {
+  padding: 26px 24px; border-radius: 22px; background: var(--surface); border: 1px solid #EFE3D6;
+  box-shadow: 0 30px 60px -40px rgba(43, 29, 20, 0.32), 0 2px 6px rgba(43, 29, 20, 0.04);
+}
+@media (min-width: 900px) { .page-calc .fr-path .hp-wrap > .fr-path-fig, .page-calc .fr-try .hp-wrap, .page-calc .fr-moves .hp-wrap { padding: 36px 40px; } }
+.page-calc .fr-try { background: var(--bg); }
+.page-calc .hp-fig-tag { font-family: var(--font-grotesk); font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ember-ink); }
+.page-calc .answer-how summary, .page-calc .try-row label { font-family: var(--font-grotesk); font-weight: 700; }
+.page-calc .moves-list { border-top: 0; }
+/* The one dark tile: what to look at next */
+.page-calc .fr-next { background: none; color: var(--ink); padding: 24px 0; }
+.page-calc .fr-next .hp-wrap {
+  --ink: #FDF6EE; --ink-2: rgba(253, 246, 238, 0.7); color: var(--ink);
+  padding: 28px 26px; border-radius: 22px; background: var(--espresso); box-shadow: 0 30px 60px -32px rgba(196, 72, 15, 0.4);
+}
+@media (min-width: 900px) { .page-calc .fr-next .hp-wrap { padding: 34px 40px; } }
+.page-calc .fr-next .next-label { font-family: var(--font-grotesk); font-weight: 800; color: var(--ember); }
+.page-calc .fr-next a { color: #FDF6EE; }
+
+/* ── Feedback: each question a soft tile ── */
+.page-feedback .tl-hero { background: var(--bg); padding: 40px 0 36px; border-bottom: 0; }
+@media (min-width: 900px) { .page-feedback .tl-hero { padding: 60px 0 56px; } }
+.page-feedback .fb-body { background: var(--bg); }
+.page-feedback #formArea { display: grid; gap: 14px; }
+.page-feedback .fb-q {
+  margin: 0; padding: 24px 24px 22px; border: 1px solid #EFE3D6; border-radius: 18px; background: var(--surface);
+  box-shadow: 0 16px 34px -22px rgba(43, 29, 20, 0.24), 0 2px 5px rgba(43, 29, 20, 0.04);
+}
+.page-feedback .fb-q > .hp-label { font-family: var(--font-grotesk); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ember-ink); }
+.page-feedback .fb-q > .hp-label::before { background: var(--ember-ink); opacity: 1; }
+.page-feedback .card-question { font-family: var(--font-grotesk); font-weight: 700; font-size: clamp(20px, 2vw, 24px); line-height: 1.15; letter-spacing: -0.025em; }
+.page-feedback .input { border-radius: 12px; }
+.page-feedback .input:focus { border-color: var(--ember-ink); box-shadow: 0 0 0 3px rgba(196, 72, 15, 0.12); }
+/* Rating: round faces that light up ember */
+.page-feedback .emoji-row { gap: 10px; }
+.page-feedback .emoji-btn { width: 56px; height: 56px; padding: 0; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--surface); color: var(--ink-2); display: grid; place-items: center; transition: border-color 200ms ease, background 200ms ease, color 200ms ease, transform 200ms ease; }
+.page-feedback .emoji-btn:hover { border-color: var(--ember-ink); color: var(--ember-ink); transform: translateY(-2px); }
+.page-feedback .emoji-btn.selected { background: var(--ember-ink); border-color: var(--ember-ink); color: #fff; }
+.page-feedback .emoji-label { font-family: var(--font-grotesk); font-weight: 600; }
+/* Choices as rows of pills */
+.page-feedback .choice-list { display: grid; gap: 8px; }
+.page-feedback .choice { padding: 10px 16px; border: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); transition: border-color 200ms ease, background 200ms ease; }
+.page-feedback .choice:hover { border-color: var(--ember-ink); }
+.page-feedback .choice:has(input:checked) { border-color: var(--ember-ink); background: #FBF4EC; }
+.page-feedback .choice input { accent-color: var(--ember-ink); }
+.page-feedback .fb-send { margin-top: 8px; }
+.page-feedback .fb-send .tl-btn { border-radius: 8px; }
+/* The aside: the page's one dark tile */
+.page-feedback .fb-aside .hp-panel { border-radius: 18px; }
+/* Thanks */
+.page-feedback .success-card { padding: 30px 28px; border: 1px solid #EFE3D6; border-radius: 22px; background: var(--surface); box-shadow: 0 30px 60px -36px rgba(43, 29, 20, 0.32); }
+.page-feedback .success-title { font-family: var(--font-grotesk); font-weight: 800; text-transform: uppercase; font-size: clamp(36px, 5vw, 64px); line-height: 0.9; letter-spacing: -0.05em; color: var(--ink); }
