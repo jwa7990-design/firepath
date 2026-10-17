@@ -154,19 +154,31 @@
 
   function setBig(html) { big.innerHTML = html; }
 
-  // The track under the age: today → work optional, to scale out to 75, with 60 marked. Display only.
+  // The fuse ruler: ages to scale from today out to 75 (or a little past the date), burnt from today to
+  // the age work could become optional, with the 🔥 at that point. Display only; CSS moves the fire
+  // along when the numbers change, and the first time it comes into view it burns in from today.
   const track = $('hpTrack');
   function setTrack(s) {
     if (!track) return;
     if (!s || s.status !== 'ok') { track.hidden = true; return; }
-    const from = Math.round(s.inputs.age), to = Math.round(s.plan.freedomAge), end = Math.max(75, to + 3);
-    const at = a => clamp((a - from) / Math.max(1, end - from), 0, 1).toFixed(3);
+    const from = Math.round(s.inputs.age), to = Math.round(s.plan.freedomAge), end = Math.max(75, to + 4);
+    const at = a => clamp((a - from) / Math.max(1, end - from), 0, 1).toFixed(4);
     track.style.setProperty('--f', at(to));
     track.style.setProperty('--s', at(SUPER_AGE));
     track.classList.toggle('no-sixty', from >= SUPER_AGE || Math.abs(to - SUPER_AGE) < 5);
+    // Labels that would bump into the work-optional one step aside (the fire's label always wins)
+    track.classList.toggle('near-start', Number(at(to)) < 0.24);
+    track.classList.toggle('near-end', Number(at(to)) > 0.82);
     track.querySelector('.hp-track-from').textContent = from + ' today';
-    track.querySelector('.hp-track-to').textContent = String(to);
+    track.querySelector('.hp-track-to').textContent = to + ' work optional';
+    track.querySelector('.hp-track-end').textContent = String(end);
     track.hidden = false;
+  }
+  if (track) {
+    if ('IntersectionObserver' in window && !reduce) {
+      const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); setTimeout(() => track.classList.add('is-lit'), 250); } }, { threshold: 0.6 });
+      io.observe(track);
+    } else track.classList.add('is-lit');
   }
 
   function showResult(s) {

@@ -1,7 +1,9 @@
 ---
 /**
- * The homepage's live calculator: five inputs, the freedom age and its range, the freedom
- * number and three what-if options, as one band under the hero. Markup only.
+ * The homepage's live calculator, as a fuse ruler: the age work could become optional, big; under it
+ * one line of ages from today out to 75, burnt from today to that age, with a flickering 🔥 at the
+ * point (it burns along to the new age whenever a number changes); then the five inputs in a row,
+ * the words, the what-ifs and the fine print. Markup only.
  * public/js/home-path.js does the maths (FirePathEngine.freedomPlan + freedomRange); the
  * picture of the path is the timeline section below the calculator.
  * The example person below is also the fallback the script resets to.
@@ -16,68 +18,61 @@ const FIELDS = [
   { id: 'hpMonthly', key: 'monthly', label: 'Saved each month', hint: 'not counting super', money: true, value: fmt(EXAMPLE.monthly), unit: '' },
   { id: 'hpSpend', key: 'spend', label: 'Yearly spending', hint: 'now, and once you stop', money: true, value: fmt(EXAMPLE.spend), unit: 'a year' },
 ];
-// Grouped the way people think about it: you, what you have, what comes and goes.
-const GROUPS = [
-  { legend: 'What you have now', keys: ['savings', 'super'] },
-  { legend: 'Each month and year, in today’s dollars', keys: ['monthly', 'spend'] },
-];
 ---
-<!-- One band: the inputs on the left, the result on the right (stacked on phones). -->
-<div class="hp-calc is-night" id="hpCalc" data-example={JSON.stringify(EXAMPLE)}>
-  <div class="hp-calc-side">
-  <h2 class="hp-calc-q" id="hpCalcQ">When could you stop working?</h2>
-  <form class="hp-inputs" id="hpForm" novalidate aria-labelledby="hpCalcQ" aria-describedby="hpWho">
-    <div class="hp-who">
-      <p class="hp-who-label" id="hpWho" aria-live="polite" aria-atomic="true">
-        <span class="hp-who-ex" id="hpWhoEx"><span class="hp-who-tag">Example numbers.</span> <span class="hp-who-text">Change any of them to see yours.</span></span>
-        <span class="hp-who-you" id="hpWhoYou"></span>
-      </p>
-      <button type="button" class="hp-reset" id="hpReset" hidden>Reset to example</button>
+<div class="hp-calc is-ruler" id="hpCalc" data-example={JSON.stringify(EXAMPLE)}>
+  <div class="hp-rl-head">
+    <div class="hp-rl-title">
+      <h2 class="hp-calc-q" id="hpCalcQ">When could you stop working?</h2>
+      <div class="hp-who">
+        <p class="hp-who-label" id="hpWho" aria-live="polite" aria-atomic="true">
+          <span class="hp-who-ex" id="hpWhoEx"><span class="hp-who-tag">Example numbers.</span> <span class="hp-who-text">Change any of them to see yours.</span></span>
+          <span class="hp-who-you" id="hpWhoYou"></span>
+        </p>
+        <button type="button" class="hp-reset" id="hpReset" hidden>Reset to example</button>
+      </div>
     </div>
-    <div class="hp-fields">
-      <Field f={FIELDS[0]}/>
-      {GROUPS.map(g => (
-        <fieldset class="hp-group">
-          <legend>{g.legend}</legend>
-          <div class="hp-group-fields">{g.keys.map(k => <Field f={FIELDS.find(f => f.key === k)!}/>)}</div>
-        </fieldset>
-      ))}
-    </div>
-  </form>
-  </div>
-
-  <div class="hp-out">
     <div class="hp-result" id="hpResult">
       <!-- Until the visitor changes a number, the result is the example's, and says so (CSS, on .is-yours). -->
       <p class="hp-out-ex">Example result</p>
       <!-- No age in the markup: the engine works it out on load (a built-in number could disagree with it). -->
       <p class="hp-big" id="hpBig">Work could become optional at <strong class="hp-age num" id="hpAgeOut">–</strong></p>
+    </div>
+  </div>
+
+  <!-- The fuse ruler: the same answer as a line, ages to scale from today (decorative; the words say it all) -->
+  <div class="hp-track" id="hpTrack" aria-hidden="true" hidden>
+    <div class="hp-track-line"><i class="hp-track-fill"></i><b class="hp-track-sixty"></b><span class="hp-track-fire">🔥</span></div>
+    <div class="hp-track-labels"><span class="hp-track-from"></span><span class="hp-track-60">60</span><span class="hp-track-to"></span><span class="hp-track-end"></span></div>
+  </div>
+
+  <form class="hp-inputs" id="hpForm" novalidate aria-labelledby="hpCalcQ" aria-describedby="hpWho">
+    <div class="hp-fields">
+      {FIELDS.map(f => <Field f={f}/>)}
+    </div>
+  </form>
+
+  <div class="hp-rl-foot">
+    <div class="hp-rl-words">
       <p class="hp-when num" id="hpWhen">Working it out from the example numbers…</p>
       <p class="hp-range num" id="hpRange"></p>
-      <!-- The same answer as a line, to scale from today to 75 (decorative; the words above say it all) -->
-      <div class="hp-track" id="hpTrack" aria-hidden="true" hidden>
-        <div class="hp-track-line"><i class="hp-track-fill"></i><b class="hp-track-sixty"></b><span class="hp-track-dot"></span></div>
-        <div class="hp-track-labels"><span class="hp-track-from"></span><span class="hp-track-60">60</span><span class="hp-track-to"></span></div>
-      </div>
       <p class="hp-fnum num">Your freedom number is about <strong data-hp-number>$1,250,000</strong>: <span class="hp-nw">25 × <span data-hp-spend>$50,000</span></span>, your yearly spending. Stopping before 60, FirePath aims a bit higher.</p>
       <p class="hp-est">An estimate, not a promise. <a href="/faq#q-accurate">How accurate is this?</a></p>
     </div>
-
-
-    <div class="hp-whatif" id="hpWhatIf">
-      <p class="hp-whatif-head">What-ifs to explore <span>Tap one to see what it changes</span></p>
-      <div class="hp-chips" role="group" aria-label="What-if options">
-        <button type="button" class="hp-chip" data-chip="week100" aria-pressed="false">+$100 a week <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
-        <button type="button" class="hp-chip" data-chip="spend10" aria-pressed="false">Spend 10% less <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
-        <button type="button" class="hp-chip" data-chip="both" aria-pressed="false">Both <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+    <div class="hp-rl-act">
+      <div class="hp-whatif" id="hpWhatIf">
+        <p class="hp-whatif-head">What-ifs to explore <span>Tap one to see what it changes</span></p>
+        <div class="hp-chips" role="group" aria-label="What-if options">
+          <button type="button" class="hp-chip" data-chip="week100" aria-pressed="false">+$100 a week <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+          <button type="button" class="hp-chip" data-chip="spend10" aria-pressed="false">Spend 10% less <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+          <button type="button" class="hp-chip" data-chip="both" aria-pressed="false">Both <span class="hp-chip-to" aria-hidden="true">→</span> <strong>–</strong></button>
+        </div>
+        <p class="hp-preview" id="hpPreview" aria-live="polite"></p>
       </div>
-      <p class="hp-preview" id="hpPreview" aria-live="polite"></p>
+      <div class="hp-actions">
+        <a href="/firepath" class="hp-btn">Add more detail</a>
+        <p class="hp-btn-note">Your pay, debts, home and a partner. Free, no account.</p>
+      </div>
     </div>
-
-    <div class="hp-actions">
-      <a href="/firepath" class="hp-btn">Add more detail</a>
-      <p class="hp-btn-note">Your pay, debts, home and a partner. Free, no account.</p>
-    </div>
-    <p class="hp-fine">General information, not advice. Assumes 7% growth a year after inflation, less tax, and less super fund fees inside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>
   </div>
+  <p class="hp-fine">General information, not advice. Assumes 7% growth a year after inflation, less tax, and less super fund fees inside super. Leaves out future employer super. <a href="/assumptions">How we calculate →</a></p>
 </div>
