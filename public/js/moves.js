@@ -219,7 +219,7 @@ window.FirePathMoves = (function () {
         if (s.retired) return false;   // stopped work: saving-from-pay ideas don't apply
         if (s.alreadyFree || s.savingsMonthly > 0 || s.consumerDebt > 0 || (s.age != null && s.age >= 60)) return false;
         return { why: 'Even a small amount, set up to move automatically on payday, gets compounding going. It builds the habit, too.',
-          impact: { text: 'A first step towards a date' } };
+          impact: { text: 'Gets compounding going' } };
       } },
     { id: 'save-more', tier: 4, title: 'Saving a little more each week', plan: 'Free',
       tool: { href: '/hearmeout', label: 'Try different amounts' }, article: 'extra-50-a-week-impact',
@@ -295,7 +295,7 @@ window.FirePathMoves = (function () {
             impact: { text: `On these numbers, free by 65 without saving more${at}` } };
         }
         if (!(s.currentSavings > 0) || E().projectPortfolio(s.currentSavings, 0, 65 - s.age, REAL) < s.freedomNumber) return false;
-        return { why: 'Your savings would reach your freedom number by 65 even if you never added another dollar. So part-time work covering today’s costs is one possibility. Others keep saving for an earlier date.',
+        return { why: 'On these numbers, your savings could reach your freedom number by 65 even if you never added another dollar. So part-time work covering today’s costs is one possibility. Others keep saving for an earlier date.',
           impact: { text: 'On these numbers, your number by 65 without saving more' } };
       } },
     { id: 'bridge-to-60', tier: 6, title: 'The years before you can use super', plan: 'Free',
@@ -307,7 +307,7 @@ window.FirePathMoves = (function () {
             : `You could be free around ${Math.round(s.freedomAge)}, before you can get to your super at 60. Your savings outside super would need to carry you until then.`,
           impact: { text: (() => { const y = 60 - s.freedomAge; return y < 2 ? `About ${Math.max(1, Math.round(y * 12))} months to bridge` : `About ${Math.round(y)} years to bridge`; })() } };
       } },
-    { id: 'stress-test', tier: 7, title: 'Whether your money will last', plan: 'Free',
+    { id: 'stress-test', tier: 7, title: 'How long your money could last', plan: 'Free',
       tool: { href: '/withdrawal', label: 'Open the Withdrawal planner' }, article: 'drawing-down-in-retirement',
       applies(s) {
         const close = s.alreadyFree || (s.yearsToFree != null && s.yearsToFree <= 10) || (s.age != null && s.age >= 55);
@@ -342,7 +342,7 @@ window.FirePathMoves = (function () {
         if (!t || s.grossIncome >= t.higher) return false;
         const add = coContribution(s.grossIncome, 1000);
         if (!(add > 0)) return false;
-        return { why: `On incomes under ${money(t.higher)}, putting after-tax money into super can mean the government adds 50c for every $1, if eligible (the ATO has several tests),, up to $500 a year (less as income rises above ${money(t.lower)}). It's locked in super until 60, so it's money you couldn't use before then. Other rules apply, like at least 10% of your income coming from work. Not tax advice.`,
+        return { why: `On incomes under ${money(t.higher)}, putting after-tax money into super can mean the government adds 50c for every $1, if eligible (the ATO has several tests), up to $500 a year (less as income rises above ${money(t.lower)}). It's locked in super until 60, so it's money you couldn't use before then. Other rules apply, like at least 10% of your income coming from work. Not tax advice.`,
           impact: { dollars: add, text: `If eligible, $1,000 of your own could bring about ${money(add)} more` } };
       } },
     { id: 'concession-cards', tier: 8, title: 'Concession cards from 67', plan: 'Free',
@@ -351,7 +351,7 @@ window.FirePathMoves = (function () {
         if (s.age == null || s.age < 60) return false;
         if (s.age >= 67) return { why: 'People on the Age Pension get a Pensioner Concession Card automatically. If you’re not on the pension, you may be able to get a Commonwealth Seniors Health Card: there’s no assets test, and the income limit is about $105,000 for singles and $168,000 for couples. Both can mean cheaper medicines and other discounts.',
           impact: { text: 'Cheaper medicines and other discounts' } };
-        return { why: 'From 67, people on the Age Pension get a Pension Concession Card. Those who don’t may be able to get a Commonwealth Seniors Health Card: there’s no assets test, and the income limit is about $105,000 for singles and $168,000 for couples. Both can mean cheaper medicines and other discounts.',
+        return { why: 'From 67, people on the Age Pension get a Pensioner Concession Card. Those who don’t may be able to get a Commonwealth Seniors Health Card: there’s no assets test, and the income limit is about $105,000 for singles and $168,000 for couples. Both can mean cheaper medicines and other discounts.',
           impact: { text: 'Cheaper medicines and other discounts' } };
       } },
     { id: 'aged-care', tier: 8, title: 'What aged care could cost', plan: 'Free',

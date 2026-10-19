@@ -439,7 +439,7 @@
     if (plan.alreadyFree && plan.pensionIncluded > 0) return ` With today's Age Pension (it rises as your savings are drawn down), your savings and super could cover your spending.`;
     if (plan.alreadyFree) return ` Counting the super you can already get to, you have your full freedom number of <strong>${num}</strong> (${times}).`;
     if (!plan.reachable) return ` At this rate your savings don't reach your full freedom number of ${num} (${times}) within 100 years.`;
-    return ` At your current saving, you reach your full freedom number of ${num} (${times}) at about <strong>age ${plan.freedomAge}</strong>, in ${plan.freedomYear}${plan.phase === 'with-super' ? ', counting your super from 60' : ''}.`;
+    return ` At your current saving, you could reach your full freedom number of ${num} (${times}) at about <strong>age ${plan.freedomAge}</strong>, in ${plan.freedomYear}${plan.phase === 'with-super' ? ', counting your super from 60' : ''}.`;
   }
 
   // What Centrelink would assess at pension age: the portfolio from the scenario age,
@@ -544,7 +544,7 @@
     const pensionBox = document.getElementById('g-pensionBox');
     if (pensionAnnual > 0) {
       pensionBox.className = 'pension-box';
-      pensionBox.innerHTML = `Estimated entitlement: <strong>${fmtM(pensionAnnual)}/yr</strong> (~${fmtM(pensionWeekly)}/week), based on the assets and income tests.`;
+      pensionBox.innerHTML = `Estimated Age Pension on these numbers: <strong>${fmtM(pensionAnnual)}/yr</strong> (~${fmtM(pensionWeekly)}/week), based on the assets and income tests.`;
     } else {
       pensionBox.className = 'pension-box nil';
       pensionBox.innerHTML = `With what you're likely to have at 67 (super included), you probably won't get much Age Pension, if any. Your investments do the heavy lifting.`;
@@ -583,12 +583,12 @@
     }
     if (hoursToCloseAfterPension !== null) {
       if (hoursToCloseAfterPension <= 0) {
-        story += ` Your investments${pensionApplies && pensionAnnual > 0 ? ' and pension' : ''} already cover it, so you don't need any work income.`;
+        story += ` On these numbers, your investments${pensionApplies && pensionAnnual > 0 ? ' (and the pension)' : ''} could cover it without any work income.`;
       } else {
-        story += ` Working just <strong>${hoursToCloseAfterPension} hour${hoursToCloseAfterPension !== 1 ? 's' : ''} a week</strong> would close what's left${pensionAnnual > 0 && !pensionApplies ? ' until then' : ''}.`;
+        story += ` On these numbers, about <strong>${hoursToCloseAfterPension} hour${hoursToCloseAfterPension !== 1 ? 's' : ''} a week</strong> could cover what's left${pensionAnnual > 0 && !pensionApplies ? ' until then' : ''}.`;
       }
     }
-    story += ` You may be closer to freedom than your balance alone makes it seem, and this number isn't fixed. Every pay rise, investment return, or dollar you save moves it higher.`;
+    story += ` You may be closer to freedom than your balance alone makes it seem, and this number isn't fixed. Pay rises, investment growth and extra saving can all move it higher.`;
     document.getElementById('g-freedomStory').innerHTML = story;
 
     // Show the comparison against the last real snapshot, if one exists

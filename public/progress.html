@@ -297,8 +297,8 @@
         <div class="hp-wrap hp-two">
           <div>
             <p class="hp-label is-ink">Check in</p>
-            <h2 class="hp-h2 commit-title">First, set a savings promise</h2>
-            <p class="hp-body commit-lead">Pick an extra amount to save. Then check in each time you do it, and each tick earns a flame.</p>
+            <h2 class="hp-h2 commit-title">Set a savings goal to track (optional)</h2>
+            <p class="hp-body commit-lead">If you’d like, choose an extra amount to track. Then check in each time you do it, and each tick earns a flame.</p>
           </div>
 
           <div class="hp-panel is-dark">
@@ -307,7 +307,7 @@
 
               <!-- Suggested amounts -->
               <div class="commit-field">
-                <div class="commit-field-label">Not sure? Try one of these — you can still change it below:</div>
+                <div class="commit-field-label">Some example amounts (you can change it below):</div>
                 <div class="commit-options" id="commitSuggestChips">
                   <button type="button" onclick="pickSuggestedAmount(25, this)" class="commit-suggest-chip">
                     +$25<span id="chipDaysLabel-25">a week</span>
@@ -700,7 +700,7 @@
     preview.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px;">
       <div><strong style="color:white;">Extra $${amount.toLocaleString()}/${cycleLabel}</strong> on top of what you already save</div>
       ${days ? `<div>That's roughly <strong style="color:var(--fire-amber);">${days} days</strong> closer to freedom.</div>` : ''}
-      ${diff && diff > 0.1 ? `<div>Moves your freedom date to <strong style="color:var(--fire-amber);">${newDate}</strong> — <strong style="color:var(--fire-amber);">${fmt(diff)} sooner</strong></div>` : newDate ? `<div>Freedom date stays around <strong style="color:var(--fire-amber);">${newDate}</strong></div>` : ''}
+      ${diff && diff > 0.1 ? `<div>Could move your freedom date to around <strong style="color:var(--fire-amber);">${newDate}</strong> — <strong style="color:var(--fire-amber);">${fmt(diff)} sooner</strong></div>` : newDate ? `<div>Freedom date stays around <strong style="color:var(--fire-amber);">${newDate}</strong></div>` : ''}
       <div style="opacity:0.6;font-size:12px;">${totalCheckins} check-ins to earn your flames this year</div>
     </div>`;
   }
@@ -960,8 +960,9 @@
   }
   function scoreInvestor(savingsType) {
     // Keys are the values onboarding actually stores in savings_type.
-    const map = { etfs: 9, mix: 6, offset: 4, cash: 2 };
-    return map[(savingsType || '').toLowerCase()] || 4;
+    // Describes how much sits in shares, not how good that is: neither end is better.
+    const map = { etfs: 9, mix: 5, offset: 1, cash: 1 };
+    return map[(savingsType || '').toLowerCase()] || 3;
   }
   function scoreRisk(debtTotal, mortgageRemaining, grossIncome) {
     const leverage = debtTotal + mortgageRemaining;
@@ -979,7 +980,7 @@
     const investorScore = scoreInvestor(p.savings_type);
     const rows = [
       { label: 'Saver', score: saverScore },
-      { label: 'Investor', score: investorScore },
+      { label: 'In shares', score: investorScore },
       { label: 'Risk taken', score: scoreRisk(p.debt_total || 0, p.mortgage_remaining || 0, p.gross_income || (p.take_home_income > 0 ? estimateGrossFromNet(p.take_home_income * 12) : 0)) },
       { label: 'Spending', score: scoreSpending(p.retirement_spend_multiplier) }
     ];
@@ -994,7 +995,7 @@
     else if (saverScore >= 7) dnaType = 'The Quiet Builder';
     else if (investorScore >= 7) dnaType = 'The Investor';
     document.getElementById('dnaType').textContent = dnaType;
-    document.getElementById('dnaNote').textContent = "A rough score from your saved numbers. It doesn’t count pay rises yet, because we don’t keep your history.";
+    document.getElementById('dnaNote').textContent = "A rough picture from your saved numbers, not a score of how well you’re doing: higher isn’t better on any of these. It doesn’t count pay rises yet, because we don’t keep your history.";
   }
 
   // Top 3 of a list: the last one reached, the next one, and the one after

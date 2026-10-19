@@ -62,7 +62,7 @@ window.FirePathPersona = (function () {
       aiTone: 'warm, simple, human',
       copy: {
         // Results vocabulary
-        coastTerm: 'ease off saving',
+        coastTerm: 'coast point',
         freedomTerm: 'fully free',
         freedomAgeLabel: 'Freedom Age',
         freedomNumberLabel: 'Freedom number',
@@ -89,7 +89,7 @@ window.FirePathPersona = (function () {
       name: 'Building towards it',
       desc: "I know the basics and I'm working on a plan — I just want to see the numbers clearly",
       icon: '<path d="M4 17l5-5 4 4 7-8"/><path d="M16 8h4v4"/>',
-      aiTone: 'clear, motivating, practical',
+      aiTone: 'clear, encouraging, practical',
       copy: {
         coastTerm: 'Coast FIRE',
         freedomTerm: 'Freedom',
@@ -107,7 +107,7 @@ window.FirePathPersona = (function () {
         concessionalTerm: 'concessional (before-tax) contributions',
         preservationTerm: 'preservation age',
         indexFundTerm: 'index fund',
-        levelPromise: "Clear numbers with the key terms explained once. We'll flag the changes most likely to move your date."
+        levelPromise: "Clear numbers with the key terms explained once. We'll show which changes move your date the most on your numbers."
       }
     },
     fire: {
@@ -178,7 +178,7 @@ window.FirePathPersona = (function () {
       primer: { title: 'What an extra $50 a week really changes', url: 'learn/extra-50-a-week-impact.html' },
       copy: {
         beginner: { title: 'What if…?', desc: 'Try a decision — like a pay rise or selling a car — and see what changes' },
-        building: { title: 'What if…?', desc: 'Test real financial decisions before you make them' },
+        building: { title: 'What if…?', desc: 'See how a big change could affect your numbers' },
         fire: { title: 'What if…?', desc: 'Model lump sums, property sales, debt vs invest' }
       }
     },
@@ -195,7 +195,7 @@ window.FirePathPersona = (function () {
       url: 'withdrawal.html', level: 3,
       primer: { title: 'The 4% rule, explained for Australians', url: 'learn/four-percent-rule-australia.html' },
       copy: {
-        beginner: { title: 'Withdrawal planner', desc: 'See if your money will last once you stop working' },
+        beginner: { title: 'Withdrawal planner', desc: 'See how long your money could last once you stop working' },
         building: { title: 'Withdrawal planner', desc: 'See how long your money lasts, in good years and bad' },
         fire: { title: 'Withdrawal planner', desc: 'SWR stress tests, sequence risk, drawdown order' }
       }

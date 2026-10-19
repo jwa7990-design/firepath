@@ -101,7 +101,7 @@ window.FirePathEngine = (function () {
         const { moves } = M.rank(s);
         const top = moves[0];
         if (top) return fromMove(top);
-        if (s.alreadyFree) return { type: 'tool', name: 'Open the Withdrawal planner', url: '/withdrawal', headline: 'See if your money will last.', reason: "You've reached your number. The Withdrawal planner shows how a plan holds up if markets have a bad run in the first years of drawing down.", impact: null };
+        if (s.alreadyFree) return { type: 'tool', name: 'Open the Withdrawal planner', url: '/withdrawal', headline: 'See how long your money could last.', reason: "You've reached your number. The Withdrawal planner shows how a plan holds up if markets have a bad run in the first years of drawing down.", impact: null };
       } catch (e) { /* fall through to the simple rules */ }
     }
     return legacyNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund);
@@ -118,9 +118,9 @@ window.FirePathEngine = (function () {
   // actually answer them (Ask FirePath can't model debt payoff or cash vs investing).
   function legacyNextStep(savingsType, persona, sRate, superBal, debt, age, hasEmergencyFund) {
     if (sRate === 0) return { type: 'learn', topic: 'what-is-fire', track: 'foundation', title: 'What is FIRE and is it realistic for me?', headline: 'See what FIRE could mean for you.', reason: 'An introduction to the idea, for anyone not saving yet.' };
-    if (hasEmergencyFund === false) return { type: 'learn', topic: 'emergency-fund', track: 'foundation', title: 'How an emergency fund and investing fit together', headline: 'Why a cash buffer matters.', reason: 'You told us you don\'t have money set aside for emergencies yet. This looks at why some people build a buffer first, and the trade-offs.' };
+    if (hasEmergencyFund === false) return { type: 'learn', topic: 'emergency-fund', track: 'foundation', title: 'How an emergency fund and investing fit together', headline: 'Why a cash buffer matters.', reason: 'Your answers show no money set aside for emergencies yet. This looks at why some people build a buffer first, and the trade-offs.' };
     if (debt > 0) return { type: 'learn', topic: 'debt-vs-invest', url: '/learn/debt-vs-invest', title: 'Should I pay off debt or invest first?', headline: 'What paying off high-interest debt does.', reason: 'Credit cards often cost about 20% a year and personal loans 7–15%, often higher than the 7% long-run return assumed for shares. This looks at both sides.' };
-    if (persona === 'fire') return { type: 'tool', name: 'Withdrawal planner', url: 'withdrawal.html', headline: 'See if your money will last.', reason: 'Shows how long savings could last once you stop working.' };
+    if (persona === 'fire') return { type: 'tool', name: 'Withdrawal planner', url: 'withdrawal.html', headline: 'See how long your money could last.', reason: 'Shows how long savings could last once you stop working.' };
     if (superBal > 0 && age && age < 45) return { type: 'learn', topic: 'two-phase', track: 'foundation', title: 'Your savings now, your super at 60', headline: 'See how your savings and super fit together.', reason: `You can’t get to your super until 60. This shows how savings outside super could carry you until then.` };
     if (savingsType === 'cash') return { type: 'learn', topic: 'what-is-an-index-fund', url: '/learn/what-is-an-index-fund', title: 'What is an index fund?', headline: 'How index funds compare with cash.', reason: 'Money in the bank has roughly kept pace with inflation. This explains how index funds work, with their ups and downs.' };
     if (savingsType === 'etfs') return { type: 'tool', name: 'What if…?', url: 'hearmeout.html', headline: 'See what a bit more each month does for you.', reason: 'Try different saving amounts and see how each one moves your date.' };
