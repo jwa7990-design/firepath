@@ -186,8 +186,8 @@ window.FirePathPersona = (function () {
       url: 'tax_pro.html', level: 2,
       primer: { title: 'How salary sacrifice actually works', url: 'learn/salary-sacrifice-explained.html' },
       copy: {
-        beginner: { title: 'Paying less tax', desc: 'Simple, legal ways to keep more of what you earn' },
-        building: { title: 'Tax Tools', desc: 'Legal ways to reduce tax' },
+        beginner: { title: 'Tax estimates', desc: 'See how tax, salary sacrifice and HELP work on your numbers. Estimates only, not tax advice' },
+        building: { title: 'Tax tools', desc: 'How tax, salary sacrifice and offsets work on your numbers. Estimates only, not tax advice' },
         fire: { title: 'Tax Tools', desc: 'Salary sacrifice, CC headroom, offset vs invest' }
       }
     },

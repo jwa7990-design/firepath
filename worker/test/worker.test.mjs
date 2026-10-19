@@ -1055,12 +1055,14 @@ test('Welcome email: sent on checkout with a trial when switched on; owner notic
   const [e] = customerEmails();
   assert.equal(e.to, 'new@example.com');
   assert.equal(e.subject, "Welcome to FirePath Pro: here's what you can do");
-  for (const [label, path] of [['Your full plan', 'strategy.html'], ['Your Path', 'journey.html'], ['Ask FirePath', 'ask-firepath.html']]) {
+  for (const [label, path] of [['Your full picture', 'strategy.html'], ['Your Path', 'journey.html'], ['Ask FirePath', 'ask-firepath.html']]) {
     assert.ok(e.text.includes(label) && e.text.includes(`https://www.firepath.pro/${path}`), label);
     assert.ok(e.html.includes(`href="https://www.firepath.pro/${path}"`), label);
   }
   assert.match(e.text, /trial ends on Thursday,? 15 October 2026/);
   assert.ok(e.text.includes('Settings → Cancel Pro subscription'));
+  assert.ok(e.text.includes('not financial or tax advice'));
+  assert.ok(!/what to do next|your plan/i.test(e.text));
   assert.ok(noMoney(e.text) && noMoney(e.html));
   assert.equal(e.headers['Idempotency-Key'], 'welcome-evt_co');
   // Switched off → owner notice only.

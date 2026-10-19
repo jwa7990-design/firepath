@@ -924,15 +924,16 @@ function trialEndingEmail(endDate) {
 function welcomeEmail(endDate) {
   const paragraphs = [
     'Hi,',
-    "Welcome to FirePath Pro. Here's what you can do:",
+    "Welcome to FirePath Pro. FirePath looks at your numbers and shows you what they mean, with guides matched to the topics they bring up. Here's where to start:",
     { list: [
-      ['Your full plan', `${SITE}/strategy.html`, 'every step of your plan in one place'],
-      ['Your Path', `${SITE}/journey.html`, 'what to do next, one step at a time'],
-      ['Ask FirePath', `${SITE}/ask-firepath.html`, 'questions answered using your own plan']
+      ['Your full picture', `${SITE}/strategy.html`, 'all your numbers in one place, including super'],
+      ['Your Path', `${SITE}/journey.html`, 'your numbers at a glance, the topics they raise, and what’s changed since your last check-in'],
+      ['Ask FirePath', `${SITE}/ask-firepath.html`, 'plain-English answers about how your numbers work']
     ] },
     `Your free trial ends on ${endDate}. If you'd like to keep Pro after that, you don't need to do anything: it's ${PRO_PRICE_TEXT} from then.`,
     'To cancel, go to Settings → Cancel Pro subscription, or reply to this email.',
     { text: 'Your account settings', link: ACCOUNT_URL },
+    'FirePath gives general information and education only, not financial or tax advice. It doesn’t consider your full situation. For advice about your circumstances, a licensed financial adviser or registered tax agent can help.',
     'Cheers,\nThe FirePath team'
   ];
   return { subject: "Welcome to FirePath Pro: here's what you can do", text: emailText(paragraphs), html: emailHtml(paragraphs) };

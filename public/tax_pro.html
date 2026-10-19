@@ -615,7 +615,7 @@
       document.getElementById('t2Sacrifice').value = proProfile.last_sacrifice_amount;
     }
     if ((proProfile.super_balance || 0) >= CARRY_FORWARD_BALANCE_LIMIT) {
-      document.getElementById('t2CarryHint').textContent = `Your saved super balance is ${fmtDollars(proProfile.super_balance)}, so carry-forward probably isn't available to you — it needs a balance under ${fmtDollars(CARRY_FORWARD_BALANCE_LIMIT)} on 30 June last year. Check myGov → ATO → Super → Carry-forward.`;
+      document.getElementById('t2CarryHint').textContent = `Your saved super balance is ${fmtDollars(proProfile.super_balance)}. Carry-forward generally needs a total super balance under ${fmtDollars(CARRY_FORWARD_BALANCE_LIMIT)} on 30 June last year. You can see what applies to you in myGov → ATO → Super → Carry-forward.`;
     }
     if (proProfile.last_mortgage_rate) {
       document.getElementById('t3MortgageRate').value = proProfile.last_mortgage_rate;
@@ -731,7 +731,7 @@
       ? `${fmtDollars(TAX_CONFIG.concessionalCap)} cap plus your ${fmtDollars(carryForward)} carry-forward`
       : `${fmtDollars(TAX_CONFIG.concessionalCap)} cap`;
     if (r.excess > 0) notes.push(`Your employer's ${fmtDollars(r.sgContrib)} super guarantee already counts towards the ${capText}, so ${fmtDollars(r.excess)} of this is over it. The excess is added back to your taxable income (less a 15% offset), so it saves you nothing.`);
-    if (carryForward > 0 && proProfile && (proProfile.super_balance || 0) >= CARRY_FORWARD_BALANCE_LIMIT) notes.push(`Your saved super balance is ${fmtDollars(proProfile.super_balance)}. Carry-forward is only allowed if your total super was under ${fmtDollars(CARRY_FORWARD_BALANCE_LIMIT)} on 30 June last year, so it probably isn't available to you.`);
+    if (carryForward > 0 && proProfile && (proProfile.super_balance || 0) >= CARRY_FORWARD_BALANCE_LIMIT) notes.push(`Your saved super balance is ${fmtDollars(proProfile.super_balance)}. Carry-forward generally needs a total super balance under ${fmtDollars(CARRY_FORWARD_BALANCE_LIMIT)} on 30 June last year. myGov (ATO → Super) shows what applies to you.`);
     if (taxToggles.help || taxToggles.noCover) notes.push(`Salary sacrifice still counts towards your HELP and Medicare levy surcharge income, so it doesn't reduce those.`);
     if (calculateMarginalRate(gross, undefined, { senior: seniorStatus() }) < TAX_CONFIG.superTaxRate) notes.push(`At this income your tax rate is below the 15% super tax, so salary sacrifice doesn't save you income tax.`);
     if (r.div293 > 0) notes.push(`Division 293 applies at your income: an extra ${fmtDollars(r.div293)} tax on these contributions (included above).`);
