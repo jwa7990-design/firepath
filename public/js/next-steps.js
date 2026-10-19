@@ -91,7 +91,7 @@ window.FirePathNext = (function () {
     return out.length ? `<div class="fp-next-links">${out.map(h => `<span>${h}</span>`).join('')}</div>` : '';
   }
 
-  // The person's options, biggest modelled effect first, minus any for the tool they're already on.
+  // The topics that relate to the person's numbers, in the standard order, minus any for the tool they're already on.
   // With opts.here, moves for this page stay and open in place (opts.onHere) instead.
   function personalMoves(situation, exclude) {
     const m = M();
@@ -116,8 +116,8 @@ window.FirePathNext = (function () {
     let html;
     if (moves.length) {
       const sub = source === 'plan'
-        ? 'Based on your saved numbers. Debt and a cash buffer are listed first, as many guides discuss them first; the rest by how much each could move your date. Areas to research, not a ranking for you.'
-        : 'Based on the numbers you entered in the free calculator on this device. Debt and a cash buffer are listed first, as many guides discuss them first; the rest by how much each could move your date. Areas to research, not a ranking for you.';
+        ? 'Topics that relate to your saved numbers, shown in the same standard order for everyone (many guides cover debt and a cash buffer early). Areas to research, not a ranking or a recommendation.'
+        : 'Topics that relate to the numbers you entered in the free calculator on this device, shown in the same standard order for everyone. Areas to research, not a ranking or a recommendation.';
       html = `<div class="fp-next-kicker">What next</div>
         <h2 class="fp-next-title">Areas to research further</h2>
         <p class="fp-next-sub">${esc(sub)}</p>

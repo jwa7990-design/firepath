@@ -6,17 +6,19 @@
  * file instead of keeping its own rules.
  *
  *   const s = FirePathMoves.situationFromProfile(profile);   // or situationFromInputs({...})
- *   const { moves } = FirePathMoves.rank(s);                 // biggest modelled effect first, max 3 by default
+ *   const { moves } = FirePathMoves.rank(s);                 // the standard order, max 3 by default
  *   const p = FirePathMoves.plan(s, statuses);               // Pro journey: open / done / dismissed + progress
  *
  * A "move" is an option that the maths says would change this person's numbers. Pages
  * present them as general information ("here's what each change would do"), never as
  * instructions or "best for you" — titles describe the option, not a command. Each one
- * says when it applies, when it must NEVER be shown, its impact (years sooner or
- * dollars, worked out with the real maths), a tool to model it and an article to
- * understand it. Moves follow a sensible order — high-interest debt, then a cash
- * buffer, then investing idle cash, saving more, tax and super, then planning the
- * drawdown — and anything with no real benefit for this person isn't shown.
+ * says when it's relevant to the numbers, its impact (years sooner or dollars, worked
+ * out with the real maths), a tool to model it and an article to understand it.
+ * Nothing is hidden because of someone's circumstances (debt, a thin buffer): a topic
+ * shows whenever it relates to their numbers, with a neutral note where debt or a
+ * buffer is part of the picture. Topics always appear in the same standard order for
+ * everyone (the order many guides cover them: debt, buffer, investing, saving, tax and
+ * super, drawdown), never re-sorted for a person, so the list isn't a ranking for them.
  *
  * Needs js/financial-engine.js. Uses js/tax-engine.js and js/calculations.js when the
  * page loads them (tax moves are skipped without them). Pure: no network, no DOM.
@@ -175,6 +177,17 @@ window.FirePathMoves = (function () {
   const yearsText = y => y >= 1 ? `${Math.round(y * 10) / 10} years sooner` : `${Math.max(1, Math.round(y * 12))} months sooner`;
   const money = n => '$' + Math.round(n).toLocaleString('en-AU');
 
+  // A neutral note where debt or a thin buffer is part of the picture: the topic still
+  // shows, and the note says how guides usually weigh it up, without saying what to do.
+  function context(s, investing) {
+    const notes = [];
+    if (s.consumerDebt > 0) notes.push(investing
+      ? ' With the high-interest debt in these numbers, many guides compare the debt’s interest rate with expected returns before looking at this.'
+      : ' With the high-interest debt in these numbers, this would sit alongside paying it down.');
+    if (investing && s.bufferMonths != null && s.bufferMonths < 3) notes.push(' These numbers show under three months of spending in cash, and many guides discuss a cash buffer alongside this.');
+    return notes.join('');
+  }
+
   // ── The moves ─────────────────────────────────────────────
   // tier: the sensible order to tackle things in (lower first).
   // applies(s) → false, or { impact: { years? , dollars?, text } , why }.
@@ -197,48 +210,47 @@ window.FirePathMoves = (function () {
         return { why: `About three months of spending (${money(target)}) in an easy-to-reach account can mean a surprise bill or job loss doesn’t force a sale of investments at a bad time. The trade-off is that cash grows slowly.`,
           impact: { text: `A common guide is about three months of spending, which on these numbers is about ${money(target)}` } };
       } },
-    { id: 'invest-idle-cash', tier: 3, title: 'Investing cash you don’t need soon', plan: 'Free',
+    { id: 'invest-idle-cash', tier: 3, title: 'How cash and investing compare over time', plan: 'Free',
       tool: { href: '/firepath', label: 'Compare bank vs investing' }, article: 'what-is-an-index-fund',
       applies(s) {
-        if (s.alreadyFree || s.consumerDebt > 0) return false;                 // debt first
+        if (s.alreadyFree) return false;
         if (!['cash', 'mix', 'offset'].includes(s.savingsType)) return false; // already invested
         if (s.savingsType === 'offset') return false;                          // offset vs invest is its own move
-        if (s.bufferMonths != null && s.bufferMonths < 3) return false;        // buffer first
         // The date already counts the money where it sits (cash or a mix); compare it invested.
         const now = yearsOr(s, null, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, rateFor(s.savingsType, s)));
         const inv = yearsOr(s, { savingsType: 'etfs', ausShare: E() && E().ausShareFor ? E().ausShareFor('etfs', s.ausShare) : 0 }, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly || 0, REAL));
         if (inv == null) return false;
         const gain = now == null ? null : now - inv;
         if (gain != null && gain < 0.25) return false;
-        return { why: 'Money in the bank has roughly kept pace with prices. A diversified fund has grown faster over the long run in the past, with bigger ups and downs and no guarantee. It depends on when you’ll need the money and how you feel about risk.',
-          impact: gain == null ? { text: 'Could bring a date within reach, on these numbers' } : { years: gain, text: `Could mean reaching your number ${yearsText(gain)} than ${s.savingsType === 'mix' ? 'your current mix' : 'keeping it all in the bank'}` } };
+        return { why: 'Money in the bank has roughly kept pace with prices. A diversified fund has grown faster over the long run in the past, with bigger ups and downs and no guarantee, and investments can fall in value. It depends on when the money is needed and how someone feels about risk.' + context(s, true),
+          impact: gain == null ? { text: 'On these assumptions, invested money could bring a date within reach' } : { years: gain, text: `On these assumptions, the same money invested could reach the number ${yearsText(gain)} than ${s.savingsType === 'mix' ? 'the current mix' : 'at bank rates'}` } };
       } },
     { id: 'start-saving', tier: 3, title: 'Starting with a small, automatic amount', plan: 'Free',
       tool: { href: '/hearmeout', label: 'See what $50 a week grows into' }, article: 'good-savings-rate',
       applies(s) {
         if (s.retired) return false;   // stopped work: saving-from-pay ideas don't apply
-        if (s.alreadyFree || s.savingsMonthly > 0 || s.consumerDebt > 0 || (s.age != null && s.age >= 60)) return false;
-        return { why: 'Even a small amount, set up to move automatically on payday, gets compounding going. It builds the habit, too.',
+        if (s.alreadyFree || s.savingsMonthly > 0 || (s.age != null && s.age >= 60)) return false;
+        return { why: 'Even a small amount, set up to move automatically on payday, gets compounding going. It builds the habit, too.' + context(s, false),
           impact: { text: 'Gets compounding going' } };
       } },
     { id: 'save-more', tier: 4, title: 'Saving a little more each week', plan: 'Free',
       tool: { href: '/hearmeout', label: 'Try different amounts' }, article: 'extra-50-a-week-impact',
       applies(s) {
         if (s.retired) return false;   // stopped work: saving-from-pay ideas don't apply
-        if (s.alreadyFree || !(s.savingsMonthly > 0) || s.consumerDebt > 0) return false;
+        if (s.alreadyFree || !(s.savingsMonthly > 0)) return false;
         const base = s.yearsToFree;
         const more = yearsOr(s, { monthlySavings: s.savingsMonthly + 50 * 52 / 12 }, () => yearsTo(s.freedomNumber, s.currentSavings, s.savingsMonthly + 50 * 52 / 12, REAL));
         if (more == null) return false;
         const gain = base == null ? null : base - more;
         if (gain != null && gain < 0.25) return false;
-        return { why: 'An extra $50 a week, invested, could grow along with everything else you’re saving.',
+        return { why: 'An extra $50 a week, invested, could grow along with everything else being saved.' + context(s, false),
           impact: gain == null ? { text: 'Could bring a date within reach, on these numbers' } : { years: gain, text: `$50 a week more could mean reaching your number ${yearsText(gain)}` } };
       } },
     { id: 'spend-less', tier: 4, title: 'Spending 10% less', plan: 'Free',
       tool: { href: '/firepath', label: 'Try it in the calculator' }, article: 'simple-budget-australia',
       applies(s) {
         if (s.retired) return false;   // stopped work: saving-from-pay ideas don't apply
-        if (s.alreadyFree || !(s.spendMonthly > 0) || s.consumerDebt > 0) return false;
+        if (s.alreadyFree || !(s.spendMonthly > 0)) return false;
         const cut = s.spendMonthly * 0.1;
         const after = yearsOr(s, { target: s.freedomNumber * 0.9, monthlySavings: (s.savingsMonthly || 0) + cut }, () => yearsTo(s.freedomNumber * 0.9, s.currentSavings, (s.savingsMonthly || 0) + cut, REAL));
         if (after == null) return false;
@@ -252,8 +264,7 @@ window.FirePathMoves = (function () {
     { id: 'salary-sacrifice', tier: 5, title: 'Salary sacrificing into super', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Work out your numbers' }, article: 'salary-sacrifice-explained',
       applies(s) {
-        if (s.alreadyFree || s.retired || s.consumerDebt > 0 || !has('calculateSalarySacrifice')) return false;
-        if (!(s.savingsMonthly > 0) || (s.bufferMonths != null && s.bufferMonths < 3)) return false;   // basics first
+        if (s.alreadyFree || s.retired || !has('calculateSalarySacrifice')) return false;
         if (s.age != null && s.age >= 67) return false;
         if (!(s.marginalRate >= 0.30)) return false;      // below ~30% the tax saving is small or nil
         // $5,000, or whatever room is left under the cap if that's less.
@@ -266,9 +277,9 @@ window.FirePathMoves = (function () {
         const r = calculateSalarySacrifice(s.grossIncome, amount, undefined, 0, opts);
         const better = r.taxSaved - r.superTax;
         if (better < 300) return false;
-        if (s.selfEmployed) return { why: `Self-employed people can’t salary sacrifice, but they can generally put money into super themselves and claim it as a tax deduction. At a ${Math.round(s.marginalRate * 100)}% tax rate, as an example, money put into super this way is generally taxed at 15% instead. Contribution caps and higher-income rules (Division 293) apply. The trade-off: you can’t get to it until 60. Not tax advice.`,
+        if (s.selfEmployed) return { why: `Self-employed people can’t salary sacrifice, but they can generally put money into super themselves and claim it as a tax deduction. At a ${Math.round(s.marginalRate * 100)}% tax rate, as an example, money put into super this way is generally taxed at 15% instead. Contribution caps and higher-income rules (Division 293) apply. The trade-off: you can’t get to it until 60. Not tax advice.` + context(s, true),
           impact: { dollars: better, text: `As an example, ${money(amount)} a year added and claimed could mean about ${money(better)} less tax` } };
-        return { why: `At a ${Math.round(s.marginalRate * 100)}% tax rate, as an example, money put into super this way is generally taxed at 15% instead. Contribution caps and higher-income rules (Division 293) apply. The trade-off: you can’t get to it until 60, so it’s money you won’t be able to use before then. Not tax advice.`,
+        return { why: `At a ${Math.round(s.marginalRate * 100)}% tax rate, as an example, money put into super this way is generally taxed at 15% instead. Contribution caps and higher-income rules (Division 293) apply. The trade-off: you can’t get to it until 60, so it’s money you won’t be able to use before then. Not tax advice.` + context(s, true),
           impact: { dollars: better, text: `As an example, ${money(amount)} a year could mean about ${money(better)} less tax` } };
       } },
     { id: 'offset-vs-invest', tier: 5, title: 'Offset account vs investing', plan: 'Pro',
@@ -372,13 +383,9 @@ window.FirePathMoves = (function () {
       } },
   ];
 
-  // ── Ranking ───────────────────────────────────────────────
-  // Safety first (debt, buffer), then the biggest real impact, then the sensible order.
-  function score(m) {
-    const yrs = m.impact.years || 0;
-    const dollarsAsYears = m.impact.dollars ? Math.min(2, m.impact.dollars / 3000) : 0;   // rough comparability
-    return (m.tier <= 2 ? 1000 : 0) + (yrs + dollarsAsYears) * 10 - m.tier;
-  }
+  // ── Order ─────────────────────────────────────────────────
+  // The same standard order for everyone: by tier, then as listed above. Never re-sorted
+  // by a person's figures or by which would help them most, so it isn't a ranking for them.
 
   function rank(situation, opts) {
     const s = situation && situation.stage ? situation : situationFromInputs(situation);
@@ -390,7 +397,7 @@ window.FirePathMoves = (function () {
       if (!res) continue;
       all.push({ id: def.id, title: def.title, plan: def.plan, tier: def.tier, tool: def.tool, article: def.article, why: res.why, impact: res.impact });
     }
-    all.sort((a, b) => score(b) - score(a));
+    all.sort((a, b) => a.tier - b.tier);   // stable: ties keep the listed order
     return { situation: s, moves: all.slice(0, limit), all };
   }
 

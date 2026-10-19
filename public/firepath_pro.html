@@ -2321,7 +2321,15 @@ async function saveProfile() {
       const recTitle = document.getElementById('recommendedTitle');
       const recReason = document.getElementById('recommendedReason');
       const recBtn = document.getElementById('recommendedBtn');
-      if (recCard && recTitle && recReason && recBtn) {
+      // A few topics in the standard order (never one picked for them), each linking to its guide.
+      const recTopics = (() => { const r = rankedMoves(); return r ? r.moves.filter(m => m.article).slice(0, 3) : []; })();
+      if (recCard && recTitle && recReason && recBtn && recTopics.length) {
+        recTitle.textContent = 'Guides on topics in your numbers';
+        recReason.innerHTML = recTopics.map(m => `<a class="pr-step-link" href="/learn/${encodeURIComponent(m.article)}">${FirePathSafe.html(m.title)} →</a>`).join('<br>')
+          + '<p class="pr-fine">Shown in the same standard order for everyone. Not a ranking or a recommendation.</p>';
+        recBtn.style.display = 'none';
+        recCard.style.display = 'block';
+      } else if (recCard && recTitle && recReason && recBtn) {
         if (nextStep.type === 'learn') {
           recTitle.textContent = nextStep.title;
           recReason.textContent = nextStep.reason + (nextStep.impact ? ` (${nextStep.impact})` : '');
@@ -2795,13 +2803,14 @@ async function saveProfile() {
     else if (fy !== null && fy <= 10) { blocks.push(`<div class="pr-block"><div class="pr-lead-title">${fyear ? fyear + ' is close.' : 'Freedom is close.'}</div><div class="pr-lead-body">${isPartner ? 'You two are' : 'You\'re'} ${fmt(fy)} away${freedomAge ? ' — freedom age ' + freedomAge : ''}. At this stage, compounding is doing much of the work.</div></div>`); }
     else if (fy !== null && fy <= 20) { blocks.push(`<div class="pr-block"><div class="pr-lead-title">${isPartner ? 'You two are' : 'You\'re'} building something real.</div><div class="pr-lead-body">${fmt(fy)} to freedom${freedomAge ? ' at age ' + freedomAge : ''}. ${your.charAt(0).toUpperCase() + your.slice(1)} savings rate is ${sRate}%. The changes below show what moves the date.</div></div>`); }
     else { blocks.push(`<div class="pr-block"><div class="pr-lead-title">It's a long way off, but now you can see it.</div><div class="pr-lead-body">${isPartner ? 'You two have' : 'You have'} ${your} number. ${fy ? fmt(fy) + ' is a long road' : 'The timeline is long'}, but now ${you} know where things stand.</div></div>`); }
-    // The option with the biggest modelled effect (top of FirePathMoves) — the same one Journey shows.
-    // Shown as an option and its effect, never an instruction.
-    const ranked = rankedMoves(), topMove = ranked && ranked.moves[0];
-    if (topMove) {
-      const go = topMove.tool ? { href: topMove.tool.href, label: 'Explore in the tool' } : topMove.article ? { href: '/learn/' + topMove.article, label: 'Read about it' } : null;
-      const leverMsg = `<strong>${topMove.title}.</strong> ${topMove.why}${topMove.impact && topMove.impact.text ? `<div class="pr-effect">${topMove.impact.text}</div>` : ''}${go ? `<a href="${go.href}" class="pr-step-link">${go.label} →</a>` : ''}`;
-      blocks.push(`<div class="pr-block"><div class="pr-block-title"> One of several areas you could research further, on these numbers</div><div class="pr-lead-body">${leverMsg}</div><p class="pr-fine">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
+    // A few topics from FirePathMoves in the standard order (the same for everyone), never one picked for them.
+    const ranked = rankedMoves(), topMoves = ranked ? ranked.moves.slice(0, 3) : [];
+    if (topMoves.length) {
+      const items = topMoves.map(m => {
+        const go = m.tool ? { href: m.tool.href, label: 'Explore in the tool' } : m.article ? { href: '/learn/' + m.article, label: 'Read about it' } : null;
+        return `<div class="pr-lead-body"><strong>${m.title}.</strong>${m.impact && m.impact.text ? `<div class="pr-effect">${m.impact.text}</div>` : ''}${go ? `<a href="${go.href}" class="pr-step-link">${go.label} →</a>` : ''}</div>`;
+      }).join('');
+      blocks.push(`<div class="pr-block"><div class="pr-block-title"> Some areas you could research further, on these numbers</div>${items}<p class="pr-fine">Shown in the same standard order for everyone, not a ranking.</p><p class="pr-fine">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
     } else if (!ranked && !alreadyFree && !isZeroSavings && fy) {
       // Fallback if moves.js didn't load.
       const extraWeekly = 50, newMSav = mSav + (extraWeekly * 52 / 12), newFy = planYears({ monthlySavings: newMSav }), diff = newFy !== null && fy ? Math.round(fy - newFy) : null;   // same plan as the headline

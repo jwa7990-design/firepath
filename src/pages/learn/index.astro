@@ -91,10 +91,10 @@ const schema = {
             <!-- Filled in the browser from the numbers saved by the free calculator (this device only). -->
             <div class="lab-tile lab-recs lab-z2" id="hubRecs" hidden>
               <div class="lab-tile-head">
-                <h2 id="recs-title" class="lab-k is-ember">Guides related to the numbers you entered</h2>
-                <p class="hub-recs-note">Areas you could research further, from the numbers you entered in the calculator · <a href="#" id="hubRecsClear">Clear</a></p>
+                <h2 id="recs-title" class="lab-k is-ember">Guides on topics in your numbers</h2>
+                <p class="hub-recs-note">Topics that relate to the numbers you entered in the calculator. Not a ranking or a recommendation · <a href="#" id="hubRecsClear">Clear</a></p>
               </div>
-              <ol class="lab-list" id="hubRecsList"></ol>
+              <ul class="lab-list" id="hubRecsList"></ul>
             </div>
 
             <div class="lab-tile lab-first lab-z2" data-hub-hide-on-search>
@@ -185,7 +185,7 @@ const schema = {
       const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
       let s, moves;
       try { const r = M.rank(M.situationFromInputs(saved), { limit: 3 }); s = r.situation; moves = r.moves; } catch (e) { return; }
-      // Their moves first, then debt, then renting and their stage (retirement reads lead once close).
+      // Topics in the standard order first, then debt, then renting and their stage (retirement reads lead once close).
       const stageReads = recThemes[s.stage] || [];
       const rentReads = s.housing === 'renting' ? recThemes.renting : [];
       const late = s.stage === 'close' || s.stage === 'free';
@@ -203,8 +203,8 @@ const schema = {
           if (picks.length === 4) break;
         }
         if (!picks.length) return;
-        list.innerHTML = picks.map((a, i) => `<li><a href="/learn/${esc(a.slug)}" class="hub-first-card" data-rec="${esc(a.slug)}">`
-          + `<span class="hub-first-num">${i + 1}</span>`
+        list.innerHTML = picks.map(a => `<li><a href="/learn/${esc(a.slug)}" class="hub-first-card" data-rec="${esc(a.slug)}">`
+          + `<span class="hub-first-num" aria-hidden="true">•</span>`
           + `<span class="hub-first-text"><strong>${esc(a.heading)}</strong><span>${esc(a.readMins)} min read</span></span>${arrow}</a></li>`).join('');
         shelf.hidden = false;
         hub.classList.add('has-recs');

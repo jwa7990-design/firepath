@@ -1,6 +1,6 @@
 # Suggested additions to the Terms of Service: draft for legal review
 
-**Status:** draft only. Nothing here is on the site. The Terms (src/pages/terms.astro) have not been changed: legal text is the owner's call, ideally with a lawyer.
+**Status:** items 1 (not a registered tax agent) and 2 (AI explanations) were added to the Terms (src/pages/terms.astro) in October 2026 at the owner's request, word for word as below. Items 3–5 are still draft only. A lawyer's review of the final wording is still recommended.
 
 **Why:** an adviser-eyes review of FirePath (October 2026) found the Terms already say FirePath gives general information, isn't financial, investment or tax advice, and holds no AFSL. It also found four gaps an Australian licensed adviser or compliance lawyer would expect to see covered. The wording below is a starting point for a lawyer, not legal advice.
 

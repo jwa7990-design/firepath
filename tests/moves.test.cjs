@@ -22,10 +22,26 @@ const top = s => M.rank(s).moves.map(m => m.id);
 // A typical 35-year-old saver: $8k/month take-home, $2k/month saved, $60k in the bank.
 const base = { age: 35, takeHomeMonthly: 8000, savingsMonthly: 2000, currentSavings: 60000, savingsType: 'cash', superBalance: 90000, housing: 'renting' };
 
-test('credit-card debt comes first, and "invest your cash" is never shown alongside it', () => {
+test('debt hides nothing: other topics still show, with a neutral note, in the standard order', () => {
   const s = Object.assign({}, base, { consumerDebt: 12000 });
   assert.equal(top(s)[0], 'clear-debt');
-  for (const id of ['invest-idle-cash', 'save-more', 'spend-less', 'salary-sacrifice', 'start-saving']) assert.ok(!ids(s).includes(id), id);
+  const all = M.rank(s, { limit: 20 }).all;
+  for (const id of ['invest-idle-cash', 'spend-less']) assert.ok(all.some(m => m.id === id), id);
+  assert.match(all.find(m => m.id === 'invest-idle-cash').why, /many guides compare the debt’s interest rate/);
+  assert.doesNotMatch(all.find(m => m.id === 'invest-idle-cash').why, /\byou should\b/i);
+});
+
+test('same standard order for everyone: never re-sorted by a person\'s figures', () => {
+  const order = M.MOVES.map(m => m.id);
+  const people = [base, Object.assign({}, base, { consumerDebt: 12000 }), Object.assign({}, base, { currentSavings: 8000 }),
+    Object.assign({}, base, { housing: 'owner', mortgageRemaining: 400000, hasPartner: true, partnerTakeHomeMonthly: 1500 })];
+  for (const p of people) {
+    const got = M.rank(p, { limit: 20 }).all;
+    for (let i = 1; i < got.length; i++) {
+      const a = got[i - 1], b = got[i];
+      assert.ok(a.tier < b.tier || (a.tier === b.tier && order.indexOf(a.id) < order.indexOf(b.id)), a.id + ' before ' + b.id);
+    }
+  }
 });
 
 test('renters never see mortgage or offset moves', () => {
@@ -69,11 +85,11 @@ test('people already invested aren\'t told to invest their cash', () => {
   assert.ok(!ids(Object.assign({}, base, { savingsType: 'etfs' })).includes('invest-idle-cash'));
 });
 
-test('a thin cash buffer comes before investing it', () => {
+test('a thin cash buffer is listed first in the standard order, without hiding investing', () => {
   const thin = Object.assign({}, base, { currentSavings: 8000 });     // under 3 months of $6k spending
-  const got = top(thin);
-  assert.equal(got[0], 'build-buffer');
-  assert.ok(!ids(thin).includes('invest-idle-cash'));
+  assert.equal(top(thin)[0], 'build-buffer');
+  const inv = M.rank(thin, { limit: 20 }).all.find(m => m.id === 'invest-idle-cash');
+  if (inv) assert.match(inv.why, /under three months of spending in cash/);
 });
 
 test('not saving yet: start small (and nothing assumes savings exist)', () => {
@@ -170,9 +186,8 @@ test('super counts once its owner is 60: a retiree with enough is "free", not to
   assert.equal(M.rank(Object.assign({}, retiree, { age: 50, currentSavings: 300000, superBalance: 2000000 })).situation.alreadyFree, false);
 });
 
-test('basics before tax tricks: no salary sacrifice for someone not yet saving or without a buffer', () => {
+test('not yet saving: the buffer and starting small are listed first', () => {
   const s = { age: 24, takeHomeMonthly: 3800, savingsMonthly: 0, currentSavings: 0, savingsType: 'cash', superBalance: 8000, housing: 'renting' };
-  assert.ok(!ids(s).includes('salary-sacrifice'));
   const t = top(s);
   assert.equal(t[0], 'build-buffer');
   assert.ok(t.includes('start-saving'), t.join());
