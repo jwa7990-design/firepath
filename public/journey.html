@@ -235,6 +235,8 @@
   @media (prefers-reduced-motion: reduce) {
     .plan-list > .opt, .track-fill, .plan-bar i { transition: none !important; }
   }
+  /* Options aren't numbered (areas to research, not steps): a small ember dot instead */
+  .opt-num.is-dot::before { content: ''; display: block; width: 10px; height: 10px; margin-top: 12px; border-radius: 50%; background: var(--hp-accent); }
 </style>
 <script src="js/persona.js"></script>
 <script src="js/auth.js"></script>
@@ -341,7 +343,7 @@
   <section class="hp-sec is-dark jp-plan" aria-labelledby="planHeading">
     <div class="hp-wrap hp-side">
       <div class="hp-side-head is-sticky">
-        <h2 class="hp-h2 is-mid" id="planHeading" tabindex="-1">Your plan</h2>
+        <h2 class="hp-h2 is-mid" id="planHeading" tabindex="-1">Options you’re looking into</h2>
         <p class="plan-intro">Based on your numbers. Debt and a cash buffer come first, as many guides start there; the rest by how much each could move your date. Areas to research, not a ranking for you.</p>
         <div id="planTop"></div>
       </div>
@@ -746,15 +748,15 @@
     if (o.tool && o.tool.href) links.push(`<a href="${escapeHtml(o.tool.href)}">Explore in the tool →<span class="vh"> ${t}</span></a>`);
     if (o.article) links.push(`<a href="/learn/${escapeHtml(o.article)}">Read about it →<span class="vh"> ${t}</span></a>`);
     return `<li class="opt">
-        <span class="opt-num" aria-hidden="true">${i + 1}</span>
+        <span class="opt-num is-dot" aria-hidden="true"></span>
         <div class="opt-body">
           <div class="opt-head"><h3 class="opt-title">${t}</h3>${imp.chip}</div>
           ${imp.line}
           <p class="opt-why" title="${escapeHtml(o.why || '')}">${escapeHtml(o.why || '')}</p>
           ${links.length ? `<div class="opt-links">${links.join('')}</div>` : ''}
           <div class="opt-actions" role="group" aria-label="Where you are with ${t}">
-            ${o.status === 'doing' ? '<span class="opt-tag">On it</span>' : btn('doing', 'On it', `Mark ${t} as on it`)}
-            ${btn('done', 'Done', `Mark ${t} as done`)}
+            ${o.status === 'doing' ? '<span class="opt-tag">Looking into it</span>' : btn('doing', 'Looking into it', `Mark ${t} as looking into it`)}
+            ${btn('done', 'Looked into', `Mark ${t} as looked into`)}
             ${btn('dismissed', 'Not for me', `Mark ${t} as not for me`)}
           </div>
         </div>
@@ -766,7 +768,7 @@
     if (!p || !p.progress.total) { top.innerHTML = sinceHtml(); return; }
     const { done, total } = p.progress;
     const pct = Math.round((done / total) * 100);
-    top.innerHTML = `<div class="plan-progress"><span><strong>${done} of ${total}</strong> done</span><span class="plan-bar" aria-hidden="true"><i style="width:${pct}%"></i></span></div>${sinceHtml()}`;
+    top.innerHTML = `<div class="plan-progress"><span><strong>${done} of ${total}</strong> looked into</span><span class="plan-bar" aria-hidden="true"><i style="width:${pct}%"></i></span></div>${sinceHtml()}`;
   }
   function sinceHtml() {
     const si = sinceInfo;
@@ -789,9 +791,9 @@
     } else if (n.kind === 'dismissed') {
       el.innerHTML = `<span>Hidden: ${t}.</span><button type="button" class="opt-btn quiet" data-move="${escapeHtml(n.id)}" data-act="undo" aria-label="Undo hiding ${t}">Undo</button>`;
     } else if (n.kind === 'doing') {
-      el.innerHTML = `<span>${t} is marked On it.</span>`;
+      el.innerHTML = `<span>${t} is marked Looking into it.</span>`;
     } else if (n.kind === 'back') {
-      el.innerHTML = `<span>${t} is back in your plan, marked On it.</span>`;
+      el.innerHTML = `<span>${t} is back on your list, marked Looking into it.</span>`;
     } else if (n.kind === 'undone') {
       el.innerHTML = `<span>Undone.</span>`;
     }

@@ -438,8 +438,8 @@
             <p class="opt-why">${esc(o.why)}</p>
             ${links.length ? `<div class="opt-links">${links.join('')}</div>` : ''}
             <div class="opt-actions" role="group" aria-label="Where you are with ${t}">
-              ${o.status === 'doing' ? '<span class="opt-tag">On it</span>' : btn('doing', 'On it', `Mark ${t} as on it`)}
-              ${btn('done', 'Done', `Mark ${t} as done`)}
+              ${o.status === 'doing' ? '<span class="opt-tag">Looking into it</span>' : btn('doing', 'Looking into it', `Mark ${t} as looking into it`)}
+              ${btn('done', 'Looked into', `Mark ${t} as looked into`)}
               ${btn('dismissed', 'Not for me', `Mark ${t} as not for me`)}
             </div>
           </div>
@@ -465,8 +465,8 @@
         ? `<span>Marked done. <a href="firepath_pro.html?edit=true">Updating your numbers lets your date reflect it →</a></span><button type="button" class="opt-btn quiet" data-move="${id}" data-act="undo" aria-label="Undo marking ${t} as done">Undo</button>`
         : note.kind === 'dismissed'
           ? `<span>Hidden: ${t}.</span><button type="button" class="opt-btn quiet" data-move="${id}" data-act="undo" aria-label="Undo hiding ${t}">Undo</button>`
-          : note.kind === 'doing' ? `<span>${t} is marked On it.</span>`
-          : note.kind === 'back' ? `<span>${t} is back in your plan, marked On it.</span>`
+          : note.kind === 'doing' ? `<span>${t} is marked Looking into it.</span>`
+          : note.kind === 'back' ? `<span>${t} is back on your list, marked Looking into it.</span>`
           : '<span>Undone.</span>';
     }
     function setNote(n, ms) {
@@ -488,7 +488,7 @@
       $('sacrificeConsider').style.display = p && p.open.some(m => m.id === 'salary-sacrifice') ? '' : 'none';
       if (!p) { body.innerHTML = '<p class="plan-empty">Your options couldn’t load just now. Try refreshing the page.</p>'; return; }
       const { done, total } = p.progress;
-      $('planTop').innerHTML = total ? `<div class="plan-progress"><span><strong>${done} of ${total}</strong> done</span><span class="plan-bar" aria-hidden="true"><i style="width:${Math.round(done / total * 100)}%"></i></span></div>` : '';
+      $('planTop').innerHTML = total ? `<div class="plan-progress"><span><strong>${done} of ${total}</strong> looked into</span><span class="plan-bar" aria-hidden="true"><i style="width:${Math.round(done / total * 100)}%"></i></span></div>` : '';
       const wasOpen = {};
       body.querySelectorAll('details[data-group]').forEach(d => { wasOpen[d.dataset.group] = d.open; });
       const isOpen = (key, dflt) => (key in wasOpen ? wasOpen[key] : dflt) ? ' open' : '';
@@ -502,9 +502,9 @@
             ? '<p class="plan-empty">There’s nothing to work through for your numbers right now. Since you’ve reached your number, the <a href="withdrawal.html">Withdrawal planner</a> shows whether your money will last.</p>'
             : '<p class="plan-empty">We can’t see any options for your numbers yet. Filling in a bit more in the inputs in <a href="firepath_pro.html?edit=true">Your full picture</a> helps us find them.</p>';
       }
-      if (doing.length) html += `<details class="plan-group" data-group="doing"${isOpen('doing', true)}><summary>On it (${doing.length})</summary><ol class="plan-list">${doing.map(openHtml).join('')}</ol></details>`;
+      if (doing.length) html += `<details class="plan-group" data-group="doing"${isOpen('doing', true)}><summary>Looking into it (${doing.length})</summary><ol class="plan-list">${doing.map(openHtml).join('')}</ol></details>`;
       if (rest.length) html += `<details class="plan-group" data-group="open"${isOpen('open', true)}><summary>Open (${rest.length})</summary><ol class="plan-list">${rest.map(openHtml).join('')}</ol></details>`;
-      if (p.done.length) html += `<details class="plan-group" data-group="done"${isOpen('done', true)}><summary>Done (${p.done.length})</summary><ul class="plan-list">${p.done.map(doneHtml).join('')}</ul></details>`;
+      if (p.done.length) html += `<details class="plan-group" data-group="done"${isOpen('done', true)}><summary>Looked into (${p.done.length})</summary><ul class="plan-list">${p.done.map(doneHtml).join('')}</ul></details>`;
       if (p.dismissed.length) html += `<details class="plan-group" data-group="dismissed"${isOpen('dismissed', false)}><summary>Not for me (${p.dismissed.length})</summary><ul class="plan-list">${p.dismissed.map(dismissedHtml).join('')}</ul></details>`;
       body.innerHTML = html;
       if (focus) {
@@ -782,7 +782,7 @@
       redundancy:'make the most of a redundancy payout'
     }[apScenario] || 'reach financial independence';
 
-    const prompt = `You are FirePath, a warm financial independence educational tool. Generate 5 personalised "things worth exploring" for this person — not action directives, but doors to open. Each one should spark curiosity and point toward a calculator, a question to investigate, or something to learn more about. Never tell them what to do. Open doors, don't push them through.
+    const prompt = `You are FirePath, a warm financial independence educational tool. Generate 5 "things worth exploring": questions and topics people with figures like these often look into — not action directives, but doors to open. Each one should spark curiosity and point toward a calculator, a question to investigate, or something to learn more about. Never tell them what to do. Open doors, don't push them through.
 
 Person details:
 - Income: $${Math.round(apIncome / (apCycle === 'weekly' ? 52/12 : apCycle === 'fortnightly' ? 26/12 : 1))} per ${cycleWord}
@@ -794,7 +794,9 @@ Person details:
 - Years to freedom: ${apFreedomYrs ? Math.round(apFreedomYrs) : 'unknown'}
 - Persona: ${apPersona}
 - Their situation: ${apContext || 'not provided'}
-- Their chosen path: ${scenarioLabel}
+- The path they're viewing (context only, don't treat it as a goal to steer them toward): ${scenarioLabel}
+
+Use "Their situation" only to understand which figures apply. Never use their family, worries or goals as a reason to suggest doing something.
 
 IMPORTANT: When the user mentions dollar amounts in their situation (e.g. "loses $6,000 per year"), treat these exactly as stated. Never assume monthly unless explicitly stated.
 
@@ -812,7 +814,7 @@ NEVER write:
 - "Switch to..."
 
 Instead write:
-- "Curious what your grocery spend looks like? Some people find switching one shop a week to a cheaper supermarket makes a real difference — worth a look at your statements"
+- "Curious what your grocery spend looks like? Your statements can show where it goes each month"
 - "Have you ever mapped out exactly where your money goes each week? Sometimes just seeing it is enough"
 - "Curious what your property equity could do? You can run that scenario yourself in What if…?"
 
@@ -827,7 +829,7 @@ Respond ONLY with a JSON array of exactly 5 items — no markdown, no backticks,
   {
     "title": "Short curiosity-framed title — a question or observation",
     "description": "1-2 short sentences opening a door, not directing action. Specific, warm, points toward exploration.",
-    "why": "One sentence on why this is worth a look for their specific situation.",
+    "why": "One neutral sentence on how this topic connects to the figures above (not a reason they should act).",
     "category": "one of: save, invest, property, admin, mindset"
   }
 ]`;

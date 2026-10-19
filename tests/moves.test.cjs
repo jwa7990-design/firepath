@@ -250,7 +250,7 @@ test('autoDone: saving each month, and savings held invested', () => {
   // Nothing known → nothing done.
   deq(Object.keys(M.autoDone({})), []);
   // Reasons are plain descriptions, not instructions.
-  for (const r of Object.values(M.autoDone(Object.assign({}, base, { consumerDebt: 0, savingsType: 'etfs', emergencyFund: true })))) assert.match(r, /^Your plan shows /);
+  for (const r of Object.values(M.autoDone(Object.assign({}, base, { consumerDebt: 0, savingsType: 'etfs', emergencyFund: true })))) assert.match(r, /^Your numbers show /);
 });
 
 test('plan: with no statuses, open is exactly rank() order and nothing is flagged', () => {

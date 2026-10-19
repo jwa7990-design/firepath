@@ -401,10 +401,10 @@ window.FirePathMoves = (function () {
   function autoDone(situation) {
     const s = situation && situation.stage ? situation : situationFromInputs(situation);
     const out = {};
-    if (s.consumerDebtKnown && s.consumerDebt === 0) out['clear-debt'] = 'Your plan shows no high-interest debt';
-    if (s.emergencyFund === true || (s.bufferMonths != null && s.bufferMonths >= 3)) out['build-buffer'] = 'Your plan shows a cash buffer of three months or more';
-    if (s.savingsMonthly > 0) out['start-saving'] = 'Your plan shows you’re already saving each month';
-    if (INVESTED_TYPES.includes(s.savingsType) && s.currentSavings > 0) out['invest-idle-cash'] = 'Your plan shows your savings are already invested';
+    if (s.consumerDebtKnown && s.consumerDebt === 0) out['clear-debt'] = 'Your numbers show no high-interest debt';
+    if (s.emergencyFund === true || (s.bufferMonths != null && s.bufferMonths >= 3)) out['build-buffer'] = 'Your numbers show a cash buffer of three months or more';
+    if (s.savingsMonthly > 0) out['start-saving'] = 'Your numbers show you’re already saving each month';
+    if (INVESTED_TYPES.includes(s.savingsType) && s.currentSavings > 0) out['invest-idle-cash'] = 'Your numbers show your savings are already invested';
     return out;
   }
 

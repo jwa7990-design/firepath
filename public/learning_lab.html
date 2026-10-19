@@ -1260,11 +1260,11 @@ Respond with a short, specific, actionable list of fixes — quote the exact phr
           model: 'claude-sonnet-4-5', max_tokens: 600,
           system: `You are the FirePath Learning Lab — educational, not financial advice.
 The user just finished reading about "${title}". Persona: ${persona}. Age: ${age}. Topics read: ${readList || 'none'}.
+The "steps" are things to learn or research next, never actions to take with their money. Never write "you should" or "I recommend", never name specific products, funds, ETFs, brokers, banks or platforms, and don't add a disclaimer (the page shows one).
 Respond ONLY with valid JSON:
 {
   "research": {
     "headline": "string",
-    "disclaimer": "string",
     "steps": [{"title":"string","description":"string"},{"title":"string","description":"string"},{"title":"string","description":"string"},{"title":"string","description":"string"}]
   },
   "next": {"title":"string","why":"string","topicId":"kebab-case","track":"${track}"}
@@ -1285,7 +1285,7 @@ Respond ONLY with valid JSON:
         <div class="wn">
           <div class="wn-label">Marked as read</div>
           <div class="wn-title">${esc(r.headline)}</div>
-          <div class="wn-small">${esc(r.disclaimer)}</div>
+          <div class="wn-small">General information only, written by AI, not financial advice. These are topics to learn about, not steps you need to take.</div>
           <ol class="wn-steps">
             ${r.steps.map((s,i) => `<li><span class="wn-num">${i+1}</span><span class="wn-step-title">${esc(s.title)}</span><span class="wn-step-desc">${esc(s.description)}</span></li>`).join('')}
           </ol>

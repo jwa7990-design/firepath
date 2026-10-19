@@ -390,7 +390,9 @@
   @keyframes fpRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   .rv.rv-in { animation: fpRise 0.5s var(--ease) both; animation-delay: calc(var(--i, 0) * 90ms); }
   @media (prefers-reduced-motion: reduce) { .rv.rv-in { animation: none; } .fp-calc input[type="range"]::-webkit-slider-thumb, .text-link { transition: none; } }
-  </style>
+    /* Options aren't numbered (they're areas to research, not steps): a small ember dot instead */
+  .move-num.is-dot::before { content: ''; display: block; width: 8px; height: 8px; margin-top: 9px; border-radius: 50%; background: var(--ember-ink); }
+</style>
 <link rel="stylesheet" href="css/fp-brand.css"/>
 </head>
 <body class="site" data-shell="site" data-footer="none">
@@ -700,7 +702,7 @@
               <span class="moves-ontrack-icon" aria-hidden="true">✓</span>
               <span id="movesOnTrackText">On these numbers, your savings reach your freedom number.</span>
             </div>
-            <ol class="moves-list hp-rows" id="movesList"></ol>
+            <ul class="moves-list hp-rows" id="movesList"></ul>
             <button type="button" class="moves-more" id="movesMore" aria-expanded="false" aria-controls="movesList" hidden></button>
             <p class="moves-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
           </div>
@@ -1200,7 +1202,7 @@
       if (HERE[m.id] && !_result.alreadyFree) model = `<button type="button" class="text-link" onclick="tryFocus('${HERE[m.id]}')">Explore it above ↑</button>`;
       else if (m.tool && m.tool.href && m.tool.href !== '/firepath' && m.tool.href !== '/firepath.html') model = `<a class="text-link" href="${esc(m.tool.href)}" title="${esc(m.tool.label)}">Explore in the tool →</a>`;
       const learn = m.article ? `<a class="text-link" href="/learn/${esc(m.article)}">Read about it →</a>` : '';
-      return `<li class="move-item" data-move="${esc(m.id)}"${i >= MOVES_SHOWN ? ' hidden' : ''}><span class="move-num" aria-hidden="true">${i + 1}</span><div class="move-body">`
+      return `<li class="move-item" data-move="${esc(m.id)}"${i >= MOVES_SHOWN ? ' hidden' : ''}><span class="move-num is-dot" aria-hidden="true"></span><div class="move-body">`
         + `<div class="move-head"><span class="move-title">${esc(m.title)}${pro}</span>${moveEffect(m)}</div>`
         + (m.why ? `<p class="move-why">${esc(m.why)}</p>` : '')
         + (model || learn ? `<p class="move-links">${model}${learn}</p>` : '')
