@@ -116,8 +116,8 @@ window.FirePathNext = (function () {
     let html;
     if (moves.length) {
       const sub = source === 'plan'
-        ? 'Based on your saved plan. Ordered by how much each could move your projected date.'
-        : 'Based on the numbers you entered in the free calculator on this device. Ordered by how much each could move your projected date.';
+        ? 'Based on your saved numbers. Debt and a cash buffer are listed first, as many guides discuss them first; the rest by how much each could move your date. Areas to research, not a ranking for you.'
+        : 'Based on the numbers you entered in the free calculator on this device. Debt and a cash buffer are listed first, as many guides discuss them first; the rest by how much each could move your date. Areas to research, not a ranking for you.';
       html = `<div class="fp-next-kicker">What next</div>
         <h2 class="fp-next-title">Areas to research further</h2>
         <p class="fp-next-sub">${esc(sub)}</p>

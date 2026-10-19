@@ -1042,9 +1042,9 @@ window.FirePathEngine = (function () {
     const amt = `$${Math.round(debt).toLocaleString('en-AU')}`;
     if (!afterDebtInputs) return `This date doesn't count your ${amt} of debt, and what you save each month doesn't cover its interest at a typical card rate.`;
     const p = freedomPlan(afterDebtInputs);
-    if (!p.valid || p.months == null) return `This date doesn't count your ${amt} of debt. Paying it off first could put your date out of reach on today's numbers.`;
+    if (!p.valid || p.months == null) return `This date doesn't count your ${amt} of debt. If the debt were paid off before investing, a date might not come into reach on today's numbers.`;
     if (plan.months != null && (p.months - plan.months < 3 || (p.freedomYear === plan.freedomYear && p.freedomAge === plan.freedomAge)))
-      return `This date doesn't count your ${amt} of debt. Paying it off first would only add a few months.`;
+      return `This date doesn't count your ${amt} of debt. If the debt were paid off before investing, the date would only move a few months.`;
     return `This date doesn't count your ${amt} of debt. Counting it, the date would be around ${p.freedomYear}${p.freedomAge != null ? `, age ${p.freedomAge}` : ''}.`;
   }
 
@@ -1063,7 +1063,7 @@ window.FirePathEngine = (function () {
     const when = investedPlan.alreadyFree ? 'now' : `around ${investedPlan.freedomYear}${investedPlan.freedomAge != null ? `, age ${investedPlan.freedomAge}` : ''}`;
     // Within about five years of stopping, a fall in shares has little time to recover.
     const close = plan.months != null && plan.months <= 60 ? ' Shares can also fall, which matters more this close to stopping.' : '';
-    const how = so.afterDebt ? 'Invested in shares once your debt is paid off' : so.buffer ? 'Investing what you add beyond a three-month buffer' : 'Invested in shares';
+    const how = so.afterDebt ? 'Counting savings as invested in shares once your debt is paid off' : so.buffer ? 'Investing what you add beyond a three-month buffer (as an example)' : 'Counting savings as invested in shares';
     return `Your savings are counted as ${where}. ${how}, this could be ${when}.${close}`;
   }
 
@@ -1084,10 +1084,10 @@ window.FirePathEngine = (function () {
       : rises ? `about $${amount.toLocaleString('en-AU')} a year of pension to start, more as your savings are drawn down` : `about $${amount.toLocaleString('en-AU')} a year of pension`;
     const rentBit = homeowner === false ? ((opts && opts.rentFortnight > 0) || pp.rentFortnight > 0 ? ', as a renter, with Rent Assistance' : ', as a renter (add your rent in the note to count Rent Assistance)') : homeowner === true ? ', as a homeowner' : '';
     if (already) {
-      return `You're already Age Pension age. On today's rules, with the pension your money could cover you ${when === 'now' ? 'now' : when}. That counts ${pensionWords}${rentBit} (less while you're earning). Your main date doesn't rely on it.`;
+      return `You're already Age Pension age. On today's rules, counting the pension, these numbers could cover spending ${when === 'now' ? 'now' : when}. That counts ${pensionWords}${rentBit} (less while you're earning). Your main date doesn't rely on it.`;
     }
-    if (when === 'now') return `If today’s Age Pension rules still apply when you’re 67, you could stop now. That counts ${pensionWords} from 67${rentBit}. The rules can change before then, so your main date doesn’t rely on it.`;
-    return `If today’s Age Pension rules still apply when you’re 67: ${when}. That counts ${pensionWords} from 67${rentBit}. The rules can change before then, so your main date doesn’t rely on it.`;
+    if (when === 'now') return `On today’s Age Pension rules, these numbers would cover spending from now, counting ${pensionWords} from 67${rentBit}. The rules and your situation can change, so your main date doesn’t rely on it.`;
+    return `On today’s Age Pension rules, counting the pension from 67: ${when}. That counts ${pensionWords} from 67${rentBit}. The rules and your situation can change, so your main date doesn’t rely on it.`;
   }
 
 

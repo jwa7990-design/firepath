@@ -184,7 +184,7 @@ window.FirePathMoves = (function () {
       tool: { href: '/hearmeout?scenario=loan', label: 'See what paying it off does' }, article: 'debt-vs-invest',
       applies(s) {
         if (!(s.consumerDebt > 0) || s.alreadyFree) return false;
-        return { why: `Credit cards often cost about 20% a year, and personal and car loans 7–15%. That’s often higher than the 7% long-run return assumed for shares. Each dollar of your ${money(s.consumerDebt)} paid off saves that interest for certain. Some people also keep some cash or keep investing alongside. It depends on the rates, your buffer and how you feel about debt.`,
+        return { why: `Credit cards often cost about 20% a year, and personal and car loans 7–15%. That’s often higher than the 7% long-run return assumed for shares. On a balance like ${money(s.consumerDebt)}, paying debt down saves interest at that rate while the rate stays the same. Some people also keep some cash or keep investing alongside. It depends on the rates, your buffer and how you feel about debt.`,
           impact: { text: 'Each dollar paid off saves the interest it costs (often 7–20% a year)' } };
       } },
     { id: 'build-buffer', tier: 2, title: 'Having a three-month cash buffer', plan: 'Free',
@@ -195,7 +195,7 @@ window.FirePathMoves = (function () {
         if (!short) return false;
         const target = s.spendMonthly * 3;
         return { why: `About three months of spending (${money(target)}) in an easy-to-reach account can mean a surprise bill or job loss doesn’t force a sale of investments at a bad time. The trade-off is that cash grows slowly.`,
-          impact: { text: `Three months of spending: about ${money(target)}` } };
+          impact: { text: `A common guide is about three months of spending, which on these numbers is about ${money(target)}` } };
       } },
     { id: 'invest-idle-cash', tier: 3, title: 'Investing cash you don’t need soon', plan: 'Free',
       tool: { href: '/firepath', label: 'Compare bank vs investing' }, article: 'what-is-an-index-fund',
@@ -266,10 +266,10 @@ window.FirePathMoves = (function () {
         const r = calculateSalarySacrifice(s.grossIncome, amount, undefined, 0, opts);
         const better = r.taxSaved - r.superTax;
         if (better < 300) return false;
-        if (s.selfEmployed) return { why: `Self-employed people can’t salary sacrifice, but you can put money into super yourself and claim it as a tax deduction. On your ${Math.round(s.marginalRate * 100)}% tax rate, it’s then taxed at 15% instead. The trade-off: you can’t get to it until 60.`,
-          impact: { dollars: better, text: `Adding ${money(amount)} a year to super yourself and claiming it could mean about ${money(better)} less tax` } };
-        return { why: `On your ${Math.round(s.marginalRate * 100)}% tax rate, money sacrificed into super is taxed at 15% instead. The trade-off: you can’t get to it until 60, so it’s money you won’t be able to use before then.`,
-          impact: { dollars: better, text: `${money(amount)} a year sacrificed could mean about ${money(better)} less tax` } };
+        if (s.selfEmployed) return { why: `Self-employed people can’t salary sacrifice, but they can generally put money into super themselves and claim it as a tax deduction. At a ${Math.round(s.marginalRate * 100)}% tax rate, as an example, money put into super this way is generally taxed at 15% instead. Contribution caps and higher-income rules (Division 293) apply. The trade-off: you can’t get to it until 60. Not tax advice.`,
+          impact: { dollars: better, text: `As an example, ${money(amount)} a year added and claimed could mean about ${money(better)} less tax` } };
+        return { why: `At a ${Math.round(s.marginalRate * 100)}% tax rate, as an example, money put into super this way is generally taxed at 15% instead. Contribution caps and higher-income rules (Division 293) apply. The trade-off: you can’t get to it until 60, so it’s money you won’t be able to use before then. Not tax advice.`,
+          impact: { dollars: better, text: `As an example, ${money(amount)} a year could mean about ${money(better)} less tax` } };
       } },
     { id: 'offset-vs-invest', tier: 5, title: 'Offset account vs investing', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Compare for your rate' }, article: 'offset-vs-investing',
@@ -342,8 +342,8 @@ window.FirePathMoves = (function () {
         if (!t || s.grossIncome >= t.higher) return false;
         const add = coContribution(s.grossIncome, 1000);
         if (!(add > 0)) return false;
-        return { why: `On incomes under ${money(t.higher)}, putting after-tax money into super can mean the government adds 50c for every $1, up to $500 a year (less as income rises above ${money(t.lower)}). It's locked in super until 60, so it's money you couldn't use before then. Other rules apply, like at least 10% of your income coming from work.`,
-          impact: { dollars: add, text: `$1,000 of your own could bring about ${money(add)} more` } };
+        return { why: `On incomes under ${money(t.higher)}, putting after-tax money into super can mean the government adds 50c for every $1, if eligible (the ATO has several tests),, up to $500 a year (less as income rises above ${money(t.lower)}). It's locked in super until 60, so it's money you couldn't use before then. Other rules apply, like at least 10% of your income coming from work. Not tax advice.`,
+          impact: { dollars: add, text: `If eligible, $1,000 of your own could bring about ${money(add)} more` } };
       } },
     { id: 'concession-cards', tier: 8, title: 'Concession cards from 67', plan: 'Free',
       tool: { href: '/freedom-gap', label: 'See what the Age Pension could add' }, article: 'age-pension-explained',
@@ -367,8 +367,8 @@ window.FirePathMoves = (function () {
         if (!s.hasPartner || s.alreadyFree) return false;
         const partnerAnnual = (s.partnerTakeHomeMonthly || 0) * 12;
         if (!(partnerAnnual > 0) || partnerAnnual > 37000) return false;   // the offset phases out by ~$40k income
-        return { why: 'If your partner earns under about $40,000, putting money into their super can earn you a tax offset of up to $540.',
-          impact: { dollars: 540, text: 'Up to $540 tax offset' } };
+        return { why: 'If your partner earns under about $40,000, putting money into their super can mean a tax offset of up to $540, if eligible (the ATO has several tests). Not tax advice.',
+          impact: { dollars: 540, text: 'Up to $540 tax offset, if eligible' } };
       } },
   ];
 

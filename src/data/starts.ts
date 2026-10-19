@@ -15,9 +15,9 @@ export interface StartPage {
 export const STARTS: StartPage[] = [
   { slug: 'just-starting', door: 'Just starting out', title: 'New to money?', icon: 'flame',
     seoTitle: 'How to Start Saving and Investing in Australia | FirePath',
-    description: 'New to saving and investing? A simple, plain-English first plan for Australians: knowing your numbers, a small buffer and how compounding works.',
+    description: 'New to saving and investing? Simple, plain-English first ideas for Australians: knowing your numbers, a small buffer and how compounding works.',
     lead: 'You don’t need to know much to start. Here are some ways people approach it, in plain English.',
-    doorLine: 'A simple first plan, one step at a time.',
+    doorLine: 'Simple first ideas, explained one at a time.',
     steps: [
       { title: 'What are your numbers?', body: 'What comes in, what goes out and what could be set aside. Two minutes in the free calculator gives an estimated date, not a vague “someday”.', href: '/firepath', cta: 'Find my freedom date' },
       { title: 'Is a small cash buffer worth having?', body: 'Some people keep about three months of spending in an easy-to-reach savings account, so a surprise bill doesn’t derail things. Others start smaller and build it over time.' },
@@ -39,11 +39,11 @@ export const STARTS: StartPage[] = [
   { slug: 'debt', door: 'I’ve got debt', title: 'Got debt?', icon: 'card',
     seoTitle: 'Should I pay off debt or invest? An Australian guide | FirePath',
     description: 'Credit cards, personal loans, buy now pay later, HECS and a mortgage are very different debts. How Australians often order them, and where investing fits.',
-    lead: 'Here are some techniques people use to work out which debt to reduce first. Not all debt costs the same: a credit card’s rate is often higher than the long-run return assumed for shares, so the order can make a big difference.',
-    doorLine: 'Which debt first, and when to start investing.',
+    lead: 'Here are some techniques people use to work out which debt to reduce first. Not all debt costs the same: a credit card’s rate is often higher than the long-run return assumed for shares, so the order can change how much interest is paid.',
+    doorLine: 'How people think about different debts, and where investing can fit.',
     steps: [
       { title: 'What does each debt cost?', body: 'Credit cards, personal and car loans, buy now pay later, HECS/HELP and a mortgage. Many people start by listing each one with its interest rate.' },
-      { title: 'Which of your debts costs the most?', body: 'Cards and personal loans often charge 15–20% a year or more. Each dollar paid off saves that much interest, guaranteed. Some people clear the highest rate first (the “avalanche”); others clear the smallest balance first for a quick win (the “snowball”).', href: '/hearmeout?scenario=loan', cta: 'See it paid off' },
+      { title: 'Which of your debts costs the most?', body: 'Cards and personal loans often charge 15–20% a year or more. Each dollar paid off saves interest at that rate while the rate stays the same. Some people clear the highest rate first (the “avalanche”); others clear the smallest balance first for a quick win (the “snowball”).', href: '/hearmeout?scenario=loan', cta: 'See it paid off' },
       { title: 'Is a small cash buffer worth having alongside?', body: 'A month or two of spending in cash can stop a surprise bill going straight back on the card. Some people build it first; others build it while paying debt down.' },
       { title: 'Can low-rate debt sit alongside investing?', body: 'HECS/HELP is indexed to inflation rather than charged interest, and mortgage rates are usually far below card rates. Some people invest while paying these down normally; others prefer to clear them first for peace of mind.' },
       { title: 'What could the repayments do once a debt is gone?', body: 'Once a debt is paid off, the same repayment amount could go to the next debt, into savings or into investments.', href: '/firepath', cta: 'Find my freedom date' },
@@ -54,15 +54,15 @@ export const STARTS: StartPage[] = [
     ],
     articles: ['debt-vs-invest', 'bad-with-money-or-underpaid', 'money-anxiety', 'why-do-i-feel-behind', 'everyone-else-figured-out'],
     faq: [
-      { q: 'Should I pay off my credit card or invest?', a: 'It depends on your rates and your situation. Credit card interest is often 15–20% a year or more, and paying it off saves that interest, guaranteed. Shares have historically returned less than that on average, with ups and downs. Some people clear the card first for that certainty; others keep a small amount invested alongside to build the habit. A licensed financial adviser can help you weigh this up for your situation.' },
+      { q: 'Should I pay off my credit card or invest?', a: 'It depends on your rates and your situation. Credit card interest is often 15–20% a year or more, and paying it off saves that interest while the rate stays the same. Shares have historically returned less than that on average, with ups and downs. Some people clear the card first for that certainty; others keep a small amount invested alongside to build the habit. A licensed financial adviser can help you weigh this up for your situation.' },
       { q: 'Should I pay off HECS early?', a: 'People see it differently. HECS/HELP isn’t charged interest. It’s indexed to inflation, and repayments come out of your pay automatically above the threshold. Some people put spare money towards higher-interest debt or investing instead. Others like paying it off early so it’s gone, or because it can affect how much a bank will lend them. It depends on your other debts, your plans and how you feel about owing money.' },
-      { q: 'Pay off the mortgage or invest?', a: 'It depends on your mortgage rate, tax rate, timeframe and comfort with risk. Money in an offset account saves your mortgage rate, tax-free and guaranteed. Investing may earn more over time, with more ups and downs. Some people like the certainty of the offset; others prefer the growth potential of investing. A licensed financial adviser can help you weigh this up for your situation.' },
+      { q: 'Pay off the mortgage or invest?', a: 'It depends on your mortgage rate, tax rate, timeframe and comfort with risk. Money in an offset account saves interest at the mortgage rate, tax-free, while that rate applies. Investing may earn more over time, with more ups and downs. Some people like the certainty of the offset; others prefer the growth potential of investing. A licensed financial adviser can help you weigh this up for your situation.' },
     ] },
 
   { slug: 'renting', door: 'Renting or saving to buy', title: 'Rent or buy?', icon: 'scale',
     seoTitle: 'Rent or Buy? What It Means for Early Retirement | FirePath',
-    description: 'Renting and investing the difference, or buying a home? What each means for when you could stop working in Australia, and how to plan either way.',
-    lead: 'There’s no single right answer, and either way can work. Here are some ways people approach it, including what renting in retirement means for the plan.',
+    description: 'Renting and investing the difference, or buying a home? What each means for when you could stop working in Australia, and what each could mean.',
+    lead: 'There’s no single right answer, and either way can work. Here are some ways people approach it, including what renting in retirement can mean for the numbers.',
     doorLine: 'Rent and invest, or buy? Try both on your numbers.',
     steps: [
       { title: 'What do both paths look like on your numbers?', body: 'Buying builds equity but costs stamp duty, interest and upkeep. Renting can leave more to invest, but only if the difference gets invested.', href: '/hearmeout?scenario=rentvest', cta: 'Compare rent vs buy' },
@@ -77,7 +77,7 @@ export const STARTS: StartPage[] = [
     articles: ['rent-or-buy', 'renting-cheaper-than-owning', 'renting-forever-retirement', 'house-delays-fi', 'first-home-super-saver'],
     faq: [
       { q: 'Is renting a waste of money?', a: 'Not necessarily. Owning has its own costs: interest, rates, upkeep and stamp duty. Some people prefer renting for the flexibility and the chance to invest the difference, which can work out well if that difference is invested. Others prefer owning for security and lower housing costs later. It depends on prices where you live, your timeframe and how you feel about moving.' },
-      { q: 'Can I retire early if I rent?', a: 'Many people do, but savings need to cover rent for life, so the freedom number is higher than an owner’s. Building that into the plan from the start keeps it realistic.' },
+      { q: 'Can I retire early if I rent?', a: 'Many people do, but savings need to cover rent for life, so the freedom number is higher than an owner’s. Some people build that in from the start.' },
       { q: 'Does buying a house delay financial independence?', a: 'It can: a big deposit and mortgage repayments can slow investing for years. It can also lower your housing costs later. Which matters more depends on your numbers, local prices and goals. A licensed financial adviser can help you weigh this up for your situation.' },
     ] },
 
@@ -88,9 +88,9 @@ export const STARTS: StartPage[] = [
     doorLine: 'The few things that move your date most.',
     steps: [
       { title: 'How much does your savings rate matter?', body: 'Saving more works twice: more invested now, and a smaller number to reach if you also spend less.', href: '/firepath', cta: 'See what moves your date' },
-      { title: 'Is your money working?', body: 'Cash above a buffer barely keeps up with inflation. Low-cost diversified funds have historically grown far faster over the long run, with more ups and downs along the way.', href: '/learn/what-is-an-index-fund', cta: 'Index funds explained' },
-      { title: 'Could super’s tax break suit you?', body: 'On a 30%+ tax rate, salary sacrificing into super is taxed at 15% instead. It’s locked until 60, so some people balance it with money they can reach sooner.', href: '/learn/salary-sacrifice-explained', cta: 'Salary sacrifice explained' },
-      { title: 'Could easing off be an option?', body: 'Coast FIRE is the point where your savings would reach your number by retirement without adding more, so part-time work could cover your bills from here.', href: '/freedom-gap', cta: 'See your freedom gap' },
+      { title: 'How do cash and diversified funds compare?', body: 'Cash has tended to roughly keep pace with inflation. Diversified funds have historically grown faster over the long run, with more ups and downs. What suits someone depends on their timeframe, buffer and comfort with risk.', href: '/learn/what-is-an-index-fund', cta: 'Index funds explained' },
+      { title: 'How does super’s tax break work?', body: 'On many incomes, salary sacrifice into super is taxed at 15% rather than the marginal rate (higher earners can pay more). It’s locked until 60, so some people balance it with money they can reach sooner.', href: '/learn/salary-sacrifice-explained', cta: 'Salary sacrifice explained' },
+      { title: 'What is Coast FIRE?', body: 'Coast FIRE is the point where, on your assumptions, savings could reach a target by retirement without adding more. Some people use it to think about part-time work.', href: '/freedom-gap', cta: 'See your freedom gap' },
     ],
     tools: [
       { href: '/firepath', name: 'Freedom calculator', line: 'Every change, shown in years.' },

@@ -201,7 +201,7 @@
     }
     if (s.status === 'far') {
       setBig('Not within reach <strong class="hp-age is-word">yet</strong>');
-      when.textContent = 'On these numbers, work doesn’t become optional within a lifetime. Saving a little each month starts the path. The options below show what helps.';
+      when.textContent = 'On these numbers, work doesn’t become optional within a lifetime. Small regular amounts can bring a date into view. The examples below show by how much.';
       rangeOut.textContent = '';
       return;
     }

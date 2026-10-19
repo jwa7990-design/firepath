@@ -270,7 +270,7 @@
       <div class="hp-side-head plan-head-col">
         <h2 class="hp-label is-ink" id="planHead" tabindex="-1">All your options</h2>
         <div class="plan-question">Based on your numbers, areas you could research further</div>
-        <div class="plan-caption" id="planCaption">Ordered by how much each could move your projected date. You can mark where you are with each one.</div>
+        <div class="plan-caption" id="planCaption">Based on your numbers. Debt and a cash buffer are listed first, as many guides discuss them first; the rest by how much each could move your date. Areas to research, not a ranking for you. You can mark where you are with each one.</div>
         <div id="planTop"></div>
         <a href="journey.html" class="hp-link is-quiet plan-path">Your Path →</a>
       </div>
@@ -293,12 +293,12 @@
         <div class="hub-list" id="hubCards" data-tool-list>
           <a href="hearmeout.html" class="hub-card" data-tool="scenarios">
             <span class="hub-card-title" data-tool-title>What if…?</span>
-            <span class="hub-card-desc" data-tool-desc>Test real financial decisions before you make them</span>
+            <span class="hub-card-desc" data-tool-desc>See what a change would do, on assumptions</span>
             <span class="hub-card-arrow" aria-hidden="true">→</span>
           </a>
           <a href="tax_pro.html" class="hub-card" data-tool="tax-tools">
-            <span class="hub-card-title" data-tool-title>Tax &amp; Strategy</span>
-            <span class="hub-card-desc" data-tool-desc>Legal ways to reduce tax</span>
+            <span class="hub-card-title" data-tool-title>Tax tools</span>
+            <span class="hub-card-desc" data-tool-desc>How tax rules like salary sacrifice work</span>
             <span class="hub-card-arrow" aria-hidden="true">→</span>
           </a>
           <a href="withdrawal.html" class="hub-card" data-tool="withdrawal">
@@ -335,8 +335,8 @@
   <section class="hp-sec is-sand sp-discover" id="discover" aria-labelledby="discoverHead" tabindex="-1">
     <div class="hp-wrap hp-side">
       <div class="hp-side-head dv-side">
-        <h2 class="hp-h2 is-small" id="discoverHead">More ideas to look into</h2>
-        <p class="sp-sub">Questions to look into, based on your situation. Tick them off as you go.</p>
+        <h2 class="hp-h2 is-small" id="discoverHead">Questions people often look into</h2>
+        <p class="sp-sub">Questions people in a similar spot often look into.</p>
         <div class="progress-section" id="progressSection" style="display:none">
           <div class="progress-count" id="progressCount">0 of 0 explored</div>
           <div class="progress-track">
@@ -354,7 +354,7 @@
       <div class="hp-side-main">
         <div id="loadingCard" class="loading-card" style="display:none">
           <div class="loading-dots"><span></span><span></span><span></span></div>
-          <p class="loading-text" id="loadingText">Finding things worth exploring for your situation...<br/>This only runs once — we'll save it for you.</p>
+          <p class="loading-text" id="loadingText">Finding questions people often look into, based on your numbers...<br/>This only runs once — we'll save it for you.</p>
         </div>
 
         <ul id="stepsContainer" class="steps"></ul>
@@ -500,7 +500,7 @@
           ? '<p class="plan-empty">You’ve worked through every option we can see for your numbers.</p>'
           : alreadyFree
             ? '<p class="plan-empty">There’s nothing to work through for your numbers right now. Since you’ve reached your number, the <a href="withdrawal.html">Withdrawal planner</a> shows whether your money will last.</p>'
-            : '<p class="plan-empty">We can’t see any options for your numbers yet. Filling in a bit more in <a href="firepath_pro.html?edit=true">your plan’s inputs</a> helps us find them.</p>';
+            : '<p class="plan-empty">We can’t see any options for your numbers yet. Filling in a bit more in the inputs in <a href="firepath_pro.html?edit=true">Your full picture</a> helps us find them.</p>';
       }
       if (doing.length) html += `<details class="plan-group" data-group="doing"${isOpen('doing', true)}><summary>On it (${doing.length})</summary><ol class="plan-list">${doing.map(openHtml).join('')}</ol></details>`;
       if (rest.length) html += `<details class="plan-group" data-group="open"${isOpen('open', true)}><summary>Open (${rest.length})</summary><ol class="plan-list">${rest.map(openHtml).join('')}</ol></details>`;
@@ -649,7 +649,7 @@
       } catch (e) { console.log('Returns test failed', e); $('levers').innerHTML = '<p class="lever-empty">This couldn’t load just now. Try refreshing the page.</p>'; }
       if (!profile || !window.FirePathEngine || !window.FirePathMoves) { planCard.style.display = 'none'; return; }
       if (!(profile.freedom_number > 0)) {
-        $('planBody').innerHTML = '<p class="plan-empty">Add your numbers in <a href="firepath_pro.html?edit=true">your plan’s inputs</a> to see your options.</p>';
+        $('planBody').innerHTML = '<p class="plan-empty">Add your numbers in the inputs in <a href="firepath_pro.html?edit=true">Your full picture</a> to see your options.</p>';
         return;
       }
       situation = window.FirePathMoves.situationFromProfile(profile);
@@ -767,7 +767,7 @@
     const loading = document.getElementById('loadingCard');
     loading.style.display = 'block';
     loading.innerHTML = `<div class="loading-dots"><span></span><span></span><span></span></div>
-      <p class="loading-text" id="loadingText">Finding things worth exploring for your situation...<br/>This only runs once — we'll save it for you.</p>`;
+      <p class="loading-text" id="loadingText">Finding questions people often look into, based on your numbers...<br/>This only runs once — we'll save it for you.</p>`;
     document.getElementById('stepsContainer').innerHTML = '';
     document.getElementById('stepsMore').hidden = true;
     document.getElementById('regenBtn').style.display = 'none';
@@ -981,8 +981,8 @@ Respond ONLY with a JSON array of exactly 5 items — no markdown, no backticks,
     document.getElementById('stepsContainer').innerHTML = '';
     const loading = document.getElementById('loadingCard');
     loading.style.display = 'block';
-    loading.innerHTML = `<p class="loading-text">Five questions worth looking into, picked for your situation. It runs once and we save them for you.</p>
-      <button type="button" class="regen-btn" id="startBtn">Find ideas for my situation</button>`;
+    loading.innerHTML = `<p class="loading-text">Five questions people often look into, based on the numbers you've entered. It runs once and we save them for you.</p>
+      <button type="button" class="regen-btn" id="startBtn">Find questions for my numbers</button>`;
     document.getElementById('startBtn').addEventListener('click', generatePlan);
   }
 
@@ -991,7 +991,7 @@ Respond ONLY with a JSON array of exactly 5 items — no markdown, no backticks,
     document.getElementById('stepsContainer').innerHTML = `
       <li class="empty-card">
         <div class="empty-title">Nothing to explore yet</div>
-        <p class="empty-sub">Run your numbers in <a href="firepath_pro.html">your full plan</a> first, then come back here for ideas based on your situation.</p>
+        <p class="empty-sub">Run your numbers in <a href="firepath_pro.html">Your full picture</a> first, then come back here for questions based on the numbers you’ve entered.</p>
       </li>
     `;
   }

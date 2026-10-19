@@ -96,7 +96,7 @@ window.FirePathPersona = (function () {
         freedomAgeLabel: 'Freedom Age',
         freedomNumberLabel: 'Freedom number',
         freedomShort: 'freedom',
-        obEyebrow: 'Building your plan',
+        obEyebrow: 'Building up your numbers',
         obSub: 'Enter your numbers and add any context. The AI picks up on what matters most.',
         incomeLabel: 'Take-home income',
         savingsLabel: 'Current savings & investments',
@@ -159,9 +159,9 @@ window.FirePathPersona = (function () {
       url: 'firepath_pro.html', level: 1,
       primer: { title: 'What is FIRE, and is it realistic?', url: 'learn/what-is-fire-australia.html' },
       copy: {
-        beginner: { title: 'Your full plan', desc: 'Where you are today, and when work could become optional' },
-        building: { title: 'Your full plan', desc: 'Your whole picture, including super' },
-        fire: { title: 'Your full plan', desc: 'FI number, super bridge, Age Pension overlay' }
+        beginner: { title: 'Your full picture', desc: 'Where you are today, and when work could become optional' },
+        building: { title: 'Your full picture', desc: 'Your whole picture, including super' },
+        fire: { title: 'Your full picture', desc: 'FI number, super bridge, Age Pension overlay' }
       }
     },
     'freedom-gap': {

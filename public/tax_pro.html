@@ -17,7 +17,7 @@
   <meta charset="UTF-8"/>
 <meta name="robots" content="noindex"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>Tax & Strategy Pro — FirePath</title>
+  <title>Tax tools — FirePath Pro</title>
 <!-- seo:start -->
 <meta property="og:site_name" content="FirePath"/>
 <meta property="og:locale" content="en_AU"/>
@@ -180,9 +180,9 @@
     <div class="hp-wrap hp-two tx-hero">
       <div>
         <a href="strategy.html" class="tl-back">← Strategy</a>
-        <div class="hp-label">Tax &amp; Strategy — Pro</div>
+        <div class="hp-label">Tax tools — Pro</div>
         <h1 class="hp-h1">How tax affects your freedom date</h1>
-        <p class="hp-lead">These tools use your saved plan (savings, super, age and freedom number) to show what tax means for you.</p>
+        <p class="hp-lead">These tools use your saved numbers (savings, super, age and freedom number) to show how tax rules work on those numbers. Tax figures are general estimates, not tax advice. FirePath isn’t a registered tax agent.</p>
       </div>
       <div class="profile-banner" id="profileBanner" style="display:none;"></div>
     </div>
@@ -194,7 +194,7 @@
       <div class="tx-head">
         <div class="hp-label">Tool 1</div>
         <h2 class="hp-h2 is-mid" id="t1Title">Your tax picture</h2>
-        <p class="tl-sub">See exactly what you keep from every dollar you earn.</p>
+        <p class="tl-sub">See roughly what you keep from each dollar you earn, on ATO rates.</p>
       </div>
       <div class="hp-two tx-grid">
         <div class="tl-in">
@@ -280,6 +280,7 @@
           <div class="hp-fig tl-fig tx-wait"><div class="hp-label is-ink">Tax saved per year</div><p class="tl-empty"><span class="tl-empty-big">—</span>Enter your income and an amount to sacrifice.</p></div>
           <div class="results-box" id="t2Results">
             <div class="result-row total"><span class="result-label">Tax saved per year</span><span class="result-value green" id="t2TaxSaved">—</span></div>
+            <p class="tl-note">Tax figures are general estimates, not tax advice. FirePath isn’t a registered tax agent.</p>
             <div class="result-row"><span class="result-label">Super tax on contribution (15%)</span><span class="result-value red" id="t2SuperTax">—</span></div>
             <div class="result-row"><span class="result-label">Net super gain</span><span class="result-value green" id="t2NetSuper">—</span></div>
             <div class="result-row"><span class="result-label">Real cost to your take-home</span><span class="result-value" id="t2TakeHomeCost">—</span></div>
@@ -352,7 +353,7 @@
     <div class="hp-wrap hp-two">
       <div>
         <div class="hp-label is-ink">Your AI insight</div>
-        <h2 class="hp-h2 is-mid" id="aiTitle">What this means for you</h2>
+        <h2 class="hp-h2 is-mid" id="aiTitle">What these numbers could mean</h2>
         <p class="tl-sub">Pulls together your tax picture, your profile, and your freedom number into one plain-English read.</p>
       </div>
       <div>
@@ -762,7 +763,7 @@
       t2Insight.style.display = 'block';
     } else if (proProfile && proProfile.age >= 60) {
       if (t2Compare) t2Compare.innerHTML = '';
-      t2Text.innerHTML = `You're over 60, so salary sacrifice still saves tax, and you may already be able to get to your super.`;
+      t2Text.innerHTML = `Over 60, salary sacrifice can still mean less tax, and super may already be accessible. Not tax advice.`;
       if (t2Link) t2Link.style.display = 'none';
       t2Insight.style.display = 'block';
     } else {
@@ -790,10 +791,10 @@
 
     if (r.offsetBetter) {
       offsetBox.classList.add('winner'); investBox.classList.remove('winner');
-      verdict.innerHTML = `<div><span><strong>Your offset returns more on these rates</strong> — ${fmtPct(r.offsetReturn)} tax-free vs ${fmtPct(r.investReturnAfterTax)} after tax from investing.</span></div>`;
+      verdict.innerHTML = `<div><span><strong>On these assumptions, here’s how the two compare</strong> — the offset: ${fmtPct(r.offsetReturn)} tax-free; investing: ${fmtPct(r.investReturnAfterTax)} after tax. Which suits someone depends on risk, rates and their loan terms.</span></div>`;
     } else {
       investBox.classList.add('winner'); offsetBox.classList.remove('winner');
-      verdict.innerHTML = `<div><span><strong>Investing is modelled to return more</strong> — ${fmtPct(r.investReturnAfterTax)} after tax vs ${fmtPct(r.offsetReturn)} from the offset. The offset's saving is guaranteed though — investing returns aren't, and can be negative for years at a time.</span></div>`;
+      verdict.innerHTML = `<div><span><strong>On these assumptions, here’s how the two compare</strong> — investing: ${fmtPct(r.investReturnAfterTax)} after tax; the offset: ${fmtPct(r.offsetReturn)}. The offset's saving is guaranteed while the rate holds; investing returns aren't, and can be negative for years at a time. It depends on risk, rates and your loan terms.</span></div>`;
     }
 
     const t3Insight = document.getElementById('t3ProInsight');
@@ -814,11 +815,11 @@
       const diffYrs = (baseY !== null && newY !== null) ? baseY - newY : null;
       if (r.offsetBetter) {
         t3Text.innerHTML = diffYrs !== null
-          ? `Switching your ${fmtDollars(offsetBalance)} offset to investing would push your freedom date back by roughly <strong>${fmtYrs(Math.abs(diffYrs))}</strong> at today's rates. On today's rates, the offset saves more than investing is assumed to earn.`
+          ? `On these assumptions, investing the ${fmtDollars(offsetBalance)} offset balance instead would move the date roughly <strong>${fmtYrs(Math.abs(diffYrs))}</strong> later, at today's rates. On today's rates, the offset saves more than investing is assumed to earn.`
           : `On today's rates, the offset saves more than investing is assumed to earn.`;
       } else {
         t3Text.innerHTML = diffYrs !== null
-          ? `On these assumptions, redirecting your ${fmtDollars(offsetBalance)} offset into investing could bring your freedom date forward by roughly <strong>${fmtYrs(diffYrs)}</strong>.`
+          ? `On these assumptions, investing the ${fmtDollars(offsetBalance)} offset balance instead would move the date roughly <strong>${fmtYrs(diffYrs)}</strong> sooner, with more ups and downs.`
           : `On these assumptions, investing this balance is modelled to grow more over the long run, with more ups and downs.`;
       }
       t3Insight.style.display = 'block';

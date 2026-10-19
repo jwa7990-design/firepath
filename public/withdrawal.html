@@ -330,7 +330,7 @@
             <div>
               <div class="mc-headline" id="w-mcHeadline">—</div>
               <div class="mc-detail" id="w-mcDetail"></div>
-              <div class="mc-explainer">Markets don't return the average every year. A bad few years right after you stop work hurt most, because you're selling while prices are down (this is called sequence risk). So this tests your plan against 2,000 different orders of good and bad years.</div>
+              <div class="mc-explainer">Markets don't return the average every year. A bad few years right after you stop work hurt most, because you're selling while prices are down (this is called sequence risk). So this tests these numbers against 2,000 different orders of good and bad years.</div>
             </div>
           </div>
           <div id="w-bufferNote" class="buffer-note"></div>
@@ -446,9 +446,9 @@
   // money lasts. The steady-return path never sets these labels on its own.
   function comfortTier(successRate) {
     if (!Number.isFinite(successRate)) return null;
-    return successRate >= 0.9 ? { cls: 'strong', label: 'Comfortable', colour: 'var(--positive)' }
-      : successRate >= 0.75 ? { cls: 'okay', label: 'Some risk', colour: 'var(--amber)' }
-      : { cls: 'fragile', label: 'Risky', colour: 'var(--negative)' };
+    return successRate >= 0.9 ? { cls: 'strong', label: 'Lasted in 90%+ of outcomes', colour: 'var(--positive)' }
+      : successRate >= 0.75 ? { cls: 'okay', label: 'Lasted in 75–90%', colour: 'var(--amber)' }
+      : { cls: 'fragile', label: 'Lasted in under 75%', colour: 'var(--negative)' };
   }
 
   // "How long should it last?" — 30 years (the classic 4% rule test), or 40 when we know
@@ -609,7 +609,7 @@
     };
     const rateLead = explainers[rateKey] || explainers[4];
     document.getElementById('w-rateExplainer').textContent = mc
-      ? `${rateLead} In our market test it lasted ${horizon} years in ${pct}% of futures: ${tier.label.toLowerCase()}.`
+      ? `${rateLead} In our market test it lasted ${horizon} years in ${pct}% of futures.`
       : rateLead;
 
     // Rate comparison — each row's label comes from the same market test.
@@ -767,7 +767,7 @@
     const tier = comfortTier(mc.successRate);
     wrap.style.display = 'flex';
     document.getElementById('w-mcDot').style.background = tier.colour;
-    document.getElementById('w-mcHeadline').innerHTML = `In <strong>${pct}%</strong> of 2,000 possible market outcomes your money lasts the full ${horizon} years.<span class="mc-verdict ${tier.cls}">${tier.label} in the market test</span>`;
+    document.getElementById('w-mcHeadline').innerHTML = `In <strong>${pct}%</strong> of 2,000 possible market outcomes your money lasts the full ${horizon} years.<span class="mc-verdict ${tier.cls}">${tier.label}</span>`;
     const parts = [];
     if (mc.badCaseRunsOutYear != null) parts.push(`In a bad run (1 in 10), it runs out around year ${mc.badCaseRunsOutYear + 1}.`);
     parts.push(`Typical balance left after ${horizon} years: ${money(mc.p50)}.`);

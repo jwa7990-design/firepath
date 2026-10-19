@@ -17,7 +17,7 @@
   <meta charset="UTF-8"/>
 <meta name="robots" content="noindex"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-  <title>Your full plan | FirePath Pro</title>
+  <title>Your full picture | FirePath Pro</title>
 <!-- seo:start -->
 <meta property="og:site_name" content="FirePath"/>
 <meta property="og:locale" content="en_AU"/>
@@ -565,7 +565,7 @@
     <header class="hp-hero hp-sec is-sand pr-hero">
       <div class="hp-wrap">
         <p class="hp-label is-ink">FirePath Pro</p>
-        <h1 class="hp-h1">Your full plan</h1>
+        <h1 class="hp-h1">Your full picture</h1>
       </div>
     </header>
 
@@ -842,8 +842,8 @@
 
                 <!-- Context -->
                 <div class="ob-field">
-                  <label class="ob-label" for="context">Tell us honestly about your situation</label>
-                  <span class="ob-hint">This is where the AI earns its keep. Family, property, uneven pay, goals, worries: whatever's on your mind.</span>
+                  <label class="ob-label" for="context">Anything else? (optional)</label>
+                  <span class="ob-hint">Optional notes for the calculations, like uneven pay or a planned move. FirePath gives general information and doesn’t assess your personal circumstances.</span>
                   <textarea class="ob-textarea" id="context" oninput="debounceSaveContext()" placeholder="e.g. I have two kids under 5, a mortgage with 22 years left, and I'm self-employed with variable income. I want to be done working by 55 but I'm not sure if that's realistic..."></textarea>
                   <div id="contextPrompts"></div>
                 </div>
@@ -855,7 +855,7 @@
                   <div class="ai-loading" id="aiLoading">
                     <div class="fp-loader">
                       <div class="fp-loader-bar"><div class="fp-loader-bar-fill"></div></div>
-                      <p class="fp-loader-msg" id="loadingText">Reading your situation...</p>
+                      <p class="fp-loader-msg" id="loadingText">Reading your numbers...</p>
                     </div>
                   </div>
 
@@ -962,7 +962,7 @@
             <div class="ai-insight-card">
               <div id="freedomDateMovedLine" style="display:none;"></div>
               <div class="ai-insight-label">What stands out in your numbers</div>
-              <div class="ai-insight-text" id="aiInsightText">Analysing your situation...</div>
+              <div class="ai-insight-text" id="aiInsightText">Working through your numbers...</div>
               <p class="pr-fine fp-advice">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p>
             </div>
             <div id="insightMetaBar" class="insight-meta" style="display:none;">
@@ -980,7 +980,7 @@
           <div class="rtab-content" id="rtab-super" style="display:none;">
             <details class="hp-more super-explainer">
               <summary>How super fits your freedom plan</summary>
-              <div class="super-explainer-body">Most Australians have <strong>two pots of money</strong> growing at the same time, and most calculators ignore one of them.<br/><br/><strong>Pot 1: your savings.</strong> Everything outside super: ETFs, cash, offset, shares. You can get to this any time. It's what FirePath uses to work out your freedom date.<br/><br/><strong>Pot 2: your super.</strong> Growing in the background, with your employer adding to it every pay. You can't get to it until 60, but it's growing the whole time.<br/><br/>So the question isn't only whether your savings can hit your freedom number on their own. It's how the two fit together, and what gap (if any) you need to close yourself.</div>
+              <div class="super-explainer-body">Most Australians have <strong>two pots of money</strong> growing at the same time, and most calculators ignore one of them.<br/><br/><strong>Pot 1: your savings.</strong> Everything outside super: ETFs, cash, offset, shares. You can get to this any time. It's what FirePath uses to work out your freedom date.<br/><br/><strong>Pot 2: your super.</strong> Growing in the background, with your employer adding to it every pay. You can't get to it until 60, but it's growing the whole time.<br/><br/>So the question isn't only whether your savings can hit your freedom number on their own. It's how the two fit together, and what gap (if any) is left for savings to cover.</div>
             </details>
             <div id="superTimelineCard" style="display:none"></div>
             <div class="super-result-card" id="superResultCard" style="display:none"><div id="superResultText"></div></div>
@@ -1826,7 +1826,7 @@ function obProAgeHint() {
   const hint = document.getElementById('ob-ageHint');
   if (!hint) return;
   if (age >= 16 && age < 60) {
-    hint.textContent = `You can get to your super in ${60 - age} years. We'll build that into your plan.`;
+    hint.textContent = `You can get to your super in ${60 - age} years. We'll count that in these numbers.`;
     hint.style.color = 'var(--ink-2)';
   } else if (age >= 60) {
     hint.textContent = 'You can already get to your super. Good spot to be in.';
@@ -1898,7 +1898,7 @@ function obProAgeHint() {
 <!-- ── LOADING MESSAGES JS ── -->
 <script>
 const FP_LOADING_MESSAGES = [
-  "Reading your situation...",
+  "Reading your numbers...",
   "Crunching your numbers...",
   "Finding what would help most...",
   "Adding in your super...",
@@ -2497,7 +2497,7 @@ async function saveProfile() {
     const over = [['Your', plan.superAt60], ['Your partner’s', plan.partnerSuperAt60]]
       .filter(([, b]) => b != null && b > cap);
     if (!over.length) { el.hidden = true; return; }
-    el.innerHTML = `<strong>The transfer balance cap:</strong> ${over.map(([who, b]) => `${who} super is projected at about ${fmtM(b)} at 60`).join('; ')}, in today’s dollars. Up to ${fmtM(cap)}${plan.partnerSuperAt60 != null ? ' each' : ''} can go into a tax-free retirement pension. The rest stays in super, where its earnings are taxed at 15%. Our withdrawal figures treat it all as tax-free, so for you they’re a little optimistic. A licensed financial adviser can help with how to hold the amount over the cap.`;
+    el.innerHTML = `<strong>The transfer balance cap:</strong> ${over.map(([who, b]) => `${who} super is projected at about ${fmtM(b)} at 60`).join('; ')}, in today’s dollars. Up to ${fmtM(cap)}${plan.partnerSuperAt60 != null ? ' each' : ''} can go into a tax-free retirement pension. The rest stays in super, where its earnings are taxed at 15%. Our withdrawal figures treat it all as tax-free, so on these numbers they’re a little optimistic. A licensed financial adviser can help with how to hold the amount over the cap.`;
     el.hidden = false;
   }
 
@@ -2509,7 +2509,7 @@ async function saveProfile() {
     if (!el) return;
     const big = plan && plan.valid ? [['Your', plan.superAt60], ['Your partner’s', plan.partnerSuperAt60]].filter(([, b]) => b != null && b > 3e6) : [];
     if (!big.length) { el.hidden = true; return; }
-    el.innerHTML = `<strong>Division 296:</strong> ${big.map(([who, b]) => `${who} super is projected at about ${fmtM(b)} at 60`).join('; ')}, in today’s dollars. Since 1 July 2026, earnings on the share of a balance over $3M are taxed an extra 15% (and a further 10% over $10M). That’s already included in your plan.`;
+    el.innerHTML = `<strong>Division 296:</strong> ${big.map(([who, b]) => `${who} super is projected at about ${fmtM(b)} at 60`).join('; ')}, in today’s dollars. Since 1 July 2026, earnings on the share of a balance over $3M are taxed an extra 15% (and a further 10% over $10M). That’s already included in these numbers.`;
     el.hidden = false;
   }
 
@@ -2531,7 +2531,7 @@ async function saveProfile() {
       : ` It moves your freedom date by about ${months >= 12 ? (Math.round(months / 6) / 2) + ' years' : months + (months === 1 ? ' month' : ' months')}.`;
     const superBit = dollars != null && pi.age < 60 ? ` takes about ${fmtM(dollars)} off your super at 60.` : ' comes out of your super each year.';
     el.innerHTML = own
-      ? `<strong>Your super insurance</strong> (about ${fmtDollars(prem)} a year) is included in your plan. It${superBit}${dateBit}`
+      ? `<strong>Your super insurance</strong> (about ${fmtDollars(prem)} a year) is included in these numbers. It${superBit}${dateBit}`
       : `<strong>Insurance through super:</strong> if your fund charges about ${fmtDollars(prem)} a year, that${superBit}${dateBit} Premiums vary a lot between funds, so add your own figure in your numbers.`;
     el.hidden = false;
   }
@@ -2801,7 +2801,7 @@ async function saveProfile() {
     if (topMove) {
       const go = topMove.tool ? { href: topMove.tool.href, label: 'Explore in the tool' } : topMove.article ? { href: '/learn/' + topMove.article, label: 'Read about it' } : null;
       const leverMsg = `<strong>${topMove.title}.</strong> ${topMove.why}${topMove.impact && topMove.impact.text ? `<div class="pr-effect">${topMove.impact.text}</div>` : ''}${go ? `<a href="${go.href}" class="pr-step-link">${go.label} →</a>` : ''}`;
-      blocks.push(`<div class="pr-block"><div class="pr-block-title"> Based on your numbers, an area you could research further</div><div class="pr-lead-body">${leverMsg}</div><p class="pr-fine">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
+      blocks.push(`<div class="pr-block"><div class="pr-block-title"> One of several areas you could research further, on these numbers</div><div class="pr-lead-body">${leverMsg}</div><p class="pr-fine">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
     } else if (!ranked && !alreadyFree && !isZeroSavings && fy) {
       // Fallback if moves.js didn't load.
       const extraWeekly = 50, newMSav = mSav + (extraWeekly * 52 / 12), newFy = planYears({ monthlySavings: newMSav }), diff = newFy !== null && fy ? Math.round(fy - newFy) : null;   // same plan as the headline
@@ -2809,7 +2809,7 @@ async function saveProfile() {
       if (debt > 0) { leverMsg = `${isPartner ? 'You two have' : 'You have'} ${fmtM(debt)} in debt. Once that's gone, the repayments become savings — and that changes the date.`; }
       else if (savingsType === 'cash' && savings > 0) { leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} savings are in cash. The big question: what happens if that money is invested instead? The "If your money was invested" comparison in your results shows the exact difference.`; }
       else { leverMsg = diff && diff > 0 ? `An extra $${extraWeekly}/week could bring ${your} freedom date forward by ${diff} year${diff !== 1 ? 's' : ''}. "See what moves ${your} date" below has the full picture.` : `"See what moves ${your} date" below shows what each change would do.`; }
-      blocks.push(`<div class="pr-block"><div class="pr-block-title"> Based on your numbers, an area you could research further</div><div class="pr-lead-body">${leverMsg}</div><p class="pr-fine">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
+      blocks.push(`<div class="pr-block"><div class="pr-block-title"> One of several areas you could research further, on these numbers</div><div class="pr-lead-body">${leverMsg}</div><p class="pr-fine">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
     }
     const steps = [];
     steps.push(`<div class="pr-step"><div><div class="pr-step-title">Know ${your} number</div><div class="pr-step-sub">${your.charAt(0).toUpperCase() + your.slice(1)} freedom number is ${fmtM(fireNum)}. That's the foundation everything else builds on.</div></div></div>`);

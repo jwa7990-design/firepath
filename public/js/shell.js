@@ -203,7 +203,7 @@
   <div class="site-footer-inner">
     <div class="site-footer-brand">
       <a href="${url('index.html')}" class="site-logo">${svg('flame', 18)}<span>Fire<em>Path</em></span></a>
-      <p>Plain-English money guidance for everyday Australians — and the date work could become optional.</p>
+      <p>Plain-English money education for everyday Australians — and the date work could become optional.</p>
     </div>
     <div class="site-footer-col"><h4>Product</h4><ul>
       <li><a href="${url('firepath.html')}">Free calculator</a></li>

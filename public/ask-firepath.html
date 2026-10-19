@@ -156,7 +156,7 @@
 
   <header class="ask-head">
     <h1 class="ask-title">Ask FirePath</h1>
-    <p class="ask-sub">Ask anything about your plan — answered by AI, with FirePath’s maths doing the sums.</p>
+    <p class="ask-sub">Ask how your numbers work. General information only, answered by AI, with FirePath’s maths doing the sums.</p>
   </header>
 
   <div class="chat-thread" id="chatThread">
@@ -173,7 +173,7 @@
   <p class="chat-advice" id="askAdvice">General information, not financial advice. FirePath isn’t a licensed adviser.</p>
   <div class="chat-input-bar">
     <div class="chat-input-box">
-      <textarea class="chat-input" id="askInput" rows="1" aria-label="Your question" placeholder="Ask anything about your plan…"></textarea>
+      <textarea class="chat-input" id="askInput" rows="1" aria-label="Your question" placeholder="Ask how your numbers work…"></textarea>
       <button class="chat-send" id="askSubmit" aria-label="Send" disabled>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
       </button>
@@ -343,7 +343,7 @@
     }).trim();
     const linkHtml = links.slice(0, 2).map(l => `<a href="${l.href}" class="chat-learn-link"><span>${escapeHtml(l.label)}</span><span>→</span></a>`).join('');
     return `<div class="chat-card chat-card-supported">
-      <span class="chat-tag">${PLAN ? 'Built on your saved plan' : 'General answer. Save your full plan to get answers about your own numbers'}</span>
+      <span class="chat-tag">${PLAN ? 'Built on your saved numbers' : 'General answer. Save your numbers in Your full picture to get answers about them'}</span>
       <div class="chat-body">${FirePathSafe.aiText(body)}</div>${linkHtml}<p class="chat-advice">General information, not financial advice. FirePath isn’t a licensed adviser.</p></div>`;
   }
   const notice = (tag, text, link) => `<div class="chat-card chat-card-guided"><span class="chat-tag">${tag}</span><div class="chat-body">${text}</div>${link || ''}</div>`;
@@ -398,7 +398,7 @@
     if (!(await requirePro())) return;
     await Promise.all([loadArticles(), loadAssumptions().catch(() => {})]);
     PLAN = await loadPlan();
-    if (!PLAN) thread.insertAdjacentHTML('afterbegin', notice('No saved plan yet', 'Answers are general until you save your plan. Fill in your full plan once and Ask FirePath will use your own numbers.', '<a href="/firepath_pro" class="chat-learn-link"><span>Open Your full plan</span><span>→</span></a>'));
+    if (!PLAN) thread.insertAdjacentHTML('afterbegin', notice('No saved numbers yet', 'Answers are general until you save your numbers. Fill in Your full picture once and Ask FirePath will use your own numbers.', '<a href="/firepath_pro" class="chat-learn-link"><span>Open Your full picture</span><span>→</span></a>'));
     const q = new URLSearchParams(location.search).get('q');
     if (q) ask(q.slice(0, 1000));
   })();
