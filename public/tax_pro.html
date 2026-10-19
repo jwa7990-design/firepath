@@ -158,6 +158,11 @@
     .ai-insight-text strong { font-weight: 600; }
     .ai-insight-text p + p { margin-top: 12px; }
     .ai-learn-more { margin-top: 18px; padding-top: 16px; border-top: var(--hp-rule); }
+    .tx-rules { max-width: 520px; border-top: var(--hp-rule); }
+    .tx-rules .tl-field-label { margin: 0; padding: 12px 2px; border-bottom: var(--hp-rule); }
+    .tx-rule { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 0 2px; border: 0; border-bottom: var(--hp-rule); background: none; font: inherit; font-size: 16px; font-weight: 500; color: var(--ink); text-align: left; cursor: pointer; }
+    .tx-rule:hover { color: var(--ember-ink, var(--ink)); }
+    .tx-rule:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
     .tx-learn { font-size: 16px; font-weight: 600; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 5px; }
     .tx-learn:hover { text-decoration-color: var(--ink); }
     .fp-advice { margin: 16px 0 0; max-width: 62ch; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
@@ -353,19 +358,28 @@
     <div class="hp-wrap hp-two">
       <div>
         <div class="hp-label is-ink">Your AI insight</div>
-        <h2 class="hp-h2 is-mid" id="aiTitle">What these numbers could mean</h2>
-        <p class="tl-sub">Pulls together your tax picture, your profile, and your freedom number into one plain-English read.</p>
+        <h2 class="hp-h2 is-mid" id="aiTitle">How a tax rule works on your numbers</h2>
+        <p class="tl-sub">Pick a rule you’re curious about. The AI explains how it works and what it could look like on your figures if it applied to you. Whether it does is for the ATO or a registered tax agent to confirm.</p>
       </div>
       <div>
         <div id="taxInsightMetaBar" class="meta-bar" style="display:none;"></div>
-        <button class="calc-btn tl-btn" id="aiInsightBtn" onclick="getAiTaxInsight()">Get my tax insight</button>
+        <div id="aiInsightBtn" class="tx-rules" role="group" aria-labelledby="aiRuleLead">
+          <p class="tl-field-label" id="aiRuleLead">Pick a rule</p>
+          <button type="button" class="tx-rule" onclick="getAiTaxInsight('catch-up')">Catch-up (carry-forward) contributions<span aria-hidden="true">→</span></button>
+          <button type="button" class="tx-rule" onclick="getAiTaxInsight('co-contribution')">The government super co-contribution<span aria-hidden="true">→</span></button>
+          <button type="button" class="tx-rule" onclick="getAiTaxInsight('spouse')">Spouse contribution tax offset<span aria-hidden="true">→</span></button>
+          <button type="button" class="tx-rule" onclick="getAiTaxInsight('cgt')">The 50% CGT discount<span aria-hidden="true">→</span></button>
+          <button type="button" class="tx-rule" onclick="getAiTaxInsight('franking')">Franking credits<span aria-hidden="true">→</span></button>
+          <button type="button" class="tx-rule" onclick="getAiTaxInsight('fhsss')">First Home Super Saver Scheme<span aria-hidden="true">→</span></button>
+          <button type="button" class="tx-rule" onclick="getAiTaxInsight('division293')">Division 293<span aria-hidden="true">→</span></button>
+        </div>
         <div class="ai-loading" id="aiTaxLoading">
           <div class="ai-loading-bar"><div class="ai-loading-fill"></div></div>
           <div class="ai-loading-text">Reading your numbers...</div>
         </div>
         <div id="aiTaxInsightCard" style="display:none;">
           <div class="ai-insight-card">
-            <div class="ai-insight-label">What the AI says</div>
+            <div class="ai-insight-label" id="aiTaxRuleLabel">What the AI says</div>
             <div class="ai-insight-text" id="aiTaxInsightText"></div>
             <div id="aiTaxLearnMore" class="ai-learn-more" style="display:none;"></div>
             <p class="fp-advice">General information only, not financial or tax advice. FirePath isn’t a registered tax agent and doesn’t consider your full situation. A registered tax agent or licensed financial adviser can help with advice for you.</p>
@@ -434,10 +448,10 @@
       const d = new Date(cachedTaxInsightAt);
       bar.innerHTML = `Last updated ${d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })} — numbers below may not reflect changes since then.`;
       bar.style.display = 'block';
-      if (btn) btn.textContent = 'Run my tax insight again';
+      const lead = document.getElementById('aiRuleLead'); if (lead) lead.textContent = 'Pick a rule to look at another one';
     } else {
       bar.style.display = 'none';
-      if (btn) btn.textContent = 'Get my tax insight';
+      const lead = document.getElementById('aiRuleLead'); if (lead) lead.textContent = 'Pick a rule';
     }
   }
 
@@ -828,7 +842,9 @@
     }
   }
 
-  async function getAiTaxInsight() {
+  const TAX_RULES = { 'catch-up': 'Catch-up (carry-forward) concessional contributions', 'co-contribution': 'The government super co-contribution', 'spouse': 'The spouse contribution tax offset', 'cgt': 'The 50% CGT discount', 'franking': 'Franking credits', 'fhsss': 'The First Home Super Saver Scheme', 'division293': 'Division 293 tax' };
+  async function getAiTaxInsight(rule) {
+    if (!TAX_RULES[rule]) return;
     const btn = document.getElementById('aiInsightBtn');
     const loading = document.getElementById('aiTaxLoading');
     const card = document.getElementById('aiTaxInsightCard');
@@ -863,30 +879,24 @@
 
 The person has ALREADY seen on this page: their exact take-home breakdown, marginal and effective tax rates, a specific salary sacrifice calculation with real dollar figures, and an offset-vs-invest comparison. Do NOT repeat, re-explain, or re-derive any of those numbers — that information is already visible to them. Repeating it is a failure condition for this response.
 
-Your job is to explain ONE Australian tax rule they have not yet seen on this page, as general education. Choosing a rule is not a view that it applies to them. Each angle has a short tag in brackets — you MUST use one of these exact tags at the very end of your response:
-- Catch-up (carry-forward) concessional contributions [catch-up] — if their super balance is relatively low for their age, unused cap from earlier years may let contributions go above the standard yearly cap.
-- The government super co-contribution [co-contribution] — if their income is on the lower side and personal after-tax contributions are part of the picture.
-- Spousal contribution tax offset [spouse] — only if a partner or spouse is mentioned in their situation.
-- The 50% CGT discount [cgt] — if they're investing in ETFs/shares outside super and holding for over 12 months.
-- Franking credits [franking] — if they mention Australian shares specifically (not just ETFs generally).
-- First Home Super Saver Scheme [fhsss] — only if their situation clearly mentions saving for a first home.
-- Division 293 [division293] — only if their income is near or above the Division 293 threshold below.
+The person picked this rule to learn about: ${TAX_RULES[rule]}. Explain only this rule.
 
-Pick one of these rules and explain in plain English how it works in general, with an illustrative example for a made-up earner on a round income near theirs (for example "someone earning $90,000"), not their own figures. Don't say whether the rule applies to them or whether they're eligible; instead mention that eligibility depends on their circumstances and can be checked with the ATO or a registered tax agent. If none clearly links to their figures, pick one that applies to most working Australians (catch-up contributions or the CGT discount) rather than leaving it blank.
+Explain in plain English how it works in general, then show what it could look like on their own figures from the message, worded as "if this applied to you, on your figures it could look like…". Don't say whether the rule applies to them or whether they're eligible, and don't say whether it would be a good idea for them; mention that eligibility depends on their circumstances and can be checked with the ATO or a registered tax agent. If the rule clearly can't be worked on their figures (for example franking or the CGT discount when no investments are given), explain it with a simple example instead and say which figure would be needed.
 
 FIGURES FROM FIREPATH'S TAX ENGINE (${TAX_CONFIG.year} financial year): concessional cap ${fmtDollars(TAX_CONFIG.concessionalCap)} a year; non-concessional cap ${fmtDollars(TAX_CONFIG.nonConcessionalCap)} a year; tax on concessional contributions in super ${Math.round(TAX_CONFIG.superTaxRate * 100)}%; Super Guarantee ${Math.round(TAX_CONFIG.sgRate * 1000) / 10}%${typeof DIV293_THRESHOLD !== 'undefined' ? `; Division 293 threshold ${fmtDollars(DIV293_THRESHOLD)} (income plus concessional contributions)` : ''}.
 Use ONLY these figures and the ones in the person's message. Don't quote any other cap, threshold, rate or dollar limit from memory — they change each year. If a figure you'd need isn't given (for example the co-contribution income limits or the spouse offset limits), explain how the rule works without the number and point them to the ATO website for the current figure.
 
-Rules: 1. Never say "you should" or "I recommend", and never say which option they should choose — explain how the rule works and what it could mean for the made-up earner in the example. Never use their notes, goals or family situation as a reason to act. 2. Never name specific products, super funds, ETFs, brokers, lenders or platforms. 3. Keep your explanation to 2 short paragraphs maximum — you have a strict length budget and MUST finish with a complete final sentence, so stay concise from the start rather than running out of room. 4. Don't add a disclaimer; the page shows one under your answer. 5. Use <strong> for bold. 6. The very last line of your response must be only the tag in brackets, e.g. [catch-up] — nothing else on that line.`,
+Rules: 1. Never say "you should" or "I recommend", and never say whether they should use this rule — explain how it works and what it could look like on their figures if it applied. Never use their notes, goals or family situation as a reason to act. 2. Never name specific products, super funds, ETFs, brokers, lenders or platforms. 3. Keep your explanation to 2 short paragraphs maximum — you have a strict length budget and MUST finish with a complete final sentence, so stay concise from the start rather than running out of room. 4. Don't add a disclaimer; the page shows one under your answer. 5. Use <strong> for bold. 6. Don't end with a tag or label.`,
           messages: [{ role: 'user', content: userInput }]
         })
       });
       const data = await res.json();
       let insight = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
       const tagMatch = insight.match(/\[(catch-up|co-contribution|spouse|cgt|franking|fhsss|division293)\]\s*$/);
-      const topicTag = tagMatch ? tagMatch[1] : null;
+      const topicTag = rule;
       insight = insight.replace(/\[(catch-up|co-contribution|spouse|cgt|franking|fhsss|division293)\]\s*$/, '').trim();
       document.getElementById('aiTaxInsightText').innerHTML = FirePathSafe.aiText(insight);
+      document.getElementById('aiTaxRuleLabel').textContent = TAX_RULES[rule] + ', on your figures';
 
       const learnMoreEl = document.getElementById('aiTaxLearnMore');
       const topicMap = {
