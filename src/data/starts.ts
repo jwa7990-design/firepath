@@ -1,6 +1,6 @@
 /**
  * "Start where you are" — one page per common situation, at /start/<slug>. Each page
- * gives the order that genuinely helps (the same order as js/moves.js), the free tools
+ * lists common questions in a standard reading order (the same order as js/moves.js), the free tools
  * for it, the articles to read and a few straight answers. Also used for the homepage
  * doors and the share images (scripts/og-images.cjs reads slug/door/title from here).
  */

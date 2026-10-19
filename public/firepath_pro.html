@@ -844,7 +844,7 @@
                 <div class="ob-field">
                   <label class="ob-label" for="context">Anything else? (optional)</label>
                   <span class="ob-hint">Optional notes for the calculations, like uneven pay or a planned move. FirePath gives general information and doesn’t assess your personal circumstances.</span>
-                  <textarea class="ob-textarea" id="context" oninput="debounceSaveContext()" placeholder="e.g. I have two kids under 5, a mortgage with 22 years left, and I'm self-employed with variable income. I want to be done working by 55 but I'm not sure if that's realistic..."></textarea>
+                  <textarea class="ob-textarea" id="context" oninput="debounceSaveContext()" placeholder="e.g. my pay varies month to month, I'm self-employed, I'm planning to move in 2027, mortgage repayments are $2,800 a month..."></textarea>
                   <div id="contextPrompts"></div>
                 </div>
 
@@ -1013,7 +1013,7 @@
       <div class="hp-wrap hp-half">
         <div id="rangeCard" style="display:none;" class="range-card">
           <h2 class="pr-sec-title">Your projected range</h2>
-          <div class="pro-card-sub">Here's where you're at now, and what changes if your money works harder.</div>
+          <div class="pro-card-sub">How the date changes under different return assumptions.</div>
           <div id="rangeRows"></div>
           <p class="pr-fine">We assume investments grow 7% a year after inflation, a common long-run figure. Some years will be better, some worse. <a href="assumptions.html">How we calculate →</a></p>
         </div>
@@ -2395,13 +2395,14 @@ async function saveProfile() {
     const alreadyInvested = savingsType === 'etfs';
     rows.innerHTML = !alreadyInvested ? `
       <div class="range-row"><span class="range-label"> <strong>${labelMap[savingsType]}</strong><br/><span class="pr-sub">${noteMap[savingsType]}</span></span><span class="range-value conservative">${fmtReality}</span></div>
-      <div class="range-row base"><span class="range-label"> <strong>If your money was invested</strong><br/><span class="pr-sub">(7% a year after inflation, less tax${calcData.headlineWithSuper ? ', plus your super from 60' : ''})</span></span><span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span class="pr-diff">(${diffReality}yr sooner)</span>` : ''}</span></div>
-      <div class="range-row"><span class="range-label"> <strong>Invested + spend $50/week less</strong><br/><span class="pr-sub">(lowers your number and lifts your savings)</span></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span class="pr-diff">(${diffPlus}yr sooner)</span>` : ''}</span></div>` : `
+      <div class="range-row"><span class="range-label"> <strong>At share-market returns</strong><br/><span class="pr-sub">(7% a year after inflation, less tax${calcData.headlineWithSuper ? ', plus your super from 60' : ''})</span></span><span class="range-value base">${fmt7}${diffReality && diffReality > 0 ? ` <span class="pr-diff">(${diffReality}yr sooner)</span>` : ''}</span></div>
+      <div class="range-row"><span class="range-label"> <strong>Share-market returns + spending $50/week less</strong><br/><span class="pr-sub">(lowers your number and lifts your savings)</span></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span class="pr-diff">(${diffPlus}yr sooner)</span>` : ''}</span></div>` : `
       <div class="range-row base"><span class="range-label"> <strong>Already investing at 7%</strong><br/><span class="pr-sub">Your current setting</span></span><span class="range-value base">${fmt7}</span></div>
-      <div class="range-row"><span class="range-label"> <strong>Invested + spend $50/week less</strong><br/><span class="pr-sub">(lowers your number and lifts your savings)</span></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span class="pr-diff">(${diffPlus}yr sooner)</span>` : ''}</span></div>`;
-    rows.innerHTML += marketRangeHTML(fireNum, savings, mSav);
+      <div class="range-row"><span class="range-label"> <strong>Share-market returns + spending $50/week less</strong><br/><span class="pr-sub">(lowers your number and lifts your savings)</span></span><span class="range-value optimistic">${fmtPlus}${diffPlus && diffPlus > 0 ? ` <span class="pr-diff">(${diffPlus}yr sooner)</span>` : ''}</span></div>`;
+    rows.innerHTML += marketRangeHTML(fireNum, savings, mSav)
+      + '<p class="pr-fine">Shares have had higher long-run returns than cash, with larger falls along the way; cash is steadier. Past returns aren’t a guide to the future, and none of these is a suggestion to move your money.</p>';
     const subtitle = el.querySelector('div:nth-child(2)');
-    if (subtitle) subtitle.textContent = alreadyInvested ? "You're already investing. Here's what one more change could do." : "Here's where you're at now, and what changes if your money works harder.";
+    if (subtitle) subtitle.textContent = alreadyInvested ? "How one more change would move the date, on these assumptions." : "How the date changes under different return assumptions.";
     el.style.display = 'block';
   }
 
@@ -2773,7 +2774,7 @@ async function saveProfile() {
     const yearsToDeposit=rate=>{if(savings>=t)return 0;if(mSav<=0)return null;const r=monthlyRate(rate),g=monthlyRate(priceGrowthReal);let b=savings,goal=t,m=0;while(b<goal&&m<1200){b=b*(1+r)+mSav;goal*=1+g;m++;}return m<1200?m/12:null;};
     const yb=yearsToDeposit(bank),y5=yearsToDeposit(0.05),diff=yb!==null&&y5!==null?yb-y5:null,inf=Math.round(t*Math.pow(1+priceGrowthReal,y5===null?3:y5)/1000)*1000;
     el.style.display='block';
-    el.innerHTML=`<div class="pr-block"><div class="pr-block-title"> Saving for a house deposit?</div><div class="pr-block-sub">Based on a $100K deposit target. At 4% property price growth, that could cost roughly <strong class="pr-ink">$${Math.round(inf/1000)}K</strong> in today's dollars by the time you save it.</div><div class="pr-rows"><div class="pr-row"><span class="pr-l">In a bank (${(bank*100).toFixed(1)}% after inflation)</span><span class="pr-v">${yb!==null?fmt(yb)+' ('+(currentYear+Math.round(yb))+')':'100+ yrs'}</span></div><div class="pr-row"><span class="pr-l">At 5% growth after inflation</span><span class="pr-v is-ember is-bold">${y5!==null?fmt(y5)+' ('+(currentYear+Math.round(y5))+')':'100+ yrs'}</span></div><div class="pr-row"><span class="pr-l">Time you could save</span><span class="pr-v is-ember is-bold">${diff&&diff>0.1?fmt(diff)+' sooner':'similar timeline'}</span></div></div><p class="pr-fine">Educational only — not financial advice.</p></div>`;
+    el.innerHTML=`<div class="pr-block"><div class="pr-block-title"> A house deposit, on two assumptions</div><div class="pr-block-sub">Based on a $100K deposit target. At 4% property price growth, that could cost roughly <strong class="pr-ink">$${Math.round(inf/1000)}K</strong> in today's dollars by the time you save it.</div><div class="pr-rows"><div class="pr-row"><span class="pr-l">In a bank (${(bank*100).toFixed(1)}% after inflation)</span><span class="pr-v">${yb!==null?fmt(yb)+' ('+(currentYear+Math.round(yb))+')':'100+ yrs'}</span></div><div class="pr-row"><span class="pr-l">If the money earned 5% after inflation (not guaranteed)</span><span class="pr-v">${y5!==null?fmt(y5)+' ('+(currentYear+Math.round(y5))+')':'100+ yrs'}</span></div><div class="pr-row"><span class="pr-l">Difference on these assumptions</span><span class="pr-v">${diff&&diff>0.1?fmt(diff):'similar timeline'}</span></div></div><p class="pr-fine">Over a few years, growth investments can fall and may be worth less when the deposit is needed. Many people keep money for a near-term goal in cash for that reason. Educational only, not financial advice.</p></div>`;
   }
 
   function buildZeroSavingsCard(mI, fireNum, isPro) {
@@ -2816,7 +2817,7 @@ async function saveProfile() {
       const extraWeekly = 50, newMSav = mSav + (extraWeekly * 52 / 12), newFy = planYears({ monthlySavings: newMSav }), diff = newFy !== null && fy ? Math.round(fy - newFy) : null;   // same plan as the headline
       let leverMsg = '';
       if (debt > 0) { leverMsg = `${isPartner ? 'You two have' : 'You have'} ${fmtM(debt)} in debt. Once that's gone, the repayments become savings — and that changes the date.`; }
-      else if (savingsType === 'cash' && savings > 0) { leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} savings are in cash. The big question: what happens if that money is invested instead? The "If your money was invested" comparison in your results shows the exact difference.`; }
+      else if (savingsType === 'cash' && savings > 0) { leverMsg = `${your.charAt(0).toUpperCase() + your.slice(1)} savings are in cash. Your results compare the date at bank rates and at share-market returns, on these assumptions, with the risks of each.`; }
       else { leverMsg = diff && diff > 0 ? `An extra $${extraWeekly}/week could bring ${your} freedom date forward by ${diff} year${diff !== 1 ? 's' : ''}. "See what moves ${your} date" below has the full picture.` : `"See what moves ${your} date" below shows what each change would do.`; }
       blocks.push(`<div class="pr-block"><div class="pr-block-title"> One of several areas you could research further, on these numbers</div><div class="pr-lead-body">${leverMsg}</div><p class="pr-fine">General information only, not financial advice. It doesn’t consider your full situation. Consider getting advice from a licensed financial adviser before acting.</p></div>`);
     }

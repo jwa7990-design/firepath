@@ -688,7 +688,7 @@ test('already Age Pension age: the main date counts today\'s pension', () => {
   assert.ok(!(E.freedomPlan(E.planInputsFromProfile({ age: 55, take_home_income: 4500, savings_monthly: 600, current_savings: 40000, super_balance: 220000, freedom_number: 3900 * 300, pay_cycle: 'monthly' })).pensionIncluded > 0));
 });
 
-test('one line under the date: the note that moves the date most (67+ always first)', () => {
+test('one line under the date: the first note in a fixed order (67+ always first)', () => {
   const pick = p => { const pi = E.planInputsFromProfile(Object.assign({ pay_cycle: 'monthly' }, p)); const plan = E.freedomPlan(pi); return E.headlineNotes(pi, plan, { homeowner: pi.homeowner, rentFortnight: pi.rentFortnight }); };
   const cash = pick({ age: 35, take_home_income: 6000, savings_monthly: 2000, current_savings: 100000, super_balance: 80000, freedom_number: 4000 * 300 });
   assert.equal(cash.main.key, 'savings');
@@ -887,7 +887,7 @@ test('owner decisions (review 2): debt note, buffer wording, no far-off pension 
   const p18 = E.planInputsFromProfile({ age: 41, take_home_income: 6200, savings_monthly: 600, current_savings: 15000, savings_type: 'cash', super_balance: 70000,
     freedom_number: 5600 * 12 * 25, pay_cycle: 'monthly', housing_status: 'renting' });
   const n18 = E.headlineNotes(p18, E.freedomPlan(p18), { homeowner: false });
-  assert.match(n18.main.text, /Investing what you add beyond a three-month buffer/);
+  assert.match(n18.main.text, /investing what you add beyond a three-month buffer/i);
 
   // #17: 36, the Age Pension line moved the date most, but under 50 it stays behind "More".
   const p17 = E.planInputsFromProfile({ age: 36, take_home_income: 7000, savings_monthly: 2000, current_savings: 60000, savings_type: 'mix', super_balance: 90000,

@@ -189,7 +189,7 @@ window.FirePathMoves = (function () {
   }
 
   // ── The moves ─────────────────────────────────────────────
-  // tier: the sensible order to tackle things in (lower first).
+  // tier: the standard order many guides cover topics in (lower first), the same for everyone.
   // applies(s) → false, or { impact: { years? , dollars?, text } , why }.
   // Free tools need no account; Pro ones are marked so pages can label them.
   const MOVES = [

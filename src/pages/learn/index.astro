@@ -27,8 +27,13 @@ const labData = {
 // "Guides related to the numbers you entered" fill-ins, by situation (after the person's own move articles).
 const theme = (title: string) => SHELVES.find(s => s.id === 'questions')?.themes?.find(t => t.title === title)?.slugs || [];
 const retirementReads = ['four-percent-rule-australia', 'is-my-super-enough', 'before-super-access'];
+// Guides are picked by the topics someone entered (debt, a mortgage, a partner, renting, an age
+// band), never by whether a strategy would pay off for them or whether they'd be eligible.
 const recThemes = {
   debt: ['debt-vs-invest'],
+  mortgage: ['offset-vs-investing'],
+  partner: ['spouse-contribution-offset'],
+  standardTax: ['salary-sacrifice-explained', 'tax-and-investing-australia'],
   starting: theme('Where you stand'),
   building: [...theme('Time and freedom'), ...theme('What if…')],
   close: retirementReads,
@@ -91,8 +96,8 @@ const schema = {
             <!-- Filled in the browser from the numbers saved by the free calculator (this device only). -->
             <div class="lab-tile lab-recs lab-z2" id="hubRecs" hidden>
               <div class="lab-tile-head">
-                <h2 id="recs-title" class="lab-k is-ember">Guides on topics in your numbers</h2>
-                <p class="hub-recs-note">Topics that relate to the numbers you entered in the calculator. Not a ranking or a recommendation · <a href="#" id="hubRecsClear">Clear</a></p>
+                <h2 id="recs-title" class="lab-k is-ember">Guides on topics you entered</h2>
+                <p class="hub-recs-note">Shown because of what you typed into the calculator, not because they suit you. Not a ranking or a recommendation · <a href="#" id="hubRecsClear">Clear</a></p>
               </div>
               <ul class="lab-list" id="hubRecsList"></ul>
             </div>
@@ -183,23 +188,27 @@ const schema = {
       if (!saved || !hub || !shelf || !list) return;
       const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
       const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
-      let s, moves;
-      try { const r = M.rank(M.situationFromInputs(saved), { limit: 3 }); s = r.situation; moves = r.moves; } catch (e) { return; }
-      // Topics in the standard order first, then debt, then renting and their stage (retirement reads lead once close).
-      const stageReads = recThemes[s.stage] || [];
-      const rentReads = s.housing === 'renting' ? recThemes.renting : [];
-      const late = s.stage === 'close' || s.stage === 'free';
-      const wanted = moves.map(m => m.article).filter(Boolean)
-        .concat(s.consumerDebt > 0 ? recThemes.debt : [])
-        .concat(late ? stageReads.concat(rentReads) : rentReads.concat(stageReads))
-        .concat(recThemes.fallback);
+      let s;
+      try { s = M.situationFromInputs(saved); } catch (e) { return; }
+      // Topics they entered, in a fixed order: debt, mortgage, partner, renting, then an age band,
+      // then the same short set of tax guides for everyone. No benefit or eligibility tests.
+      const ageReads = s.age == null ? [] : s.age >= 55 ? recThemes.close : s.age >= 35 ? recThemes.building : recThemes.starting;
+      // Up to two guides per topic, so one topic doesn't fill the list.
+      const groups = [s.consumerDebt > 0 ? recThemes.debt : [], s.housing === 'mortgage' || s.mortgageRemaining > 0 ? recThemes.mortgage : [],
+        s.hasPartner ? recThemes.partner : [], s.housing === 'renting' ? recThemes.renting : [], ageReads, recThemes.standardTax, recThemes.fallback];
+      // Only topic tags (age, housing, partner, kids) narrow the list; income and super thresholds don't.
+      const topicFits = t => M.articleFits(t ? { ages: t.ages, housing: t.housing, partner: t.partner, kids: t.kids } : t, s);
       fetch('/learn/articles.json').then(r => r.ok ? r.json() : null).then(all => {
         if (!Array.isArray(all)) return;
         const bySlug = new Map(all.map(a => [a.slug, a]));
         const picks = [];
-        for (const slug of wanted) {
-          const a = bySlug.get(slug);
-          if (a && !picks.includes(a) && M.articleFits(a.for, s)) picks.push(a);
+        for (const [gi, group] of groups.entries()) {
+          let taken = 0;
+          for (const slug of group) {
+            const a = bySlug.get(slug);
+            if (a && !picks.includes(a) && topicFits(a.for)) { picks.push(a); taken++; }
+            if (picks.length === 4 || (taken === 2 && gi < groups.length - 1)) break;
+          }
           if (picks.length === 4) break;
         }
         if (!picks.length) return;

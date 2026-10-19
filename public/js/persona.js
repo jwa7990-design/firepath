@@ -23,7 +23,7 @@
  *   <button data-persona-open>Change how FirePath talks to me</button> ← opens the picker modal
  *   <span data-persona-name></span>                                   ← "Building towards it"
  *   <div class="fp-why" data-persona-show="beginner">…</div>          ← "Why this matters" box
- *   <div class="fp-consider" data-persona-show="beginner">…</div>     ← "Have you considered…" box
+ *   <div class="fp-consider" data-persona-show="beginner">…</div>     ← "How it works" box
  *   <div class="fp-tldr" data-persona-show="fire">…</div>             ← one-line summary for experts
  *   <div data-tool-list><a data-tool="withdrawal">…</a></div>         ← see TOOLS below
  *   CSS: html[data-persona="fire"] .whatever { ... }
@@ -97,7 +97,7 @@ window.FirePathPersona = (function () {
         freedomNumberLabel: 'Freedom number',
         freedomShort: 'freedom',
         obEyebrow: 'Building up your numbers',
-        obSub: 'Enter your numbers and add any context. The AI picks up on what matters most.',
+        obSub: 'Enter your numbers and add any context. Notes help the calculations use the right figures.',
         incomeLabel: 'Take-home income',
         savingsLabel: 'Current savings & investments',
         savingsRateLabel: 'How much do you put aside each cycle?',
@@ -508,7 +508,7 @@ ${hide} { display: none !important; }
 .fp-why { background: #FFF7F3; border: 1px solid rgba(244,98,42,.18); }
 .fp-why::before { content: 'Why this matters'; color: var(--fire-orange, #F4622A); }
 .fp-consider { background: rgba(58,110,165,.07); border: 1px solid rgba(58,110,165,.16); }
-.fp-consider::before { content: 'Have you considered…'; color: #3A6EA5; }
+.fp-consider::before { content: 'How it works'; color: #3A6EA5; }
 .fp-tldr { background: transparent; border: 1px dashed var(--border, #EDE3DA); padding: 10px 14px; font-size: 12px; }
 .fp-tldr::before { content: 'TL;DR'; color: var(--soft-grey, #9E8E85); }
 

@@ -79,7 +79,7 @@ window.FirePathEngine = (function () {
     return null;
   }
  
-  // Picks the single highest-value thing for this person to do next.
+  // One topic for pages that show a single card: the first in the standard order (moves.js).
   //
   // When js/moves.js is loaded (window.FirePathMoves), this is just the top-ranked move
   // for this person, so Journey, Full Analysis and every other page agree. Pass the
@@ -959,10 +959,11 @@ window.FirePathEngine = (function () {
     const early = plan.withdrawalRate < 0.0375;
     return `Stopping work ${early ? 'before 50' : 'in your 50s'} means your money may need to last ${early ? '45' : '35'} years or more, so this date plans on ${x}× your yearly spending (a freedom number of ${fmtM2((plan.spendReal != null ? plan.spendReal : plan.spendYear) * 25 * plan.targetMultiple)}) instead of 25×, and on spending a little more until your super unlocks.`;
   }
-  // The one line under the date: of everything worth saying about this person's date, the
-  // note that changes it most. Already Age Pension age always wins (it explains a "now");
-  // otherwise each note is scored by how many months it moves the date. The rest come back
-  // as `others` (pages put them behind "More about this date").
+  // The one line under the date: the first note that applies, in a fixed order that's the
+  // same for everyone (Age Pension age now, a mortgage warning, debt, savings, Age Pension,
+  // the cushion, then the mortgage method, which only explains how repayments are counted). Never chosen by which would help this person most.
+  // A note whose effect is too small to matter isn't shown under the date. The rest come
+  // back as `others` (pages put them behind "More about this date").
   // Debt (inputs.consumerDebt or opts.consumerDebt, cards and personal loans) isn't in the
   // date itself; its note says what paying it off first would do, and the investing note
   // then talks about after that. Under 50, the Age Pension line (rules decades away) is never
@@ -985,11 +986,11 @@ window.FirePathEngine = (function () {
       const afterDebt = debt > 0 && !plan.alreadyFree ? debtFirstInputs(inputs, debt) : null;
       if (debt > 0 && !plan.alreadyFree) {
         const dn = debtNote(plan, afterDebt, debt);
-        // High-interest debt comes first under 50 when it changes the date; from 50 (when the
-        // Age Pension matters more) it competes like the rest. A small effect stays behind "More".
+        // Shown under the date only when it moves it enough: 12 months under 50, 3 months from 50.
+        // A smaller effect stays behind "More".
         const dGap = afterDebt ? gap(months(plan), months(freedomPlan(afterDebt))) : Infinity;
         const young = plan.inputs && plan.inputs.age != null && plan.inputs.age < 50;
-        if (dn) notes.push({ key: 'debt', text: dn, score: dGap < 3 ? -1 : young && dGap >= 12 ? 1e9 : dGap });
+        if (dn) notes.push({ key: 'debt', text: dn, score: dGap < 3 || (young && dGap < 12) ? -1 : dGap });
       }
       // Invested: the Australian share they told us, else a typical mix (a cash saver's 0 is just the default).
       const stated = inputs.ausShareStated !== undefined ? inputs.ausShareStated : (inputs.savingsType === 'cash' || inputs.savingsType === 'offset' || !inputs.savingsType ? null : inputs.ausShare);
@@ -1016,9 +1017,13 @@ window.FirePathEngine = (function () {
       if (cn) notes.push({ key: 'cushion', text: cn, score: gap(months(plan), months(freedomPlan(Object.assign({}, inputs, { safeRate: false })))) });
     }
     if (!notes.length) return null;
-    const order = ['pension67', 'debt', 'savings', 'pension', 'mortgage', 'cushion'];
-    notes.sort((a, b) => (b.score - a.score) || (order.indexOf(a.key) - order.indexOf(b.key)));
-    // Nothing but a far-off Age Pension line: nothing goes under the date.
+    // Fixed order (a mortgage that doesn't add up is a warning, so it comes first). A note with
+    // too small an effect (score < 0) only shows behind "More about this date".
+    const warn = n => n.key === 'mortgage' && n.score >= 1e8;
+    const order = ['pension67', 'mortgage-warning', 'debt', 'savings', 'pension', 'cushion', 'mortgage'];
+    const rank = n => order.indexOf(warn(n) ? 'mortgage-warning' : n.key);
+    notes.sort((a, b) => ((a.score < 0) - (b.score < 0)) || (rank(a) - rank(b)));
+    // Nothing but a far-off Age Pension line or a tiny effect: nothing goes under the date.
     if (notes[0].score < 0) return null;
     const strip = n => ({ key: n.key, text: n.text });
     return { main: strip(notes[0]), others: notes.slice(1).map(strip) };
@@ -1061,10 +1066,10 @@ window.FirePathEngine = (function () {
     if (plan.freedomYear === investedPlan.freedomYear && plan.freedomAge === investedPlan.freedomAge) return null;
     const where = type === 'cash' ? 'cash in the bank' : plan.inputs.hasMortgage === false ? 'a mix of bank and investments' : 'a mix of bank, offset and investments';
     const when = investedPlan.alreadyFree ? 'now' : `around ${investedPlan.freedomYear}${investedPlan.freedomAge != null ? `, age ${investedPlan.freedomAge}` : ''}`;
-    // Within about five years of stopping, a fall in shares has little time to recover.
-    const close = plan.months != null && plan.months <= 60 ? ' Shares can also fall, which matters more this close to stopping.' : '';
+    // Always say shares can fall; within about five years of stopping, say why that matters more.
+    const close = plan.months != null && plan.months <= 60 ? ' Shares can fall in value, which matters more this close to stopping.' : ' Shares can fall in value, and returns aren’t guaranteed.';
     const how = so.afterDebt ? 'Counting savings as invested in shares once your debt is paid off' : so.buffer ? 'Investing what you add beyond a three-month buffer (as an example)' : 'Counting savings as invested in shares';
-    return `Your savings are counted as ${where}. ${how}, this could be ${when}.${close}`;
+    return `Your savings are counted as ${where}. What-if: ${how.charAt(0).toLowerCase() + how.slice(1)}, this could be ${when}.${close}`;
   }
 
   // The Age Pension line (agePensionPlan's result against the headline), or null when it

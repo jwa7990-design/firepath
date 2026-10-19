@@ -85,7 +85,7 @@ export const SHELVES: Shelf[] = [
   ], badges: ['Real Questions', 'Freedom Timeline'] },
   { id: 'toolkit', title: 'The FIRE toolkit', icon: 'bars', intro: 'Index funds, ETFs, the 4% rule and the tax basics. The core of investing for independence.', badges: ['FIRE Standard'] },
   { id: 'growth', title: 'Growth investing', icon: 'spark', intro: 'Shares, property, dividends and the emotional side of watching markets move.', badges: ['Growth Focused'] },
-  { id: 'steady', title: 'Playing it steady', icon: 'shield', intro: 'Savings accounts, bonds, balanced funds and spreading your risk sensibly.', badges: ['Steady & Safe'] },
+  { id: 'steady', title: 'Playing it steady', icon: 'shield', intro: 'Savings accounts, bonds, balanced funds and spreading your risk sensibly.', badges: ['Steady & Defensive'] },
   { id: 'super-tax', title: 'Super and tax', icon: 'scale', intro: 'Salary sacrifice, catch-up contributions, Division 293, the CGT discount and more. The Australian rules that change your date.', badges: ['Super', 'Tax & Strategy · Superannuation', 'Tax & Strategy · Investing', 'Tax & Strategy · Property'] },
 ];
 

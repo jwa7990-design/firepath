@@ -7,7 +7,7 @@
  *
  * - With a known situation (a Pro member's saved plan passed in as opts.situation, or
  *   the free calculator's numbers saved on this device via FirePathMoves.recall()), it
- *   shows up to three options from js/moves.js, ordered by modelled effect — leaving out any
+ *   shows up to three options from js/moves.js, in the standard order (the same for everyone) — leaving out any
  *   whose tool is the page they're already on (opts.exclude).
  * - With nothing known, it shows three sensible general next steps for this tool and
  *   an invitation to run the free calculator to see options against their own numbers.

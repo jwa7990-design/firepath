@@ -75,6 +75,7 @@
   .option-card.strongest { padding-left: 18px; box-shadow: inset 3px 0 0 var(--ember-ink); }
   .option-eyebrow { margin-bottom: 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink-2); }
   .option-eyebrow.is-strongest { color: var(--ember-ink); }
+  .option-sort { margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
   .option-headline { margin-bottom: 14px; font-family: var(--font-display); font-size: clamp(22px, 2.4vw, 27px); font-weight: 700; line-height: 1.2; letter-spacing: -0.012em; color: var(--ink); }
   .option-stats { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-bottom: 14px; }
   .option-stat-value { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
@@ -134,7 +135,7 @@
       <div class="hp-side-head">
         <div class="handoff" id="handoffIntro" style="display:none;">
           <div class="handoff-title">Based on your Freedom gap...</div>
-          <div class="handoff-text">We're working out a few ways you could use what you've already got.</div>
+          <div class="handoff-text">Here's how a few different paths look on these numbers.</div>
         </div>
 
         <div id="summaryBar" style="display:none;">
@@ -154,7 +155,7 @@
 
         <div class="loading-wrap" id="foLoading">
           <div class="loading-flame"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22c4.5 0 7-2.8 7-6.8 0-2.8-1.4-4.8-2.8-6.5 0 1.8-.9 2.8-1.8 2.8.4-2.8-.9-4.8-2.7-7.3-.9 2.8-3.6 4.6-3.6 9 0 .9.2 1.8.5 2.7-1-.6-1.7-1.6-1.9-3-1.1 1.8-1.4 3.6-1.4 4.8 0 4 3.2 6.8 7.2 6.8z"/></svg></div>
-          <div class="loading-text">Weighing up your real options...</div>
+          <div class="loading-text">Working out the numbers...</div>
         </div>
 
         <div id="optionsWrap"></div>
@@ -425,7 +426,7 @@
     // and beginners never see FIRE jargon like "Coast FIRE" or "Barista FIRE" here.
     const personaRules = {
       beginner: 'This person is new to this — warm, simple, human. Never use FIRE community terms like "Coast FIRE," "Barista FIRE," "sequence risk," or "safe withdrawal rate." Explain the idea in plain, everyday language, as if talking to a friend who has never heard any of this before.',
-      building: 'This person understands the basics and is actively building toward this. Clear, motivating, practical. You can introduce a FIRE term occasionally if it genuinely helps, but always explain it in the same sentence — never assume it\'s already understood.',
+      building: 'This person understands the basics and is actively building toward this. Clear, neutral, practical. You can introduce a FIRE term occasionally if it genuinely helps, but always explain it in the same sentence — never assume it\'s already understood.',
       fire: 'This person is deep in the FIRE journey and fluent in the terminology. Direct, analytical, peer-level. Feel free to use terms like Coast FIRE, Barista FIRE, or sequence of returns risk naturally, without stopping to explain them.'
     };
     const toneRule = personaRules[userPersona] || personaRules.building;
@@ -444,7 +445,7 @@ Who this is for: ${toneRule}
 
 Absolute rules:
 1. NEVER invent, estimate, or alter any number. Only use figures given in "real_numbers". If a number isn't given, don't mention it.
-2. Write like a knowledgeable friend pointing something out over coffee — not a brochure, not a form, not a financial report.
+2. Write in a plain, conversational way, like a well-written explainer — not a brochure, not a form, not a financial report.
 3. Vary the sentence structure and phrasing meaningfully between the options in THIS response, so they don't all sound like the same template filled in differently.
 4. Never say "you should" or "I recommend", and never say which path is best for them or which they should choose — these are paths worth knowing about, not instructions.
 5. Never name specific products, funds, ETFs, brokers, platforms or employers.
@@ -489,33 +490,30 @@ Absolute rules:
   // "Most realistic" = whichever non-baseline option is achievable soonest, measured in
   // one unit: years until that path is open to you. Starting-now options are 0 years away.
   // (Comparing hours a week against years, or "years sooner" against "years away", mixed units.)
-  // A simple, deterministic stand-in for "which path is closest to your reach right now."
-  function findStrongestId(options, age) {
-    let best = null, bestScore = Infinity;
-    options.forEach(o => {
-      if (o.id === 'stay_course') return;
-      const f = o.facts;
-      const score = o.id === 'semi_retire_now' ? 0
-        : f.yearsAway != null ? f.yearsAway
-        : f.yearsToPension != null ? f.yearsToPension
-        : f.targetAge != null && age ? f.targetAge - Math.floor(age)
-        : Infinity;
-      if (score < bestScore) { bestScore = score; best = o.id; }
-    });
-    return best;
+  // Used only to sort the cards by how soon each could start (an open sort, the same rule for
+  // everyone); no card is singled out or styled differently.
+  function yearsUntilOpen(o, age) {
+    if (o.id === 'stay_course') return Infinity;
+    const f = o.facts;
+    const y = o.id === 'semi_retire_now' ? 0
+      : f.yearsAway != null ? f.yearsAway
+      : f.yearsToPension != null ? f.yearsToPension
+      : f.targetAge != null && age ? f.targetAge - Math.floor(age)
+      : Infinity;
+    return Number.isFinite(y) ? y : 1e6;
   }
 
   function renderOptions(options, narrated) {
     const wrap = document.getElementById('optionsWrap');
     const narratedMap = {};
     if (narrated) { narrated.forEach(n => { narratedMap[n.id] = n; }); }
-    const strongestId = findStrongestId(options, currentInputs && currentInputs.age);
+    const age = currentInputs && currentInputs.age;
+    const sorted = options.slice().sort((a, b) => yearsUntilOpen(a, age) - yearsUntilOpen(b, age));
 
-    wrap.innerHTML = options.map(o => {
+    wrap.innerHTML = (sorted.length > 1 ? '<p class="option-sort">Sorted by how soon each could start on these numbers. Not a ranking or a recommendation.</p>' : '') + sorted.map(o => {
       const meta = OPTION_META[o.id];
       const text = narratedMap[o.id] || fallbackText(o);
       const isStay = o.id === 'stay_course';
-      const isStrongest = o.id === strongestId;
       const gainBack = meta.gainBack ? meta.gainBack(o.facts) : null;
       // Skip anything that isn't a real number, so a card never shows "NaN" or "undefined".
       const statsHtml = Object.entries(o.facts).filter(([k, v]) => v !== null && v !== undefined && (typeof v !== 'number' || Number.isFinite(v))).slice(0, 3).map(([k, v]) => {
@@ -524,8 +522,7 @@ Absolute rules:
         return `<div class="option-stat"><div class="option-stat-value">${val}</div><div class="option-stat-label">${label}</div></div>`;
       }).join('');
       return `
-        <div class="option-card ${isStay ? 'stay' : 'highlight'}${isStrongest ? ' strongest' : ''}">
-          ${isStrongest ? '<div class="option-eyebrow is-strongest">Earliest on these numbers. Not necessarily the right fit</div>' : ''}
+        <div class="option-card ${isStay ? 'stay' : 'highlight'}">
           <div class="option-headline">${meta.headline(o.facts)}</div>
           <div class="option-stats">${statsHtml}</div>
           <div class="option-blurb">${FirePathSafe.html(text.blurb)}</div>
@@ -554,7 +551,7 @@ Absolute rules:
 
     if (profile) userPersona = profile.persona || 'building';
 
-    // "What next" — options from js/moves.js ordered by modelled effect (or general next steps). Freedom Gap
+    // "What next" — topics from js/moves.js in the standard order (or general next steps). Freedom Gap
     // is where this page's numbers come from, so it isn't suggested again here.
     try {
       if (window.FirePathNext) {
