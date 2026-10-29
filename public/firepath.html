@@ -378,6 +378,21 @@
   .fr-try .fpv-today-dot, .fr-try .fpv-q-dot, .fr-try .fpv-since { fill: var(--hp-sand); }
   .fr-try .fpv-free-dot { stroke: var(--hp-sand); }
   .fr-try .try-result .try-diff { color: #256A29; } /* the positive green, deepened for sand (4.5:1+) */
+  /* Two futures: the four choices (same for everyone), then the two dates side by side */
+  .tf-lead { margin: -14px 0 18px; font-size: 16px; line-height: 1.55; color: var(--ink-2); max-width: 46ch; }
+  .tf-choices { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 22px; }
+  .tf-choice { min-height: 40px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 999px; background: transparent; font: 600 15px var(--font-ui); color: var(--ink); cursor: pointer; }
+  .tf-choice[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--hp-sand, #F4EDE2); }
+  .tf-choice:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .tf-choice[hidden], .try-row[hidden] { display: none; }
+  .tf-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+  .tf-card { padding: 16px 16px 14px; border-top: 2px solid var(--ink-2); }
+  .tf-card.is-b { border-top-color: var(--ember-ink); }
+  .tf-k { margin: 0 0 6px; font: 700 12px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+  .tf-big { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 4.4vw, 48px); line-height: 1; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+  .tf-sub { margin: 6px 0 0; font-size: 15px; line-height: 1.4; color: var(--ink-2); }
+  .try-result .try-later { font-weight: 700; color: var(--ink); }
+  .tf-fine { margin: 10px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
   /* 4 · What could move your date: larger options */
   .move-item { padding: 24px 2px; grid-template-columns: 2.2em minmax(0, 1fr); }
   .move-num { padding-top: 2px; font: 700 clamp(20px, 2vw, 24px)/1.2 var(--font-display); color: var(--ink); }
@@ -667,24 +682,45 @@
         </div>
       </section>
 
-      <!-- 3 · Try it: the same plan, rerun as the sliders move. Sliders left, the path right. -->
+      <!-- 3 · Two futures: keep going, or one change the person picks (the same four choices for
+           everyone). The same plan rerun with that change; FirePath never picks the change. -->
       <section class="hp-sec is-sand fr-try rv" id="tryCard" aria-labelledby="tryTitle">
         <div class="hp-wrap hp-two">
           <div class="fr-try-controls">
-            <div class="try-head"><h3 class="hp-h2" id="tryTitle">Try it</h3><button type="button" class="text-link small" id="tryReset">Reset</button></div>
-            <div class="try-row">
-              <div class="try-top"><label for="trySave">If you saved more</label><output id="trySaveOut" for="trySave"></output></div>
+            <div class="try-head"><h3 class="hp-h2" id="tryTitle">Two futures</h3><button type="button" class="text-link small" id="tryReset">Reset</button></div>
+            <p class="tf-lead">Keep going as you are, or pick one change and see both futures side by side. You choose the change; FirePath runs the numbers.</p>
+            <div class="tf-choices" role="group" aria-label="Pick one change">
+              <button type="button" class="tf-choice" data-kind="save" aria-pressed="true">Save more</button>
+              <button type="button" class="tf-choice" data-kind="spend" aria-pressed="false" id="tfChoiceSpend">Spend less</button>
+              <button type="button" class="tf-choice" data-kind="days" aria-pressed="false">Work fewer days</button>
+              <button type="button" class="tf-choice" data-kind="break" aria-pressed="false">Take a break</button>
+            </div>
+            <div class="try-row" id="tryRow-save">
+              <div class="try-top"><label for="trySave">Save more each pay</label><output id="trySaveOut" for="trySave"></output></div>
               <input type="range" id="trySave" min="0" max="1000" step="25" value="0"/>
             </div>
-            <div class="try-row" id="trySpendRow">
-              <div class="try-top"><label for="trySpend">If you spent less</label><output id="trySpendOut" for="trySpend"></output></div>
+            <div class="try-row" id="tryRow-spend" hidden>
+              <div class="try-top"><label for="trySpend">Spend less each pay</label><output id="trySpendOut" for="trySpend"></output></div>
               <input type="range" id="trySpend" min="0" max="600" step="20" value="0"/>
             </div>
-            <p class="try-note" id="tryNote">Spending less also lowers your freedom number.</p>
+            <div class="try-row" id="tryRow-days" hidden>
+              <div class="try-top"><label for="tryDays">Days a week</label><output id="tryDaysOut" for="tryDays"></output></div>
+              <input type="range" id="tryDays" min="3" max="5" step="1" value="5"/>
+            </div>
+            <div class="try-row" id="tryRow-break" hidden>
+              <div class="try-top"><label for="tryBreak">A break from work, starting now</label><output id="tryBreakOut" for="tryBreak"></output></div>
+              <input type="range" id="tryBreak" min="0" max="24" step="1" value="0"/>
+            </div>
+            <p class="try-note" id="tryNote"></p>
           </div>
           <div class="hp-fig fr-try-fig">
+            <div class="tf-two" aria-live="polite">
+              <div class="tf-card"><p class="tf-k">Keep going</p><p class="tf-big" id="tfA">–</p><p class="tf-sub" id="tfASub"></p></div>
+              <div class="tf-card is-b"><p class="tf-k" id="tfBK">Your change</p><p class="tf-big" id="tfB">–</p><p class="tf-sub" id="tfBSub">Pick a change and move the slider</p></div>
+            </div>
             <div class="try-path" id="tryPath" hidden></div>
-            <p class="try-result" id="tryResult" aria-live="polite"></p>
+            <p class="try-result" id="tryResult"></p>
+            <p class="tf-fine">Both futures use the same assumptions and are estimates, not a recommendation. Which change, if any, is up to you.</p>
           </div>
         </div>
       </section>
@@ -1079,9 +1115,20 @@
     const step = cycle === 'weekly' ? 10 : cycle === 'fortnightly' ? 20 : 50;
     return { perWeek, step, word: cycleWordOf(cycle) };
   }
+  // The four changes are the same for everyone; the person picks one. Nothing is pre-picked
+  // for them beyond the first chip being selected when the card opens.
+  const TRY_KINDS = ['save', 'spend', 'days', 'break'];
+  let _tryKind = 'save';
+  function setTryKind(kind) {
+    if (!TRY_KINDS.includes(kind)) return;
+    _tryKind = kind;
+    document.querySelectorAll('.tf-choice').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.kind === kind)));
+    TRY_KINDS.forEach(k => { document.getElementById('tryRow-' + k).hidden = k !== kind; });
+    tryRender();
+  }
   function buildTryIt(r) {
     const card = document.getElementById('tryCard');
-    if (r.alreadyFree || (r.plan && r.plan.retired)) { card.hidden = true; return; }   // stopped work: save-more sliders don't apply
+    if (r.alreadyFree || (r.plan && r.plan.retired)) { card.hidden = true; return; }   // stopped work: these changes don't apply
     card.hidden = false;
     const cfg = tryConfig(r.cycle);
     const save = document.getElementById('trySave'), spend = document.getElementById('trySpend');
@@ -1091,56 +1138,130 @@
     const spendMax = Math.floor(Math.min(300 * cfg.perWeek, spendPerCycle * 0.9) / cfg.step) * cfg.step;
     spend.step = cfg.step; spend.max = Math.max(cfg.step, spendMax); spend.value = 0;
     spend.disabled = spendMax < cfg.step;
-    document.getElementById('trySpendRow').hidden = spend.disabled;
-    save.setAttribute('aria-describedby', 'tryResult');
-    spend.setAttribute('aria-describedby', 'tryResult');
-    tryRender();
+    document.getElementById('tfChoiceSpend').hidden = spend.disabled;
+    document.getElementById('tryDays').value = 5;
+    document.getElementById('tryBreak').value = 0;
+    ['trySave', 'trySpend', 'tryDays', 'tryBreak'].forEach(id => document.getElementById(id).setAttribute('aria-describedby', 'tryResult'));
+    setTryKind('save');
   }
   let _tryFrame = 0;
   function tryQueue() {
-    if (_result && !_result.tried) { _result.tried = true; gtag('event', 'try_it', { 'event_category': 'engagement', 'event_label': 'result_sliders' }); }
+    if (_result && !_result.tried) { _result.tried = true; gtag('event', 'try_it', { 'event_category': 'engagement', 'event_label': 'two_futures' }); }
     if (_tryFrame) return;
     _tryFrame = requestAnimationFrame(() => { _tryFrame = 0; tryRender(); });
+  }
+  const whenText = p => p.alreadyFree ? 'Now' : String(p.freedomYear);
+  // Your own take-home at fewer days a week: gross pay scaled by days, then tax worked out again
+  // (tax-engine.js). Without the tax engine, take-home is scaled directly (a little pessimistic).
+  function takeHomeAtDays(th, days) {
+    if (!(th > 0)) return { th: 0, gross: 0 };
+    if (typeof estimateGrossFromNet === 'function' && typeof calculateTax === 'function') {
+      try {
+        const gross = estimateGrossFromNet(th * 12) * days / 5;
+        const t = calculateTax(gross);
+        if (t && t.takeHome > 0) return { th: t.takeHome / 12, gross };
+      } catch (e) { /* fall through */ }
+    }
+    return { th: th * days / 5, gross: 0 };
+  }
+  // A break of n months starting now: spending (less any partner's take-home) comes out of
+  // savings, nothing is saved and no super goes in, then everything carries on n months later.
+  // Rough on purpose, and labelled so: super doesn't grow during the break here.
+  function planAfterBreak(r, n) {
+    const partnerTH = _planInputs.partner && _planInputs.partner.takeHomeMonthly > 0 ? _planInputs.partner.takeHomeMonthly : 0;
+    const draw = Math.max(0, r.mS - partnerTH) * n;
+    const savings = Number(_planInputs.savings) || 0;
+    if (draw > savings) return { short: true };
+    const p = planFor({ age: (Number(_planInputs.age) || 0) + n / 12, savings: savings - draw });
+    if (!p) return null;
+    if (p.alreadyFree) return { plan: p, months: n, year: null, age: p.freedomAge };
+    if (p.months == null) return { plan: p, months: null };
+    const now = new Date(), months = p.months + n;
+    return { plan: p, months, year: new Date(now.getFullYear(), now.getMonth() + months, 1).getFullYear(), age: p.freedomAge };
   }
   function tryRender() {
     const r = _result;
     if (!r) return;
     const cfg = tryConfig(r.cycle);
     const save = document.getElementById('trySave'), spend = document.getElementById('trySpend');
-    const add = Number(save.value) || 0, cut = spend.disabled ? 0 : Number(spend.value) || 0;
-    [save, spend].forEach(el => el.style.setProperty('--fill', (Number(el.max) > 0 ? Number(el.value) / Number(el.max) * 100 : 0) + '%'));
-    document.getElementById('trySaveOut').textContent = `+${dollars(add)} a ${cfg.word}`;
-    document.getElementById('trySpendOut').textContent = `${dollars(cut)} a ${cfg.word} less`;
-    save.setAttribute('aria-valuetext', `${dollars(add)} a ${cfg.word} more`);
-    spend.setAttribute('aria-valuetext', `${dollars(cut)} a ${cfg.word} less`);
+    const daysEl = document.getElementById('tryDays'), brEl = document.getElementById('tryBreak');
+    const add = _tryKind === 'save' ? Number(save.value) || 0 : 0;
+    const cut = _tryKind === 'spend' && !spend.disabled ? Number(spend.value) || 0 : 0;
+    const days = _tryKind === 'days' ? Number(daysEl.value) || 5 : 5;
+    const brk = _tryKind === 'break' ? Number(brEl.value) || 0 : 0;
+    [save, spend, brEl].forEach(el => el.style.setProperty('--fill', (Number(el.max) > 0 ? Number(el.value) / Number(el.max) * 100 : 0) + '%'));
+    daysEl.style.setProperty('--fill', ((Number(daysEl.value) - 3) / 2 * 100) + '%');
+    document.getElementById('trySaveOut').textContent = `+${dollars(Number(save.value) || 0)} a ${cfg.word}`;
+    document.getElementById('trySpendOut').textContent = `${dollars(Number(spend.value) || 0)} a ${cfg.word} less`;
+    document.getElementById('tryDaysOut').textContent = `${daysEl.value} days`;
+    const bm = Number(brEl.value) || 0;
+    document.getElementById('tryBreakOut').textContent = bm === 0 ? 'none' : bm === 1 ? '1 month' : `${bm} months`;
+    save.setAttribute('aria-valuetext', `${dollars(Number(save.value) || 0)} a ${cfg.word} more`);
+    spend.setAttribute('aria-valuetext', `${dollars(Number(spend.value) || 0)} a ${cfg.word} less`);
+    daysEl.setAttribute('aria-valuetext', `${daysEl.value} days a week`);
+    brEl.setAttribute('aria-valuetext', document.getElementById('tryBreakOut').textContent);
+    const NOTES = {
+      save: 'Saving more is invested alongside what you save now.',
+      spend: 'Spending less works twice: more to save, and a smaller freedom number.',
+      days: 'Your pay drops with the days (tax worked out again) and spending stays the same, so saving drops too. Super from your pay drops with it.',
+      break: 'Rough: treats the break as starting now, with spending (less any partner’s pay) coming from savings, nothing saved and no super going in, then carrying on as before.'
+    };
+    document.getElementById('tryNote').textContent = NOTES[_tryKind];
+
+    // Future A: keep going (the answer above).
+    const A = document.getElementById('tfA'), ASub = document.getElementById('tfASub');
+    if (r.dateShown && r.plan) { A.textContent = whenText(r.plan); ASub.textContent = r.plan.alreadyFree ? 'already' : `age ${r.plan.freedomAge}`; }
+    else { A.textContent = '60+ yrs'; ASub.textContent = 'a long way off on these numbers'; }
+    const B = document.getElementById('tfB'), BSub = document.getElementById('tfBSub');
     const out = document.getElementById('tryResult');
-    if (!add && !cut) { out.innerHTML = '<span class="try-same">Move a slider to see how your date changes.</span>'; previewPath(r, null); return; }
-    const addM = toMonthly(add, r.cycle), cutM = toMonthly(cut, r.cycle);
-    // Spending less works twice: more to save, and a smaller freedom number (25 times spending).
-    const over = { monthlySavings: r.mSav + addM + cutM, target: Math.max(1, r.fireNum - cutM * 12 * 25 * r.mult) };
-    const p = planFor(over);
-    previewPath(r, p, over);
-    if (!p) { out.innerHTML = '<span class="try-same">Those numbers don’t add up. Try a smaller change.</span>'; return; }
-    if (p.alreadyFree) { out.innerHTML = '<span aria-hidden="true">→</span><span class="sr-only">With these changes:</span> <strong>you could have enough now</strong>'; return; }
-    if (!inReach(p)) { out.innerHTML = '<span aria-hidden="true">→</span><span class="sr-only">With these changes:</span> still a long way off. <span class="try-same">Try a bigger change.</span>'; return; }
-    let diff;
-    if (r.dateShown) {
-      const months = r.plan.months - p.months;
-      const yrs = Math.round(months / 12);
-      diff = months <= 0 ? '<span class="try-same">(same date: super from 60 still sets it)</span>'
-        : yrs >= 1 ? `<span class="try-diff">(${yrs} year${yrs === 1 ? '' : 's'} sooner)</span>`
-        : `<span class="try-diff">(${months} month${months === 1 ? '' : 's'} sooner)</span>`;
-      if (months <= 0 && r.plan.phase !== 'with-super') diff = '<span class="try-same">(no change to your date)</span>';
+    const showB = (big, sub) => { B.textContent = big; BSub.textContent = sub; };
+    const same = msg => { showB('–', 'Pick a change and move the slider'); out.innerHTML = `<span class="try-same">${msg}</span>`; previewPath(r, null); };
+
+    if (!add && !cut && days === 5 && !brk) return same('Move the slider to see the second future.');
+
+    let p = null, months = null, year = null, ageAt = null, over = null;
+    if (_tryKind === 'break') {
+      const b = planAfterBreak(r, brk);
+      previewPath(r, null);   // the path can't draw a pause, so it stays on your own
+      if (!b) { showB('–', ''); out.innerHTML = '<span class="try-same">Those numbers don’t add up. Try a shorter break.</span>'; return; }
+      if (b.short) { showB('–', 'savings wouldn’t cover it'); out.innerHTML = `<span class="try-same">On these numbers, savings wouldn’t cover ${bm} months of spending.</span>`; return; }
+      p = b.plan; months = b.months; year = b.year; ageAt = b.age;
     } else {
-      diff = '';   // no date in the answer above to compare with
+      if (_tryKind === 'days') {
+        const th = Number(_planInputs.takeHomeMonthly) || 0;
+        const d = takeHomeAtDays(th, days);
+        const newSav = r.mSav - (th - d.th);
+        if (newSav < 0) { showB('–', 'pay wouldn’t cover spending'); out.innerHTML = `<span class="try-same">On these numbers, pay at ${days} days a week wouldn’t cover today’s spending.</span>`; previewPath(r, null); return; }
+        over = Object.assign({ monthlySavings: newSav, takeHomeMonthly: d.th }, d.gross > 0 ? { grossIncome: d.gross } : {});
+      } else {
+        const addM = toMonthly(add, r.cycle), cutM = toMonthly(cut, r.cycle);
+        // Spending less works twice: more to save, and a smaller freedom number (25 times spending).
+        over = { monthlySavings: r.mSav + addM + cutM, target: Math.max(1, r.fireNum - cutM * 12 * 25 * r.mult) };
+      }
+      p = planFor(over);
+      previewPath(r, p, over);
+      if (p) { months = p.months; year = p.alreadyFree ? null : p.freedomYear; ageAt = p.freedomAge; }
     }
-    out.innerHTML = `<span aria-hidden="true">→</span><span class="sr-only">With these changes:</span> <strong>${p.freedomYear}</strong> · age ${p.freedomAge} ${diff}`;
+    if (!p) { showB('–', ''); out.innerHTML = '<span class="try-same">Those numbers don’t add up. Try a smaller change.</span>'; return; }
+    if (p.alreadyFree && _tryKind !== 'break') { showB('Now', 'could have enough now'); out.innerHTML = '<span class="try-same">On these numbers, this change could mean having enough now.</span>'; return; }
+    const reach = _tryKind === 'break' ? months != null && months < MAX_YEARS * 12 : inReach(p);
+    if (!reach) { showB('60+ yrs', 'a long way off on these numbers'); out.innerHTML = '<span class="try-same">On these numbers, this future is a long way off.</span>'; return; }
+    showB(year != null ? String(year) : 'Now', ageAt != null ? `age ${ageAt}` : '');
+    if (!r.dateShown || r.plan.months == null) { out.innerHTML = ''; return; }
+    const diffM = months - r.plan.months, yrs = Math.round(Math.abs(diffM) / 12);
+    const span = yrs >= 1 ? `${yrs} year${yrs === 1 ? '' : 's'}` : `${Math.abs(diffM)} month${Math.abs(diffM) === 1 ? '' : 's'}`;
+    out.innerHTML = diffM === 0 ? '<span class="try-same">Same date on these numbers (super from 60 can set it).</span>'
+      : diffM < 0 ? `<span class="sr-only">With this change: </span><span class="try-diff">${span} sooner</span> than keeping going, on these numbers.`
+      : `<span class="sr-only">With this change: </span><span class="try-later">${span} later</span> than keeping going, on these numbers.`;
   }
   function tryReset() {
     document.getElementById('trySave').value = 0;
     document.getElementById('trySpend').value = 0;
+    document.getElementById('tryDays').value = 5;
+    document.getElementById('tryBreak').value = 0;
     tryRender();
   }
+
 
   // ── What could move your date ──
   // The article for the first option the moves card doesn't already link, or one that fits
@@ -1193,7 +1314,7 @@
     if (!window.FirePathMoves) { card.style.display = 'none'; return []; }
     const moves = (moveList || []).filter(m => !(isFree && m.id === 'stress-test')).slice(0, 3);
     const onTrack = isFree || moves.length === 0;
-    // Saving more and spending less are the Try it sliders on this page.
+    // Saving more and spending less are choices in Two futures on this page.
     const HERE = { 'save-more': 'trySave', 'spend-less': 'trySpend' };
     const MOVES_SHOWN = 2;   // the rest sit behind "Show n more"
     list.innerHTML = moves.map((m, i) => {
@@ -1241,6 +1362,7 @@
   function tryFocus(id) {
     const el = document.getElementById(id);
     if (!el) return;
+    setTryKind(id === 'trySpend' ? 'spend' : 'save');
     document.getElementById('tryCard').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     el.focus({ preventScroll: true });
   }
@@ -1336,6 +1458,9 @@
 
   document.getElementById('trySave').addEventListener('input', tryQueue);
   document.getElementById('trySpend').addEventListener('input', tryQueue);
+  document.getElementById('tryDays').addEventListener('input', tryQueue);
+  document.getElementById('tryBreak').addEventListener('input', tryQueue);
+  document.querySelectorAll('.tf-choice').forEach(b => b.addEventListener('click', () => setTryKind(b.dataset.kind)));
   document.getElementById('tryReset').addEventListener('click', tryReset);
 </script>
 
