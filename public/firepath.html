@@ -1206,7 +1206,7 @@
     const NOTES = {
       save: 'Saving more is invested alongside what you save now.',
       spend: 'Spending less works twice: more to save, and a smaller freedom number.',
-      days: 'Your pay drops with the days (tax worked out again) and spending stays the same, so saving drops too, and any gap comes out of savings. Super from your pay drops with it.',
+      days: 'Your pay drops with the days (tax worked out again) and spending stays the same, so saving drops too. If pay no longer covers spending, it assumes spending trims to match. Super from your pay drops with it.',
       break: 'Rough: treats the break as starting now, with spending (less any partner’s pay) coming from savings, nothing saved and no super going in, then carrying on as before.'
     };
     document.getElementById('tryNote').textContent = NOTES[_tryKind];
@@ -1239,19 +1239,12 @@
         const drop = th - d.th, newSav = r.mSav - drop;
         const dropText = `At ${days} days, take-home drops by about ${dollars(Math.round(perCycle(drop) / 10) * 10)} a ${cfg.word}`;
         if (newSav < 0) {
-          // Pay no longer covers spending: the gap comes out of savings each month. If savings
-          // would run out before the date, say so rather than show a date that relies on them.
-          const savings = Number(_planInputs.savings) || 0, lastsM = savings / -newSav;
-          const runOut = lastsM < 12 ? `${Math.max(1, Math.floor(lastsM))} month${Math.floor(lastsM) === 1 ? '' : 's'}` : `${Math.floor(lastsM / 12)} year${Math.floor(lastsM / 12) === 1 ? '' : 's'}`;
-          const pTry = planFor(Object.assign({ monthlySavings: newSav, takeHomeMonthly: d.th }, d.gross > 0 ? { grossIncome: d.gross } : {}));
-          if (!pTry || pTry.alreadyFree || pTry.months == null || lastsM < pTry.months) {
-            showB('–', 'savings would run out first');
-            out.innerHTML = `<span class="try-same">${dropText}, more than you save now. About ${dollars(Math.round(perCycle(-newSav) / 10) * 10)} a ${cfg.word} would come out of savings, which would run out after about ${runOut} on these numbers.</span>`;
-            previewPath(r, null); return;
-          }
-          cost = `${dropText}, more than you save now, so about ${dollars(Math.round(perCycle(-newSav) / 10) * 10)} a ${cfg.word} would come out of savings.`;
+          // Pay no longer covers today's spending. Rather than run savings below zero (the plan
+          // would treat that as borrowing), assume spending trims to match pay: nothing saved.
+          // The freedom number stays the same, and the line says so.
+          cost = `${dropText}, more than you save now. This assumes spending comes down by about ${dollars(Math.round(perCycle(-newSav) / 10) * 10)} a ${cfg.word} to match, so nothing is saved.`;
         } else cost = `${dropText}, so saving drops by the same.`;
-        over = Object.assign({ monthlySavings: newSav, takeHomeMonthly: d.th }, d.gross > 0 ? { grossIncome: d.gross } : {});
+        over = Object.assign({ monthlySavings: Math.max(0, newSav), takeHomeMonthly: d.th }, d.gross > 0 ? { grossIncome: d.gross } : {});
       } else {
         const addM = toMonthly(add, r.cycle), cutM = toMonthly(cut, r.cycle);
         // Spending less works twice: more to save, and a smaller freedom number (25 times spending).
