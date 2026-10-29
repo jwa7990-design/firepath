@@ -108,6 +108,7 @@
   @media (hover: none) { .fb-enter { display: none; } }
   .fb-msg { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: var(--ember-ink); }
   .fb-msg:empty { display: none; }
+  .fb-msg.is-hint { color: var(--ink-2); }
   .fb :is(button, a, summary, select, input[type="checkbox"]):focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
 
   /* Optional detail */
@@ -997,10 +998,10 @@
     if (!inReach(plan) || !(r.mSav > 0)) {
       h.textContent = 'At these numbers, work being optional is a long way off';
       why.innerHTML = r.mSav > 0
-        ? `Your freedom number is ${num}. At what you save now, it would take ${plan.reachable ? `about ${Math.round(plan.years)} years` : 'more than 100 years'}.`
-        : `Your freedom number is ${num}. You’re not saving from your pay yet`
+        ? `Your freedom number (what you’d need invested to cover your spending) is ${num}. At what you save now, it would take ${plan.reachable ? `about ${Math.round(plan.years)} years` : 'more than 100 years'}.`
+        : `Your freedom number (what you’d need invested to cover your spending) is ${num}. You’re not saving from your pay yet`
           + (inReach(plan) && plan.freedomAge != null ? `, and super alone would get there around age ${plan.freedomAge}.` : '.');
-      fact.textContent = 'That’s a common place to start, and small changes add up. Try the sliders below.';
+      fact.textContent = 'That’s a common place to start, and small changes add up. Try Two futures below.';
       fact.hidden = false;
       return;
     }
@@ -1009,12 +1010,12 @@
     h.innerHTML = `Work could be optional around <strong>${plan.freedomYear}</strong>, at age <strong class="hp-age">${plan.freedomAge}</strong>`;
     countAge(h, r.age, plan.freedomAge);
     // Kept to about two lines on a phone: the number, then how super shapes the date.
-    const parts = [`Your freedom number is ${num}.`];   // where it comes from (25 times a year’s spending) is in the toggle
+    const parts = [`Your freedom number (what you’d need invested to cover your spending) is ${num}.`];   // where it comes from (25 times a year’s spending) is in the toggle
     const line = superLine(plan);
     if (line) parts.push(line);
     why.innerHTML = parts.join(' ');
     buildRange(plan, r.range);
-    // One line under the date: the note that matters most for this person (the rest behind
+    // One line under the date: the first note in the standard order (the rest behind
     // "More about this date"). A cash saver's note carries a one-tap Change.
     const homeowner = housingStatus === 'owning';
     const notes = _planInputs ? FirePathEngine.headlineNotes(_planInputs, plan, { homeowner, rentFortnight: _planInputs.rentFortnight || 0 }) : null;
@@ -1086,7 +1087,7 @@
   function superLine(plan) {
     if (plan.phase !== 'with-super') return '';
     if (plan.bridgeYears > 0) return `Savings could carry you ${aboutYears(plan.bridgeYears)}, then super from 60.`;
-    if (plan.freedomAge != null && plan.freedomAge >= 60) return 'From 60, your super joins in.';
+    if (plan.freedomAge != null && plan.freedomAge >= 60) return 'From 60, you can generally use your super too.';
     return 'Counts your savings, plus super from 60.';
   }
 

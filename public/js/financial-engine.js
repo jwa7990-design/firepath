@@ -1067,9 +1067,9 @@ window.FirePathEngine = (function () {
     const where = type === 'cash' ? 'cash in the bank' : plan.inputs.hasMortgage === false ? 'a mix of bank and investments' : 'a mix of bank, offset and investments';
     const when = investedPlan.alreadyFree ? 'now' : `around ${investedPlan.freedomYear}${investedPlan.freedomAge != null ? `, age ${investedPlan.freedomAge}` : ''}`;
     // Always say shares can fall; within about five years of stopping, say why that matters more.
-    const close = plan.months != null && plan.months <= 60 ? ' Shares can fall in value, which matters more this close to stopping.' : ' Shares can fall in value, and returns aren’t guaranteed.';
+    const close = plan.months != null && plan.months <= 60 ? ' Shares can fall, which matters more this close to stopping.' : ' Shares can fall in value.';
     const how = so.afterDebt ? 'Counting savings as invested in shares once your debt is paid off' : so.buffer ? 'Investing what you add beyond a three-month buffer (as an example)' : 'Counting savings as invested in shares';
-    return `Your savings are counted as ${where}. What-if: ${how.charAt(0).toLowerCase() + how.slice(1)}, this could be ${when}.${close}`;
+    return `Your savings are counted as ${where}. What-if, ${how.charAt(0).toLowerCase() + how.slice(1)}: ${when}.${close}`;
   }
 
   // The Age Pension line (agePensionPlan's result against the headline), or null when it

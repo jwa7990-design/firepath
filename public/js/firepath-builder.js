@@ -173,7 +173,7 @@
   // Accepts the current question's answer and moves on. focus = move focus with it.
   function commit(q, focus) {
     const c = check(q);
-    if (!c.ok) { q.msg.textContent = c.msg; if (!q.choice) q.input.setAttribute('aria-invalid', 'true'); return false; }
+    if (!c.ok) { q.msg.classList.remove('is-hint'); q.msg.textContent = c.msg; if (!q.choice) q.input.setAttribute('aria-invalid', 'true'); return false; }
     answered[q.key] = true;
     tidy(q);
     setCurrent(nextOpen(), focus);
@@ -200,6 +200,13 @@
     q.go.hidden = !c.ok;
     // Putting aside more than lands in the account: say so as it's typed.
     if (q.key === 'save' && c.over) { q.msg.textContent = c.msg; q.input.setAttribute('aria-invalid', 'true'); }
+    // Pay, echoed as a year, so a mix-up between weekly, fortnightly and monthly stands out.
+    q.msg.classList.remove('is-hint');
+    if (q.key === 'takeHome' && c.ok && c.value > 0 && cycle) {
+      const perYear = cycle === 'weekly' ? 52 : cycle === 'fortnightly' ? 26 : 12;
+      q.msg.textContent = `That’s about $${Math.round(c.value * perYear).toLocaleString('en-AU')} a year after tax, paid ${cycle}.`;
+      q.msg.classList.add('is-hint');
+    }
     if (answered[q.key]) renderLine();
     showDone();
     later();
