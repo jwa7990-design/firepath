@@ -733,10 +733,7 @@
   }
   function impactHtml(o) {
     const imp = o.impact || {};
-    if (imp.years > 0) {
-      const short = imp.years >= 1 ? `−${(Math.round(imp.years * 10) / 10).toFixed(1)} yrs` : `−${Math.max(1, Math.round(imp.years * 12))} mths`;
-      return { chip: `<span class="chip chip-positive" title="${escapeHtml(imp.text || '')}" aria-hidden="true">${short}</span>`, line: imp.text ? `<p class="opt-impact">${escapeHtml(imp.text)}</p>` : '' };
-    }
+    // Years saved are never shown on topics to research (impact.years is internal only).
     return { chip: '', line: imp.text ? `<p class="opt-impact">${escapeHtml(imp.text)}</p>` : '' };
   }
   function optionHtml(o, i) {

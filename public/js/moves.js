@@ -174,7 +174,8 @@ window.FirePathMoves = (function () {
     const invested = eng && eng.outsideSuperReturn ? eng.outsideSuperReturn(t, eng.ausShareFor ? eng.ausShareFor(type === 'mix' ? 'mix' : 'etfs', s && s.ausShare) : 0) : REAL;
     return type === 'cash' ? cash : type === 'offset' ? offset : type === 'mix' ? (cash + offset + invested) / 3 : invested;
   };
-  const yearsText = y => y >= 1 ? `${Math.round(y * 10) / 10} years sooner` : `${Math.max(1, Math.round(y * 12))} months sooner`;
+  // impact.years is kept for the maths (and tests) but never shown: topics to research don't
+  // advertise years saved. Two futures shows dates for changes the person picks themselves.
   const money = n => '$' + Math.round(n).toLocaleString('en-AU');
 
   // A neutral note where debt or a thin buffer is part of the picture: the topic still
@@ -223,7 +224,7 @@ window.FirePathMoves = (function () {
         const gain = now == null ? null : now - inv;
         if (gain != null && gain < 0.25) return false;
         return { why: 'Money in the bank has roughly kept pace with prices. A diversified fund has grown faster over the long run in the past, with bigger ups and downs and no guarantee, and investments can fall in value. It depends on when the money is needed and how someone feels about risk.' + context(s, true),
-          impact: gain == null ? { text: 'On these assumptions, invested money could bring a date within reach' } : { years: gain, text: `On these assumptions, the same money invested could reach the number ${yearsText(gain)} than ${s.savingsType === 'mix' ? 'the current mix' : 'at bank rates'}` } };
+          impact: { years: gain, text: 'Compares bank rates with long-run share returns, which rise and fall' } };
       } },
     { id: 'start-saving', tier: 3, title: 'Starting with a small, automatic amount', plan: 'Free',
       tool: { href: '/hearmeout', label: 'See what $50 a week grows into' }, article: 'good-savings-rate',
@@ -244,7 +245,7 @@ window.FirePathMoves = (function () {
         const gain = base == null ? null : base - more;
         if (gain != null && gain < 0.25) return false;
         return { why: 'An extra $50 a week, invested, could grow along with everything else being saved.' + context(s, false),
-          impact: gain == null ? { text: 'Could bring a date within reach, on these numbers' } : { years: gain, text: `$50 a week more could mean reaching your number ${yearsText(gain)}` } };
+          impact: { years: gain, text: 'Extra saving is invested alongside the rest' } };
       } },
     { id: 'spend-less', tier: 4, title: 'Spending 10% less', plan: 'Free',
       tool: { href: '/firepath', label: 'Try it in the calculator' }, article: 'simple-budget-australia',
@@ -257,9 +258,7 @@ window.FirePathMoves = (function () {
         const gain = s.yearsToFree == null ? null : s.yearsToFree - after;
         if (gain != null && gain < 0.25) return false;
         return { why: 'Spending less works twice: more to invest now, and a smaller number to reach.',
-          impact: gain == null ? { text: 'Could bring a date within reach, on these numbers' }
-            : after === 0 ? { years: gain, text: `${money(cut)} a month less could mean your number is already covered` }
-            : { years: gain, text: `${money(cut)} a month less could mean reaching your number ${yearsText(gain)}` } };
+          impact: { years: gain, text: 'Lowers the freedom number and frees up more to save' } };
       } },
     { id: 'salary-sacrifice', tier: 5, title: 'Salary sacrificing into super', plan: 'Pro',
       tool: { href: '/tax_pro', label: 'Work out your numbers' }, article: 'salary-sacrifice-explained',
