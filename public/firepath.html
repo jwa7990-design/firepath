@@ -395,6 +395,7 @@
   .tf-big { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(34px, 4.4vw, 48px); line-height: 1; letter-spacing: -0.02em; color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
   .tf-sub { margin: 6px 0 0; font-size: 15px; line-height: 1.4; color: var(--ink-2); }
   .try-result .try-later { font-weight: 700; color: var(--ink); }
+  .try-result .try-cost { flex-basis: 100%; font-size: 15px; color: var(--ink-2); }
   .tf-fine { margin: 10px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
   /* 4 · What could move your date: larger options */
   .move-item { padding: 24px 2px; grid-template-columns: 2.2em minmax(0, 1fr); }
@@ -1173,13 +1174,13 @@
     const partnerTH = _planInputs.partner && _planInputs.partner.takeHomeMonthly > 0 ? _planInputs.partner.takeHomeMonthly : 0;
     const draw = Math.max(0, r.mS - partnerTH) * n;
     const savings = Number(_planInputs.savings) || 0;
-    if (draw > savings) return { short: true };
+    if (draw > savings) return { short: true, draw };
     const p = planFor({ age: (Number(_planInputs.age) || 0) + n / 12, savings: savings - draw });
     if (!p) return null;
-    if (p.alreadyFree) return { plan: p, months: n, year: null, age: p.freedomAge };
-    if (p.months == null) return { plan: p, months: null };
+    if (p.alreadyFree) return { plan: p, months: n, year: null, age: p.freedomAge, draw };
+    if (p.months == null) return { plan: p, months: null, draw };
     const now = new Date(), months = p.months + n;
-    return { plan: p, months, year: new Date(now.getFullYear(), now.getMonth() + months, 1).getFullYear(), age: p.freedomAge };
+    return { plan: p, months, year: new Date(now.getFullYear(), now.getMonth() + months, 1).getFullYear(), age: p.freedomAge, draw };
   }
   function tryRender() {
     const r = _result;
@@ -1221,13 +1222,16 @@
 
     if (!add && !cut && days === 5 && !brk) return same('Move the slider to see the second future.');
 
-    let p = null, months = null, year = null, ageAt = null, over = null;
+    // What the change costs along the way, shown even when the date doesn't move.
+    let p = null, months = null, year = null, ageAt = null, over = null, cost = '';
+    const perCycle = m => m * 12 / (r.cycle === 'weekly' ? 52 : r.cycle === 'fortnightly' ? 26 : 12);
     if (_tryKind === 'break') {
       const b = planAfterBreak(r, brk);
       previewPath(r, null);   // the path can't draw a pause, so it stays on your own
       if (!b) { showB('–', ''); out.innerHTML = '<span class="try-same">Those numbers don’t add up. Try a shorter break.</span>'; return; }
       if (b.short) { showB('–', 'savings wouldn’t cover it'); out.innerHTML = `<span class="try-same">On these numbers, savings wouldn’t cover ${bm} months of spending.</span>`; return; }
       p = b.plan; months = b.months; year = b.year; ageAt = b.age;
+      cost = b.draw > 0 ? `The break would use about ${dollars(Math.round(b.draw / 100) * 100)} of savings, with nothing saved for ${bm} month${bm === 1 ? '' : 's'}.` : `Nothing would be saved for ${bm} month${bm === 1 ? '' : 's'}.`;
     } else {
       if (_tryKind === 'days') {
         const th = Number(_planInputs.takeHomeMonthly) || 0;
@@ -1235,6 +1239,7 @@
         const newSav = r.mSav - (th - d.th);
         if (newSav < 0) { showB('–', 'pay wouldn’t cover spending'); out.innerHTML = `<span class="try-same">On these numbers, pay at ${days} days a week wouldn’t cover today’s spending.</span>`; previewPath(r, null); return; }
         over = Object.assign({ monthlySavings: newSav, takeHomeMonthly: d.th }, d.gross > 0 ? { grossIncome: d.gross } : {});
+        cost = `At ${days} days, take-home drops by about ${dollars(Math.round(perCycle(th - d.th) / 10) * 10)} a ${cfg.word}, so saving drops by the same.`;
       } else {
         const addM = toMonthly(add, r.cycle), cutM = toMonthly(cut, r.cycle);
         // Spending less works twice: more to save, and a smaller freedom number (25 times spending).
@@ -1252,9 +1257,10 @@
     if (!r.dateShown || r.plan.months == null) { out.innerHTML = ''; return; }
     const diffM = months - r.plan.months, yrs = Math.round(Math.abs(diffM) / 12);
     const span = yrs >= 1 ? `${yrs} year${yrs === 1 ? '' : 's'}` : `${Math.abs(diffM)} month${Math.abs(diffM) === 1 ? '' : 's'}`;
-    out.innerHTML = diffM === 0 ? '<span class="try-same">Same date on these numbers (super from 60 can set it).</span>'
+    const costHtml = cost ? ` <span class="try-cost">${cost}</span>` : '';
+    out.innerHTML = (diffM === 0 ? '<span class="try-same">Same date on these numbers, because your super from 60 sets it.</span>'
       : diffM < 0 ? `<span class="sr-only">With this change: </span><span class="try-diff">${span} sooner</span> than keeping going, on these numbers.`
-      : `<span class="sr-only">With this change: </span><span class="try-later">${span} later</span> than keeping going, on these numbers.`;
+      : `<span class="sr-only">With this change: </span><span class="try-later">${span} later</span> than keeping going, on these numbers.`) + costHtml;
   }
   function tryReset() {
     document.getElementById('trySave').value = 0;
