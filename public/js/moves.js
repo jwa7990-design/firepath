@@ -474,5 +474,5 @@ window.FirePathMoves = (function () {
   function recall() { try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); return v && Date.now() - v.savedAt < 180 * 864e5 ? v : null; } catch (e) { return null; } }
   function forget() { try { localStorage.removeItem(KEY); } catch (e) {} }
 
-  return { MOVES, situationFromInputs, situationFromProfile, rank, autoDone, plan, articleFits, yearsTo, planYears, remember, recall, forget };
+  return { MOVES, situationFromInputs, situationFromProfile, rank, autoDone, plan, articleFits, yearsTo, planYears, planInputsFor, remember, recall, forget };
 })();

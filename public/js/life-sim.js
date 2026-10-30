@@ -28,12 +28,28 @@ window.FirePathLife = (function () {
     return { age: num('lf-age', 0), th: num('lf-takehome', 0), sav: num('lf-save', 0), savings: num('lf-savings', 0),
       superBal: num('lf-super', 0), target: num('lf-fireNum', 0) };
   }
-  function basePlanInputs(b) {
+  // The rest of the plan (where savings sit, partner, rent, mortgage, employer super…) comes
+  // from the same answers as the headline: the Pro saved plan, or else the free calculator's
+  // numbers on this device (FirePathMoves.planInputsFor, as the other tools use). So "keep
+  // going" here is the same date as on the results page.
+  function fromDevice() {
+    const M = window.FirePathMoves;
+    const d = M && M.recall ? M.recall() : null;
+    if (!d || !M.planInputsFor) return {};
+    try { return M.planInputsFor(M.situationFromInputs(d)); } catch (e) { return {}; }
+  }
+  function savedPlan() {
     const E = window.FirePathEngine;
-    const saved = typeof fpPlanProfile !== 'undefined' && fpPlanProfile && E && E.planInputsFromProfile ? E.planInputsFromProfile(fpPlanProfile) : {};
+    if (typeof fpPlanProfile !== 'undefined' && fpPlanProfile && E && E.planInputsFromProfile) return E.planInputsFromProfile(fpPlanProfile);
+    return fromDevice();
+  }
+  // Take-home in the panel is the household's; the change applies to your own pay.
+  const partnerTh = saved => saved.partner && saved.partner.takeHomeMonthly > 0 ? saved.partner.takeHomeMonthly : 0;
+  function basePlanInputs(b, saved) {
+    saved = saved || savedPlan();
     return Object.assign({}, saved, { mortgage: saved.mortgage || null, retired: false },
       { age: b.age, savings: b.savings, monthlySavings: Math.max(0, b.sav), target: b.target, annualSpend: undefined,
-        superBalance: b.superBal, takeHomeMonthly: b.th, grossIncome: undefined });
+        superBalance: b.superBal, takeHomeMonthly: Math.max(0, b.th - partnerTh(saved)), grossIncome: undefined });
   }
   // Usual gross pay from take-home, and take-home on a given gross (tax-engine.js), so pay
   // during leave or at fewer days has its tax worked out again rather than scaled.
@@ -52,32 +68,32 @@ window.FirePathLife = (function () {
   function run(b, s) {
     const E = window.FirePathEngine;
     if (!E || !E.freedomPlanWithChange) return { error: 'The calculator didn’t load. Try refreshing the page.' };
-    const base = basePlanInputs(b);
+    const saved = savedPlan(), pTh = partnerTh(saved), base = basePlanInputs(b, saved);
     const S = Math.round((s.startYears || 0) * 12);
-    const gross = grossOf(b.th), spend = Math.max(0, b.th - b.sav);
+    const own = Math.max(0, b.th - pTh), gross = grossOf(own), spend = Math.max(0, b.th - b.sav);
     const when = S ? `starting in ${yrs(s.startYears)}` : 'starting now';
     let change, note;
     if (s.kind === 'break') {
       const D = Math.max(1, Math.round(s.months || 0)), p = Math.min(1, Math.max(0, (s.payPct || 0) / 100));
       const thDuring = takeHomeOf(gross * p);
-      change = { start: S, end: S + D, during: { monthlySavings: thDuring - spend, grossIncome: gross * p } };
-      note = `A ${D}-month break, ${when}, ${p > 0 ? `on ${Math.round(p * 100)}% of usual pay` : 'unpaid'}: take-home about ${money(b.th - thDuring)} a month lower while it lasts, with spending unchanged.`;
+      change = { start: S, end: S + D, during: { monthlySavings: thDuring + pTh - spend, grossIncome: gross * p } };
+      note = `A ${D}-month break, ${when}, ${p > 0 ? `on ${Math.round(p * 100)}% of usual pay` : 'unpaid'}: take-home about ${money(own - thDuring)} a month lower while it lasts, with spending unchanged.`;
     } else if (s.kind === 'parttime') {
       const days = Math.min(4.5, Math.max(1, s.days || 4)), gD = gross * days / 5, thD = takeHomeOf(gD);
       if (s.ongoing) {
-        change = { start: S, end: null, after: { monthlySavings: Math.max(0, thD - spend), takeHomeMonthly: thD, grossIncome: gD } };
-        note = `${days} days a week, ${when}, ongoing: take-home about ${money(b.th - thD)} a month lower.`
-          + (thD < spend ? ' That’s less than you spend now, so this assumes spending comes down to match.' : '');
+        change = { start: S, end: null, after: { monthlySavings: Math.max(0, thD + pTh - spend), takeHomeMonthly: thD, grossIncome: gD } };
+        note = `${days} days a week, ${when}, ongoing: take-home about ${money(own - thD)} a month lower.`
+          + (thD + pTh < spend ? ' That’s less than you spend now, so this assumes spending comes down to match.' : '');
       } else {
         const D = Math.max(1, Math.round(s.months || 0));
-        change = { start: S, end: S + D, during: { monthlySavings: thD - spend, grossIncome: gD } };
-        note = `${days} days a week for ${D >= 12 && D % 12 === 0 ? yrs(D / 12) : `${D} months`}, ${when}: take-home about ${money(b.th - thD)} a month lower while it lasts.`;
+        change = { start: S, end: S + D, during: { monthlySavings: thD + pTh - spend, grossIncome: gD } };
+        note = `${days} days a week for ${D >= 12 && D % 12 === 0 ? yrs(D / 12) : `${D} months`}, ${when}: take-home about ${money(own - thD)} a month lower while it lasts.`;
       }
     } else {
       const newTh = Math.max(0, s.newTh || 0);
-      change = { start: S, end: null, after: { monthlySavings: Math.max(0, newTh - spend), takeHomeMonthly: newTh, grossIncome: grossOf(newTh) } };
+      change = { start: S, end: null, after: { monthlySavings: Math.max(0, newTh + pTh - spend), takeHomeMonthly: newTh, grossIncome: grossOf(newTh) } };
       note = `A job paying ${money(newTh)} a month take-home, ${when}, with spending unchanged.`
-        + (newTh < spend ? ' That’s less than you spend now, so this assumes spending comes down to match.' : '');
+        + (newTh + pTh < spend ? ' That’s less than you spend now, so this assumes spending comes down to match.' : '');
     }
     let plan;
     try { plan = E.freedomPlanWithChange(base, change); } catch (e) { plan = null; }
@@ -116,6 +132,9 @@ window.FirePathLife = (function () {
     const E = window.FirePathEngine;
     const basePlan = E && E.freedomPlan ? E.freedomPlan(basePlanInputs(b)) : null;
     const draft = run(b, currentScenario());
+    // Same date as keeping going (and not because it starts after the date): say why.
+    if (draft.plan && basePlan && basePlan.valid && draft.plan.months === basePlan.months && !/before it starts/.test(draft.note || ''))
+      draft.note += draft.plan.freedomAge >= 60 ? ' Same date on these numbers, because your super from 60 sets it.' : ' The date doesn’t move on these numbers.';
     const saved = load().map(s => Object.assign({ res: run(b, s) }, s));
     const plans = [basePlan, draft.plan].concat(saved.map(s => s.res.plan)).filter(p => p && p.valid && p.months != null);
     const maxM = Math.max(12, ...plans.map(p => Math.min(p.months, 720)));
