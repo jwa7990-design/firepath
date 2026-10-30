@@ -992,3 +992,39 @@ test('review 5 (20 random clients): own super, partners, the pension line, the m
     super_balance: 147000, freedom_number: 6650 * 300 * 1.2, retirement_spend_multiplier: 1.2 })), { limit: 20 }).all.map(m => m.id);
   assert.ok(!ids.includes('age-pension'), ids.join(','));
 });
+
+// ── Life changes: freedomPlanWithChange walks the same plan month by month ──
+test('freedomPlanWithChange: no change, or a "change" that changes nothing, gives the headline date', () => {
+  const people = [
+    { age: 32, savings: 30000, monthlySavings: 1500, target: 1.5e6, superBalance: 60000, takeHomeMonthly: 6500, savingsType: 'cash' },
+    { age: 45, savings: 300000, monthlySavings: 2500, target: 1.4e6, superBalance: 400000, takeHomeMonthly: 8000, savingsType: 'etfs' },
+    { age: 28, savings: 5000, monthlySavings: 600, target: 1.1e6, superBalance: 25000, takeHomeMonthly: 4800 },
+  ];
+  for (const p of people) {
+    const base = E.freedomPlan(p);
+    assert.equal(E.freedomPlanWithChange(p, {}).months, base.months, 'empty change');
+    // Two years "on" the usual saving and pay: walking it month by month must land on the same date.
+    const gross = X.estimateGrossFromNet(p.takeHomeMonthly * 12);
+    const same = E.freedomPlanWithChange(p, { start: 6, end: 30, during: { monthlySavings: p.monthlySavings, grossIncome: gross } });
+    assert.ok(Math.abs(same.months - base.months) <= 1, `same flows: ${same.months} vs ${base.months}`);
+  }
+});
+
+test('freedomPlanWithChange: a change after the date makes no difference; a lasting change from today is just the new plan', () => {
+  const p = { age: 45, savings: 300000, monthlySavings: 2500, target: 1.4e6, superBalance: 400000, takeHomeMonthly: 8000, savingsType: 'etfs' };
+  const base = E.freedomPlan(p);
+  const late = E.freedomPlanWithChange(p, { start: base.months + 12, end: base.months + 24, during: { monthlySavings: -3000, grossIncome: 0 } });
+  assert.equal(late.months, base.months);
+  const after = { monthlySavings: 1200, takeHomeMonthly: 6700 };
+  assert.equal(E.freedomPlanWithChange(p, { start: 0, end: null, after }).months, E.freedomPlan(Object.assign({}, p, after)).months);
+});
+
+test('freedomPlanWithChange: an unpaid break moves the date later, a longer break more, and savings running out is flagged', () => {
+  const p = { age: 32, savings: 60000, monthlySavings: 1500, target: 1.5e6, superBalance: 60000, takeHomeMonthly: 6500, savingsType: 'etfs' };
+  const base = E.freedomPlan(p);
+  const brk = len => E.freedomPlanWithChange(p, { start: 24, end: 24 + len, during: { monthlySavings: -(6500 - 1500), grossIncome: 0 } });
+  const six = brk(6), twelve = brk(12);
+  assert.ok(six.months > base.months && twelve.months > six.months, `${base.months} < ${six.months} < ${twelve.months}`);
+  const long = E.freedomPlanWithChange(p, { start: 0, end: 60, during: { monthlySavings: -(6500 - 1500), grossIncome: 0 } });
+  assert.equal(long.short, true);
+});

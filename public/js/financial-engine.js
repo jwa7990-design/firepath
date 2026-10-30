@@ -840,6 +840,60 @@ window.FirePathEngine = (function () {
     return null;
   }
 
+  // The freedom date with a change for a while (a career break, part-time, a new job): the
+  // same plan as the headline, walked month by month like coastPoint. Up to change.start
+  // (months from now) everything runs as usual; from then until change.end the saving and
+  // pay in change.during apply; after change.end (or from change.start, when end is null:
+  // a lasting change) the plan carries on with change.after. Balances grow exactly as in
+  // walkPlan; from each month in the change, and from its end, freedomPlan says whether and
+  // when you're free. Adds nothing to the headline: with no change it gives the same date.
+  //   change: { start, end, during: { monthlySavings, grossIncome }, after: { monthlySavings, takeHomeMonthly, grossIncome } }
+  //   Returns a freedomPlan-shaped result, plus short: true (and shortAt, the month) when
+  //   savings outside super would go below zero during the change.
+  function freedomPlanWithChange(inputs, change, opts) {
+    const base = freedomPlan(inputs, opts);
+    const n = planInputs(inputs);
+    const ch = change || {};
+    if (!n || !base.valid || n.age == null || n.retired) return base;
+    const S = Math.max(0, Math.round(ch.start || 0));
+    const E = ch.end == null ? S : Math.max(S, Math.round(ch.end));
+    // Free before the change starts: it makes no difference to the date.
+    if (base.months != null && base.months <= S) return Object.assign({}, base, { changeMatters: false });
+    const now = (opts && opts.now) || new Date();
+    const rO = monthlyRate(n.outsideReturn), rS = monthlyRate(SUPER_RETURN);
+    const pt = n.partner && n.partner.age != null ? n.partner : null;
+    let out = n.savings, own = n.superBalance || 0, ptBal = pt ? pt.superBalance || 0 : 0;
+    const sgUsual = sgNetMonthly(n.gross, n.employerSuperRate, n.ownSuperYear);
+    const dur = ch.during || {};
+    const sgDuring = Number.isFinite(dur.grossIncome) ? sgNetMonthly(Math.max(0, dur.grossIncome), n.employerSuperRate, n.ownSuperYear) : sgUsual;
+    const savDuring = Number.isFinite(dur.monthlySavings) ? dur.monthlySavings : n.monthlySavings;
+    const sgPt = pt ? sgNetMonthly(pt.grossIncome, pt.selfEmployed ? 0 : undefined) : 0;
+    const from = (m, extra) => freedomPlan(Object.assign({}, inputs, extra || {}, {
+      age: n.age + m / 12, savings: out, superBalance: own,
+      partner: pt ? Object.assign({}, inputs.partner, { superBalance: ptBal, age: pt.age + m / 12 }) : inputs.partner
+    }), { now });
+    const done = (months, p) => Object.assign({}, p || {}, {
+      valid: true, reachable: months != null, alreadyFree: months === 0, months, years: months == null ? null : months / 12,
+      freedomAge: months == null ? null : Math.round(n.age + months / 12), freedomAgeExact: months == null ? null : n.age + months / 12,
+      freedomYear: months == null ? null : new Date(now.getFullYear(), now.getMonth() + months, 1).getFullYear(), changeMatters: true
+    });
+    for (let m = 0; m < E; m++) {
+      if (m >= S) {
+        // Already free part-way through the change (e.g. a pay rise): stop there.
+        const p = from(m, { monthlySavings: Math.max(0, savDuring), grossIncome: Number.isFinite(dur.grossIncome) ? dur.grossIncome : undefined });
+        if (p.valid && p.alreadyFree) return done(m, p);
+      }
+      const inChange = m >= S;
+      out = out * (1 + rO) + (inChange ? savDuring : n.monthlySavings);
+      if (out < 0) return Object.assign(done(null, base), { reachable: false, short: true, shortAt: m + 1 });
+      own = Math.max(0, superGrow(own, rS) + (inChange ? sgDuring : sgUsual) - (own > 0 ? premiumMonthly(n, m, null) : 0));
+      if (pt) ptBal = superGrow(ptBal, rS) + sgPt;
+    }
+    const after = from(E, ch.after || {});
+    if (!after.valid) return after;
+    return done(after.months == null ? null : E + after.months, after);
+  }
+
   // The Age Pension's value from 67 for a number T: 25× the pension on the smallest amount of
   // your own money C with C + 25 × pension(C) ≥ T (0 if none). Spending down from more than C
   // raises the pension, so holding at least C is enough (see agePensionPlan).
@@ -1499,5 +1553,5 @@ window.FirePathEngine = (function () {
     };
   }
  
-  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, savingsNote, headlineNotes, retiredNote, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, CASH_REAL_RETURN, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, retireeTax, formatTimeSince, compareSnapshots };
+  return { fmtM, niceHours, monthlyRate, SUPER_RETURN, SUPER_EXTRA_FEES, SUPER_TAX_SHARE, PRESERVATION_AGE, PENSION_AGE, INCOME_YIELD, DEFAULT_MARGINAL_RATE, MC, simulateDrawdown, simulateTimeToTarget, projectPortfolio, solveMonthsToTarget, recommendNextStep, solveFreedomAge, freedomPlan, freedomRange, coastPoint, freedomPlanWithChange, agePensionPlan, cushionNote, agePensionLine, agedCareCosts, mortgageNote, noteFacts, savingsNote, headlineNotes, retiredNote, superGrow, DIV296, projectAccessible, planInputsFromProfile, outsideSuperReturn, frankingCredit, ausShareFor, CASH_REAL_RETURN, safeWithdrawalRate, computeFreedomPicture, pensionWithWork, retireeTax, formatTimeSince, compareSnapshots };
 })();

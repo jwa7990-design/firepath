@@ -7,10 +7,9 @@
  * compared with "keep going" on one timeline, in the order they were saved: never sorted,
  * ranked, highlighted or labelled best. General information, not a recommendation.
  *
- * How a change that starts later is counted (rough on purpose, and said so on the page):
- * its effect on savings and super, month by month, is moved to today at the plan's own
- * return, then the plan runs as usual. Spending and the freedom number stay the same.
- * A change that lasts (a new job, part-time ongoing) changes the monthly saving from then on.
+ * The maths: FirePathEngine.freedomPlanWithChange walks the same plan as the headline month
+ * by month (savings, super with its contributions, tax on pay worked out again), applying the
+ * change only while it lasts. Spending and the freedom number stay the same.
  */
 window.FirePathLife = (function () {
   const KEY = 'fp_life_scenarios';
@@ -36,72 +35,56 @@ window.FirePathLife = (function () {
       { age: b.age, savings: b.savings, monthlySavings: Math.max(0, b.sav), target: b.target, annualSpend: undefined,
         superBalance: b.superBal, takeHomeMonthly: b.th, grossIncome: undefined });
   }
-  // Take-home at d days a week: gross scaled by days, tax worked out again (tax-engine.js).
-  function takeHomeAtDays(th, days) {
-    if (typeof estimateGrossFromNet === 'function' && typeof calculateTax === 'function') {
-      try { const t = calculateTax(estimateGrossFromNet(th * 12) * days / 5); if (t && t.takeHome > 0) return t.takeHome / 12; } catch (e) { /* fall through */ }
-    }
-    return th * days / 5;
+  // Usual gross pay from take-home, and take-home on a given gross (tax-engine.js), so pay
+  // during leave or at fewer days has its tax worked out again rather than scaled.
+  function grossOf(th) { try { return typeof estimateGrossFromNet === 'function' ? estimateGrossFromNet(th * 12) : th * 12 * 1.3; } catch (e) { return th * 12 * 1.3; } }
+  function takeHomeOf(gross) {
+    if (!(gross > 0)) return 0;
+    try { const t = typeof calculateTax === 'function' ? calculateTax(gross) : null; if (t && t.takeHome >= 0) return t.takeHome / 12; } catch (e) { /* fall through */ }
+    return gross / 12 * 0.77;
   }
-  // Employer super a month (after the 15% contributions tax) on a given monthly take-home.
-  function superMonthly(th) {
-    const rate = typeof FP_ASSUMPTIONS !== 'undefined' && FP_ASSUMPTIONS.sgRate > 0 ? FP_ASSUMPTIONS.sgRate : 0.12;
-    if (!(th > 0) || typeof estimateGrossFromNet !== 'function') return 0;
-    try { return estimateGrossFromNet(th * 12) * rate * 0.85 / 12; } catch (e) { return 0; }
-  }
-  // Today's value of $1 a month for `len` months, starting `start` months from now.
-  function pv(mr, start, len) { let t = 0; for (let k = start; k < start + len; k++) t += 1 / Math.pow(1 + mr, k); return t; }
+  const yrs = y => `${y} year${y === 1 ? '' : 's'}`;
 
-  // A scenario → { plan, note } or { error }. s: { kind, startYears, months, payPct, days, ongoing, newTh }
+  // A scenario → { plan, note } or { error, note }. s: { kind, startYears, months, payPct, days, ongoing, newTh }
+  // Walked month by month on the same plan as the headline (FirePathEngine.freedomPlanWithChange):
+  // usual saving until the change, the change's saving and super while it lasts, then back to
+  // usual (or the new normal, for a lasting change). Spending and the freedom number stay the same.
   function run(b, s) {
     const E = window.FirePathEngine;
-    if (!E || !E.freedomPlan) return { error: 'The calculator didn’t load. Try refreshing the page.' };
+    if (!E || !E.freedomPlanWithChange) return { error: 'The calculator didn’t load. Try refreshing the page.' };
     const base = basePlanInputs(b);
-    const ref = E.freedomPlan(Object.assign({}, base, { safeRate: false }));
-    if (!ref.valid) return { error: 'Check the numbers above.' };
-    const r = Number.isFinite(ref.outsideReturn) ? ref.outsideReturn : 0.05;
-    const mr = Math.pow(1 + r, 1 / 12) - 1;
     const S = Math.round((s.startYears || 0) * 12);
-    let savings = b.savings, superBal = b.superBal, monthly = Math.max(0, b.sav), th = b.th, note = '';
-    // Can savings carry it? What's built up by the start (no growth counted) against the gap
-    // between spending and pay while the change lasts.
-    const spend = Math.max(0, b.th - b.sav), savedByStart = b.savings + Math.max(0, b.sav) * S;
-    let need = 0;
+    const gross = grossOf(b.th), spend = Math.max(0, b.th - b.sav);
+    const when = S ? `starting in ${yrs(s.startYears)}` : 'starting now';
+    let change, note;
     if (s.kind === 'break') {
       const D = Math.max(1, Math.round(s.months || 0)), p = Math.min(1, Math.max(0, (s.payPct || 0) / 100));
-      const lostPay = (1 - p) * b.th;   // spending carries on, so lost pay comes out of saving (or savings)
-      need = Math.max(0, spend - p * b.th) * D;
-      savings -= lostPay * pv(mr, S, D);
-      superBal -= superMonthly(b.th) * (1 - p) * pv(mr, S, D);
-      note = `A ${D}-month break ${S ? `in ${s.startYears} year${s.startYears === 1 ? '' : 's'}` : 'starting now'}${p > 0 ? ` on ${Math.round(p * 100)}% pay` : ', unpaid'}: about ${money(lostPay * D)} less pay over the break, with spending unchanged.`;
+      const thDuring = takeHomeOf(gross * p);
+      change = { start: S, end: S + D, during: { monthlySavings: thDuring - spend, grossIncome: gross * p } };
+      note = `A ${D}-month break, ${when}, ${p > 0 ? `on ${Math.round(p * 100)}% of usual pay` : 'unpaid'}: take-home about ${money(b.th - thDuring)} a month lower while it lasts, with spending unchanged.`;
     } else if (s.kind === 'parttime') {
-      const days = Math.min(4.5, Math.max(1, s.days || 4)), thD = takeHomeAtDays(b.th, days), drop = b.th - thD;
-      const sgDrop = superMonthly(b.th) - superMonthly(thD);
+      const days = Math.min(4.5, Math.max(1, s.days || 4)), gD = gross * days / 5, thD = takeHomeOf(gD);
       if (s.ongoing) {
-        // From the start date on: less saved each month. Before it, the old saving still goes in.
-        savings += drop * pv(mr, 0, S); superBal += sgDrop * pv(mr, 0, S);
-        monthly = Math.max(0, b.sav - drop); th = thD;
-        note = `${days} days a week${S ? `, starting in ${s.startYears} year${s.startYears === 1 ? '' : 's'}` : ' from now'}, ongoing: take-home about ${money(drop)} a month lower.`
-          + (b.sav - drop < 0 ? ' That’s more than you save now, so this assumes spending comes down to match.' : '');
+        change = { start: S, end: null, after: { monthlySavings: Math.max(0, thD - spend), takeHomeMonthly: thD, grossIncome: gD } };
+        note = `${days} days a week, ${when}, ongoing: take-home about ${money(b.th - thD)} a month lower.`
+          + (thD < spend ? ' That’s less than you spend now, so this assumes spending comes down to match.' : '');
       } else {
         const D = Math.max(1, Math.round(s.months || 0));
-        need = Math.max(0, spend - thD) * D;
-        savings -= drop * pv(mr, S, D); superBal -= sgDrop * pv(mr, S, D);
-        note = `${days} days a week for ${D >= 12 && D % 12 === 0 ? `${D / 12} year${D === 12 ? '' : 's'}` : `${D} months`}${S ? `, starting in ${s.startYears} year${s.startYears === 1 ? '' : 's'}` : ', starting now'}: take-home about ${money(drop)} a month lower while it lasts.`;
+        change = { start: S, end: S + D, during: { monthlySavings: thD - spend, grossIncome: gD } };
+        note = `${days} days a week for ${D >= 12 && D % 12 === 0 ? yrs(D / 12) : `${D} months`}, ${when}: take-home about ${money(b.th - thD)} a month lower while it lasts.`;
       }
-    } else if (s.kind === 'job') {
-      const newTh = Math.max(0, s.newTh || 0), delta = newTh - b.th;
-      savings -= delta * pv(mr, 0, S);   // before the move, the old pay carries on
-      superBal -= (superMonthly(newTh) - superMonthly(b.th)) * pv(mr, 0, S);
-      monthly = Math.max(0, b.sav + delta); th = newTh;
-      note = `A job paying ${money(newTh)} a month take-home${S ? `, starting in ${s.startYears} year${s.startYears === 1 ? '' : 's'}` : ', starting now'}, with spending unchanged.`
-        + (b.sav + delta < 0 ? ' That’s less than you spend now, so this assumes spending comes down to match.' : '');
+    } else {
+      const newTh = Math.max(0, s.newTh || 0);
+      change = { start: S, end: null, after: { monthlySavings: Math.max(0, newTh - spend), takeHomeMonthly: newTh, grossIncome: grossOf(newTh) } };
+      note = `A job paying ${money(newTh)} a month take-home, ${when}, with spending unchanged.`
+        + (newTh < spend ? ' That’s less than you spend now, so this assumes spending comes down to match.' : '');
     }
-    if (need > savedByStart) return { error: `On these numbers, the change needs about ${money(need)} from savings, more than you’d have by then.`, note };
-    // A change later on can push today's equivalent below zero; that's fine here (it's only the
-    // change moved to today's dollars), as long as savings can carry it when it happens.
-    const plan = E.freedomPlan(Object.assign({}, base, { savings, superBalance: Math.max(0, superBal), monthlySavings: monthly, takeHomeMonthly: th }));
-    return plan.valid ? { plan, note } : { error: 'Those numbers don’t add up. Try a smaller change.', note };
+    let plan;
+    try { plan = E.freedomPlanWithChange(base, change); } catch (e) { plan = null; }
+    if (!plan || !plan.valid) return { error: 'Check the numbers above.', note };
+    if (plan.short) return { error: `On these numbers, savings would run out about ${Math.max(1, plan.shortAt - S)} month${plan.shortAt - S === 1 ? '' : 's'} into the change.`, note };
+    if (plan.changeMatters === false) note += ' On these numbers you’d reach your number before it starts, so the date doesn’t change.';
+    return { plan, note };
   }
 
   const yearOf = p => p.alreadyFree ? 'Now' : String(p.freedomYear);
