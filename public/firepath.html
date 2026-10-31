@@ -406,9 +406,11 @@
   .move-links .text-link { font-size: 15.5px; }
 
   /* A gentle staggered fade-in when the result appears */
-  @keyframes fpRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  .rv.rv-in { animation: fpRise 0.5s var(--ease) both; animation-delay: calc(var(--i, 0) * 90ms); }
-  @media (prefers-reduced-motion: reduce) { .rv.rv-in { animation: none; } .fp-calc input[type="range"]::-webkit-slider-thumb, .text-link { transition: none; } }
+  @keyframes fpRise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+  .rv.rv-wait { opacity: 0; }
+  @media print { .rv.rv-wait { opacity: 1; } }
+  .rv.rv-in { animation: fpRise 1s var(--ease) both; animation-delay: calc(var(--i, 0) * 140ms); }
+  @media (prefers-reduced-motion: reduce) { .rv.rv-in { animation: none; } .rv.rv-wait { opacity: 1; } .fp-calc input[type="range"]::-webkit-slider-thumb, .text-link { transition: none; } }
     /* Options aren't numbered (they're areas to research, not steps): a small ember dot instead */
   .move-num.is-dot::before { content: ''; display: block; width: 8px; height: 8px; margin-top: 9px; border-radius: 50%; background: var(--ember-ink); }
 </style>
@@ -1376,14 +1378,30 @@
     }).catch(() => {});
   }
 
+  let _rvIO = null;   // the results sections still waiting to be scrolled to
   function showScreen(n) {
     if (n === 3) {
       document.getElementById('builder').hidden = true;
       document.getElementById('screen3').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'auto' });
-      // Gentle staggered fade-in (CSS turns it off under prefers-reduced-motion).
+      // Gentle fade-in (CSS turns it off under prefers-reduced-motion): what's on screen
+      // eases in now, staggered; the rest waits until it's scrolled well into view.
       const secs = Array.from(document.querySelectorAll('#results-body .rv')).filter(el => !el.hidden && el.style.display !== 'none');
-      secs.forEach((el, i) => { el.classList.remove('rv-in'); el.style.setProperty('--i', i); void el.offsetWidth; el.classList.add('rv-in'); });
+      const play = (el, i) => { el.classList.remove('rv-in', 'rv-wait'); el.style.setProperty('--i', i); void el.offsetWidth; el.classList.add('rv-in'); };
+      if (_rvIO) _rvIO.disconnect();
+      const below = 'IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let first = 0;
+      secs.forEach(el => {
+        if (!below || el.getBoundingClientRect().top < window.innerHeight * 0.85) play(el, first++);
+        else { el.classList.remove('rv-in'); el.classList.add('rv-wait'); }
+      });
+      if (below) {
+        _rvIO = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { _rvIO.unobserve(e.target); play(e.target, 0); } }), { rootMargin: '0px 0px -18% 0px' });
+        secs.filter(el => el.classList.contains('rv-wait')).forEach(el => _rvIO.observe(el));
+        // A short last section can't reach 18% up the screen: at the very bottom, show the rest.
+        const atEnd = () => { if (innerHeight + scrollY < document.documentElement.scrollHeight - 4) return; removeEventListener('scroll', atEnd); secs.filter(el => el.classList.contains('rv-wait')).forEach(el => { _rvIO.unobserve(el); play(el, 0); }); };
+        addEventListener('scroll', atEnd, { passive: true });
+      }
       const h = document.getElementById('answerHeadline');
       if (h) h.focus({ preventScroll: true });
     } else {

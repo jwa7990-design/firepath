@@ -252,13 +252,13 @@
         if (!entry.isIntersecting) return;
         const el = entry.target;
         io.unobserve(el);
-        el.style.setProperty('--fp-delay', Math.min(batch++, 4) * 70 + 'ms');   // gentle stagger within one scroll
+        el.style.setProperty('--fp-delay', Math.min(batch++, 4) * 120 + 'ms');   // gentle stagger within one scroll
         el.classList.add('fp-shown');
         // Hand the element back to its own styles (hover lifts etc.) once it has arrived.
-        setTimeout(() => { el.classList.remove('fp-pending', 'fp-shown'); el.style.removeProperty('--fp-delay'); }, 1100);
+        setTimeout(() => { el.classList.remove('fp-pending', 'fp-shown'); el.style.removeProperty('--fp-delay'); }, 1900);
       });
       clearTimeout(batchTimer); batchTimer = setTimeout(() => { batch = 0; }, 120);
-    }, { rootMargin: '0px 0px -8% 0px' });
+    }, { rootMargin: '0px 0px -18% 0px' });
     targets.forEach(el => { el.classList.add('fp-pending'); io.observe(el); });
   }
 
