@@ -10,6 +10,7 @@ import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
 import MiniPath from '../../components/MiniPath.astro';
 import { ARTICLES, relatedTo, shelfOf, type Article } from '../../lib/learn';
+import DATES from '../../data/content-dates.json';
 import '../../styles/doc.css';
 import '../../styles/article-page.css';
 
@@ -43,8 +44,12 @@ for (const r of relatedTo(a, 6)) {
   if (!keep.some(k => k.href === `/learn/${r.slug}`)) keep.push({ href: `/learn/${r.slug}`, title: r.heading, meta: `${r.badge} · ${r.readMins} min read` });
 }
 const related = keep.slice(0, 3);
+// First published and last changed (scripts/content-dates.cjs, from git).
+const dated = (DATES as Record<string, { published: string; modified: string }>)[`/learn/${a.slug}`];
+const updatedText = dated ? new Date(dated.modified + 'T00:00:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
 const schema = {
   '@context': 'https://schema.org', '@type': 'Article',
+  ...(dated ? { datePublished: dated.published, dateModified: dated.modified } : {}),
   headline: a.heading, description: a.description,
   mainEntityOfPage: `https://www.firepath.pro/learn/${a.slug}`,
   author: { '@type': 'Organization', name: 'FirePath', url: 'https://www.firepath.pro' },
@@ -75,7 +80,7 @@ const breadcrumbs = {
         </div>
         <h1 class="hp-h1 art-title">{a.heading}</h1>
         <p class="hp-lead">{a.sub || a.description}</p>
-        <p class="doc-meta-line art-meta"><span class="hp-mark" aria-hidden="true"></span>Educational, not advice</p>
+        <p class="doc-meta-line art-meta"><span class="hp-mark" aria-hidden="true"></span><span>Educational, not advice{updatedText && <span class="art-updated"><span aria-hidden="true"> · </span>Updated <time datetime={dated!.modified}>{updatedText}</time></span>}</span></p>
       </div>
     </header>
 

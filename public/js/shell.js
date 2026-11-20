@@ -30,7 +30,9 @@
 (function () {
   const script = document.currentScript;
   const root = script ? script.src.replace(/js\/shell\.js(\?.*)?$/, '') : '/';
-  const url = path => root + path;
+  // Clean addresses (/firepath, /learn/), the ones the site serves, so links never hop through a redirect.
+  const clean = path => path.replace(/(^|\/)index\.html(?=$|[?#])/, '$1').replace(/\.html(?=$|[?#])/, '');
+  const url = path => root + clean(path);
   const body = document.body;
   let kind = body.getAttribute('data-shell');
   if (!kind) return;
@@ -211,6 +213,13 @@
       <li><a href="${url('pricing.html')}">Pricing</a></li>
       <li><a href="${url('auth.html')}">Sign in</a></li>
     </ul></div>
+    <div class="site-footer-col"><h4>Free tools</h4><ul>
+      <li><a href="${url('retirement-age-calculator')}">Retirement age calculator</a></li>
+      <li><a href="${url('hearmeout.html')}">What if…?</a></li>
+      <li><a href="${url('withdrawal.html')}">Will my money last?</a></li>
+      <li><a href="${url('freedom-gap.html')}">Freedom gap</a></li>
+      <li><a href="${url('compound.html')}">Compound interest</a></li>
+    </ul></div>
     <div class="site-footer-col"><h4>Learn</h4><ul>
       <li><a href="${url('learn/index.html')}">Learning Lab</a></li>
       <li><a href="${url('learn/what-is-fire-australia.html')}">What is FIRE?</a></li>
@@ -227,6 +236,7 @@
   </div>
 </footer>`;
     const addFooter = () => {
+      if (document.querySelector('.site-footer')) return;   // already in the page's HTML (src/components/SiteFooter.astro)
       const slot = document.querySelector('[data-site-footer]');
       if (slot) slot.outerHTML = footer; else body.insertAdjacentHTML('beforeend', footer);
     };

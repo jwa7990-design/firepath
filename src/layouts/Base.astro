@@ -4,6 +4,8 @@
  * tokens) and the body attributes js/shell.js reads to draw the navigation.
  * Pages still in public/ carry their own copy of this; new pages use this one.
  */
+import SiteFooter from '../components/SiteFooter.astro';
+
 interface Props {
   title: string;
   description?: string;
@@ -86,5 +88,6 @@ const crumbs = noindex || !parts.length || ownCrumbs ? null : {
 <body class={shell} data-shell={shell} data-active={active} data-footer={footer ? undefined : 'none'}>
 <script is:inline src="/js/shell.js"></script>
 <slot/>
+{footer && shell === 'site' && <SiteFooter/>}
 </body>
 </html>

@@ -547,7 +547,7 @@
 <main class="tl hp pr" id="main">
 
   <div class="hp-wrap pr-top">
-    <a href="journey.html" class="tl-back">← Your Path</a>
+    <a href="/journey" class="tl-back">← Your Path</a>
     <div id="userStatus" class="pro-user"></div>
   </div>
 
@@ -860,7 +860,7 @@
                   </div>
 
                   <button class="cta-btn" id="analyseBtn" onclick="analyse()">Find my freedom date</button>
-                  <p class="ob-privacy">Your numbers are saved securely to your account. We never sell your data. <a href="privacy.html">Privacy Policy</a></p>
+                  <p class="ob-privacy">Your numbers are saved securely to your account. We never sell your data. <a href="/privacy">Privacy Policy</a></p>
                 </div>
               </div>
             </div>
@@ -1015,7 +1015,7 @@
           <h2 class="pr-sec-title">Your projected range</h2>
           <div class="pro-card-sub">How the date changes under different return assumptions.</div>
           <div id="rangeRows"></div>
-          <p class="pr-fine">We assume investments grow 7% a year after inflation, a common long-run figure. Some years will be better, some worse. <a href="assumptions.html">How we calculate →</a></p>
+          <p class="pr-fine">We assume investments grow 7% a year after inflation, a common long-run figure. Some years will be better, some worse. <a href="/assumptions">How we calculate →</a></p>
         </div>
 
         <div id="lifeUnlockedCard" style="display:none;">
@@ -1035,12 +1035,12 @@
           <div class="pro-card-sub" id="recommendedReason"></div>
           <div class="recommended-actions">
             <div id="recommendedBtn" class="pr-btn" role="button" tabindex="0">Read this article →</div>
-            <div class="pr-link" role="button" tabindex="0" onclick="window.location.href='learning_lab.html'">Browse all topics →</div>
+            <div class="pr-link" role="button" tabindex="0" onclick="window.location.href='/learning_lab'">Browse all topics →</div>
           </div>
         </div>
         <div class="pr-next-legal">
           <p class="disclaimer">FirePath is an educational tool. We don't provide financial advice.<br/>Projections are illustrative only based on your inputs.</p>
-          <p class="result-links"><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a> · <a href="faq.html">FAQ</a> · <a href="assumptions.html">How we calculate →</a></p>
+          <p class="result-links"><a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms of Service</a> · <a href="/faq">FAQ</a> · <a href="/assumptions">How we calculate →</a></p>
         </div>
       </div>
     </section>
@@ -1354,7 +1354,7 @@
   document.addEventListener('DOMContentLoaded', async function(){
     const token = getToken();
     const userId = getUserId();
-    if(!token || !userId){ window.location.href='auth.html'; return; }
+    if(!token || !userId){ window.location.href='/auth'; return; }
     if (!(await requirePro())) return;   // accounts are part of Pro
     fpToken = token;
     fpUserId = userId;
@@ -1365,7 +1365,7 @@
     if (up.get('edit') === 'true') { const back = document.querySelector('.pr-top .tl-back'); if (back) { back.href = 'money.html'; back.textContent = '← Money'; } }
     const uel=document.getElementById('userStatus');
     if(localStorage.getItem('fp_email')){uel.textContent=`Signed in as ${localStorage.getItem('fp_email')}`;}
-    else if(fpGuest){uel.innerHTML=`Guest mode · <a href="auth.html" class="pr-ink">Sign in to save progress</a>`;}
+    else if(fpGuest){uel.innerHTML=`Guest mode · <a href="/auth" class="pr-ink">Sign in to save progress</a>`;}
     if(FirePathPersona.hasChosen()){ const pb=document.getElementById('ob-persona-btn'); if(pb) pb.disabled=false; }
 
     // Now that we actually know the state, reveal the right screen and hide the loader —
@@ -1473,7 +1473,7 @@
     document.querySelectorAll('.rtab-content').forEach(p => p.style.display='none');
     document.getElementById('rtab-'+tab).style.display='block';
   }
-  function switchTab(tab) { if(tab==='accountability'){ window.location.href='progress.html'; } }
+  function switchTab(tab) { if(tab==='accountability'){ window.location.href='/progress'; } }
   function switchNeedleTab(tab,btn){document.querySelectorAll('.needle-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.needle-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('needle-'+tab).classList.add('active');}
 
   // ── Cached-insight home screen support ──
@@ -2493,7 +2493,7 @@ async function saveProfile() {
     const homeowner = !/rent/i.test(housingStatus || '');
     const notes = plan && plan.valid && pi ? FirePathEngine.headlineNotes(pi, plan, { homeowner, rentFortnight: rentFortnight(), consumerDebt: calcData.debt || 0 }) : null;
     if (window.FirePathDateNote) FirePathDateNote.render(document.getElementById('proNote'), notes, { actions: {
-      savings: { inline: 'Invested in shares? <a href="firepath_pro.html?edit=true">Update →</a>', more: 'A high-interest account keeps your money steady and has roughly kept pace with prices; shares have grown faster over long periods, with ups and downs along the way. Areas you could research further: <a href="/learn/difference-saving-investing">saving vs investing</a> · <a href="/learn/what-is-an-index-fund">what an index fund is</a>' } } });
+      savings: { inline: 'Invested in shares? <a href="/firepath_pro?edit=true">Update →</a>', more: 'A high-interest account keeps your money steady and has roughly kept pace with prices; shares have grown faster over long periods, with ups and downs along the way. Areas you could research further: <a href="/learn/difference-saving-investing">saving vs investing</a> · <a href="/learn/what-is-an-index-fund">what an index fund is</a>' } } });
   }
 
   // Transfer balance cap: each person can move up to the cap (in today's dollars, as it's
@@ -2693,7 +2693,7 @@ async function saveProfile() {
       document.getElementById('freedomAgeOut').textContent = freedomAge || '—';
       const inflEl = document.getElementById('inflationNote');
       inflEl.style.display = '';
-      inflEl.innerHTML = `Future dollars at ${(INFLATION * 100).toFixed(1).replace(/\.0$/, '')}% inflation. In today's dollars that's <strong>${fmtM(fireNum)}</strong>. <a href="assumptions.html" class="pr-ink">How we calculate →</a>`;
+      inflEl.innerHTML = `Future dollars at ${(INFLATION * 100).toFixed(1).replace(/\.0$/, '')}% inflation. In today's dollars that's <strong>${fmtM(fireNum)}</strong>. <a href="/assumptions" class="pr-ink">How we calculate →</a>`;
       document.getElementById('stat2label').innerHTML = `Freedom number <span class="pr-diff">(future $)</span>`;
     } else {
       document.getElementById('fireNumberOut').textContent = fmtM(fireNum);
@@ -2824,13 +2824,13 @@ async function saveProfile() {
     const steps = [];
     steps.push(`<div class="pr-step"><div><div class="pr-step-title">Know ${your} number</div><div class="pr-step-sub">${your.charAt(0).toUpperCase() + your.slice(1)} freedom number is ${fmtM(fireNum)}. That's the foundation everything else builds on.</div></div></div>`);
     if (!alreadyFree) { steps.push(`<div onclick="document.getElementById('needleCard').scrollIntoView({behavior:'smooth',block:'start'})" class="pr-step"><div><div class="pr-step-title">See what moves ${your} date</div><div class="pr-step-sub">Scroll down to see what each change does to ${your} freedom year, in real numbers.</div></div></div>`); }
-    if (persona === 'beginner' || persona === 'building') { steps.push(`<div onclick="window.location.href='learning_lab.html';" class="pr-step"><div><div class="pr-step-title">${persona === 'beginner' ? 'Understand the basics' : 'Go deeper on the concepts'}</div><div class="pr-step-sub">${persona === 'beginner' ? 'The Learning Lab explains how this all works — in plain language, no jargon.' : 'The Learning Lab covers compounding, ETFs, super, and the 4% rule — in your language.'}</div></div></div>`); }
+    if (persona === 'beginner' || persona === 'building') { steps.push(`<div onclick="window.location.href='/learning_lab';" class="pr-step"><div><div class="pr-step-title">${persona === 'beginner' ? 'Understand the basics' : 'Go deeper on the concepts'}</div><div class="pr-step-sub">${persona === 'beginner' ? 'The Learning Lab explains how this all works — in plain language, no jargon.' : 'The Learning Lab covers compounding, ETFs, super, and the 4% rule — in your language.'}</div></div></div>`); }
     // A "what if" that fits: selling the house only for owners; renters get rent vs invest.
     const ownsHome = housingStatus && housingStatus !== 'renting';
     const whatIf = ownsHome
       ? { scenario: 'home', text: `What if ${you} sold the house? Got a lump sum? What if…? lets ${you} test the big moves.` }
       : { scenario: 'rentvest', text: `What if ${you} keep renting and invest the difference? Got a lump sum? What if…? lets ${you} test the big moves.` };
-    steps.push(`<div onclick="saveHMOData();window.location.href='hearmeout.html?scenario=${whatIf.scenario}';" class="pr-step"><div><div class="pr-step-title">Run a "what if"</div><div class="pr-step-sub">${whatIf.text}</div></div></div>`);
+    steps.push(`<div onclick="saveHMOData();window.location.href='/hearmeout?scenario=${whatIf.scenario}';" class="pr-step"><div><div class="pr-step-title">Run a "what if"</div><div class="pr-step-sub">${whatIf.text}</div></div></div>`);
     blocks.push(`<div class="pr-block"><div class="pr-block-title">${isPartner ? 'Things you could explore together' : 'Things you could explore'} </div><div class="pr-steps">${steps.join('')}</div></div>`);
     if (superBal > 0 && age && age < 60 && !alreadyFree) { blocks.push(`<div onclick="switchResultTab('super', document.getElementById('superTabBtn'))" class="pr-block"><div class="pr-block-title"> Your super</div><div class="pr-lead-body">${isPartner ? 'You two have' : 'You have'} ${fmtM(superBal)} compounding in the background. The Super tab shows how it fits ${your} freedom plan at 60. →</div></div>`); }
     el.innerHTML = blocks.join('');
